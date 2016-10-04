@@ -13,7 +13,11 @@ let path = require("path");
 
 let app = express();
 
-app.use(express.static(__dirname + '/../../web/'));
+//
+// Config serving static files.
+//
+
+app.use(express.static(__dirname + '/../../web'));
 
 //
 // Home page.
@@ -23,8 +27,11 @@ app.use('/', function(req, res) {
   res.sendFile('index.html');
 });
 
+//
+// Startup.
+//
+
 let server = app.listen(8080, 'localhost', function() {
   let addr = server.address();
-  console.log(addr);
   console.log('http://%s:%d', addr.address, addr.port);
 });
