@@ -8,26 +8,25 @@ export default class NativeApp extends Component {
   constructor(props) {
     super(props);
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-    let results = [];
-    for (let i=0; i < 10; i++) {
-        results.push(""+i);
-    }
     this.state = { 
       text: 'Search',
-      dataSource: ds.cloneWithRows(results)
+      dataSource: ds
     };
+
+    this.results().then((items) => {
+       this.setState({dataSource: ds.cloneWithRows(items)});
+    });
   }
 
-  onUpdate(text) {
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-    let results = [];
-    for (let i=0; i < 10; i++) {
-        results.push(""+i);
-    }
-    this.setState({
-      text: text,
-      dataSoruce: ds.cloneWithRows(results)
-    });
+  results() {
+    return fetch('http://10.0.3.2:8080/data/test.json')
+      .then((response) => response.json())
+      .then((responseJson) => {
+        return responseJson.items.map((result) => result.title);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   render() {
@@ -35,7 +34,7 @@ export default class NativeApp extends Component {
       <View style={{paddingTop: 22}}>
         <TextInput
           style={{height: 40, borderColor: 'gray', borderWidth: 1}}
-          onChangeText={(text) => this.onUpdate(text)}
+          onChangeText={(text) => this.setSet({"text": text})}
           value={this.state.text}
         />
         <View style={{paddingTop: 22}}>
