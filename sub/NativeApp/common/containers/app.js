@@ -34,7 +34,7 @@ export default class NativeApp extends Component {
       <View style={{paddingTop: 22}}>
         <TextInput
           style={{height: 40, borderColor: 'gray', borderWidth: 1}}
-          onChangeText={(text) => this.setSet({"text": text})}
+          onChangeText={(text) => this.setState({"text": text})}
           value={this.state.text}
         />
         <View style={{paddingTop: 22}}>
