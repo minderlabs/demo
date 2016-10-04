@@ -24,3 +24,6 @@ React Demos
 - GraphQL client/server query
 - Reindex backend store
 
+## Connecting Genymotion emulator to localhost
+When running a local server on your machine, to point to the correct ip address
+on the genymotion emulator, go to 10.0.3.2 instead.

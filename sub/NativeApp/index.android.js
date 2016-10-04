@@ -5,6 +5,6 @@
  */
 
 import React, {AppRegistry} from 'react-native';
-import NativeApp from './common/containers/app';
+import NativeApp from './common/components/app';
 
 AppRegistry.registerComponent('NativeApp', () => NativeApp);
