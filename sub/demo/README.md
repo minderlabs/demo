@@ -1,0 +1,44 @@
+# Web Demo
+
+## Gettting started
+
+~~~~
+    npm update
+
+    npm run build
+    npm run start
+~~~~
+
+
+## Running the server
+
+~~~~
+    npm webpack
+    npm run server
+~~~~
+
+
+## Running Android
+
+- Create/start Genymotion virtual device.
+
+~~~~
+    adb devices
+    react-native run-android
+~~~~
+
+- NOTE: access localhost from the Genymotion virtual machine: http://10.0.3.2
+- Press R-R to refresh app
+
+
+## Refs
+
+- Getting started guide:
+  - https://www.codementor.io/reactjs/tutorial/beginner-guide-setup-reactjs-environment-npm-babel-6-webpack
+
+- Common code across web and native components:
+  - http://jkaufman.io/react-web-native-codesharing
+
+- To rename project:
+  - http://blog.skypayjm.com/2016/07/renaming-react-native-project.html
+  - AndroidManifest.xml
