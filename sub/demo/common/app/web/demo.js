@@ -12,9 +12,9 @@ import { ListView } from '../../components/web/list';
 import './demo.less';
 
 /**
- * Main App.
+ * App container.
  */
-export class App extends React.Component {
+export class DemoApp extends React.Component {
 
   constructor(props, context) {
     super(props, context);

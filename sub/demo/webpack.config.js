@@ -12,12 +12,11 @@ let ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 let BUILD_DIR = path.resolve(__dirname, 'server/assets');
 
-let APP_DIR = path.resolve(__dirname, 'web');
 let LIB_DIR = path.resolve(__dirname, 'common');
 
 let config = {
 
-  entry: APP_DIR + '/main.js',
+  entry: path.resolve(__dirname, 'index.web.js'),
 
   output: {
     path: BUILD_DIR,
@@ -45,8 +44,8 @@ let config = {
       {
         test: /\.js$/,
         include: [
-          APP_DIR,
-          LIB
+          path.resolve(__dirname, 'index.web.js'),
+          LIB_DIR
         ],
         loader: 'babel-loader',
         query: {
