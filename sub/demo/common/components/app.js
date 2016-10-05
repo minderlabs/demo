@@ -4,8 +4,10 @@
 
 'use strict';
 
+// TODO(burdon): Rename app.jsx (and configure babel).
+
 import React, { Component } from 'react';
-import { AppRegistry, TextInput, ListView, View , Text } from 'react-native';
+import { AppRegistry, TextInput, ListView, View, Text } from 'react-native';
 
 // NOTE(trey): Genymotion sets up a proxy to localhost on this ip address.
 const LOCALHOST = 'http://10.0.3.2:8080';
@@ -18,7 +20,7 @@ export default class DemoApp extends Component {
   constructor(props) {
     super(props);
 
-    // TODO(trey): Factor out to common/model.
+    // TODO(burdon): Factor out to common/model.
     // TODO(burdon): rowHasChanged should depend on item.id and item.version
     // https://facebook.github.io/react-native/docs/listviewdatasource.html
     const dataSource = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });

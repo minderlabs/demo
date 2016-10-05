@@ -4,7 +4,7 @@
 
 'use strict';
 
-import React, { AppRegistry } from 'react-native';
+import { AppRegistry } from 'react-native';
 
 import DemoApp from './common/components/app';
 
