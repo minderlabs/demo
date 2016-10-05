@@ -12,6 +12,8 @@ import { AppRegistry, TextInput, ListView, View, Text } from 'react-native';
 // NOTE(trey): Genymotion sets up a proxy to localhost on this ip address.
 const LOCALHOST = 'http://10.0.3.2:8080';
 
+const API = '/data/';
+
 /**
  * NativeApp
  */
@@ -26,7 +28,7 @@ export default class DemoApp extends Component {
     const dataSource = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
 
     this.state = {
-      text: 'Search',
+      text: '',
       dataSource: dataSource
     };
 
@@ -39,7 +41,7 @@ export default class DemoApp extends Component {
 
   handleUpdate() {
     // TODO(burdon): Move to common model class (with web app).
-    return fetch(LOCALHOST + '/data/test.json')
+    return fetch(LOCALHOST + API + 'test.json')
       .then((response) => response.json())
       .then((json) => {
         return json.items.map((item) => item.title);

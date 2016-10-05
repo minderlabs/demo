@@ -4,8 +4,8 @@
 
 'use strict';
 
-let webpack = require('webpack');
 let path = require('path');
+let webpack = require('webpack');
 
 // https://github.com/webpack/extract-text-webpack-plugin
 let ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -13,10 +13,11 @@ let ExtractTextPlugin = require('extract-text-webpack-plugin');
 let BUILD_DIR = path.resolve(__dirname, 'server/assets');
 
 let APP_DIR = path.resolve(__dirname, 'web');
+let LIB_DIR = path.resolve(__dirname, 'common');
 
 let config = {
 
-  entry: APP_DIR + '/main.jsx',
+  entry: APP_DIR + '/main.js',
 
   output: {
     path: BUILD_DIR,
@@ -42,8 +43,11 @@ let config = {
 
       // https://github.com/babel/babel-loader
       {
-        test: /\.jsx$/,
-        include : APP_DIR,
+        test: /\.js$/,
+        include: [
+          APP_DIR,
+          LIB
+        ],
         loader: 'babel-loader',
         query: {
           presets: ['es2015', 'react']

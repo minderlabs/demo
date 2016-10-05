@@ -31,6 +31,12 @@
 - Press R-R to refresh app
 
 
+## Notes
+
+- FB file extension standard for JSX is .js (.jsx doesn't work with the react native packager, and likely won't be supported).
+    - https://github.com/facebook/react-native/pull/5233#discussion_r49682279 
+
+
 ## Refs
 
 - Getting started guide:
