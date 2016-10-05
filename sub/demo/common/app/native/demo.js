@@ -6,7 +6,7 @@
 
 // TODO(burdon): Rename app.jsx (and configure babel).
 
-import React, { Component } from 'react';
+import React from 'react';
 import { AppRegistry, TextInput, ListView, View, Text } from 'react-native';
 
 // NOTE(trey): Genymotion sets up a proxy to localhost on this ip address.
@@ -17,7 +17,7 @@ const API = '/data/';
 /**
  * NativeApp
  */
-export default class DemoApp extends Component {
+export default class DemoApp extends React.Component {
 
   constructor(props) {
     super(props);
@@ -57,7 +57,7 @@ export default class DemoApp extends Component {
         />
 
         <ListView
-          dataSource={this.state.dataSource}
+          dataSource={ this.state.dataSource }
           renderRow={ (rowData) => <Text>{ rowData }</Text> }
         />
       </View>
