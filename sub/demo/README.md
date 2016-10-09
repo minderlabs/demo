@@ -17,6 +17,11 @@
     npm run server
 ~~~~
 
+Note that the server-side javascript is run through babel using babel-node, and then watched using nodemon.
+See https://github.com/babel/example-node-server
+
+TODO(madadam): Don't do this in production. See https://github.com/babel/example-node-server#getting-ready-for-production-use
+
 
 ## Running Android
 
