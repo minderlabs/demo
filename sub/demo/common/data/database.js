@@ -1,31 +1,14 @@
 'use strict;'
 
 export class User {}
-export class Item {}
 
-
-const user = new User();
-user.id = '1';
-
-// Test data.
-// TODO(madadam): Real database queries.
-const data = require('./test.json');
-const items = [];
-//const items = data['items'];
-
-(function() {
-  let item;
-  for (let i = 0; i < data['items'].length; i++) {
-    // FIXME wtf
-    let d = data['items'][i];
-    item = new Item();
-    item.id = d.id;
-    item.title = d.title;
-    item.version = d.version;
-    items.push(item);
+export class Item {
+  constructor(data) {
+    this.id = data.id;
+    this.title = data.title;
+    this.version = data.version;
   }
-
-})();
+}
 
 export class Database {
   static getUser(id) {
@@ -35,12 +18,41 @@ export class Database {
   }
 
   static getItem(id) {
-    console.log('LOOKING FOR ' + id); // FIXME
     return items.find(i => i.id === id);
   }
 
   static getItems() {
-    console.log('ITEMS: ' + JSON.stringify(items)); // FIXME
     return items;
   }
+
+  static newItem(data) {
+    if (!data.id) {
+      data.id = '' + (items.length + 1);
+    }
+    if (!data.version) {
+      data.version = 0;
+    }
+    const item = new Item(data);
+    items.push(item);
+    return item;
+  }
 }
+
+// Test data.
+// TODO(madadam): Real database queries.
+
+const user = new User();
+user.id = '1';
+
+const data = require('./test.json');
+const items = [];
+//const items = data['items'];
+
+(function() {
+  let item;
+  for (let i = 0; i < data['items'].length; i++) {
+    let d = data['items'][i];
+    Database.newItem(d);
+  }
+})();
+

@@ -1,3 +1,9 @@
+//
+// Copyright 2016 Alien Laboratories, Inc.
+//
+
+'use strict';
+
 import {
   GraphQLBoolean,
   GraphQLFloat,
@@ -27,9 +33,13 @@ import {
   Database
 } from './database';
 
+/**
+ * Relay Node interface. Maps objects to types, and global IDs to objects.
+ * https://facebook.github.io/relay/docs/tutorial.html
+ */
 let {nodeInterface, nodeField} = nodeDefinitions(
   (globalId) => {
-    var {type, id} = fromGlobalId(globalId);
+    const {type, id} = fromGlobalId(globalId);
     console.log('UNPACKED global ID ' + type + ' ' + id); // FIXME
     if (type === 'User') {
       return Database.getUser(id);
@@ -67,7 +77,7 @@ let userType = new GraphQLObjectType({
   interfaces: [nodeInterface]
 });
 
-var itemType = new GraphQLObjectType({
+const itemType = new GraphQLObjectType({
   name: 'Item',
   description: 'An item',
   fields: () => ({
@@ -89,10 +99,9 @@ var itemType = new GraphQLObjectType({
 let {connectionType: itemConnection} = connectionDefinitions({name: 'Item', nodeType: itemType});
 
 /**
- * This is the type that will be the root of our query,
- * and the entry point into our schema.
+ * Root query type.
  */
-let queryType = new GraphQLObjectType({
+const queryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
     node: nodeField,
@@ -107,6 +116,39 @@ let queryType = new GraphQLObjectType({
   })
 });
 
-export var Schema = new GraphQLSchema({
-  query: queryType
+// TODO(madadam): Upsert. This just creates a new item.
+
+const ItemMutation = mutationWithClientMutationId( {
+  name: 'ItemMutation',
+  inputFields: {
+    title: {
+      type: new GraphQLNonNull(GraphQLString)
+    }
+  },
+  outputFields: {
+    item: {
+      type: itemType,
+      resolve: (payload) => Database.getItem(payload.itemId)
+    }
+  },
+  mutateAndGetPayload: ({title}) => {
+    const item = Database.newItem({
+      title: title
+    });
+    return {
+      itemId: item.id
+    }
+  }
+});
+
+const mutationType = new GraphQLObjectType({
+  name: 'Mutation',
+  fields: () => ({
+    itemMutation: ItemMutation
+  })
+});
+
+export const Schema = new GraphQLSchema({
+  query: queryType,
+  mutation: mutationType
 });

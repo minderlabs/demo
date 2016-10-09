@@ -17,6 +17,9 @@
     npm run server
 ~~~~
 
+The [GraphiQL](https://github.com/graphql/graphiql) (interactive GraphQL) interface is exposed at
+http://localhost:8080/graphql
+
 Note that the server-side javascript is run through babel using babel-node, and then watched using nodemon.
 See https://github.com/babel/example-node-server
 
