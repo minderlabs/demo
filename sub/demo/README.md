@@ -50,6 +50,9 @@ TODO(madadam): Don't do this in production. See https://github.com/babel/example
 - Getting started guide:
   - https://www.codementor.io/reactjs/tutorial/beginner-guide-setup-reactjs-environment-npm-babel-6-webpack
 
+- React developer tools:
+  - https://facebook.github.io/react/blog/2015/09/02/new-react-developer-tools.html
+
 - Common code across web and native components:
   - http://jkaufman.io/react-web-native-codesharing
 

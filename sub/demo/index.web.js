@@ -4,18 +4,18 @@
 
 'use strict';
 
+import 'babel-polyfill';
+
 import React from 'react';
 import Relay from 'react-relay';
-import { render } from 'react-dom';
+import ReactDOM from 'react-dom';
 
-import { App } from './common/app/web/app';
-import { AppHomeRoute } from './common/app/web/routes';
+import App from './common/app/web/app';
+import AppHomeRoute from './common/app/web/routes';
 
-//render(<DemoApp title="React Demo"/>, document.getElementById('app-container'));
-render(<Relay.Renderer
-    title="React Demo"
+ReactDOM.render(<Relay.Renderer
     environment={Relay.Store}
-    container={App}
+    Container={App}
     queryConfig={new AppHomeRoute()}
   />,
   document.getElementById('app-container')

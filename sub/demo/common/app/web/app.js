@@ -7,12 +7,10 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-//import './demo.less';
-
 /**
  * App container.
  */
-export class App extends React.Component {
+class App extends React.Component {
 
   renderItems() {
     return this.props.user.items.edges.map(edge =>
@@ -30,6 +28,7 @@ export class App extends React.Component {
             {this.renderItems()}
           </ul>
         </div>
+      </div>
     );
   }
 }

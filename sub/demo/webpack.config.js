@@ -47,10 +47,8 @@ let config = {
           path.resolve(__dirname, 'index.web.js'),
           LIB_DIR
         ],
-        loader: 'babel-loader',
-        query: {
-          presets: ['es2015', 'react']
-        }
+        loader: 'babel-loader'
+        // See .babelrc for the presets.
       }
     ]
   },

@@ -107,6 +107,7 @@ const queryType = new GraphQLObjectType({
     node: nodeField,
     user: {
       type: userType,
+      // TODO(madadam): viewer = current user.
       resolve: () => Database.getUser('1')
     },
     items: {
