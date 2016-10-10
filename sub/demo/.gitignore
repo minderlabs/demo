@@ -42,3 +42,6 @@ android/keystores/debug.keystore
 
 # Webpack
 server/assets/
+
+# Relay, GraphQL
+common/data/schema.graphql
