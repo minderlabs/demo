@@ -8,6 +8,7 @@ import React from 'react';
 import Relay from 'react-relay';
 
 import ItemList from '../../components/web/item_list';
+import AddItemMutation from '../../mutation/AddItemMutation';
 
 import './demo.less';
 
@@ -16,17 +17,27 @@ import './demo.less';
  */
 class DemoApp extends React.Component {
 
+  constructor() {
+    super();
+
+    this.state = {
+      title: ''
+    };
+  }
+
   // TODO(burdon): Redux
   // static propTypes = {
   //   store: React.PropTypes.object.isRequired()
   // };
 
-  constructor(props, context) {
-    super(props, context);
-  }
-
   handleRefresh() {
     // TODO(burdon): Reissue query?
+  }
+
+  handleInputChange(event) {
+    this.setState({
+      title: event.target.value
+    })
   }
 
   handleKeyUp(event) {
@@ -39,12 +50,18 @@ class DemoApp extends React.Component {
   }
 
   handleCreate(event) {
-    let title = this.refs.input.value;
+    const title = this.state.title;
     if (title) {
       console.log('Create new item: ' + title);
-      // FIXME implement
+      this.props.relay.commitUpdate(
+        new AddItemMutation({
+          title,
+          user: this.props.user
+        })
+      );
     }
-    this.refs.input.focus();
+    this.setState({title: ''});
+    //this.refs.input.focus();
   }
 
   render() {
@@ -66,6 +83,8 @@ class DemoApp extends React.Component {
 
         <div className="app-section app-toolbar">
           <input ref="input" type="text" autoFocus="autoFocus" className="app-expand"
+                 value={this.state.title}
+                 onChange={ this.handleInputChange.bind(this) }
                  onKeyUp={ this.handleKeyUp.bind(this) }/>
 
           <button onClick={ this.handleCreate.bind(this) }>Create</button>
@@ -80,6 +99,7 @@ export default Relay.createContainer(DemoApp, {
     user: () => Relay.QL`
       fragment on User {
         ${ItemList.getFragment('user')}
+        ${AddItemMutation.getFragment('user')}
       }
     `
   }

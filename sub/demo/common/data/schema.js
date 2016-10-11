@@ -20,6 +20,7 @@ import {
   connectionArgs,
   connectionDefinitions,
   connectionFromArray,
+  cursorForObjectInConnection,
   fromGlobalId,
   globalIdField,
   mutationWithClientMutationId,
@@ -85,7 +86,7 @@ const userType = new GraphQLObjectType({
     // https://facebook.github.io/relay/docs/graphql-object-identification.html
     id: globalIdField('User'),
     items: {
-      type: itemConnection,
+      type: ItemConnection,
       description: 'User\'s collection of items.',
       args: connectionArgs,
       resolve: (_, args) => connectionFromArray(database.query('Item'), args)
@@ -118,8 +119,11 @@ const itemType = new GraphQLObjectType({
   interfaces: [nodeInterface]
 });
 
-// TODO(burdon): Document.
-const {connectionType: itemConnection} = connectionDefinitions({
+  // TODO(burdon): Document.
+const {
+  connectionType: ItemConnection,
+  edgeType: ItemEdge
+} = connectionDefinitions({
   name: 'Item',
   nodeType: itemType
 });
@@ -134,7 +138,7 @@ const queryType = new GraphQLObjectType({
     node: nodeField,
     user: {
       type: userType,
-      resolve: () => database.getUser()
+      resolve: () => database.getViewer()
     },
     items: {
       type: itemType,
@@ -156,9 +160,24 @@ const ItemMutation = mutationWithClientMutationId({
     }
   },
   outputFields: {
-    item: {
-      type: itemType,
-      resolve: (payload) => database.getItem(payload.itemId)
+    newItemEdge: {
+      type: ItemEdge,
+      resolve: (payload) => {
+        const item = database.getItem(payload.itemId);
+        return {
+          cursor: cursorForObjectInConnection(
+            database.getItems(),
+            item
+          ),
+          node: item
+        }
+      }
+    },
+    user: {
+      type: userType,
+      // TODO(madadam): Add userId to the mutation, and associate the new Item with the user?
+      // Otherwise this should return all items.
+      resolve: (payload) => database.getViewer()
     }
   },
   mutateAndGetPayload: ({title}) => {

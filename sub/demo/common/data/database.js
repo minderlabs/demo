@@ -49,11 +49,14 @@ export class Database {
     // TODO(burdon): Fix.
     const data = require('./test.json');
     for (let i = 0; i < data['items'].length; i++) {
-      console.log(data);
       this.newItem(data['items'][i]);
     }
 
     return this;
+  }
+
+  getViewer() {
+    return this.getUser('user_1');
   }
 
   getUser(id=undefined) {
@@ -67,6 +70,10 @@ export class Database {
 
   getItem(id) {
     return this._items.get(id);
+  }
+
+  getItems() {
+    return Array.from(this._items.values());
   }
 
   query(type) {
