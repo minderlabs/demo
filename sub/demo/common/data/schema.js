@@ -27,31 +27,40 @@ import {
 } from 'graphql-relay';
 
 import {
-  // Import methods that your schema can use to interact with your database
   User,
   Item,
   Database
 } from './database';
 
+// TODO(burdon): Async promise?
+const database = new Database().init();
+
 /**
  * Relay Node interface. Maps objects to types, and global IDs to objects.
  * https://facebook.github.io/relay/docs/tutorial.html
  */
-let {nodeInterface, nodeField} = nodeDefinitions(
+const {nodeInterface, nodeField} = nodeDefinitions(
   (globalId) => {
+    // TODO(burdon): Type defs?
     const {type, id} = fromGlobalId(globalId);
-    console.log('UNPACKED global ID ' + type + ' ' + id); // FIXME
-    if (type === 'User') {
-      return Database.getUser(id);
-    } else if (type === 'Item') {
-      let i = Database.getItem(id);
-      console.log('FETCHED ' + JSON.stringify(i));
-      return i;
-    } else {
-      return null;
+    switch (type) {
+
+      case 'User': {
+        return database.getUser(id);
+      }
+
+      case 'Item': {
+        return database.getItem(id);
+      }
+
+      default: {
+        return null;
+      }
     }
   },
+
   (obj) => {
+    // TODO(burdon): Infer from something other than type?
     if (obj instanceof User) {
       return userType;
     } else if (obj instanceof Item)  {
@@ -62,19 +71,24 @@ let {nodeInterface, nodeField} = nodeDefinitions(
   }
 );
 
-// TODO(madadam): Implement users and add fake data associating items with users. currently there's one
-// user with all items.
+//
+// Type definitions.
+//
 
-let userType = new GraphQLObjectType({
+// TODO(madadam): Implement users and add fake data associating items with users.
+//                Currently there's one user with all items.
+
+const userType = new GraphQLObjectType({
   name: 'User',
-  description: 'A user',
+  description: 'A user account.',
   fields: () => ({
+    // https://facebook.github.io/relay/docs/graphql-object-identification.html
     id: globalIdField('User'),
     items: {
       type: itemConnection,
-      description: 'A person\'s collection of items',
+      description: 'User\'s collection of items.',
       args: connectionArgs,
-      resolve: (_, args) => connectionFromArray(Database.getItems(), args)
+      resolve: (_, args) => connectionFromArray(database.getItems(), args)
     }
   }),
   interfaces: [nodeInterface]
@@ -82,47 +96,54 @@ let userType = new GraphQLObjectType({
 
 const itemType = new GraphQLObjectType({
   name: 'Item',
-  description: 'An item',
+  description: 'A generic data item.',
   fields: () => ({
     id: globalIdField('Item'),
     version: {
       type: GraphQLInt,
-      description: 'The item version id',
+      description: 'The item version id.',
       resolve: (item) => item.version
     },
     title: {
       type: GraphQLString,
-      description: 'The title of the item',
+      description: 'The title of the item.',
       resolve: (item) => item.title
     }
   }),
   interfaces: [nodeInterface]
 });
 
-let {connectionType: itemConnection} = connectionDefinitions({name: 'Item', nodeType: itemType});
+// TODO(burdon): Document.
+const {connectionType: itemConnection} = connectionDefinitions({
+  name: 'Item',
+  nodeType: itemType
+});
 
-/**
- * Root query type.
- */
+//
+// Query root.
+//
+
 const queryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
     node: nodeField,
     user: {
       type: userType,
-      // TODO(madadam): viewer = current user.
-      resolve: () => Database.getUser('1')
+      resolve: () => database.getUser()
     },
     items: {
       type: itemType,
-      resolve: () => Database.getItems()
+      resolve: () => database.getItems()
     }
   })
 });
 
+//
+// Mutation root.
 // TODO(madadam): Upsert. This just creates a new item.
+//
 
-const ItemMutation = mutationWithClientMutationId( {
+const ItemMutation = mutationWithClientMutationId({
   name: 'ItemMutation',
   inputFields: {
     title: {
@@ -132,11 +153,11 @@ const ItemMutation = mutationWithClientMutationId( {
   outputFields: {
     item: {
       type: itemType,
-      resolve: (payload) => Database.getItem(payload.itemId)
+      resolve: (payload) => database.getItem(payload.itemId)
     }
   },
   mutateAndGetPayload: ({title}) => {
-    const item = Database.newItem({
+    const item = database.newItem({
       title: title
     });
     return {
@@ -151,6 +172,11 @@ const mutationType = new GraphQLObjectType({
     itemMutation: ItemMutation
   })
 });
+
+//
+// Main app schema.
+// http://graphql.org/graphql-js/type/#schema
+//
 
 export const Schema = new GraphQLSchema({
   query: queryType,

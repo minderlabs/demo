@@ -36,7 +36,7 @@
     "react-router": "^2.8.1"
   },
   "scripts": {
-    "update-schema": "babel-node ./scripts/update-schema.js",
+    "update-schema": "babel-node ./scripts/update_schema.js",
     "dev": "webpack -d --watch",
     "build": "webpack -p",
     "android": "react-native run-android",

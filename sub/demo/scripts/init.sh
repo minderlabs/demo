@@ -1,5 +1,6 @@
 #!/bin/sh
 
+brew update
 brew install node
 brew install webpack
 

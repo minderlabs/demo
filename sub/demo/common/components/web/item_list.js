@@ -9,22 +9,27 @@ import Relay from 'react-relay';
 
 import Item from './item';
 
+import './list.less';
+
+/**
+ * List.
+ */
 class ItemList extends React.Component {
 
   render() {
     const {user} = this.props;
+
     return (
-      <div className="app-section app-expand">
-        <ul>
-          {user.items.edges.map(({node}) =>
-            <li><Item item={node} /></li>
-          )}
-        </ul>
+      <div className="app-section app-expand app-list">
+        {user.items.edges.map(edge =>
+          <Item key={edge.node.id} item={edge.node}/>
+        )}
       </div>
     );
   }
 }
 
+// TODO(burdon): Factor out ListView and data binding?
 export default Relay.createContainer(ItemList, {
   fragments: {
     user: () => Relay.QL`
@@ -32,6 +37,7 @@ export default Relay.createContainer(ItemList, {
         items(first: 10) {
           edges {
             node {
+              id,
               ${Item.getFragment('item')}
             }
           }
@@ -40,4 +46,3 @@ export default Relay.createContainer(ItemList, {
     `
   }
 });
-

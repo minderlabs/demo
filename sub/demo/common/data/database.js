@@ -1,8 +1,24 @@
-'use strict;'
+//
+// Copyright 2016 Alien Laboratories, Inc.
+//
 
-export class User {}
+'use strict';
 
+/**
+ * User item.
+ */
+export class User {
+
+  constructor(data) {
+    this.id = data.id;
+  }
+}
+
+/**
+ * Data item.
+ */
 export class Item {
+
   constructor(data) {
     this.id = data.id;
     this.title = data.title;
@@ -10,49 +26,64 @@ export class Item {
   }
 }
 
+/**
+ * Database abstraction.
+ */
 export class Database {
-  static getUser(id) {
-    // FIXME
-    //return users.find(u => u.id === id);
-    return user;
+
+  // TODO(burdon): Design API and implement real backend.
+
+  constructor() {
+    this._items = new Map();
+    this._users = new Map();
   }
 
-  static getItem(id) {
-    return items.find(i => i.id === id);
+  init() {
+    let user = new User({
+      id: 'user_1'
+    });
+
+    this._users.set(user.id, user);
+
+    // TODO(burdon): Fix.
+    const data = require('./test.json');
+    for (let i = 0; i < data['items'].length; i++) {
+      this.newItem(data['items'][i]);
+    }
+
+    return this;
   }
 
-  static getItems() {
-    return items;
+  getUser(id=undefined) {
+    // TODO(burdon): Alias for current user.
+    if (id === undefined) {
+      id = 'user_1';
+    }
+
+    return this._users.get(id);
   }
 
-  static newItem(data) {
+  getItem(id) {
+    return this._items.get(id);
+  }
+
+  getItems() {
+    // TODO(burdon): Query.
+    return Array.from(this._items.values());
+  }
+
+  newItem(data) {
+    console.log('NEW', data);
+
     if (!data.id) {
-      data.id = '' + (items.length + 1);
+      data.id = String(new Date().getTime());
     }
     if (!data.version) {
       data.version = 0;
     }
-    const item = new Item(data);
-    items.push(item);
+
+    let item = new Item(data);
+    this._items.set(item.id, item);
     return item;
   }
 }
-
-// Test data.
-// TODO(madadam): Real database queries.
-
-const user = new User();
-user.id = '1';
-
-const data = require('./test.json');
-const items = [];
-//const items = data['items'];
-
-(function() {
-  let item;
-  for (let i = 0; i < data['items'].length; i++) {
-    let d = data['items'][i];
-    Database.newItem(d);
-  }
-})();
-
