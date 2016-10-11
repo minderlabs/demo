@@ -67,6 +67,7 @@ class DemoApp extends React.Component {
         <div className="app-section app-toolbar">
           <input ref="input" type="text" autoFocus="autoFocus" className="app-expand"
                  onKeyUp={ this.handleKeyUp.bind(this) }/>
+
           <button onClick={ this.handleCreate.bind(this) }>Create</button>
         </div>
       </div>

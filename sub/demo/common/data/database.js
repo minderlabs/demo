@@ -78,6 +78,7 @@ export class Database {
       }
 
       case 'Item': {
+        // TODO(burdon): Items for user.
         return Array.from(this._items.values());
       }
     }
