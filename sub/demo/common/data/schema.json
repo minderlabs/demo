@@ -122,7 +122,7 @@
         {
           "kind": "OBJECT",
           "name": "User",
-          "description": "A user",
+          "description": "A user account.",
           "fields": [
             {
               "name": "id",
@@ -142,7 +142,7 @@
             },
             {
               "name": "items",
-              "description": "A person's collection of items",
+              "description": "User's collection of items.",
               "args": [
                 {
                   "name": "after",
@@ -387,7 +387,7 @@
         {
           "kind": "OBJECT",
           "name": "Item",
-          "description": "An item",
+          "description": "A generic data item.",
           "fields": [
             {
               "name": "id",
@@ -407,7 +407,7 @@
             },
             {
               "name": "version",
-              "description": "The item version id",
+              "description": "The item version id.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -419,7 +419,7 @@
             },
             {
               "name": "title",
-              "description": "The title of the item",
+              "description": "The title of the item.",
               "args": [],
               "type": {
                 "kind": "SCALAR",

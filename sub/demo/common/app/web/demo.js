@@ -51,7 +51,8 @@ class DemoApp extends React.Component {
       console.log('Create new item: ' + title);
       this.props.relay.commitUpdate(
         new AddItemMutation({
-          title
+          title,
+          user: this.props.user
         })
       );
     }
@@ -92,7 +93,7 @@ export default Relay.createContainer(DemoApp, {
   fragments: {
     user: () => Relay.QL`
       fragment on User {
-        ${ItemList.getFragment('user')},
+        ${ItemList.getFragment('user')}
         ${AddItemMutation.getFragment('user')}
       }
     `

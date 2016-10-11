@@ -133,7 +133,7 @@ const queryType = new GraphQLObjectType({
     node: nodeField,
     user: {
       type: userType,
-      resolve: () => database.getUser()
+      resolve: () => database.getViewer()
     },
     items: {
       type: itemType,
@@ -158,10 +158,10 @@ const ItemMutation = mutationWithClientMutationId({
     newItemEdge: {
       type: ItemEdge,
       resolve: (payload) => {
-        const item = Database.getItem(payload.itemId);
+        const item = database.getItem(payload.itemId);
         return {
           cursor: cursorForObjectInConnection(
-            Database.getItems(),
+            database.getItems(),
             item
           ),
           node: item
@@ -172,7 +172,7 @@ const ItemMutation = mutationWithClientMutationId({
       type: userType,
       // TODO(madadam): Add userId to the mutation, and associate the new Item with the user?
       // Otherwise this should return all items.
-      resolve: (payload) => Database.getUser('1')
+      resolve: (payload) => database.getViewer()
     }
   },
   mutateAndGetPayload: ({title}) => {

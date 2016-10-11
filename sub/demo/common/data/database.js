@@ -54,6 +54,10 @@ export class Database {
     return this;
   }
 
+  getViewer() {
+    return this.getUser('user_1');
+  }
+
   getUser(id=undefined) {
     // TODO(burdon): Alias for current user.
     if (id === undefined) {
@@ -65,6 +69,10 @@ export class Database {
 
   getItem(id) {
     return this._items.get(id);
+  }
+
+  getItems() {
+    return Array.from(this._items.values());
   }
 
   query(type) {

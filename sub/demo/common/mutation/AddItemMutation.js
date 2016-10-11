@@ -24,8 +24,15 @@ export default class AddItemMutation extends Relay.Mutation {
     return Relay.QL`
       fragment on ItemMutationPayload @relay(pattern: true) {
         user {
-          items
-        },
+          items {
+            edges {
+              node {
+                id,
+                title
+              }
+            }
+          }
+        }
         newItemEdge
       }
     `;
@@ -44,6 +51,19 @@ export default class AddItemMutation extends Relay.Mutation {
         'orderby(oldest)': 'prepend'
       }
     }];
+  }
+
+  getOptimisticResponse() {
+    return {
+      newItemEdge: {
+        node: {
+          title: this.props.title
+        }
+      },
+      user: {
+        id: this.props.user.id
+      }
+    };
   }
 
 }
