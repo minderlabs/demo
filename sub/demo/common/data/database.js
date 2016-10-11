@@ -21,8 +21,9 @@ export class Item {
 
   constructor(data) {
     this.id = data.id;
-    this.title = data.title;
     this.version = data.version;
+    this.status = data.status;
+    this.title = data.title;
   }
 }
 

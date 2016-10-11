@@ -407,7 +407,7 @@
             },
             {
               "name": "version",
-              "description": "The item version id.",
+              "description": "Item version.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -418,8 +418,20 @@
               "deprecationReason": null
             },
             {
+              "name": "status",
+              "description": "Item status.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "title",
-              "description": "The title of the item.",
+              "description": "Item title.",
               "args": [],
               "type": {
                 "kind": "SCALAR",

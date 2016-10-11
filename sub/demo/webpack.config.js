@@ -23,6 +23,8 @@ let config = {
     filename: 'main.bundle.js'
   },
 
+  // TODO(burdon): Configure to watch for schema json.
+
   module: {
     loaders: [
 

@@ -23,8 +23,12 @@ class DemoApp extends React.Component {
     this.state = {
       title: ''
     };
-
   }
+
+  // TODO(burdon): Redux
+  // static propTypes = {
+  //   store: React.PropTypes.object.isRequired()
+  // };
 
   handleRefresh() {
     // TODO(burdon): Reissue query?
