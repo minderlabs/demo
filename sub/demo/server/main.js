@@ -13,10 +13,11 @@ let { Schema } = require('../common/data/schema');
 const graphqlHTTP = require('express-graphql');
 
 //
-// Simple node server.
+// Express node server.
 //
 
 const app = express();
+
 
 //
 // GraphQL server.
@@ -36,6 +37,7 @@ app.use('/graphql', graphqlHTTP({
 
 app.use(express.static(__dirname + '/'));
 
+
 //
 // Home page.
 //
@@ -43,6 +45,7 @@ app.use(express.static(__dirname + '/'));
 app.use('/', function(req, res) {
   res.sendFile('index.html');
 });
+
 
 //
 // Startup.

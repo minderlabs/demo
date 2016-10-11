@@ -7,7 +7,7 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import ItemList from '../../components/itemList';
+import ItemList from '../../components/web/item_list';
 import AddItemMutation from '../../mutation/AddItemMutation';
 
 import './demo.less';
@@ -27,9 +27,8 @@ class DemoApp extends React.Component {
   }
 
   handleRefresh() {
+    // TODO(burdon): Reissue query?
   }
-
-  // TODO(burdon): Factor out input bar.
 
   handleInputChange(event) {
     this.setState({
@@ -62,6 +61,9 @@ class DemoApp extends React.Component {
 
   render() {
     const {user} = this.props;
+
+    // TODO(burdon): Factor out input bar.
+
     return (
       <div className="app-panel app-panel-column">
         <h1>{ this.props.title }</h1>

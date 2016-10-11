@@ -1,13 +1,14 @@
 #!/usr/bin/env babel-node --optional es7.asyncFunctions
 
-// Transpile GraphQL schema for Relay.
+// Transpiles GraphQL schema for Relay.
 // https://github.com/relayjs/relay-starter-kit/blob/master/scripts/updateSchema.js
 
 import fs from 'fs';
 import path from 'path';
-import { Schema } from '../common/data/schema';
 import { graphql }  from 'graphql';
 import { introspectionQuery, printSchema } from 'graphql/utilities';
+
+import { Schema } from '../common/data/schema';
 
 // Save JSON of full schema introspection for Babel Relay Plugin to use
 (async () => {

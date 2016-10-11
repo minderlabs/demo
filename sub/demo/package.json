@@ -31,12 +31,12 @@
     "jquery": "^3.1.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
-    "react-native": "0.34.1",
+    "react-native": "0.35.0",
     "react-relay": "^0.9.3",
     "react-router": "^2.8.1"
   },
   "scripts": {
-    "update-schema": "babel-node ./scripts/update-schema.js",
+    "update-schema": "babel-node ./scripts/update_schema.js",
     "dev": "webpack -d --watch",
     "build": "webpack -p",
     "android": "react-native run-android",
