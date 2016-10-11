@@ -1,4 +1,11 @@
 {
+  "users": [
+    {
+      "id": "U-1",
+      "title": "Test User"
+    }
+  ],
+
   "items": [
     {
       "id": "I-1",

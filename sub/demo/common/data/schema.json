@@ -141,6 +141,18 @@
               "deprecationReason": null
             },
             {
+              "name": "title",
+              "description": "User's name.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "items",
               "description": "User's collection of items.",
               "args": [

@@ -17,7 +17,7 @@ import './list.less';
 class ItemList extends React.Component {
 
   render() {
-    const {user} = this.props;
+    const { user } = this.props;
 
 //  user.items.edges.map(edge => console.log(edge.node));
 

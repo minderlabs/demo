@@ -1,3 +1,9 @@
+//
+// Copyright 2016 Alien Laboratories, Inc.
+//
+
+'use strict';
+
 import Relay from 'react-relay';
 
 export default class AddItemMutation extends Relay.Mutation {
@@ -36,7 +42,6 @@ export default class AddItemMutation extends Relay.Mutation {
         newItemEdge
       }
     `;
-
   }
 
   getConfigs() {
@@ -65,5 +70,4 @@ export default class AddItemMutation extends Relay.Mutation {
       }
     };
   }
-
 }

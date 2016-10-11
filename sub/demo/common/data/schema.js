@@ -85,6 +85,12 @@ const userType = new GraphQLObjectType({
   fields: () => ({
     // https://facebook.github.io/relay/docs/graphql-object-identification.html
     id: globalIdField('User'),
+    // TODO(burdon): Standardize on "title" field?
+    title: {
+      type: GraphQLString,
+      description: 'User\'s name.',
+      resolve: (item) => item.title
+    },
     items: {
       type: ItemConnection,
       description: 'User\'s collection of items.',
@@ -138,7 +144,7 @@ const queryType = new GraphQLObjectType({
     node: nodeField,
     user: {
       type: userType,
-      resolve: () => database.getViewer()
+      resolve: () => database.getUser()
     },
     items: {
       type: itemType,
@@ -148,8 +154,7 @@ const queryType = new GraphQLObjectType({
 });
 
 //
-// Mutation root.
-// TODO(madadam): Upsert. This just creates a new item.
+// Mutations
 //
 
 const ItemMutation = mutationWithClientMutationId({
@@ -163,7 +168,7 @@ const ItemMutation = mutationWithClientMutationId({
     newItemEdge: {
       type: ItemEdge,
       resolve: (payload) => {
-        const item = database.getItem(payload.itemId);
+        let item = database.getItem(payload.itemId);
         return {
           cursor: cursorForObjectInConnection(
             database.getItems(),
@@ -177,13 +182,15 @@ const ItemMutation = mutationWithClientMutationId({
       type: userType,
       // TODO(madadam): Add userId to the mutation, and associate the new Item with the user?
       // Otherwise this should return all items.
-      resolve: (payload) => database.getViewer()
+      resolve: (payload) => database.getUser()
     }
   },
   mutateAndGetPayload: ({title}) => {
-    const item = database.newItem({
+    // TODO(madadam): Upsert. This just creates a new item.
+    let item = database.newItem({
       title: title
     });
+
     return {
       itemId: item.id
     }

@@ -13,11 +13,11 @@ import ReactDOM from 'react-dom';
 import DemoApp from './common/app/web/demo';
 import AppHomeRoute from './common/app/web/routes';
 
-ReactDOM.render(<Relay.Renderer
-    environment={Relay.Store}
-    Container={DemoApp}
-    queryConfig={new AppHomeRoute()}
+ReactDOM.render(
+  <Relay.Renderer
+    environment={ Relay.Store }
+    Container={ DemoApp }
+    queryConfig={ new AppHomeRoute() }
   />,
   document.getElementById('app-container')
 );
-

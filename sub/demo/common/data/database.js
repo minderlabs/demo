@@ -11,6 +11,7 @@ export class User {
 
   constructor(data) {
     this.id = data.id;
+    this.title = data.title;
   }
 }
 
@@ -22,8 +23,9 @@ export class Item {
   constructor(data) {
     this.id = data.id;
     this.version = data.version;
-    this.status = data.status;
     this.title = data.title;
+
+    this.status = data.status;
   }
 }
 
@@ -40,29 +42,23 @@ export class Database {
   }
 
   init() {
-    let user = new User({
-      id: 'user_1'
-    });
-
-    this._users.set(user.id, user);
-
-    // TODO(burdon): Fix.
     const data = require('./test.json');
-    for (let i = 0; i < data['items'].length; i++) {
-      this.newItem(data['items'][i]);
+
+    for (let user of data['users']) {
+      this.newUser(user);
+    }
+
+    for (let item of data['items']) {
+      this.newItem(item);
     }
 
     return this;
   }
 
-  getViewer() {
-    return this.getUser('user_1');
-  }
-
   getUser(id=undefined) {
     // TODO(burdon): Alias for current user.
     if (id === undefined) {
-      id = 'user_1';
+      id = 'U-1';
     }
 
     return this._users.get(id);
@@ -89,6 +85,14 @@ export class Database {
         return Array.from(this._items.values());
       }
     }
+  }
+
+  newUser(data) {
+    console.assert(data.id);
+
+    let user = new User(data);
+    this._users.set(user.id, user);
+    return user;
   }
 
   newItem(data) {
