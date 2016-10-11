@@ -5,25 +5,23 @@
 'use strict';
 
 import React from 'react';
+import Relay from 'react-relay';
 
-import { ListModel } from '../../data/model';
-import { ListView } from '../../components/web/list';
+import ItemList from '../../components/itemList';
 
 import './demo.less';
 
 /**
  * App container.
  */
-export class DemoApp extends React.Component {
+class DemoApp extends React.Component {
 
   constructor(props, context) {
     super(props, context);
 
-    this._model = new ListModel('data/test.json');
   }
 
   handleRefresh() {
-    this._model.update();
   }
 
   // TODO(burdon): Factor out input bar.
@@ -40,12 +38,14 @@ export class DemoApp extends React.Component {
   handleCreate(event) {
     let title = this.refs.input.value;
     if (title) {
-      this._model.insert(title);
+      console.log('Create new item: ' + title);
+      // FIXME implement
     }
     this.refs.input.focus();
   }
 
   render() {
+    const {user} = this.props;
     return (
       <div className="app-panel app-panel-column">
         <h1>{ this.props.title }</h1>
@@ -55,7 +55,7 @@ export class DemoApp extends React.Component {
         </div>
 
         <div className="app-section app-expand">
-          <ListView model={ this._model }/>
+          <ItemList user={user}/>
         </div>
 
         <div className="app-section app-toolbar">
@@ -67,3 +67,13 @@ export class DemoApp extends React.Component {
     );
   }
 }
+
+export default Relay.createContainer(DemoApp, {
+  fragments: {
+    user: () => Relay.QL`
+      fragment on User {
+        ${ItemList.getFragment('user')}
+      }
+    `
+  }
+});

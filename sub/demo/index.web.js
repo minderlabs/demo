@@ -10,12 +10,12 @@ import React from 'react';
 import Relay from 'react-relay';
 import ReactDOM from 'react-dom';
 
-import ItemList from './common/components/itemList';
+import DemoApp from './common/app/web/demo';
 import AppHomeRoute from './common/app/web/routes';
 
 ReactDOM.render(<Relay.Renderer
     environment={Relay.Store}
-    Container={ItemList}
+    Container={DemoApp}
     queryConfig={new AppHomeRoute()}
   />,
   document.getElementById('app-container')
