@@ -4,13 +4,17 @@
 
 .app-list {
   .app-list-item {
-    > div {
-      display: inline-block;
-    }
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 
     .app-key {
-      font-size: small;
-      width: 150px
+      width: 100px
+    }
+
+    .app-icon-star {
+      margin-right: 16px;
     }
   }
 }

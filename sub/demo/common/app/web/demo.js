@@ -16,6 +16,11 @@ import './demo.less';
  */
 class DemoApp extends React.Component {
 
+  // TODO(burdon): Redux
+  // static propTypes = {
+  //   store: React.PropTypes.object.isRequired()
+  // };
+
   constructor(props, context) {
     super(props, context);
   }

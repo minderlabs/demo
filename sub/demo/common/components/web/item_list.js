@@ -19,6 +19,8 @@ class ItemList extends React.Component {
   render() {
     const {user} = this.props;
 
+//  user.items.edges.map(edge => console.log(edge.node));
+
     return (
       <div className="app-section app-expand app-list">
         {user.items.edges.map(edge =>

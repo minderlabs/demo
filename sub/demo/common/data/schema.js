@@ -101,12 +101,17 @@ const itemType = new GraphQLObjectType({
     id: globalIdField('Item'),
     version: {
       type: GraphQLInt,
-      description: 'The item version id.',
+      description: 'Item version.',
       resolve: (item) => item.version
+    },
+    status: {
+      type: GraphQLBoolean,
+      description: 'Item status.',
+      resolve: (item) => item.status
     },
     title: {
       type: GraphQLString,
-      description: 'The title of the item.',
+      description: 'Item title.',
       resolve: (item) => item.title
     }
   }),
