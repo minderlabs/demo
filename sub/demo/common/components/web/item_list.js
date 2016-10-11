@@ -15,17 +15,27 @@ import './list.less';
  * List.
  */
 class ItemList extends React.Component {
+  getItems() {
+    // TODO(trey): allow filtering
+    return this.props.items.edges;
+  }
+  
+  makeItem = (edge) => {
+    return (
+      <li><Item key={edge.node.id}
+            item={edge.node}
+            viewer={this.props.viewer} /></li>
+    );
+  }
 
   render() {
-    const { user } = this.props;
-
-//  user.items.edges.map(edge => console.log(edge.node));
-
+    const items = this.getItems();
+    const itemList = items.map(this.makeItem);
     return (
       <div className="app-section app-expand app-list">
-        {user.items.edges.map(edge =>
-          <Item key={edge.node.id} item={edge.node}/>
-        )}
+        <ul>
+          {itemList}
+        </ul>
       </div>
     );
   }
@@ -34,14 +44,13 @@ class ItemList extends React.Component {
 // TODO(burdon): Factor out ListView and data binding?
 export default Relay.createContainer(ItemList, {
   fragments: {
-    user: () => Relay.QL`
-      fragment on User {
-        items(first: 10) {
-          edges {
-            node {
-              id,
-              ${Item.getFragment('item')}
-            }
+    items: () => Relay.QL`
+      fragment on _ItemConnection {
+        count,
+        edges {
+          node {
+            id,
+            ${Item.getFragment('item')}
           }
         }
       }
