@@ -20,6 +20,7 @@ import {
   connectionArgs,
   connectionDefinitions,
   connectionFromArray,
+  cursorForObjectInConnection,
   fromGlobalId,
   globalIdField,
   mutationWithClientMutationId,
@@ -71,7 +72,7 @@ let userType = new GraphQLObjectType({
   fields: () => ({
     id: globalIdField('User'),
     items: {
-      type: itemConnection,
+      type: ItemConnection,
       description: 'A person\'s collection of items',
       args: connectionArgs,
       resolve: (_, args) => connectionFromArray(Database.getItems(), args)
@@ -99,7 +100,10 @@ const itemType = new GraphQLObjectType({
   interfaces: [nodeInterface]
 });
 
-let {connectionType: itemConnection} = connectionDefinitions({name: 'Item', nodeType: itemType});
+const {
+  connectionType: ItemConnection,
+  edgeType: ItemEdge
+} = connectionDefinitions({name: 'Item', nodeType: itemType});
 
 /**
  * Root query type.
@@ -122,7 +126,7 @@ const queryType = new GraphQLObjectType({
 
 // TODO(madadam): Upsert. This just creates a new item.
 
-const ItemMutation = mutationWithClientMutationId( {
+const ItemMutation = mutationWithClientMutationId({
   name: 'ItemMutation',
   inputFields: {
     title: {
@@ -130,9 +134,24 @@ const ItemMutation = mutationWithClientMutationId( {
     }
   },
   outputFields: {
-    item: {
-      type: itemType,
-      resolve: (payload) => Database.getItem(payload.itemId)
+    newItemEdge: {
+      type: ItemEdge,
+      resolve: (payload) => {
+        const item = Database.getItem(payload.itemId);
+        return {
+          cursor: cursorForObjectInConnection(
+            Database.getItems(),
+            item
+          ),
+          node: item
+        }
+      }
+    },
+    user: {
+      type: userType,
+      // TODO(madadam): Add userId to the mutation, and associate the new Item with the user?
+      // Otherwise this should return all items.
+      resolve: (payload) => Database.getUser('1')
     }
   },
   mutateAndGetPayload: ({title}) => {
