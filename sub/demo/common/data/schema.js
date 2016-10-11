@@ -62,6 +62,9 @@ let {nodeInterface, nodeField} = nodeDefinitions(
   }
 );
 
+// TODO(madadam): Implement users and add fake data associating items with users. currently there's one
+// user with all items.
+
 let userType = new GraphQLObjectType({
   name: 'User',
   description: 'A user',
