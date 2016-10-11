@@ -67,17 +67,25 @@ export class Database {
     return this._items.get(id);
   }
 
-  getItems() {
+  query(type) {
     // TODO(burdon): Query.
-    return Array.from(this._items.values());
+    switch (type) {
+
+      case 'User': {
+        return Array.from(this._users.values());
+      }
+
+      case 'Item': {
+        return Array.from(this._items.values());
+      }
+    }
   }
 
   newItem(data) {
-    console.log('NEW', data);
-
     if (!data.id) {
       data.id = String(new Date().getTime());
     }
+
     if (!data.version) {
       data.version = 0;
     }

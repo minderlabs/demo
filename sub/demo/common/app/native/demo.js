@@ -4,8 +4,6 @@
 
 'use strict';
 
-// TODO(burdon): Rename app.jsx (and configure babel).
-
 import React from 'react';
 import { AppRegistry, TextInput, ListView, View, Text } from 'react-native';
 

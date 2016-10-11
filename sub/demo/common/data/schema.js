@@ -88,7 +88,7 @@ const userType = new GraphQLObjectType({
       type: itemConnection,
       description: 'User\'s collection of items.',
       args: connectionArgs,
-      resolve: (_, args) => connectionFromArray(database.getItems(), args)
+      resolve: (_, args) => connectionFromArray(database.query('Item'), args)
     }
   }),
   interfaces: [nodeInterface]
@@ -133,7 +133,7 @@ const queryType = new GraphQLObjectType({
     },
     items: {
       type: itemType,
-      resolve: () => database.getItems()
+      resolve: () => database.query('Item')
     }
   })
 });
