@@ -69,7 +69,7 @@ class DemoApp extends React.Component {
         <h1>{ user.title }</h1>
 
         <div className="app-section app-expand">
-          <ItemList user={user}/>
+          <ItemList items={this.props.viewer.allItems}/>
         </div>
 
         <div className="app-section app-toolbar">
@@ -87,12 +87,20 @@ class DemoApp extends React.Component {
 
 export default Relay.createContainer(DemoApp, {
   fragments: {
-    user: () => Relay.QL`
-      fragment on User {
-        title
-        ${ItemList.getFragment('user')}
-        ${AddItemMutation.getFragment('user')}
+    viewer: () => Relay.QL`
+      fragment on ReindexViewer {
+        allItems(first: 1000000) {
+          count,
+          edges {
+            node {
+              id,
+              version
+            }
+          }
+          ${ItemList.getFragment('items')}
+          ${AddItemMutation.getFragment('user')}
+        },
       }
-    `
-  }
+    `,
+  },
 });

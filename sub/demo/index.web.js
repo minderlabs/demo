@@ -12,6 +12,9 @@ import ReactDOM from 'react-dom';
 
 import DemoApp from './common/app/web/demo';
 import AppHomeRoute from './common/app/web/routes';
+import Reindex from './common/data/reindex';
+
+Relay.injectNetworkLayer(Reindex.getRelayNetworkLayer());
 
 ReactDOM.render(
   <Relay.Renderer
