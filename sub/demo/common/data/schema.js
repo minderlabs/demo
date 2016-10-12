@@ -4,6 +4,12 @@
 
 'use strict';
 
+//
+// NOTE: MUST REGEN WEBPACK BUNDLE AFTER UPDATING SCHEMA.
+// TODO(burdon): Fix in webpack config? (temp fix: grunt watch).
+// https://github.com/webpack/webpack/issues/2919
+//
+
 import {
   GraphQLBoolean,
   GraphQLFloat,
@@ -33,6 +39,7 @@ import {
   Database
 } from './database';
 
+
 // TODO(burdon): Async promise?
 const database = new Database().init();
 
@@ -40,7 +47,7 @@ const database = new Database().init();
  * Relay Node interface. Maps objects to types, and global IDs to objects.
  * https://facebook.github.io/relay/docs/tutorial.html
  */
-const {nodeInterface, nodeField} = nodeDefinitions(
+const { nodeInterface, nodeField } = nodeDefinitions(
   (globalId) => {
     // TODO(burdon): Type defs?
     const {type, id} = fromGlobalId(globalId);
@@ -73,7 +80,7 @@ const {nodeInterface, nodeField} = nodeDefinitions(
 );
 
 //
-// Type definitions.
+// Note type definitions.
 //
 
 // TODO(madadam): Implement users and add fake data associating items with users.
@@ -111,21 +118,21 @@ const itemType = new GraphQLObjectType({
       description: 'Item version.',
       resolve: (item) => item.version
     },
-    status: {
-      type: GraphQLBoolean,
-      description: 'Item status.',
-      resolve: (item) => item.status
-    },
     title: {
       type: GraphQLString,
       description: 'Item title.',
       resolve: (item) => item.title
+    },
+    status: {
+      type: GraphQLBoolean,
+      description: 'Item status.',
+      resolve: (item) => item.status
     }
   }),
   interfaces: [nodeInterface]
 });
 
-  // TODO(burdon): Document.
+// TODO(burdon): Document.
 const {
   connectionType: ItemConnection,
   edgeType: ItemEdge
@@ -135,7 +142,7 @@ const {
 });
 
 //
-// Query root.
+// Root query type.
 //
 
 const queryType = new GraphQLObjectType({
@@ -157,15 +164,15 @@ const queryType = new GraphQLObjectType({
 // Mutations
 //
 
-const ItemMutation = mutationWithClientMutationId({
-  name: 'ItemMutation',
+const CreateItemMutation = mutationWithClientMutationId({
+  name: 'CreateItemMutation',
   inputFields: {
     title: {
       type: new GraphQLNonNull(GraphQLString)
     }
   },
   outputFields: {
-    newItemEdge: {
+    createItemEdge: {
       type: ItemEdge,
       resolve: (payload) => {
         let item = database.getItem(payload.itemId);
@@ -180,6 +187,7 @@ const ItemMutation = mutationWithClientMutationId({
     },
     user: {
       type: userType,
+      // TODO(burdon): Items don't just come from Users.
       // TODO(madadam): Add userId to the mutation, and associate the new Item with the user?
       // Otherwise this should return all items.
       resolve: (payload) => database.getUser()
@@ -187,7 +195,7 @@ const ItemMutation = mutationWithClientMutationId({
   },
   mutateAndGetPayload: ({title}) => {
     // TODO(madadam): Upsert. This just creates a new item.
-    let item = database.newItem({
+    let item = database.createItem({
       title: title
     });
 
@@ -197,10 +205,14 @@ const ItemMutation = mutationWithClientMutationId({
   }
 });
 
+//
+// Root mutation type.
+//
+
 const mutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
-    itemMutation: ItemMutation
+    createItemMutation: CreateItemMutation
   })
 });
 

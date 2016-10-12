@@ -8,7 +8,7 @@ import React from 'react';
 import Relay from 'react-relay';
 
 import ItemList from '../../components/web/item_list';
-import AddItemMutation from '../../mutation/AddItemMutation';
+import CreateItemMutation from '../../mutation/create_item';
 
 import './demo.less';
 
@@ -46,10 +46,10 @@ class DemoApp extends React.Component {
   }
 
   handleCreate(event) {
-    const title = this.state.title;
+    let title = this.state.title;
     if (title) {
       this.props.relay.commitUpdate(
-        new AddItemMutation({
+        new CreateItemMutation({
           title,
           user: this.props.user
         })
@@ -62,7 +62,7 @@ class DemoApp extends React.Component {
   }
 
   render() {
-    const { user } = this.props;
+    let { user } = this.props;
 
     return (
       <div className="app-panel app-panel-column">
@@ -91,7 +91,7 @@ export default Relay.createContainer(DemoApp, {
       fragment on User {
         title
         ${ItemList.getFragment('user')}
-        ${AddItemMutation.getFragment('user')}
+        ${CreateItemMutation.getFragment('user')}
       }
     `
   }

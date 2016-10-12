@@ -6,7 +6,12 @@
 
 import Relay from 'react-relay';
 
-export default class AddItemMutation extends Relay.Mutation {
+/**
+ * Creates new item.
+ */
+export default class CreateItemMutation extends Relay.Mutation {
+
+  // TODO(burdon): Reuse for mutation?
 
   static fragments = {
     user: () => Relay.QL`
@@ -17,7 +22,7 @@ export default class AddItemMutation extends Relay.Mutation {
   };
 
   getMutation() {
-    return Relay.QL`mutation { itemMutation }`;
+    return Relay.QL`mutation { createItemMutation }`;
   }
 
   getVariables() {
@@ -28,7 +33,7 @@ export default class AddItemMutation extends Relay.Mutation {
 
   getFatQuery() {
     return Relay.QL`
-      fragment on ItemMutationPayload @relay(pattern: true) {
+      fragment on CreateItemMutationPayload @relay(pattern: true) {
         user {
           items {
             edges {
@@ -39,18 +44,20 @@ export default class AddItemMutation extends Relay.Mutation {
             }
           }
         }
-        newItemEdge
+        createItemEdge
       }
     `;
   }
 
+  // TODO(burdon): Multiple parents and edges?
+  // https://facebook.github.io/relay/docs/guides-mutations.html#range-add
   getConfigs() {
     return [{
       type: 'RANGE_ADD',
       parentName: 'user',
       parentID: this.props.user.id,
       connectionName: 'items',
-      edgeName: 'newItemEdge',
+      edgeName: 'createItemEdge',
       rangeBehaviors: {
         '': 'append',
         'orderby(oldest)': 'prepend'
@@ -60,7 +67,7 @@ export default class AddItemMutation extends Relay.Mutation {
 
   getOptimisticResponse() {
     return {
-      newItemEdge: {
+      createItemEdge: {
         node: {
           title: this.props.title
         }

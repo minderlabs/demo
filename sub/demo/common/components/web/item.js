@@ -7,19 +7,28 @@
 import React from 'react';
 import Relay from 'react-relay';
 
+// import SetStatusMutation from '../../mutation/set_status';
+
 /**
  * Generic data item.
  */
 class Item extends React.Component {
 
-  handleToggleStar() {
-    // TODO(burdon): Fire redux action.
-    console.log('Toggle star.');
+  handleToggleStar(ev) {
+    let { item } = this.props;
+
+    let status = item.status ? false: true;
+    // this.props.relay.commitUpdate(
+    //   new SetStatusMutation({
+    //     status,
+    //     item: item.id
+    //   })
+    // );
   }
 
   // TODO(burdon): Item renderer is list specific?
   render() {
-    const {item} = this.props;
+    let { item } = this.props;
 
     return (
       <div className="app-list-item">

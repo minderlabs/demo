@@ -5,7 +5,7 @@
 'use strict';
 
 let express = require('express');
-let path = require("path");
+let path = require('path');
 let { buildSchema } = require('graphql');
 
 let { Schema } = require('../common/data/schema');
@@ -20,6 +20,14 @@ const app = express();
 
 
 //
+// Config serving static files.
+// https://expressjs.com/en/starter/static-files.html
+//
+
+app.use(express.static(__dirname + '/'));
+
+
+//
 // GraphQL server.
 // https://github.com/graphql/express-graphql
 //
@@ -31,15 +39,8 @@ app.use('/graphql', graphqlHTTP({
 
 
 //
-// Config serving static files.
-// https://expressjs.com/en/starter/static-files.html
-//
-
-app.use(express.static(__dirname + '/'));
-
-
-//
 // Home page.
+// NOTE: This path must come last.
 //
 
 app.use('/', function(req, res) {

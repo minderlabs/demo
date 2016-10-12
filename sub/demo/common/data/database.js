@@ -23,14 +23,17 @@ export class Item {
   constructor(data) {
     this.id = data.id;
     this.version = data.version;
+
+    // TODO(burdon): Common.
     this.title = data.title;
 
+    // TODO(burdon): Type-specific.
     this.status = data.status;
   }
 }
 
 /**
- * Database abstraction.
+ * Database abstraction (and in-memory implementation).
  */
 export class Database {
 
@@ -45,11 +48,11 @@ export class Database {
     const data = require('./test.json');
 
     for (let user of data['users']) {
-      this.newUser(user);
+      this.createUser(user);
     }
 
     for (let item of data['items']) {
-      this.newItem(item);
+      this.createItem(item);
     }
 
     return this;
@@ -87,7 +90,7 @@ export class Database {
     }
   }
 
-  newUser(data) {
+  createUser(data) {
     console.assert(data.id);
 
     let user = new User(data);
@@ -95,7 +98,7 @@ export class Database {
     return user;
   }
 
-  newItem(data) {
+  createItem(data) {
     if (!data.id) {
       data.id = String(new Date().getTime());
     }

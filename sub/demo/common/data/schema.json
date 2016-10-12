@@ -430,24 +430,24 @@
               "deprecationReason": null
             },
             {
-              "name": "status",
-              "description": "Item status.",
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "Boolean",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "title",
               "description": "Item title.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "status",
+              "description": "Item status.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Boolean",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -471,7 +471,7 @@
           "description": null,
           "fields": [
             {
-              "name": "itemMutation",
+              "name": "createItemMutation",
               "description": null,
               "args": [
                 {
@@ -482,7 +482,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "INPUT_OBJECT",
-                      "name": "ItemMutationInput",
+                      "name": "CreateItemMutationInput",
                       "ofType": null
                     }
                   },
@@ -491,7 +491,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "ItemMutationPayload",
+                "name": "CreateItemMutationPayload",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -505,7 +505,7 @@
         },
         {
           "kind": "INPUT_OBJECT",
-          "name": "ItemMutationInput",
+          "name": "CreateItemMutationInput",
           "description": null,
           "fields": null,
           "inputFields": [
@@ -540,11 +540,11 @@
         },
         {
           "kind": "OBJECT",
-          "name": "ItemMutationPayload",
+          "name": "CreateItemMutationPayload",
           "description": null,
           "fields": [
             {
-              "name": "newItemEdge",
+              "name": "createItemEdge",
               "description": null,
               "args": [],
               "type": {
