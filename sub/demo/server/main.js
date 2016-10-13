@@ -6,6 +6,7 @@
 
 let express = require('express');
 let path = require('path');
+var favicon = require('serve-favicon');
 let { buildSchema } = require('graphql');
 
 let { Schema } = require('../common/data/schema');
@@ -20,14 +21,6 @@ const app = express();
 
 
 //
-// Config serving static files.
-// https://expressjs.com/en/starter/static-files.html
-//
-
-app.use(express.static(__dirname + '/'));
-
-
-//
 // GraphQL server.
 // https://github.com/graphql/express-graphql
 //
@@ -38,18 +31,41 @@ app.use('/graphql', graphqlHTTP({
 }));
 
 
+
 //
-// Home page.
-// NOTE: This path must come last.
+// Config serving static files (generated webpack assets).
+// https://expressjs.com/en/starter/static-files.html
 //
 
-app.use('/', function(req, res) {
-  res.sendFile('index.html');
+app.use('/assets', express.static(__dirname + '/assets'));
+
+
+//
+// https://github.com/expressjs/serve-favicon
+//
+
+app.use(favicon(__dirname + '/favicon.ico'));
+
+
+//
+// App routing.
+// https://expressjs.com/en/guide/routing.html
+// https://expressjs.com/en/4x/api.html#res.sendFile
+// NOTE: This path must come last.
+// NOTE: Error if path is not recognized:
+// TypeError: path must be absolute or specify root to res.sendFile
+//
+
+app.get(/^\/(.*)/, function(req, res) {
+  res.sendFile('index.html', {
+    root: __dirname
+  });
 });
 
 
 //
 // Startup.
+// https://expressjs.com/en/starter/static-files.html
 //
 
 let server = app.listen(8080, 'localhost', function() {

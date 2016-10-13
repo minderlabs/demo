@@ -17,6 +17,7 @@ class Item extends React.Component {
   handleToggleStatus(ev) {
     let { item } = this.props;
 
+    // TODO(burdon): This should add/remove a label.
     this.props.relay.commitUpdate(
       new UpdateItemMutation({
         item: item,                         // TODO(burdon): Just pass in ID?

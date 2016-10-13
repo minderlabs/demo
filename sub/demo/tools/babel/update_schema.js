@@ -8,7 +8,7 @@ import path from 'path';
 import { graphql }  from 'graphql';
 import { introspectionQuery, printSchema } from 'graphql/utilities';
 
-import { Schema } from '../common/data/schema';
+import { Schema } from '../../common/data/schema';
 
 // Save JSON of full schema introspection for Babel Relay Plugin to use.
 (async () => {
@@ -21,7 +21,7 @@ import { Schema } from '../common/data/schema';
   } else {
     // TODO(burdon): Output generated files elsewhere?
     fs.writeFileSync(
-      path.join(__dirname, '../common/data/schema.json'),
+      path.join(__dirname, '../../common/data/schema.json'),
       JSON.stringify(result, null, 2)
     );
   }
@@ -29,6 +29,6 @@ import { Schema } from '../common/data/schema';
 
 // Save user readable type system shorthand of schema.
 fs.writeFileSync(
-  path.join(__dirname, '../common/data/schema.graphql'),
+  path.join(__dirname, '../../common/data/schema.graphql'),
   printSchema(Schema)
 );

@@ -5,3 +5,6 @@ node_modules/
 *.swp
 server/assets/
 web/src/
+
+npm-debug.log
+

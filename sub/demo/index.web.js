@@ -14,6 +14,13 @@ import Relay from 'react-relay';
 import DemoApp from './common/app/web/demo';
 import DemoAppHomeRoute from './common/app/web/routes';
 
+// TODO(burdon): Server and testing.
+// https://facebook.github.io/relay/docs/guides-network-layer.html#custom-network-layers
+// https://github.com/relay-tools/relay-local-schema
+
+// TODO(burdon): Python relay server (bridge to DGraph, RethinkDB).
+// https://github.com/graphql-python/graphql-relay-py
+
 ReactDOM.render(
   <Relay.Renderer
     environment={ Relay.Store }

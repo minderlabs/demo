@@ -81,6 +81,7 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 
 //
 // Note type definitions.
+// https://facebook.github.io/relay/docs/graphql-object-identification.html
 //
 
 // TODO(madadam): Implement users and add fake data associating items with users.
@@ -89,47 +90,51 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 const userType = new GraphQLObjectType({
   name: 'User',
   description: 'A user account.',
+  interfaces: [ nodeInterface ],
   fields: () => ({
-    // https://facebook.github.io/relay/docs/graphql-object-identification.html
     id: globalIdField('User'),
+
     // TODO(burdon): Standardize on "title" field?
     title: {
       type: GraphQLString,
       description: 'User\'s name.',
       resolve: (item) => item.title
     },
+
     items: {
       type: ItemConnection,
       description: 'User\'s collection of items.',
       args: connectionArgs,
       resolve: (_, args) => connectionFromArray(database.query('Item'), args)
     }
-  }),
-  interfaces: [nodeInterface]
+  })
 });
 
 const itemType = new GraphQLObjectType({
   name: 'Item',
   description: 'A generic data item.',
+  interfaces: [ nodeInterface ],
   fields: () => ({
     id: globalIdField('Item'),
+
     version: {
       type: GraphQLInt,
       description: 'Item version.',
       resolve: (item) => item.version
     },
+
     title: {
       type: GraphQLString,
       description: 'Item title.',
       resolve: (item) => item.title
     },
+
     status: {
       type: GraphQLInt,
       description: 'Item status.',
       resolve: (item) => item.status
     }
-  }),
-  interfaces: [nodeInterface]
+  })
 });
 
 // TODO(burdon): Document.

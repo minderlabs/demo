@@ -6,87 +6,81 @@
 
 import React from 'react';
 import Relay from 'react-relay';
+import { browserHistory, IndexRedirect, Redirect, Router, Route } from 'react-router';
 
+// TODO(burdon): Create lib for UX and Data.
 import ItemList from '../../components/web/item_list';
 import CreateItemMutation from '../../mutation/create_item';
 
+import HomeView from './view/home';
+import DetailView from './view/detail';
+
 import './demo.less';
+
+//
+// Router paths.
+//
+const URI = {
+  ROOT:     '/',
+  HOME:     '/home',
+  DETAIL:   '/detail'
+};
 
 /**
  * App container.
  */
 class DemoApp extends React.Component {
 
-  constructor() {
-    super();
-
-    this.state = {
-      title: ''
-    };
-  }
-
-  // TODO(burdon): Redux
-  // static propTypes = {
-  //   store: React.PropTypes.object.isRequired()
-  // };
-
-  handleInputChange(event) {
-    this.setState({
-      title: event.target.value
-    })
-  }
-
-  handleKeyUp(event) {
-    switch (event.keyCode) {
-      case 13: {
-        this.handleCreate(event);
-        break;
-      }
-    }
-  }
-
-  handleCreate(event) {
-    let { user } = this.props;
-
-    let title = this.state.title;
-    if (title) {
-      this.props.relay.commitUpdate(
-        new CreateItemMutation({
-          user: user,                   // TODO(burdon): Why not just ID? (see getConfigs parentName.)
-          title: title
-        })
-      );
-
-      this.setState({ title: '' });
-    }
-
-    this.refs.input.focus();
-  }
-
   render() {
     let { user } = this.props;
 
+    const Layout = ({ view }) => {
+      return (
+        <div className="app-panel">
+          <h1>{ user.title }</h1>
+
+          <div className="app-view app-panel-column">
+            { view }
+          </div>
+        </div>
+      );
+    };
+
+    // TODO(burdon): Config server to enable /detail/key (second slash).
+
+    console.log('####');
+
     return (
-      <div className="app-panel app-panel-column">
-        <h1>{ user.title }</h1>
+      <Router history={ browserHistory }>
+        <Route path={ URI.ROOT } component={ Layout }>
+          <IndexRedirect to={ URI.DETAIL + '/xx' }/>
 
-        <div className="app-section app-expand">
-          <ItemList user={user}/>
-        </div>
+          <Route path={ URI.HOME }
+                 components={{
+                   view: () => { return ( <HomeView user={ user }/> ) }
+                 }}/>
 
-        <div className="app-section app-toolbar">
-          <input ref="input" type="text" autoFocus="autoFocus" className="app-expand"
-                 value={this.state.title}
-                 onChange={ this.handleInputChange.bind(this) }
-                 onKeyUp={ this.handleKeyUp.bind(this) }/>
+          <Route path={ URI.DETAIL + '/:itemId' }
+                 components={{
+                   view: DetailView
+                 }}/>
+        </Route>
 
-          <button onClick={ this.handleCreate.bind(this) }>Create</button>
-        </div>
-      </div>
+        <Redirect from='*' to={ URI.HOME }/>
+      </Router>
     );
   }
 }
+                   // view: (context) => {
+                   //   console.log(context);
+                   //   return ( <DetailView user={ user }/> )
+                   // }
 
+//
+// https://facebook.github.io/relay/docs/guides-containers.html
+//
+
+// TODO(burdon): Move to view?
 export default Relay.createContainer(DemoApp, {
   fragments: {
     user: () => Relay.QL`
