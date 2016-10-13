@@ -5,6 +5,10 @@
 'use strict';
 
 //
+// Server-side code that generates the JSON schema used by the client.
+//
+
+//
 // NOTE: MUST REGEN WEBPACK BUNDLE AFTER UPDATING SCHEMA.
 // TODO(burdon): Fix in webpack config? (temp fix: grunt watch).
 // https://github.com/webpack/webpack/issues/2919
@@ -40,7 +44,12 @@ import {
 } from './database';
 
 
-// TODO(burdon): Async promise?
+//
+// Main database instance.
+// TODO(burdon): Use Data loader to do efficient entity look-ups on server (e.g., for RethinkDB/ORM layer).
+// http://graphql.org/blog/rest-api-graphql-wrapper/#creating-a-data-loader
+//
+
 const database = new Database().init();
 
 /**
@@ -109,6 +118,10 @@ const userType = new GraphQLObjectType({
     }
   })
 });
+
+// TODO(burdon): Union of inner types or interface?
+// http://graphql.org/graphql-js/type/#graphqluniontype
+// http://graphql.org/graphql-js/type/#graphqlinterfacetype
 
 const itemType = new GraphQLObjectType({
   name: 'Item',

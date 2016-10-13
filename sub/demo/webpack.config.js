@@ -28,6 +28,13 @@ let config = {
   module: {
     loaders: [
 
+      // Required to load schema.json
+      // https://github.com/request/request/issues/1529
+      {
+        test: /\.json$/,
+        loader: 'json-loader'
+      },
+
       // https://github.com/webpack/css-loader
       // https://webpack.github.io/docs/stylesheets.html
       // https://webpack.github.io/docs/stylesheets.html#separate-css-bundle
@@ -42,20 +49,22 @@ let config = {
         loader: ExtractTextPlugin.extract('style-loader', 'css-loader!less-loader')
       },
 
+      // See .babelrc for the presets.
       // https://github.com/babel/babel-loader
       {
         test: /\.js$/,
+        exclude: [/node_modules/],                      // Don't transpile deps.
         include: [
           path.resolve(__dirname, 'index.web.js'),
           LIB_DIR
         ],
         loader: 'babel-loader'
-        // See .babelrc for the presets.
       }
     ]
   },
 
   plugins: [
+
     new ExtractTextPlugin('main.css'),
 
     new webpack.ProvidePlugin({

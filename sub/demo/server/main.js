@@ -7,11 +7,10 @@
 let express = require('express');
 let path = require('path');
 var favicon = require('serve-favicon');
-let { buildSchema } = require('graphql');
+
+let graphqlHTTP = require('express-graphql');
 
 let { Schema } = require('../common/data/schema');
-
-const graphqlHTTP = require('express-graphql');
 
 //
 // Express node server.
@@ -29,7 +28,6 @@ app.use('/graphql', graphqlHTTP({
   schema: Schema,
   graphiql: true
 }));
-
 
 
 //
