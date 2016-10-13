@@ -48,12 +48,10 @@ class DemoApp extends React.Component {
 
     // TODO(burdon): Config server to enable /detail/key (second slash).
 
-    console.log('####');
-
     return (
       <Router history={ browserHistory }>
         <Route path={ URI.ROOT } component={ Layout }>
-          <IndexRedirect to={ URI.DETAIL + '/xx' }/>
+          <IndexRedirect to={ URI.HOME }/>
 
           <Route path={ URI.HOME }
                  components={{
@@ -71,10 +69,6 @@ class DemoApp extends React.Component {
     );
   }
 }
-                   // view: (context) => {
-                   //   console.log(context);
-                   //   return ( <DetailView user={ user }/> )
-                   // }
 
 //
 // https://facebook.github.io/relay/docs/guides-containers.html
