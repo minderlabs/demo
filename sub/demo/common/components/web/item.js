@@ -7,33 +7,33 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-// import SetStatusMutation from '../../mutation/set_status';
+import UpdateItemMutation from '../../mutation/update_item';
 
 /**
  * Generic data item.
  */
 class Item extends React.Component {
 
-  handleToggleStar(ev) {
+  handleToggleStatus(ev) {
     let { item } = this.props;
 
-    let status = item.status ? false: true;
-    // this.props.relay.commitUpdate(
-    //   new SetStatusMutation({
-    //     status,
-    //     item: item.id
-    //   })
-    // );
+    this.props.relay.commitUpdate(
+      new UpdateItemMutation({
+        item: item,                         // TODO(burdon): Just pass in ID?
+        status: item.status ? 0 : 1
+      })
+    );
   }
 
-  // TODO(burdon): Item renderer is list specific?
   render() {
     let { item } = this.props;
+
+    // TODO(burdon): If renderer is item_list specific then move to inner class.
 
     return (
       <div className="app-list-item">
         <i className="app-icon app-icon-medium app-icon-star material-icons"
-           onClick={ this.handleToggleStar.bind(this) }>
+           onClick={ this.handleToggleStatus.bind(this) }>
           { item.status ? 'star': 'star_border' }
         </i>
         <div className="app-expand" title={ item.id }>{ item.title }</div>
@@ -46,13 +46,19 @@ class Item extends React.Component {
 }
 
 export default Relay.createContainer(Item, {
+
+  // TODO(burdon): Document fragments (and entire dependency chain of this madness).
+  // http://stackoverflow.com/questions/33769922/relay-mutation-expects-data-fetched-by-relay
+
   fragments: {
     item: () => Relay.QL`
       fragment on Item {
         id,
         version,
         status,
-        title
+        title,
+
+        ${UpdateItemMutation.getFragment('item')}
       }
     `
   }

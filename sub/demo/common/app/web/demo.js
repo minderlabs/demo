@@ -46,12 +46,14 @@ class DemoApp extends React.Component {
   }
 
   handleCreate(event) {
+    let { user } = this.props;
+
     let title = this.state.title;
     if (title) {
       this.props.relay.commitUpdate(
         new CreateItemMutation({
-          title,
-          user: this.props.user
+          user: user,                   // TODO(burdon): Why not just ID? (see getConfigs parentName.)
+          title: title
         })
       );
 
@@ -89,8 +91,9 @@ export default Relay.createContainer(DemoApp, {
   fragments: {
     user: () => Relay.QL`
       fragment on User {
-        title
-        ${ItemList.getFragment('user')}
+        title,
+
+        ${ItemList.getFragment('user')},
         ${CreateItemMutation.getFragment('user')}
       }
     `

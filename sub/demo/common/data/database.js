@@ -47,12 +47,15 @@ export class Database {
   init() {
     const data = require('./test.json');
 
+    // Create users.
     for (let user of data['users']) {
       this.createUser(user);
     }
 
+    // Create items for default user.
+    let user = this.getUser();
     for (let item of data['items']) {
-      this.createItem(item);
+      this.createItem(user.id, item);
     }
 
     return this;
@@ -64,11 +67,16 @@ export class Database {
       id = 'U-1';
     }
 
-    return this._users.get(id);
+    let user = this._users.get(id);
+    console.assert(user);
+    return user;
   }
 
   getItem(id) {
-    return this._items.get(id);
+    let item = this._items.get(id);
+    // TODO(burdon): assert fails silently in the react server.
+    console.assert(item);
+    return item;
   }
 
   getItems() {
@@ -98,7 +106,10 @@ export class Database {
     return user;
   }
 
-  createItem(data) {
+  createItem(userId, data) {
+    // TODO(burdon): Server passes GUID for userId; we want the local ID!
+    console.log('CREATE', userId, data);
+
     if (!data.id) {
       data.id = String(new Date().getTime());
     }
@@ -110,5 +121,26 @@ export class Database {
     let item = new Item(data);
     this._items.set(item.id, item);
     return item;
+  }
+
+  updateItem(data) {
+    // TODO(burdon): ID is global (need local).
+    console.log('UPDATE', data);
+    let item = this.getItem(data.id);
+
+    item.version += 1;
+
+    // TODO(burdon): Generalize.
+    Database.maybeUpdateItem(item, data, 'title');
+    Database.maybeUpdateItem(item, data, 'status');
+
+    return item;
+  }
+
+  // TODO(burdon): Factor out.
+  static maybeUpdateItem(item, data, field) {
+    if (data[field] !== undefined) {
+      item[field] = data[field];
+    }
   }
 }

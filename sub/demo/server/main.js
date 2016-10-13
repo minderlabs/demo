@@ -54,5 +54,5 @@ app.use('/', function(req, res) {
 
 let server = app.listen(8080, 'localhost', function() {
   let addr = server.address();
-  console.log('http://%s:%d', addr.address, addr.port);
+  console.log('SERVER: http://%s:%d', addr.address, addr.port);
 });

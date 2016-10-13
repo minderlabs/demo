@@ -11,7 +11,7 @@ import Relay from 'react-relay';
  */
 export default class CreateItemMutation extends Relay.Mutation {
 
-  // TODO(burdon): Reuse for mutation?
+  // TODO(burdon): Add other properties other than title?
 
   static fragments = {
     user: () => Relay.QL`
@@ -22,12 +22,14 @@ export default class CreateItemMutation extends Relay.Mutation {
   };
 
   getMutation() {
+    // Corresponds to schema mutation type.
     return Relay.QL`mutation { createItemMutation }`;
   }
 
   getVariables() {
     return {
-      title: this.props.title
+      userId: this.props.user.id,       // TODO(burdon): Is this used?
+      title: this.props.title,
     };
   }
 
@@ -43,7 +45,8 @@ export default class CreateItemMutation extends Relay.Mutation {
               }
             }
           }
-        }
+        },
+
         createItemEdge
       }
     `;
@@ -65,15 +68,18 @@ export default class CreateItemMutation extends Relay.Mutation {
     }];
   }
 
+  // TODO(burdon): Entire user object is returned because it contains the items?
   getOptimisticResponse() {
     return {
+      user: {
+        id: this.props.user.id
+      },
+
+      // TODO(burdon): Create edges for other properties?
       createItemEdge: {
         node: {
           title: this.props.title
         }
-      },
-      user: {
-        id: this.props.user.id
       }
     };
   }

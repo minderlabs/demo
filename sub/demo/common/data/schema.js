@@ -50,7 +50,7 @@ const database = new Database().init();
 const { nodeInterface, nodeField } = nodeDefinitions(
   (globalId) => {
     // TODO(burdon): Type defs?
-    const {type, id} = fromGlobalId(globalId);
+    const { type, id } = fromGlobalId(globalId);
     switch (type) {
 
       case 'User': {
@@ -124,7 +124,7 @@ const itemType = new GraphQLObjectType({
       resolve: (item) => item.title
     },
     status: {
-      type: GraphQLBoolean,
+      type: GraphQLInt,
       description: 'Item status.',
       resolve: (item) => item.status
     }
@@ -145,7 +145,7 @@ const {
 // Root query type.
 //
 
-const queryType = new GraphQLObjectType({
+const queryRootType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
     node: nodeField,
@@ -166,17 +166,33 @@ const queryType = new GraphQLObjectType({
 
 const CreateItemMutation = mutationWithClientMutationId({
   name: 'CreateItemMutation',
+
   inputFields: {
+    userId: {
+      type: new GraphQLNonNull(GraphQLID)
+    },
+
     title: {
       type: new GraphQLNonNull(GraphQLString)
     }
   },
+
   outputFields: {
+    user: {
+      type: userType,
+
+      // TODO(burdon): Items don't just come from Users.
+      // TODO(madadam): Add userId to the mutation, and associate the new Item with the user?
+      // Otherwise this should return all items.
+      resolve: () => database.getUser()
+    },
+
     createItemEdge: {
       type: ItemEdge,
-      resolve: (payload) => {
-        let item = database.getItem(payload.itemId);
+      resolve: ({ itemId }) => {
+        let item = database.getItem(itemId);
         return {
+          // TODO(burdon): Use userId.
           cursor: cursorForObjectInConnection(
             database.getItems(),
             item
@@ -185,23 +201,55 @@ const CreateItemMutation = mutationWithClientMutationId({
         }
       }
     },
-    user: {
-      type: userType,
-      // TODO(burdon): Items don't just come from Users.
-      // TODO(madadam): Add userId to the mutation, and associate the new Item with the user?
-      // Otherwise this should return all items.
-      resolve: (payload) => database.getUser()
-    }
   },
-  mutateAndGetPayload: ({title}) => {
-    // TODO(madadam): Upsert. This just creates a new item.
-    let item = database.createItem({
+
+  mutateAndGetPayload: ({ userId, title }) => {
+    const { type, id } = fromGlobalId(userId);
+
+    let item = database.createItem(id, {
       title: title
     });
 
     return {
       itemId: item.id
+    };
+  }
+});
+
+const UpdateItemMutation = mutationWithClientMutationId({
+  name: 'UpdateItemMutation',
+
+  inputFields: {
+    itemId: {
+      type: new GraphQLNonNull(GraphQLID)
+    },
+
+    // TODO(burdon): Generalize? Pass in entire item? (Same issue for create above.)
+    //               Or JSON object where each non-undefined field is to be set?
+    status: {
+      type: new GraphQLNonNull(GraphQLInt)
     }
+  },
+
+  outputFields: {
+    item: {
+      type: itemType,
+      resolve: ({ itemId }) => database.getItem(itemId)
+    }
+  },
+
+  mutateAndGetPayload: ({ itemId, status }) => {
+    const { type, id } = fromGlobalId(itemId);
+
+    let item = database.updateItem({
+      id: id,
+      status: status
+    });
+
+    // TODO(burdon): What do these fields correspond to?
+    return {
+      itemId: item.id
+    };
   }
 });
 
@@ -209,10 +257,11 @@ const CreateItemMutation = mutationWithClientMutationId({
 // Root mutation type.
 //
 
-const mutationType = new GraphQLObjectType({
+const mutationRootType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
-    createItemMutation: CreateItemMutation
+    createItemMutation: CreateItemMutation,
+    updateItemMutation: UpdateItemMutation
   })
 });
 
@@ -222,6 +271,6 @@ const mutationType = new GraphQLObjectType({
 //
 
 export const Schema = new GraphQLSchema({
-  query: queryType,
-  mutation: mutationType
+  query: queryRootType,
+  mutation: mutationRootType
 });
