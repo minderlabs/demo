@@ -11,7 +11,17 @@ module.exports = function(grunt) {
 
     clean: {
       all_pyc: ['src/main/python/**/*.pyc']
-    }
+    },
+
+    // Python tests.
+    nose: {
+      options: {
+        stop: true,
+        virtualenv: 'tools/python',
+        config: 'nose.cfg'
+      },
+      tests: {}
+    },
   });
 
   // https://github.com/gruntjs/grunt-contrib-clean
@@ -19,6 +29,9 @@ module.exports = function(grunt) {
 
   // https://github.com/gruntjs/grunt-contrib-watch
   grunt.loadNpmTasks('grunt-contrib-watch');
+
+  // https://www.npmjs.org/package/grunt-nose
+  grunt.loadNpmTasks('grunt-nose');
 
   // https://www.npmjs.com/package/grunt-run
   grunt.loadNpmTasks('grunt-run');

@@ -19,20 +19,15 @@
 
 ## Gettting started
 
-- ./scripts/init.sh
-- Set-up PyCharm project interpreter (Prefs -> Project Interpreter -> New (tools/python/bin/python)
+~~~~
+    ./scripts/init.sh
 
+    # Run tests
+    grunt nose
 
+    # Create the schema.json
+    npm run schema
 
-
-
-
-
-
-
-
-
-
-- https://github.com/graphql-python/graphene/issues/3
-
-
+    # Start the Flask server
+    npm run flask
+~~~~
