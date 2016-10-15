@@ -4,17 +4,19 @@
 
 'use strict';
 
-let express = require('express');
-let path = require('path');
-var favicon = require('serve-favicon');
+const path = require('path');
+const favicon = require('serve-favicon');
 
-let graphqlHTTP = require('express-graphql');
+const express = require('express');
+const graphqlHTTP = require('express-graphql');
 
-let { Schema } = require('../common/data/schema');
+import schema from '../common/data/schema';
 
 //
 // Express node server.
 //
+
+const port = 8080;
 
 const app = express();
 
@@ -25,8 +27,14 @@ const app = express();
 //
 
 app.use('/graphql', graphqlHTTP({
-  schema: Schema,
-  graphiql: true
+  schema: schema,
+
+  graphiql: true,
+
+  formatError: (error) => ({ // better errors for development. `stack` used in `gqErrors` middleware
+    message: error.message,
+    stack: process.env.NODE_ENV === 'development' ? error.stack.split('\n') : null,
+  }),
 }));
 
 
@@ -66,7 +74,7 @@ app.get(/^\/(.*)/, function(req, res) {
 // https://expressjs.com/en/starter/static-files.html
 //
 
-let server = app.listen(8080, 'localhost', function() {
+let server = app.listen(port, 'localhost', function() {
   let addr = server.address();
-  console.log('SERVER: http://%s:%d', addr.address, addr.port);
+  console.log('STARTED: http://%s:%d', addr.address, addr.port);
 });

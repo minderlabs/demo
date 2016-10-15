@@ -8,6 +8,9 @@
 // Server-side code that generates the JSON schema used by the client.
 //
 
+// TODO(burdon): PyCharm plugin.
+// https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues/32
+
 //
 // NOTE: MUST REGEN WEBPACK BUNDLE AFTER UPDATING SCHEMA.
 // TODO(burdon): Fix in webpack config? (temp fix: grunt watch).
@@ -183,12 +186,13 @@ const rootQueryType = new GraphQLObjectType({
       args: {
         userId: { type: GraphQLID }
       },
-      resolve: (parent, args) => database.getUser(args.userId)
+      resolve: (parent, args) => database.getUser(fromGlobalId(args.userId).id)
     },
 
     item: {
       type: itemType,
       args: {
+        userId: { type: GraphQLID },
         itemId: { type: GraphQLID }
       },
       resolve: (parent, args) => database.getItem(fromGlobalId(args.itemId).id)
@@ -199,7 +203,7 @@ const rootQueryType = new GraphQLObjectType({
       args: {
         userId: { type: GraphQLID }
       },
-      resolve: (parent, args) => database.getItems(args.userId)
+      resolve: (parent, args) => database.getItems(fromGlobalId(args.userId).id)
     }
   })
 });
@@ -324,7 +328,9 @@ const rootMutationType = new GraphQLObjectType({
 // http://graphql.org/graphql-js/type/#schema
 //
 
-export const Schema = new GraphQLSchema({
+const schema = new GraphQLSchema({
   query: rootQueryType,
   mutation: rootMutationType
 });
+
+export default schema;

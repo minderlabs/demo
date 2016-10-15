@@ -1,8 +1,10 @@
 //
-// References by .babelrc
+// Referenced by .babelrc
+// https://facebook.github.io/relay/docs/guides-babel-plugin.html#content
 //
 
-var getbabelRelayPlugin = require('babel-relay-plugin');
-var schema = require('../../common/data/schema.json');
+const getbabelRelayPlugin = require('babel-relay-plugin');
+
+const schema = require('../../common/data/schema.json');
 
 module.exports = getbabelRelayPlugin(schema.data);

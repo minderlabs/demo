@@ -7,7 +7,7 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import Item from '../../../components/web/item';
+import ItemDetail from '../../../components/web/item_detail';
 
 import Path from '../path';
 
@@ -38,17 +38,12 @@ class DetailView extends React.Component {
         <div className="app-section app-debug">{ this.props.params.itemId }</div>
 
         <div className="app-section">
-          <div className="app-list">
-            <Item user={ user } item={ item }/>
-          </div>
+          <ItemDetail user={ user } item={ item }/>
         </div>
       </div>
     );
   }
 }
-
-// TODO(burdon): Define specific fragment (move from DemoApp)?
-// http://stackoverflow.com/questions/32756125/how-to-pass-variables-between-relay-containers
 
 export default Relay.createContainer(DetailView, {
   fragments: {
@@ -64,7 +59,7 @@ export default Relay.createContainer(DetailView, {
         title,
         status,
 
-        ${Item.getFragment('item')}
+        ${ItemDetail.getFragment('item')}
       }
     `,
   }

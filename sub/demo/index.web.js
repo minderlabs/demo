@@ -54,7 +54,7 @@ if (type) {
     case 'local': {
       // https://github.com/relay-tools/relay-local-schema
       // http://graphql.org/blog/rest-api-graphql-wrapper/#using-a-client-side-schema-with-relay
-      let schema = require('./common/data/schema');
+      const schema = require('./common/data/schema');
 
       networkLayer = new RelayLocalSchema.NetworkLayer({
         // TODO(burdon): ERROR: Schema must be an instance of GraphQLSchema.

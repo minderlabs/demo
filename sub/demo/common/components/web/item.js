@@ -18,8 +18,8 @@ class Item extends React.Component {
     item: React.PropTypes.object.isRequired
   };
 
-  handleToggleStatus(ev) {
-    ev.stopPropagation();
+  handleToggleStatus(event) {
+    event.stopPropagation();
 
     let { user, item } = this.props;
 
@@ -36,10 +36,8 @@ class Item extends React.Component {
   render() {
     let { item } = this.props;
 
-    // TODO(burdon): If renderer is item_list specific then move to inner class.
-
     return (
-      <div className="app-list-item">
+      <div>
         <i className="app-icon app-icon-medium app-icon-star material-icons"
            onClick={ this.handleToggleStatus.bind(this) }>
           { item.status ? 'star': 'star_border' }
@@ -52,9 +50,6 @@ class Item extends React.Component {
 }
 
 export default Relay.createContainer(Item, {
-
-  // TODO(burdon): Document fragments (and entire dependency chain of this madness).
-  // http://stackoverflow.com/questions/33769922/relay-mutation-expects-data-fetched-by-relay
 
   fragments: {
     item: () => Relay.QL`

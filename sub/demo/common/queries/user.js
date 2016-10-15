@@ -11,9 +11,6 @@ import Relay from 'react-relay';
 // NOTE: Query is named for this filename (capitalized).
 //
 
-// TODO(burdon): PyCharm plugin.
-// https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues/32
-
 export default {
 
   user: () => Relay.QL`
