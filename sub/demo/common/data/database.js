@@ -39,9 +39,24 @@ export class Database {
 
   // TODO(burdon): Design API and implement real backend.
 
+  static DEFAULT_USER = 'U-1';
+
+  // TODO(burdon): Factor out.
+  static createId() {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+  }
+
   constructor() {
-    this._items = new Map();
     this._users = new Map();
+
+    // TODO(burdon): Map of maps per user.
+    this._items = new Map();
   }
 
   init() {
@@ -53,7 +68,7 @@ export class Database {
     }
 
     // Create items for default user.
-    let user = this.getUser();
+    let user = this.getUser(Database.DEFAULT_USER);
     for (let item of data['items']) {
       this.createItem(user.id, item);
     }
@@ -61,72 +76,59 @@ export class Database {
     return this;
   }
 
-  getUser(id=undefined) {
-    // TODO(burdon): Alias for current user.
-    if (id === undefined) {
-      id = 'U-1';
-    }
+  //
+  // Users
+  //
 
+  getUser(id) {
     let user = this._users.get(id);
     console.assert(user);
+    console.log('USER.GET', id, JSON.stringify(user));
     return user;
   }
 
-  getItem(id) {
-    let item = this._items.get(id);
-    // TODO(burdon): assert fails silently in the react server.
-    console.assert(item);
-    return item;
-  }
-
-  getItems() {
-    return Array.from(this._items.values());
-  }
-
-  query(type) {
-    // TODO(burdon): Query.
-    switch (type) {
-
-      case 'User': {
-        return Array.from(this._users.values());
-      }
-
-      case 'Item': {
-        // TODO(burdon): Items for user.
-        return Array.from(this._items.values());
-      }
-    }
-  }
-
   createUser(data) {
-    console.assert(data.id);
-
     let user = new User(data);
+    console.log('USER.CREATE', JSON.stringify(user));
     this._users.set(user.id, user);
     return user;
   }
 
-  createItem(userId, data) {
-    // TODO(burdon): Server passes GUID for userId; we want the local ID!
-    console.log('CREATE', userId, data);
+  //
+  // Items
+  // NOTE: graph-relay nodeDefinitions enforces GUID for item (i.e., bucket must be encoded in the local ID).
+  //
 
-    if (!data.id) {
-      data.id = String(new Date().getTime());
+  getItem(itemId) {
+    let item = this._items.get(itemId);
+    console.log('ITEM.GET', itemId, JSON.stringify(item));
+    return item;
+  }
+
+  getItems(userId, args) {
+    let items = Array.from(this._items.values());
+    console.log('ITEM.GET', userId, args, items.length);
+    return items;
+  }
+
+  createItem(userId, data) {
+    if (data.id === undefined) {
+      data.id = Database.createId();
     }
 
-    if (!data.version) {
+    if (data.version === undefined) {
       data.version = 0;
     }
 
     let item = new Item(data);
+    console.log('ITEM.CREATE', userId, JSON.stringify(item));
     this._items.set(item.id, item);
     return item;
   }
 
-  updateItem(data) {
-    // TODO(burdon): ID is global (need local).
-    console.log('UPDATE', data);
-    let item = this.getItem(data.id);
+  updateItem(itemId, data) {
+    console.log('ITEM.UPDATE', data);
+    let item = this.getItem(itemId);
 
     item.version += 1;
 
@@ -137,7 +139,11 @@ export class Database {
     return item;
   }
 
+  //
+  // Utils.
   // TODO(burdon): Factor out.
+  //
+
   static maybeUpdateItem(item, data, field) {
     if (data[field] !== undefined) {
       item[field] = data[field];

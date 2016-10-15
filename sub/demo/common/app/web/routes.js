@@ -4,22 +4,45 @@
 
 'use strict';
 
-import Relay from 'react-relay';
+import React from 'react';
+import { IndexRedirect, Redirect, Route } from 'react-router';
+
+import UserQueries from '../../queries/user';
+import ItemQueries from '../../queries/item';
+
+import Path from './path';
+
+import DemoApp from './demo';
+
+import HomeView from './view/home';
+import DetailView from './view/detail';
 
 /**
- * Query entry points (not URL routing).
- * https://facebook.github.io/relay/docs/api-reference-relay-route.html
+ * React Relay Router.
+ * https://github.com/ReactTraining/react-router
+ * https://github.com/relay-tools/react-router-relay
  */
-export default class extends Relay.Route {
+export default (
 
-  // Referenced by ReactDOM.render(<Relay.Renderer queryConfig={ new DemoAppHomeRoute() }/>);
-  static routeName = 'DemoAppHomeRoute';
+  // TODO(burdon): userId from app context (should be globalId).
 
-  static queries = {
-    user: () => Relay.QL`
-      query {
-        user
-      }
-    `
-  };
-}
+  <Route path={ Path.ROOT }
+         queries={ UserQueries }
+         component={ DemoApp }>
+
+    <IndexRedirect to={ Path.HOME }/>
+
+    <Route path={ Path.HOME }
+           queries={ UserQueries }
+           prepareParams={ params => ({ ...params, userId: 'U-1' }) }
+           component={ HomeView }/>
+
+    <Route path={ Path.DETAIL + '/:itemId' }
+           queries={ ItemQueries }
+           prepareParams={ params => ({ ...params, userId: 'U-1' }) }
+           component={ DetailView }/>
+
+    <Redirect from='*' to={ Path.HOME }/>
+  </Route>
+
+);

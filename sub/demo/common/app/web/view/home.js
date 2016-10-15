@@ -9,12 +9,19 @@ import Relay from 'react-relay';
 
 // TODO(burdon): Create lib for UX and Data.
 import ItemList from '../../../components/web/item_list';
-import CreateItemMutation from '../../../mutation/create_item';
+
+import CreateItemMutation from '../../../mutations/create_item';
+
+import Path from '../path';
 
 /**
  * Home view.
  */
 class HomeView extends React.Component {
+
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  };
 
   constructor(props, context) {
     super(props, context);
@@ -24,14 +31,14 @@ class HomeView extends React.Component {
     };
   }
 
-  handleCreate() {
+  createItem() {
     let { user } = this.props;
 
     let title = this.state.title;
     if (title) {
       this.props.relay.commitUpdate(
         new CreateItemMutation({
-          user: user,                   // TODO(burdon): Why not just ID? (see getConfigs parentName.)
+          user: user,
           title: title
         })
       );
@@ -55,14 +62,18 @@ class HomeView extends React.Component {
   handleKeyUp(event) {
     switch (event.keyCode) {
       case 13: {
-        this.handleCreate(event);
+        this.createItem();
         break;
       }
     }
   }
 
   handleCreateButton(event) {
-    this.handleCreate();
+    this.createItem();
+  }
+
+  handleItemSelect(item) {
+    this.context.router.push(Path.detail(item.id));
   }
 
   //
@@ -87,7 +98,7 @@ class HomeView extends React.Component {
     return (
       <div className="app-panel-column">
         <div className="app-section app-panel-column">
-          <ItemList user={ user }/>
+          <ItemList user={ user } onSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
         { EditBar }
@@ -96,7 +107,16 @@ class HomeView extends React.Component {
   }
 }
 
-// TODO(burdon): Define specific fragment (move from DemoApp)?
 export default Relay.createContainer(HomeView, {
-  fragments: {}
+  fragments: {
+    user: () => Relay.QL`
+      fragment on User {
+        id,
+        title,
+
+        ${ItemList.getFragment('user')},
+        ${CreateItemMutation.getFragment('user')}
+      }
+    `
+  }
 });

@@ -6,83 +6,37 @@
 
 import React from 'react';
 import Relay from 'react-relay';
-import { browserHistory, IndexRedirect, Redirect, Router, Route } from 'react-router';
-
-// TODO(burdon): Create lib for UX and Data.
-import ItemList from '../../components/web/item_list';
-import CreateItemMutation from '../../mutation/create_item';
-
-import HomeView from './view/home';
-import DetailView from './view/detail';
 
 import './demo.less';
 
-//
-// Router paths.
-//
-const URI = {
-  ROOT:     '/',
-  HOME:     '/home',
-  DETAIL:   '/detail'
-};
-
 /**
- * App container.
+ * Root app component.
  */
 class DemoApp extends React.Component {
 
   render() {
-    let { user } = this.props;
-
-    const Layout = ({ view }) => {
-      return (
-        <div className="app-panel">
-          <h1>{ user.title }</h1>
-
-          <div className="app-view app-panel-column">
-            { view }
-          </div>
-        </div>
-      );
-    };
-
-    // TODO(burdon): Config server to enable /detail/key (second slash).
+    let { children, user } = this.props;
 
     return (
-      <Router history={ browserHistory }>
-        <Route path={ URI.ROOT } component={ Layout }>
-          <IndexRedirect to={ URI.HOME }/>
+      <div className="app-panel">
+        <h1>{ user.title }</h1>
 
-          <Route path={ URI.HOME }
-                 components={{
-                   view: () => { return ( <HomeView user={ user }/> ) }
-                 }}/>
+        <div className="app-section app-debug">{ JSON.stringify(user) }</div>
 
-          <Route path={ URI.DETAIL + '/:itemId' }
-                 components={{
-                   view: DetailView
-                 }}/>
-        </Route>
-
-        <Redirect from='*' to={ URI.HOME }/>
-      </Router>
+        <div className="app-view app-panel-column">
+          { children }
+        </div>
+      </div>
     );
   }
 }
 
-//
-// https://facebook.github.io/relay/docs/guides-containers.html
-//
-
-// TODO(burdon): Move to view?
 export default Relay.createContainer(DemoApp, {
   fragments: {
     user: () => Relay.QL`
       fragment on User {
-        title,
-
-        ${ItemList.getFragment('user')},
-        ${CreateItemMutation.getFragment('user')}
+        id,
+        title
       }
     `
   }

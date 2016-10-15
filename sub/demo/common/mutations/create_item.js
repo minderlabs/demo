@@ -8,6 +8,7 @@ import Relay from 'react-relay';
 
 /**
  * Creates new item.
+ * https://facebook.github.io/relay/docs/guides-mutations.html
  */
 export default class CreateItemMutation extends Relay.Mutation {
 
@@ -26,9 +27,13 @@ export default class CreateItemMutation extends Relay.Mutation {
     return Relay.QL`mutation { createItemMutation }`;
   }
 
+  /**
+   * Extract variables from the arguments provided to the mutation constructor.
+   * These fields should match the inputFields in the mutation type (in the schema).
+   */
   getVariables() {
     return {
-      userId: this.props.user.id,       // TODO(burdon): Is this used?
+      userId: this.props.user.id,
       title: this.props.title,
     };
   }

@@ -24,16 +24,19 @@ export default class UpdateItemMutation extends Relay.Mutation {
     return Relay.QL`mutation { updateItemMutation }`;
   }
 
-  // TODO(burdon): Other properties?
   getVariables() {
+
+    console.log('GV !!!!!!!!!!!!', this.props);
+
     return {
+      userId: this.props.user.id,
       itemId: this.props.item.id,
+      title:  this.props.title,
       status: this.props.status
     };
   }
 
   // TODO(burdon): Generalize what can be updated?
-  // TODO(burdon): @relay pattern required?
   getFatQuery() {
     return Relay.QL`
       fragment on UpdateItemMutationPayload {

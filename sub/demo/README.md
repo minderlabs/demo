@@ -59,3 +59,12 @@ TODO(madadam): Don't do this in production. See https://github.com/babel/example
 - To rename project:
   - http://blog.skypayjm.com/2016/07/renaming-react-native-project.html
   - AndroidManifest.xml
+
+
+## Troubleshooting
+
+- TODO(burdon): Enable server errors/logging (e.g., asserts ignored).
+
+- Server side (schema) errors:
+  - 400: invalid mutation params:
+    - Check GraphQLNonNull constraints

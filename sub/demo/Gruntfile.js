@@ -22,11 +22,27 @@ module.exports = function(grunt) {
       options: {
         atBegin: true
       },
-      graphql: {
+      schema_js: {
+        files: [
+          'common/data/schema.js'
+        ],
+        tasks: ['run:update_schema']
+      },
+      schema_json: {
         files: [
           'common/data/schema.json'
         ],
         tasks: ['webpack']
+      }
+    },
+
+    run: {
+      update_schema: {
+        cmd: 'npm',
+        args: [
+          'run',
+          'update-schema'
+        ]
       }
     },
 
@@ -47,6 +63,9 @@ module.exports = function(grunt) {
 
   // https://github.com/gruntjs/grunt-contrib-watch
   grunt.loadNpmTasks('grunt-contrib-watch');
+
+  // https://www.npmjs.com/package/grunt-run
+  grunt.loadNpmTasks('grunt-run');
 
   // https://webpack.github.io/docs/usage-with-grunt.html
   grunt.loadNpmTasks("grunt-webpack");

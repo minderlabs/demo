@@ -57,9 +57,14 @@ const database = new Database().init();
  * https://facebook.github.io/relay/docs/tutorial.html
  */
 const { nodeInterface, nodeField } = nodeDefinitions(
+
+  //
+  // Retrieve object from global ID.
+  // NOTE: Global IDs must be unique across types.
+  //
+
   (globalId) => {
-    // TODO(burdon): Type defs?
-    const { type, id } = fromGlobalId(globalId);
+    let { type, id } = fromGlobalId(globalId);
     switch (type) {
 
       case 'User': {
@@ -75,6 +80,10 @@ const { nodeInterface, nodeField } = nodeDefinitions(
       }
     }
   },
+
+  //
+  // Determines node type of object instance.
+  //
 
   (obj) => {
     // TODO(burdon): Infer from something other than type?
@@ -103,7 +112,7 @@ const userType = new GraphQLObjectType({
   fields: () => ({
     id: globalIdField('User'),
 
-    // TODO(burdon): Standardize on "title" field?
+    // TODO(burdon): Standardize on "title" field in type definition?
     title: {
       type: GraphQLString,
       description: 'User\'s name.',
@@ -114,7 +123,7 @@ const userType = new GraphQLObjectType({
       type: ItemConnection,
       description: 'User\'s collection of items.',
       args: connectionArgs,
-      resolve: (_, args) => connectionFromArray(database.query('Item'), args)
+      resolve: (user, args) => connectionFromArray(database.getItems(user.id, args), args)
     }
   })
 });
@@ -163,17 +172,34 @@ const {
 // Root query type.
 //
 
-const queryRootType = new GraphQLObjectType({
+const rootQueryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
+
     node: nodeField,
+
     user: {
       type: userType,
-      resolve: () => database.getUser()
+      args: {
+        userId: { type: GraphQLID }
+      },
+      resolve: (parent, args) => database.getUser(args.userId)
     },
+
+    item: {
+      type: itemType,
+      args: {
+        itemId: { type: GraphQLID }
+      },
+      resolve: (parent, args) => database.getItem(fromGlobalId(args.itemId).id)
+    },
+
     items: {
       type: itemType,
-      resolve: () => database.query('Item')
+      args: {
+        userId: { type: GraphQLID }
+      },
+      resolve: (parent, args) => database.getItems(args.userId)
     }
   })
 });
@@ -198,37 +224,35 @@ const CreateItemMutation = mutationWithClientMutationId({
   outputFields: {
     user: {
       type: userType,
-
-      // TODO(burdon): Items don't just come from Users.
-      // TODO(madadam): Add userId to the mutation, and associate the new Item with the user?
-      // Otherwise this should return all items.
-      resolve: () => database.getUser()
+      resolve: ({ userId }) => database.getUser(userId)
     },
 
     createItemEdge: {
       type: ItemEdge,
-      resolve: ({ itemId }) => {
+      resolve: ({ userId, itemId }) => {
         let item = database.getItem(itemId);
         return {
-          // TODO(burdon): Use userId.
+          node: item,
+
+          // TODO(burdon): Do we need to retrieve all items here?
           cursor: cursorForObjectInConnection(
-            database.getItems(),
+            database.getItems(userId),
             item
-          ),
-          node: item
+          )
         }
       }
     },
   },
 
   mutateAndGetPayload: ({ userId, title }) => {
-    const { type, id } = fromGlobalId(userId);
+    let localUserId = fromGlobalId(userId).id;
 
-    let item = database.createItem(id, {
+    let item = database.createItem(localUserId, {
       title: title
     });
 
     return {
+      userId: localUserId,
       itemId: item.id
     };
   }
@@ -238,34 +262,46 @@ const UpdateItemMutation = mutationWithClientMutationId({
   name: 'UpdateItemMutation',
 
   inputFields: {
+    userId: {
+      type: new GraphQLNonNull(GraphQLID)
+    },
+
     itemId: {
       type: new GraphQLNonNull(GraphQLID)
     },
 
     // TODO(burdon): Generalize? Pass in entire item? (Same issue for create above.)
     //               Or JSON object where each non-undefined field is to be set?
+    title: {
+      type: GraphQLString
+    },
+
+    // TODO(burdon): Change to array of labels.
     status: {
-      type: new GraphQLNonNull(GraphQLInt)
+      type: GraphQLInt
     }
   },
 
   outputFields: {
     item: {
       type: itemType,
-      resolve: ({ itemId }) => database.getItem(itemId)
+      resolve: ({ userId, itemId }) => {
+        return database.getItem(itemId)
+      }
     }
   },
 
-  mutateAndGetPayload: ({ itemId, status }) => {
-    const { type, id } = fromGlobalId(itemId);
+  mutateAndGetPayload: ({ userId, itemId, title, status }) => {
+    let localUserId = fromGlobalId(userId).id;
+    let localItemId = fromGlobalId(itemId).id;
 
-    let item = database.updateItem({
-      id: id,
+    let item = database.updateItem(localItemId, {
+      title: title,
       status: status
     });
 
-    // TODO(burdon): What do these fields correspond to?
     return {
+      userId: localUserId,
       itemId: item.id
     };
   }
@@ -275,7 +311,7 @@ const UpdateItemMutation = mutationWithClientMutationId({
 // Root mutation type.
 //
 
-const mutationRootType = new GraphQLObjectType({
+const rootMutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
     createItemMutation: CreateItemMutation,
@@ -289,6 +325,6 @@ const mutationRootType = new GraphQLObjectType({
 //
 
 export const Schema = new GraphQLSchema({
-  query: queryRootType,
-  mutation: mutationRootType
+  query: rootQueryType,
+  mutation: rootMutationType
 });

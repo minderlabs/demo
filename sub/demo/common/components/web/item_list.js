@@ -16,30 +16,36 @@ import './list.less';
  */
 class ItemList extends React.Component {
 
-  render() {
-    const { user } = this.props;
+  // TODO(burdon): Replace with selection model.
+  handleSelect(node) {
+    this.props.onSelect && this.props.onSelect(node);
+  }
 
-//  user.items.edges.map(edge => console.log(edge.node));
+  render() {
+    let { user } = this.props;
+
+    let items = user.items.edges.map(edge =>
+      <div key={ edge.node.id } onClick={ this.handleSelect.bind(this, edge.node) }>
+        <Item user={ user } item={ edge.node }/>
+      </div>
+    );
 
     return (
-      <div className="app-section app-expand app-list">
-        {user.items.edges.map(edge =>
-          <Item key={edge.node.id} item={edge.node}/>
-        )}
-      </div>
+      <div className="app-section app-expand app-list">{ items }</div>
     );
   }
 }
 
-// TODO(burdon): Factor out ListView and data binding?
 export default Relay.createContainer(ItemList, {
   fragments: {
     user: () => Relay.QL`
       fragment on User {
+        id,
         items(first: 10) {
           edges {
             node {
               id,
+
               ${Item.getFragment('item')}
             }
           }
