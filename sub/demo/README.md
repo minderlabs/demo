@@ -63,8 +63,13 @@ TODO(madadam): Don't do this in production. See https://github.com/babel/example
 
 ## Troubleshooting
 
+TODO(burdon): Global log of troubleshooting issues by category.
+
 - TODO(burdon): Enable server errors/logging (e.g., asserts ignored).
 
 - Server side (schema) errors:
   - 400: invalid mutation params:
     - Check GraphQLNonNull constraints
+
+- Karma can't find plugin
+    - npm i -g karma-cli

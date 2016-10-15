@@ -1,6 +1,8 @@
 // Copyright 2016 Alien Laboratories, Inc.
 
-var webpackConfig = require('./webpack.config.js');
+'use strict';
+
+const webpackConfig = require('./webpack.config.js');
 
 /**
  * Grunt config.
@@ -69,6 +71,10 @@ module.exports = function(grunt) {
 
   // https://webpack.github.io/docs/usage-with-grunt.html
   grunt.loadNpmTasks("grunt-webpack");
+
+  //
+  // Tasks
+  //
 
   grunt.registerTask('default', ['webpack']);
 };
