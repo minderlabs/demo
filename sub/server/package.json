@@ -1,0 +1,21 @@
+{
+  "name": "Server",
+  "version": "0.0.1",
+  "description": "Python React Relay Server.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com:alienlabs/react-demos.git"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-run": "^0.6.0"
+  },
+  "dependencies": {
+  },
+  "scripts": {
+    "server": "python src/main/python/server/main.py"
+  }
+}

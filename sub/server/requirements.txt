@@ -1,0 +1,16 @@
+#
+# pip install -U -r requirements.txt
+#
+
+Flask
+Flask-GraphQL
+
+#
+# Graphene
+#   - graphql-core
+#   - graphql-relay
+#
+
+graphene>=1.0
+
+gql
