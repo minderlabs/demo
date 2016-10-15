@@ -16,6 +16,7 @@
   "dependencies": {
   },
   "scripts": {
+    "schema": "python src/main/python/server/gen.py -f build/schema.json",
     "server": "python src/main/python/server/main.py"
   }
 }
