@@ -8,6 +8,9 @@ var _ = require('lodash');
 
 var baseConfig = require('./webpack-base.config.js');
 
+//
+// Karma config.
+//
 
 module.exports = _.merge(baseConfig, {
 

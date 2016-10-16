@@ -13,7 +13,7 @@ import RelayLocalSchema from 'relay-local-schema';
 import { applyRouterMiddleware, browserHistory, Router } from 'react-router';
 import useRelay from 'react-router-relay';
 
-import routes from './common/app/web/routes';
+import routes from './javascript/common/app/web/routes';
 
 //
 // Set Relay network layer.
@@ -54,7 +54,7 @@ if (type) {
     case 'local': {
       // https://github.com/relay-tools/relay-local-schema
       // http://graphql.org/blog/rest-api-graphql-wrapper/#using-a-client-side-schema-with-relay
-      const schema = require('./common/data/schema');
+      const schema = require('./javascript/common/data/schema');
 
       networkLayer = new RelayLocalSchema.NetworkLayer({
         // TODO(burdon): ERROR: Schema must be an instance of GraphQLSchema.
@@ -69,7 +69,7 @@ if (type) {
 
     default:
     case 'network': {
-      networkLayer = new Relay.DefaultNetworkLayer('http://localhost:8080/graphql');
+      networkLayer = new Relay.DefaultNetworkLayer('http://localhost:8080/debug/graphql');
       break;
     }
   }

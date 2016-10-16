@@ -10,7 +10,7 @@ const webpack = require('webpack');
 // https://github.com/webpack/extract-text-webpack-plugin
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const LIB_DIR = path.resolve(__dirname, 'common');
+const LIB_DIR = path.resolve(__dirname, 'javascript/common');
 
 //
 // Webpack base configuration.
@@ -87,7 +87,11 @@ module.exports = {
 
     new webpack.ProvidePlugin({
       $: 'jquery'
-    })
+    }),
+
+    new webpack.ProvidePlugin({
+      _: 'lodash'
+    }),
   ]
 
 };

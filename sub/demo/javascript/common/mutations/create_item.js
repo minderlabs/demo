@@ -12,7 +12,7 @@ import Relay from 'react-relay';
  */
 export default class CreateItemMutation extends Relay.Mutation {
 
-  // TODO(burdon): Add other properties other than title?
+  // TODO(burdon): Generalize fields.
 
   static fragments = {
     user: () => Relay.QL`
@@ -57,9 +57,9 @@ export default class CreateItemMutation extends Relay.Mutation {
     `;
   }
 
-  // TODO(burdon): Multiple parents and edges?
-  // https://facebook.github.io/relay/docs/guides-mutations.html#range-add
   getConfigs() {
+    // TODO(burdon): Multiple parents and edges?
+    // https://facebook.github.io/relay/docs/guides-mutations.html#range-add
     return [{
       type: 'RANGE_ADD',
       parentName: 'user',
@@ -73,14 +73,12 @@ export default class CreateItemMutation extends Relay.Mutation {
     }];
   }
 
-  // TODO(burdon): Entire user object is returned because it contains the items?
   getOptimisticResponse() {
     return {
       user: {
         id: this.props.user.id
       },
 
-      // TODO(burdon): Create edges for other properties?
       createItemEdge: {
         node: {
           title: this.props.title

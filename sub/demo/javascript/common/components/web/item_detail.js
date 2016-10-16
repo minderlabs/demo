@@ -27,19 +27,14 @@ class ItemDetail extends React.Component {
   constructor(props, context) {
     super(props, context);
 
-    // TODO(burdon): Copy item.
     this.state = {
-      item: {
-        title: this.props.item.title
-      }
+      item: _.pick(this.props.item, ['title', 'status'])
     }
   }
 
   handleTextChange(field, event) {
     this.setState({
-      item: {
-        title: event.target.value
-      }
+      item: _.merge(this.state.item, _.set({}, field, event.target.value))
     });
   }
 
@@ -48,9 +43,11 @@ class ItemDetail extends React.Component {
 
     this.props.relay.commitUpdate(
       new UpdateItemMutation({
-        user: user,                         // TODO(burdon): Just pass in ID?
-        item: item,                         // TODO(burdon): Just pass in ID?
-        title: this.state.item.title
+        user: user,
+        item: item,
+
+        title: this.state.item.title,
+        status: this.state.item.status
       })
     );
 

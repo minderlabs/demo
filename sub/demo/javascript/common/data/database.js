@@ -4,6 +4,8 @@
 
 'use strict';
 
+import { Util } from '../util/util';
+
 /**
  * User item.
  */
@@ -20,15 +22,16 @@ export class User {
  */
 export class Item {
 
+  static update(item, data) {
+    Util.maybeUpdateItem(item, data, 'title');
+    Util.maybeUpdateItem(item, data, 'status');
+  }
+
   constructor(data) {
     this.id = data.id;
-    this.version = data.version;
+    this.version = data.version || 0;
 
-    // TODO(burdon): Common.
-    this.title = data.title;
-
-    // TODO(burdon): Type-specific.
-    this.status = data.status;
+    Item.update(this, data);
   }
 }
 
@@ -40,17 +43,6 @@ export class Database {
   // TODO(burdon): Design API and implement real backend.
 
   static DEFAULT_USER = 'U-1';
-
-  // TODO(burdon): Factor out.
-  static createId() {
-    function s4() {
-      return Math.floor((1 + Math.random()) * 0x10000)
-        .toString(16)
-        .substring(1);
-    }
-
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-  }
 
   constructor() {
     this._users = new Map();
@@ -113,7 +105,7 @@ export class Database {
 
   createItem(userId, data) {
     if (data.id === undefined) {
-      data.id = Database.createId();
+      data.id = Util.createId();
     }
 
     if (data.version === undefined) {
@@ -128,25 +120,11 @@ export class Database {
 
   updateItem(itemId, data) {
     console.log('ITEM.UPDATE', data);
-    let item = this.getItem(itemId);
+    let item = this._items.get(itemId);
 
     item.version += 1;
-
-    // TODO(burdon): Generalize.
-    Database.maybeUpdateItem(item, data, 'title');
-    Database.maybeUpdateItem(item, data, 'status');
+    Item.update(item, data);
 
     return item;
-  }
-
-  //
-  // Utils.
-  // TODO(burdon): Factor out.
-  //
-
-  static maybeUpdateItem(item, data, field) {
-    if (data[field] !== undefined) {
-      item[field] = data[field];
-    }
   }
 }

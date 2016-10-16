@@ -15,8 +15,8 @@ module.exports = function(grunt) {
 
     clean: {
       all: [
-        'server/assets',
-        'common/data/schema.json'
+        'javascript/server/assets',
+        'javascript/common/data/schema.json'
       ],
     },
 
@@ -26,13 +26,13 @@ module.exports = function(grunt) {
       },
       schema_js: {
         files: [
-          'common/data/schema.js'
+          'javascript/common/data/schema.js'
         ],
         tasks: ['run:update_schema']
       },
       schema_json: {
         files: [
-          'common/data/schema.json'
+          'javascript/common/data/schema.json'
         ],
         tasks: ['webpack']
       }
@@ -76,5 +76,5 @@ module.exports = function(grunt) {
   // Tasks
   //
 
-  grunt.registerTask('default', ['webpack']);
+  grunt.registerTask('default', ['run:update_schema', 'webpack']);
 };

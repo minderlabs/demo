@@ -4,13 +4,17 @@
 // https://github.com/relayjs/relay-starter-kit/blob/master/scripts/updateSchema.js
 // https://facebook.github.io/relay/docs/guides-babel-plugin.html#schema-json
 
+'use strict';
+
 import fs from 'fs';
 import path from 'path';
 
 import { graphql }  from 'graphql';
 import { introspectionQuery, printSchema } from 'graphql/utilities';
 
-import schema from '../../common/data/schema';
+import schema from '../../javascript/common/data/schema';
+
+var DATA_DIR = '../../javascript/common/data';
 
 // Saves JSON of full schema introspection for Babel Relay Plugin to use.
 (async () => {
@@ -20,13 +24,13 @@ import schema from '../../common/data/schema';
   } else {
     // TODO(burdon): Output generated files elsewhere?
     fs.writeFileSync(
-      path.join(__dirname, '../../common/data/schema.json'), JSON.stringify(result, null, 2)
+      path.join(__dirname, DATA_DIR, 'schema.json'), JSON.stringify(result, null, 2)
     );
   }
 })();
 
 // Saves user readable type system shorthand of schema.
 fs.writeFileSync(
-  path.join(__dirname, '../../common/data/schema.graphql'),
+  path.join(__dirname, DATA_DIR, 'schema.graphql'),
   printSchema(schema)
 );

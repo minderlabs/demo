@@ -10,7 +10,11 @@ const webpack = require('webpack');
 
 var baseConfig = require('./webpack-base.config.js');
 
-const BUILD_DIR = path.resolve(__dirname, 'server/assets');
+const BUILD_DIR = path.resolve(__dirname, 'javascript/server/assets');
+
+//
+// App webpack config.
+//
 
 module.exports = _.merge(baseConfig, {
 

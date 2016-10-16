@@ -9,6 +9,7 @@ const favicon = require('serve-favicon');
 
 const express = require('express');
 const graphqlHTTP = require('express-graphql');
+const bodyParser = require('body-parser');
 
 import schema from '../common/data/schema';
 
@@ -36,6 +37,21 @@ app.use('/graphql', graphqlHTTP({
     stack: process.env.NODE_ENV === 'development' ? error.stack.split('\n') : null,
   }),
 }));
+
+
+//
+// Intercept and log Relay requests.
+//
+
+// TODO(burdon): Checkout: https://github.com/chentsulin/awesome-graphql#lib-js
+
+app.use(bodyParser.json());
+app.post('/debug/graphql', function(req, res) {
+  console.log(JSON.stringify(req.body, null, 2));
+
+  // Redirect.
+  res.redirect(307, '/graphql');
+});
 
 
 //
