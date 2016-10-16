@@ -9,7 +9,7 @@ import flask
 # App blueprint.
 #
 
-APP_STATIC_PATH = '../../../../../../demo/javascript/server/assets'
+APP_STATIC_PATH = '../../../../../../demo/js/server/assets'
 
 app = flask.Blueprint('app', __name__, static_folder=APP_STATIC_PATH)
 
