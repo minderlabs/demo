@@ -32,10 +32,13 @@ app.use('/graphql', graphqlHTTP({
 
   graphiql: true,
 
-  formatError: (error) => ({ // better errors for development. `stack` used in `gqErrors` middleware
+  pretty: true,
+
+  formatError: error => ({
     message: error.message,
-    stack: process.env.NODE_ENV === 'development' ? error.stack.split('\n') : null,
-  }),
+    locations: error.locations,
+    stack: error.stack
+  })
 }));
 
 
@@ -43,13 +46,12 @@ app.use('/graphql', graphqlHTTP({
 // Intercept and log Relay requests.
 //
 
-// TODO(burdon): Checkout: https://github.com/chentsulin/awesome-graphql#lib-js
-
 app.use(bodyParser.json());
 app.post('/debug/graphql', function(req, res) {
-  console.log(JSON.stringify(req.body, null, 2));
+  console.log('REQ =', JSON.stringify(req.body, null, 2));
 
-  // Redirect.
+  // Temp Redirect.
+  // TODO(burdon): Print response?
   res.redirect(307, '/graphql');
 });
 

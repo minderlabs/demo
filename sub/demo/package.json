@@ -67,6 +67,6 @@
     "build": "webpack -p",
     "android": "react-native run-android",
     "native": "node node_modules/react-native/local-cli/cli.js start",
-    "start": "nodemon javascript/server/main.js --exec babel-node"
+    "start": "nodemon js/server/main.js --exec babel-node"
   }
 }

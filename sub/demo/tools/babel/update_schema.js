@@ -12,11 +12,15 @@ import path from 'path';
 import { graphql }  from 'graphql';
 import { introspectionQuery, printSchema } from 'graphql/utilities';
 
-import schema from '../../javascript/common/data/schema';
+import schema from '../../js/common/data/schema';
 
-var DATA_DIR = '../../javascript/common/data';
 
+var DATA_DIR = '../../js/common/data';
+
+//
 // Saves JSON of full schema introspection for Babel Relay Plugin to use.
+//
+
 (async () => {
   var result = await (graphql(schema, introspectionQuery));
   if (result.errors) {
@@ -29,8 +33,12 @@ var DATA_DIR = '../../javascript/common/data';
   }
 })();
 
+//
 // Saves user readable type system shorthand of schema.
+//
+
 fs.writeFileSync(
   path.join(__dirname, DATA_DIR, 'schema.graphql'),
   printSchema(schema)
 );
+

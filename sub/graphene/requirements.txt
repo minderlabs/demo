@@ -8,6 +8,7 @@
 
 nose
 nose-progressive
+easydict
 
 #
 # Framework

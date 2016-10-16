@@ -14,6 +14,7 @@ brew outdated
 #
 
 npm update
+npm install -g babel-cli
 npm install -g karma
 npm install -g karma-cli
 npm install -g mocha

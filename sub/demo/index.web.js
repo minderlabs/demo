@@ -12,8 +12,8 @@ import Relay from 'react-relay';
 import { applyRouterMiddleware, browserHistory, Router } from 'react-router';
 import useRelay from 'react-router-relay';
 
-import config from './javascript/app/web/config';
-import routes from './javascript/app/web/routes';
+import config from './js/app/web/config';
+import routes from './js/app/web/routes';
 
 //
 // Set network layer.
@@ -34,5 +34,6 @@ ReactDOM.render(
     environment={ Relay.Store }
   />,
 
+  // TODO(burdon): Get ID from config.
   document.getElementById('app-container')
 );

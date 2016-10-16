@@ -9,15 +9,19 @@
 import graphene
 
 
-# TODO(burdon): User type.
+class User(graphene.ObjectType):
+    id = graphene.ID()
+    title = graphene.String()
+
 
 class Query(graphene.ObjectType):
 
     # Bizarrely, the function below resolves this variable name.
-    user = graphene.String()
+    user = graphene.Field(User)
 
+    # TODO(burdon): Global ID?
     def resolve_user(self, args, context, info):
-        return 'Test User'
+        return User(id='U-1', title = 'Test User')
 
 
 schema = graphene.Schema(query=Query)

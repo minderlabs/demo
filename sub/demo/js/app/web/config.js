@@ -10,8 +10,7 @@ import RelayLocalSchema from 'relay-local-schema';
 
 const DEFAULTS = {
   relay: {
-    // Node server proxy.
-    path: '/debug/graphql'
+    path: '/graphql'
   }
 };
 
@@ -22,6 +21,10 @@ class Config {
 
   constructor(config) {
     this.config = config;
+  }
+
+  toString() {
+    return JSON.stringify(this.config);
   }
 
   get(path) {
@@ -75,4 +78,4 @@ class Config {
 }
 
 // TODO(burdon): Inject?
-export default new Config(_.defaults(window.config || {}, DEFAULTS));
+export default new Config(_.defaultsDeep(window.config || {}, DEFAULTS));

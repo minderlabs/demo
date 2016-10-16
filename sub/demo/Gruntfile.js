@@ -15,8 +15,8 @@ module.exports = function(grunt) {
 
     clean: {
       all: [
-        'javascript/server/assets',
-        'javascript/common/data/schema.json'
+        'js/server/assets',
+        'js/common/data/schema.json'
       ],
     },
 
@@ -26,13 +26,13 @@ module.exports = function(grunt) {
       },
       schema_js: {
         files: [
-          'javascript/common/data/schema.js'
+          'js/common/data/schema.js'
         ],
         tasks: ['run:update_schema']
       },
       schema_json: {
         files: [
-          'javascript/common/data/schema.json'
+          'js/common/data/schema.json'
         ],
         tasks: ['webpack']
       }

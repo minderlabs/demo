@@ -63,7 +63,7 @@ module.exports = {
         exclude: [/node_modules/],                      // Don't transpile deps.
         include: [
           path.resolve(__dirname, 'index.web.js'),
-          path.resolve(__dirname, 'javascript')
+          path.resolve(__dirname, 'js')
         ],
         loader: 'babel-loader'
       }

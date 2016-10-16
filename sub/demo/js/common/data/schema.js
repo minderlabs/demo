@@ -12,6 +12,8 @@
 // TODO(burdon): PyCharm plugin.
 // https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues/32
 
+// TODO(burdon): Checkout: https://github.com/chentsulin/awesome-graphql#lib-js
+
 //
 // NOTE: MUST REGEN WEBPACK BUNDLE AFTER UPDATING SCHEMA.
 // TODO(burdon): Fix in webpack config? (temp fix: grunt watch).
@@ -187,7 +189,9 @@ const rootQueryType = new GraphQLObjectType({
       args: {
         userId: { type: GraphQLID }
       },
-      resolve: (parent, args) => database.getUser(fromGlobalId(args.userId).id)
+      resolve: (parent, args) => {
+        return database.getUser(fromGlobalId(args.userId).id)
+      }
     },
 
     item: {
