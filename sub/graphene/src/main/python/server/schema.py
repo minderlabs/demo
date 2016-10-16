@@ -9,11 +9,15 @@
 import graphene
 
 
-class Query(graphene.ObjectType):
-    hello = graphene.String()
+# TODO(burdon): User type.
 
-    def resolve_hello(self, args, context, info):
-        return 'World'
+class Query(graphene.ObjectType):
+
+    # Bizarrely, the function below resolves this variable name.
+    user = graphene.String()
+
+    def resolve_user(self, args, context, info):
+        return 'Test User'
 
 
 schema = graphene.Schema(query=Query)

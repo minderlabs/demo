@@ -4,17 +4,8 @@
 
 import flask
 
-
-#
-# Web blueprint
-#
-
-web = flask.Blueprint('web', __name__)
-
-
-@web.route('/')
-def web_home():
-    return 'Hello'
+from data import data
+from web import web
 
 
 #
@@ -28,3 +19,4 @@ class Server(flask.Flask):
         super(Server, self).__init__(__name__)
 
         self.register_blueprint(web)
+        self.register_blueprint(data, url_prefix='/data')

@@ -10,5 +10,5 @@ from schema import schema
 class TestSchema(TestCase):
 
     def test_schema(self):
-        result = schema.execute('{ hello }')
-        self.assertEqual('World', result.data['hello'])
+        result = schema.execute('{ user }')
+        self.assertEqual('Test User', result.data['user'])
