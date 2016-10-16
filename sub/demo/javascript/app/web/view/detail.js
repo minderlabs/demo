@@ -7,7 +7,7 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import ItemDetail from '../../../components/web/item_detail';
+import ItemDetail from '../../../common/components/web/item_detail';
 
 import Path from '../path';
 

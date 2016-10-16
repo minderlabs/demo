@@ -1,0 +1,24 @@
+/**
+ * TODO(burdon): Convert to less.
+ */
+
+body {
+  font-family: Roboto, sans-serif;
+}
+
+h1, h2, h3 {
+  font-weight: 100;
+}
+
+.app-json {
+  padding: 4px;
+
+  background-color: #EEE;
+  border: 1px solid #CCC;
+
+  font-family: Monaco, monospace;
+  font-size: 12px;
+
+  overflow-x: hidden;
+  white-space: pre-wrap;
+}

@@ -2,24 +2,20 @@
 <html xmlns="http://www.w3.org/1999/html" lang="en">
 
   <head>
-    <title>Relay Demo</title>
+    <title>Graphene Server</title>
 
     <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,700" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-    <link rel="stylesheet" href="/assets/main.css">
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
   </head>
 
   <body>
-    <div id="app-container"></div>
+    <h1>Graphene Server</h1>
 
-    <script>
-      window.config = {
-        user: 'U-1'
-      };
-    </script>
+    <a href="{{ url_for('app.home') }}">App</a>
 
-    <script src="/assets/main.bundle.js"></script>
+    <pre class="app-json">{{ json|tojson(indent=2) }}</pre>
   </body>
 
 </html>

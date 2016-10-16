@@ -8,9 +8,10 @@ import React from 'react';
 import { IndexRedirect, Redirect, Route } from 'react-router';
 import { toGlobalId } from 'graphql-relay';
 
-import UserQueries from '../../queries/user';
-import ItemQueries from '../../queries/item';
+import UserQueries from '../../common/queries/user';
+import ItemQueries from '../../common/queries/item';
 
+import config from './config';
 import Path from './path';
 
 import DemoApp from './demo';
@@ -18,8 +19,8 @@ import DemoApp from './demo';
 import HomeView from './view/home';
 import DetailView from './view/detail';
 
-// TODO(burdon): Server-side query for current user (inject user's globalId).
-const CURRENT_USER = toGlobalId('User', 'U-1');
+// Set by server.
+const currentUser = toGlobalId('User', config.get('userId'));
 
 /**
  * React Relay Router.
@@ -36,12 +37,12 @@ export default (
 
     <Route path={ Path.HOME }
            queries={ UserQueries }
-           prepareParams={ params => ({ ...params, userId: CURRENT_USER }) }
+           prepareParams={ params => ({ ...params, userId: currentUser }) }
            component={ HomeView }/>
 
     <Route path={ Path.DETAIL + '/:itemId' }
            queries={ ItemQueries }
-           prepareParams={ params => ({ ...params, userId: CURRENT_USER }) }
+           prepareParams={ params => ({ ...params, userId: currentUser }) }
            component={ DetailView }/>
 
     <Redirect from='*' to={ Path.HOME }/>

@@ -12,7 +12,6 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 //
 // Webpack base configuration.
-// TODO(burdon): Move all javascript files under common src directory.
 //
 
 module.exports = {
@@ -23,11 +22,7 @@ module.exports = {
     // Where to resolve imports/requires.
     modulesDirectories: [
       'node_modules'
-    ],
-
-    alias: {
-      'sinon': 'sinon/pkg/sinon'
-    }
+    ]
   },
 
   module: {
@@ -37,10 +32,6 @@ module.exports = {
     resolveLoader: {
       root: path.join(__dirname, 'node_modules')
     },
-
-    noParse: [
-      /node_modules\/sinon\//,
-    ],
 
     loaders: [
 
@@ -72,7 +63,7 @@ module.exports = {
         exclude: [/node_modules/],                      // Don't transpile deps.
         include: [
           path.resolve(__dirname, 'index.web.js'),
-          path.resolve(__dirname, 'javascript/common')
+          path.resolve(__dirname, 'javascript')
         ],
         loader: 'babel-loader'
       }
@@ -89,7 +80,7 @@ module.exports = {
 
     new webpack.ProvidePlugin({
       _: 'lodash'
-    }),
+    })
   ]
 
 };

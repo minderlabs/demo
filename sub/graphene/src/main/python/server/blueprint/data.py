@@ -4,7 +4,7 @@
 
 import flask
 
-from schema import schema
+from server.data.schema import schema
 
 
 #
@@ -12,6 +12,12 @@ from schema import schema
 #
 
 data = flask.Blueprint('data', __name__)
+
+
+@data.route('/schema')
+def web_home():
+    return flask.make_response(flask.json.dumps(schema.introspect()))
+
 
 @data.route('/graphql', methods=['POST'])
 def data_graphql():

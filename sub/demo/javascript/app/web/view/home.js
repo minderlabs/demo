@@ -8,9 +8,9 @@ import React from 'react';
 import Relay from 'react-relay';
 
 // TODO(burdon): Create lib for UX and Data.
-import ItemList from '../../../components/web/item_list';
+import ItemList from '../../../common/components/web/item_list';
 
-import CreateItemMutation from '../../../mutations/create_item';
+import CreateItemMutation from '../../../common/mutations/create_item';
 
 import Path from '../path';
 

@@ -2,12 +2,10 @@
 <html xmlns="http://www.w3.org/1999/html" lang="en">
 
   <head>
-    <title>Relay Demo</title>
+    <title>Graphene Demo</title>
 
     <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,700" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-    <link rel="stylesheet" href="/assets/main.css">
   </head>
 
   <body>
@@ -15,11 +13,14 @@
 
     <script>
       window.config = {
-        user: 'U-1'
+        user: 'U-1',
+        relay: {
+          path: '/data/graphql'
+        }
       };
     </script>
 
-    <script src="/assets/main.bundle.js"></script>
+    <script src="{{ url_for('app.static', filename='main.bundle.js') }}"></script>
   </body>
 
 </html>
