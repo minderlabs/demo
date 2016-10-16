@@ -16,11 +16,15 @@ const baseConfig = require('./webpack-karma.config.js');
 
 module.exports = function(config) {
 
+  // TODO(burdon): Still termperamental (sometimes doesn't find/show tests until triggered by browser).
+
   config.set({
 
-    singleRun: false,
+//  singleRun: true,
 
     autoWatch: true,
+
+    concurrency: 1,
 
     logLevel: config.LOG_INFO,
 
@@ -37,7 +41,7 @@ module.exports = function(config) {
     preprocessors: {
       // Transpile test suite.
       // https://github.com/webpack/karma-webpack#alternative-usage
-      'testing/webpack.tests.js': ['webpack']
+      'javascript/webpack.tests.js': ['webpack']
     },
 
     webpack: baseConfig,

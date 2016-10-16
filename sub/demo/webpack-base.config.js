@@ -10,8 +10,6 @@ const webpack = require('webpack');
 // https://github.com/webpack/extract-text-webpack-plugin
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const LIB_DIR = path.resolve(__dirname, 'javascript/common');
-
 //
 // Webpack base configuration.
 // TODO(burdon): Move all javascript files under common src directory.
@@ -74,7 +72,7 @@ module.exports = {
         exclude: [/node_modules/],                      // Don't transpile deps.
         include: [
           path.resolve(__dirname, 'index.web.js'),
-          LIB_DIR
+          path.resolve(__dirname, 'javascript/common')
         ],
         loader: 'babel-loader'
       }

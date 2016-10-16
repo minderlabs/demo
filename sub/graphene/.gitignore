@@ -6,3 +6,10 @@ build/
 tools/
 
 *.pyc
+
+#
+# Node
+#
+
+npm-debug.log
+
