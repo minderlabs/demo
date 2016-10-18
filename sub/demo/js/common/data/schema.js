@@ -25,11 +25,13 @@ import {
   GraphQLFloat,
   GraphQLID,
   GraphQLInt,
+  GraphQLInterfaceType,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
+  GraphQLUnionType,
 } from 'graphql';
 
 import {
@@ -46,6 +48,7 @@ import {
 import {
   User,
   Item,
+  Task,
   Database
 } from './database';
 
@@ -57,6 +60,26 @@ import {
 //
 
 const database = new Database().init();
+
+/**
+ * Determines node type of object instance.
+ *
+ * Used by graphql internals when resolving generics (interfaces and unions).
+ * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d
+ */
+// TODO(madadam): Investigate using isTypeOf in each type definition instead of this.
+const resolveType = (obj) => {
+  // TODO(burdon): Infer from something other than type? E.g. type string in Item interface.
+  if (obj instanceof User) {
+    return userType;
+  } else if (obj instanceof Item)  {
+    return itemType;
+  } else if (obj instanceof Task)  {
+    return taskType;
+  } else {
+    return null;
+  }
+};
 
 /**
  * Relay Node interface. Maps objects to types, and global IDs to objects.
@@ -87,21 +110,19 @@ const { nodeInterface, nodeField } = nodeDefinitions(
     }
   },
 
-  //
-  // Determines node type of object instance.
-  //
-
-  (obj) => {
-    // TODO(burdon): Infer from something other than type?
-    if (obj instanceof User) {
-      return userType;
-    } else if (obj instanceof Item)  {
-      return itemType;
-    } else {
-      return null;
-    }
-  }
+  resolveType
 );
+
+const SearchableType = new GraphQLInterfaceType({
+  name: 'Searchable',
+  fields: () => ({
+    snippet: {
+      type: GraphQLString
+    }
+  }),
+  resolveType: resolveType
+});
+
 
 //
 // Note type definitions.
@@ -165,6 +186,35 @@ const itemType = new GraphQLObjectType({
   })
 });
 
+const taskType = new GraphQLObjectType({
+  name: 'Task',
+  description: 'An assignable task.',
+  interfaces: [ nodeInterface, SearchableType ],
+  fields: () => ({
+    id: globalIdField('Task'),
+
+    title: {
+      type: GraphQLString,
+      description: 'Task title.',
+      resolve: (task) => task.title
+    },
+
+    content: {
+      type: GraphQLString,
+      description: 'Content.',
+      resolve: (task) => task.content
+    },
+
+    // Searchable
+    snippet: {
+      type: GraphQLString,
+      // TODO(madadam): Compute snippet. Search query argument?
+      resolve: (task) => task.title
+    }
+  })
+
+});
+
 // TODO(burdon): Document.
 const {
   connectionType: ItemConnection,
@@ -172,6 +222,17 @@ const {
 } = connectionDefinitions({
   name: 'Item',
   nodeType: itemType
+});
+
+
+// TODO(madadam): Decide between union and interface approach and remove the other.
+
+// https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
+const searchResultType = new GraphQLUnionType({
+  name: 'SearchResult',
+  //description: 'A Search Result.',
+  types: [ itemType, taskType ],
+  resolveType: resolveType
 });
 
 //
@@ -183,6 +244,26 @@ const rootQueryType = new GraphQLObjectType({
   fields: () => ({
 
     node: nodeField,
+
+    search: {
+      type: new GraphQLList(searchResultType),
+      args: {
+        text: { type: new GraphQLNonNull(GraphQLString) }
+      },
+      resolve: (parent, args) => {
+        return database.search(args.text)
+      }
+    },
+
+    searchInterface: {
+      type: new GraphQLList(SearchableType),
+      args: {
+        text: { type: new GraphQLNonNull(GraphQLString) }
+      },
+      resolve: (parent, args) => {
+        return database.search(args.text)
+      }
+    },
 
     user: {
       type: userType,
@@ -334,6 +415,7 @@ const rootMutationType = new GraphQLObjectType({
 //
 
 const schema = new GraphQLSchema({
+  types: [taskType], // Needed for resolving interface generics.
   query: rootQueryType,
   mutation: rootMutationType
 });

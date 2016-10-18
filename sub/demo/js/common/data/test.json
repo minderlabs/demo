@@ -23,5 +23,16 @@
     {
       "title": "Item 5"
     }
+  ],
+
+  "tasks": [
+    {
+      "title": "Task 1",
+      "content": "Buy flowers"
+    },
+    {
+      "title": "Task 2",
+      "content": "Eat flowers"
+    }
   ]
 }

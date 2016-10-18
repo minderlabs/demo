@@ -35,6 +35,19 @@ export class Item {
   }
 }
 
+export class Task {
+  static update(task, data) {
+    Util.maybeUpdateItem(task, data, 'title');
+    Util.maybeUpdateItem(task, data, 'content');
+  }
+
+  constructor(data) {
+    this.id = data.id;
+
+    Task.update(this, data);
+  }
+}
+
 /**
  * Database abstraction (and in-memory implementation).
  */
@@ -49,6 +62,8 @@ export class Database {
 
     // TODO(burdon): Map of maps per user.
     this._items = new Map();
+
+    this._tasks = new Map();
   }
 
   init() {
@@ -63,6 +78,10 @@ export class Database {
     let user = this.getUser(Database.DEFAULT_USER);
     for (let item of data['items']) {
       this.createItem(user.id, item);
+    }
+
+    for (let task of data['tasks']) {
+      this.createTask(task);
     }
 
     return this;
@@ -127,4 +146,31 @@ export class Database {
 
     return item;
   }
+
+  getTask(taskId) {
+    let task = this._tasks.get(taskId);
+    console.log('TASK.GET', taskId, JSON.stringify(task));
+    return task;
+  }
+
+  createTask(data) {
+    if (data.id === undefined) {
+      data.id = Util.createId();
+    }
+
+    let task = new Task(data);
+    console.log('TASK.CREATE', JSON.stringify(task));
+    this._tasks.set(task.id, task);
+    return task;
+  }
+
+  search(text) {
+    // TODO(madadam): Search items too.
+    const values = [... this._tasks.values()];
+    let results = values.filter((task) => {
+      return task.title.indexOf(text) !== -1 || task.content.indexOf(text) !== -1;
+    });
+    return results;
+  }
 }
+
