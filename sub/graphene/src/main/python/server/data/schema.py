@@ -3,16 +3,57 @@
 #
 
 import graphene
+
 from graphene import relay, resolve_only_args
-from graphql_relay import from_global_id
 
 #
+# GraphQL Schema.
 # http://docs.graphene-python.org/en/latest/quickstart
 # https://facebook.github.io/graphql
 #
+from graphql_relay import from_global_id
 
+
+class Context(object):
+    """
+    Global context (allows setting of database).
+    """
+
+    def __init__(self, schema):
+        self._schema = schema
+        self._database = None
+
+    def init(self, database):
+        self._database = database
+
+    @property
+    def schema(self):
+        return self._schema
+
+    @property
+    def database(self):
+        assert self._database
+        return self._database
+
+
+#
+# Types
+#
 
 class Item(graphene.ObjectType):
+
+    @classmethod
+    def from_json(cls, obj):
+        assert obj
+        return Item(id=obj['id'], title=obj.get('title'), status=obj.get('status'))
+
+    @classmethod
+    def get_node(cls, id, context, info):
+        # TODO(burdon): When is this used?
+        print '### Item.get_node ###', id
+        item_id = from_global_id(id)[1]
+        return Item.from_json(g.database.get_item(item_id))
+
     class Meta:
         interfaces = (graphene.relay.Node,)
 
@@ -20,68 +61,147 @@ class Item(graphene.ObjectType):
     status = graphene.Int()
 
     def __str__(self):
-        return 'Item("%s", "%s")' % (self.id, self.title)
-
-    @classmethod
-    def get_node(cls, id, context, info):
-        return Item(id=id, title='ITEM-' + id)
+        return 'Item("%s", "%s", %s)' % (self.id, self.title, self.status)
 
 
 class User(graphene.ObjectType):
+
+    @classmethod
+    def from_json(cls, obj):
+        assert obj
+        return User(id=obj['id'], title=obj.get('title'))
+
+    @classmethod
+    def get_node(cls, id, context, info):
+        # TODO(burdon): When is this used?
+        print '### User.get_node ###', id
+        user_id = from_global_id(id)[1]
+        return User.from_json(g.database.get_user(user_id))
+
     class Meta:
         interfaces = (graphene.relay.Node,)
 
-    # TODO(burdon): Status, etc.
     title = graphene.String()
 
+    # Item IDs.
+    # TODO(burdon): Document this.
+    # TODO(burdon): Move to separate query.
     items = relay.ConnectionField(Item)
 
     def __str__(self):
         return 'User("%s", "%s")' % (self.id, self.title)
 
-    # TODO(burdon): When is this called?
-    @classmethod
-    def get_node(cls, id, context, info):
-        print '### get_node[%s] ###' % id
-        return User(id=id, title='SHOULD_LOOKUP_USER')
-
-    # TODO(burdon): Lookup via database.
     @resolve_only_args
     def resolve_items(self, **args):
-        return [
-            Item(id='I-1', title='Item 1'),
-            Item(id='I-2', title='Item 2'),
-            Item(id='I-3', title='Item 3'),
-            Item(id='I-4', title='Item 4'),
-            Item(id='I-5', title='Item 5')
-        ]
+        return [Item.from_json(obj) for obj in g.database.get_items_for_user(self.id)]
 
+#
+# Queries.
+#
 
 class Query(graphene.ObjectType):
-
-    # Bizarrely, the function below resolves this variable name.
-    # https://gist.github.com/mbrochh/9a90d24ca9d0a78e3c1d642aea0663b7
+    """
+    Root query type.
+    """
 
     node = relay.Node.Field()
-    user = graphene.Field(User, userId=graphene.ID())
-    items = graphene.List(Item, userId=graphene.ID())
+
+    user = graphene.Field(User, user_id=graphene.ID())
+
+    item = graphene.Field(Item, item_id=graphene.ID())
+
+    items = graphene.List(Item, user_id=graphene.ID())
 
     @resolve_only_args
-    def resolve_user(self, userId):
-        user = User(id=from_global_id(userId)[1], title='Test User')
-        print 'Resolved[%s] => %s' % (userId, user)
+    def resolve_user(self, user_id):
+        local_user_id = from_global_id(user_id)[1]
+        user = User.from_json(g.database.get_user(local_user_id))
+
+        # TODO(burdon): Only support via separate query? Relay issue.
+        user.items = [Item.from_json(obj) for obj in g.database.get_items_for_user(local_user_id)]
+
+        print 'Resolved[%s] => %s' % (local_user_id, user)
         return user
 
     @resolve_only_args
-    def resolve_items(self, userId):
-        print '???????????????'
-        items = [
-            Item(id='I-1', title='Item 1'),
-            Item(id='I-2', title='Item 2'),
-            Item(id='I-3', title='Item 3')
-        ]
-        print 'Resolved[%s] => %s' % (userId, items)
+    def resolve_item(self, item_id):
+        local_item_id = from_global_id(item_id)[1]
+        item = Item.from_json(g.database.get_item(local_item_id))
+        print 'Resolved[%s] => %s' % (local_item_id, item)
+        return item
+
+    @resolve_only_args
+    def resolve_items(self, user_id):
+        print '### resolve_items ###', user_id
+        local_user_id = from_global_id(user_id)[1]
+        items = [Item.from_json(obj) for obj in g.database.get_items_for_user(local_user_id)]
+        print 'Resolved[%s] => %s' % (local_user_id, items)
         return items
 
+#
+# Mutations.
+#
 
-schema = graphene.Schema(query=Query)
+class CreateItemMutation(relay.ClientIDMutation):
+
+    class Input:
+        user_id = graphene.ID(required=True)
+        title = graphene.String()
+        status = graphene.Int()
+
+    user = graphene.Field(User)
+    item = graphene.Field(Item)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        user_id = input.get('user_id')
+        title = input.get('title')
+        status = input.get('status')
+
+        user = User.from_json(g.database.get_user(user_id))
+        item = Item.from_json(g.database.create_item(user_id, title=title, status=status))
+
+        return CreateItemMutation(user=user, item=item)
+
+
+class UpdateItemMutation(relay.ClientIDMutation):
+
+    class Input:
+        user_id = graphene.ID(required=True)
+        item_id = graphene.ID(required=True)
+        title = graphene.String()
+        status = graphene.Int()
+
+    user = graphene.Field(User)
+    item = graphene.Field(Item)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        user_id = from_global_id(input.get('user_id'))[1]
+        item_id = from_global_id(input.get('item_id'))[1]
+        title = input.get('title')
+        status = input.get('status')
+
+        user = User.from_json(g.database.get_user(user_id))
+        item = Item.from_json(g.database.update_item(user_id, item_id, title=title, status=status))
+
+        return UpdateItemMutation(user=user, item=item)
+
+
+class Mutation(graphene.ObjectType):
+    """
+    Root mutation type.
+    """
+
+    # TODO(burdon): Exceptions caught by framework. Local logging?
+    # TODO(burdon): Document where/how IDs are sent via transport versus objects.
+
+    create_item_mutation = CreateItemMutation.Field()
+    update_item_mutation = UpdateItemMutation.Field()
+
+
+#
+# Main schema def.
+#
+
+g = Context(graphene.Schema(query=Query, mutation=Mutation))

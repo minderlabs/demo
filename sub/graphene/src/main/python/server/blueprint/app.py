@@ -4,6 +4,7 @@
 
 import flask
 
+from server.data.database import Database
 
 #
 # App blueprint.
@@ -22,4 +23,4 @@ def app_home(path):
     NOTE: for a large app, other blueprints should only be accessible from different subdomains.
     """
 
-    return flask.render_template('app.html')
+    return flask.render_template('app.html', user_id=Database.DEFAULT_USER)

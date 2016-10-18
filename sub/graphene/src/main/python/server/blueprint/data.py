@@ -6,7 +6,7 @@ import flask
 from flask import json
 from graphql_relay import to_global_id
 
-from server.data.schema import schema
+from server.data.schema import g
 
 
 #
@@ -18,7 +18,7 @@ data = flask.Blueprint('data', __name__)
 
 @data.route('/schema')
 def web_home():
-    return flask.make_response(flask.json.dumps(schema.introspect()))
+    return flask.make_response(flask.json.dumps(g.schema.introspect()))
 
 
 @data.route('/graphql', methods=['POST'])
@@ -52,7 +52,7 @@ def data_graphql():
     # print 'Variables =', variables
 
     # Execute the query.
-    result = schema.execute(query, variable_values=variables)
+    result = g.schema.execute(query, variable_values=variables)
 
     # Convert OrderedDict to regular dict.
     data = json.loads(json.dumps(result.data))
