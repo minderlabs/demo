@@ -120,9 +120,13 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 // https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
 const SearchableType = new GraphQLInterfaceType({
   name: 'Searchable',
+  description: 'A searchable type.',
   fields: () => ({
     snippet: {
-      type: GraphQLString
+      type: GraphQLString,
+      args: {
+        text: { type: GraphQLString }
+      }
     }
   }),
   resolveType: resolveType
@@ -192,7 +196,10 @@ const itemType = new GraphQLObjectType({
     // Interface Searchable
     snippet: {
       type: GraphQLString,
-      resolve: (item) => item.title
+      args: {
+        text: { type: GraphQLString }
+      },
+      resolve: (item, args) => item.computeSnippet(args.text)
     }
   })
 });
@@ -219,8 +226,10 @@ const noteType = new GraphQLObjectType({
     // Interface Searchable
     snippet: {
       type: GraphQLString,
-      // TODO(madadam): Compute snippet. Search query argument?
-      resolve: (note) => note.title
+      args: {
+        text: { type: GraphQLString }
+      },
+      resolve: (note, args) => note.computeSnippet(args.text)
     }
   })
 });

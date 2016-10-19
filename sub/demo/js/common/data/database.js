@@ -33,6 +33,13 @@ export class Item {
 
     Item.update(this, data);
   }
+
+  computeSnippet(queryString) {
+    if (!queryString) {
+      return null;
+    }
+    return `title match [${queryString}]: ${this.title}`;
+  }
 }
 
 export class Note {
@@ -45,6 +52,22 @@ export class Note {
     this.id = data.id;
 
     Note.update(this, data);
+  }
+
+  computeSnippet(queryString) {
+    if (!queryString) {
+      return null;
+    }
+    let matchedField;
+    let matchedValue;
+    if (this.title.indexOf(queryString) !== -1) {
+      matchedField = 'title';
+      matchedValue = this.title;
+    } else if (this.content.indexOf(queryString) !== -1) {
+      matchedField = 'content';
+      matchedValue = this.content;
+    }
+    return `${matchedField} match [${queryString}]: ${matchedValue}`;
   }
 }
 

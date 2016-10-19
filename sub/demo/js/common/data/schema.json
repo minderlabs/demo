@@ -223,12 +223,23 @@
         {
           "kind": "INTERFACE",
           "name": "Searchable",
-          "description": null,
+          "description": "A searchable type.",
           "fields": [
             {
               "name": "snippet",
               "description": null,
-              "args": [],
+              "args": [
+                {
+                  "name": "text",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -581,7 +592,18 @@
             {
               "name": "snippet",
               "description": null,
-              "args": [],
+              "args": [
+                {
+                  "name": "text",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -1758,7 +1780,18 @@
             {
               "name": "snippet",
               "description": null,
-              "args": [],
+              "args": [
+                {
+                  "name": "text",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
