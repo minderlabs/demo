@@ -55,6 +55,7 @@ export class Note {
   }
 
   computeSnippet(queryString) {
+    // TODO(madadam): Generalize / factor out.
     if (!queryString) {
       return null;
     }
