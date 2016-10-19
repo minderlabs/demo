@@ -27,8 +27,15 @@ class HomeView extends React.Component {
     super(props, context);
 
     this.state = {
+      search: '',
       title: ''
     };
+  }
+
+  search() {
+    // TODO(burdon): Update relay query?
+    let query = this.state.search;
+    console.log('SEARCH', query);
   }
 
   createItem() {
@@ -46,23 +53,46 @@ class HomeView extends React.Component {
       this.setState({ title: '' });
     }
 
-    this.refs.input.focus();
+    // TODO(burdon): Remove reference by accessing event?
+    this.refs.create_text.focus();
   }
 
   //
   // Handlers.
   //
 
-  handleInputChange(event) {
-    this.setState({
-      title: event.target.value
-    })
+  handleTextChange(event) {
+//  console.log(event.target);
+    switch (event.target) {
+      case this.refs.search_text:
+        // TODO(burdon): Trigger after timeout.
+        this.setState({
+          search: event.target.value
+        });
+        break;
+
+      case this.refs.create_text:
+        this.setState({
+          title: event.target.value
+        });
+        break;
+    }
   }
 
   handleKeyUp(event) {
+//  console.log(event.target);
     switch (event.keyCode) {
       case 13: {
-        this.createItem();
+        switch (event.target) {
+          case this.refs.search_text:
+            this.search();
+            break;
+
+          case this.refs.create_text:
+            this.createItem();
+            break;
+        }
+
         break;
       }
     }
@@ -84,11 +114,21 @@ class HomeView extends React.Component {
     let { user } = this.props;
 
     // Cannot be stateless function since has ref.
+    const SearchBar = (
+      <div className="app-section app-toolbar">
+        <input ref="search_text" type="text" autoFocus="autoFocus" className="app-expand"
+               value={ this.state.search }
+               onChange={ this.handleTextChange.bind(this) }
+               onKeyUp={ this.handleKeyUp.bind(this) }/>
+      </div>
+    );
+
+    // Cannot be stateless function since has ref.
     const EditBar = (
       <div className="app-section app-toolbar">
-        <input ref="input" type="text" autoFocus="autoFocus" className="app-expand"
+        <input ref="create_text" type="text" className="app-expand"
                value={ this.state.title }
-               onChange={ this.handleInputChange.bind(this) }
+               onChange={ this.handleTextChange.bind(this) }
                onKeyUp={ this.handleKeyUp.bind(this) }/>
 
         <button onClick={ this.handleCreateButton.bind(this) }>Create</button>
@@ -97,6 +137,8 @@ class HomeView extends React.Component {
 
     return (
       <div className="app-panel-column">
+        { SearchBar }
+
         <div className="app-section app-panel-column">
           <ItemList user={ user } onSelect={ this.handleItemSelect.bind(this) }/>
         </div>
@@ -108,6 +150,13 @@ class HomeView extends React.Component {
 }
 
 export default Relay.createContainer(HomeView, {
+  // initialVariables: {
+  //   query: ''
+  // },
+
+  // TODO(burdon): How to pass $query to ItemList fragment?
+  // http://stackoverflow.com/questions/34346273/search-functionality-using-relay
+  // TODO(burdon): On change: https://facebook.github.io/relay/docs/api-reference-relay-container.html#preparevariables
   fragments: {
     user: () => Relay.QL`
       fragment on User {
