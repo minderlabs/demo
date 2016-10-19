@@ -42,6 +42,37 @@
               "deprecationReason": null
             },
             {
+              "name": "search",
+              "description": null,
+              "args": [
+                {
+                  "name": "text",
+                  "description": null,
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "INTERFACE",
+                  "name": "Searchable",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "user",
               "description": null,
               "args": [
@@ -110,16 +141,6 @@
                     "ofType": null
                   },
                   "defaultValue": null
-                },
-                {
-                  "name": "query",
-                  "description": null,
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  },
-                  "defaultValue": null
                 }
               ],
               "type": {
@@ -181,13 +202,73 @@
               "kind": "OBJECT",
               "name": "Item",
               "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Note",
+              "ofType": null
+            }
+          ]
+        },
+        {
+          "kind": "SCALAR",
+          "name": "String",
+          "description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "INTERFACE",
+          "name": "Searchable",
+          "description": "A searchable type.",
+          "fields": [
+            {
+              "name": "snippet",
+              "description": null,
+              "args": [
+                {
+                  "name": "text",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": [
+            {
+              "kind": "OBJECT",
+              "name": "Item",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Note",
+              "ofType": null
             }
           ]
         },
         {
           "kind": "OBJECT",
           "name": "User",
-          "description": null,
+          "description": "A user account.",
           "fields": [
             {
               "name": "id",
@@ -207,7 +288,7 @@
             },
             {
               "name": "title",
-              "description": null,
+              "description": "User's name.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -219,7 +300,7 @@
             },
             {
               "name": "items",
-              "description": null,
+              "description": "User's collection of items.",
               "args": [
                 {
                   "name": "after",
@@ -279,16 +360,6 @@
               "ofType": null
             }
           ],
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "String",
-          "description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
           "enumValues": null,
           "possibleTypes": null
         },
@@ -464,7 +535,7 @@
         {
           "kind": "OBJECT",
           "name": "Item",
-          "description": null,
+          "description": "A generic data item.",
           "fields": [
             {
               "name": "id",
@@ -484,7 +555,7 @@
             },
             {
               "name": "version",
-              "description": null,
+              "description": "Item version.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -496,7 +567,7 @@
             },
             {
               "name": "title",
-              "description": null,
+              "description": "Item title.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -508,11 +579,34 @@
             },
             {
               "name": "status",
-              "description": null,
+              "description": "Item status.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
                 "name": "Int",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "snippet",
+              "description": null,
+              "args": [
+                {
+                  "name": "text",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -524,6 +618,11 @@
             {
               "kind": "INTERFACE",
               "name": "Node",
+              "ofType": null
+            },
+            {
+              "kind": "INTERFACE",
+              "name": "Searchable",
               "ofType": null
             }
           ],
@@ -1631,6 +1730,91 @@
               "deprecationReason": null
             }
           ],
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "Note",
+          "description": "A note.",
+          "fields": [
+            {
+              "name": "id",
+              "description": "The ID of an object",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "ID",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "title",
+              "description": "Title.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "content",
+              "description": "Content.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "snippet",
+              "description": null,
+              "args": [
+                {
+                  "name": "text",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [
+            {
+              "kind": "INTERFACE",
+              "name": "Node",
+              "ofType": null
+            },
+            {
+              "kind": "INTERFACE",
+              "name": "Searchable",
+              "ofType": null
+            }
+          ],
+          "enumValues": null,
           "possibleTypes": null
         }
       ],
