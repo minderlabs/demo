@@ -34,8 +34,8 @@ export default class CreateItemMutation extends Relay.Mutation {
   getVariables() {
     return {
       userId: this.props.user.id,
-      title: this.props.title
-//    status: this.props.status
+      title: this.props.title,
+      status: this.props.status
     };
   }
 
@@ -47,13 +47,14 @@ export default class CreateItemMutation extends Relay.Mutation {
             edges {
               node {
                 id,
-                title
+                title,
+                status
               }
             }
           }
         },
 
-        createItemEdge
+        itemEdge
       }
     `;
   }
@@ -66,7 +67,7 @@ export default class CreateItemMutation extends Relay.Mutation {
       parentName: 'user',
       parentID: this.props.user.id,
       connectionName: 'items',
-      edgeName: 'createItemEdge',
+      edgeName: 'itemEdge',
       rangeBehaviors: {
         '': 'append',
         'orderby(oldest)': 'prepend'
@@ -80,7 +81,7 @@ export default class CreateItemMutation extends Relay.Mutation {
         id: this.props.user.id
       },
 
-      createItemEdge: {
+      itemEdge: {
         node: {
           title: this.props.title
         }

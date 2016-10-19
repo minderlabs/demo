@@ -230,6 +230,11 @@ const CreateItemMutation = mutationWithClientMutationId({
 
     title: {
       type: new GraphQLNonNull(GraphQLString)
+    },
+
+    // TODO(burdon): Change to array of labels.
+    status: {
+      type: GraphQLInt
     }
   },
 
@@ -239,7 +244,7 @@ const CreateItemMutation = mutationWithClientMutationId({
       resolve: ({ userId }) => database.getUser(userId)
     },
 
-    createItemEdge: {
+    itemEdge: {
       type: ItemEdge,
       resolve: ({ userId, itemId }) => {
         let item = database.getItem(itemId);
@@ -256,11 +261,12 @@ const CreateItemMutation = mutationWithClientMutationId({
     },
   },
 
-  mutateAndGetPayload: ({ userId, title }) => {
+  mutateAndGetPayload: ({ userId, title, status }) => {
     let localUserId = fromGlobalId(userId).id;
 
     let item = database.createItem(localUserId, {
-      title: title
+      title: title,
+      status: status
     });
 
     return {
