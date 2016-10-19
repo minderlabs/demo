@@ -30,12 +30,21 @@ class HomeView extends React.Component {
       search: '',
       title: ''
     };
+
+    // TODO(burdon): Factor out searchbar.
+    this._searchInterval = 200;
+    this._searchTimeout = null;
   }
 
-  search() {
-    // TODO(burdon): Update relay query?
-    let query = this.state.search;
-    console.log('SEARCH', query);
+  doSearch() {
+    this.refs.items.refs.component.setQuery(this.state.search);
+  }
+
+  triggerSearch() {
+    this._searchTimeout && clearTimeout(this._searchTimeout);
+    this._searchTimeout = setTimeout(() => {
+      this.doSearch();
+    }, this._searchInterval);
   }
 
   createItem() {
@@ -65,10 +74,11 @@ class HomeView extends React.Component {
 //  console.log(event.target);
     switch (event.target) {
       case this.refs.search_text:
-        // TODO(burdon): Trigger after timeout.
         this.setState({
           search: event.target.value
         });
+
+        this.triggerSearch();
         break;
 
       case this.refs.create_text:
@@ -82,10 +92,10 @@ class HomeView extends React.Component {
   handleKeyUp(event) {
 //  console.log(event.target);
     switch (event.keyCode) {
-      case 13: {
+      case 13: { // Enter.
         switch (event.target) {
           case this.refs.search_text:
-            this.search();
+            this.doSearch();
             break;
 
           case this.refs.create_text:
@@ -94,6 +104,24 @@ class HomeView extends React.Component {
         }
 
         break;
+      }
+
+      case 27: { // ESC.
+        switch (event.target) {
+          case this.refs.search_text:
+            this.setState({
+              search: ''
+            }, () => {
+              this.doSearch();
+            });
+            break;
+
+          case this.refs.create_text:
+            this.setState({
+              title: ''
+            });
+            break;
+        }
       }
     }
   }
@@ -113,7 +141,6 @@ class HomeView extends React.Component {
   render() {
     let { user } = this.props;
 
-    // Cannot be stateless function since has ref.
     const SearchBar = (
       <div className="app-section app-toolbar">
         <input ref="search_text" type="text" autoFocus="autoFocus" className="app-expand"
@@ -123,7 +150,6 @@ class HomeView extends React.Component {
       </div>
     );
 
-    // Cannot be stateless function since has ref.
     const EditBar = (
       <div className="app-section app-toolbar">
         <input ref="create_text" type="text" className="app-expand"
@@ -140,7 +166,7 @@ class HomeView extends React.Component {
         { SearchBar }
 
         <div className="app-section app-panel-column">
-          <ItemList user={ user } onSelect={ this.handleItemSelect.bind(this) }/>
+          <ItemList ref="items" user={ user } onSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
         { EditBar }
@@ -151,9 +177,6 @@ class HomeView extends React.Component {
 
 export default Relay.createContainer(HomeView, {
 
-  // TODO(burdon): How to pass $query to ItemList fragment?
-  // http://stackoverflow.com/questions/34346273/search-functionality-using-relay
-  // TODO(burdon): On change: https://facebook.github.io/relay/docs/api-reference-relay-container.html#preparevariables
   fragments: {
     user: () => Relay.QL`
       fragment on User {

@@ -188,7 +188,11 @@ export class Database {
     return note;
   }
 
-  search(text) {
+  searchItems(text) {
+    console.log('SEARCH', text);
+
+    // TODO(burdon): Generalize for testing.
+
     let notes = [... this._notes.values()].filter((note) => {
       return note.title.indexOf(text) !== -1 || note.content.indexOf(text) !== -1;
     });
