@@ -8,11 +8,15 @@ from blueprint.app import app
 from blueprint.data import data
 from blueprint.debug import debug
 
+from server.data.memory_database import MemoryDatabase
+from server.data.schema import g
+
 
 #
 # Flask server.
 # http://flask.pocoo.org/docs/0.11/api
 #
+
 
 class Server(flask.Flask):
 
@@ -25,5 +29,9 @@ class Server(flask.Flask):
 
 
 if __name__ == '__main__':
+    g.init(MemoryDatabase().load())
+
+    # TODO(burdon): Quit flask on broken pipe (dev-only).
+    # NOTE: werkzeug.serving throws IOError if client quits request prematurely.
     server = Server()
     server.run(debug=True)

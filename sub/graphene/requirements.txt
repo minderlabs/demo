@@ -9,6 +9,7 @@
 nose
 nose-progressive
 easydict
+uuid
 
 #
 # Framework

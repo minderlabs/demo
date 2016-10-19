@@ -6,10 +6,16 @@ from unittest import TestCase
 from easydict import EasyDict
 from graphql_relay import to_global_id, from_global_id
 
-from schema import schema
+from schema import g
+from server.data.memory_database import MemoryDatabase
 
 
 class TestSchema(TestCase):
+
+    def setUp(self):
+        # TODO(burdon): Injector.
+        # TODO(burdon): Pass in JSON (parse JSON).
+        g.init(MemoryDatabase().load())
 
     def test_query_user(self):
         user_id = 'U-1'
@@ -33,9 +39,9 @@ class TestSchema(TestCase):
         }
 
         # Execute the query.
-        result = schema.execute(query, variable_values=variables)
+        result = g.schema.execute(query, variable_values=variables)
         if result.errors:
-            print result.errors
+            print 'ERROR', result.errors
             self.fail()
 
         user = EasyDict(result.data['user'])
@@ -59,7 +65,7 @@ class TestSchema(TestCase):
             fragment F1 on Item { id, title, status, ...F0 }
             fragment F2 on User {
                 id,
-                _items1ftvZg:items(first: 10) {
+                items: items(first: 10) {
                     edges {
                         node { id, ...F1 },
                         cursor
@@ -76,13 +82,13 @@ class TestSchema(TestCase):
         }
 
         # Execute the query.
-        result = schema.execute(query, variable_values=variables)
+        result = g.schema.execute(query, variable_values=variables)
         if result.errors:
-            print result.errors
+            print 'ERROR', result.errors
             self.fail()
 
         user = EasyDict(result.data['user'])
-        print '#####', user.items
 
         self.assertEqual(user_id, from_global_id(user.id)[1])
         self.assertEqual('Test User', user.title)
+        self.assertEqual(5, len(user.items.edges))

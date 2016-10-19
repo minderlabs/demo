@@ -43,10 +43,19 @@ class ItemList extends React.Component {
 // http://stackoverflow.com/questions/33769922/relay-mutation-expects-data-fetched-by-relay
 
 export default Relay.createContainer(ItemList, {
+  // TODO(burdon): Rename text match?
+  // , query: $query
+  // initialVariables: {
+  //   query: ''
+  // },
+
+  // query: $query,
+
   fragments: {
     user: () => Relay.QL`
       fragment on User {
         id,
+
         items(first: 10) {
           edges {
             node {

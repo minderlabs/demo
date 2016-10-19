@@ -9,6 +9,8 @@
 // https://github.com/facebook/graphql
 //
 
+// TODO(burdon): Keep in sync with schema.py
+
 // TODO(burdon): PyCharm plugin.
 // https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues/32
 
@@ -25,13 +27,11 @@ import {
   GraphQLFloat,
   GraphQLID,
   GraphQLInt,
-  GraphQLInterfaceType,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
-  GraphQLUnionType,
 } from 'graphql';
 
 import {
@@ -48,7 +48,6 @@ import {
 import {
   User,
   Item,
-  Note,
   Database
 } from './database';
 
@@ -60,26 +59,6 @@ import {
 //
 
 const database = new Database().init();
-
-/**
- * Determines node type of object instance.
- *
- * Used by graphql internals when resolving generics (interfaces and unions).
- * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d
- */
-// TODO(madadam): Investigate using isTypeOf in each type definition instead of this.
-const resolveType = (obj) => {
-  // TODO(burdon): Infer from something other than type? E.g. type string in Item interface.
-  if (obj instanceof User) {
-    return userType;
-  } else if (obj instanceof Item)  {
-    return itemType;
-  } else if (obj instanceof Note)  {
-    return noteType;
-  } else {
-    return null;
-  }
-};
 
 /**
  * Relay Node interface. Maps objects to types, and global IDs to objects.
@@ -110,54 +89,46 @@ const { nodeInterface, nodeField } = nodeDefinitions(
     }
   },
 
-  resolveType
-);
+  //
+  // Determines node type of object instance.
+  //
 
-/**
- * Searchable.
- * Interface for search results.
- */
-// https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
-const SearchableType = new GraphQLInterfaceType({
-  name: 'Searchable',
-  description: 'A searchable type.',
-  fields: () => ({
-    snippet: {
-      type: GraphQLString,
-      args: {
-        text: { type: GraphQLString }
-      }
+  (obj) => {
+    // TODO(burdon): Infer from something other than type?
+    if (obj instanceof User) {
+      return userType;
+    } else if (obj instanceof Item)  {
+      return itemType;
+    } else {
+      return null;
     }
-  }),
-  resolveType: resolveType
-});
-
+  }
+);
 
 //
 // Note type definitions.
 // https://facebook.github.io/relay/docs/graphql-object-identification.html
 //
 
-// TODO(madadam): Implement users and add fake data associating items with users.
-//                Currently there's one user with all items.
-
 const userType = new GraphQLObjectType({
   name: 'User',
-  description: 'A user account.',
   interfaces: [ nodeInterface ],
+
   fields: () => ({
     id: globalIdField('User'),
 
     // TODO(burdon): Standardize on "title" field in type definition?
     title: {
       type: GraphQLString,
-      description: 'User\'s name.',
       resolve: (item) => item.title
     },
 
+    // TODO(burdon): Magic name ItemConnection?
+    // TODO(burdon): Parameterize (e.g., search?)
+    // TODO(burdon): Document connections.
+    // https://github.com/graphql/graphql-relay-js#connections
     items: {
       type: ItemConnection,
-      description: 'User\'s collection of items.',
       args: connectionArgs,
       resolve: (user, args) => connectionFromArray(database.getItems(user.id, args), args)
     }
@@ -170,71 +141,33 @@ const userType = new GraphQLObjectType({
 
 const itemType = new GraphQLObjectType({
   name: 'Item',
-  description: 'A generic data item.',
-  interfaces: [ nodeInterface, SearchableType ],
+  interfaces: [ nodeInterface ],
+
   fields: () => ({
     id: globalIdField('Item'),
 
     version: {
       type: GraphQLInt,
-      description: 'Item version.',
       resolve: (item) => item.version
     },
 
     title: {
       type: GraphQLString,
-      description: 'Item title.',
       resolve: (item) => item.title
     },
 
     status: {
       type: GraphQLInt,
-      description: 'Item status.',
       resolve: (item) => item.status
-    },
-
-    // Interface Searchable
-    snippet: {
-      type: GraphQLString,
-      args: {
-        text: { type: GraphQLString }
-      },
-      resolve: (item, args) => item.computeSnippet(args.text)
     }
   })
 });
 
-const noteType = new GraphQLObjectType({
-  name: 'Note',
-  description: 'A note.',
-  interfaces: [ nodeInterface, SearchableType ],
-  fields: () => ({
-    id: globalIdField('Note'),
+//
+// TODO(burdon): Document. Where are these consts used?
+// https://github.com/graphql/graphql-relay-js#connections
+//
 
-    title: {
-      type: GraphQLString,
-      description: 'Title.',
-      resolve: (note) => note.title
-    },
-
-    content: {
-      type: GraphQLString,
-      description: 'Content.',
-      resolve: (note) => note.content
-    },
-
-    // Interface Searchable
-    snippet: {
-      type: GraphQLString,
-      args: {
-        text: { type: GraphQLString }
-      },
-      resolve: (note, args) => note.computeSnippet(args.text)
-    }
-  })
-});
-
-// TODO(burdon): Document.
 const {
   connectionType: ItemConnection,
   edgeType: ItemEdge
@@ -249,19 +182,9 @@ const {
 
 const rootQueryType = new GraphQLObjectType({
   name: 'Query',
+
   fields: () => ({
-
     node: nodeField,
-
-    search: {
-      type: new GraphQLList(SearchableType),
-      args: {
-        text: { type: new GraphQLNonNull(GraphQLString) }
-      },
-      resolve: (parent, args) => {
-        return database.search(args.text)
-      }
-    },
 
     user: {
       type: userType,
@@ -285,7 +208,8 @@ const rootQueryType = new GraphQLObjectType({
     items: {
       type: itemType,
       args: {
-        userId: { type: GraphQLID }
+        userId: { type: GraphQLID },
+        query: { type: GraphQLString }    // TODO(burdon): ???
       },
       resolve: (parent, args) => database.getItems(fromGlobalId(args.userId).id)
     }
@@ -413,7 +337,6 @@ const rootMutationType = new GraphQLObjectType({
 //
 
 const schema = new GraphQLSchema({
-  types: [itemType, noteType], // Needed for resolving interface generics.
   query: rootQueryType,
   mutation: rootMutationType
 });
