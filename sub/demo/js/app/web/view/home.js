@@ -150,9 +150,6 @@ class HomeView extends React.Component {
 }
 
 export default Relay.createContainer(HomeView, {
-  // initialVariables: {
-  //   query: ''
-  // },
 
   // TODO(burdon): How to pass $query to ItemList fragment?
   // http://stackoverflow.com/questions/34346273/search-functionality-using-relay

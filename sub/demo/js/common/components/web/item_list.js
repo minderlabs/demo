@@ -44,10 +44,9 @@ class ItemList extends React.Component {
 
 export default Relay.createContainer(ItemList, {
   // TODO(burdon): Rename text match?
-  // , query: $query
-  // initialVariables: {
-  //   query: ''
-  // },
+  initialVariables: {
+    query: '1'
+  },
 
   // query: $query,
 
@@ -56,6 +55,8 @@ export default Relay.createContainer(ItemList, {
       fragment on User {
         id,
 
+        searchItems(query: $query),
+        
         items(first: 10) {
           edges {
             node {

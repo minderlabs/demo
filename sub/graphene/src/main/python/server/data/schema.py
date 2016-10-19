@@ -5,14 +5,14 @@
 import graphene
 
 from graphene import relay, resolve_only_args, Field
+from graphql_relay import from_global_id
+from graphql_relay.connection.arrayconnection import offset_to_cursor
 
 #
 # GraphQL Schema.
 # http://docs.graphene-python.org/en/latest/quickstart
 # https://facebook.github.io/graphql
 #
-from graphql_relay import from_global_id
-
 
 class Context(object):
     """
@@ -40,6 +40,9 @@ class Context(object):
 # Types
 #
 
+# TODO(burdon): Nodes?
+# http://docs.graphene-python.org/en/latest/relay/nodes/#custom-nodes
+
 class Item(graphene.ObjectType):
 
     @classmethod
@@ -47,12 +50,11 @@ class Item(graphene.ObjectType):
         assert obj
         return Item(id=obj['id'], title=obj.get('title'), status=obj.get('status'))
 
-    @classmethod
-    def get_node(cls, id, context, info):
-        # TODO(burdon): When is this used?
-        print '### Item.get_node ###', id
-        item_id = from_global_id(id)[1]
-        return Item.from_json(g.database.get_item(item_id))
+    # @classmethod
+    # def get_node(cls, id, context, info):
+    #     print '### Item.get_node ###', id
+    #     item_id = from_global_id(id)[1]
+    #     return Item.from_json(g.database.get_item(item_id))
 
     class Meta:
         interfaces = (graphene.relay.Node,)
@@ -71,12 +73,11 @@ class User(graphene.ObjectType):
         assert obj
         return User(id=obj['id'], title=obj.get('title'))
 
-    @classmethod
-    def get_node(cls, id, context, info):
-        # TODO(burdon): When is this used?
-        print '### User.get_node ###', id
-        user_id = from_global_id(id)[1]
-        return User.from_json(g.database.get_user(user_id))
+    # @classmethod
+    # def get_node(cls, id, context, info):
+    #     print '### User.get_node ###', id
+    #     user_id = from_global_id(id)[1]
+    #     return User.from_json(g.database.get_user(user_id))
 
     class Meta:
         interfaces = (graphene.relay.Node,)
@@ -105,6 +106,8 @@ class Query(graphene.ObjectType):
     Root query type.
     """
 
+    # TODO(burdon): ???
+    # http://docs.graphene-python.org/en/latest/relay/nodes/#custom-nodes
     node = relay.Node.Field()
 
     user = graphene.Field(User, user_id=graphene.ID())
@@ -162,7 +165,7 @@ class CreateItemMutation(relay.ClientIDMutation):
         user = User.from_json(g.database.get_user(user_id))
 
         item = Item.from_json(g.database.create_item(user_id, title=title, status=status))
-        item_edge = Item.Connection.Edge(cursor='1', node=item)
+        item_edge = Item.Connection.Edge(cursor=offset_to_cursor(0), node=item)
 
         return CreateItemMutation(user=user, item_edge=item_edge)
 

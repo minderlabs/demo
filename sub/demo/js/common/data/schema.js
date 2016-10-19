@@ -123,6 +123,10 @@ const userType = new GraphQLObjectType({
       resolve: (item) => item.title
     },
 
+    searchItems: {
+      type:
+    },
+
     // TODO(burdon): Magic name ItemConnection?
     // TODO(burdon): Parameterize (e.g., search?)
     // TODO(burdon): Document connections.
