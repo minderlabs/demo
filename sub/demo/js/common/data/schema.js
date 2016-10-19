@@ -9,6 +9,8 @@
 // https://github.com/facebook/graphql
 //
 
+// TODO(burdon): Keep in sync with schema.py
+
 // TODO(burdon): PyCharm plugin.
 // https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues/32
 
@@ -108,26 +110,25 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 // https://facebook.github.io/relay/docs/graphql-object-identification.html
 //
 
-// TODO(madadam): Implement users and add fake data associating items with users.
-//                Currently there's one user with all items.
-
 const userType = new GraphQLObjectType({
   name: 'User',
-  description: 'A user account.',
   interfaces: [ nodeInterface ],
+
   fields: () => ({
     id: globalIdField('User'),
 
     // TODO(burdon): Standardize on "title" field in type definition?
     title: {
       type: GraphQLString,
-      description: 'User\'s name.',
       resolve: (item) => item.title
     },
 
+    // TODO(burdon): Magic name ItemConnection?
+    // TODO(burdon): Parameterize (e.g., search?)
+    // TODO(burdon): Document connections.
+    // https://github.com/graphql/graphql-relay-js#connections
     items: {
       type: ItemConnection,
-      description: 'User\'s collection of items.',
       args: connectionArgs,
       resolve: (user, args) => connectionFromArray(database.getItems(user.id, args), args)
     }
@@ -140,32 +141,33 @@ const userType = new GraphQLObjectType({
 
 const itemType = new GraphQLObjectType({
   name: 'Item',
-  description: 'A generic data item.',
   interfaces: [ nodeInterface ],
+
   fields: () => ({
     id: globalIdField('Item'),
 
     version: {
       type: GraphQLInt,
-      description: 'Item version.',
       resolve: (item) => item.version
     },
 
     title: {
       type: GraphQLString,
-      description: 'Item title.',
       resolve: (item) => item.title
     },
 
     status: {
       type: GraphQLInt,
-      description: 'Item status.',
       resolve: (item) => item.status
     }
   })
 });
 
-// TODO(burdon): Document.
+//
+// TODO(burdon): Document. Where are these consts used?
+// https://github.com/graphql/graphql-relay-js#connections
+//
+
 const {
   connectionType: ItemConnection,
   edgeType: ItemEdge
@@ -180,8 +182,8 @@ const {
 
 const rootQueryType = new GraphQLObjectType({
   name: 'Query',
-  fields: () => ({
 
+  fields: () => ({
     node: nodeField,
 
     user: {
@@ -206,7 +208,8 @@ const rootQueryType = new GraphQLObjectType({
     items: {
       type: itemType,
       args: {
-        userId: { type: GraphQLID }
+        userId: { type: GraphQLID },
+        query: { type: GraphQLString }    // TODO(burdon): ???
       },
       resolve: (parent, args) => database.getItems(fromGlobalId(args.userId).id)
     }

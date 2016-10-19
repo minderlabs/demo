@@ -31,5 +31,7 @@ class Server(flask.Flask):
 if __name__ == '__main__':
     g.init(MemoryDatabase().load())
 
+    # TODO(burdon): Quit flask on broken pipe (dev-only).
+    # NOTE: werkzeug.serving throws IOError if client quits request prematurely.
     server = Server()
     server.run(debug=True)

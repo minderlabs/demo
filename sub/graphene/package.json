@@ -16,7 +16,7 @@
   },
   "dependencies": {},
   "scripts": {
-    "schema": "./scripts/schema.sh",
-    "server": "./scripts/server.sh"
+    "update-schema": "./scripts/schema.sh",
+    "start": "./scripts/server.sh"
   }
 }

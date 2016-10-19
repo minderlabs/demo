@@ -97,6 +97,7 @@ class User(graphene.ObjectType):
 
 #
 # Queries.
+# http://graphql.org/learn/queries
 #
 
 class Query(graphene.ObjectType):
@@ -110,7 +111,7 @@ class Query(graphene.ObjectType):
 
     item = graphene.Field(Item, item_id=graphene.ID())
 
-    items = graphene.List(Item, user_id=graphene.ID())
+    items = graphene.List(Item, user_id=graphene.ID(), query=graphene.String())
 
     @resolve_only_args
     def resolve_user(self, user_id):
@@ -152,8 +153,18 @@ class CreateItemMutation(relay.ClientIDMutation):
     user = graphene.Field(User)
     item = graphene.Field(Item)
 
+    # TODO(burdon): Create edge.
+    # https://github.com/graphql-python/graphene/issues/59
+    # Error: Cannot query field "createItemEdge" on type "CreateItemMutationPayload".
+
+    # !!!!
+    # https://github.com/graphql-python/graphene/blob/master/graphene/relay/tests/test_mutation.py
+    # !!!!
+
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
+        print '!!! NOT CALLED !!!'
+
         user_id = input.get('user_id')
         title = input.get('title')
         status = input.get('status')
@@ -170,7 +181,7 @@ class UpdateItemMutation(relay.ClientIDMutation):
         user_id = graphene.ID(required=True)
         item_id = graphene.ID(required=True)
         title = graphene.String()
-        status = graphene.Int()
+#       status = graphene.Int()
 
     user = graphene.Field(User)
     item = graphene.Field(Item)
@@ -180,7 +191,7 @@ class UpdateItemMutation(relay.ClientIDMutation):
         user_id = from_global_id(input.get('user_id'))[1]
         item_id = from_global_id(input.get('item_id'))[1]
         title = input.get('title')
-        status = input.get('status')
+#       status = input.get('status')
 
         user = User.from_json(g.database.get_user(user_id))
         item = Item.from_json(g.database.update_item(user_id, item_id, title=title, status=status))

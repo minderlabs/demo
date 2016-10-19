@@ -34,7 +34,8 @@ export default class CreateItemMutation extends Relay.Mutation {
   getVariables() {
     return {
       userId: this.props.user.id,
-      title: this.props.title,
+      title: this.props.title
+//    status: this.props.status
     };
   }
 

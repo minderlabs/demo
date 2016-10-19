@@ -53,6 +53,9 @@ def data_graphql():
 
     # Execute the query.
     result = g.schema.execute(query, variable_values=variables)
+    if result.errors:
+        print 'ERROR', result.errors
+        flask.abort(400)
 
     # Convert OrderedDict to regular dict.
     data = json.loads(json.dumps(result.data))
