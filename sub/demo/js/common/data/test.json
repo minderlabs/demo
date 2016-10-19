@@ -25,14 +25,14 @@
     }
   ],
 
-  "tasks": [
+  "notes": [
     {
-      "title": "Task 1",
-      "content": "Buy flowers"
+      "title": "Note 1",
+      "content": "Squirrels"
     },
     {
-      "title": "Task 2",
-      "content": "Eat flowers"
+      "title": "Note 2",
+      "content": "Lemurs"
     }
   ]
 }

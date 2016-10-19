@@ -35,16 +35,16 @@ export class Item {
   }
 }
 
-export class Task {
-  static update(task, data) {
-    Util.maybeUpdateItem(task, data, 'title');
-    Util.maybeUpdateItem(task, data, 'content');
+export class Note {
+  static update(note, data) {
+    Util.maybeUpdateItem(note, data, 'title');
+    Util.maybeUpdateItem(note, data, 'content');
   }
 
   constructor(data) {
     this.id = data.id;
 
-    Task.update(this, data);
+    Note.update(this, data);
   }
 }
 
@@ -63,7 +63,7 @@ export class Database {
     // TODO(burdon): Map of maps per user.
     this._items = new Map();
 
-    this._tasks = new Map();
+    this._notes = new Map();
   }
 
   init() {
@@ -80,8 +80,8 @@ export class Database {
       this.createItem(user.id, item);
     }
 
-    for (let task of data['tasks']) {
-      this.createTask(task);
+    for (let note of data['notes']) {
+      this.createNote(note);
     }
 
     return this;
@@ -147,30 +147,33 @@ export class Database {
     return item;
   }
 
-  getTask(taskId) {
-    let task = this._tasks.get(taskId);
-    console.log('TASK.GET', taskId, JSON.stringify(task));
-    return task;
+  getNote(noteId) {
+    let note = this._notes.get(noteId);
+    console.log('NOTE.GET', noteId, JSON.stringify(note));
+    return note;
   }
 
-  createTask(data) {
+  createNote(data) {
     if (data.id === undefined) {
       data.id = Util.createId();
     }
 
-    let task = new Task(data);
-    console.log('TASK.CREATE', JSON.stringify(task));
-    this._tasks.set(task.id, task);
-    return task;
+    let note = new Note(data);
+    console.log('NOTE.CREATE', JSON.stringify(note));
+    this._notes.set(note.id, note);
+    return note;
   }
 
   search(text) {
-    // TODO(madadam): Search items too.
-    const values = [... this._tasks.values()];
-    let results = values.filter((task) => {
-      return task.title.indexOf(text) !== -1 || task.content.indexOf(text) !== -1;
+    let notes = [... this._notes.values()].filter((note) => {
+      return note.title.indexOf(text) !== -1 || note.content.indexOf(text) !== -1;
     });
-    return results;
+
+    let items = [... this._items.values()].filter((item) => {
+      return item.title.indexOf(text) !== -1;
+    });
+
+    return notes.concat(items);
   }
 }
 

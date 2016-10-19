@@ -48,7 +48,7 @@ import {
 import {
   User,
   Item,
-  Task,
+  Note,
   Database
 } from './database';
 
@@ -74,8 +74,8 @@ const resolveType = (obj) => {
     return userType;
   } else if (obj instanceof Item)  {
     return itemType;
-  } else if (obj instanceof Task)  {
-    return taskType;
+  } else if (obj instanceof Note)  {
+    return noteType;
   } else {
     return null;
   }
@@ -113,6 +113,11 @@ const { nodeInterface, nodeField } = nodeDefinitions(
   resolveType
 );
 
+/**
+ * Searchable.
+ * Interface for search results.
+ */
+// https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
 const SearchableType = new GraphQLInterfaceType({
   name: 'Searchable',
   fields: () => ({
@@ -162,7 +167,7 @@ const userType = new GraphQLObjectType({
 const itemType = new GraphQLObjectType({
   name: 'Item',
   description: 'A generic data item.',
-  interfaces: [ nodeInterface ],
+  interfaces: [ nodeInterface, SearchableType ],
   fields: () => ({
     id: globalIdField('Item'),
 
@@ -182,37 +187,42 @@ const itemType = new GraphQLObjectType({
       type: GraphQLInt,
       description: 'Item status.',
       resolve: (item) => item.status
+    },
+
+    // Interface Searchable
+    snippet: {
+      type: GraphQLString,
+      resolve: (item) => item.title
     }
   })
 });
 
-const taskType = new GraphQLObjectType({
-  name: 'Task',
-  description: 'An assignable task.',
+const noteType = new GraphQLObjectType({
+  name: 'Note',
+  description: 'A note.',
   interfaces: [ nodeInterface, SearchableType ],
   fields: () => ({
-    id: globalIdField('Task'),
+    id: globalIdField('Note'),
 
     title: {
       type: GraphQLString,
-      description: 'Task title.',
-      resolve: (task) => task.title
+      description: 'Title.',
+      resolve: (note) => note.title
     },
 
     content: {
       type: GraphQLString,
       description: 'Content.',
-      resolve: (task) => task.content
+      resolve: (note) => note.content
     },
 
-    // Searchable
+    // Interface Searchable
     snippet: {
       type: GraphQLString,
       // TODO(madadam): Compute snippet. Search query argument?
-      resolve: (task) => task.title
+      resolve: (note) => note.title
     }
   })
-
 });
 
 // TODO(burdon): Document.
@@ -222,17 +232,6 @@ const {
 } = connectionDefinitions({
   name: 'Item',
   nodeType: itemType
-});
-
-
-// TODO(madadam): Decide between union and interface approach and remove the other.
-
-// https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
-const searchResultType = new GraphQLUnionType({
-  name: 'SearchResult',
-  //description: 'A Search Result.',
-  types: [ itemType, taskType ],
-  resolveType: resolveType
 });
 
 //
@@ -246,16 +245,6 @@ const rootQueryType = new GraphQLObjectType({
     node: nodeField,
 
     search: {
-      type: new GraphQLList(searchResultType),
-      args: {
-        text: { type: new GraphQLNonNull(GraphQLString) }
-      },
-      resolve: (parent, args) => {
-        return database.search(args.text)
-      }
-    },
-
-    searchInterface: {
       type: new GraphQLList(SearchableType),
       args: {
         text: { type: new GraphQLNonNull(GraphQLString) }
@@ -415,7 +404,7 @@ const rootMutationType = new GraphQLObjectType({
 //
 
 const schema = new GraphQLSchema({
-  types: [taskType], // Needed for resolving interface generics.
+  types: [itemType, noteType], // Needed for resolving interface generics.
   query: rootQueryType,
   mutation: rootMutationType
 });
