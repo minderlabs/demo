@@ -33,6 +33,43 @@ export class Item {
 
     Item.update(this, data);
   }
+
+  computeSnippet(queryString) {
+    if (!queryString) {
+      return null;
+    }
+    return `title match [${queryString}]: ${this.title}`;
+  }
+}
+
+export class Note {
+  static update(note, data) {
+    Util.maybeUpdateItem(note, data, 'title');
+    Util.maybeUpdateItem(note, data, 'content');
+  }
+
+  constructor(data) {
+    this.id = data.id;
+
+    Note.update(this, data);
+  }
+
+  computeSnippet(queryString) {
+    // TODO(madadam): Generalize / factor out.
+    if (!queryString) {
+      return null;
+    }
+    let matchedField;
+    let matchedValue;
+    if (this.title.indexOf(queryString) !== -1) {
+      matchedField = 'title';
+      matchedValue = this.title;
+    } else if (this.content.indexOf(queryString) !== -1) {
+      matchedField = 'content';
+      matchedValue = this.content;
+    }
+    return `${matchedField} match [${queryString}]: ${matchedValue}`;
+  }
 }
 
 /**
@@ -49,6 +86,8 @@ export class Database {
 
     // TODO(burdon): Map of maps per user.
     this._items = new Map();
+
+    this._notes = new Map();
   }
 
   init() {
@@ -63,6 +102,10 @@ export class Database {
     let user = this.getUser(Database.DEFAULT_USER);
     for (let item of data['items']) {
       this.createItem(user.id, item);
+    }
+
+    for (let note of data['notes']) {
+      this.createNote(note);
     }
 
     return this;
@@ -127,4 +170,34 @@ export class Database {
 
     return item;
   }
+
+  getNote(noteId) {
+    let note = this._notes.get(noteId);
+    console.log('NOTE.GET', noteId, JSON.stringify(note));
+    return note;
+  }
+
+  createNote(data) {
+    if (data.id === undefined) {
+      data.id = Util.createId();
+    }
+
+    let note = new Note(data);
+    console.log('NOTE.CREATE', JSON.stringify(note));
+    this._notes.set(note.id, note);
+    return note;
+  }
+
+  search(text) {
+    let notes = [... this._notes.values()].filter((note) => {
+      return note.title.indexOf(text) !== -1 || note.content.indexOf(text) !== -1;
+    });
+
+    let items = [... this._items.values()].filter((item) => {
+      return item.title.indexOf(text) !== -1;
+    });
+
+    return notes.concat(items);
+  }
 }
+
