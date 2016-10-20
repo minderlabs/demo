@@ -138,9 +138,6 @@ const SearchableType = new GraphQLInterfaceType({
 // https://facebook.github.io/relay/docs/graphql-object-identification.html
 //
 
-// TODO(madadam): Implement users and add fake data associating items with users.
-//                Currently there's one user with all items.
-
 const userType = new GraphQLObjectType({
   name: 'User',
   description: 'A user account.',
@@ -161,11 +158,11 @@ const userType = new GraphQLObjectType({
         text: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (parent, args) => {
-        console.log('QUERY: ' + args.text); // FIXME
-        return database.search(args.text)
+        return database.searchItems(args.text);
       }
     },
 
+    // TODO(burdon): Obsolete (replace with searchItems).
     items: {
       type: ItemConnection,
       description: 'User\'s collection of items.',
@@ -225,13 +222,13 @@ const noteType = new GraphQLObjectType({
     title: {
       type: GraphQLString,
       description: 'Title.',
-      resolve: (note) => note.title
+      resolve: (node) => node.title
     },
 
     content: {
       type: GraphQLString,
       description: 'Content.',
-      resolve: (note) => note.content
+      resolve: (node) => node.content
     },
 
     // Interface Searchable
@@ -240,7 +237,7 @@ const noteType = new GraphQLObjectType({
       args: {
         text: { type: GraphQLString }
       },
-      resolve: (note, args) => note.computeSnippet(args.text)
+      resolve: (node, args) => node.computeSnippet(args.text)
     }
   })
 });
@@ -270,7 +267,7 @@ const rootQueryType = new GraphQLObjectType({
         text: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (parent, args) => {
-        return database.search(args.text)
+        return database.searchItems(args.text);
       }
     },
 
@@ -317,6 +314,11 @@ const CreateItemMutation = mutationWithClientMutationId({
 
     title: {
       type: new GraphQLNonNull(GraphQLString)
+    },
+
+    // TODO(burdon): Change to array of labels.
+    status: {
+      type: GraphQLInt
     }
   },
 
@@ -326,7 +328,7 @@ const CreateItemMutation = mutationWithClientMutationId({
       resolve: ({ userId }) => database.getUser(userId)
     },
 
-    createItemEdge: {
+    itemEdge: {
       type: ItemEdge,
       resolve: ({ userId, itemId }) => {
         let item = database.getItem(itemId);
@@ -343,11 +345,12 @@ const CreateItemMutation = mutationWithClientMutationId({
     },
   },
 
-  mutateAndGetPayload: ({ userId, title }) => {
+  mutateAndGetPayload: ({ userId, title, status }) => {
     let localUserId = fromGlobalId(userId).id;
 
     let item = database.createItem(localUserId, {
-      title: title
+      title: title,
+      status: status
     });
 
     return {

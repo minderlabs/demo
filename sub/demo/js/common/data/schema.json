@@ -760,6 +760,16 @@
               "defaultValue": null
             },
             {
+              "name": "status",
+              "description": null,
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              },
+              "defaultValue": null
+            },
+            {
               "name": "clientMutationId",
               "description": null,
               "type": {
@@ -792,7 +802,7 @@
               "deprecationReason": null
             },
             {
-              "name": "createItemEdge",
+              "name": "itemEdge",
               "description": null,
               "args": [],
               "type": {

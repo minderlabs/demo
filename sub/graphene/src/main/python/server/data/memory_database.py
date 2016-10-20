@@ -11,6 +11,20 @@ from server.data.database import Database
 
 class MemoryDatabase(Database):
 
+    # TODO(burdon): Factor out utils.
+
+    @staticmethod
+    def update_item_values(item, **kwargs):
+        for key, value in kwargs.iteritems():
+            MemoryDatabase.maybe_update_item_value(item, key, value)
+        return item
+
+    @staticmethod
+    def maybe_update_item_value(item, key, value):
+        if value is not None:
+            item[key] = value
+        return item
+
     def __init__(self):
 
         # Map of User JSON objects.
@@ -61,8 +75,7 @@ class MemoryDatabase(Database):
         item = {
             'id': item_id
         }
-        for key, value in kwargs.iteritems():
-            item[key] = value
+        MemoryDatabase.update_item_values(item, **kwargs)
         self._items[item_id] = item
         self._items_by_user[user_id].add(item_id)
         return item
@@ -70,9 +83,7 @@ class MemoryDatabase(Database):
     def update_item(self, user_id, item_id, **kwargs):
         print [key for key, item in self._items.iteritems()]
         item = self.get_item(item_id)
-        for key, value in kwargs.iteritems():
-            if value:
-                item[key] = value
+        MemoryDatabase.update_item_values(item, **kwargs)
         return item
 
     def get_item(self, item_id):

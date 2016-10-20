@@ -21,40 +21,47 @@ class ItemList extends React.Component {
     this.props.onSelect && this.props.onSelect(node);
   }
 
+  setQuery(text) {
+    // https://facebook.github.io/relay/docs/api-reference-relay-container.html#setvariables
+    this.props.relay.setVariables({
+      query: text
+    });
+  }
+
   render() {
     let { user } = this.props;
 
     // TODO(burdon): If renderer is item_list specific then move to inner class.
     let items = user.items.edges.map(edge =>
-      <div key={ edge.node.id } className="app-list-item" onClick={ this.handleSelect.bind(this, edge.node) }>
+      <div key={ edge.node.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, edge.node) }>
         <Item user={ user } item={ edge.node }/>
       </div>
     );
 
-    let itemResults = user.searchItems.map(item =>
-      <div key={ item.id } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
-        <Item user={ user } item={ item }/>
-      </div>
-    );
+    let searchItems = user.searchItems.map(node => {
+      return (
+        <div key={ node.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, node) }>
+          <Item user={ user } item={ node }/>
+        </div>
+      );
+    });
 
     return (
       <div>
+        <h3>Items</h3>
         <div className="app-section app-expand app-list">{ items }</div>
-        <div>Search Results:</div>
-        <div className="app-section app-expand app-list">{ itemResults }</div>
+
+        <h3>Search</h3>
+        <div className="app-section app-expand app-list">{ searchItems }</div>
       </div>
     );
   }
 }
 
-// TODO(burdon): Document fragments (and entire dependency chain).
-// TODO(burdon): How are parameters passed into fragment queries?
-// https://facebook.github.io/relay/docs/guides-containers.html#composing-fragments
-// http://stackoverflow.com/questions/33769922/relay-mutation-expects-data-fetched-by-relay
-
 export default Relay.createContainer(ItemList, {
+
   initialVariables: {
-    queryString: '1'
+    query: ''
   },
 
   fragments: {
@@ -62,8 +69,8 @@ export default Relay.createContainer(ItemList, {
       fragment on User {
         id,
 
-        searchItems(text: $queryString) {
-          snippet(text:$queryString),
+        searchItems(text: $query) {
+          snippet(text:$query),
           ... on Note {
             title,
             content
