@@ -18,9 +18,9 @@ export class User {
 }
 
 /**
- * Data item.
+ * Task item.
  */
-export class Item {
+export class Task {
 
   static update(item, data) {
     Util.maybeUpdateItem(item, data, 'title');
@@ -31,7 +31,7 @@ export class Item {
     this.id = data.id;
     this.version = data.version || 0;
 
-    Item.update(this, data);
+    Task.update(this, data);
   }
 
   computeSnippet(queryString) {
@@ -85,7 +85,7 @@ export class Database {
     this._users = new Map();
 
     // TODO(burdon): Map of maps per user.
-    this._items = new Map();
+    this._tasks = new Map();
 
     this._notes = new Map();
   }
@@ -100,8 +100,8 @@ export class Database {
 
     // Create items for default user.
     let user = this.getUser(Database.DEFAULT_USER);
-    for (let item of data['items']) {
-      this.createItem(user.id, item);
+    for (let task of data['tasks']) {
+      this.createTask(user.id, task);
     }
 
     for (let note of data['notes']) {
@@ -130,23 +130,23 @@ export class Database {
   }
 
   //
-  // Items
+  // Tasks
   // NOTE: graph-relay nodeDefinitions enforces GUID for item (i.e., bucket must be encoded in the local ID).
   //
 
-  getItem(itemId) {
-    let item = this._items.get(itemId);
-    console.log('ITEM.GET', itemId, JSON.stringify(item));
-    return item;
+  getTask(taskId) {
+    let task = this._tasks.get(taskId);
+    console.log('TASK.GET', taskId, JSON.stringify(task));
+    return task;
   }
 
-  getItems(userId, args) {
-    let items = Array.from(this._items.values());
-    console.log('ITEM.GET', userId, args, items.length);
-    return items;
+  getTasks(userId, args) {
+    let tasks = Array.from(this._tasks.values());
+    console.log('TASKS.GET', userId, args, tasks.length);
+    return tasks;
   }
 
-  createItem(userId, data) {
+  createTask(userId, data) {
     if (data.id === undefined) {
       data.id = Util.createId();
     }
@@ -155,20 +155,20 @@ export class Database {
       data.version = 0;
     }
 
-    let item = new Item(data);
-    console.log('ITEM.CREATE', userId, JSON.stringify(item));
-    this._items.set(item.id, item);
-    return item;
+    let task = new Task(data);
+    console.log('TASK.CREATE', userId, JSON.stringify(task));
+    this._tasks.set(task.id, task);
+    return task;
   }
 
-  updateItem(itemId, data) {
+  updateTask(taskId, data) {
     console.log('ITEM.UPDATE', data);
-    let item = this._items.get(itemId);
+    let task = this._tasks.get(taskId);
 
-    item.version += 1;
-    Item.update(item, data);
+    task.version += 1;
+    Task.update(task, data);
 
-    return item;
+    return task;
   }
 
   getNote(noteId) {
@@ -197,11 +197,11 @@ export class Database {
       return note.title.indexOf(text) !== -1 || note.content.indexOf(text) !== -1;
     });
 
-    let items = [... this._items.values()].filter((item) => {
-      return item.title.indexOf(text) !== -1;
+    let tasks = [... this._tasks.values()].filter((task) => {
+      return task.title.indexOf(text) !== -1;
     });
 
-    return notes.concat(items);
+    return notes.concat(tasks);
   }
 }
 

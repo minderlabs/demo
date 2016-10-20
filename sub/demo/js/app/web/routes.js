@@ -17,7 +17,7 @@ import Path from './path';
 import DemoApp from './demo';
 
 import HomeView from './view/home';
-import DetailView from './view/detail';
+import ItemDetailView from './view/detail';
 
 // Set by server.
 const currentUser = toGlobalId('User', config.get('userId'));
@@ -50,7 +50,7 @@ export default (
     <Route path={ Path.DETAIL + '/:itemId' }
            queries={ ItemQueries }
            prepareParams={ params => ({ ...params, userId: currentUser }) }
-           component={ DetailView }/>
+           component={ ItemDetailView }/>
 
     <Redirect from='*' to={ Path.HOME }/>
 

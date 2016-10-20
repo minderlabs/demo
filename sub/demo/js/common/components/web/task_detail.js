@@ -7,47 +7,47 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import UpdateItemMutation from '../../mutations/update_item';
+import UpdateTaskMutation from '../../mutations/update_task';
 
-import './item_detail.less';
+import './task_detail.less';
 
 /**
- * Generic data item.
+ * Task detail view.
  */
-class ItemDetail extends React.Component {
+class TaskDetail extends React.Component {
 
   static contextTypes = {
     router: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired
+    task: React.PropTypes.object.isRequired
   };
 
   constructor(props, context) {
     super(props, context);
 
     this.state = {
-      item: _.pick(this.props.item, ['title', 'status'])
+      task: _.pick(this.props.task, ['title', 'status'])
     }
   }
 
   handleTextChange(field, event) {
     this.setState({
-      item: _.merge(this.state.item, _.set({}, field, event.target.value))
+      task: _.merge(this.state.task, _.set({}, field, event.target.value))
     });
   }
 
   handleSave(event) {
-    let { user, item } = this.props;
+    let { user, task } = this.props;
 
     this.props.relay.commitUpdate(
-      new UpdateItemMutation({
+      new UpdateTaskMutation({
         user: user,
-        item: item,
+        task: task,
 
-        title: this.state.item.title,
-        status: this.state.item.status
+        title: this.state.task.title,
+        status: this.state.task.status
       })
     );
 
@@ -59,13 +59,13 @@ class ItemDetail extends React.Component {
   }
 
   render() {
-    let { item } = this.props;
+    let { task } = this.props;
 
     return (
       <div className="app-item-detail">
-        <input type="text" className="app-expand app-field-title" title={ item.id } autoFocus="autoFocus"
+        <input type="text" className="app-expand app-field-title" title={ task.id } autoFocus="autoFocus"
                onChange={ this.handleTextChange.bind(this, 'title') }
-               value={ this.state.item.title }/>
+               value={ this.state.task.title }/>
 
         <div className="app-toolbar">
           <button onClick={ this.handleSave.bind(this) }>Save</button>
@@ -76,16 +76,16 @@ class ItemDetail extends React.Component {
   }
 }
 
-export default Relay.createContainer(ItemDetail, {
+export default Relay.createContainer(TaskDetail, {
 
   fragments: {
-    item: () => Relay.QL`
-      fragment on Item {
+    task: () => Relay.QL`
+      fragment on Task {
         id,
         title,
         status,
 
-        ${UpdateItemMutation.getFragment('item')}
+        ${UpdateTaskMutation.getFragment('task')}
       }
     `
   }

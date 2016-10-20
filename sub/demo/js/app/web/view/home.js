@@ -10,7 +10,7 @@ import Relay from 'react-relay';
 // TODO(burdon): Create lib for UX and Data.
 import ItemList from '../../../common/components/web/item_list';
 
-import CreateItemMutation from '../../../common/mutations/create_item';
+import CreateTaskMutation from '../../../common/mutations/create_task';
 
 import Path from '../path';
 
@@ -53,7 +53,7 @@ class HomeView extends React.Component {
     let title = this.state.title;
     if (title) {
       this.props.relay.commitUpdate(
-        new CreateItemMutation({
+        new CreateTaskMutation({
           user: user,
           title: title
         })
@@ -184,7 +184,7 @@ export default Relay.createContainer(HomeView, {
         title,
 
         ${ItemList.getFragment('user')},
-        ${CreateItemMutation.getFragment('user')}
+        ${CreateTaskMutation.getFragment('user')}
       }
     `
   }

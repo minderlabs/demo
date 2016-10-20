@@ -47,7 +47,7 @@ import {
 
 import {
   User,
-  Item,
+  Task,
   Note,
   Database
 } from './database';
@@ -71,13 +71,35 @@ const database = new Database().init();
 const resolveType = (obj) => {
   // TODO(burdon): Infer from something other than type? E.g. type string in Item interface.
   if (obj instanceof User) {
-    return userType;
-  } else if (obj instanceof Item)  {
-    return itemType;
+    return UserType;
+  } else if (obj instanceof Task)  {
+    return TaskType;
   } else if (obj instanceof Note)  {
-    return noteType;
+    return NoteType;
   } else {
     return null;
+  }
+};
+
+/**
+ * Retrieve object from global ID.
+ * NOTE: Global IDs must be unique across types.
+ */
+const getItemFromGlobalId = (globalId) => {
+  let { type, id } = fromGlobalId(globalId);
+  switch (type) {
+
+    case 'User': {
+      return database.getUser(id);
+    }
+
+    case 'Task': {
+      return database.getTask(id);
+    }
+
+    default: {
+      return null;
+    }
   }
 };
 
@@ -86,30 +108,7 @@ const resolveType = (obj) => {
  * https://facebook.github.io/relay/docs/tutorial.html
  */
 const { nodeInterface, nodeField } = nodeDefinitions(
-
-  //
-  // Retrieve object from global ID.
-  // NOTE: Global IDs must be unique across types.
-  //
-
-  (globalId) => {
-    let { type, id } = fromGlobalId(globalId);
-    switch (type) {
-
-      case 'User': {
-        return database.getUser(id);
-      }
-
-      case 'Item': {
-        return database.getItem(id);
-      }
-
-      default: {
-        return null;
-      }
-    }
-  },
-
+  getItemFromGlobalId,
   resolveType
 );
 
@@ -117,11 +116,18 @@ const ItemInterface = new GraphQLInterfaceType({
   name: 'ItemInterface',
   description: 'The Item interface.',
   fields: () => ({
+    id: globalIdField(),
     type: {
-      type: GraphQLString
+      type: GraphQLString,
+      description: 'Primary type of this item.'
     },
     title: {
-      type: GraphQLString
+      type: GraphQLString,
+      description: 'Item title.'
+    },
+    version: {
+      type: GraphQLInt,
+      description: 'Item version.'
     },
     status: {
       type: GraphQLInt
@@ -155,7 +161,7 @@ const SearchableInterface = new GraphQLInterfaceType({
 // https://facebook.github.io/relay/docs/graphql-object-identification.html
 //
 
-const userType = new GraphQLObjectType({
+const UserType = new GraphQLObjectType({
   name: 'User',
   description: 'A user account.',
   interfaces: [ nodeInterface ],
@@ -180,11 +186,11 @@ const userType = new GraphQLObjectType({
     },
 
     // TODO(burdon): Obsolete (replace with searchItems).
-    items: {
-      type: ItemConnection,
-      description: 'User\'s collection of items.',
+    tasks: {
+      type: TaskConnection,
+      description: 'User\'s collection of tasks.',
       args: connectionArgs,
-      resolve: (user, args) => connectionFromArray(database.getItems(user.id, args), args)
+      resolve: (user, args) => connectionFromArray(database.getTasks(user.id, args), args)
     }
   })
 });
@@ -193,18 +199,14 @@ const userType = new GraphQLObjectType({
 // http://graphql.org/graphql-js/type/#graphqluniontype
 // http://graphql.org/graphql-js/type/#graphqlinterfacetype
 
-const itemType = new GraphQLObjectType({
-  name: 'Item',
-  description: 'A generic data item.',
+const TaskType = new GraphQLObjectType({
+  name: 'Task',
+  description: 'An assignable task.',
   interfaces: [ nodeInterface, ItemInterface, SearchableInterface ],
   fields: () => ({
-    id: globalIdField('Item'),
+    id: globalIdField('Task'),
 
-    version: {
-      type: GraphQLInt,
-      description: 'Item version.',
-      resolve: (item) => item.version
-    },
+    // ItemInterface
 
     type: {
       type: GraphQLString,
@@ -215,6 +217,12 @@ const itemType = new GraphQLObjectType({
       type: GraphQLString,
       description: 'Item title.',
       resolve: (item) => item.title
+    },
+
+    version: {
+      type: GraphQLInt,
+      description: 'Item version.',
+      resolve: (item) => item.version
     },
 
     status: {
@@ -234,7 +242,7 @@ const itemType = new GraphQLObjectType({
   })
 });
 
-const noteType = new GraphQLObjectType({
+const NoteType = new GraphQLObjectType({
   name: 'Note',
   description: 'A note.',
   interfaces: [ nodeInterface, ItemInterface, SearchableInterface ],
@@ -251,6 +259,12 @@ const noteType = new GraphQLObjectType({
       type: GraphQLString,
       description: 'Title.',
       resolve: (item) => item.title
+    },
+
+    version: {
+      type: GraphQLInt,
+      description: 'Item version.',
+      resolve: (item) => item.version
     },
 
     status: {
@@ -279,18 +293,18 @@ const noteType = new GraphQLObjectType({
 
 // TODO(burdon): Document.
 const {
-  connectionType: ItemConnection,
-  edgeType: ItemEdge
+  connectionType: TaskConnection,
+  edgeType: TaskEdge
 } = connectionDefinitions({
-  name: 'Item',
-  nodeType: itemType
+  name: 'Task',
+  nodeType: TaskType
 });
 
 //
 // Root query type.
 //
 
-const rootQueryType = new GraphQLObjectType({
+const RootQueryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
 
@@ -307,7 +321,7 @@ const rootQueryType = new GraphQLObjectType({
     },
 
     user: {
-      type: userType,
+      type: UserType,
       args: {
         userId: { type: GraphQLID }
       },
@@ -317,20 +331,20 @@ const rootQueryType = new GraphQLObjectType({
     },
 
     item: {
-      type: itemType,
+      type: ItemInterface,
       args: {
         userId: { type: GraphQLID },
         itemId: { type: GraphQLID }
       },
-      resolve: (parent, args) => database.getItem(fromGlobalId(args.itemId).id)
+      resolve: (parent, args) => getItemFromGlobalId(args.itemId)
     },
 
     items: {
-      type: itemType,
+      type: TaskType,
       args: {
         userId: { type: GraphQLID }
       },
-      resolve: (parent, args) => database.getItems(fromGlobalId(args.userId).id)
+      resolve: (parent, args) => database.getTasks(fromGlobalId(args.userId).id)
     }
   })
 });
@@ -339,8 +353,8 @@ const rootQueryType = new GraphQLObjectType({
 // Mutations
 //
 
-const CreateItemMutation = mutationWithClientMutationId({
-  name: 'CreateItemMutation',
+const CreateTaskMutation = mutationWithClientMutationId({
+  name: 'CreateTaskMutation',
 
   inputFields: {
     userId: {
@@ -359,21 +373,21 @@ const CreateItemMutation = mutationWithClientMutationId({
 
   outputFields: {
     user: {
-      type: userType,
+      type: UserType,
       resolve: ({ userId }) => database.getUser(userId)
     },
 
-    itemEdge: {
-      type: ItemEdge,
-      resolve: ({ userId, itemId }) => {
-        let item = database.getItem(itemId);
+    taskEdge: {
+      type: TaskEdge,
+      resolve: ({ userId, taskId }) => {
+        let task = database.getTask(taskId);
         return {
-          node: item,
+          node: task,
 
           // TODO(burdon): Do we need to retrieve all items here?
           cursor: cursorForObjectInConnection(
-            database.getItems(userId),
-            item
+            database.getTasks(userId),
+            task
           )
         }
       }
@@ -383,27 +397,27 @@ const CreateItemMutation = mutationWithClientMutationId({
   mutateAndGetPayload: ({ userId, title, status }) => {
     let localUserId = fromGlobalId(userId).id;
 
-    let item = database.createItem(localUserId, {
+    let task = database.createTask(localUserId, {
       title: title,
       status: status
     });
 
     return {
       userId: localUserId,
-      itemId: item.id
+      taskId: task.id
     };
   }
 });
 
-const UpdateItemMutation = mutationWithClientMutationId({
-  name: 'UpdateItemMutation',
+const UpdateTaskMutation = mutationWithClientMutationId({
+  name: 'UpdateTaskMutation',
 
   inputFields: {
     userId: {
       type: new GraphQLNonNull(GraphQLID)
     },
 
-    itemId: {
+    taskId: {
       type: new GraphQLNonNull(GraphQLID)
     },
 
@@ -420,26 +434,26 @@ const UpdateItemMutation = mutationWithClientMutationId({
   },
 
   outputFields: {
-    item: {
-      type: itemType,
-      resolve: ({ userId, itemId }) => {
-        return database.getItem(itemId)
+    task: {
+      type: TaskType,
+      resolve: ({ userId, taskId }) => {
+        return database.getTask(taskId)
       }
     }
   },
 
-  mutateAndGetPayload: ({ userId, itemId, title, status }) => {
+  mutateAndGetPayload: ({ userId, taskId, title, status }) => {
     let localUserId = fromGlobalId(userId).id;
-    let localItemId = fromGlobalId(itemId).id;
+    let localTaskId = fromGlobalId(taskId).id;
 
-    let item = database.updateItem(localItemId, {
+    let task = database.updateTask(localTaskId, {
       title: title,
       status: status
     });
 
     return {
       userId: localUserId,
-      itemId: item.id
+      taskId: task.id
     };
   }
 });
@@ -451,8 +465,8 @@ const UpdateItemMutation = mutationWithClientMutationId({
 const rootMutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
-    createItemMutation: CreateItemMutation,
-    updateItemMutation: UpdateItemMutation
+    createTaskMutation: CreateTaskMutation,
+    updateTaskMutation: UpdateTaskMutation
   })
 });
 
@@ -462,8 +476,8 @@ const rootMutationType = new GraphQLObjectType({
 //
 
 const schema = new GraphQLSchema({
-  types: [itemType, noteType], // Needed for resolving interface generics.
-  query: rootQueryType,
+  types: [TaskType, NoteType], // Needed for resolving interface generics.
+  query: RootQueryType,
   mutation: rootMutationType
 });
 

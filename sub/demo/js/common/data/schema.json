@@ -121,8 +121,8 @@
                 }
               ],
               "type": {
-                "kind": "OBJECT",
-                "name": "Item",
+                "kind": "INTERFACE",
+                "name": "ItemInterface",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -145,7 +145,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "Item",
+                "name": "Task",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -200,7 +200,7 @@
             },
             {
               "kind": "OBJECT",
-              "name": "Item",
+              "name": "Task",
               "ofType": null
             },
             {
@@ -255,7 +255,7 @@
           "possibleTypes": [
             {
               "kind": "OBJECT",
-              "name": "Item",
+              "name": "Task",
               "ofType": null
             },
             {
@@ -330,8 +330,8 @@
               "deprecationReason": null
             },
             {
-              "name": "items",
-              "description": "User's collection of items.",
+              "name": "tasks",
+              "description": "User's collection of tasks.",
               "args": [
                 {
                   "name": "after",
@@ -376,7 +376,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "ItemConnection",
+                "name": "TaskConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -400,8 +400,24 @@
           "description": "The Item interface.",
           "fields": [
             {
+              "name": "id",
+              "description": "The ID of an object",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "ID",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "type",
-              "description": null,
+              "description": "Primary type of this item.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -413,11 +429,23 @@
             },
             {
               "name": "title",
-              "description": null,
+              "description": "Item title.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "version",
+              "description": "Item version.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -442,7 +470,7 @@
           "possibleTypes": [
             {
               "kind": "OBJECT",
-              "name": "Item",
+              "name": "Task",
               "ofType": null
             },
             {
@@ -464,7 +492,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "ItemConnection",
+          "name": "TaskConnection",
           "description": "A connection to a list of items.",
           "fields": [
             {
@@ -492,7 +520,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "OBJECT",
-                  "name": "ItemEdge",
+                  "name": "TaskEdge",
                   "ofType": null
                 }
               },
@@ -584,7 +612,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "ItemEdge",
+          "name": "TaskEdge",
           "description": "An edge in a connection.",
           "fields": [
             {
@@ -593,7 +621,7 @@
               "args": [],
               "type": {
                 "kind": "OBJECT",
-                "name": "Item",
+                "name": "Task",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -623,8 +651,8 @@
         },
         {
           "kind": "OBJECT",
-          "name": "Item",
-          "description": "A generic data item.",
+          "name": "Task",
+          "description": "An assignable task.",
           "fields": [
             {
               "name": "id",
@@ -638,18 +666,6 @@
                   "name": "ID",
                   "ofType": null
                 }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "version",
-              "description": "Item version.",
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "Int",
-                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -673,6 +689,18 @@
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "version",
+              "description": "Item version.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -741,7 +769,7 @@
           "description": null,
           "fields": [
             {
-              "name": "createItemMutation",
+              "name": "createTaskMutation",
               "description": null,
               "args": [
                 {
@@ -752,7 +780,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "INPUT_OBJECT",
-                      "name": "CreateItemMutationInput",
+                      "name": "CreateTaskMutationInput",
                       "ofType": null
                     }
                   },
@@ -761,14 +789,14 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "CreateItemMutationPayload",
+                "name": "CreateTaskMutationPayload",
                 "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
-              "name": "updateItemMutation",
+              "name": "updateTaskMutation",
               "description": null,
               "args": [
                 {
@@ -779,7 +807,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "INPUT_OBJECT",
-                      "name": "UpdateItemMutationInput",
+                      "name": "UpdateTaskMutationInput",
                       "ofType": null
                     }
                   },
@@ -788,7 +816,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "UpdateItemMutationPayload",
+                "name": "UpdateTaskMutationPayload",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -802,7 +830,7 @@
         },
         {
           "kind": "INPUT_OBJECT",
-          "name": "CreateItemMutationInput",
+          "name": "CreateTaskMutationInput",
           "description": null,
           "fields": null,
           "inputFields": [
@@ -861,7 +889,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "CreateItemMutationPayload",
+          "name": "CreateTaskMutationPayload",
           "description": null,
           "fields": [
             {
@@ -877,12 +905,12 @@
               "deprecationReason": null
             },
             {
-              "name": "itemEdge",
+              "name": "taskEdge",
               "description": null,
               "args": [],
               "type": {
                 "kind": "OBJECT",
-                "name": "ItemEdge",
+                "name": "TaskEdge",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -908,7 +936,7 @@
         },
         {
           "kind": "INPUT_OBJECT",
-          "name": "UpdateItemMutationInput",
+          "name": "UpdateTaskMutationInput",
           "description": null,
           "fields": null,
           "inputFields": [
@@ -927,7 +955,7 @@
               "defaultValue": null
             },
             {
-              "name": "itemId",
+              "name": "taskId",
               "description": null,
               "type": {
                 "kind": "NON_NULL",
@@ -977,16 +1005,16 @@
         },
         {
           "kind": "OBJECT",
-          "name": "UpdateItemMutationPayload",
+          "name": "UpdateTaskMutationPayload",
           "description": null,
           "fields": [
             {
-              "name": "item",
+              "name": "task",
               "description": null,
               "args": [],
               "type": {
                 "kind": "OBJECT",
-                "name": "Item",
+                "name": "Task",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -1888,6 +1916,18 @@
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "version",
+              "description": "Item version.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
                 "ofType": null
               },
               "isDeprecated": false,

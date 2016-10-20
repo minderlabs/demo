@@ -7,14 +7,14 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import ItemDetail from '../../../common/components/web/item_detail';
+import TaskDetail from '../../../common/components/web/task_detail';
 
 import Path from '../path';
 
 /**
- * Detail view.
+ * Item Detail view.
  */
-class DetailView extends React.Component {
+class ItemDetailView extends React.Component {
 
   static contextTypes = {
     router: React.PropTypes.object.isRequired
@@ -34,18 +34,19 @@ class DetailView extends React.Component {
     }
 
     return (
+      // TODO(madadam): Switch on type, add NoteDetail.
       <div className="app-panel-column">
         <div className="app-section app-debug">{ this.props.params.itemId }</div>
 
         <div className="app-section">
-          <ItemDetail user={ user } item={ item }/>
+          <TaskDetail user={ user } task={ item }/>
         </div>
       </div>
     );
   }
 }
 
-export default Relay.createContainer(DetailView, {
+export default Relay.createContainer(ItemDetailView, {
   fragments: {
     user: () => Relay.QL`
       fragment on User {
@@ -54,10 +55,13 @@ export default Relay.createContainer(DetailView, {
     `,
 
     item: () => Relay.QL`
-      fragment on Item {
+      fragment on ItemInterface {
         id,
+        type,
 
-        ${ItemDetail.getFragment('item')}
+        ... on Task {
+          ${TaskDetail.getFragment('task')}
+        }
       }
     `,
   }
