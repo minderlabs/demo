@@ -155,6 +155,17 @@ const userType = new GraphQLObjectType({
       resolve: (item) => item.title
     },
 
+    searchItems: {
+      type: new GraphQLList(SearchableType),
+      args: {
+        text: { type: new GraphQLNonNull(GraphQLString) }
+      },
+      resolve: (parent, args) => {
+        console.log('QUERY: ' + args.text); // FIXME
+        return database.search(args.text)
+      }
+    },
+
     items: {
       type: ItemConnection,
       description: 'User\'s collection of items.',
