@@ -8,6 +8,7 @@ import React from 'react';
 import Relay from 'react-relay';
 
 import Item from './item';
+import Note from './note';
 
 import './list.less';
 
@@ -38,10 +39,17 @@ class ItemList extends React.Component {
       </div>
     );
 
-    let searchItems = user.searchItems.map(node => {
+    let searchItems = user.searchItems.map(item => {
       return (
-        <div key={ node.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, node) }>
-          <Item user={ user } item={ node }/>
+        <div key={ item.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
+          {(() => {
+            switch (item.type) {
+              case 'item':
+                return <Item user={ user } item={ item }/>;
+              case 'note':
+                return <Note user={ user } note={ item }/>;
+            }
+          })()}
         </div>
       );
     });
@@ -70,7 +78,13 @@ export default Relay.createContainer(ItemList, {
         id,
 
         searchItems(text: $query) {
-          ${Item.getFragment('item')}
+          type,
+          ... on Note {
+            ${Note.getFragment('note')}
+          },
+          ... on Item {
+            ${Item.getFragment('item')}
+          }
         },
 
         items(first: 10) {

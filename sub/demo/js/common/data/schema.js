@@ -113,12 +113,29 @@ const { nodeInterface, nodeField } = nodeDefinitions(
   resolveType
 );
 
+const ItemInterface = new GraphQLInterfaceType({
+  name: 'ItemInterface',
+  description: 'The Item interface.',
+  fields: () => ({
+    type: {
+      type: GraphQLString
+    },
+    title: {
+      type: GraphQLString
+    },
+    status: {
+      type: GraphQLInt
+    }
+  }),
+  resolveType: resolveType
+});
+
 /**
  * Searchable.
  * Interface for search results.
  */
 // https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
-const SearchableType = new GraphQLInterfaceType({
+const SearchableInterface = new GraphQLInterfaceType({
   name: 'Searchable',
   description: 'A searchable type.',
   fields: () => ({
@@ -153,7 +170,7 @@ const userType = new GraphQLObjectType({
     },
 
     searchItems: {
-      type: new GraphQLList(SearchableType),
+      type: new GraphQLList(ItemInterface),
       args: {
         text: { type: new GraphQLNonNull(GraphQLString) }
       },
@@ -179,7 +196,7 @@ const userType = new GraphQLObjectType({
 const itemType = new GraphQLObjectType({
   name: 'Item',
   description: 'A generic data item.',
-  interfaces: [ nodeInterface, SearchableType ],
+  interfaces: [ nodeInterface, ItemInterface, SearchableInterface ],
   fields: () => ({
     id: globalIdField('Item'),
 
@@ -187,6 +204,11 @@ const itemType = new GraphQLObjectType({
       type: GraphQLInt,
       description: 'Item version.',
       resolve: (item) => item.version
+    },
+
+    type: {
+      type: GraphQLString,
+      resolve: (item) => 'item'
     },
 
     title: {
@@ -215,29 +237,42 @@ const itemType = new GraphQLObjectType({
 const noteType = new GraphQLObjectType({
   name: 'Note',
   description: 'A note.',
-  interfaces: [ nodeInterface, SearchableType ],
+  interfaces: [ nodeInterface, ItemInterface, SearchableInterface ],
   fields: () => ({
     id: globalIdField('Note'),
+
+    // Item Interface
+    type: {
+      type: GraphQLString,
+      resolve: (item) => 'note'
+    },
 
     title: {
       type: GraphQLString,
       description: 'Title.',
-      resolve: (node) => node.title
+      resolve: (item) => item.title
     },
 
-    content: {
-      type: GraphQLString,
-      description: 'Content.',
-      resolve: (node) => node.content
+    status: {
+      type: GraphQLInt,
+      description: 'Item status.',
+      resolve: (item) => item.status
     },
 
-    // Interface Searchable
+    // Searchable interface
     snippet: {
       type: GraphQLString,
       args: {
         text: { type: GraphQLString }
       },
-      resolve: (node, args) => node.computeSnippet(args.text)
+      resolve: (item, args) => item.computeSnippet(args.text)
+    },
+
+    // Non-interface fields
+    content: {
+      type: GraphQLString,
+      description: 'Content.',
+      resolve: (node) => node.content
     }
   })
 });
@@ -262,7 +297,7 @@ const rootQueryType = new GraphQLObjectType({
     node: nodeField,
 
     search: {
-      type: new GraphQLList(SearchableType),
+      type: new GraphQLList(SearchableInterface),
       args: {
         text: { type: new GraphQLNonNull(GraphQLString) }
       },
