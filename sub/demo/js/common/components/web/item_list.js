@@ -67,17 +67,17 @@ export default Relay.createContainer(ItemList, {
   fragments: {
     user: () => Relay.QL`
       fragment on User {
-        id,
+        id
 
         searchItems(text: $query) {
-          type,
+          type
           ${Item.getFragment('item')}
-        },
+        }
 
         tasks(first: 10) {
           edges {
             node {
-              id,
+              id
 
               ${Item.getFragment('item')}
             }

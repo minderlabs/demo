@@ -180,10 +180,10 @@ export default Relay.createContainer(HomeView, {
   fragments: {
     user: () => Relay.QL`
       fragment on User {
-        id,
-        title,
+        id
+        title
 
-        ${ItemList.getFragment('user')},
+        ${ItemList.getFragment('user')}
         ${CreateTaskMutation.getFragment('user')}
       }
     `

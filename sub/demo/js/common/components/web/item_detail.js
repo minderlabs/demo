@@ -81,9 +81,9 @@ export default Relay.createContainer(ItemDetail, {
   fragments: {
     item: () => Relay.QL`
       fragment on ItemInterface {
-        id,
-        title,
-        status,
+        id
+        title
+        status
 
         ${UpdateItemMutation.getFragment('item')}
       }

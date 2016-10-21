@@ -43,7 +43,7 @@ export default class UpdateItemMutation extends Relay.Mutation {
     return Relay.QL`
       fragment on UpdateItemMutationPayload {
         item {
-          title,
+          title
           status
         }
       }

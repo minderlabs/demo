@@ -50,14 +50,14 @@ export default Relay.createContainer(ItemDetailView, {
   fragments: {
     user: () => Relay.QL`
       fragment on User {
-        id,
+        id
       }
     `,
 
     item: () => Relay.QL`
       fragment on ItemInterface {
-        id,
-        type,
+        id
+        type
 
         ${ItemDetail.getFragment('item')}
       }

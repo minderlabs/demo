@@ -46,13 +46,13 @@ export default class CreateTaskMutation extends Relay.Mutation {
           tasks {
             edges {
               node {
-                id,
-                title,
+                id
+                title
                 status
               }
             }
           }
-        },
+        }
 
         taskEdge
       }
