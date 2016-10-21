@@ -6,22 +6,22 @@
     }
   ],
 
-  "items": [
+  "tasks": [
     {
-      "title": "Item 1"
+      "title": "Task 1"
     },
     {
-      "title": "Item 2"
+      "title": "Task 2"
     },
     {
-      "title": "Item 3"
+      "title": "Task 3"
     },
     {
-      "title": "Item 4",
+      "title": "Task 4",
       "labels": ["_favorite"]
     },
     {
-      "title": "Item 5"
+      "title": "Task 5"
     }
   ],
 

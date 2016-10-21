@@ -7,10 +7,10 @@
 import Relay from 'react-relay';
 
 /**
- * Creates new item.
+ * Creates new task.
  * https://facebook.github.io/relay/docs/guides-mutations.html
  */
-export default class CreateItemMutation extends Relay.Mutation {
+export default class CreateTaskMutation extends Relay.Mutation {
 
   // TODO(burdon): Generalize fields.
 
@@ -24,7 +24,7 @@ export default class CreateItemMutation extends Relay.Mutation {
 
   getMutation() {
     // Corresponds to schema mutation type.
-    return Relay.QL`mutation { createItemMutation }`;
+    return Relay.QL`mutation { createTaskMutation }`;
   }
 
   /**
@@ -41,9 +41,9 @@ export default class CreateItemMutation extends Relay.Mutation {
 
   getFatQuery() {
     return Relay.QL`
-      fragment on CreateItemMutationPayload @relay(pattern: true) {
+      fragment on CreateTaskMutationPayload @relay(pattern: true) {
         user {
-          items {
+          tasks {
             edges {
               node {
                 id
@@ -52,9 +52,9 @@ export default class CreateItemMutation extends Relay.Mutation {
               }
             }
           }
-        },
+        }
 
-        itemEdge
+        taskEdge
       }
     `;
   }
@@ -66,8 +66,8 @@ export default class CreateItemMutation extends Relay.Mutation {
       type: 'RANGE_ADD',
       parentName: 'user',
       parentID: this.props.user.id,
-      connectionName: 'items',
-      edgeName: 'itemEdge',
+      connectionName: 'tasks',
+      edgeName: 'taskEdge',
       rangeBehaviors: {
         '': 'append',
         'orderby(oldest)': 'prepend'
@@ -81,7 +81,7 @@ export default class CreateItemMutation extends Relay.Mutation {
         id: this.props.user.id
       },
 
-      itemEdge: {
+      taskEdge: {
         node: {
           title: this.props.title,
           labels: this.props.labels

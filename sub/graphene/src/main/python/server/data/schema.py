@@ -8,6 +8,10 @@ from graphene import relay, resolve_only_args, Field
 from graphql_relay import from_global_id
 from graphql_relay.connection.arrayconnection import offset_to_cursor
 
+
+# TODO(burdon): Use Data loader to do efficient entity look-ups on server (e.g., for RethinkDB/ORM layer).
+
+
 #
 # GraphQL Schema.
 # http://docs.graphene-python.org/en/latest/quickstart

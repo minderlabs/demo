@@ -13,12 +13,9 @@ import { Util } from '../util/util';
  */
 export default class UpdateItemMutation extends Relay.Mutation {
 
-  // TODO(burdon): Generalize fields.
-  // TODO(burdon): How to add/remove from array (e.g., labels).
-
   static fragments = {
     item: () => Relay.QL`
-      fragment on Item {
+      fragment on ItemInterface {
         id
       }
     `
@@ -33,6 +30,8 @@ export default class UpdateItemMutation extends Relay.Mutation {
     return {
       userId: this.props.user.id,
       itemId: this.props.item.id,
+
+      // TODO(burdon): Generalize fields.
 
       title:  this.props.title,
       labels: this.props.labels

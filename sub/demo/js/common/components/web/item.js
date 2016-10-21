@@ -10,7 +10,7 @@ import Relay from 'react-relay';
 import UpdateItemMutation from '../../mutations/update_item';
 
 /**
- * Generic data item.
+ * Compact view of an Item.
  */
 class Item extends React.Component {
 
@@ -38,6 +38,8 @@ class Item extends React.Component {
   render() {
     let { item } = this.props;
 
+    // TODO(burdon): Generic Item renderer with TypeRegistry inside.
+
     return (
       <div>
         <i className="app-icon app-icon-medium app-icon-star material-icons"
@@ -55,7 +57,7 @@ export default Relay.createContainer(Item, {
 
   fragments: {
     item: () => Relay.QL`
-      fragment on Item {
+      fragment on ItemInterface {
         id
         title
         labels
