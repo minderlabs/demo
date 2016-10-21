@@ -188,6 +188,33 @@ export class Database {
     return note;
   }
 
+  updateNote(noteId, data) {
+    console.log('NOTE.UPDATE', data);
+    let note = this._notes.get(noteId);
+
+    note.version += 1;
+    Note.update(note, data);
+
+    return note;
+  }
+
+  updateItem(type, itemId, data) {
+    switch (type) {
+
+      case 'Task': {
+        return this.updateTask(itemId, data);
+      }
+
+      case 'Note': {
+        return this.updateNote(itemId, data);
+      }
+
+      default: {
+        return null;
+      }
+    }
+  }
+
   searchItems(text) {
     console.log('SEARCH', text);
 

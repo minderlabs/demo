@@ -7,7 +7,7 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import TaskDetail from '../../../common/components/web/task_detail';
+import ItemDetail from '../../../common/components/web/item_detail';
 
 import Path from '../path';
 
@@ -39,7 +39,7 @@ class ItemDetailView extends React.Component {
         <div className="app-section app-debug">{ this.props.params.itemId }</div>
 
         <div className="app-section">
-          <TaskDetail user={ user } task={ item }/>
+          <ItemDetail user={ user } item={ item }/>
         </div>
       </div>
     );
@@ -59,9 +59,7 @@ export default Relay.createContainer(ItemDetailView, {
         id,
         type,
 
-        ... on Task {
-          ${TaskDetail.getFragment('task')}
-        }
+        ${ItemDetail.getFragment('item')}
       }
     `,
   }

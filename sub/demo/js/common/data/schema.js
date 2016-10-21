@@ -145,6 +145,15 @@ const SearchableInterface = new GraphQLInterfaceType({
   name: 'Searchable',
   description: 'A searchable type.',
   fields: () => ({
+    id: globalIdField(),
+    type: {
+      type: GraphQLString,
+      description: 'Primary type of this item.'
+    },
+    title: {
+      type: GraphQLString,
+      description: 'Item title.'
+    },
     snippet: {
       type: GraphQLString,
       args: {
@@ -409,15 +418,15 @@ const CreateTaskMutation = mutationWithClientMutationId({
   }
 });
 
-const UpdateTaskMutation = mutationWithClientMutationId({
-  name: 'UpdateTaskMutation',
+const UpdateItemMutation = mutationWithClientMutationId({
+  name: 'UpdateItemMutation',
 
   inputFields: {
     userId: {
       type: new GraphQLNonNull(GraphQLID)
     },
 
-    taskId: {
+    itemId: {
       type: new GraphQLNonNull(GraphQLID)
     },
 
@@ -434,26 +443,27 @@ const UpdateTaskMutation = mutationWithClientMutationId({
   },
 
   outputFields: {
-    task: {
-      type: TaskType,
-      resolve: ({ userId, taskId }) => {
-        return database.getTask(taskId)
+    item: {
+      type: ItemInterface,
+      resolve: ({ userId, itemId }) => {
+        return getItemFromGlobalId(itemId);
       }
     }
   },
 
-  mutateAndGetPayload: ({ userId, taskId, title, status }) => {
+  mutateAndGetPayload: ({ userId, itemId, title, status }) => {
     let localUserId = fromGlobalId(userId).id;
-    let localTaskId = fromGlobalId(taskId).id;
+    const { type, id } = fromGlobalId(itemId);
+    console.log('MUTATE ' + itemId + ' = ' + type + ':' + id);
 
-    let task = database.updateTask(localTaskId, {
+    const item = database.updateItem(type, id, {
       title: title,
       status: status
     });
 
     return {
       userId: localUserId,
-      taskId: task.id
+      itemId: itemId
     };
   }
 });
@@ -466,7 +476,7 @@ const rootMutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
     createTaskMutation: CreateTaskMutation,
-    updateTaskMutation: UpdateTaskMutation
+    updateItemMutation: UpdateItemMutation
   })
 });
 

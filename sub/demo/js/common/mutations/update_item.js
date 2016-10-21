@@ -11,14 +11,14 @@ import { Util } from '../util/util';
 /**
  * Updates an existing item.
  */
-export default class UpdateTaskMutation extends Relay.Mutation {
+export default class UpdateItemMutation extends Relay.Mutation {
 
   // TODO(burdon): Generalize fields.
   // TODO(burdon): How to add/remove from array (e.g., labels).
 
   static fragments = {
-    task: () => Relay.QL`
-      fragment on Task {
+    item: () => Relay.QL`
+      fragment on ItemInterface {
         id
       }
     `
@@ -26,13 +26,13 @@ export default class UpdateTaskMutation extends Relay.Mutation {
 
   getMutation() {
     // Corresponds to schema mutation type.
-    return Relay.QL`mutation { updateTaskMutation }`;
+    return Relay.QL`mutation { updateItemMutation }`;
   }
 
   getVariables() {
     return {
       userId: this.props.user.id,
-      taskId: this.props.task.id,
+      itemId: this.props.item.id,
 
       title:  this.props.title,
       status: this.props.status
@@ -41,8 +41,8 @@ export default class UpdateTaskMutation extends Relay.Mutation {
 
   getFatQuery() {
     return Relay.QL`
-      fragment on UpdateTaskMutationPayload {
-        task {
+      fragment on UpdateItemMutationPayload {
+        item {
           title,
           status
         }
@@ -55,21 +55,21 @@ export default class UpdateTaskMutation extends Relay.Mutation {
     return [{
       type: 'FIELDS_CHANGE',
       fieldIDs: {
-        task: this.props.task.id
+        item: this.props.item.id
       }
     }];
   }
 
   getOptimisticResponse() {
-    let task = {
-      id: this.props.task.id,
+    let item = {
+      id: this.props.item.id,
     };
 
-    Util.maybeUpdateItem(task, this.props, 'title');
-    Util.maybeUpdateItem(task, this.props, 'status');
+    Util.maybeUpdateItem(item, this.props, 'title');
+    Util.maybeUpdateItem(item, this.props, 'status');
 
     return {
-      task: task
+      item: item
     };
   }
 }

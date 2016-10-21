@@ -226,6 +226,46 @@
           "description": "A searchable type.",
           "fields": [
             {
+              "name": "id",
+              "description": "The ID of an object",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "ID",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "type",
+              "description": "Primary type of this item.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "title",
+              "description": "Item title.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "snippet",
               "description": null,
               "args": [
@@ -796,7 +836,7 @@
               "deprecationReason": null
             },
             {
-              "name": "updateTaskMutation",
+              "name": "updateItemMutation",
               "description": null,
               "args": [
                 {
@@ -807,7 +847,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "INPUT_OBJECT",
-                      "name": "UpdateTaskMutationInput",
+                      "name": "UpdateItemMutationInput",
                       "ofType": null
                     }
                   },
@@ -816,7 +856,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "UpdateTaskMutationPayload",
+                "name": "UpdateItemMutationPayload",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -936,7 +976,7 @@
         },
         {
           "kind": "INPUT_OBJECT",
-          "name": "UpdateTaskMutationInput",
+          "name": "UpdateItemMutationInput",
           "description": null,
           "fields": null,
           "inputFields": [
@@ -955,7 +995,7 @@
               "defaultValue": null
             },
             {
-              "name": "taskId",
+              "name": "itemId",
               "description": null,
               "type": {
                 "kind": "NON_NULL",
@@ -1005,16 +1045,16 @@
         },
         {
           "kind": "OBJECT",
-          "name": "UpdateTaskMutationPayload",
+          "name": "UpdateItemMutationPayload",
           "description": null,
           "fields": [
             {
-              "name": "task",
+              "name": "item",
               "description": null,
               "args": [],
               "type": {
-                "kind": "OBJECT",
-                "name": "Task",
+                "kind": "INTERFACE",
+                "name": "ItemInterface",
                 "ofType": null
               },
               "isDeprecated": false,

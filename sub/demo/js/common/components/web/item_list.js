@@ -7,8 +7,7 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import Task from './task';
-import Note from './note';
+import Item from './item';
 
 import './list.less';
 
@@ -35,21 +34,14 @@ class ItemList extends React.Component {
     // TODO(burdon): If renderer is item_list specific then move to inner class.
     let tasks = user.tasks.edges.map(edge =>
       <div key={ edge.node.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, edge.node) }>
-        <Task user={ user } task={ edge.node }/>
+        <Item user={ user } item={ edge.node }/>
       </div>
     );
 
     let searchItems = user.searchItems.map(item => {
       return (
         <div key={ item.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
-          {(() => {
-            switch (item.type) {
-              case 'item':
-                return <Task user={ user } task={ item }/>;
-              case 'note':
-                return <Note user={ user } note={ item }/>;
-            }
-          })()}
+          <Item user={ user } item={ item }/>
         </div>
       );
     });
@@ -79,12 +71,7 @@ export default Relay.createContainer(ItemList, {
 
         searchItems(text: $query) {
           type,
-          ... on Note {
-            ${Note.getFragment('note')}
-          },
-          ... on Task {
-            ${Task.getFragment('task')}
-          }
+          ${Item.getFragment('item')}
         },
 
         tasks(first: 10) {
@@ -92,7 +79,7 @@ export default Relay.createContainer(ItemList, {
             node {
               id,
 
-              ${Task.getFragment('task')}
+              ${Item.getFragment('item')}
             }
           }
         }
