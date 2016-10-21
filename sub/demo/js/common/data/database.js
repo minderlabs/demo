@@ -24,6 +24,9 @@ export class Item {
 
   static update(item, data) {
     Util.maybeUpdateItem(item, data, 'title');
+    Util.updateStringSet(item, data, 'labels');
+
+    // TODO(burdon): Type-specific.
     Util.maybeUpdateItem(item, data, 'status');
   }
 
@@ -42,7 +45,9 @@ export class Item {
   }
 }
 
+// TODO(burdon): Remove.
 export class Note {
+
   static update(note, data) {
     Util.maybeUpdateItem(note, data, 'title');
     Util.maybeUpdateItem(note, data, 'content');

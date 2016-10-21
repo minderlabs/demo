@@ -18,7 +18,7 @@
     },
     {
       "title": "Item 4",
-      "status": 1
+      "labels": ["favorite"]
     },
     {
       "title": "Item 5"

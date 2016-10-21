@@ -8,7 +8,7 @@ import React from 'react';
 import Relay from 'react-relay';
 
 import Item from './item';
-import Note from './note';
+import Note from './type/note';
 
 import './list.less';
 
@@ -32,20 +32,23 @@ class ItemList extends React.Component {
   render() {
     let { user } = this.props;
 
-    // TODO(burdon): If renderer is item_list specific then move to inner class.
     let items = user.items.edges.map(edge =>
       <div key={ edge.node.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, edge.node) }>
         <Item user={ user } item={ edge.node }/>
       </div>
     );
 
+    let searchItems = null;
+    /*
     let searchItems = user.searchItems.map(item => {
+      // TODO(burdon): Generic Item renderer with TypeRegistry inside.
       return (
         <div key={ item.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
           {(() => {
             switch (item.type) {
               case 'item':
                 return <Item user={ user } item={ item }/>;
+
               case 'note':
                 return <Note user={ user } note={ item }/>;
             }
@@ -53,6 +56,7 @@ class ItemList extends React.Component {
         </div>
       );
     });
+    */
 
     return (
       <div>
@@ -75,22 +79,20 @@ export default Relay.createContainer(ItemList, {
   fragments: {
     user: () => Relay.QL`
       fragment on User {
-        id,
+        id
 
         searchItems(text: $query) {
-          type,
-          ... on Note {
-            ${Note.getFragment('note')}
-          },
+          type
+
           ... on Item {
             ${Item.getFragment('item')}
           }
-        },
+        }
 
         items(first: 10) {
           edges {
             node {
-              id,
+              id
 
               ${Item.getFragment('item')}
             }
@@ -100,3 +102,10 @@ export default Relay.createContainer(ItemList, {
     `
   }
 });
+
+// TODO(burdon): Error (in searchItems).
+// Fragment "F1" cannot be spread here as objects of type "Item" can never be of type "Note".
+// https://github.com/facebook/relay/issues/782
+// ... on Note {
+//   ${Note.getFragment('note')}
+// }

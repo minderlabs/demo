@@ -19,6 +19,7 @@ class Note extends React.Component {
   handleToggleStatus(event) {
     event.stopPropagation();
 
+    // TODO(burdon): Rename note=>item (standardize).
     let { user, note } = this.props;
 
     // TODO(madadam): Add mutations.
@@ -57,10 +58,12 @@ export default Relay.createContainer(Note, {
   fragments: {
     note: () => Relay.QL`
       fragment on Note {
-        id,
-        title,
-        content,
+        id
+        title
+        labels
         status
+
+        content
       }
     `
   }

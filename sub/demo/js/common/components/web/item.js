@@ -23,12 +23,15 @@ class Item extends React.Component {
 
     let { user, item } = this.props;
 
-    // TODO(burdon): This should add/remove a label.
     this.props.relay.commitUpdate(
       new UpdateItemMutation({
-        user: user,                         // TODO(burdon): Just pass in ID?
-        item: item,                         // TODO(burdon): Just pass in ID?
-        status: item.status ? 0 : 1         // TODO(burdon): Label.
+        user: user,                                 // TODO(burdon): Just pass in ID?
+        item: item,                                 // TODO(burdon): Just pass in ID?
+        labels: [{
+          index: _.indexOf(item['labels'], 'favorite') == -1 ? 0 : -1,
+          value: 'favorite'
+        }],
+        status: item.status ? 0 : 1                 // TODO(burdon): Remove.
       })
     );
   }
@@ -40,7 +43,7 @@ class Item extends React.Component {
       <div>
         <i className="app-icon app-icon-medium app-icon-star material-icons"
            onClick={ this.handleToggleStatus.bind(this) }>
-          { item.status ? 'star': 'star_border' }
+          { _.indexOf(item['labels'], 'favorite') != -1 ? 'star': 'star_border' }
         </i>
 
         <div className="app-expand app-field-title" title={ item.id }>{ item.title }</div>
@@ -54,9 +57,10 @@ export default Relay.createContainer(Item, {
   fragments: {
     item: () => Relay.QL`
       fragment on Item {
-        id,
-        title,
-        status,
+        id
+        title
+        labels
+        status
 
         ${UpdateItemMutation.getFragment('item')}
       }

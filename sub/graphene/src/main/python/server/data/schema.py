@@ -141,6 +141,7 @@ class Query(graphene.ObjectType):
         print 'Resolved[%s] => %s' % (local_user_id, items)
         return items
 
+
 #
 # Mutations.
 #

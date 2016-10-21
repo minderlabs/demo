@@ -26,6 +26,7 @@ import {
   GraphQLID,
   GraphQLInt,
   GraphQLInterfaceType,
+  GraphQLInputObjectType,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
@@ -67,8 +68,8 @@ const database = new Database().init();
  * Used by graphql internals when resolving generics (interfaces and unions).
  * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d
  */
-// TODO(madadam): Investigate using isTypeOf in each type definition instead of this.
 const resolveType = (obj) => {
+  // TODO(madadam): Investigate using isTypeOf in each type definition instead of this.
   // TODO(burdon): Infer from something other than type? E.g. type string in Item interface.
   if (obj instanceof User) {
     return userType;
@@ -113,15 +114,22 @@ const { nodeInterface, nodeField } = nodeDefinitions(
   resolveType
 );
 
+//
+// Interfaces
+//
+
 const ItemInterface = new GraphQLInterfaceType({
   name: 'ItemInterface',
-  description: 'The Item interface.',
+  description: 'Base type for all data items.',
   fields: () => ({
     type: {
       type: GraphQLString
     },
     title: {
       type: GraphQLString
+    },
+    labels: {
+      type: new GraphQLList(GraphQLString)
     },
     status: {
       type: GraphQLInt
@@ -133,8 +141,8 @@ const ItemInterface = new GraphQLInterfaceType({
 /**
  * Searchable.
  * Interface for search results.
+ * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
  */
-// https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
 const SearchableInterface = new GraphQLInterfaceType({
   name: 'Searchable',
   description: 'A searchable type.',
@@ -179,7 +187,7 @@ const userType = new GraphQLObjectType({
       }
     },
 
-    // TODO(burdon): Obsolete (replace with searchItems).
+    // TODO(burdon): Obsolete (replace with searchItems)?
     items: {
       type: ItemConnection,
       description: 'User\'s collection of items.',
@@ -193,6 +201,7 @@ const userType = new GraphQLObjectType({
 // http://graphql.org/graphql-js/type/#graphqluniontype
 // http://graphql.org/graphql-js/type/#graphqlinterfacetype
 
+// TODO(burdon): Upcase?
 const itemType = new GraphQLObjectType({
   name: 'Item',
   description: 'A generic data item.',
@@ -202,24 +211,26 @@ const itemType = new GraphQLObjectType({
 
     version: {
       type: GraphQLInt,
-      description: 'Item version.',
       resolve: (item) => item.version
     },
 
     type: {
       type: GraphQLString,
-      resolve: (item) => 'item'
+      resolve: (item) => 'item'     // TODO(burdon): itemType.name?
     },
 
     title: {
       type: GraphQLString,
-      description: 'Item title.',
       resolve: (item) => item.title
+    },
+
+    labels: {
+      type: new GraphQLList(GraphQLString),
+      resolve: (item) => item.labels
     },
 
     status: {
       type: GraphQLInt,
-      description: 'Item status.',
       resolve: (item) => item.status
     },
 
@@ -236,7 +247,7 @@ const itemType = new GraphQLObjectType({
 
 const noteType = new GraphQLObjectType({
   name: 'Note',
-  description: 'A note.',
+  description: 'A note.', // TODO(burdon): Doc.
   interfaces: [ nodeInterface, ItemInterface, SearchableInterface ],
   fields: () => ({
     id: globalIdField('Note'),
@@ -244,18 +255,21 @@ const noteType = new GraphQLObjectType({
     // Item Interface
     type: {
       type: GraphQLString,
-      resolve: (item) => 'note'
+      resolve: (item) => 'note'   // TODO(burdon): itemType.name?
     },
 
     title: {
       type: GraphQLString,
-      description: 'Title.',
       resolve: (item) => item.title
+    },
+
+    labels: {
+      type: new GraphQLList(GraphQLString),
+      resolve: (item) => item.labels
     },
 
     status: {
       type: GraphQLInt,
-      description: 'Item status.',
       resolve: (item) => item.status
     },
 
@@ -271,13 +285,17 @@ const noteType = new GraphQLObjectType({
     // Non-interface fields
     content: {
       type: GraphQLString,
-      description: 'Content.',
       resolve: (node) => node.content
     }
   })
 });
 
+//
 // TODO(burdon): Document.
+// https://github.com/graphql/graphql-relay-js#connections
+// https://facebook.github.io/relay/graphql/connections.htm
+//
+
 const {
   connectionType: ItemConnection,
   edgeType: ItemEdge
@@ -351,7 +369,11 @@ const CreateItemMutation = mutationWithClientMutationId({
       type: new GraphQLNonNull(GraphQLString)
     },
 
-    // TODO(burdon): Change to array of labels.
+    labels: {
+      type: new GraphQLList(GraphQLString)
+    },
+
+    // TODO(burdon): Type-specific?
     status: {
       type: GraphQLInt
     }
@@ -380,11 +402,12 @@ const CreateItemMutation = mutationWithClientMutationId({
     },
   },
 
-  mutateAndGetPayload: ({ userId, title, status }) => {
+  mutateAndGetPayload: ({ userId, title, labels, status }) => {
     let localUserId = fromGlobalId(userId).id;
 
     let item = database.createItem(localUserId, {
       title: title,
+      labels: labels,
       status: status
     });
 
@@ -394,6 +417,20 @@ const CreateItemMutation = mutationWithClientMutationId({
     };
   }
 });
+
+/**
+ * Set Mutation
+ * E.g., [{ value: 'favorite' }, { index: -1, value: 'inbox' }]
+ */
+// TODO(burdon): Move up.
+// https://github.com/graphql/graphql-js/blob/master/src/type/definition.js#L55-L60
+const StringListMutation = new GraphQLList(new GraphQLInputObjectType({
+  name: 'StringListMutation',
+  fields: () => ({
+    index: { type: GraphQLInt, defaultValue: 0 },           // -1 = remove
+    value: { type: new GraphQLNonNull(GraphQLString) }
+  })
+}));
 
 const UpdateItemMutation = mutationWithClientMutationId({
   name: 'UpdateItemMutation',
@@ -407,13 +444,16 @@ const UpdateItemMutation = mutationWithClientMutationId({
       type: new GraphQLNonNull(GraphQLID)
     },
 
-    // TODO(burdon): Generalize? Pass in entire item? (Same issue for create above.)
-    //               Or JSON object where each non-undefined field is to be set?
+    // TODO(burdon): Generalize ot ObjectMutation (like StringListMutation)?
     title: {
       type: GraphQLString
     },
 
-    // TODO(burdon): Change to array of labels.
+    labels: {
+      type: StringListMutation
+    },
+
+    // TODO(burdon): Remove.
     status: {
       type: GraphQLInt
     }
@@ -428,12 +468,13 @@ const UpdateItemMutation = mutationWithClientMutationId({
     }
   },
 
-  mutateAndGetPayload: ({ userId, itemId, title, status }) => {
+  mutateAndGetPayload: ({ userId, itemId, title, labels, status }) => {
     let localUserId = fromGlobalId(userId).id;
     let localItemId = fromGlobalId(itemId).id;
 
     let item = database.updateItem(localItemId, {
       title: title,
+      labels: labels,
       status: status
     });
 

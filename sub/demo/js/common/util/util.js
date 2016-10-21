@@ -4,6 +4,9 @@
 
 'use strict';
 
+// TODO(burdon): Webpack to create server.
+var _ = require('lodash');
+
 export class Util {
 
   //
@@ -33,5 +36,30 @@ export class Util {
     if (value !== undefined) {
       item[field] = value;
     }
+  }
+
+  /**
+   * StringListMutation
+   *
+   * @param item
+   * @param data
+   * @param field
+   */
+  static updateStringSet(item, data, field) {
+    let values = item[field] || [];
+    for (let row of data[field] || []) {
+      if (_.isString(row)) {
+        // Set value.
+        values.push(row);
+      } else {
+        // Delta.
+        if (row['index'] == -1) {
+          _.pull(values, row['value']);
+        } else {
+          values.splice(row['index'], 0, row['value']);
+        }
+      }
+    }
+    item[field] = values;
   }
 }

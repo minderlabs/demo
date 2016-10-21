@@ -397,7 +397,7 @@
         {
           "kind": "INTERFACE",
           "name": "ItemInterface",
-          "description": "The Item interface.",
+          "description": "Base type for all data items.",
           "fields": [
             {
               "name": "type",
@@ -419,6 +419,22 @@
                 "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "labels",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -644,7 +660,7 @@
             },
             {
               "name": "version",
-              "description": "Item version.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -668,7 +684,7 @@
             },
             {
               "name": "title",
-              "description": "Item title.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -679,8 +695,24 @@
               "deprecationReason": null
             },
             {
+              "name": "labels",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "status",
-              "description": "Item status.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -835,6 +867,20 @@
               "defaultValue": null
             },
             {
+              "name": "labels",
+              "description": null,
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "defaultValue": null
+            },
+            {
               "name": "status",
               "description": null,
               "type": {
@@ -951,6 +997,20 @@
               "defaultValue": null
             },
             {
+              "name": "labels",
+              "description": null,
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "StringListMutation",
+                  "ofType": null
+                }
+              },
+              "defaultValue": null
+            },
+            {
               "name": "status",
               "description": null,
               "type": {
@@ -967,6 +1027,41 @@
                 "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
+              },
+              "defaultValue": null
+            }
+          ],
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "StringListMutation",
+          "description": null,
+          "fields": null,
+          "inputFields": [
+            {
+              "name": "index",
+              "description": null,
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              },
+              "defaultValue": "0"
+            },
+            {
+              "name": "value",
+              "description": null,
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
               },
               "defaultValue": null
             }
@@ -1883,7 +1978,7 @@
             },
             {
               "name": "title",
-              "description": "Title.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1894,8 +1989,24 @@
               "deprecationReason": null
             },
             {
+              "name": "labels",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "status",
-              "description": "Item status.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1930,7 +2041,7 @@
             },
             {
               "name": "content",
-              "description": "Content.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
