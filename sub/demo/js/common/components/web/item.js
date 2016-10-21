@@ -10,7 +10,7 @@ import Relay from 'react-relay';
 import UpdateItemMutation from '../../mutations/update_item';
 
 /**
- * Generic data item.
+ * Compact view of an Item.
  */
 class Item extends React.Component {
 
@@ -53,10 +53,10 @@ export default Relay.createContainer(Item, {
 
   fragments: {
     item: () => Relay.QL`
-      fragment on Item {
-        id,
-        title,
-        status,
+      fragment on ItemInterface {
+        id
+        title
+        status
 
         ${UpdateItemMutation.getFragment('item')}
       }
