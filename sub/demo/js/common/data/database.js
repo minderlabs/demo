@@ -45,11 +45,13 @@ export class Task {
 export class Note {
   static update(note, data) {
     Util.maybeUpdateItem(note, data, 'title');
+    Util.maybeUpdateItem(note, data, 'status');
     Util.maybeUpdateItem(note, data, 'content');
   }
 
   constructor(data) {
     this.id = data.id;
+    this.version = data.version || 0;
 
     Note.update(this, data);
   }
