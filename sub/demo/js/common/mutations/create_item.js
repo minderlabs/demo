@@ -35,7 +35,7 @@ export default class CreateItemMutation extends Relay.Mutation {
     return {
       userId: this.props.user.id,
       title: this.props.title,
-      status: this.props.status
+      labels: this.props.labels
     };
   }
 
@@ -46,9 +46,9 @@ export default class CreateItemMutation extends Relay.Mutation {
           items {
             edges {
               node {
-                id,
-                title,
-                status
+                id
+                title
+                labels
               }
             }
           }
@@ -83,7 +83,8 @@ export default class CreateItemMutation extends Relay.Mutation {
 
       itemEdge: {
         node: {
-          title: this.props.title
+          title: this.props.title,
+          labels: this.props.labels
         }
       }
     };

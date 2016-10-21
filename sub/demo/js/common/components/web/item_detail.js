@@ -28,7 +28,7 @@ class ItemDetail extends React.Component {
     super(props, context);
 
     this.state = {
-      item: _.pick(this.props.item, ['title', 'status'])
+      item: _.pick(this.props.item, ['title', 'status', 'labels'])
     }
   }
 
@@ -46,8 +46,7 @@ class ItemDetail extends React.Component {
         user: user,
         item: item,
 
-        title: this.state.item.title,
-        status: this.state.item.status
+        title: this.state.item.title
       })
     );
 
@@ -83,7 +82,7 @@ export default Relay.createContainer(ItemDetail, {
       fragment on Item {
         id
         title
-        status
+        labels
 
         ${UpdateItemMutation.getFragment('item')}
       }

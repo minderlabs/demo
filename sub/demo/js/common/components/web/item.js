@@ -18,7 +18,7 @@ class Item extends React.Component {
     item: React.PropTypes.object.isRequired
   };
 
-  handleToggleStatus(event) {
+  handleToggleFavorite(event) {
     event.stopPropagation();
 
     let { user, item } = this.props;
@@ -28,10 +28,9 @@ class Item extends React.Component {
         user: user,                                 // TODO(burdon): Just pass in ID?
         item: item,                                 // TODO(burdon): Just pass in ID?
         labels: [{
-          index: _.indexOf(item['labels'], 'favorite') == -1 ? 0 : -1,
-          value: 'favorite'
-        }],
-        status: item.status ? 0 : 1                 // TODO(burdon): Remove.
+          index: _.indexOf(item['labels'], '_favorite') == -1 ? 0 : -1,
+          value: '_favorite'
+        }]
       })
     );
   }
@@ -42,8 +41,8 @@ class Item extends React.Component {
     return (
       <div>
         <i className="app-icon app-icon-medium app-icon-star material-icons"
-           onClick={ this.handleToggleStatus.bind(this) }>
-          { _.indexOf(item['labels'], 'favorite') != -1 ? 'star': 'star_border' }
+           onClick={ this.handleToggleFavorite.bind(this) }>
+          { _.indexOf(item['labels'], '_favorite') != -1 ? 'star': 'star_border' }
         </i>
 
         <div className="app-expand app-field-title" title={ item.id }>{ item.title }</div>
@@ -60,7 +59,6 @@ export default Relay.createContainer(Item, {
         id
         title
         labels
-        status
 
         ${UpdateItemMutation.getFragment('item')}
       }

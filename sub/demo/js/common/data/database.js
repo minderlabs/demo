@@ -25,9 +25,10 @@ export class Item {
   static update(item, data) {
     Util.maybeUpdateItem(item, data, 'title');
     Util.updateStringSet(item, data, 'labels');
+  }
 
-    // TODO(burdon): Type-specific.
-    Util.maybeUpdateItem(item, data, 'status');
+  static match(item, text) {
+    return item.title.indexOf(text) !== -1;
   }
 
   constructor(data) {
@@ -51,6 +52,10 @@ export class Note {
   static update(note, data) {
     Util.maybeUpdateItem(note, data, 'title');
     Util.maybeUpdateItem(note, data, 'content');
+  }
+
+  static match(note, text) {
+    return note.title.indexOf(text) !== -1 || note.content.indexOf(text) !== -1;
   }
 
   constructor(data) {
@@ -81,8 +86,6 @@ export class Note {
  * Database abstraction (and in-memory implementation).
  */
 export class Database {
-
-  // TODO(burdon): Design API and implement real backend.
 
   static DEFAULT_USER = 'U-1';
 
@@ -199,11 +202,11 @@ export class Database {
     // TODO(burdon): Generalize for testing.
 
     let notes = [... this._notes.values()].filter((note) => {
-      return note.title.indexOf(text) !== -1 || note.content.indexOf(text) !== -1;
+      return Note.match(note, text);
     });
 
     let items = [... this._items.values()].filter((item) => {
-      return item.title.indexOf(text) !== -1;
+      return Item.match(item, text);
     });
 
     return notes.concat(items);

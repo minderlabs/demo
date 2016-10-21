@@ -38,13 +38,14 @@ class ItemList extends React.Component {
       </div>
     );
 
-    let searchItems = null;
-    /*
     let searchItems = user.searchItems.map(item => {
       // TODO(burdon): Generic Item renderer with TypeRegistry inside.
       return (
         <div key={ item.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
           {(() => {
+            return <Item user={ user } item={ item }/>;
+
+            /*
             switch (item.type) {
               case 'item':
                 return <Item user={ user } item={ item }/>;
@@ -52,11 +53,11 @@ class ItemList extends React.Component {
               case 'note':
                 return <Note user={ user } note={ item }/>;
             }
+            */
           })()}
         </div>
       );
     });
-    */
 
     return (
       <div>

@@ -130,9 +130,6 @@ const ItemInterface = new GraphQLInterfaceType({
     },
     labels: {
       type: new GraphQLList(GraphQLString)
-    },
-    status: {
-      type: GraphQLInt
     }
   }),
   resolveType: resolveType
@@ -229,11 +226,6 @@ const itemType = new GraphQLObjectType({
       resolve: (item) => item.labels
     },
 
-    status: {
-      type: GraphQLInt,
-      resolve: (item) => item.status
-    },
-
     // Interface Searchable
     snippet: {
       type: GraphQLString,
@@ -266,11 +258,6 @@ const noteType = new GraphQLObjectType({
     labels: {
       type: new GraphQLList(GraphQLString),
       resolve: (item) => item.labels
-    },
-
-    status: {
-      type: GraphQLInt,
-      resolve: (item) => item.status
     },
 
     // Searchable interface
@@ -357,6 +344,22 @@ const rootQueryType = new GraphQLObjectType({
 // Mutations
 //
 
+/**
+ * Set Mutation
+ * E.g., [{ value: '_favorite' }, { index: -1, value: 'inbox' }]
+ */
+const StringListMutation = new GraphQLList(new GraphQLInputObjectType({
+  name: 'StringListMutation',
+
+  fields: () => ({
+    index: { type: GraphQLInt, defaultValue: 0 },           // -1 = remove
+    value: { type: new GraphQLNonNull(GraphQLString) }
+  })
+}));
+
+/**
+ * Create new item.
+ */
 const CreateItemMutation = mutationWithClientMutationId({
   name: 'CreateItemMutation',
 
@@ -371,11 +374,6 @@ const CreateItemMutation = mutationWithClientMutationId({
 
     labels: {
       type: new GraphQLList(GraphQLString)
-    },
-
-    // TODO(burdon): Type-specific?
-    status: {
-      type: GraphQLInt
     }
   },
 
@@ -402,13 +400,12 @@ const CreateItemMutation = mutationWithClientMutationId({
     },
   },
 
-  mutateAndGetPayload: ({ userId, title, labels, status }) => {
+  mutateAndGetPayload: ({ userId, title, labels }) => {
     let localUserId = fromGlobalId(userId).id;
 
     let item = database.createItem(localUserId, {
       title: title,
-      labels: labels,
-      status: status
+      labels: labels
     });
 
     return {
@@ -419,19 +416,8 @@ const CreateItemMutation = mutationWithClientMutationId({
 });
 
 /**
- * Set Mutation
- * E.g., [{ value: 'favorite' }, { index: -1, value: 'inbox' }]
+ * Update item.
  */
-// TODO(burdon): Move up.
-// https://github.com/graphql/graphql-js/blob/master/src/type/definition.js#L55-L60
-const StringListMutation = new GraphQLList(new GraphQLInputObjectType({
-  name: 'StringListMutation',
-  fields: () => ({
-    index: { type: GraphQLInt, defaultValue: 0 },           // -1 = remove
-    value: { type: new GraphQLNonNull(GraphQLString) }
-  })
-}));
-
 const UpdateItemMutation = mutationWithClientMutationId({
   name: 'UpdateItemMutation',
 
@@ -451,11 +437,6 @@ const UpdateItemMutation = mutationWithClientMutationId({
 
     labels: {
       type: StringListMutation
-    },
-
-    // TODO(burdon): Remove.
-    status: {
-      type: GraphQLInt
     }
   },
 
@@ -468,14 +449,13 @@ const UpdateItemMutation = mutationWithClientMutationId({
     }
   },
 
-  mutateAndGetPayload: ({ userId, itemId, title, labels, status }) => {
+  mutateAndGetPayload: ({ userId, itemId, title, labels }) => {
     let localUserId = fromGlobalId(userId).id;
     let localItemId = fromGlobalId(itemId).id;
 
     let item = database.updateItem(localItemId, {
       title: title,
-      labels: labels,
-      status: status
+      labels: labels
     });
 
     return {
