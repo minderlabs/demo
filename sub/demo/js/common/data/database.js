@@ -84,7 +84,7 @@ export class Database {
   constructor() {
     this._users = new Map();
 
-    // TODO(burdon): Map of maps per user.
+    // TODO(burdon): Map of types per user.
     this._tasks = new Map();
 
     this._notes = new Map();

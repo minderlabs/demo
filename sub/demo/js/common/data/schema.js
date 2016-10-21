@@ -122,12 +122,11 @@ const ItemInterface = new GraphQLInterfaceType({
       description: 'Primary type of this item.'
     },
     title: {
-      type: GraphQLString,
-      description: 'Item title.'
+      type: GraphQLString
     },
     version: {
       type: GraphQLInt,
-      description: 'Item version.'
+      description: 'Version stamp, incremented on every mutation.'
     },
     status: {
       type: GraphQLInt
@@ -151,8 +150,7 @@ const SearchableInterface = new GraphQLInterfaceType({
       description: 'Primary type of this item.'
     },
     title: {
-      type: GraphQLString,
-      description: 'Item title.'
+      type: GraphQLString
     },
     snippet: {
       type: GraphQLString,
@@ -224,19 +222,16 @@ const TaskType = new GraphQLObjectType({
 
     title: {
       type: GraphQLString,
-      description: 'Item title.',
       resolve: (item) => item.title
     },
 
     version: {
       type: GraphQLInt,
-      description: 'Item version.',
       resolve: (item) => item.version
     },
 
     status: {
       type: GraphQLInt,
-      description: 'Item status.',
       resolve: (item) => item.status
     },
 
@@ -272,13 +267,11 @@ const NoteType = new GraphQLObjectType({
 
     version: {
       type: GraphQLInt,
-      description: 'Item version.',
       resolve: (item) => item.version
     },
 
     status: {
       type: GraphQLInt,
-      description: 'Item status.',
       resolve: (item) => item.status
     },
 
@@ -294,7 +287,7 @@ const NoteType = new GraphQLObjectType({
     // Non-interface fields
     content: {
       type: GraphQLString,
-      description: 'Content.',
+      description: 'Content in markdown (or html?).',
       resolve: (node) => node.content
     }
   })
