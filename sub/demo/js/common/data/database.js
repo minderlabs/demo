@@ -87,6 +87,8 @@ export class Note {
  */
 export class Database {
 
+  static singleton = null;
+
   static DEFAULT_USER = 'U-1';
 
   constructor() {
@@ -99,7 +101,7 @@ export class Database {
   }
 
   init() {
-    const data = require('./test.json');
+    const data = require('./testing/test.json');
 
     // Create users.
     for (let user of data['users']) {

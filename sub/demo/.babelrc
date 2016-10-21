@@ -1,14 +1,26 @@
 {
   "passPerPreset": true,
+
+  "plugins": [
+    "./tools/babel/relay_plugin"
+  ],
+
   "presets": [
-    {
-      "plugins": [
-        "./tools/babel/relay_plugin"
-      ]
-    },
     "react",
     "react-native",
     "es2015",
     "stage-0"
-  ]
+  ],
+
+  //
+  // NOTE: Webpack and the React Native packager both use babel with different configs.
+  // BABEL_ENV=webpack babel-node ./tools/babel/update_schema.js
+  // https://babeljs.io/docs/usage/babelrc
+  //
+  "env": {
+    "react-native": {
+      "plugins": [],
+      "presets": []
+    }
+  }
 }

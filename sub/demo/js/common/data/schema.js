@@ -9,17 +9,6 @@
 // https://github.com/facebook/graphql
 //
 
-// TODO(burdon): PyCharm plugin.
-// https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues/32
-
-// TODO(burdon): Checkout: https://github.com/chentsulin/awesome-graphql#lib-js
-
-//
-// NOTE: MUST REGEN WEBPACK BUNDLE AFTER UPDATING SCHEMA.
-// TODO(burdon): Fix in webpack config? (temp fix: grunt watch).
-// https://github.com/webpack/webpack/issues/2919
-//
-
 import {
   GraphQLBoolean,
   GraphQLFloat,
@@ -53,14 +42,17 @@ import {
   Database
 } from './database';
 
+//
+// NOTE: Database.singleton decouples database implementation dependencies from schema (e.g., _).
+// This is required since babel requires the schema (but not the implementation) to generate the
+// schema.json file. The singleton instance is instantiated in the server.
+//
 
 //
 // Main database instance.
 // TODO(burdon): Use Data loader to do efficient entity look-ups on server (e.g., for RethinkDB/ORM layer).
 // http://graphql.org/blog/rest-api-graphql-wrapper/#creating-a-data-loader
 //
-
-const database = new Database().init();
 
 /**
  * Determines node type of object instance.
@@ -98,11 +90,11 @@ const { nodeInterface, nodeField } = nodeDefinitions(
     switch (type) {
 
       case 'User': {
-        return database.getUser(id);
+        return Database.singleton.getUser(id);
       }
 
       case 'Item': {
-        return database.getItem(id);
+        return Database.singleton.getItem(id);
       }
 
       default: {
@@ -154,7 +146,6 @@ const SearchableInterface = new GraphQLInterfaceType({
   resolveType: resolveType
 });
 
-
 //
 // Note type definitions.
 // https://facebook.github.io/relay/docs/graphql-object-identification.html
@@ -180,7 +171,7 @@ const userType = new GraphQLObjectType({
         text: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (parent, args) => {
-        return database.searchItems(args.text);
+        return Database.singleton.searchItems(args.text);
       }
     },
 
@@ -189,7 +180,7 @@ const userType = new GraphQLObjectType({
       type: ItemConnection,
       description: 'User\'s collection of items.',
       args: connectionArgs,
-      resolve: (user, args) => connectionFromArray(database.getItems(user.id, args), args)
+      resolve: (user, args) => connectionFromArray(Database.singleton.getItems(user.id, args), args)
     }
   })
 });
@@ -307,7 +298,7 @@ const rootQueryType = new GraphQLObjectType({
         text: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (parent, args) => {
-        return database.searchItems(args.text);
+        return Database.singleton.searchItems(args.text);
       }
     },
 
@@ -317,7 +308,7 @@ const rootQueryType = new GraphQLObjectType({
         userId: { type: GraphQLID }
       },
       resolve: (parent, args) => {
-        return database.getUser(fromGlobalId(args.userId).id)
+        return Database.singleton.getUser(fromGlobalId(args.userId).id)
       }
     },
 
@@ -327,7 +318,7 @@ const rootQueryType = new GraphQLObjectType({
         userId: { type: GraphQLID },
         itemId: { type: GraphQLID }
       },
-      resolve: (parent, args) => database.getItem(fromGlobalId(args.itemId).id)
+      resolve: (parent, args) => Database.singleton.getItem(fromGlobalId(args.itemId).id)
     },
 
     items: {
@@ -335,7 +326,7 @@ const rootQueryType = new GraphQLObjectType({
       args: {
         userId: { type: GraphQLID }
       },
-      resolve: (parent, args) => database.getItems(fromGlobalId(args.userId).id)
+      resolve: (parent, args) => Database.singleton.getItems(fromGlobalId(args.userId).id)
     }
   })
 });
@@ -380,19 +371,19 @@ const CreateItemMutation = mutationWithClientMutationId({
   outputFields: {
     user: {
       type: userType,
-      resolve: ({ userId }) => database.getUser(userId)
+      resolve: ({ userId }) => Database.singleton.getUser(userId)
     },
 
     itemEdge: {
       type: ItemEdge,
       resolve: ({ userId, itemId }) => {
-        let item = database.getItem(itemId);
+        let item = Database.singleton.getItem(itemId);
         return {
           node: item,
 
           // TODO(burdon): Do we need to retrieve all items here?
           cursor: cursorForObjectInConnection(
-            database.getItems(userId),
+            Database.singleton.getItems(userId),
             item
           )
         }
@@ -403,7 +394,7 @@ const CreateItemMutation = mutationWithClientMutationId({
   mutateAndGetPayload: ({ userId, title, labels }) => {
     let localUserId = fromGlobalId(userId).id;
 
-    let item = database.createItem(localUserId, {
+    let item = Database.singleton.createItem(localUserId, {
       title: title,
       labels: labels
     });
@@ -444,7 +435,7 @@ const UpdateItemMutation = mutationWithClientMutationId({
     item: {
       type: itemType,
       resolve: ({ userId, itemId }) => {
-        return database.getItem(itemId)
+        return Database.singleton.getItem(itemId)
       }
     }
   },
@@ -453,7 +444,7 @@ const UpdateItemMutation = mutationWithClientMutationId({
     let localUserId = fromGlobalId(userId).id;
     let localItemId = fromGlobalId(itemId).id;
 
-    let item = database.updateItem(localItemId, {
+    let item = Database.singleton.updateItem(localItemId, {
       title: title,
       labels: labels
     });

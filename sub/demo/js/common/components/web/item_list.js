@@ -103,10 +103,3 @@ export default Relay.createContainer(ItemList, {
     `
   }
 });
-
-// TODO(burdon): Error (in searchItems).
-// Fragment "F1" cannot be spread here as objects of type "Item" can never be of type "Note".
-// https://github.com/facebook/relay/issues/782
-// ... on Note {
-//   ${Note.getFragment('note')}
-// }

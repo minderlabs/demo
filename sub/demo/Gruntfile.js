@@ -2,8 +2,6 @@
 
 'use strict';
 
-const webpackConfig = require('./webpack.config.js');
-
 /**
  * Grunt config.
  */
@@ -15,8 +13,7 @@ module.exports = function(grunt) {
 
     clean: {
       all: [
-        'js/server/assets',
-        'js/common/data/schema.json'
+        'dist'
       ],
     },
 
@@ -32,7 +29,7 @@ module.exports = function(grunt) {
       },
       schema_json: {
         files: [
-          'js/common/data/schema.json'
+          'dist/schema.json'
         ],
         tasks: ['webpack']
       }
@@ -45,6 +42,14 @@ module.exports = function(grunt) {
           'run',
           'update-schema'
         ]
+      },
+
+      webpack_server: {
+        cmd: 'webpack',
+        args: [
+          '--config',
+          'webpack-node.config.js'
+        ]
       }
     },
 
@@ -53,10 +58,8 @@ module.exports = function(grunt) {
     // https://webpack.github.io/docs/usage-with-grunt.html
     // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
     webpack: {
-      options: webpackConfig,
-      build: {
-        debug: true
-      }
+      options: {},
+      client: require('./webpack.config.js')
     },
   });
 
@@ -76,5 +79,6 @@ module.exports = function(grunt) {
   // Tasks
   //
 
-  grunt.registerTask('default', ['run:update_schema', 'webpack']);
+  grunt.registerTask('default', ['build']);
+  grunt.registerTask('build', ['clean', 'run:update_schema', 'webpack:client', 'run:webpack_server']);
 };

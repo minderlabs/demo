@@ -4,9 +4,6 @@
 
 'use strict';
 
-// TODO(burdon): Webpack to create server.
-var _ = require('lodash');
-
 export class Util {
 
   //
@@ -60,6 +57,7 @@ export class Util {
         }
       }
     }
+
     item[field] = values;
   }
 }
