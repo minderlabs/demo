@@ -87,20 +87,7 @@ const resolveType = (obj) => {
  */
 const getItemFromGlobalId = (globalId) => {
   let { type, id } = fromGlobalId(globalId);
-  switch (type) {
-
-    case 'User': {
-      return database.getUser(id);
-    }
-
-    case 'Task': {
-      return database.getTask(id);
-    }
-
-    default: {
-      return null;
-    }
-  }
+  return database.getItem(type, id);
 };
 
 /**
@@ -328,7 +315,7 @@ const RootQueryType = new GraphQLObjectType({
         userId: { type: GraphQLID }
       },
       resolve: (parent, args) => {
-        return database.getUser(fromGlobalId(args.userId).id)
+        return getItemFromGlobalId(args.userId)
       }
     },
 
@@ -376,19 +363,20 @@ const CreateTaskMutation = mutationWithClientMutationId({
   outputFields: {
     user: {
       type: UserType,
-      resolve: ({ userId }) => database.getUser(userId)
+      resolve: ({ userId }) => getItemFromGlobalId(userId)
     },
 
     taskEdge: {
       type: TaskEdge,
       resolve: ({ userId, taskId }) => {
         let task = database.getTask(taskId);
+        const localUserId = fromGlobalId(userId).id;
         return {
           node: task,
 
           // TODO(burdon): Do we need to retrieve all items here?
           cursor: cursorForObjectInConnection(
-            database.getTasks(userId),
+            database.getTasks(localUserId),
             task
           )
         }
@@ -397,7 +385,7 @@ const CreateTaskMutation = mutationWithClientMutationId({
   },
 
   mutateAndGetPayload: ({ userId, title, status }) => {
-    let localUserId = fromGlobalId(userId).id;
+    const localUserId = fromGlobalId(userId).id;
 
     let task = database.createTask(localUserId, {
       title: title,
@@ -405,7 +393,7 @@ const CreateTaskMutation = mutationWithClientMutationId({
     });
 
     return {
-      userId: localUserId,
+      userId: userId,
       taskId: task.id
     };
   }

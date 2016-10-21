@@ -111,9 +111,67 @@ export class Database {
     return this;
   }
 
+  // Generic item interface.
+
+  getItem(type, id) {
+    switch (type) {
+
+      case 'Task': {
+        return this.getTask(id);
+      }
+
+      case 'Note': {
+        return this.getNote(id);
+      }
+
+      case 'User': {
+        return this.getUser(id);
+      }
+
+      default: {
+        return null;
+      }
+    }
+  }
+
+  updateItem(type, itemId, data) {
+    switch (type) {
+
+      case 'Task': {
+        return this.updateTask(itemId, data);
+      }
+
+      case 'Note': {
+        return this.updateNote(itemId, data);
+      }
+
+      default: {
+        return null;
+      }
+    }
+  }
+
+  searchItems(text) {
+    console.log('SEARCH', text);
+
+    // TODO(burdon): Generalize for testing.
+
+    let notes = [... this._notes.values()].filter((note) => {
+      return note.title.indexOf(text) !== -1 || note.content.indexOf(text) !== -1;
+    });
+
+    let tasks = [... this._tasks.values()].filter((task) => {
+      return task.title.indexOf(text) !== -1;
+    });
+
+    return notes.concat(tasks);
+  }
+
   //
+  // Private type-specific implementations, not intended to be part of the public Database interface.
+  //
+
   // Users
-  //
 
   getUser(id) {
     let user = this._users.get(id);
@@ -198,37 +256,5 @@ export class Database {
     return note;
   }
 
-  updateItem(type, itemId, data) {
-    switch (type) {
-
-      case 'Task': {
-        return this.updateTask(itemId, data);
-      }
-
-      case 'Note': {
-        return this.updateNote(itemId, data);
-      }
-
-      default: {
-        return null;
-      }
-    }
-  }
-
-  searchItems(text) {
-    console.log('SEARCH', text);
-
-    // TODO(burdon): Generalize for testing.
-
-    let notes = [... this._notes.values()].filter((note) => {
-      return note.title.indexOf(text) !== -1 || note.content.indexOf(text) !== -1;
-    });
-
-    let tasks = [... this._tasks.values()].filter((task) => {
-      return task.title.indexOf(text) !== -1;
-    });
-
-    return notes.concat(tasks);
-  }
 }
 
