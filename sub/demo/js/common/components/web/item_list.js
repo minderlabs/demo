@@ -70,6 +70,7 @@ export default Relay.createContainer(ItemList, {
         id
 
         searchItems(text: $query) {
+          id
           type
           ${Item.getFragment('item')}
         }
