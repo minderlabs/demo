@@ -17,7 +17,7 @@ virtualenv tools/python
 
 source ./tools/python/bin/activate
 
-pip install --upgrade pip
+pip install -U pip
 pip install -U -r requirements.txt
 
 echo "\n### PIP ###\n"

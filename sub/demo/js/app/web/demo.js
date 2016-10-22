@@ -19,13 +19,14 @@ class DemoApp extends React.Component {
 
     return (
       <div className="app-panel">
-        <h1>{ user.title }</h1>
-
-        <div className="app-section">
+        <div className="app-header">
+          <h1>{ user.title }</h1>
           <a href="/graphql" target="_blank">GraphiQL</a>
         </div>
 
-        <div className="app-section app-debug">{ JSON.stringify(user) }</div>
+        <div className="app-section">
+          <div className="app-debug">{ JSON.stringify(user) }</div>
+        </div>
 
         <div className="app-view app-panel-column">
           { children }

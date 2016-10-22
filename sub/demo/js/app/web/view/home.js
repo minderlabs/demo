@@ -141,8 +141,9 @@ class HomeView extends React.Component {
   render() {
     let { user } = this.props;
 
+    // TODO(burdon): Factor out.
     const SearchBar = (
-      <div className="app-section app-toolbar">
+      <div className="app-section app-toolbar app-toolbar-search">
         <input ref="search_text" type="text" autoFocus="autoFocus" className="app-expand"
                value={ this.state.search }
                onChange={ this.handleTextChange.bind(this) }
@@ -150,14 +151,15 @@ class HomeView extends React.Component {
       </div>
     );
 
-    const EditBar = (
-      <div className="app-section app-toolbar">
+    // TODO(burdon): Factor out.
+    const CreateBar = (
+      <div className="app-section app-toolbar app-toolbar-create">
         <input ref="create_text" type="text" className="app-expand"
                value={ this.state.title }
                onChange={ this.handleTextChange.bind(this) }
                onKeyUp={ this.handleKeyUp.bind(this) }/>
 
-        <button onClick={ this.handleCreateButton.bind(this) }>Create</button>
+        <button onClick={ this.handleCreateButton.bind(this) }><i className="material-icons">add_circle</i></button>
       </div>
     );
 
@@ -169,7 +171,7 @@ class HomeView extends React.Component {
           <ItemList ref="items" user={ user } onSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
-        { EditBar }
+        { CreateBar }
       </div>
     );
   }
