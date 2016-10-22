@@ -46,11 +46,13 @@ ReactDOM.render(
       (state) => {
         if (state.error) {
           console.error(state.error);
-          setTimeout(() => {
-            let errorForm = $('#app-error');
-            errorForm.find('input').val(state.error);
-            errorForm.submit();
-          }, 1000);
+          if (config['redirectOnError']) {
+            setTimeout(() => {
+              let errorForm = $('#app-error');
+              errorForm.find('input').val(state.error);
+              errorForm.submit();
+            }, 1000);
+          }
         } else if (state.ready) {
           console.log('State changed:', _.map(state.events, (event) => { return event.type; }).join(' => '));
         }

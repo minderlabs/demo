@@ -4,6 +4,10 @@
 
 'use strict';
 
+// TODO(burdon): Inject Id generator (Stable IDs for debugging/refresh).
+const DEBUG = true;
+let count = 0;
+
 export class Util {
 
   /**
@@ -11,6 +15,10 @@ export class Util {
    * @returns {string}
    */
   static createId() {
+    if (DEBUG) {
+      return 'GUID-' + (++count);
+    }
+
     function s4() {
       return Math.floor((1 + Math.random()) * 0x10000)
         .toString(16)
@@ -62,7 +70,7 @@ export class Util {
    */
   static maybeUpdateItem(obj, data, field, defaultValue=undefined) {
     let value = data[field];
-    if (value === undefined && defaultValue !== undefined) {
+    if (value === undefined) {
       value = defaultValue;
     }
 

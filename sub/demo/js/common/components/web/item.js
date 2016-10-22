@@ -47,7 +47,9 @@ class Item extends React.Component {
           { _.indexOf(item['labels'], '_favorite') != -1 ? 'star': 'star_border' }
         </i>
 
-        <div className="app-expand app-field-title" title={ item.id }>{ item.title }</div>
+        <div className="app-expand">
+          <div className="app-field-title" title={ item.id }>{ item.title }</div>
+        </div>
       </div>
     );
   }
@@ -57,7 +59,7 @@ export default Relay.createContainer(Item, {
 
   fragments: {
     item: () => Relay.QL`
-      fragment on ItemInterface {
+      fragment on Item {
         id
         title
         labels

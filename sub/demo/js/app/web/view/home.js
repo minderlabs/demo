@@ -10,7 +10,7 @@ import Relay from 'react-relay';
 // TODO(burdon): Create lib for UX and Data.
 import ItemList from '../../../common/components/web/item_list';
 
-import CreateTaskMutation from '../../../common/mutations/create_task';
+import CreateItemMutation from '../../../common/mutations/create_item';
 
 import Path from '../path';
 
@@ -50,12 +50,16 @@ class HomeView extends React.Component {
   createItem() {
     let { user } = this.props;
 
+    // TODO(burdon): Customize EditBar.
+    let type = 'Task';
+
     let title = this.state.title;
     if (title) {
       this.props.relay.commitUpdate(
         new CreateTaskMutation({
-          user: user,
-          title: title
+          user:   user,
+          type:   type,
+          title:  title
         })
       );
 
@@ -186,7 +190,7 @@ export default Relay.createContainer(HomeView, {
         title
 
         ${ItemList.getFragment('user')}
-        ${CreateTaskMutation.getFragment('user')}
+        ${CreateItemMutation.getFragment('user')}
       }
     `
   }

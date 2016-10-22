@@ -15,7 +15,7 @@ export default class UpdateItemMutation extends Relay.Mutation {
 
   static fragments = {
     item: () => Relay.QL`
-      fragment on ItemInterface {
+      fragment on Item {
         id
       }
     `

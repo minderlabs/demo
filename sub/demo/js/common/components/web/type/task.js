@@ -8,32 +8,32 @@ import React from 'react';
 import Relay from 'react-relay';
 
 /**
- * Note data.
+ * Task data.
  */
-class Note extends React.Component {
+class Task extends React.Component {
 
   static propTypes = {
     data: React.PropTypes.object.isRequired
   };
 
   render() {
-    let { content } = this.props.data;
+    let { priority } = this.props.data;
 
     return (
       <div className="app-section">
-        <h3>Content</h3>
-        <div>{ content }</div>
+        <h3>Priority</h3>
+        <div>{ priority }</div>
       </div>
     );
   }
 }
 
-export default Relay.createContainer(Note, {
+export default Relay.createContainer(Task, {
 
   fragments: {
     data: () => Relay.QL`
-      fragment on Note {
-        content
+      fragment on Task {
+        priority
       }
     `
   }

@@ -18,7 +18,7 @@ class TestSchema(TestCase):
         g.init(MemoryDatabase().load())
 
     def test_query_user(self):
-        user_id = 'U-1'
+        user_id = 'tester'
 
         # TODO(burdon): Is the query name relevant?
         # https://github.com/graphql-python/graphene/tree/master/examples/starwars_relay
@@ -50,7 +50,7 @@ class TestSchema(TestCase):
         self.assertEqual('Test User', user.title)
 
     def test_query_items(self):
-        user_id = 'U-1'
+        user_id = 'tester'
 
         # TODO(burdon): edges?
         # TODO(burdon): define status.

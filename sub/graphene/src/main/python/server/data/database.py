@@ -13,7 +13,7 @@ class Database(object):
     NOTE: Database does not depend on Schema.
     """
 
-    DEFAULT_USER = 'U-1'
+    DEFAULT_USER = 'tester'
 
     @staticmethod
     def create_id():
