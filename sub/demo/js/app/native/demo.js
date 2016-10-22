@@ -7,7 +7,7 @@
 import React from 'react';
 import { AppRegistry, TextInput, ListView, View, Text } from 'react-native';
 
-// NOTE(trey): Genymotion sets up a proxy to localhost on this ip address.
+// NOTE: Genymotion sets up a proxy to localhost on this ip address.
 const LOCALHOST = 'http://10.0.3.2:8080';
 
 const API = '/data/';

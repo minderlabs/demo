@@ -4,17 +4,8 @@
 
 ~~~~
     npm update
-
     npm run build
     npm run start
-~~~~
-
-
-## Running the server
-
-~~~~
-    npm run build
-    npm run server
 ~~~~
 
 The [GraphiQL](https://github.com/graphql/graphiql) (interactive GraphQL) interface is exposed at
@@ -24,6 +15,12 @@ Note that the server-side javascript is run through babel using babel-node, and 
 See https://github.com/babel/example-node-server
 
 TODO(madadam): Don't do this in production. See https://github.com/babel/example-node-server#getting-ready-for-production-use
+
+
+## Running the Server
+
+- nodemon restarts updated node scripts. [https://github.com/remy/nodemon]
+
 
 
 ## Running Android
@@ -73,3 +70,13 @@ TODO(burdon): Global log of troubleshooting issues by category.
 
 - Karma can't find plugin
     - npm i -g karma-cli
+
+### react-native run-android:
+
+  - ERROR: Error watching file for changes: EMFILE
+    - https://github.com/facebook/react-native/issues/10028
+      - brew install watchman
+
+  - ERROR: New react-native app has 'TypeError: babelHelpers.typeof is not a function'
+    - http://stackoverflow.com/questions/35563025/new-react-native-app-has-typeerror-babelhelpers-typeof-is-not-a-function-ios
+      - ./node_modules/react-native/packager/packager.sh start --reset-cache

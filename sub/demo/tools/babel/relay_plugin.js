@@ -5,6 +5,12 @@
 
 const getbabelRelayPlugin = require('babel-relay-plugin');
 
-const schema = require('../../js/common/data/schema.json');
+const SCHEMA = '../../dist/schema.json';
 
-module.exports = getbabelRelayPlugin(schema.data);
+try {
+  const schema = require(SCHEMA);
+  module.exports = getbabelRelayPlugin(schema.data);
+} catch (ex) {
+  // File doesn't exist until first run.
+  console.log('WARNING: Missing schema file: ' + SCHEMA);
+}

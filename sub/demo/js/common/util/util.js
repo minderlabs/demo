@@ -6,10 +6,10 @@
 
 export class Util {
 
-  //
-  // Utils.
-  //
-
+  /**
+   * Unique ID compatible with server.
+   * @returns {string}
+   */
   static createId() {
     function s4() {
       return Math.floor((1 + Math.random()) * 0x10000)
@@ -20,18 +20,80 @@ export class Util {
     return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
   }
 
+  /**
+   * Clone the JSON object.
+   * @param obj
+   */
   static copy(obj) {
     return JSON.parse(JSON.stringify(obj));
   }
 
-  static maybeUpdateItem(item, data, field, defaultValue=undefined) {
+  /**
+   * String match the text against the given fields of the object.
+   *
+   * @param obj
+   * @param fields
+   * @param text
+   * @returns {boolean}
+   */
+  static textMatch(obj, fields, text) {
+    let match = false;
+
+    if (text) {
+      text = text.toLowerCase();
+      _.forEach(_.pick(obj, fields), (value, field) => {
+        match = value.toLowerCase().indexOf(text) != -1;
+        if (match) {
+          return false;
+        }
+      });
+    }
+
+    return match;
+  }
+
+  /**
+   * Updates the field of the given object.
+   *
+   * @param obj
+   * @param data
+   * @param field
+   * @param defaultValue
+   */
+  static maybeUpdateItem(obj, data, field, defaultValue=undefined) {
     let value = data[field];
     if (value === undefined && defaultValue !== undefined) {
       value = defaultValue;
     }
 
     if (value !== undefined) {
-      item[field] = value;
+      obj[field] = value;
     }
+  }
+
+  /**
+   * StringListMutation
+   *
+   * @param obj
+   * @param data
+   * @param field
+   */
+  static updateStringSet(obj, data, field) {
+    let values = obj[field] || [];
+    for (let row of data[field] || []) {
+      if (_.isString(row)) {
+        // Set value.
+        values.push(row);
+      } else {
+        // Delta.
+        // NOTE: Implements Set semantics (i.e., unordered and removes existing).
+        _.pull(values, row['value']);
+        if (row['index'] != -1) {
+          values.splice(0, 0, row['value']);
+        }
+      }
+    }
+
+    obj[field] = values;
   }
 }

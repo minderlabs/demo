@@ -9,23 +9,13 @@
 // https://github.com/facebook/graphql
 //
 
-// TODO(burdon): PyCharm plugin.
-// https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues/32
-
-// TODO(burdon): Checkout: https://github.com/chentsulin/awesome-graphql#lib-js
-
-//
-// NOTE: MUST REGEN WEBPACK BUNDLE AFTER UPDATING SCHEMA.
-// TODO(burdon): Fix in webpack config? (temp fix: grunt watch).
-// https://github.com/webpack/webpack/issues/2919
-//
-
 import {
   GraphQLBoolean,
   GraphQLFloat,
   GraphQLID,
   GraphQLInt,
   GraphQLInterfaceType,
+  GraphQLInputObjectType,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
@@ -46,39 +36,43 @@ import {
 } from 'graphql-relay';
 
 import {
-  User,
-  Item,
+  Database,
   Note,
-  Database
+  Task,
+  User
 } from './database';
 
-
 //
-// Main database instance.
-// TODO(burdon): Use Data loader to do efficient entity look-ups on server (e.g., for RethinkDB/ORM layer).
-// http://graphql.org/blog/rest-api-graphql-wrapper/#creating-a-data-loader
+// NOTE: The Database.singleton decouples database implementation dependencies (e.g., lodash) from the schema defs.
+// This is required since babel requires the schema (but not the implementation) to generate the schema.json file.
+// The singleton instance is instantiated in the server.
 //
 
-const database = new Database().init();
+const TYPE_REGISTRY = new Map();
 
 /**
  * Determines node type of object instance.
  *
- * Used by graphql internals when resolving generics (interfaces and unions).
+ * Used by GraphQL internals when resolving generics (interfaces and unions).
  * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d
  */
-// TODO(madadam): Investigate using isTypeOf in each type definition instead of this.
 const resolveType = (obj) => {
-  // TODO(burdon): Infer from something other than type? E.g. type string in Item interface.
-  if (obj instanceof User) {
-    return userType;
-  } else if (obj instanceof Item)  {
-    return itemType;
-  } else if (obj instanceof Note)  {
-    return noteType;
-  } else {
-    return null;
+  for (let [ clazz, type ] of TYPE_REGISTRY.entries()) {
+    if (obj instanceof clazz) {
+      return type;
+    }
   }
+
+  return null;
+};
+
+/**
+ * Retrieve object from global ID.
+ * NOTE: Global IDs must be unique across types.
+ */
+const resolveItemFromGlobalId = (globalId) => {
+  let { type, id } = fromGlobalId(globalId);
+  return Database.singleton.getItem(type, id);
 };
 
 /**
@@ -86,66 +80,79 @@ const resolveType = (obj) => {
  * https://facebook.github.io/relay/docs/tutorial.html
  */
 const { nodeInterface, nodeField } = nodeDefinitions(
-
-  //
-  // Retrieve object from global ID.
-  // NOTE: Global IDs must be unique across types.
-  //
-
-  (globalId) => {
-    let { type, id } = fromGlobalId(globalId);
-    switch (type) {
-
-      case 'User': {
-        return database.getUser(id);
-      }
-
-      case 'Item': {
-        return database.getItem(id);
-      }
-
-      default: {
-        return null;
-      }
-    }
-  },
-
+  resolveItemFromGlobalId,
   resolveType
 );
+
+//
+// Interfaces
+//
+
+const ItemInterface = new GraphQLInterfaceType({
+  name: 'ItemInterface',
+  description: 'Base type for all data items.',
+  resolveType: resolveType,
+
+  fields: () => ({
+    id: globalIdField(),
+    type: {
+      type: GraphQLString,
+      description: 'Primary type of this item.'
+    },
+    version: {
+      type: GraphQLInt,
+      description: 'Version stamp, incremented after each mutation (on the server).'
+    },
+    title: {
+      type: GraphQLString
+    },
+    labels: {
+      type: new GraphQLList(GraphQLString)
+    }
+  })
+});
 
 /**
  * Searchable.
  * Interface for search results.
+ * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
  */
-// https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
-const SearchableType = new GraphQLInterfaceType({
+const SearchableInterface = new GraphQLInterfaceType({
   name: 'Searchable',
   description: 'A searchable type.',
+  resolveType: resolveType,
+
   fields: () => ({
+    id: globalIdField(),
+    type: {
+      type: GraphQLString,
+      description: 'Primary type of this item.'
+    },
+    title: {
+      type: GraphQLString
+    },
     snippet: {
       type: GraphQLString,
       args: {
         text: { type: GraphQLString }
       }
     }
-  }),
-  resolveType: resolveType
+  })
 });
 
-
 //
-// Note type definitions.
+// User type definitions.
 // https://facebook.github.io/relay/docs/graphql-object-identification.html
 //
 
-const userType = new GraphQLObjectType({
+const UserType = new GraphQLObjectType({
   name: 'User',
   description: 'A user account.',
   interfaces: [ nodeInterface ],
   fields: () => ({
     id: globalIdField('User'),
 
-    // TODO(burdon): Standardize on "title" field in type definition?
+    // TODO(burdon): Rename username (NOTE: backend implementation could model users as Items).
     title: {
       type: GraphQLString,
       description: 'User\'s name.',
@@ -153,21 +160,21 @@ const userType = new GraphQLObjectType({
     },
 
     searchItems: {
-      type: new GraphQLList(SearchableType),
+      type: new GraphQLList(ItemInterface),
       args: {
         text: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (parent, args) => {
-        return database.searchItems(args.text);
+        return Database.singleton.searchItems(args.text);
       }
     },
 
-    // TODO(burdon): Obsolete (replace with searchItems).
-    items: {
-      type: ItemConnection,
-      description: 'User\'s collection of items.',
+    // TODO(burdon): Obsolete (replace with searchItems? Otherwise what are the semantics? assignedBy assignedTo?)
+    tasks: {
+      type: TaskConnection,
+      description: 'User\'s collection of tasks.',
       args: connectionArgs,
-      resolve: (user, args) => connectionFromArray(database.getItems(user.id, args), args)
+      resolve: (user, args) => connectionFromArray(Database.singleton.getTasks(user.id, args), args)
     }
   })
 });
@@ -176,32 +183,41 @@ const userType = new GraphQLObjectType({
 // http://graphql.org/graphql-js/type/#graphqluniontype
 // http://graphql.org/graphql-js/type/#graphqlinterfacetype
 
-const itemType = new GraphQLObjectType({
-  name: 'Item',
-  description: 'A generic data item.',
-  interfaces: [ nodeInterface, SearchableType ],
+const TaskType = new GraphQLObjectType({
+  name: 'Task',
+  interfaces: [ nodeInterface, ItemInterface, SearchableInterface ],
   fields: () => ({
-    id: globalIdField('Item'),
+    id: globalIdField('Task'),
+
+    //
+    // ItemInterface
+    // TODO(burdon): Extend base ItemType.
+    //
+
+    type: {
+      type: GraphQLString,
+      resolve: (item) => 'item'           // TODO(burdon): itemType.name?
+    },
 
     version: {
       type: GraphQLInt,
-      description: 'Item version.',
       resolve: (item) => item.version
     },
 
     title: {
       type: GraphQLString,
-      description: 'Item title.',
       resolve: (item) => item.title
     },
 
-    status: {
-      type: GraphQLInt,
-      description: 'Item status.',
-      resolve: (item) => item.status
+    labels: {
+      type: new GraphQLList(GraphQLString),
+      resolve: (item) => item.labels
     },
 
-    // Interface Searchable
+    //
+    // SearchableInterface
+    //
+
     snippet: {
       type: GraphQLString,
       args: {
@@ -209,103 +225,164 @@ const itemType = new GraphQLObjectType({
       },
       resolve: (item, args) => item.computeSnippet(args.text)
     }
+
+    //
+    // Type-specific
+    //
+
+    // TODO(burdon): Assigned to/by.
   })
 });
 
-const noteType = new GraphQLObjectType({
+const NoteType = new GraphQLObjectType({
   name: 'Note',
-  description: 'A note.',
-  interfaces: [ nodeInterface, SearchableType ],
+  interfaces: [ nodeInterface, ItemInterface, SearchableInterface ],
   fields: () => ({
     id: globalIdField('Note'),
 
+    //
+    // ItemInterface
+    // TODO(burdon): Extend base ItemType.
+    //
+
+    type: {
+      type: GraphQLString,
+      resolve: (item) => 'note'           // TODO(burdon): itemType.name?
+    },
+
+    version: {
+      type: GraphQLInt,
+      resolve: (item) => item.version
+    },
+
     title: {
       type: GraphQLString,
-      description: 'Title.',
-      resolve: (node) => node.title
+      resolve: (item) => item.title
     },
 
-    content: {
-      type: GraphQLString,
-      description: 'Content.',
-      resolve: (node) => node.content
+    labels: {
+      type: new GraphQLList(GraphQLString),
+      resolve: (item) => item.labels
     },
 
-    // Interface Searchable
+    //
+    // SearchableInterface
+    //
+
     snippet: {
       type: GraphQLString,
       args: {
         text: { type: GraphQLString }
       },
-      resolve: (node, args) => node.computeSnippet(args.text)
+      resolve: (item, args) => item.computeSnippet(args.text)
+    },
+
+    //
+    // Type-specific
+    //
+
+    content: {
+      type: GraphQLString,
+      description: 'Content in markdown (or html?)',
+      resolve: (node) => node.content
     }
   })
 });
 
+//
+// Type Registry.
+//
+
+TYPE_REGISTRY.set(User, UserType);
+TYPE_REGISTRY.set(Task, TaskType);
+TYPE_REGISTRY.set(Note, NoteType);
+
+//
 // TODO(burdon): Document.
+// https://github.com/graphql/graphql-relay-js#connections
+// https://facebook.github.io/relay/graphql/connections.htm
+//
+
 const {
-  connectionType: ItemConnection,
-  edgeType: ItemEdge
+  connectionType: TaskConnection,       // TODO(burdon): These defs are not used?
+  edgeType: TaskEdge
 } = connectionDefinitions({
-  name: 'Item',
-  nodeType: itemType
+  name: 'Task',
+  nodeType: TaskType
 });
 
 //
 // Root query type.
 //
 
-const rootQueryType = new GraphQLObjectType({
+const RootQueryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
 
     node: nodeField,
 
     search: {
-      type: new GraphQLList(SearchableType),
+      type: new GraphQLList(SearchableInterface),
       args: {
         text: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (parent, args) => {
-        return database.searchItems(args.text);
+        return Database.singleton.searchItems(args.text);
       }
     },
 
     user: {
-      type: userType,
+      type: UserType,
       args: {
         userId: { type: GraphQLID }
       },
       resolve: (parent, args) => {
-        return database.getUser(fromGlobalId(args.userId).id)
+        return resolveItemFromGlobalId(args.userId)
       }
     },
 
     item: {
-      type: itemType,
+      type: ItemInterface,
       args: {
         userId: { type: GraphQLID },
         itemId: { type: GraphQLID }
       },
-      resolve: (parent, args) => database.getItem(fromGlobalId(args.itemId).id)
+      resolve: (parent, args) => resolveItemFromGlobalId(args.itemId)
     },
 
     items: {
-      type: itemType,
+      type: TaskType,
       args: {
         userId: { type: GraphQLID }
       },
-      resolve: (parent, args) => database.getItems(fromGlobalId(args.userId).id)
+      resolve: (parent, args) => Database.singleton.getTasks(fromGlobalId(args.userId).id)
     }
   })
 });
 
 //
+// Field Mutations
+//
+
+/**
+ * List/Set Mutation
+ * E.g., [{ value: '_favorite' }, { index: -1, value: 'inbox' }]
+ */
+const StringListMutation = new GraphQLList(new GraphQLInputObjectType({
+  name: 'StringListMutation',
+
+  fields: () => ({
+    index: { type: GraphQLInt, defaultValue: 0 },           // -1 => remove
+    value: { type: new GraphQLNonNull(GraphQLString) }
+  })
+}));
+
+//
 // Mutations
 //
 
-const CreateItemMutation = mutationWithClientMutationId({
-  name: 'CreateItemMutation',
+const CreateTaskMutation = mutationWithClientMutationId({
+  name: 'CreateTaskMutation',
 
   inputFields: {
     userId: {
@@ -316,50 +393,54 @@ const CreateItemMutation = mutationWithClientMutationId({
       type: new GraphQLNonNull(GraphQLString)
     },
 
-    // TODO(burdon): Change to array of labels.
-    status: {
-      type: GraphQLInt
+    labels: {
+      type: new GraphQLList(GraphQLString)
     }
   },
 
   outputFields: {
     user: {
-      type: userType,
-      resolve: ({ userId }) => database.getUser(userId)
+      type: UserType,
+      resolve: ({ userId }) => resolveItemFromGlobalId(userId)
     },
 
-    itemEdge: {
-      type: ItemEdge,
-      resolve: ({ userId, itemId }) => {
-        let item = database.getItem(itemId);
+    taskEdge: {
+      type: TaskEdge,
+      resolve: ({ userId, taskId }) => {
+        let task = Database.singleton.getTask(taskId);
+        let localUserId = fromGlobalId(userId).id;
+
         return {
-          node: item,
+          node: task,
 
           // TODO(burdon): Do we need to retrieve all items here?
           cursor: cursorForObjectInConnection(
-            database.getItems(userId),
-            item
+            Database.singleton.getTasks(localUserId),
+            task
           )
         }
       }
     },
   },
 
-  mutateAndGetPayload: ({ userId, title, status }) => {
+  mutateAndGetPayload: ({ userId, title, labels }) => {
     let localUserId = fromGlobalId(userId).id;
 
-    let item = database.createItem(localUserId, {
+    let task = Database.singleton.createTask(localUserId, {
       title: title,
-      status: status
+      labels: labels
     });
 
     return {
-      userId: localUserId,
-      itemId: item.id
+      userId: userId,
+      taskId: task.id
     };
   }
 });
 
+/**
+ * Update item.
+ */
 const UpdateItemMutation = mutationWithClientMutationId({
   name: 'UpdateItemMutation',
 
@@ -372,39 +453,38 @@ const UpdateItemMutation = mutationWithClientMutationId({
       type: new GraphQLNonNull(GraphQLID)
     },
 
-    // TODO(burdon): Generalize? Pass in entire item? (Same issue for create above.)
-    //               Or JSON object where each non-undefined field is to be set?
+    // TODO(burdon): Generalize ot ObjectMutation (like StringListMutation)?
+
     title: {
       type: GraphQLString
     },
 
-    // TODO(burdon): Change to array of labels.
-    status: {
-      type: GraphQLInt
+    labels: {
+      type: StringListMutation
     }
   },
 
   outputFields: {
     item: {
-      type: itemType,
+      type: ItemInterface,
       resolve: ({ userId, itemId }) => {
-        return database.getItem(itemId)
+        return resolveItemFromGlobalId(itemId);
       }
     }
   },
 
-  mutateAndGetPayload: ({ userId, itemId, title, status }) => {
+  mutateAndGetPayload: ({ userId, itemId, title, labels }) => {
     let localUserId = fromGlobalId(userId).id;
-    let localItemId = fromGlobalId(itemId).id;
+    let { type, id } = fromGlobalId(itemId);
 
-    let item = database.updateItem(localItemId, {
+    let item = Database.singleton.updateItem(type, id, {
       title: title,
-      status: status
+      labels: labels
     });
 
     return {
       userId: localUserId,
-      itemId: item.id
+      itemId: itemId
     };
   }
 });
@@ -416,19 +496,19 @@ const UpdateItemMutation = mutationWithClientMutationId({
 const rootMutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
-    createItemMutation: CreateItemMutation,
+    createTaskMutation: CreateTaskMutation,
     updateItemMutation: UpdateItemMutation
   })
 });
 
 //
-// Main app schema.
+// Main schema.
 // http://graphql.org/graphql-js/type/#schema
 //
 
 const schema = new GraphQLSchema({
-  types: [itemType, noteType], // Needed for resolving interface generics.
-  query: rootQueryType,
+  types: [TaskType, NoteType], // Needed for resolving interface generics.
+  query: RootQueryType,
   mutation: rootMutationType
 });
 

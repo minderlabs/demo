@@ -40,8 +40,6 @@ buck-out/
 android/app/libs
 android/keystores/debug.keystore
 
-# Webpack
-js/server/assets/
+# Build assets
+dist/
 
-# Relay, GraphQL
-js/common/data/schema.graphql

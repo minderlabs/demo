@@ -9,10 +9,10 @@ import Relay from 'react-relay';
 
 import UpdateItemMutation from '../../mutations/update_item';
 
-import './item_detail.less';
+import './task_detail.less';
 
 /**
- * Generic data item.
+ * Item detail view.
  */
 class ItemDetail extends React.Component {
 
@@ -28,7 +28,7 @@ class ItemDetail extends React.Component {
     super(props, context);
 
     this.state = {
-      item: _.pick(this.props.item, ['title', 'status'])
+      item: _.pick(this.props.item, ['title', 'status', 'labels'])
     }
   }
 
@@ -46,8 +46,7 @@ class ItemDetail extends React.Component {
         user: user,
         item: item,
 
-        title: this.state.item.title,
-        status: this.state.item.status
+        title: this.state.item.title
       })
     );
 
@@ -80,10 +79,10 @@ export default Relay.createContainer(ItemDetail, {
 
   fragments: {
     item: () => Relay.QL`
-      fragment on Item {
-        id,
-        title,
-        status,
+      fragment on ItemInterface {
+        id
+        title
+        labels
 
         ${UpdateItemMutation.getFragment('item')}
       }

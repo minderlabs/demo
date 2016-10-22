@@ -18,20 +18,24 @@ export class User {
 }
 
 /**
- * Data item.
+ * Task item.
  */
-export class Item {
+export class Task {
 
   static update(item, data) {
     Util.maybeUpdateItem(item, data, 'title');
-    Util.maybeUpdateItem(item, data, 'status');
+    Util.updateStringSet(item, data, 'labels');
+  }
+
+  static match(item, text) {
+    return Util.textMatch(item, ['title'], text);
   }
 
   constructor(data) {
     this.id = data.id;
     this.version = data.version || 0;
 
-    Item.update(this, data);
+    Task.update(this, data);
   }
 
   computeSnippet(queryString) {
@@ -42,23 +46,35 @@ export class Item {
   }
 }
 
+/**
+ * Note item.
+ */
 export class Note {
-  static update(note, data) {
-    Util.maybeUpdateItem(note, data, 'title');
-    Util.maybeUpdateItem(note, data, 'content');
+
+  static update(item, data) {
+    Util.maybeUpdateItem(item, data, 'title');
+    Util.updateStringSet(item, data, 'labels');
+
+    Util.maybeUpdateItem(item, data, 'content');
+  }
+
+  static match(item, text) {
+    return Util.textMatch(item, ['title', 'content'], text);
   }
 
   constructor(data) {
     this.id = data.id;
+    this.version = data.version || 0;
 
     Note.update(this, data);
   }
 
   computeSnippet(queryString) {
-    // TODO(madadam): Generalize / factor out.
+    // TODO(madadam): Generalize and factor out.
     if (!queryString) {
       return null;
     }
+
     let matchedField;
     let matchedValue;
     if (this.title.indexOf(queryString) !== -1) {
@@ -68,6 +84,7 @@ export class Note {
       matchedField = 'content';
       matchedValue = this.content;
     }
+
     return `${matchedField} match [${queryString}]: ${matchedValue}`;
   }
 }
@@ -77,21 +94,21 @@ export class Note {
  */
 export class Database {
 
-  // TODO(burdon): Design API and implement real backend.
+  static singleton = null;
 
   static DEFAULT_USER = 'U-1';
 
   constructor() {
     this._users = new Map();
 
-    // TODO(burdon): Map of maps per user.
-    this._items = new Map();
+    // TODO(burdon): Map of types per user.
+    this._tasks = new Map();
 
     this._notes = new Map();
   }
 
   init() {
-    const data = require('./test.json');
+    const data = require('./testing/test.json');
 
     // Create users.
     for (let user of data['users']) {
@@ -100,8 +117,8 @@ export class Database {
 
     // Create items for default user.
     let user = this.getUser(Database.DEFAULT_USER);
-    for (let item of data['items']) {
-      this.createItem(user.id, item);
+    for (let task of data['tasks']) {
+      this.createTask(user.id, task);
     }
 
     for (let note of data['notes']) {
@@ -110,6 +127,68 @@ export class Database {
 
     return this;
   }
+
+  //
+  // ItemInterface
+  //
+
+  getItem(type, id) {
+    switch (type) {
+
+      case 'User': {
+        return this.getUser(id);
+      }
+
+      case 'Task': {
+        return this.getTask(id);
+      }
+
+      case 'Note': {
+        return this.getNote(id);
+      }
+
+      default: {
+        return null;
+      }
+    }
+  }
+
+  updateItem(type, itemId, data) {
+    switch (type) {
+
+      case 'Task': {
+        return this.updateTask(itemId, data);
+      }
+
+      case 'Note': {
+        return this.updateNote(itemId, data);
+      }
+
+      default: {
+        return null;
+      }
+    }
+  }
+
+  searchItems(text) {
+    console.log('SEARCH["%s"]', text);
+
+    let items = [];
+
+    items = items.concat([... this._tasks.values()].filter((item) => {
+      return Task.match(item, text);
+    }));
+
+    items = items.concat([... this._notes.values()].filter((item) => {
+      return Note.match(item, text);
+    }));
+
+    return items;
+  }
+
+  //
+  // Private type-specific implementations, not intended to be part of the public Database interface.
+  //
 
   //
   // Users
@@ -129,24 +208,25 @@ export class Database {
     return user;
   }
 
+  // TODO(burdon): Remove Note/Task from API (get by type).
+
   //
-  // Items
-  // NOTE: graph-relay nodeDefinitions enforces GUID for item (i.e., bucket must be encoded in the local ID).
+  // Tasks
   //
 
-  getItem(itemId) {
-    let item = this._items.get(itemId);
-    console.log('ITEM.GET', itemId, JSON.stringify(item));
+  getTask(itemId) {
+    let item = this._tasks.get(itemId);
+    console.log('TASK.GET', itemId, JSON.stringify(item));
     return item;
   }
 
-  getItems(userId, args) {
-    let items = Array.from(this._items.values());
-    console.log('ITEM.GET', userId, args, items.length);
+  getTasks(userId, args) {
+    let items = Array.from(this._tasks.values());
+    console.log('TASKS.GET', userId, args, items.length);
     return items;
   }
 
-  createItem(userId, data) {
+  createTask(userId, data) {
     if (data.id === undefined) {
       data.id = Util.createId();
     }
@@ -155,26 +235,30 @@ export class Database {
       data.version = 0;
     }
 
-    let item = new Item(data);
-    console.log('ITEM.CREATE', userId, JSON.stringify(item));
-    this._items.set(item.id, item);
+    let item = new Task(data);
+    console.log('TASK.CREATE', userId, JSON.stringify(item));
+    this._tasks.set(item.id, item);
     return item;
   }
 
-  updateItem(itemId, data) {
-    console.log('ITEM.UPDATE', data);
-    let item = this._items.get(itemId);
+  updateTask(itemId, data) {
+    let item = this._tasks.get(itemId);
 
+    Task.update(item, data);
     item.version += 1;
-    Item.update(item, data);
 
+    console.log('TASK.UPDATE', JSON.stringify(item));
     return item;
   }
 
-  getNote(noteId) {
-    let note = this._notes.get(noteId);
-    console.log('NOTE.GET', noteId, JSON.stringify(note));
-    return note;
+  //
+  // Notes
+  //
+
+  getNote(itemId) {
+    let item = this._notes.get(itemId);
+    console.log('NOTE.GET', itemId, JSON.stringify(item));
+    return item;
   }
 
   createNote(data) {
@@ -182,26 +266,19 @@ export class Database {
       data.id = Util.createId();
     }
 
-    let note = new Note(data);
-    console.log('NOTE.CREATE', JSON.stringify(note));
-    this._notes.set(note.id, note);
-    return note;
+    let item = new Note(data);
+    console.log('NOTE.CREATE', JSON.stringify(item));
+    this._notes.set(item.id, item);
+    return item;
   }
 
-  searchItems(text) {
-    console.log('SEARCH', text);
+  updateNote(itemId, data) {
+    let item = this._notes.get(itemId);
 
-    // TODO(burdon): Generalize for testing.
+    Note.update(item, data);
+    item.version += 1;
 
-    let notes = [... this._notes.values()].filter((note) => {
-      return note.title.indexOf(text) !== -1 || note.content.indexOf(text) !== -1;
-    });
-
-    let items = [... this._items.values()].filter((item) => {
-      return item.title.indexOf(text) !== -1;
-    });
-
-    return notes.concat(items);
+    console.log('NOTE.UPDATE', JSON.stringify(item));
+    return item;
   }
 }
-

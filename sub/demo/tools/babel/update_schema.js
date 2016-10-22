@@ -14,21 +14,23 @@ import { introspectionQuery, printSchema } from 'graphql/utilities';
 
 import schema from '../../js/common/data/schema';
 
+const DATA_DIR = path.join(__dirname, '../../dist');
 
-var DATA_DIR = '../../js/common/data';
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR);
+}
 
 //
-// Saves JSON of full schema introspection for Babel Relay Plugin to use.
+// Saves JSON of full schema introspection for Babel-Relay Plugin to use.
 //
 
 (async () => {
-  var result = await (graphql(schema, introspectionQuery));
+  let result = await (graphql(schema, introspectionQuery));
   if (result.errors) {
     console.error('Schema Error', JSON.stringify(result.errors, null, 2));
   } else {
-    // TODO(burdon): Output generated files elsewhere?
     fs.writeFileSync(
-      path.join(__dirname, DATA_DIR, 'schema.json'), JSON.stringify(result, null, 2)
+      path.join(DATA_DIR, 'schema.json'), JSON.stringify(result, null, 2)
     );
   }
 })();
@@ -37,8 +39,4 @@ var DATA_DIR = '../../js/common/data';
 // Saves user readable type system shorthand of schema.
 //
 
-fs.writeFileSync(
-  path.join(__dirname, DATA_DIR, 'schema.graphql'),
-  printSchema(schema)
-);
-
+fs.writeFileSync(path.join(DATA_DIR, 'schema.graphql'), printSchema(schema));

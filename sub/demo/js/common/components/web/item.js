@@ -10,7 +10,7 @@ import Relay from 'react-relay';
 import UpdateItemMutation from '../../mutations/update_item';
 
 /**
- * Generic data item.
+ * Compact view of an Item.
  */
 class Item extends React.Component {
 
@@ -18,17 +18,19 @@ class Item extends React.Component {
     item: React.PropTypes.object.isRequired
   };
 
-  handleToggleStatus(event) {
+  handleToggleFavorite(event) {
     event.stopPropagation();
 
     let { user, item } = this.props;
 
-    // TODO(burdon): This should add/remove a label.
     this.props.relay.commitUpdate(
       new UpdateItemMutation({
-        user: user,                         // TODO(burdon): Just pass in ID?
-        item: item,                         // TODO(burdon): Just pass in ID?
-        status: item.status ? 0 : 1         // TODO(burdon): Label.
+        user: user,                                 // TODO(burdon): Just pass in ID?
+        item: item,                                 // TODO(burdon): Just pass in ID?
+        labels: [{
+          index: _.indexOf(item['labels'], '_favorite') == -1 ? 0 : -1,
+          value: '_favorite'
+        }]
       })
     );
   }
@@ -36,11 +38,13 @@ class Item extends React.Component {
   render() {
     let { item } = this.props;
 
+    // TODO(burdon): Generic Item renderer with TypeRegistry inside.
+
     return (
       <div>
         <i className="app-icon app-icon-medium app-icon-star material-icons"
-           onClick={ this.handleToggleStatus.bind(this) }>
-          { item.status ? 'star': 'star_border' }
+           onClick={ this.handleToggleFavorite.bind(this) }>
+          { _.indexOf(item['labels'], '_favorite') != -1 ? 'star': 'star_border' }
         </i>
 
         <div className="app-expand app-field-title" title={ item.id }>{ item.title }</div>
@@ -53,10 +57,10 @@ export default Relay.createContainer(Item, {
 
   fragments: {
     item: () => Relay.QL`
-      fragment on Item {
-        id,
-        title,
-        status,
+      fragment on ItemInterface {
+        id
+        title
+        labels
 
         ${UpdateItemMutation.getFragment('item')}
       }

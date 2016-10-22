@@ -12,22 +12,25 @@ var baseConfig = require('./webpack-base.config.js');
 const BUILD_DIR = path.resolve(__dirname, 'dist');
 
 //
-// App webpack config.
+// Node (server) config.
 //
-
-// TODO(burdon): Hot reloading [https://shellmonger.com/2016/02/02/automatic-builds-with-webpack]
 
 module.exports = _.merge(baseConfig, {
 
+  target: 'node',
+
+  // https://webpack.github.io/docs/configuration.html#node
+  node: {
+    __dirname: true   // Referenced by main.js
+  },
+
   entry: {
-    main: path.resolve(__dirname, 'index.web.js')
+    server: path.resolve(__dirname, 'js/server/main.js')
   },
 
   output: {
     path: BUILD_DIR,
-    filename: '[name].bundle.js',
-
-    publicPath: '/assets/' // Path for webpack-dev-server
+    filename: '[name].bundle.js'
   }
 
 });
