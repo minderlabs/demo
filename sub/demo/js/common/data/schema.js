@@ -101,7 +101,7 @@ const ItemInterface = new GraphQLInterfaceType({
     },
     version: {
       type: GraphQLInt,
-      description: 'Version stamp, incremented after each mutation (on the server).'
+      description: 'Version incremented after each mutation (on the server).'
     },
     title: {
       type: GraphQLString
@@ -121,6 +121,8 @@ const SearchableInterface = new GraphQLInterfaceType({
   name: 'Searchable',
   description: 'A searchable type.',
   resolveType: resolveType,
+
+  // TODO(burdon): Do we need Searchable? Isn't ItemInterface sufficient?
 
   fields: () => ({
     id: globalIdField(),
@@ -147,8 +149,8 @@ const SearchableInterface = new GraphQLInterfaceType({
 
 const UserType = new GraphQLObjectType({
   name: 'User',
-  description: 'A user account.',
   interfaces: [ nodeInterface ],
+
   fields: () => ({
     id: globalIdField('User'),
 
@@ -158,6 +160,8 @@ const UserType = new GraphQLObjectType({
       description: 'User\'s name.',
       resolve: (item) => item.title
     },
+
+    // TODO(burdon): All queries are from the point of view of the "user" so move all to root.
 
     searchItems: {
       type: new GraphQLList(ItemInterface),
@@ -169,7 +173,6 @@ const UserType = new GraphQLObjectType({
       }
     },
 
-    // TODO(burdon): Assign specific semantics (e.g., assignedTo) Or access via multiple searches?
     tasks: {
       type: TaskConnection,
       description: 'User\'s collection of tasks.',
@@ -186,8 +189,9 @@ const UserType = new GraphQLObjectType({
 const TaskType = new GraphQLObjectType({
   name: 'Task',
   interfaces: [ nodeInterface, ItemInterface, SearchableInterface ],
+
   fields: () => ({
-    id: globalIdField('Task'),
+    id: globalIdField(TaskType.name),
 
     //
     // ItemInterface
@@ -196,7 +200,7 @@ const TaskType = new GraphQLObjectType({
 
     type: {
       type: GraphQLString,
-      resolve: (item) => 'item'           // TODO(burdon): itemType.name?
+      resolve: (item) => TaskType.name
     },
 
     version: {
@@ -237,8 +241,9 @@ const TaskType = new GraphQLObjectType({
 const NoteType = new GraphQLObjectType({
   name: 'Note',
   interfaces: [ nodeInterface, ItemInterface, SearchableInterface ],
+
   fields: () => ({
-    id: globalIdField('Note'),
+    id: globalIdField(NoteType.name),
 
     //
     // ItemInterface
@@ -247,7 +252,7 @@ const NoteType = new GraphQLObjectType({
 
     type: {
       type: GraphQLString,
-      resolve: (item) => 'note'           // TODO(burdon): itemType.name?
+      resolve: (item) => NoteType.name
     },
 
     version: {
@@ -318,8 +323,8 @@ const {
 
 const RootQueryType = new GraphQLObjectType({
   name: 'Query',
-  fields: () => ({
 
+  fields: () => ({
     node: nodeField,
 
     user: {
@@ -327,9 +332,7 @@ const RootQueryType = new GraphQLObjectType({
       args: {
         userId: { type: GraphQLID }
       },
-      resolve: (parent, args) => {
-        return resolveItemFromGlobalId(args.userId)
-      }
+      resolve: (parent, args) => resolveItemFromGlobalId(args.userId)
     },
 
     item: {
@@ -478,6 +481,7 @@ const UpdateItemMutation = mutationWithClientMutationId({
 
 const rootMutationType = new GraphQLObjectType({
   name: 'Mutation',
+
   fields: () => ({
     createTaskMutation: CreateTaskMutation,
     updateItemMutation: UpdateItemMutation
