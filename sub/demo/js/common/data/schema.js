@@ -169,7 +169,7 @@ const UserType = new GraphQLObjectType({
       }
     },
 
-    // TODO(burdon): Obsolete (replace with searchItems? Otherwise what are the semantics? assignedBy assignedTo?)
+    // TODO(burdon): Assign specific semantics (e.g., assignedTo) Or access via multiple searches?
     tasks: {
       type: TaskConnection,
       description: 'User\'s collection of tasks.',
@@ -313,6 +313,7 @@ const {
 
 //
 // Root query type.
+// All routes must start from one of these queries.
 //
 
 const RootQueryType = new GraphQLObjectType({
@@ -320,16 +321,6 @@ const RootQueryType = new GraphQLObjectType({
   fields: () => ({
 
     node: nodeField,
-
-    search: {
-      type: new GraphQLList(SearchableInterface),
-      args: {
-        text: { type: new GraphQLNonNull(GraphQLString) }
-      },
-      resolve: (parent, args) => {
-        return Database.singleton.searchItems(args.text);
-      }
-    },
 
     user: {
       type: UserType,
@@ -348,14 +339,6 @@ const RootQueryType = new GraphQLObjectType({
         itemId: { type: GraphQLID }
       },
       resolve: (parent, args) => resolveItemFromGlobalId(args.itemId)
-    },
-
-    items: {
-      type: TaskType,
-      args: {
-        userId: { type: GraphQLID }
-      },
-      resolve: (parent, args) => Database.singleton.getTasks(fromGlobalId(args.userId).id)
     }
   })
 });

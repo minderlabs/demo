@@ -31,7 +31,8 @@ class ItemList extends React.Component {
   render() {
     let { user } = this.props;
 
-    // TODO(burdon): If renderer is item_list specific then move to inner class.
+    // TODO(burdon): These should be different item lists?
+
     let tasks = user.tasks.edges.map(edge =>
       <div key={ edge.node.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, edge.node) }>
         <Item user={ user } item={ edge.node }/>
