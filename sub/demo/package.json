@@ -51,6 +51,7 @@
     "cheerio": "^0.22.0",
     "express": "^4.14.0",
     "express-graphql": "^0.5.4",
+    "express-handlebars": "^3.0.0",
     "graphql": "^0.7.2",
     "graphql-relay": "^0.4.3",
     "jquery": "^3.1.1",

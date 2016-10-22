@@ -8,18 +8,23 @@ const path = require('path');
 const favicon = require('serve-favicon');
 
 const express = require('express');
+const exphbs = require('express-handlebars');
+const cookieParser = require('cookie-parser');
+
 const graphqlHTTP = require('express-graphql');
 const bodyParser = require('body-parser');
 
+import schema from '../common/data/schema';
+
 import { Database } from '../common/data/database';
 
-import schema from '../common/data/schema';
+
+//
+// Database singleton.
+//
 
 Database.singleton = new Database().init();
 
-
-// TODO(burdon): Webpack integration.
-// http://stackoverflow.com/questions/31102035/how-can-i-use-webpack-with-express
 
 //
 // Express node server.
@@ -28,6 +33,17 @@ Database.singleton = new Database().init();
 const port = 8080;
 
 const app = express();
+
+
+app.use(bodyParser.json());                           // JSON post (GraphQL).
+app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
+
+app.use(cookieParser());
+
+// https://github.com/ericf/express-handlebars
+app.engine('handlebars', exphbs());
+app.set('view engine', 'handlebars');
+app.set('views', path.join(__dirname, 'views'));
 
 
 //
@@ -55,12 +71,11 @@ app.use('/graphql', graphqlHTTP({
 // Intercept and log Relay requests.
 //
 
-app.use(bodyParser.json());
 app.post('/debug/graphql', function(req, res) {
   console.log('REQ =', JSON.stringify(req.body, null, 2));
 
   // Temp Redirect.
-  // TODO(burdon): Print response?
+  // TODO(burdon): Print response? Configure graphqlHTTP logging?
   res.redirect(307, '/graphql');
 });
 
@@ -83,6 +98,41 @@ app.use(favicon(__dirname + '/static/favicon.ico'));
 
 
 //
+// Login
+//
+
+const USER_COOKE = 'username';
+
+app.get('/logout', function(req, res) {
+  res.clearCookie(USER_COOKE);
+  res.redirect('/login');
+});
+
+app.get('/login', function(req, res) {
+  res.render('login');
+});
+
+app.post('/login', function(req, res) {
+  let username = req.body.username;
+  if (!username) {
+    res.redirect('/login');
+  } else {
+    // Set user cookie.
+    res.cookie('username', username, {});
+
+    // Redirect to app.
+    res.redirect('/');
+  }
+});
+
+app.post('/error', function(req, res) {
+  res.render('error', {
+    error: req.body.error
+  })
+});
+
+
+//
 // App routing.
 // https://expressjs.com/en/guide/routing.html
 // https://expressjs.com/en/4x/api.html#res.sendFile
@@ -93,9 +143,14 @@ app.use(favicon(__dirname + '/static/favicon.ico'));
 //
 
 app.get(/^\/(.*)/, function(req, res) {
-  res.sendFile('index.html', {
-    root: __dirname
-  });
+  let username = req.cookies[USER_COOKE];
+  if (!username) {
+    res.redirect('/login');
+  } else {
+    res.render('home', {
+      username: username
+    });
+  }
 });
 
 

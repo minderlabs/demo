@@ -21,7 +21,11 @@ class DemoApp extends React.Component {
       <div className="app-panel">
         <div className="app-header">
           <h1>{ user.title }</h1>
-          <a href="/graphql" target="_blank">GraphiQL</a>
+
+          <div>
+            <a href="/graphql" target="_blank">GraphiQL</a>
+            <a href="/logout">Logout</a>
+          </div>
         </div>
 
         <div className="app-section">
@@ -36,7 +40,13 @@ class DemoApp extends React.Component {
   }
 }
 
+//
+// Root container
+// https://facebook.github.io/relay/docs/api-reference-relay-container.html
+//
+
 export default Relay.createContainer(DemoApp, {
+
   fragments: {
     user: () => Relay.QL`
       fragment on User {

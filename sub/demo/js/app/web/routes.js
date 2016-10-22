@@ -19,20 +19,22 @@ import DemoApp from './demo';
 import HomeView from './view/home';
 import ItemDetailView from './view/detail';
 
-// Set by server.
-const currentUser = toGlobalId('User', config.get('userId'));
-console.log('Config =', String(config));
 
-// TODO(burdon): Error doing basic query.
-// http://localhost:8080/graphql?query=query%20User%20%7B%0A%20%20user(userId%3A%20%22VXNlcjo%3D%22)%20%7B%0A%20%20%20%20id%0A%20%20%20%20title%0A%20%20%7D%0A%7D%0A&operationName=User
+//
+// Config JSON variable set by server.
+//
+
+console.log('Config =', String(config));
+const currentUser = toGlobalId('User', config.get('userId'));
+
 
 /**
  * React Relay Router.
+ *
  * https://github.com/ReactTraining/react-router
  * https://github.com/relay-tools/react-router-relay
+ *
  * TODO(burdon): Use onReadyStateChange?
- * TODO(burdon): Use Path to configure /detail/:itemId path definition.
- * TODO(burdon): Native?
  */
 export default (
 
