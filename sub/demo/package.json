@@ -64,6 +64,7 @@
     "react-router-relay": "^0.13.5"
   },
   "scripts": {
+    "build": "grunt build",
     "update-schema": "babel-node ./tools/babel/update_schema.js",
     "webpack-client": "webpack --watch -d",
     "webpack-server": "webpack --watch --config webpack-node.config.js",
