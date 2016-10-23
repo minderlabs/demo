@@ -6,14 +6,14 @@
 
 //
 // Server-side code that generates the JSON schema used by the client.
-// https://github.com/facebook/graphql
 //
-// Examples
-// https://github.com/relayjs/relay-examples/blob/master/todo/data/schema.js
+// http://graphql.org
+// https://facebook.github.io/relay
+// https://github.com/facebook/graphql
+// https://github.com/relayjs/relay-examples/blob/master (Examples)
 //
 
 // TODO(burdon): Fix debugging (errors getting swallowed).
-
 // TODO(burdon): Caching (https://facebook.github.io/relay/docs/thinking-in-graphql.html#content)
 
 import {
@@ -55,24 +55,6 @@ import {
 // The singleton instance is instantiated in the server.
 //
 
-const NODE_TYPE_REGISTRY = new Map();
-
-/**
- * Determines node type of object instance.
- *
- * Used by GraphQL internals when resolving generics (interfaces and unions).
- * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d
- */
-const resolveNodeType = (obj) => {
-  for (let [ clazz, type ] of NODE_TYPE_REGISTRY.entries()) {
-    if (obj instanceof clazz) {
-      return type;
-    }
-  }
-
-  return null;
-};
-
 /**
  * Retrieve object from global ID.
  * NOTE: Global IDs must be unique across types.
@@ -94,6 +76,24 @@ const resolveNodeFromGlobalId = (globalId) => {
   }
 };
 
+const NODE_TYPE_REGISTRY = new Map();
+
+/**
+ * Determines node type of object instance.
+ *
+ * Used by GraphQL internals when resolving generics (interfaces and unions).
+ * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d
+ */
+const resolveNodeType = (obj) => {
+  for (let [ clazz, type ] of NODE_TYPE_REGISTRY.entries()) {
+    if (obj instanceof clazz) {
+      return type;
+    }
+  }
+
+  throw 'Invalid node type: ' + obj;
+};
+
 /**
  * Relay Node interface. Maps objects to types, and global IDs to objects.
  * https://facebook.github.io/relay/docs/tutorial.html
@@ -109,7 +109,7 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 
 /**
  * User node type.
- * TODO(burdon): Rename Viewer (User should be part of the TypeUnion).
+ * TODO(burdon): Rename Viewer (User should be part of the TypeUnion; separate from Contact).
  */
 const UserType = new GraphQLObjectType({
   name: User.KIND,
@@ -124,11 +124,15 @@ const UserType = new GraphQLObjectType({
       resolve: (item) => item.title
     },
 
+    // TODO(burdon): Can we specify additional predicates to filter (e.g., type).
     items: {
       type: ItemConnection,
       description: 'User\'s collection of items.',
       args: connectionArgs,
-      resolve: (user, args) => connectionFromArray(Database.singleton.getItems(user.id, args), args)
+      resolve: (user, args) => {
+        console.log('RESOLVE', args);
+        return connectionFromArray(Database.singleton.getItems(user.id), args)
+      }
     },
 
     searchItems: {
@@ -148,7 +152,7 @@ const UserType = new GraphQLObjectType({
  */
 const ItemType = new GraphQLObjectType({
   name: Item.KIND,
-  resolveType: resolveNodeType,
+  interfaces: [ nodeInterface ],
 
   fields: () => ({
     id: globalIdField(ItemType.name),
