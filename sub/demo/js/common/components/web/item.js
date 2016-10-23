@@ -57,6 +57,7 @@ class Item extends React.Component {
 }
 
 export default Relay.createContainer(Item, {
+
   initialVariables: {
     query: ''
   },

@@ -62,7 +62,7 @@ export default Relay.createContainer(ItemList, {
           id
           type
 
-          ${Item.getFragment('item', {query: variables.query})}
+          ${Item.getFragment('item', { query: variables.query })}
         }
       }
     `

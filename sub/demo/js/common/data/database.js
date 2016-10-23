@@ -148,7 +148,7 @@ export class Database {
 
       _.each(types, (items, type) => {
         for (let item of items) {
-          this.createItem(user.id, null, type, item);
+          this.createItem(user.id, type, item);
         }
       });
     });
@@ -159,12 +159,10 @@ export class Database {
   searchItems(userId, text) {
     console.log('SEARCH["%s"]', text);
 
-    // TODO(burdon): Items by user.
-    let items = [... this._items.values()].filter((item) => {
+    return [... this._items.values()].filter((item) => {
+      console.log('MATCH', item, text);
       return item.match(text);
     });
-
-    return items;
   }
 
   //

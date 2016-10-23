@@ -57,13 +57,18 @@ class HomeView extends React.Component {
 
     let title = this.state.title;
     if (title) {
-      this.props.relay.commitUpdate(
-        new CreateItemMutation({
-          user:   user,
-          type:   type,
-          title:  title
-        })
-      );
+      let mutation = new CreateItemMutation({
+        user:   user,
+        type:   type,
+        title:  title
+      });
+
+      // TODO(burdon): Requery on update? Listen for events? Is this cached?
+      this.props.relay.commitUpdate(mutation, {
+        onSuccess: (result) => {
+          this.triggerSearch();
+        }
+      });
 
       this.setState({ title: '' });
     }
@@ -156,6 +161,12 @@ class HomeView extends React.Component {
       </div>
     );
 
+    const SearchList = (
+      <div className="app-section app-panel-column">
+        <ItemList ref="items" user={ user } onSelect={ this.handleItemSelect.bind(this) }/>
+      </div>
+    );
+
     // TODO(burdon): Factor out.
     const CreateBar = (
       <div className="app-section app-toolbar app-toolbar-create">
@@ -177,11 +188,7 @@ class HomeView extends React.Component {
     return (
       <div className="app-panel-column">
         { SearchBar }
-
-        <div className="app-section app-panel-column">
-          <ItemList ref="items" user={ user } onSelect={ this.handleItemSelect.bind(this) }/>
-        </div>
-
+        { SearchList }
         { CreateBar }
       </div>
     );
