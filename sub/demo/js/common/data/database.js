@@ -147,7 +147,7 @@ export class Database {
 
       _.each(types, (items, type) => {
         for (let item of items) {
-          this.createItem(user.id, type, item);
+          this.createItem(user.id, null, type, item);
         }
       });
     });
@@ -204,19 +204,14 @@ export class Database {
     return items;
   }
 
-  createItem(userId, type, data) {
+  createItem(userId, itemId, type, data) { // TODO(burdon): Rename values.
     console.assert(userId);
     console.assert(type);
 
+    // TODO(burdon): Merge data into new object.
+    data.id = itemId || Util.createId();
     data.type = type;
-
-    if (data.id === undefined) {
-      data.id = Util.createId();
-    }
-
-    if (data.version === undefined) {
-      data.version = 0;
-    }
+    data.version = 0;
 
     let item = new Item(data);
     console.log('ITEM.CREATE', userId, JSON.stringify(item));
@@ -224,10 +219,10 @@ export class Database {
     return item;
   }
 
-  updateItem(itemId, data) {
+  updateItem(itemId, values) {
     let item = this._items.get(itemId);
 
-    item.update(data);
+    item.update(values);
     item.version += 1;
 
     console.log('ITEM.UPDATE', JSON.stringify(item));

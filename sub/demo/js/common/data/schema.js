@@ -8,8 +8,13 @@
 // Server-side code that generates the JSON schema used by the client.
 // https://github.com/facebook/graphql
 //
+// Examples
+// https://github.com/relayjs/relay-examples/blob/master/todo/data/schema.js
+//
 
 // TODO(burdon): Fix debugging (errors getting swallowed).
+
+// TODO(burdon): Caching (https://facebook.github.io/relay/docs/thinking-in-graphql.html#content)
 
 import {
   GraphQLBoolean,
@@ -104,6 +109,7 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 
 /**
  * User node type.
+ * TODO(burdon): Rename Viewer (User should be part of the TypeUnion).
  */
 const UserType = new GraphQLObjectType({
   name: User.KIND,
@@ -230,7 +236,9 @@ const NoteType = new GraphQLObjectType({
 
 /**
  * Union of data types.
+ *
  * http://graphql.org/graphql-js/type/#graphqluniontype
+ * http://stackoverflow.com/questions/32558861/union-types-support-in-relay
  * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
  */
 const TypeUnion = new GraphQLUnionType({
@@ -283,13 +291,21 @@ const StringListMutation = new GraphQLList(new GraphQLInputObjectType({
 
 //
 // Node Mutations
+// https://facebook.github.io/relay/docs/guides-mutations.html
 //
 
 const CreateItemMutation = mutationWithClientMutationId({
   name: 'CreateItemMutation',
 
+  // TODO(burdon): Must all creates involve an edge (e.g., to represent table)?
+  // https://facebook.github.io/relay/docs/graphql-connections.html
+
   inputFields: {
     userId: {
+      type: new GraphQLNonNull(GraphQLID)
+    },
+
+    itemId: {
       type: new GraphQLNonNull(GraphQLID)
     },
 
@@ -311,27 +327,21 @@ const CreateItemMutation = mutationWithClientMutationId({
   },
 
   outputFields: {
-    user: {
-      type: UserType,
-      resolve: ({ userId }) => resolveNodeFromGlobalId(userId)
-    },
-
     item: {
       type: ItemType,
       resolve: ({ itemId }) => resolveNodeFromGlobalId(itemId)
     }
   },
 
-  mutateAndGetPayload: ({ userId, type, title, labels }) => {
+  mutateAndGetPayload: ({ userId, itemId, type, title, labels }) => {
     let localUserId = fromGlobalId(userId).id;
 
-    let item = Database.singleton.createItem(localUserId, type, {
+    let item = Database.singleton.createItem(localUserId, itemId, type, {
       title: title,
       labels: labels
     });
 
     return {
-      userId: userId,
       itemId: item.id
     };
   }
@@ -369,23 +379,20 @@ const UpdateItemMutation = mutationWithClientMutationId({
   outputFields: {
     item: {
       type: ItemType,
-      resolve: ({ userId, itemId }) => {
-        return resolveNodeFromGlobalId(itemId);
-      }
+      resolve: ({ itemId }) => resolveNodeFromGlobalId(itemId)
     }
   },
 
   mutateAndGetPayload: ({ userId, itemId, title, labels }) => {
     let localUserId = fromGlobalId(userId).id;
-    let { type, id } = fromGlobalId(itemId);
+    let localItemId = fromGlobalId(itemId).id;
 
-    let item = Database.singleton.updateItem(id, {
+    let item = Database.singleton.updateItem(localItemId, {
       title: title,
       labels: labels
     });
 
     return {
-      userId: localUserId,
       itemId: itemId
     };
   }
@@ -395,7 +402,7 @@ const UpdateItemMutation = mutationWithClientMutationId({
 // Root mutation type.
 //
 
-const rootMutationType = new GraphQLObjectType({
+const RootMutationType = new GraphQLObjectType({
   name: 'Mutation',
 
   fields: () => ({
@@ -439,9 +446,9 @@ const RootQueryType = new GraphQLObjectType({
 // http://graphql.org/graphql-js/type/#schema
 //
 
-const schema = new GraphQLSchema({
-  mutation: rootMutationType,
+const Schema = new GraphQLSchema({
+  mutation: RootMutationType,
   query: RootQueryType
 });
 
-export default schema;
+export default Schema;

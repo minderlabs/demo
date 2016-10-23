@@ -56,7 +56,7 @@ class HomeView extends React.Component {
     let title = this.state.title;
     if (title) {
       this.props.relay.commitUpdate(
-        new CreateTaskMutation({
+        new CreateItemMutation({
           user:   user,
           type:   type,
           title:  title

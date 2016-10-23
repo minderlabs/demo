@@ -9,8 +9,7 @@ import Relay from 'react-relay';
 
 import UpdateItemMutation from '../../mutations/update_item';
 
-import Note from './type/note';
-import Task from './type/task';
+import TypeRegistry from './type_registry';
 
 import './item_detail.less';
 
@@ -64,19 +63,7 @@ class ItemDetail extends React.Component {
   render() {
     let { item } = this.props;
 
-    // TODO(burdon): Factor out type registry.
-    let detail = null;
-    switch (item.type) {
-      case 'Note': {
-        detail = <Note data={ item.data }/>;
-        break;
-      }
-
-      case 'Task': {
-        detail = <Task data={ item.data }/>;
-        break;
-      }
-    }
+    let detail = TypeRegistry.render(item.type, item);
 
     return (
       <div className="app-item-detail">
@@ -118,8 +105,7 @@ export default Relay.createContainer(ItemDetail, {
         data {
           __typename
           
-          ${Note.getFragment('data')}
-          ${Task.getFragment('data')}
+          ${ _.map(TypeRegistry.types, (type) => type.getFragment('data')) }
         }
         
         ${UpdateItemMutation.getFragment('item')}

@@ -34,9 +34,13 @@ export default class CreateItemMutation extends Relay.Mutation {
   getVariables() {
     return {
       userId: this.props.user.id,
+      itemId: 'xxxxxxxxx',
       type:   this.props.type,
+
       title:  this.props.title,
       labels: this.props.labels
+
+      // TODO(burdon): Data
     };
   }
 
@@ -58,17 +62,18 @@ export default class CreateItemMutation extends Relay.Mutation {
     }];
   }
 
-  getOptimisticResponse() {
-    return {
-      user: {
-        id: this.props.user.id
-      },
-
-      item: {
-        type:   this.props.type,
-        title:  this.props.title,
-        labels: this.props.labels
-      }
-    };
-  }
+  // TODO(burdon): Is this possible?
+  // getOptimisticResponse() {
+  //   return {
+  //     user: {
+  //       id: this.props.user.id
+  //     },
+  //
+  //     item: {
+  //       type:   this.props.type,
+  //       title:  this.props.title,
+  //       labels: this.props.labels
+  //     }
+  //   };
+  // }
 }
