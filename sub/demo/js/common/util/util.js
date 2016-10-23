@@ -61,6 +61,29 @@ export class Util {
   }
 
   /**
+   * Compute a search snippet given query text against the given fields of the object.
+   *
+   * @param obj
+   * @param fields
+   * @param text
+   * @returns {boolean}
+   */
+  static computeSnippet(obj, fields, text) {
+    let snippets = [];
+
+    if (text) {
+      text = text.toLowerCase();
+      _.forEach(_.pick(obj, fields), (value, field) => {
+        if (value.toLowerCase().indexOf(text) !== -1) {
+          snippets.push(`${field} match [${text}]: ${value}`);
+        }
+      });
+    }
+
+    return snippets;
+  }
+
+  /**
    * Updates the field of the given object.
    *
    * @param obj

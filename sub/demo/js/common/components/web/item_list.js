@@ -34,7 +34,7 @@ class ItemList extends React.Component {
     let searchItems = user.searchItems.map(item => {
       return (
         <div key={ item.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
-          <Item user={ user } item={ item }/>
+          <Item user={ user } item={ item } query={this.props.relay.variables.query} />
         </div>
       );
     });
@@ -54,7 +54,7 @@ export default Relay.createContainer(ItemList, {
   },
 
   fragments: {
-    user: () => Relay.QL`
+    user: (variables) => Relay.QL`
       fragment on User {
         id
 
@@ -62,7 +62,7 @@ export default Relay.createContainer(ItemList, {
           id
           type
 
-          ${Item.getFragment('item')}
+          ${Item.getFragment('item', {query: variables.query})}
         }
       }
     `

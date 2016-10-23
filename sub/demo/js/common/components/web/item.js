@@ -49,6 +49,7 @@ class Item extends React.Component {
 
         <div className="app-expand">
           <div className="app-field-title" title={ item.id }>{ item.title }</div>
+          { item.snippet }
         </div>
       </div>
     );
@@ -56,6 +57,9 @@ class Item extends React.Component {
 }
 
 export default Relay.createContainer(Item, {
+  initialVariables: {
+    query: ''
+  },
 
   fragments: {
     item: () => Relay.QL`
@@ -63,6 +67,7 @@ export default Relay.createContainer(Item, {
         id
         title
         labels
+        snippet(text: $query)
 
         ${UpdateItemMutation.getFragment('item')}
       }

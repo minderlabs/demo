@@ -61,12 +61,16 @@ export class Item {
 
   match(text) {
     // TODO(burdon): If not debugging then show nothing unless matches something.
-    return !text || Util.textMatch(this, ['title'], text);
+    return !text || Util.textMatch(this, ['title'], text) || this.handler.match(this.data, text);
   }
 
   snippet(queryString) {
     if (queryString) {
-      return `title match [${queryString}]: ${this.title}`;
+      let snippets = Util.computeSnippet(this, ['title'], queryString);
+      snippets = [...snippets, this.handler.snippet(this.data, queryString)];
+      if (snippets) {
+        return _.join(snippets, ',');
+      }
     }
   }
 }
@@ -90,7 +94,9 @@ class TaskTypeHandler extends BaseTypeHandler {
     Util.maybeUpdateItem(data, values, 'priority');
   }
 
-  match(data, text) {}
+  match(data, text) {
+    return Util.textMatch(data, ['title'], text);
+  }
 
   snippet(data, queryString) {}
 }
@@ -106,9 +112,7 @@ class NoteTypeHandler extends BaseTypeHandler {
   }
 
   snippet(data, queryString) {
-    if (this.content.indexOf(queryString) !== -1) {
-      return `conent match [${queryString}]: ${this.content}`;
-    }
+    return Util.computeSnippet(data, ['content'], queryString);
   }
 }
 
