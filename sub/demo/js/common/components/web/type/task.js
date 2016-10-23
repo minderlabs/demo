@@ -21,8 +21,14 @@ class Task extends React.Component {
 
     return (
       <div className="app-section">
-        <h3>Priority</h3>
-        <div>{ priority }</div>
+        <table>
+          <tbody>
+            <tr>
+              <td>Priority</td>
+              <td>{ priority }</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     );
   }

@@ -58,7 +58,7 @@ app.use('/graphql', graphqlHTTP({
 
   pretty: true,
 
-  // TODO(burdon): Errors are swallowed.
+  // TODO(burdon): Errors are swallowed?
   formatError: error => ({
     message: error.message,
     locations: error.locations,
