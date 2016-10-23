@@ -66,8 +66,9 @@ export class Item {
 
   snippet(queryString) {
     if (queryString) {
+      // TODO(burdon): Clean-up.
       let snippets = Util.computeSnippet(this, ['title'], queryString);
-      snippets = [...snippets, this.handler.snippet(this.data, queryString)];
+      snippets = [... snippets, this.handler.snippet(this.data, queryString)];
       if (snippets) {
         return _.join(snippets, ',');
       }
@@ -204,16 +205,15 @@ export class Database {
     return items;
   }
 
-  createItem(userId, itemId, type, data) { // TODO(burdon): Rename values.
+  createItem(userId, type, data) { // TODO(burdon): Rename values.
     console.assert(userId);
     console.assert(type);
 
-    // TODO(burdon): Merge data into new object.
-    data.id = itemId || Util.createId();
+    data.id = Util.createId();
     data.type = type;
     data.version = 0;
 
-    let item = new Item(data);
+    let item = new Item(data); // TODO(burdon): Pass in ID, type separately.
     console.log('ITEM.CREATE', userId, JSON.stringify(item));
     this._items.set(item.id, item);
     return item;

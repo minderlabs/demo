@@ -48,8 +48,8 @@ class Item extends React.Component {
         </i>
 
         <div className="app-expand">
-          <div className="app-field-title" title={ item.id }>{ item.title }</div>
-          { item.snippet }
+          <div className="app-field-title">{ item.title }</div>
+          <div className="app-debug">{ item.snippet }</div>
         </div>
       </div>
     );

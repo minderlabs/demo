@@ -14,6 +14,8 @@ import CreateItemMutation from '../../../common/mutations/create_item';
 
 import Path from '../path';
 
+import './home.less';
+
 /**
  * Home view.
  */
@@ -50,8 +52,8 @@ class HomeView extends React.Component {
   createItem() {
     let { user } = this.props;
 
-    // TODO(burdon): Customize EditBar.
-    let type = 'Task';
+    // TODO(burdon): Dynamically customize EditBar by type (or go direct to detail).
+    let type = $(this.refs.type_select).val();
 
     let title = this.state.title;
     if (title) {
@@ -66,7 +68,6 @@ class HomeView extends React.Component {
       this.setState({ title: '' });
     }
 
-    // TODO(burdon): Remove reference by accessing event?
     this.refs.create_text.focus();
   }
 
@@ -158,6 +159,12 @@ class HomeView extends React.Component {
     // TODO(burdon): Factor out.
     const CreateBar = (
       <div className="app-section app-toolbar app-toolbar-create">
+
+        <select ref="type_select">
+          <option value="Note">Note</option>
+          <option value="Task">Task</option>
+        </select>
+
         <input ref="create_text" type="text" className="app-expand"
                value={ this.state.title }
                onChange={ this.handleTextChange.bind(this) }

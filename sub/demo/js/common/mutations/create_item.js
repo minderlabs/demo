@@ -34,7 +34,6 @@ export default class CreateItemMutation extends Relay.Mutation {
   getVariables() {
     return {
       userId: this.props.user.id,
-      itemId: 'xxxxxxxxx',
       type:   this.props.type,
 
       title:  this.props.title,
@@ -45,35 +44,55 @@ export default class CreateItemMutation extends Relay.Mutation {
   }
 
   getFatQuery() {
+    // TODO(burdon): Document @relay
     return Relay.QL`
-      fragment on CreateItemMutationPayload {
-        item
+      fragment on CreateItemMutationPayload @relay(pattern: true) {
+        user {
+          items {
+            edges {
+              node {
+                id
+                type
+                title
+                labels
+              }
+            }
+          }
+        }
+
+        itemEdge
       }
     `;
   }
 
   getConfigs() {
-    // https://facebook.github.io/relay/docs/guides-mutations.html#fields-change
+    // https://facebook.github.io/relay/docs/guides-mutations.html#range-add
     return [{
-      type: 'FIELDS_CHANGE',
-      fieldIDs: {
-        item: this.props.item.id
+      type: 'RANGE_ADD',
+      parentName: 'user',
+      parentID: this.props.user.id,
+      connectionName: 'items',
+      edgeName: 'itemEdge',
+      rangeBehaviors: {
+        '': 'append',
+        'orderby(oldest)': 'prepend'
       }
     }];
   }
 
-  // TODO(burdon): Is this possible?
-  // getOptimisticResponse() {
-  //   return {
-  //     user: {
-  //       id: this.props.user.id
-  //     },
-  //
-  //     item: {
-  //       type:   this.props.type,
-  //       title:  this.props.title,
-  //       labels: this.props.labels
-  //     }
-  //   };
-  // }
+  getOptimisticResponse() {
+    return {
+      user: {
+        id: this.props.user.id
+      },
+
+      itemEdge: {
+        node: {
+          type: this.props.type,
+          title: this.props.title,
+          labels: this.props.labels
+        }
+      }
+    };
+  }
 }

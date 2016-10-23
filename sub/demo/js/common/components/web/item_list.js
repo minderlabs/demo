@@ -9,7 +9,7 @@ import Relay from 'react-relay';
 
 import Item from './item';
 
-import './list.less';
+import './item_list.less';
 
 /**
  * List.

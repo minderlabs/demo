@@ -124,6 +124,13 @@ const UserType = new GraphQLObjectType({
       resolve: (item) => item.title
     },
 
+    items: {
+      type: ItemConnection,
+      description: 'User\'s collection of items.',
+      args: connectionArgs,
+      resolve: (user, args) => connectionFromArray(Database.singleton.getItems(user.id, args), args)
+    },
+
     searchItems: {
       type: new GraphQLList(ItemType),
       args: {
@@ -188,6 +195,22 @@ const ItemType = new GraphQLObjectType({
 
 NODE_TYPE_REGISTRY.set(User, UserType);
 NODE_TYPE_REGISTRY.set(Item, ItemType);
+
+//
+// Connection Types.
+// TODO(burdon): Document.
+//
+// https://github.com/graphql/graphql-relay-js#connections
+// https://facebook.github.io/relay/graphql/connections.htm
+// https://facebook.github.io/relay/docs/graphql-connections.html
+//
+
+const {
+  connectionType: ItemConnection,
+  edgeType: ItemEdge
+} = connectionDefinitions({
+  nodeType: ItemType
+});
 
 //
 // Item data types.
@@ -297,15 +320,8 @@ const StringListMutation = new GraphQLList(new GraphQLInputObjectType({
 const CreateItemMutation = mutationWithClientMutationId({
   name: 'CreateItemMutation',
 
-  // TODO(burdon): Must all creates involve an edge (e.g., to represent table)?
-  // https://facebook.github.io/relay/docs/graphql-connections.html
-
   inputFields: {
     userId: {
-      type: new GraphQLNonNull(GraphQLID)
-    },
-
-    itemId: {
       type: new GraphQLNonNull(GraphQLID)
     },
 
@@ -327,21 +343,38 @@ const CreateItemMutation = mutationWithClientMutationId({
   },
 
   outputFields: {
-    item: {
-      type: ItemType,
-      resolve: ({ itemId }) => resolveNodeFromGlobalId(itemId)
-    }
+    user: {
+      type: UserType,
+      resolve: ({ userId }) => resolveNodeFromGlobalId(userId)
+    },
+
+    itemEdge: {
+      type: ItemEdge,
+      resolve: ({ userId, itemId }) => {
+        let item = Database.singleton.getItem(itemId);
+        let localUserId = fromGlobalId(userId).id;
+//      let { id: localUserId } = fromGlobalId(userId)      // TODO(burdon): Rewrite.
+
+        return {
+          node: item,
+
+          // TODO(burdon): Do we need to retrieve all items here?
+          cursor: cursorForObjectInConnection(Database.singleton.getItems(localUserId), item)
+        }
+      }
+    },
   },
 
-  mutateAndGetPayload: ({ userId, itemId, type, title, labels }) => {
+  mutateAndGetPayload: ({ userId, type, title, labels }) => {
     let localUserId = fromGlobalId(userId).id;
 
-    let item = Database.singleton.createItem(localUserId, itemId, type, {
+    let item = Database.singleton.createItem(localUserId, type, {
       title: title,
       labels: labels
     });
 
     return {
+      userId: userId,
       itemId: item.id
     };
   }
