@@ -50,8 +50,6 @@ export class Item {
     return Item.typeRegistry.get(this.type);
   }
 
-  // TODO(burdon): Dispatch to base types.
-
   update(values) {
     Util.maybeUpdateItem(this, values, 'title');
     Util.updateStringSet(this, values, 'labels');
@@ -60,17 +58,21 @@ export class Item {
   }
 
   match(text) {
+    // TODO(burdon): Default query by label.
     // TODO(burdon): If not debugging then show nothing unless matches something.
     return !text || Util.textMatch(this, ['title'], text) || this.handler.match(this.data, text);
   }
 
   snippet(queryString) {
     if (queryString) {
-      // TODO(burdon): Clean-up.
       let snippets = Util.computeSnippet(this, ['title'], queryString);
-      snippets = [... snippets, this.handler.snippet(this.data, queryString)];
+      let dataSnippets = this.handler.snippet(this.data, queryString);
+      if (dataSnippets) {
+        snippets = snippets.concat(dataSnippets);
+      }
+
       if (snippets) {
-        return _.join(snippets, ',');
+        return _.join(snippets, ';');
       }
     }
   }
@@ -160,7 +162,6 @@ export class Database {
     console.log('SEARCH["%s"]', text);
 
     return [... this._items.values()].filter((item) => {
-      console.log('MATCH', item, text);
       return item.match(text);
     });
   }
@@ -197,9 +198,10 @@ export class Database {
     return item;
   }
 
-  getItems(userId, args) {
+  // TODO(burdon): Filter by type.
+  getItems(userId, type) {
     let items = Array.from(this._items.values());
-    console.log('ITEMS.GET', userId, args, items.length);
+    console.log('ITEMS.GET', userId, type, items.length);
     return items;
   }
 

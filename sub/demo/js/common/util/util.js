@@ -75,7 +75,7 @@ export class Util {
       text = text.toLowerCase();
       _.forEach(_.pick(obj, fields), (value, field) => {
         if (value.toLowerCase().indexOf(text) !== -1) {
-          snippets.push(`${field} match [${text}]: ${value}`);
+          snippets.push(`${field}("${value}") matches "${text}"`);
         }
       });
     }

@@ -77,7 +77,7 @@ class ItemDetail extends React.Component {
                  value={ this.state.item.title }/>
         </div>
 
-        <div className="app-section">
+        <div className="app-section app-expand">
           { detail }
         </div>
 
