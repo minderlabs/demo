@@ -17,6 +17,9 @@ import routes from './js/app/web/routes';
 
 //
 // Set network layer.
+// NOTE: See looging in Chrome React devtools (can copy queries into GraphiQL).
+// https://facebook.github.io/relay/docs/api-reference-relay.html#injectnetworklayer-static-method
+// TODO(burdon): Inject logger.
 //
 
 Relay.injectNetworkLayer(config.getNetworkLayer());

@@ -66,7 +66,7 @@ class HomeView extends React.Component {
       // TODO(burdon): Requery on update? Listen for events? Is this cached?
       this.props.relay.commitUpdate(mutation, {
         onSuccess: (result) => {
-          this.triggerSearch();
+          console.log('Committed:', result);
         }
       });
 

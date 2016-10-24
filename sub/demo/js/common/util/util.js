@@ -4,20 +4,18 @@
 
 'use strict';
 
-// TODO(burdon): Inject Id generator (Stable IDs for debugging/refresh).
-const DEBUG = true;
-let count = 0;
-
 export class Util {
+
+  // TODO(burdon): Inject Id generator (Stable IDs for debugging/refresh).
+  static DEBUG = true;
+  static count = 0;
 
   /**
    * Unique ID compatible with server.
    * @returns {string}
    */
-  static createId() {
-    if (DEBUG) {
-      return 'GUID-' + (++count);
-    }
+  static createItemId(type) {
+    console.assert(type);
 
     function s4() {
       return Math.floor((1 + Math.random()) * 0x10000)
@@ -25,7 +23,14 @@ export class Util {
         .substring(1);
     }
 
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    let guid;
+    if (Util.DEBUG) {
+      guid = ++Util.count;
+    } else {
+      guid = s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+
+    return `${type}-${guid}`;
   }
 
   /**
