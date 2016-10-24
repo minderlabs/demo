@@ -6,18 +6,31 @@
 
 export class Util {
 
+  // TODO(burdon): Inject Id generator (Stable IDs for debugging/refresh).
+  static DEBUG = true;
+  static count = 0;
+
   /**
    * Unique ID compatible with server.
    * @returns {string}
    */
-  static createId() {
+  static createItemId(type) {
+    console.assert(type);
+
     function s4() {
       return Math.floor((1 + Math.random()) * 0x10000)
         .toString(16)
         .substring(1);
     }
 
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    let guid;
+    if (Util.DEBUG) {
+      guid = ++Util.count;
+    } else {
+      guid = s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+
+    return `${type}-${guid}`;
   }
 
   /**
@@ -53,6 +66,29 @@ export class Util {
   }
 
   /**
+   * Compute a search snippet given query text against the given fields of the object.
+   *
+   * @param obj
+   * @param fields
+   * @param text
+   * @returns {boolean}
+   */
+  static computeSnippet(obj, fields, text) {
+    let snippets = [];
+
+    if (text) {
+      text = text.toLowerCase();
+      _.forEach(_.pick(obj, fields), (value, field) => {
+        if (value.toLowerCase().indexOf(text) !== -1) {
+          snippets.push(`${field}("${value}") matches "${text}"`);
+        }
+      });
+    }
+
+    return snippets;
+  }
+
+  /**
    * Updates the field of the given object.
    *
    * @param obj
@@ -62,7 +98,7 @@ export class Util {
    */
   static maybeUpdateItem(obj, data, field, defaultValue=undefined) {
     let value = data[field];
-    if (value === undefined && defaultValue !== undefined) {
+    if (value === undefined) {
       value = defaultValue;
     }
 

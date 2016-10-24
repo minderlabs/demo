@@ -9,6 +9,10 @@ import Relay from 'react-relay';
 
 import UpdateItemMutation from '../../mutations/update_item';
 
+import TypeRegistry from './type_registry';
+
+import './item.less';
+
 /**
  * Compact view of an Item.
  */
@@ -38,7 +42,7 @@ class Item extends React.Component {
   render() {
     let { item } = this.props;
 
-    // TODO(burdon): Generic Item renderer with TypeRegistry inside.
+    let icon = TypeRegistry.icon(item.type);
 
     return (
       <div>
@@ -47,7 +51,12 @@ class Item extends React.Component {
           { _.indexOf(item['labels'], '_favorite') != -1 ? 'star': 'star_border' }
         </i>
 
-        <div className="app-expand app-field-title" title={ item.id }>{ item.title }</div>
+        <div className="app-expand">
+          <div className="app-field-title">{ item.title }</div>
+          <div className="app-debug">{ item.snippet }</div>
+        </div>
+
+        <i className="app-icon app-icon-medium app-icon-type material-icons">{ icon }</i>
       </div>
     );
   }
@@ -55,12 +64,18 @@ class Item extends React.Component {
 
 export default Relay.createContainer(Item, {
 
+  initialVariables: {
+    query: ''
+  },
+
   fragments: {
     item: () => Relay.QL`
-      fragment on ItemInterface {
+      fragment on Item {
         id
+        type
         title
         labels
+        snippet(text: $query)
 
         ${UpdateItemMutation.getFragment('item')}
       }

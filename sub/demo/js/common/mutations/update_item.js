@@ -15,7 +15,7 @@ export default class UpdateItemMutation extends Relay.Mutation {
 
   static fragments = {
     item: () => Relay.QL`
-      fragment on ItemInterface {
+      fragment on Item {
         id
       }
     `
@@ -31,10 +31,10 @@ export default class UpdateItemMutation extends Relay.Mutation {
       userId: this.props.user.id,
       itemId: this.props.item.id,
 
-      // TODO(burdon): Generalize fields.
-
       title:  this.props.title,
       labels: this.props.labels
+
+      // TODO(burdon): Data
     };
   }
 

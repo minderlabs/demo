@@ -10,9 +10,7 @@ import Relay from 'react-relay';
  * Creates new task.
  * https://facebook.github.io/relay/docs/guides-mutations.html
  */
-export default class CreateTaskMutation extends Relay.Mutation {
-
-  // TODO(burdon): Generalize fields.
+export default class CreateItemMutation extends Relay.Mutation {
 
   static fragments = {
     user: () => Relay.QL`
@@ -24,8 +22,10 @@ export default class CreateTaskMutation extends Relay.Mutation {
 
   getMutation() {
     // Corresponds to schema mutation type.
-    return Relay.QL`mutation { createTaskMutation }`;
+    return Relay.QL`mutation { createItemMutation }`;
   }
+
+  // TODO(burdon): userId becomes bucket Id? (server already knows which user we are).
 
   /**
    * Extract variables from the arguments provided to the mutation constructor.
@@ -34,40 +34,51 @@ export default class CreateTaskMutation extends Relay.Mutation {
   getVariables() {
     return {
       userId: this.props.user.id,
-      title: this.props.title,
+      type:   this.props.type,
+
+      title:  this.props.title,
       labels: this.props.labels
+
+      // TODO(burdon): Data
     };
   }
 
+  // TODO(madadam): To update the current search results after a mutation, does the current query need
+  // to be passed in here as a variable? Passing an empty string to searchItems() seems to work, but this
+  // is probably over-fetching.
+
   getFatQuery() {
+    // TODO(burdon): Document @relay
     return Relay.QL`
-      fragment on CreateTaskMutationPayload @relay(pattern: true) {
+      fragment on CreateItemMutationPayload @relay(pattern: true) {
         user {
-          tasks {
+          items {
             edges {
               node {
                 id
+                type
                 title
                 labels
               }
             }
           }
+
+          searchItems(text: "")
         }
 
-        taskEdge
+        itemEdge
       }
     `;
   }
 
   getConfigs() {
-    // TODO(burdon): Multiple parents and edges?
     // https://facebook.github.io/relay/docs/guides-mutations.html#range-add
     return [{
       type: 'RANGE_ADD',
       parentName: 'user',
       parentID: this.props.user.id,
-      connectionName: 'tasks',
-      edgeName: 'taskEdge',
+      connectionName: 'items',
+      edgeName: 'itemEdge',
       rangeBehaviors: {
         '': 'append',
         'orderby(oldest)': 'prepend'
@@ -81,8 +92,9 @@ export default class CreateTaskMutation extends Relay.Mutation {
         id: this.props.user.id
       },
 
-      taskEdge: {
+      itemEdge: {
         node: {
+          type: this.props.type,
           title: this.props.title,
           labels: this.props.labels
         }

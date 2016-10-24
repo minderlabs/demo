@@ -7,87 +7,120 @@
 import { Util } from '../util/util';
 
 /**
- * User item.
+ * User.
  */
 export class User {
 
-  constructor(data) {
-    this.id = data.id;
-    this.title = data.title;
+  static KIND = 'User';
+
+  constructor(values) {
+    console.assert(values.id);
+
+    this.id = values.id;
+    this.title = values.title;
   }
 }
 
 /**
- * Task item.
+ * Item.
  */
-export class Task {
+export class Item {
 
-  static update(item, data) {
-    Util.maybeUpdateItem(item, data, 'title');
-    Util.updateStringSet(item, data, 'labels');
+  static KIND = 'Item';
+
+  static typeRegistry = new Map();
+
+  constructor(values) {
+    console.assert(values.id);
+    console.assert(values.type);
+
+    this.id = values.id;
+    this.type = values.type;
+    this.version = values.version || 0;
+
+    this.data = {
+      type: values.type
+    };
+
+    this.update(values);
   }
 
-  static match(item, text) {
-    return Util.textMatch(item, ['title'], text);
+  get handler() {
+    console.assert(this.type);
+    return Item.typeRegistry.get(this.type);
   }
 
-  constructor(data) {
-    this.id = data.id;
-    this.version = data.version || 0;
+  update(values) {
+    Util.maybeUpdateItem(this, values, 'title');
+    Util.updateStringSet(this, values, 'labels');
 
-    Task.update(this, data);
+    this.handler.update(this.data, values['data'] || {})
   }
 
-  computeSnippet(queryString) {
-    if (!queryString) {
-      return null;
+  match(text) {
+    // TODO(burdon): Default query by label.
+    // TODO(burdon): If not debugging then show nothing unless matches something.
+    return !text || Util.textMatch(this, ['title'], text) || this.handler.match(this.data, text);
+  }
+
+  snippet(queryString) {
+    if (queryString) {
+      let snippets = Util.computeSnippet(this, ['title'], queryString);
+      let dataSnippets = this.handler.snippet(this.data, queryString);
+      if (dataSnippets) {
+        snippets = snippets.concat(dataSnippets);
+      }
+
+      if (snippets) {
+        return _.join(snippets, ';');
+      }
     }
-    return `title match [${queryString}]: ${this.title}`;
   }
 }
 
-/**
- * Note item.
- */
-export class Note {
+//
+// Types
+//
 
-  static update(item, data) {
-    Util.maybeUpdateItem(item, data, 'title');
-    Util.updateStringSet(item, data, 'labels');
+class BaseTypeHandler {
 
-    Util.maybeUpdateItem(item, data, 'content');
+  update(item, data) {}
+
+  match(item, text) {}
+
+  snippet(item, queryString) {}
+}
+
+class TaskTypeHandler extends BaseTypeHandler {
+
+  update(data, values) {
+    Util.maybeUpdateItem(data, values, 'priority');
   }
 
-  static match(item, text) {
-    return Util.textMatch(item, ['title', 'content'], text);
+  match(data, text) {
+    return Util.textMatch(data, ['title'], text);
   }
 
-  constructor(data) {
-    this.id = data.id;
-    this.version = data.version || 0;
+  snippet(data, queryString) {}
+}
 
-    Note.update(this, data);
+class NoteTypeHandler extends BaseTypeHandler {
+
+  update(data, values) {
+    Util.maybeUpdateItem(data, values, 'content');
   }
 
-  computeSnippet(queryString) {
-    // TODO(madadam): Generalize and factor out.
-    if (!queryString) {
-      return null;
-    }
+  match(data, text) {
+    return Util.textMatch(data, ['title', 'content'], text);
+  }
 
-    let matchedField;
-    let matchedValue;
-    if (this.title.indexOf(queryString) !== -1) {
-      matchedField = 'title';
-      matchedValue = this.title;
-    } else if (this.content.indexOf(queryString) !== -1) {
-      matchedField = 'content';
-      matchedValue = this.content;
-    }
-
-    return `${matchedField} match [${queryString}]: ${matchedValue}`;
+  snippet(data, queryString) {
+    return Util.computeSnippet(data, ['content'], queryString);
   }
 }
+
+Item.typeRegistry.set('Task', new TaskTypeHandler());
+Item.typeRegistry.set('Note', new NoteTypeHandler());
 
 /**
  * Database abstraction (and in-memory implementation).
@@ -96,15 +129,15 @@ export class Database {
 
   static singleton = null;
 
-  static DEFAULT_USER = 'U-1';
-
   constructor() {
+    // Map of users.
     this._users = new Map();
 
-    // TODO(burdon): Map of types per user.
-    this._tasks = new Map();
+    // Map of all items.
+    this._itemIndex = new Map();
 
-    this._notes = new Map();
+    // Map of items by user.
+    this._userItems = new Map();
   }
 
   init() {
@@ -115,75 +148,26 @@ export class Database {
       this.createUser(user);
     }
 
-    // Create items for default user.
-    let user = this.getUser(Database.DEFAULT_USER);
-    for (let task of data['tasks']) {
-      this.createTask(user.id, task);
-    }
+    // Create items for users.
+    _.each(data['items'], (types, userId) => {
+      let user = this.getUser(userId);
 
-    for (let note of data['notes']) {
-      this.createNote(note);
-    }
+      _.each(types, (items, type) => {
+        for (let item of items) {
+          this.createItem(user.id, type, item);
+        }
+      });
+    });
 
     return this;
   }
 
-  //
-  // ItemInterface
-  //
-
-  getItem(type, id) {
-    switch (type) {
-
-      case 'User': {
-        return this.getUser(id);
-      }
-
-      case 'Task': {
-        return this.getTask(id);
-      }
-
-      case 'Note': {
-        return this.getNote(id);
-      }
-
-      default: {
-        return null;
-      }
-    }
-  }
-
-  updateItem(type, itemId, data) {
-    switch (type) {
-
-      case 'Task': {
-        return this.updateTask(itemId, data);
-      }
-
-      case 'Note': {
-        return this.updateNote(itemId, data);
-      }
-
-      default: {
-        return null;
-      }
-    }
-  }
-
-  searchItems(text) {
+  searchItems(userId, text) {
     console.log('SEARCH["%s"]', text);
 
-    let items = [];
-
-    items = items.concat([... this._tasks.values()].filter((item) => {
-      return Task.match(item, text);
-    }));
-
-    items = items.concat([... this._notes.values()].filter((item) => {
-      return Note.match(item, text);
-    }));
-
-    return items;
+    return [... this._itemIndex.values()].filter((item) => {
+      return item.match(text);
+    });
   }
 
   //
@@ -194,10 +178,10 @@ export class Database {
   // Users
   //
 
-  getUser(id) {
-    let user = this._users.get(id);
+  getUser(userId) {
+    let user = this._users.get(userId);
     console.assert(user);
-    console.log('USER.GET', id, JSON.stringify(user));
+    console.log('USER.GET', userId, JSON.stringify(user));
     return user;
   }
 
@@ -208,77 +192,56 @@ export class Database {
     return user;
   }
 
-  // TODO(burdon): Remove Note/Task from API (get by type).
-
   //
-  // Tasks
+  // Items
+  // TODO(burdon): Replace userId with bucketId?
   //
 
-  getTask(itemId) {
-    let item = this._tasks.get(itemId);
-    console.log('TASK.GET', itemId, JSON.stringify(item));
-    return item;
-  }
-
-  getTasks(userId, args) {
-    let items = Array.from(this._tasks.values());
-    console.log('TASKS.GET', userId, args, items.length);
+  getUserItemMap(userId) {
+    let items = this._userItems.get(userId);
+    if (!items) {
+      items = new Map();
+      this._userItems.set(userId, items);
+    }
     return items;
   }
 
-  createTask(userId, data) {
-    if (data.id === undefined) {
-      data.id = Util.createId();
-    }
-
-    if (data.version === undefined) {
-      data.version = 0;
-    }
-
-    let item = new Task(data);
-    console.log('TASK.CREATE', userId, JSON.stringify(item));
-    this._tasks.set(item.id, item);
+  // TODO(burdon): Enforce bucketId?
+  // TODO(burdon): Must check that user has permission to access item (check bucket).
+  getItem(itemId) {
+    let item = this._itemIndex.get(itemId);
+    console.log('ITEM.GET', itemId, JSON.stringify(item));
     return item;
   }
 
-  updateTask(itemId, data) {
-    let item = this._tasks.get(itemId);
+  getItems(userId, type) {
+    let items = Array.from(this.getUserItemMap(userId).values());
+    console.log('ITEMS.GET', userId, type, items.length);
+    return items;
+  }
 
-    Task.update(item, data);
+  createItem(userId, type, data) { // TODO(burdon): Rename values.
+    console.assert(userId);
+    console.assert(type);
+
+    data.id = Util.createItemId(type);
+    data.type = type;
+    data.version = 0;
+
+    let item = new Item(data); // TODO(burdon): Pass in ID, type separately.
+    console.log('ITEM.CREATE', userId, JSON.stringify(item));
+    this._itemIndex.set(item.id, item);
+    this.getUserItemMap(userId).set(item.id, item);
+    return item;
+  }
+
+  updateItem(itemId, values) {
+    let item = this._itemIndex.get(itemId);
+
+    item.update(values);
     item.version += 1;
 
-    console.log('TASK.UPDATE', JSON.stringify(item));
-    return item;
-  }
-
-  //
-  // Notes
-  //
-
-  getNote(itemId) {
-    let item = this._notes.get(itemId);
-    console.log('NOTE.GET', itemId, JSON.stringify(item));
-    return item;
-  }
-
-  createNote(data) {
-    if (data.id === undefined) {
-      data.id = Util.createId();
-    }
-
-    let item = new Note(data);
-    console.log('NOTE.CREATE', JSON.stringify(item));
-    this._notes.set(item.id, item);
-    return item;
-  }
-
-  updateNote(itemId, data) {
-    let item = this._notes.get(itemId);
-
-    Note.update(item, data);
-    item.version += 1;
-
-    console.log('NOTE.UPDATE', JSON.stringify(item));
+    console.log('ITEM.UPDATE', JSON.stringify(item));
     return item;
   }
 }

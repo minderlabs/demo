@@ -77,25 +77,6 @@ i.material-icons {
       margin-left: 8px;
     }
   }
-
-  .app-toolbar-create {
-    background-color: #DDD;
-
-    input {
-      background-color: transparent;
-      border: none;
-      border-bottom: 1px solid #333;
-    }
-
-    button {
-      border: none;
-      background-color: transparent;
-    }
-
-    i {
-      color: red;
-    }
-  }
 }
 
 //
@@ -123,9 +104,17 @@ i.material-icons {
 .app-toolbar {
   display: flex;
   flex-direction: row;
+  align-items: center;
 
   button, input {
     font-size: 20px;
+  }
+
+  select {
+    -webkit-appearance: none;
+    -webkit-border-radius: 0;
+    outline: none;
+    padding: 4px;
   }
 
   input {
@@ -141,8 +130,7 @@ i.material-icons {
 }
 
 .app-debug {
-  .app-nowrap;
-
+  font-family: Monaco, monospace;
   font-size: 12px;
   color: #666;
 }

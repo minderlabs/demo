@@ -9,7 +9,7 @@ import Relay from 'react-relay';
 
 import Item from './item';
 
-import './list.less';
+import './item_list.less';
 
 /**
  * List.
@@ -31,28 +31,17 @@ class ItemList extends React.Component {
   render() {
     let { user } = this.props;
 
-    // TODO(burdon): These should be different item lists?
-
-    let tasks = user.tasks.edges.map(edge =>
-      <div key={ edge.node.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, edge.node) }>
-        <Item user={ user } item={ edge.node }/>
-      </div>
-    );
-
     let searchItems = user.searchItems.map(item => {
       return (
         <div key={ item.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
-          <Item user={ user } item={ item }/>
+          <Item user={ user } item={ item } query={this.props.relay.variables.query} />
         </div>
       );
     });
 
     return (
       <div>
-        <h3>Tasks</h3>
-        <div className="app-section app-expand app-list">{ tasks }</div>
-
-        <h3>Search</h3>
+        <h3>Results</h3>
         <div className="app-section app-expand app-list">{ searchItems }</div>
       </div>
     );
@@ -66,24 +55,15 @@ export default Relay.createContainer(ItemList, {
   },
 
   fragments: {
-    user: () => Relay.QL`
+    user: (variables) => Relay.QL`
       fragment on User {
         id
-
-        tasks(first: 10) {
-          edges {
-            node {
-              id
-
-              ${Item.getFragment('item')}
-            }
-          }
-        }
 
         searchItems(text: $query) {
           id
           type
-          ${Item.getFragment('item')}
+
+          ${Item.getFragment('item', { query: variables.query })}
         }
       }
     `

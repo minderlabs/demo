@@ -36,9 +36,7 @@ class ItemDetailView extends React.Component {
     return (
       // TODO(madadam): Switch on type, add NoteDetail.
       <div className="app-panel-column">
-        <div className="app-section app-debug">{ this.props.params.itemId }</div>
-
-        <div className="app-section">
+        <div className="app-item-detail">
           <ItemDetail user={ user } item={ item }/>
         </div>
       </div>
@@ -55,7 +53,7 @@ export default Relay.createContainer(ItemDetailView, {
     `,
 
     item: () => Relay.QL`
-      fragment on ItemInterface {
+      fragment on Item {
         id
         type
 

@@ -9,7 +9,9 @@ import Relay from 'react-relay';
 
 import UpdateItemMutation from '../../mutations/update_item';
 
-import './task_detail.less';
+import TypeRegistry from './type_registry';
+
+import './item_detail.less';
 
 /**
  * Item detail view.
@@ -38,6 +40,7 @@ class ItemDetail extends React.Component {
     });
   }
 
+  // TODO(burdon): Move to container; provide updateItem method here.
   handleSave(event) {
     let { user, item } = this.props;
 
@@ -60,13 +63,25 @@ class ItemDetail extends React.Component {
   render() {
     let { item } = this.props;
 
+    let detail = TypeRegistry.render(item.type, item);
+
     return (
       <div className="app-item-detail">
-        <input type="text" className="app-expand app-field-title" title={ item.id } autoFocus="autoFocus"
-               onChange={ this.handleTextChange.bind(this, 'title') }
-               value={ this.state.item.title }/>
+        <div className="app-section">
+          <input type="text" className="app-expand app-field-title" title={ item.id } autoFocus="autoFocus"
+                 onChange={ this.handleTextChange.bind(this, 'title') }
+                 value={ this.state.item.title }/>
+        </div>
 
-        <div className="app-toolbar">
+        <div className="app-section app-expand">
+          { detail }
+        </div>
+
+        <div className="app-section app-debug">
+          { JSON.stringify(item, 0, 2) }
+        </div>
+
+        <div className="app-section app-toolbar">
           <button onClick={ this.handleSave.bind(this) }>Save</button>
           <button onClick={ this.handleCancel.bind(this) }>Cancel</button>
         </div>
@@ -79,11 +94,20 @@ export default Relay.createContainer(ItemDetail, {
 
   fragments: {
     item: () => Relay.QL`
-      fragment on ItemInterface {
+      fragment on Item {
         id
+        type,
+        version,
+
         title
         labels
-
+        
+        data {
+          __typename
+          
+          ${ _.map(TypeRegistry.types, (type) => type.getFragment('data')) }
+        }
+        
         ${UpdateItemMutation.getFragment('item')}
       }
     `

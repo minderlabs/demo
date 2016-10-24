@@ -1,38 +1,50 @@
 {
   "users": [
     {
-      "id": "U-1",
+      "id": "tester",
       "title": "Test User"
     }
   ],
 
-  "tasks": [
-    {
-      "title": "Task 1"
-    },
-    {
-      "title": "Task 2"
-    },
-    {
-      "title": "Task 3"
-    },
-    {
-      "title": "Task 4",
-      "labels": ["_favorite"]
-    },
-    {
-      "title": "Task 5"
+  "items": {
+    "tester": {
+      "Task": [
+        {
+          "title": "Task 1"
+        },
+        {
+          "title": "Task 2"
+        },
+        {
+          "title": "Task 3"
+        },
+        {
+          "title": "Task 4",
+          "labels": [
+            "_favorite"
+          ],
+          "data": {
+            "priority": 1
+          }
+        },
+        {
+          "title": "Task 5"
+        }
+      ],
+      "Note": [
+        {
+          "title": "Note 1",
+          "data": {
+            "content": "Squirrels"
+          }
+        },
+        {
+          "title": "Note 2",
+          "data": {
+            "content": "Lemurs"
+          }
+        }
+      ]
     }
-  ],
-
-  "notes": [
-    {
-      "title": "Note 1",
-      "content": "Squirrels"
-    },
-    {
-      "title": "Note 2",
-      "content": "Lemurs"
-    }
-  ]
+  }
 }

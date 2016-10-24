@@ -17,6 +17,9 @@ import routes from './js/app/web/routes';
 
 //
 // Set network layer.
+// NOTE: See looging in Chrome React devtools (can copy queries into GraphiQL).
+// https://facebook.github.io/relay/docs/api-reference-relay.html#injectnetworklayer-static-method
+// TODO(burdon): Inject logger.
 //
 
 Relay.injectNetworkLayer(config.getNetworkLayer());
@@ -46,11 +49,13 @@ ReactDOM.render(
       (state) => {
         if (state.error) {
           console.error(state.error);
-          setTimeout(() => {
-            let errorForm = $('#app-error');
-            errorForm.find('input').val(state.error);
-            errorForm.submit();
-          }, 1000);
+          if (config['redirectOnError']) {
+            setTimeout(() => {
+              let errorForm = $('#app-error');
+              errorForm.find('input').val(state.error);
+              errorForm.submit();
+            }, 1000);
+          }
         } else if (state.ready) {
           console.log('State changed:', _.map(state.events, (event) => { return event.type; }).join(' => '));
         }

@@ -10,9 +10,11 @@ import Relay from 'react-relay';
 // TODO(burdon): Create lib for UX and Data.
 import ItemList from '../../../common/components/web/item_list';
 
-import CreateTaskMutation from '../../../common/mutations/create_task';
+import CreateItemMutation from '../../../common/mutations/create_item';
 
 import Path from '../path';
+
+import './home.less';
 
 /**
  * Home view.
@@ -50,19 +52,27 @@ class HomeView extends React.Component {
   createItem() {
     let { user } = this.props;
 
+    // TODO(burdon): Dynamically customize EditBar by type (or go direct to detail).
+    let type = $(this.refs.type_select).val();
+
     let title = this.state.title;
     if (title) {
-      this.props.relay.commitUpdate(
-        new CreateTaskMutation({
-          user: user,
-          title: title
-        })
-      );
+      let mutation = new CreateItemMutation({
+        user:   user,
+        type:   type,
+        title:  title
+      });
+
+      // TODO(burdon): Requery on update? Listen for events? Is this cached?
+      this.props.relay.commitUpdate(mutation, {
+        onSuccess: (result) => {
+          console.log('Committed:', result);
+        }
+      });
 
       this.setState({ title: '' });
     }
 
-    // TODO(burdon): Remove reference by accessing event?
     this.refs.create_text.focus();
   }
 
@@ -151,9 +161,21 @@ class HomeView extends React.Component {
       </div>
     );
 
+    const SearchList = (
+      <div className="app-section app-panel-column">
+        <ItemList ref="items" user={ user } onSelect={ this.handleItemSelect.bind(this) }/>
+      </div>
+    );
+
     // TODO(burdon): Factor out.
     const CreateBar = (
       <div className="app-section app-toolbar app-toolbar-create">
+
+        <select ref="type_select">
+          <option value="Note">Note</option>
+          <option value="Task">Task</option>
+        </select>
+
         <input ref="create_text" type="text" className="app-expand"
                value={ this.state.title }
                onChange={ this.handleTextChange.bind(this) }
@@ -166,11 +188,7 @@ class HomeView extends React.Component {
     return (
       <div className="app-panel-column">
         { SearchBar }
-
-        <div className="app-section app-panel-column">
-          <ItemList ref="items" user={ user } onSelect={ this.handleItemSelect.bind(this) }/>
-        </div>
-
+        { SearchList }
         { CreateBar }
       </div>
     );
@@ -186,7 +204,7 @@ export default Relay.createContainer(HomeView, {
         title
 
         ${ItemList.getFragment('user')}
-        ${CreateTaskMutation.getFragment('user')}
+        ${CreateItemMutation.getFragment('user')}
       }
     `
   }

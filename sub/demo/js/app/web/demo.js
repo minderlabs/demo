@@ -29,7 +29,7 @@ class DemoApp extends React.Component {
         </div>
 
         <div className="app-section">
-          <div className="app-debug">{ JSON.stringify(user) }</div>
+          <div className="app-debug">{ JSON.stringify(user, 0, 2) }</div>
         </div>
 
         <div className="app-view app-panel-column">

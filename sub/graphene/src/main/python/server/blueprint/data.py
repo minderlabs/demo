@@ -44,7 +44,7 @@ def data_graphql():
         '''
 
         variables = {
-          "userId": to_global_id('User', 'U-1')
+          "userId": to_global_id('User', 'tester')
         }
 
     # TODO(burdon): Second query returns None (since not like first which is faked).
