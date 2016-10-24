@@ -67,10 +67,6 @@ class ItemDetail extends React.Component {
 
     return (
       <div className="app-item-detail">
-        <div className="app-section app-debug">
-          { JSON.stringify(item, 0, 2) }
-        </div>
-
         <div className="app-section">
           <input type="text" className="app-expand app-field-title" title={ item.id } autoFocus="autoFocus"
                  onChange={ this.handleTextChange.bind(this, 'title') }
@@ -79,6 +75,10 @@ class ItemDetail extends React.Component {
 
         <div className="app-section app-expand">
           { detail }
+        </div>
+
+        <div className="app-section app-debug">
+          { JSON.stringify(item, 0, 2) }
         </div>
 
         <div className="app-section app-toolbar">
