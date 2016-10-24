@@ -130,10 +130,14 @@ export class Database {
   static singleton = null;
 
   constructor() {
+    // Map of users.
     this._users = new Map();
 
-    // TODO(burdon): Map by user.
-    this._items = new Map();
+    // Map of all items.
+    this._itemIndex = new Map();
+
+    // Map of items by user.
+    this._userItems = new Map();
   }
 
   init() {
@@ -161,7 +165,7 @@ export class Database {
   searchItems(userId, text) {
     console.log('SEARCH["%s"]', text);
 
-    return [... this._items.values()].filter((item) => {
+    return [... this._itemIndex.values()].filter((item) => {
       return item.match(text);
     });
   }
@@ -192,15 +196,23 @@ export class Database {
   // Items
   //
 
+  getUserItemMap(userId) {
+    let items = this._userItems.get(userId);
+    if (!items) {
+      items = new Map();
+      this._userItems.set(userId, items);
+    }
+    return items;
+  }
+
   getItem(itemId) {
-    let item = this._items.get(itemId);
+    let item = this._itemIndex.get(itemId);
     console.log('ITEM.GET', itemId, JSON.stringify(item));
     return item;
   }
 
-  // TODO(burdon): Filter by type.
   getItems(userId, type) {
-    let items = Array.from(this._items.values());
+    let items = Array.from(this.getUserItemMap(userId).values());
     console.log('ITEMS.GET', userId, type, items.length);
     return items;
   }
@@ -215,12 +227,13 @@ export class Database {
 
     let item = new Item(data); // TODO(burdon): Pass in ID, type separately.
     console.log('ITEM.CREATE', userId, JSON.stringify(item));
-    this._items.set(item.id, item);
+    this._itemIndex.set(item.id, item);
+    this.getUserItemMap(userId).set(item.id, item);
     return item;
   }
 
   updateItem(itemId, values) {
-    let item = this._items.get(itemId);
+    let item = this._itemIndex.get(itemId);
 
     item.update(values);
     item.version += 1;
