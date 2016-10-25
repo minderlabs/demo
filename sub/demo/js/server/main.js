@@ -28,9 +28,11 @@ Database.singleton = new Database().init();
 
 //
 // Express node server.
+// http://www.koding.com/docs/what-happened-to-127-0-0-1
 //
 
-const port = 8080;
+const host = process.env['NODE_ENV'] == 'production' ? '0.0.0.0' : '127.0.0.1';
+const port = process.env['VIRTUAL_PORT'] || 3000;
 
 const app = express();
 
@@ -159,7 +161,9 @@ app.get(/^\/(.*)/, function(req, res) {
 // https://expressjs.com/en/starter/static-files.html
 //
 
-let server = app.listen(port, 'localhost', function() {
+let server = app.listen(port, host, () => {
   let addr = server.address();
-  console.log('STARTED: http://%s:%d', addr.address, addr.port);
+  console.log(`### RUNNING http://${addr.address}:${addr.port} ###`);
 });
+
+console.log('Starting: %s', host);

@@ -18,7 +18,9 @@ FROM node:onbuild
 #
 
 ENV HOME=/home/nx
-ENV NPM_CONFIG_LOGLEVEL=warn
+
+# Used by nginx-proxy and configures node server.
+ENV VIRTUAL_PORT=3000
 
 #
 # Create the nx user and home directory.
@@ -34,14 +36,18 @@ RUN chown -R nx:nx $HOME
 # Add sources.
 #
 
+ADD .babelrc                  $HOME/app/.babelrc
 ADD package.json              $HOME/app/package.json
 ADD package-dev.json          $HOME/app/package-dev.json
 ADD webpack-base.config.js    $HOME/app/webpack-base.config.js
 ADD webpack-node.config.js    $HOME/app/webpack-node.config.js
 ADD webpack.config.js         $HOME/app/webpack.config.js
-ADD js                        $HOME/app/js
+
 ADD scripts                   $HOME/app/scripts
 ADD tools                     $HOME/app/tools
+
+ADD index.web.js              $HOME/app/index.web.js
+ADD js                        $HOME/app/js
 
 #
 # Install deps.
@@ -62,15 +68,16 @@ RUN npm install
 # Build artifacts
 #
 
-RUN npm run update-schema
-RUN npm run webpack-client
-RUN npm run webpack-server
+RUN babel-node ./tools/babel/update_schema.js
+
+RUN webpack
+RUN webpack --config webpack-node.config.js
 
 #
 # Exposed port for nginx-proxy (matches docker-compose.yml and docker cloud stackfile).
 #
 
-EXPOSE 8080
+EXPOSE $VIRTUAL_PORT
 
 #
 # Switch to user.
@@ -81,6 +88,7 @@ USER nx
 #
 # Startup.
 # TODO(burdon): Logging.
+# https://docs.npmjs.com/misc/config#environment-variables
 #
 
-CMD [ "npm", "start" ]
+CMD [ "node", "dist/server.bundle.js" ]

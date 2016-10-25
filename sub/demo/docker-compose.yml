@@ -8,16 +8,16 @@ services:
 
   #
   # nginx
+  # https://github.com/jwilder/nginx-proxy
   #
 
   nginx-proxy:
     image: jwilder/nginx-proxy
-
-    links:
-      - test-server:TEST_SERVER
+    container_name: nginx-proxy
+    restart: always
 
     ports:
-      - 80:80
+      - "80:80"
 
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
@@ -25,15 +25,18 @@ services:
   #
   # Test Server
   # Access via http://dockerhost.net (via /etc/hosts)
+  # docker exec -it node-server /bin/bash
   #
 
-  test-server:
+  node-server:
     build: .
-
+    container_name: node-server
     restart: always
 
-    environment:
-      - VIRTUAL_HOST=dockerhost.net
-
+    # NOTE: Not required if just accessing via nginx.
     ports:
-      - '8080:8080'
+      - "3000:3000"
+
+    environment:
+      - NODE_ENV=production
+      - VIRTUAL_HOST=dockerhost.net
