@@ -66,6 +66,7 @@
   },
   "scripts": {
     "build": "grunt build",
+    "docker": "docker-compose up --force-recreate --remove-orphans",
     "update-schema": "babel-node ./tools/babel/update_schema.js",
     "webpack-client": "webpack --watch -d",
     "webpack-server": "webpack --watch --config webpack-node.config.js",

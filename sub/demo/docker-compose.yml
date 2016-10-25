@@ -7,14 +7,27 @@ version: '2'
 services:
 
   #
+  # After editing Dockerfile:
+  # > docker-compose build
+  #
+  # After editing docker-compose.yml (NOTE: docker-compose up DOES NOT restart containers).
+  # > docker-compose up --force-recreate --remove-orphans
+  #
+
+  #
   # nginx
   # https://github.com/jwilder/nginx-proxy
+  # docker exec -it nginx-proxy /bin/bash
+  # more /etc/nginx/nginx.conf
   #
 
   nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: nginx-proxy
     restart: always
+
+    links:
+      - node-server
 
     ports:
       - "80:80"
@@ -39,4 +52,5 @@ services:
 
     environment:
       - NODE_ENV=production
+      - VIRTUAL_PORT=3000
       - VIRTUAL_HOST=dockerhost.net
