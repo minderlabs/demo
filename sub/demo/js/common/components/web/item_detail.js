@@ -30,7 +30,7 @@ class ItemDetail extends React.Component {
     super(props, context);
 
     this.state = {
-      item: _.pick(this.props.item, ['title', 'status', 'labels'])
+      item: _.pick(this.props.item, ['title', 'labels'])
     }
   }
 
@@ -40,7 +40,6 @@ class ItemDetail extends React.Component {
     });
   }
 
-  // TODO(burdon): Move to container; provide updateItem method here.
   handleSave(event) {
     let { user, item } = this.props;
 
@@ -53,11 +52,11 @@ class ItemDetail extends React.Component {
       })
     );
 
-    this.context.router.goBack();
+    this.context.router.goBack();   // TODO(burdon): Should be handled by parent container (via event?)
   }
 
   handleCancel(event) {
-    this.context.router.goBack();
+    this.context.router.goBack();   // TODO(burdon): Should be handled by parent container (via event?)
   }
 
   render() {
@@ -91,6 +90,8 @@ class ItemDetail extends React.Component {
 }
 
 export default Relay.createContainer(ItemDetail, {
+
+  // TODO(burdon): Document fragments.
 
   fragments: {
     item: () => Relay.QL`
