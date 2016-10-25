@@ -32,13 +32,16 @@ RUN chown -R nx:nx $HOME
 
 #
 # Add sources.
-# TODO(burdon): Test data.
-# TODO(burdon): Need to check-in dist and remove devDependencies (or build everything?)
 #
 
-ADD dist            $HOME/app/dist
-ADD scripts         $HOME/app/scripts
-ADD package.json    $HOME/app/package.json
+ADD package.json              $HOME/app/package.json
+ADD package-dev.json          $HOME/app/package-dev.json
+ADD webpack-base.config.js    $HOME/app/webpack-base.config.js
+ADD webpack-node.config.js    $HOME/app/webpack-node.config.js
+ADD webpack.config.js         $HOME/app/webpack.config.js
+ADD js                        $HOME/app/js
+ADD scripts                   $HOME/app/scripts
+ADD tools                     $HOME/app/tools
 
 #
 # Install deps.
@@ -47,11 +50,21 @@ ADD package.json    $HOME/app/package.json
 #
 
 WORKDIR $HOME/app
-RUN python scripts/remove_dev_dependencies.py package.json
 
-RUN more package.json
+RUN python scripts/create_package_file.py package.json
 
-#RUN npm install
+RUN npm install -g babel-cli
+RUN npm install -g webpack
+
+RUN npm install
+
+#
+# Build artifacts
+#
+
+RUN npm run update-schema
+RUN npm run webpack-client
+RUN npm run webpack-server
 
 #
 # Exposed port for nginx-proxy (matches docker-compose.yml and docker cloud stackfile).
