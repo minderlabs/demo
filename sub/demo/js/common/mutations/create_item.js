@@ -43,6 +43,10 @@ export default class CreateItemMutation extends Relay.Mutation {
     };
   }
 
+  // TODO(madadam): To update the current search results after a mutation, does the current query need
+  // to be passed in here as a variable? Passing an empty string to searchItems() seems to work, but this
+  // is probably over-fetching.
+
   getFatQuery() {
     // TODO(burdon): Document @relay
     return Relay.QL`
@@ -58,6 +62,8 @@ export default class CreateItemMutation extends Relay.Mutation {
               }
             }
           }
+
+          searchItems(text: "")
         }
 
         itemEdge

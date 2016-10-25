@@ -194,6 +194,7 @@ export class Database {
 
   //
   // Items
+  // TODO(burdon): Replace userId with bucketId?
   //
 
   getUserItemMap(userId) {
@@ -205,6 +206,8 @@ export class Database {
     return items;
   }
 
+  // TODO(burdon): Enforce bucketId?
+  // TODO(burdon): Must check that user has permission to access item (check bucket).
   getItem(itemId) {
     let item = this._itemIndex.get(itemId);
     console.log('ITEM.GET', itemId, JSON.stringify(item));
@@ -221,7 +224,7 @@ export class Database {
     console.assert(userId);
     console.assert(type);
 
-    data.id = Util.createId();
+    data.id = Util.createItemId(type);
     data.type = type;
     data.version = 0;
 

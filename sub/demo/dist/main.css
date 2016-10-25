@@ -1,0 +1,186 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #CCC;
+}
+h1,
+h2,
+h3 {
+  margin: 0;
+  padding: 0;
+  font-weight: 100;
+}
+input,
+textarea,
+button {
+  outline: none;
+  spellcheck: none;
+}
+a {
+  color: darkblue;
+  text-decoration: none;
+}
+i.material-icons {
+  cursor: pointer;
+}
+#app-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  font-family: Roboto, sans-serif;
+}
+#app-container > div {
+  display: flex;
+  flex-direction: column;
+  width: 500px;
+  background-color: whitesmoke;
+  box-shadow: 4px 4px 16px #AAA;
+}
+#app-container .app-header {
+  display: flex;
+  flex-direction: row;
+  background-color: #99CCCC;
+  padding: 8px;
+}
+#app-container .app-header h1 {
+  flex-grow: 1;
+  margin: 0;
+}
+#app-container .app-header a {
+  margin-left: 8px;
+}
+.app-section {
+  padding: 8px;
+}
+.app-expand {
+  flex-grow: 1;
+}
+.app-panel {
+  display: flex;
+}
+.app-panel-column {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.app-toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.app-toolbar button,
+.app-toolbar input {
+  font-size: 20px;
+}
+.app-toolbar select {
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+  outline: none;
+  padding: 4px;
+}
+.app-toolbar input {
+  outline: none;
+  spellcheck: none;
+}
+.app-nowrap {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+}
+.app-debug {
+  font-family: Monaco, monospace;
+  font-size: 12px;
+  color: #666;
+}
+.app-error {
+  font-family: Monaco, monospace;
+  font-size: 14px;
+  color: darkred;
+}
+.app-error pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.app-key {
+  color: #999;
+  font-size: small;
+}
+.app-icon {
+  cursor: pointer;
+}
+.app-icon-medium {
+  font-size: 18px;
+}
+.app-icon-edit {
+  color: #CCC;
+}
+.app-icon-edit:hover {
+  color: #333;
+}
+.app-icon-star {
+  color: orange;
+}
+.app-icon-type {
+  color: #666;
+}
+.app-list .app-list-item {
+  padding: 2px;
+}
+.app-list .app-list-item > div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.app-list .app-list-item > div .app-key {
+  width: 100px;
+}
+.app-list .app-list-item > div .app-icon-star {
+  margin-right: 16px;
+}
+.app-list .app-list-item > div .app-field-title {
+  cursor: pointer;
+}
+.app-list .app-list-item:hover {
+  background-color: #DDD;
+}
+.app-toolbar-create {
+  background-color: #DDD;
+  border-top: 1px solid #BBB;
+  height: 40px;
+}
+.app-toolbar-create select {
+  margin-right: 8px;
+  font-size: 14px;
+}
+.app-toolbar-create input {
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid #333;
+}
+.app-toolbar-create button {
+  border: none;
+  background-color: transparent;
+}
+.app-toolbar-create i {
+  color: red;
+}
+.app-item-detail {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.app-item-detail .app-field-title {
+  font-size: 24px;
+}
+.app-item-detail .app-toolbar {
+  justify-content: center;
+  background-color: #DDD;
+  border-top: 1px solid #BBB;
+  height: 40px;
+}

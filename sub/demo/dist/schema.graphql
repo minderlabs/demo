@@ -1,0 +1,124 @@
+input CreateItemMutationInput {
+  userId: ID!
+  type: String!
+  title: String!
+  labels: [String]
+  clientMutationId: String
+}
+
+type CreateItemMutationPayload {
+  user: User
+  itemEdge: ItemEdge
+  clientMutationId: String
+}
+
+type Item implements Node {
+  # The ID of an object
+  id: ID!
+
+  # Primary type of this item.
+  type: String
+
+  # Version incremented after each mutation (on the server).
+  version: Int
+  title: String
+  labels: [String]
+  snippet(text: String): String
+  data: TypeUnion
+}
+
+# A connection to a list of items.
+type ItemConnection {
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # A list of edges.
+  edges: [ItemEdge]
+}
+
+# An edge in a connection.
+type ItemEdge {
+  # The item at the end of the edge
+  node: Item
+
+  # A cursor for use in pagination
+  cursor: String!
+}
+
+type Mutation {
+  createItemMutation(input: CreateItemMutationInput!): CreateItemMutationPayload
+  updateItemMutation(input: UpdateItemMutationInput!): UpdateItemMutationPayload
+}
+
+# An object with an ID
+interface Node {
+  # The id of the object.
+  id: ID!
+}
+
+type Note {
+  # Content in markdown (or html?)
+  content: String
+}
+
+# Information about pagination in a connection.
+type PageInfo {
+  # When paginating forwards, are there more items?
+  hasNextPage: Boolean!
+
+  # When paginating backwards, are there more items?
+  hasPreviousPage: Boolean!
+
+  # When paginating backwards, the cursor to continue.
+  startCursor: String
+
+  # When paginating forwards, the cursor to continue.
+  endCursor: String
+}
+
+type Query {
+  # Fetches an object given its ID
+  node(
+    # The ID of an object
+    id: ID!
+  ): Node
+  user(userId: ID): User
+  item(userId: ID, itemId: ID): Item
+}
+
+input StringListMutation {
+  index: Int = 0
+  value: String!
+}
+
+type Task {
+  priority: Int
+}
+
+# Base type for all data types.
+union TypeUnion = Note | Task
+
+input UpdateItemMutationInput {
+  userId: ID!
+  itemId: ID!
+  title: String
+  labels: [StringListMutation]
+  clientMutationId: String
+}
+
+type UpdateItemMutationPayload {
+  item: Item
+  clientMutationId: String
+}
+
+type User implements Node {
+  # The ID of an object
+  id: ID!
+
+  # User's name.
+  title: String
+
+  # User's collection of items.
+  items(after: String, first: Int, before: String, last: Int): ItemConnection
+  searchItems(text: String!): [Item]
+}

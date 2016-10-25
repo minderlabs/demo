@@ -65,10 +65,12 @@ const resolveNodeFromGlobalId = (globalId) => {
   console.log(`Resolve(${type}:${id})`);
 
   switch (type) {
+
     case User.KIND:
       return Database.singleton.getUser(id);
 
     case Item.KIND:
+      // TODO(burdon): Require bucketId?
       return Database.singleton.getItem(id);
 
     default:
@@ -96,6 +98,8 @@ const resolveNodeType = (obj) => {
 
 /**
  * Relay Node interface. Maps objects to types, and global IDs to objects.
+ * NOTE: Requires truly global ID (across buckets). Which requires a global index (how to partition? make secure?)
+ *
  * https://facebook.github.io/relay/docs/tutorial.html
  */
 const { nodeInterface, nodeField } = nodeDefinitions(
@@ -124,7 +128,7 @@ const UserType = new GraphQLObjectType({
       resolve: (item) => item.title
     },
 
-    // TODO(burdon): Can we specify additional predicates to filter (e.g., type).
+    // TODO(burdon): Can we specify additional predicates to filter (e.g., type)?
     items: {
       type: ItemConnection,
       description: 'User\'s collection of items.',
@@ -222,10 +226,8 @@ const {
 
 const TaskType = new GraphQLObjectType({
   name: 'Task',
-  interfaces: [ nodeInterface ],
 
   fields: () => ({
-    id: globalIdField(TaskType.name),
 
     priority: {
       type: GraphQLInt,
@@ -248,10 +250,8 @@ const TaskType = new GraphQLObjectType({
 
 const NoteType = new GraphQLObjectType({
   name: 'Note',
-  interfaces: [ nodeInterface ],
 
   fields: () => ({
-    id: globalIdField(NoteType.name),
 
     content: {
       type: GraphQLString,
@@ -278,6 +278,7 @@ const TypeUnion = new GraphQLUnionType({
 
   resolveType: (data) => {
     switch (data.type) {
+
       case NoteType.name:
         return NoteType;
 
