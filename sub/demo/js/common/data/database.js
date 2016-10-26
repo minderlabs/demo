@@ -4,6 +4,8 @@
 
 'use strict';
 
+import Random from 'random-seed';
+
 import { Util } from '../util/util';
 
 /**
@@ -123,6 +125,37 @@ Item.typeRegistry.set('Task', new TaskTypeHandler());
 Item.typeRegistry.set('Note', new NoteTypeHandler());
 
 /**
+ * Seedable ID generator.
+ * NOTE: Use same seed for in-memory datastore testing. With persistent store MUST NOT be constant.
+ */
+export class IdGenerator {
+
+  // TODO(burdon): Ensure consistent with server.
+
+  constructor(seed=undefined) {
+    this._random = Random.create(seed);
+  }
+
+  /**
+   * Unique ID compatible with server.
+   * @returns {string}
+   */
+  createId(type) {
+    console.assert(type);
+
+    const s4 = () => {
+      return Math.floor(this._random.floatBetween(1, 2) * 0x10000)
+        .toString(16)
+        .substring(1);
+    };
+
+    let guid = s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+
+    return `${type}-${guid}`;
+  }
+}
+
+/**
  * Database abstraction (and in-memory implementation).
  */
 export class Database {
@@ -130,6 +163,9 @@ export class Database {
   static singleton = null;
 
   constructor() {
+    // TODO(burdon): Unset seed if persistent.
+    this._idGenerator = new IdGenerator(0);
+
     // Map of users.
     this._users = new Map();
 
@@ -224,7 +260,7 @@ export class Database {
     console.assert(userId);
     console.assert(type);
 
-    data.id = Util.createItemId(type);
+    data.id = this._idGenerator.createId(type);
     data.type = type;
     data.version = 0;
 

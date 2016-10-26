@@ -4,34 +4,10 @@
 
 'use strict';
 
+/**
+ * Utils.
+ */
 export class Util {
-
-  // TODO(burdon): Inject Id generator (Stable IDs for debugging/refresh).
-  static DEBUG = true;
-  static count = 0;
-
-  /**
-   * Unique ID compatible with server.
-   * @returns {string}
-   */
-  static createItemId(type) {
-    console.assert(type);
-
-    function s4() {
-      return Math.floor((1 + Math.random()) * 0x10000)
-        .toString(16)
-        .substring(1);
-    }
-
-    let guid;
-    if (Util.DEBUG) {
-      guid = ++Util.count;
-    } else {
-      guid = s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-    }
-
-    return `${type}-${guid}`;
-  }
 
   /**
    * Clone the JSON object.
