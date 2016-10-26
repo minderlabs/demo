@@ -205,7 +205,6 @@ export default Relay.createContainer(HomeView, {
     viewer: () => Relay.QL`
       fragment on Viewer {
         id
-        title
 
         ${ItemList.getFragment('viewer')}
         ${CreateItemMutation.getFragment('viewer')}

@@ -1,13 +1,34 @@
 {
-  "users": [
+  "Group": [
     {
-      "id": "tester",
-      "title": "Test User"
+      "id": "minderlabs",
+      "title": "Minder Labs",
+      "users": [
+        "adam", "rich", "matt"
+      ]
+    }
+  ],
+
+  "User": [
+    {
+      "id": "adam",
+      "title": "Adam Berenzweig",
+      "email": "adam@minderlabs.com"
+    },
+    {
+      "id": "rich",
+      "title": "Rich Burdon",
+      "email": "rich@minderlabs.com"
+    },
+    {
+      "id": "matt",
+      "title": "Matt Sullivan",
+      "email": "matt@carbonfive.com"
     }
   ],
 
   "items": {
-    "tester": {
+    "minderlabs": {
       "Task": [
         {
           "title": "Task 1"
@@ -24,13 +45,16 @@
             "_favorite"
           ],
           "data": {
-            "priority": 1
+            "priority": 1,
+            "owner": "rich",
+            "assignee": "adam"
           }
         },
         {
           "title": "Task 5"
         }
       ],
+
       "Note": [
         {
           "title": "Note 1",

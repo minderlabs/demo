@@ -19,6 +19,9 @@ import schema from '../common/data/schema';
 import { Database } from '../common/data/database';
 
 
+const LOGGING = true;
+
+
 //
 // Database singleton.
 //
@@ -53,34 +56,39 @@ app.set('views', path.join(__dirname, 'views'));
 // https://github.com/graphql/express-graphql
 //
 
-app.use('/graphql', graphqlHTTP({
-  schema: schema,
+app.use('/graphql', (req, res) => {
 
-  graphiql: true,
+  // Intercept response.
+  if (LOGGING) {
+    console.log('REQ: [%s]', JSON.stringify(req.body, 0, 2));
 
-  pretty: true,
+    const end = res.end;
+    res.end = function(data) {
+      console.log('RES: [%s]', JSON.stringify(JSON.parse(data), 0, 2));
+      end.apply(res, arguments);
+    };
+  }
 
-  // TODO(burdon): Errors are swallowed?
-  formatError: error => ({
-    message: error.message,
-    locations: error.locations,
-    stack: error.stack
-  })
-}));
+  // Original GraphQL processor.
+  return graphqlHTTP({
+    schema: schema,
 
+    pretty: true,
 
-//
-// Intercept and log Relay requests.
-//
+    graphiql: true,
 
-app.post('/debug/graphql', function(req, res) {
-  console.log('REQ =', JSON.stringify(req.body, null, 2));
-
-  // Temp Redirect.
-  // TODO(burdon): Print response? Configure graphqlHTTP logging?
-  res.redirect(307, '/graphql');
+    /**
+     * These errors are returned to the client.
+     * @param error
+     */
+    // TODO(burdon): Figure out how to catch in client.
+    formatError: error => ({
+      message: error.message,
+      locations: error.locations,
+      stack: error.stack
+    })
+  })(req, res);
 });
-
 
 //
 // Config serving static files (generated webpack assets and test data).
@@ -111,7 +119,9 @@ app.get('/logout', function(req, res) {
 });
 
 app.get('/login', function(req, res) {
-  res.render('login');
+  res.render('login', {
+    users: Database.singleton.getUsers()
+  });
 });
 
 app.post('/login', function(req, res) {

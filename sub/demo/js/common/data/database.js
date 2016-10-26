@@ -151,7 +151,7 @@ export class IdGenerator {
 
     let guid = s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 
-    return `${type}-${guid}`;
+    return `${type}/${guid}`;
   }
 }
 
@@ -170,7 +170,7 @@ export class Database {
     this._users = new Map();
 
     // Map of all items.
-    this._itemIndex = new Map();
+    this._items = new Map();
 
     // Map of items by user.
     this._userItems = new Map();
@@ -180,17 +180,15 @@ export class Database {
     const data = require('./testing/test.json');
 
     // Create users.
-    for (let user of data['users']) {
+    for (let user of data['User']) {
       this.createUser(user);
     }
 
     // Create items for users.
-    _.each(data['items'], (types, userId) => {
-      let user = this.getViewer(userId);
-
+    _.each(data['items'], (types, bucketId) => {
       _.each(types, (items, type) => {
         for (let item of items) {
-          this.createItem(user.id, type, item);
+          this.createItem(bucketId, type, item);
         }
       });
     });
@@ -201,7 +199,8 @@ export class Database {
   searchItems(userId, text) {
     console.log('SEARCH["%s"]', text);
 
-    return [... this._itemIndex.values()].filter((item) => {
+    // TODO(burdon): Search from bucket.
+    return [...this._items.values()].filter((item) => {
       return item.match(text);
     });
   }
@@ -215,10 +214,18 @@ export class Database {
   //
 
   getViewer(userId) {
+    return this.getUser(userId);
+  }
+
+  getUser(userId) {
     let user = this._users.get(userId);
     console.assert(user);
     console.log('USER.GET', userId, JSON.stringify(user));
     return user;
+  }
+
+  getUsers() {
+    return Array.from(this._users.values());
   }
 
   createUser(data) {
@@ -233,11 +240,11 @@ export class Database {
   // TODO(burdon): Replace userId with bucketId?
   //
 
-  getUserItemMap(userId) {
-    let items = this._userItems.get(userId);
+  getItemMap(bucketId) {
+    let items = this._userItems.get(bucketId);
     if (!items) {
       items = new Map();
-      this._userItems.set(userId, items);
+      this._userItems.set(bucketId, items);
     }
     return items;
   }
@@ -245,19 +252,22 @@ export class Database {
   // TODO(burdon): Enforce bucketId?
   // TODO(burdon): Must check that user has permission to access item (check bucket).
   getItem(itemId) {
-    let item = this._itemIndex.get(itemId);
+    let item = this._items.get(itemId);
     console.log('ITEM.GET', itemId, JSON.stringify(item));
     return item;
   }
 
-  getItems(userId, type) {
-    let items = Array.from(this.getUserItemMap(userId).values());
-    console.log('ITEMS.GET', userId, type, items.length);
+  getItems(bucketId, type) {
+    // TODO(burdon): By bucket.
+//  let items = Array.from(this.getItemMap(bucketId).values());
+    let items = _.filter(Array.from(this._items.values()), (item) => { return item.type == type });
+
+    console.log('ITEMS.GET', bucketId, type, items.length);
     return items;
   }
 
-  createItem(userId, type, data) { // TODO(burdon): Rename values.
-    console.assert(userId);
+  createItem(bucketId, type, data) { // TODO(burdon): Rename values.
+    console.assert(bucketId);
     console.assert(type);
 
     data.id = this._idGenerator.createId(type);
@@ -265,14 +275,14 @@ export class Database {
     data.version = 0;
 
     let item = new Item(data); // TODO(burdon): Pass in ID, type separately.
-    console.log('ITEM.CREATE', userId, JSON.stringify(item));
-    this._itemIndex.set(item.id, item);
-    this.getUserItemMap(userId).set(item.id, item);
+    console.log('ITEM.CREATE', bucketId, JSON.stringify(item));
+    this._items.set(item.id, item);
+    this.getItemMap(bucketId).set(item.id, item);
     return item;
   }
 
   updateItem(itemId, values) {
-    let item = this._itemIndex.get(itemId);
+    let item = this._items.get(itemId);
 
     item.update(values);
     item.version += 1;

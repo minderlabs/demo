@@ -15,6 +15,7 @@ import Path from './path';
 
 import DemoApp from './demo';
 
+import DebugView from './view/debug';
 import HomeView from './view/home';
 import ItemDetailView from './view/detail';
 
@@ -83,6 +84,11 @@ export default (
            queries={ ItemDetailQueries }
            prepareParams={ params => ({ ...params, userId: userId }) }
            component={ ItemDetailView }/>
+
+    <Route path={ Path.DEBUG }
+           queries={ HomeQueries }
+           prepareParams={ params => ({ ...params, userId: userId }) }
+           component={ DebugView }/>
 
     <Redirect from='*' to={ Path.HOME }/>
 

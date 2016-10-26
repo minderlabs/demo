@@ -18,15 +18,30 @@
         </div>
 
         <div class="app-section">
-          <form action="/login" method="post">
+          <form id="login_form" action="/login" method="post">
           <div class="app-toolbar">
-            <input class="app-expand" type="text" name="username" value="tester" autofocus/>
+            <input id="username" class="app-expand" type="text" name="username" autofocus/>
             <button>Login</button>
           </div>
           </form>
         </div>
+
+        <div class="app-section">
+          {{#each users}}
+            <a class="app-tag" onclick="login('{{ id }}')">@{{ id }}</a>
+          {{/each}}
+        </div>
       </div>
     </div>
+
+    <script>
+      function login(id) {
+        document.getElementById('username').value = id;
+        setTimeout(() => {
+          document.getElementById('login_form').submit();
+        }, 500);
+      }
+    </script>
   </body>
 
 </html>

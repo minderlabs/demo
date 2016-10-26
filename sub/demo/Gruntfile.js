@@ -57,6 +57,7 @@ module.exports = function(grunt) {
     // NOTE: Use webpack --watch to automatically update all config entries.
     // https://webpack.github.io/docs/usage-with-grunt.html
     // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
+    // TODO(burdon): Debug options.
     webpack: {
       options: {},
       client: require('./webpack.config.js')

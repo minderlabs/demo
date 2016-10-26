@@ -62,7 +62,7 @@ import {
  */
 const resolveNodeFromGlobalId = (globalId) => {
   let { type, id } = fromGlobalId(globalId);
-  console.log(`Resolve(${type}:${id})`);
+  console.log(`Resolve Global ID: [${type}:${id}]`);
 
   switch (type) {
 
@@ -84,9 +84,10 @@ const NODE_TYPE_REGISTRY = new Map();
  * Determines node type of object instance.
  *
  * Used by GraphQL internals when resolving generics (interfaces and unions).
- * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d
  */
 const resolveNodeType = (obj) => {
+  console.log('Resolve Type:', obj);
+
   for (let [ clazz, type ] of NODE_TYPE_REGISTRY.entries()) {
     if (obj instanceof clazz) {
       return type;
@@ -121,26 +122,27 @@ const ViewerType = new GraphQLObjectType({
   fields: () => ({
     id: globalIdField(ViewerType.name),
 
-    title: {
-      type: GraphQLString,
-      description: 'User\'s name.',
-      resolve: (item) => item.title
+    user: {
+      type: ItemType,
+      description: 'Item that represents the current user.',
+      resolve: (user, args) => Database.singleton.getUser(user.id)
     },
 
-    // user: {
-    //   type: ItemType,
-    //   description: 'Item that represents the current user.',
-    //   resolve: (user, args) => Database.singleton.getUser(user.id)
-    // },
-
-    // TODO(burdon): Can we specify additional predicates to filter (e.g., type)?
     items: {
       type: ItemConnection,
       description: 'User\'s collection of items.',
-      args: connectionArgs,
+      args: {
+        ...connectionArgs,
+
+        // Additional args.
+        // https://github.com/facebook/relay/issues/59
+        // E.g., items(first: 10 type: "Task") { edges { node { id } } }
+        type: {
+          type: GraphQLString
+        }
+      },
       resolve: (viewer, args) => {
-        console.log('RESOLVE', args);
-        return connectionFromArray(Database.singleton.getItems(viewer.id), args)
+        return connectionFromArray(Database.singleton.getItems(viewer.id, args.type), args)
       }
     },
 
@@ -227,8 +229,33 @@ const {
 
 //
 // Item data types.
-// TODO(burdon): Add User, Group.
 //
+
+// TODO(burdon): Change to node interface of DataType (modified ID from parent item).
+
+const UserType = new GraphQLObjectType({
+  name: 'User',
+
+  fields: () => ({
+
+    email: {
+      type: GraphQLString,
+      resolve: (data) => data.email
+    }
+  })
+});
+
+const GroupType = new GraphQLObjectType({
+  name: 'Group',
+
+  fields: () => ({
+
+    members: {
+      type: new GraphQLList(GraphQLID),
+      resolve: (data) => data.members
+    }
+  })
+});
 
 const TaskType = new GraphQLObjectType({
   name: 'Task',
@@ -237,20 +264,18 @@ const TaskType = new GraphQLObjectType({
 
     priority: {
       type: GraphQLInt,
-      resolve: (data) => {
-        return data.priority;
-      }
+      resolve: (data) => data.priority
     },
 
-    // assignedByUser: {
-    //   type: GraphQLID,
-    //   resolve: (item, args) => resolveNodeFromGlobalId(item.data.assignedByUserId)    // TODO(burdon): userId!!!
-    // },
-    //
-    // assignedToUser: {
-    //   type: GraphQLID,
-    //   resolve: (item, args) => resolveNodeFromGlobalId(item.data.assignedToUserId)    // TODO(burdon): userId!!!
-    // }
+    owner: {
+      type: ItemType,
+      resolve: (data, args) => resolveNodeFromGlobalId(data.owner)        // TODO(burdon): Not node!
+    },
+
+    assignee: {
+      type: ItemType,
+      resolve: (data, args) => resolveNodeFromGlobalId(data.assignee)     // TODO(burdon): Not node!
+    }
   })
 });
 
@@ -267,6 +292,17 @@ const NoteType = new GraphQLObjectType({
   })
 });
 
+//
+// Map of data types.
+//
+
+export const DATA_TYPE_MAP = new Map();
+
+DATA_TYPE_MAP.set(GroupType.name, GroupType);
+DATA_TYPE_MAP.set(UserType.name,  UserType);
+DATA_TYPE_MAP.set(NoteType.name,  NoteType);
+DATA_TYPE_MAP.set(TaskType.name,  TaskType);
+
 /**
  * Union of data types.
  *
@@ -277,23 +313,15 @@ const NoteType = new GraphQLObjectType({
 const TypeUnion = new GraphQLUnionType({
   name: 'TypeUnion',
   description: 'Base type for all data types.',
-  types: [
-    NoteType,
-    TaskType
-  ],
+  types: Array.from(DATA_TYPE_MAP.values()),
 
   resolveType: (data) => {
-    switch (data.type) {
-
-      case NoteType.name:
-        return NoteType;
-
-      case TaskType.name:
-        return TaskType;
-
-      default:
-        throw 'Invalid data type: ' + data.type;
+    let type = DATA_TYPE_MAP.get(data.type);
+    if (!type) {
+      throw 'Invalid data type: ' + data.type;
     }
+
+    return type;
   },
 
   fields: () => ({

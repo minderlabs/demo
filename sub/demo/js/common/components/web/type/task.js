@@ -17,12 +17,20 @@ class Task extends React.Component {
   };
 
   render() {
-    let { priority } = this.props.data;
+    let { owner, assignee, priority } = this.props.data;
 
     return (
       <div className="app-section">
         <table>
           <tbody>
+            <tr>
+              <td>Owner</td>
+              <td>{ owner }</td>
+            </tr>
+            <tr>
+              <td>Assignee</td>
+              <td>{ assignee }</td>
+            </tr>
             <tr>
               <td>Priority</td>
               <td>{ priority }</td>

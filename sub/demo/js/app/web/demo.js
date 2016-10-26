@@ -6,6 +6,9 @@
 
 import React from 'react';
 import Relay from 'react-relay';
+import { Link } from 'react-router';
+
+import Path from './path';
 
 import './demo.less';
 
@@ -24,10 +27,11 @@ class DemoApp extends React.Component {
     return (
       <div className="app-panel">
         <div className="app-header">
-          <h1>{ viewer.title }</h1>
+          <h1>{ viewer.user.title }</h1>
 
           <div>
-            <a href="/graphql" target="_blank">GraphiQL</a>
+            <a href="/debug">GraphiQL</a>
+            <Link to={ Path.DEBUG }>Debug</Link>
             <a href="/logout">Logout</a>
           </div>
         </div>
@@ -55,7 +59,10 @@ export default Relay.createContainer(DemoApp, {
     viewer: () => Relay.QL`
       fragment on Viewer {
         id
-        title
+
+        user {
+          title
+        }
       }
     `
   }
