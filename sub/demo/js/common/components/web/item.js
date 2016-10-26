@@ -25,12 +25,11 @@ class Item extends React.Component {
   handleToggleFavorite(event) {
     event.stopPropagation();
 
-    let { user, item } = this.props;
+    let { item } = this.props;
 
     this.props.relay.commitUpdate(
       new UpdateItemMutation({
-        user: user,                                 // TODO(burdon): Just pass in ID?
-        item: item,                                 // TODO(burdon): Just pass in ID?
+        item: item,
         labels: [{
           index: _.indexOf(item['labels'], '_favorite') == -1 ? 0 : -1,
           value: '_favorite'

@@ -7,11 +7,11 @@
 import { Util } from '../util/util';
 
 /**
- * User.
+ * Viewer.
  */
-export class User {
+export class Viewer {
 
-  static KIND = 'User';
+  static KIND = 'Viewer';
 
   constructor(values) {
     console.assert(values.id);
@@ -150,7 +150,7 @@ export class Database {
 
     // Create items for users.
     _.each(data['items'], (types, userId) => {
-      let user = this.getUser(userId);
+      let user = this.getViewer(userId);
 
       _.each(types, (items, type) => {
         for (let item of items) {
@@ -178,7 +178,7 @@ export class Database {
   // Users
   //
 
-  getUser(userId) {
+  getViewer(userId) {
     let user = this._users.get(userId);
     console.assert(user);
     console.log('USER.GET', userId, JSON.stringify(user));
@@ -186,7 +186,7 @@ export class Database {
   }
 
   createUser(data) {
-    let user = new User(data);
+    let user = new Viewer(data);
     console.log('USER.CREATE', JSON.stringify(user));
     this._users.set(user.id, user);
     return user;

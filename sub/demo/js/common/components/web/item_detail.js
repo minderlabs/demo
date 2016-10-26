@@ -23,6 +23,7 @@ class ItemDetail extends React.Component {
   };
 
   static propTypes = {
+    viewer: React.PropTypes.object.isRequired,
     item: React.PropTypes.object.isRequired
   };
 
@@ -41,11 +42,10 @@ class ItemDetail extends React.Component {
   }
 
   handleSave(event) {
-    let { user, item } = this.props;
+    let { item } = this.props;
 
     this.props.relay.commitUpdate(
       new UpdateItemMutation({
-        user: user,
         item: item,
 
         title: this.state.item.title

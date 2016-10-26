@@ -13,8 +13,8 @@ import Relay from 'react-relay';
 export default class CreateItemMutation extends Relay.Mutation {
 
   static fragments = {
-    user: () => Relay.QL`
-      fragment on User {
+    viewer: () => Relay.QL`
+      fragment on Viewer {
         id
       }
     `
@@ -33,10 +33,10 @@ export default class CreateItemMutation extends Relay.Mutation {
    */
   getVariables() {
     return {
-      userId: this.props.user.id,
-      type:   this.props.type,
+      userId: this.props.viewer.id,
+      type: this.props.type,
 
-      title:  this.props.title,
+      title: this.props.title,
       labels: this.props.labels
 
       // TODO(burdon): Data
@@ -51,7 +51,7 @@ export default class CreateItemMutation extends Relay.Mutation {
     // TODO(burdon): Document @relay
     return Relay.QL`
       fragment on CreateItemMutationPayload @relay(pattern: true) {
-        user {
+        viewer {
           items {
             edges {
               node {
@@ -75,8 +75,8 @@ export default class CreateItemMutation extends Relay.Mutation {
     // https://facebook.github.io/relay/docs/guides-mutations.html#range-add
     return [{
       type: 'RANGE_ADD',
-      parentName: 'user',
-      parentID: this.props.user.id,
+      parentName: 'viewer',
+      parentID: this.props.viewer.id,
       connectionName: 'items',
       edgeName: 'itemEdge',
       rangeBehaviors: {
@@ -88,8 +88,8 @@ export default class CreateItemMutation extends Relay.Mutation {
 
   getOptimisticResponse() {
     return {
-      user: {
-        id: this.props.user.id
+      viewer: {
+        id: this.props.viewer.id
       },
 
       itemEdge: {

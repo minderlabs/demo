@@ -28,10 +28,9 @@ export default class UpdateItemMutation extends Relay.Mutation {
 
   getVariables() {
     return {
-      userId: this.props.user.id,
       itemId: this.props.item.id,
 
-      title:  this.props.title,
+      title: this.props.title,
       labels: this.props.labels
 
       // TODO(burdon): Data

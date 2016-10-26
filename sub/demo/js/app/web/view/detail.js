@@ -16,6 +16,10 @@ import Path from '../path';
  */
 class ItemDetailView extends React.Component {
 
+  static propTypes = {
+    viewer: React.PropTypes.object.isRequired
+  };
+
   static contextTypes = {
     router: React.PropTypes.object.isRequired
   };
@@ -25,7 +29,7 @@ class ItemDetailView extends React.Component {
   //
 
   render() {
-    let { user, item } = this.props;
+    let { viewer, item } = this.props;
 
     // Redirect to home page if not found.
     // TODO(burdon): Remove from history stack.
@@ -34,10 +38,9 @@ class ItemDetailView extends React.Component {
     }
 
     return (
-      // TODO(madadam): Switch on type, add NoteDetail.
       <div className="app-panel-column">
         <div className="app-item-detail">
-          <ItemDetail user={ user } item={ item }/>
+          <ItemDetail viewer={ viewer } item={ item }/>
         </div>
       </div>
     );
@@ -45,9 +48,10 @@ class ItemDetailView extends React.Component {
 }
 
 export default Relay.createContainer(ItemDetailView, {
+
   fragments: {
-    user: () => Relay.QL`
-      fragment on User {
+    viewer: () => Relay.QL`
+      fragment on Viewer {
         id
       }
     `,

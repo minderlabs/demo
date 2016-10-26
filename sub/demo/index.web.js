@@ -66,3 +66,6 @@ ReactDOM.render(
   // TODO(burdon): Get ID from config.
   document.getElementById('app-container')
 );
+
+// Started.
+console.log('Config =', String(config));

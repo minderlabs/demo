@@ -21,6 +21,10 @@ import './home.less';
  */
 class HomeView extends React.Component {
 
+  static propTypes = {
+    viewer: React.PropTypes.object.isRequired
+  };
+
   static contextTypes = {
     router: React.PropTypes.object.isRequired
   };
@@ -50,7 +54,7 @@ class HomeView extends React.Component {
   }
 
   createItem() {
-    let { user } = this.props;
+    let { viewer } = this.props;
 
     // TODO(burdon): Dynamically customize EditBar by type (or go direct to detail).
     let type = $(this.refs.type_select).val();
@@ -58,9 +62,9 @@ class HomeView extends React.Component {
     let title = this.state.title;
     if (title) {
       let mutation = new CreateItemMutation({
-        user:   user,
-        type:   type,
-        title:  title
+        viewer: viewer,
+        type: type,
+        title: title
       });
 
       // TODO(burdon): Requery on update? Listen for events? Is this cached?
@@ -149,7 +153,7 @@ class HomeView extends React.Component {
   //
 
   render() {
-    let { user } = this.props;
+    let { viewer } = this.props;
 
     // TODO(burdon): Factor out.
     const SearchBar = (
@@ -163,7 +167,7 @@ class HomeView extends React.Component {
 
     const SearchList = (
       <div className="app-section app-panel-column">
-        <ItemList ref="items" user={ user } onSelect={ this.handleItemSelect.bind(this) }/>
+        <ItemList ref="items" viewer={ viewer } onSelect={ this.handleItemSelect.bind(this) }/>
       </div>
     );
 
@@ -198,13 +202,13 @@ class HomeView extends React.Component {
 export default Relay.createContainer(HomeView, {
 
   fragments: {
-    user: () => Relay.QL`
-      fragment on User {
+    viewer: () => Relay.QL`
+      fragment on Viewer {
         id
         title
 
-        ${ItemList.getFragment('user')}
-        ${CreateItemMutation.getFragment('user')}
+        ${ItemList.getFragment('viewer')}
+        ${CreateItemMutation.getFragment('viewer')}
       }
     `
   }

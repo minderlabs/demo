@@ -16,6 +16,10 @@ import './item_list.less';
  */
 class ItemList extends React.Component {
 
+  static propTypes = {
+    viewer: React.PropTypes.object.isRequired
+  };
+
   handleSelect(node) {
     // TODO(burdon): Replace with selection model.
     this.props.onSelect && this.props.onSelect(node);
@@ -29,12 +33,12 @@ class ItemList extends React.Component {
   }
 
   render() {
-    let { user } = this.props;
+    let { viewer } = this.props;
 
-    let searchItems = user.searchItems.map(item => {
+    let searchItems = viewer.searchItems.map(item => {
       return (
         <div key={ item.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
-          <Item user={ user } item={ item } query={this.props.relay.variables.query} />
+          <Item item={ item } query={this.props.relay.variables.query} />
         </div>
       );
     });
@@ -55,8 +59,8 @@ export default Relay.createContainer(ItemList, {
   },
 
   fragments: {
-    user: (variables) => Relay.QL`
-      fragment on User {
+    viewer: (variables) => Relay.QL`
+      fragment on Viewer {
         id
 
         searchItems(text: $query) {

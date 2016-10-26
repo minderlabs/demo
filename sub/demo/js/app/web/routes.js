@@ -8,8 +8,7 @@ import React from 'react';
 import { IndexRedirect, Redirect, Route } from 'react-router';
 import { toGlobalId } from 'graphql-relay';
 
-import UserQueries from '../../common/queries/user';
-import ItemQueries from '../../common/queries/item';
+import { Viewer } from '../../common/data/database';
 
 import config from './config';
 import Path from './path';
@@ -24,8 +23,39 @@ import ItemDetailView from './view/detail';
 // Config JSON variable set by server.
 //
 
-console.log('Config =', String(config));
-const currentUser = toGlobalId('User', config.get('userId'));
+const userId = toGlobalId(Viewer.KIND, config.get('userId'));
+
+
+//
+// Router queries.
+// NOTE: These must match the fragments declared in the router components.
+//
+
+const HomeQueries = {
+
+  viewer: () => Relay.QL`
+    query {
+      viewer(userId: $userId)
+    }
+  `
+
+};
+
+const ItemDetailQueries = {
+
+  viewer: () => Relay.QL`
+    query {
+      viewer(userId: $userId)
+    }
+  `,
+
+  item: () => Relay.QL`
+    query {
+      item(itemId: $itemId)
+    }
+  `
+
+};
 
 
 /**
@@ -39,19 +69,19 @@ const currentUser = toGlobalId('User', config.get('userId'));
 export default (
 
   <Route path={ Path.ROOT }
-         queries={ UserQueries }
+         queries={ HomeQueries }
          component={ DemoApp }>
 
     <IndexRedirect to={ Path.HOME }/>
 
     <Route path={ Path.HOME }
-           queries={ UserQueries }
-           prepareParams={ params => ({ ...params, userId: currentUser }) }
+           queries={ HomeQueries }
+           prepareParams={ params => ({ ...params, userId: userId }) }
            component={ HomeView }/>
 
     <Route path={ Path.DETAIL + '/:itemId' }
-           queries={ ItemQueries }
-           prepareParams={ params => ({ ...params, userId: currentUser }) }
+           queries={ ItemDetailQueries }
+           prepareParams={ params => ({ ...params, userId: userId }) }
            component={ ItemDetailView }/>
 
     <Redirect from='*' to={ Path.HOME }/>

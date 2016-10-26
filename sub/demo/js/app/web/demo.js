@@ -14,13 +14,17 @@ import './demo.less';
  */
 class DemoApp extends React.Component {
 
+  static propTypes = {
+    viewer: React.PropTypes.object.isRequired
+  };
+
   render() {
-    let { children, user } = this.props;
+    let { viewer, children } = this.props;
 
     return (
       <div className="app-panel">
         <div className="app-header">
-          <h1>{ user.title }</h1>
+          <h1>{ viewer.title }</h1>
 
           <div>
             <a href="/graphql" target="_blank">GraphiQL</a>
@@ -29,7 +33,7 @@ class DemoApp extends React.Component {
         </div>
 
         <div className="app-section">
-          <div className="app-debug">{ JSON.stringify(user, 0, 2) }</div>
+          <div className="app-debug">{ JSON.stringify(viewer, 0, 2) }</div>
         </div>
 
         <div className="app-view app-panel-column">
@@ -48,8 +52,8 @@ class DemoApp extends React.Component {
 export default Relay.createContainer(DemoApp, {
 
   fragments: {
-    user: () => Relay.QL`
-      fragment on User {
+    viewer: () => Relay.QL`
+      fragment on Viewer {
         id
         title
       }

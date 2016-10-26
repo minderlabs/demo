@@ -46,7 +46,7 @@ import {
 import {
   Database,
   Item,
-  User
+  Viewer
 } from './database';
 
 //
@@ -66,8 +66,8 @@ const resolveNodeFromGlobalId = (globalId) => {
 
   switch (type) {
 
-    case User.KIND:
-      return Database.singleton.getUser(id);
+    case Viewer.KIND:
+      return Database.singleton.getViewer(id);
 
     case Item.KIND:
       // TODO(burdon): Require bucketId?
@@ -112,15 +112,14 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 //
 
 /**
- * User node type.
- * TODO(burdon): Rename Viewer (User should be part of the TypeUnion; separate from Contact).
+ * Node that represents the context for the current user.
  */
-const UserType = new GraphQLObjectType({
-  name: User.KIND,
+const ViewerType = new GraphQLObjectType({
+  name: Viewer.KIND,
   interfaces: [ nodeInterface ],
 
   fields: () => ({
-    id: globalIdField(UserType.name),
+    id: globalIdField(ViewerType.name),
 
     title: {
       type: GraphQLString,
@@ -128,14 +127,20 @@ const UserType = new GraphQLObjectType({
       resolve: (item) => item.title
     },
 
+    // user: {
+    //   type: ItemType,
+    //   description: 'Item that represents the current user.',
+    //   resolve: (user, args) => Database.singleton.getUser(user.id)
+    // },
+
     // TODO(burdon): Can we specify additional predicates to filter (e.g., type)?
     items: {
       type: ItemConnection,
       description: 'User\'s collection of items.',
       args: connectionArgs,
-      resolve: (user, args) => {
+      resolve: (viewer, args) => {
         console.log('RESOLVE', args);
-        return connectionFromArray(Database.singleton.getItems(user.id), args)
+        return connectionFromArray(Database.singleton.getItems(viewer.id), args)
       }
     },
 
@@ -201,7 +206,7 @@ const ItemType = new GraphQLObjectType({
 // Node Type Registry.
 //
 
-NODE_TYPE_REGISTRY.set(User, UserType);
+NODE_TYPE_REGISTRY.set(Viewer, ViewerType);
 NODE_TYPE_REGISTRY.set(Item, ItemType);
 
 //
@@ -222,6 +227,7 @@ const {
 
 //
 // Item data types.
+// TODO(burdon): Add User, Group.
 //
 
 const TaskType = new GraphQLObjectType({
@@ -322,6 +328,8 @@ const StringListMutation = new GraphQLList(new GraphQLInputObjectType({
 // https://facebook.github.io/relay/docs/guides-mutations.html
 //
 
+// TODO(burdon): It is possible to reuse with parameterized parent and edge?
+
 const CreateItemMutation = mutationWithClientMutationId({
   name: 'CreateItemMutation',
 
@@ -348,8 +356,8 @@ const CreateItemMutation = mutationWithClientMutationId({
   },
 
   outputFields: {
-    user: {
-      type: UserType,
+    viewer: {
+      type: ViewerType,
       resolve: ({ userId }) => resolveNodeFromGlobalId(userId)
     },
 
@@ -392,10 +400,6 @@ const UpdateItemMutation = mutationWithClientMutationId({
   name: 'UpdateItemMutation',
 
   inputFields: {
-    userId: {
-      type: new GraphQLNonNull(GraphQLID)
-    },
-
     itemId: {
       type: new GraphQLNonNull(GraphQLID)
     },
@@ -421,8 +425,7 @@ const UpdateItemMutation = mutationWithClientMutationId({
     }
   },
 
-  mutateAndGetPayload: ({ userId, itemId, title, labels }) => {
-    let localUserId = fromGlobalId(userId).id;
+  mutateAndGetPayload: ({ itemId, title, labels }) => {
     let localItemId = fromGlobalId(itemId).id;
 
     let item = Database.singleton.updateItem(localItemId, {
@@ -460,8 +463,8 @@ const RootQueryType = new GraphQLObjectType({
   fields: () => ({
     node: nodeField,
 
-    user: {
-      type: UserType,
+    viewer: {
+      type: ViewerType,
       args: {
         userId: { type: GraphQLID }
       },
