@@ -7,7 +7,11 @@
 import React from 'react';
 import Relay from 'react-relay';
 
+import Picker from '../../../common/components/web/picker';
+
 import { DATA_TYPE_MAP } from '../../../common/data/schema';
+
+import './debug.less';
 
 /**
  * Debug view.
@@ -25,6 +29,10 @@ class DebugView extends React.Component {
     })
   }
 
+  handleSelectItem(itemId) {
+    console.log('Selected: %s', itemId);
+  }
+
   //
   // Layout.
   //
@@ -32,7 +40,7 @@ class DebugView extends React.Component {
   render() {
     let { viewer } = this.props;
 
-    let items = viewer.items.edges.map((item) => {
+    let rows = viewer.items.edges.map((item) => {
       return (
         <tr key={ item.node.id }>
           <td>{ item.node.title }</td>
@@ -45,22 +53,31 @@ class DebugView extends React.Component {
     });
 
     return (
-      <div className="app-panel-column">
+      <div className="app-debug-view app-panel-column">
         <div className="app-section">
           <h1>Debug</h1>
         </div>
 
-        <div className="app-section app-toolbar">
-          <h2 className="app-expand">Items</h2>
-          <select defaultValue="Note" onChange={ this.handleTypeChange.bind(this) }>
-            { options }
-          </select>
+        <div>
+          <h3 className="app-section-header">Items</h3>
+          <div className="app-toolbar">
+            <select defaultValue="Note" onChange={ this.handleTypeChange.bind(this) }>
+              { options }
+            </select>
+          </div>
+
+          <div className="app-section">
+            <table>
+              <tbody>{ rows }</tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="app-section">
-          <table>
-            <tbody>{ items }</tbody>
-          </table>
+        <div>
+          <h3 className="app-section-header">Picker</h3>
+          <div className="app-toolbar">
+            <Picker viewer={ viewer } type="Task" onSelect={ this.handleSelectItem.bind(this) }/>
+          </div>
         </div>
       </div>
     );
@@ -73,8 +90,16 @@ export default Relay.createContainer(DebugView, {
     type: 'Note'
   },
 
+  // TODO(burdon): Child fragment variables collide with vars here?
+  // http://facebook.github.io/graphql/#sec-Field-Alias
+  // https://github.com/facebook/graphql/issues/137
+  // https://github.com/facebook/relay/issues/309
+
+  // TODO(burdon): Variable substitution.
+  // , { type: 'Task' }
+
   fragments: {
-    viewer: () => Relay.QL`
+    viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
         
@@ -90,6 +115,8 @@ export default Relay.createContainer(DebugView, {
             }
           }
         }
+
+        ${Picker.getFragment('viewer', { type: 'Task' })}
       }
     `,
   }

@@ -29,6 +29,8 @@ class HomeView extends React.Component {
     router: React.PropTypes.object.isRequired
   };
 
+  // TODO(burdon): Use TextBox.
+
   constructor(props, context) {
     super(props, context);
 
@@ -90,9 +92,9 @@ class HomeView extends React.Component {
       case this.refs.search_text:
         this.setState({
           search: event.target.value
+        }, () => {
+          this.triggerSearch();
         });
-
-        this.triggerSearch();
         break;
 
       case this.refs.create_text:
@@ -157,7 +159,7 @@ class HomeView extends React.Component {
 
     // TODO(burdon): Factor out.
     const SearchBar = (
-      <div className="app-section app-toolbar app-toolbar-search">
+      <div className="app-toolbar app-toolbar-search">
         <input ref="search_text" type="text" autoFocus="autoFocus" className="app-expand"
                value={ this.state.search }
                onChange={ this.handleTextChange.bind(this) }
@@ -173,7 +175,7 @@ class HomeView extends React.Component {
 
     // TODO(burdon): Factor out.
     const CreateBar = (
-      <div className="app-section app-toolbar app-toolbar-create">
+      <div className="app-toolbar app-toolbar-create">
 
         <select ref="type_select">
           <option value="Note">Note</option>
@@ -202,11 +204,12 @@ class HomeView extends React.Component {
 export default Relay.createContainer(HomeView, {
 
   fragments: {
-    viewer: () => Relay.QL`
+    viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
 
         ${ItemList.getFragment('viewer')}
+
         ${CreateItemMutation.getFragment('viewer')}
       }
     `

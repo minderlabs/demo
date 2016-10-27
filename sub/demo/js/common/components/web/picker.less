@@ -1,0 +1,70 @@
+//
+// Copyright 2016 Alien Laboratories, Inc.
+//
+
+@import (reference) './mixin';
+
+.app-picker {
+  position: relative;
+
+  width: 300px;
+
+  background-color: white;
+
+  > div {
+    display: flex;
+
+    input {
+      flex-grow: 1;
+      border: 1px solid #CCC;
+
+      padding: 2px 4px;
+      font-size: 18px;
+    }
+  }
+
+  .app-picker-popup {
+    display: flex;
+    position: absolute;
+    width: 100%;
+
+    background-color: white;
+
+    > div {
+      flex-grow: 1;
+
+      max-height: 120px;        // (20 + 4) x 5
+      overflow-y: scroll;
+      overflow-x: hidden;
+
+      border: 1px solid #CCC;
+      border-top: none;
+
+      > input {
+        .app-noselect;
+
+        width: 100%;
+        line-height: 20px;
+
+        padding: 2px 4px;
+        font-size: 18px;
+        border: none;
+
+        cursor: pointer;
+      }
+      > input:focus {
+        background-color: #EEE;
+      }
+      > input:hover {
+        background-color: #EEE;
+      }
+    }
+
+    > div::-webkit-scrollbar {
+      width: 4px;
+    }
+    > div::-webkit-scrollbar-thumb {
+      background-color: #666;
+    }
+  }
+}

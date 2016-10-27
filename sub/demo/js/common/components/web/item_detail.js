@@ -80,7 +80,7 @@ class ItemDetail extends React.Component {
           { JSON.stringify(item, 0, 2) }
         </div>
 
-        <div className="app-section app-toolbar">
+        <div className="app-toolbar">
           <button onClick={ this.handleSave.bind(this) }>Save</button>
           <button onClick={ this.handleCancel.bind(this) }>Cancel</button>
         </div>

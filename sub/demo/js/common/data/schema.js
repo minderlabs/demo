@@ -139,7 +139,7 @@ const ViewerType = new GraphQLObjectType({
         // Additional args.
         // https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
         // https://github.com/facebook/relay/issues/59
-        // E.g., items(first: 10 type: "Task") { edges { node { id } } }
+        // E.g., items(first: 10, type: "Task") { edges { node { id } } }
         type: {
           type: GraphQLString
         }

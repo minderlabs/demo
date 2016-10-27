@@ -38,7 +38,7 @@ class ItemList extends React.Component {
     let searchItems = viewer.searchItems.map(item => {
       return (
         <div key={ item.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
-          <Item item={ item } query={this.props.relay.variables.query} />
+          <Item item={ item } query={ this.props.relay.variables.query } />
         </div>
       );
     });

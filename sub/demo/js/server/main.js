@@ -60,11 +60,25 @@ app.use('/graphql', (req, res) => {
 
   // Intercept response.
   if (req.method == 'POST' && LOGGING) {
-    console.log('REQ: [%s]', JSON.stringify(req.body, 0, 2));
+    console.log('\n>>> REQ: [{');
+    _.each(req.body, (part, key) => {
+      switch (typeof part) {
+        case 'string':
+          part = part.replace(/\n/g, '\n  ');
+          break;
+
+        case 'object':
+          part = JSON.stringify(part, 0, 2).replace(/\n/g, '\n  ');
+          break;
+      }
+
+      console.log(key + ':\n  ' + part);
+    });
+    console.log('}]\n');
 
     const end = res.end;
     res.end = function(data) {
-      console.log('RES: [%s]', JSON.stringify(JSON.parse(data), 0, 2));
+      console.log('\n<<< RES: [%s]\n', JSON.stringify(JSON.parse(data), 0, 2));
       end.apply(res, arguments);
     };
   }

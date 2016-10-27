@@ -253,7 +253,7 @@ export class Database {
   // TODO(burdon): Must check that user has permission to access item (check bucket).
   getItem(itemId) {
     let item = this._items.get(itemId);
-    console.log('ITEM.GET', itemId, JSON.stringify(item));
+    console.log('ITEM.GET[%s] = %s', itemId, JSON.stringify(item));
     return item;
   }
 
@@ -262,7 +262,7 @@ export class Database {
 //  let items = Array.from(this.getItemMap(bucketId).values());
     let items = _.filter(Array.from(this._items.values()), (item) => { return item.type == type });
 
-    console.log('ITEMS.GET', bucketId, type, items.length);
+    console.log('ITEMS.GET[%s; %s]: %d', bucketId, type, items.length);
     return items;
   }
 
@@ -275,7 +275,7 @@ export class Database {
     data.version = 0;
 
     let item = new Item(data); // TODO(burdon): Pass in ID, type separately.
-    console.log('ITEM.CREATE', bucketId, JSON.stringify(item));
+    console.log('ITEM.CREATE[%s] = %s', bucketId, JSON.stringify(item));
     this._items.set(item.id, item);
     this.getItemMap(bucketId).set(item.id, item);
     return item;
@@ -287,7 +287,7 @@ export class Database {
     item.update(values);
     item.version += 1;
 
-    console.log('ITEM.UPDATE', JSON.stringify(item));
+    console.log('ITEM.UPDATE[%s] = %s', JSON.stringify(item));
     return item;
   }
 }

@@ -4,6 +4,8 @@
 
 // TODO(burdon): Factor out style and generic styles.
 
+@import (reference) '../../common/components/web/mixin';
+
 //
 // Generic styles.
 //
@@ -24,6 +26,7 @@ h1, h2, h3 {
 input, textarea, button {
   outline: none;
   spellcheck: none;
+  font-family: Roboto, sans-serif;
 }
 
 a {
@@ -80,12 +83,8 @@ i.material-icons {
 }
 
 //
-// Components
+// Layout
 //
-
-.app-section {
-  padding: 8px;
-}
 
 .app-expand {
   flex-grow: 1;
@@ -101,13 +100,29 @@ i.material-icons {
   flex-grow: 1;
 }
 
+//
+// Blocks
+//
+
+.app-section {
+  padding: 8px;
+}
+
+.app-section-header {
+  padding: 2px 8px;
+  background-color: skyblue;
+}
+
 .app-toolbar {
   display: flex;
   flex-direction: row;
   align-items: center;
+  padding: 8px;
+
+  background-color: #DDD;
 
   button, input {
-    font-size: 20px;
+    font-size: 16px;
   }
 
   select {
@@ -123,11 +138,9 @@ i.material-icons {
   }
 }
 
-.app-nowrap {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow-x: hidden;
-}
+//
+// Components
+//
 
 .app-debug {
   font-family: Monaco, monospace;
