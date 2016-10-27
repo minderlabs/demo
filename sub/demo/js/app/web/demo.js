@@ -30,7 +30,7 @@ class DemoApp extends React.Component {
           <h1>{ viewer.user.title }</h1>
 
           <div>
-            <a href="/debug">GraphiQL</a>
+            <a href="/graphql" target="_blank">GraphiQL</a>
             <Link to={ Path.DEBUG }>Debug</Link>
             <a href="/logout">Logout</a>
           </div>

@@ -13,8 +13,10 @@
 // https://github.com/relayjs/relay-examples/blob/master (Examples)
 //
 
-// TODO(burdon): Fix debugging (errors getting swallowed).
-// TODO(burdon): Caching (https://facebook.github.io/relay/docs/thinking-in-graphql.html#content)
+// TODO(burdon): Caching
+// https://github.com/facebook/relay/wiki/Frequently-Asked-Questions
+// https://github.com/facebook/relay/issues/720#issuecomment-174050321
+// https://facebook.github.io/relay/docs/thinking-in-graphql.html#content
 
 import {
   GraphQLBoolean,
@@ -135,6 +137,7 @@ const ViewerType = new GraphQLObjectType({
         ...connectionArgs,
 
         // Additional args.
+        // https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
         // https://github.com/facebook/relay/issues/59
         // E.g., items(first: 10 type: "Task") { edges { node { id } } }
         type: {

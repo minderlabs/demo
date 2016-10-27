@@ -59,7 +59,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use('/graphql', (req, res) => {
 
   // Intercept response.
-  if (LOGGING) {
+  if (req.method == 'POST' && LOGGING) {
     console.log('REQ: [%s]', JSON.stringify(req.body, 0, 2));
 
     const end = res.end;

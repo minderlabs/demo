@@ -82,7 +82,7 @@ export default Relay.createContainer(DebugView, {
           title
         }
         
-        items(first: 10 type: $type) {
+        items(first: 10, type: $type) {
           edges {
             node {
               id
