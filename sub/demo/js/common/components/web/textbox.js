@@ -34,6 +34,12 @@ export default class TextBox extends React.Component {
     return this.state.value;
   }
 
+  set value(value) {
+    this.setState({
+      value: value
+    });
+  }
+
   focus() {
     this.refs.input.focus();
   }

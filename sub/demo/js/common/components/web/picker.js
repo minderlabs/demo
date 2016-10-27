@@ -95,11 +95,14 @@ class Picker extends React.Component {
   }
 
   handleTextChange(text) {
-    console.log('TEXT', text);
+    this.props.relay.setVariables({
+      text: text || ''
+    });
   }
 
-  handleItemSelect(itemId) {
-    this.props.onSelect && this.props.onSelect(itemId);
+  handleItemSelect(node) {
+    this.refs.textbox.value = node.title;
+    this.props.onSelect && this.props.onSelect(node.id);
     this.setState({
       showPopup: false
     });
@@ -123,7 +126,7 @@ class Picker extends React.Component {
                onKeyDown={ this.handleListKeyDown.bind(this) }
                onFocus={ this.handleItemFocusChange.bind(this, item.node.id, true) }
                onBlur={ this.handleItemFocusChange.bind(this, item.node.id, false) }
-               onClick={ this.handleItemSelect.bind(this, item.node.id) }/>
+               onClick={ this.handleItemSelect.bind(this, item.node) }/>
       );
     });
 
@@ -150,9 +153,9 @@ class Picker extends React.Component {
 
 export default Relay.createContainer(Picker, {
 
-  // TODO(burdon): ???
   initialVariables: {
-    type: 'Task'
+    type: '', // Set by parent.
+    text: ''
   },
 
   fragments: {
@@ -160,7 +163,7 @@ export default Relay.createContainer(Picker, {
       fragment on Viewer {
         id
 
-        items(first: 10, type: $type) {
+        items(first: 10, type: $type, text: $text) {
           edges {
             node {
               id

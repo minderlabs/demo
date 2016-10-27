@@ -13,6 +13,9 @@ import { Util } from '../util/util';
  */
 export class Viewer {
 
+  // NOTE: This is more than a User; e.g., might contain runtime state for logged in user.
+
+  // TODO(burdon): Remove.
   static KIND = 'Viewer';
 
   constructor(values) {
@@ -28,6 +31,7 @@ export class Viewer {
  */
 export class Item {
 
+  // TODO(burdon): Remove.
   static KIND = 'Item';
 
   static typeRegistry = new Map();
@@ -48,7 +52,6 @@ export class Item {
   }
 
   get handler() {
-    console.assert(this.type);
     return Item.typeRegistry.get(this.type);
   }
 
@@ -56,19 +59,18 @@ export class Item {
     Util.maybeUpdateItem(this, values, 'title');
     Util.updateStringSet(this, values, 'labels');
 
-    this.handler.update(this.data, values['data'] || {})
+    this.handler && this.handler.update(this.data, values['data'] || {})
   }
 
   match(text) {
-    // TODO(burdon): Default query by label.
-    // TODO(burdon): If not debugging then show nothing unless matches something.
-    return !text || Util.textMatch(this, ['title'], text) || this.handler.match(this.data, text);
+    // TODO(burdon): Add label queries.
+    return Util.textMatch(this, ['title'], text) || (this.handler && this.handler.match(this.data, text));
   }
 
   snippet(queryString) {
     if (queryString) {
       let snippets = Util.computeSnippet(this, ['title'], queryString);
-      let dataSnippets = this.handler.snippet(this.data, queryString);
+      let dataSnippets = this.handler && this.handler.snippet(this.data, queryString);
       if (dataSnippets) {
         snippets = snippets.concat(dataSnippets);
       }
@@ -179,9 +181,12 @@ export class Database {
   init() {
     const data = require('./testing/test.json');
 
+    const GLOBAL_BUCKET_ID = '__GLOBAL__';
+
     // Create users.
     for (let user of data['User']) {
       this.createUser(user);
+      this.createItem(GLOBAL_BUCKET_ID, 'User', _.defaults(user, { type: 'User' }));
     }
 
     // Create items for users.
@@ -257,12 +262,17 @@ export class Database {
     return item;
   }
 
-  getItems(bucketId, type) {
+  getItems(bucketId, type, text) {
     // TODO(burdon): By bucket.
 //  let items = Array.from(this.getItemMap(bucketId).values());
-    let items = _.filter(Array.from(this._items.values()), (item) => { return item.type == type });
 
-    console.log('ITEMS.GET[%s; %s]: %d', bucketId, type, items.length);
+    let items = _.filter(Array.from(this._items.values()), (item) => {
+      let match = item.type == type;
+      match &= (text === undefined || item.match(text));
+      return match;
+    });
+
+    console.log('ITEMS.GET[%s; %s; "%s"]: %d', bucketId, type, text, items.length);
     return items;
   }
 

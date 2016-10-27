@@ -90,6 +90,7 @@ const NODE_TYPE_REGISTRY = new Map();
 const resolveNodeType = (obj) => {
   console.log('Resolve Type:', obj);
 
+  // TODO(burdon): Don't depend on Database implementation. Get from property?
   for (let [ clazz, type ] of NODE_TYPE_REGISTRY.entries()) {
     if (obj instanceof clazz) {
       return type;
@@ -142,13 +143,18 @@ const ViewerType = new GraphQLObjectType({
         // E.g., items(first: 10, type: "Task") { edges { node { id } } }
         type: {
           type: GraphQLString
+        },
+        text: {
+          type: GraphQLString,
+          description: 'Text query used to filter items.'
         }
       },
       resolve: (viewer, args) => {
-        return connectionFromArray(Database.singleton.getItems(viewer.id, args.type), args)
+        return connectionFromArray(Database.singleton.getItems(viewer.id, args.type, args.text), args)
       }
     },
 
+    // TODO(burdon): Redundant given items above?
     searchItems: {
       type: new GraphQLList(ItemType),
       args: {
@@ -211,8 +217,8 @@ const ItemType = new GraphQLObjectType({
 // Node Type Registry.
 //
 
-NODE_TYPE_REGISTRY.set(Viewer, ViewerType);
-NODE_TYPE_REGISTRY.set(Item, ItemType);
+NODE_TYPE_REGISTRY.set(Viewer,  ViewerType);
+NODE_TYPE_REGISTRY.set(Item,    ItemType);
 
 //
 // Connection Types.

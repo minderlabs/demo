@@ -26,7 +26,7 @@ class DebugView extends React.Component {
     let type = $(ev.target).val();
     this.props.relay.setVariables({
       type: type
-    })
+    });
   }
 
   handleSelectItem(itemId) {
@@ -61,7 +61,7 @@ class DebugView extends React.Component {
         <div>
           <h3 className="app-section-header">Items</h3>
           <div className="app-toolbar">
-            <select defaultValue="Note" onChange={ this.handleTypeChange.bind(this) }>
+            <select defaultValue={ ListType } onChange={ this.handleTypeChange.bind(this) }>
               { options }
             </select>
           </div>
@@ -76,7 +76,7 @@ class DebugView extends React.Component {
         <div>
           <h3 className="app-section-header">Picker</h3>
           <div className="app-toolbar">
-            <Picker viewer={ viewer } type="Task" onSelect={ this.handleSelectItem.bind(this) }/>
+            <Picker viewer={ viewer } type={ PickerType } onSelect={ this.handleSelectItem.bind(this) }/>
           </div>
         </div>
       </div>
@@ -84,19 +84,17 @@ class DebugView extends React.Component {
   }
 }
 
+// NOTE: The type variable passed to <Picker/> and referenced below must be the same.
+const PickerType = 'User';
+const ListType = 'Task';
+
 export default Relay.createContainer(DebugView, {
 
   initialVariables: {
-    type: 'Note'
+    listType: ListType,
+    pickerType: PickerType,
+    text: ''
   },
-
-  // TODO(burdon): Child fragment variables collide with vars here?
-  // http://facebook.github.io/graphql/#sec-Field-Alias
-  // https://github.com/facebook/graphql/issues/137
-  // https://github.com/facebook/relay/issues/309
-
-  // TODO(burdon): Variable substitution.
-  // , { type: 'Task' }
 
   fragments: {
     viewer: (variables) => Relay.QL`
@@ -107,7 +105,7 @@ export default Relay.createContainer(DebugView, {
           title
         }
         
-        items(first: 10, type: $type) {
+        items(first: 10, type: $listType) {
           edges {
             node {
               id
@@ -116,7 +114,7 @@ export default Relay.createContainer(DebugView, {
           }
         }
 
-        ${Picker.getFragment('viewer', { type: 'Task' })}
+        ${Picker.getFragment('viewer', { type: 'User' })}
       }
     `,
   }
