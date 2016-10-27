@@ -28,7 +28,9 @@ class Picker extends React.Component {
 
     this.state = {
       showPopup: false
-    }
+    };
+
+    this._focusTimeout = null;
   }
 
   handleListKeyDown(event) {
@@ -75,21 +77,36 @@ class Picker extends React.Component {
     }
   }
 
+  /**
+   * Show/hide popup.
+   * @param show
+   */
+  showPopup(show) {
+    this._focusTimeout && clearTimeout(this._focusTimeout);
+    this._focusTimeout = setTimeout(() => {
+      this.setState({
+        showPopup: show
+      });
+    }, 0); // Must be async to give all focus events to fire.
+  }
+
+  handleTextFocusChange(state) {
+    this.showPopup(state);
+  }
+
   handleTextChange(text) {
     console.log('TEXT', text);
   }
 
-  handleFocusChange(state) {
-    // Give time for select event to propagate.
-    setTimeout(() => {
-      this.setState({
-        showPopup: state || true
-      });
-    }, 100);  // TODO(burdon): Cannot be zero.
-  }
-
   handleItemSelect(itemId) {
     this.props.onSelect && this.props.onSelect(itemId);
+    this.setState({
+      showPopup: false
+    });
+  }
+
+  handleItemFocusChange(itemId, state) {
+    this.showPopup(state);
   }
 
   render() {
@@ -104,6 +121,8 @@ class Picker extends React.Component {
                readOnly="readOnly"
                defaultValue={ item.node.title }
                onKeyDown={ this.handleListKeyDown.bind(this) }
+               onFocus={ this.handleItemFocusChange.bind(this, item.node.id, true) }
+               onBlur={ this.handleItemFocusChange.bind(this, item.node.id, false) }
                onClick={ this.handleItemSelect.bind(this, item.node.id) }/>
       );
     });
@@ -116,7 +135,7 @@ class Picker extends React.Component {
                    placeholder={ placeholder }
                    onKeyDown={ this.handleTextKeyDown.bind(this) }
                    onTextChange={ this.handleTextChange.bind(this) }
-                   onFocusChange={ this.handleFocusChange.bind(this) }/>
+                   onFocusChange={ this.handleTextFocusChange.bind(this) }/>
         </div>
 
         <div ref="items" className="app-picker-popup" style={ {'display': this.state.showPopup ? 'block' : 'none' } }>
