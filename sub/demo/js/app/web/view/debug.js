@@ -29,8 +29,8 @@ class DebugView extends React.Component {
     });
   }
 
-  handleSelectItem(itemId) {
-    console.log('Selected: %s', itemId);
+  handleSelectItem(item) {
+    console.log('Selected: %s', JSON.stringify(item));
   }
 
   //
@@ -40,10 +40,10 @@ class DebugView extends React.Component {
   render() {
     let { viewer } = this.props;
 
-    let rows = viewer.items.edges.map((item) => {
+    let rows = viewer.items.edges.map((edge) => {
       return (
-        <tr key={ item.node.id }>
-          <td>{ item.node.title }</td>
+        <tr key={ edge.node.id }>
+          <td>{ edge.node.title }</td>
         </tr>
       );
     });

@@ -278,12 +278,12 @@ const TaskType = new GraphQLObjectType({
 
     owner: {
       type: ItemType,
-      resolve: (data, args) => resolveNodeFromGlobalId(data.owner)        // TODO(burdon): Not node!
+      resolve: (data) => Database.singleton.getItem(data.owner)
     },
 
     assignee: {
       type: ItemType,
-      resolve: (data, args) => resolveNodeFromGlobalId(data.assignee)     // TODO(burdon): Not node!
+      resolve: (data) => Database.singleton.getItem(data.assignee)
     }
   })
 });

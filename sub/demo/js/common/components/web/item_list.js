@@ -45,7 +45,6 @@ class ItemList extends React.Component {
 
     return (
       <div>
-        <h3>Results</h3>
         <div className="app-section app-expand app-list">{ searchItems }</div>
       </div>
     );

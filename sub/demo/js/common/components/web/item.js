@@ -68,7 +68,7 @@ export default Relay.createContainer(Item, {
   },
 
   fragments: {
-    item: () => Relay.QL`
+    item: (variables) => Relay.QL`
       fragment on Item {
         id
         type

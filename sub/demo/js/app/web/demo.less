@@ -38,6 +38,10 @@ i.material-icons {
   cursor: pointer;
 }
 
+table {
+  table-layout: fixed;
+}
+
 //
 // Container layout.
 //
@@ -92,12 +96,15 @@ i.material-icons {
 
 .app-panel {
   display: flex;
+  flex-direction: row;
+  overflow-x: hidden;
 }
 
 .app-panel-column {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  overflow-x: hidden;
 }
 
 //
@@ -105,6 +112,8 @@ i.material-icons {
 //
 
 .app-section {
+  display: flex;
+  flex-direction: column;
   padding: 8px;
 }
 
@@ -138,11 +147,22 @@ i.material-icons {
   }
 }
 
+.app-data {
+  display: flex;
+  flex-direction: column;
+
+  .app-data-row {
+    display: flex;
+    flex-direction: row;
+  }
+}
+
 //
 // Components
 //
 
 .app-debug {
+  word-wrap: break-word;
   font-family: Monaco, monospace;
   font-size: 12px;
   color: darkgreen;

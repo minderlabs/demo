@@ -35,15 +35,18 @@ class TypeRegistry {
     return this._icons.get(typeName);
   }
 
-  render(typeName, item) {
-    let renderer = this._renderers.get(typeName);
-    return renderer && renderer(item) || null;
+  render(viewer, item) {
+    let renderer = this._renderers.get(item.type);
+    return renderer && renderer(viewer, item) || null;
   }
 }
 
 const TYPE_REGISTRY = new TypeRegistry();
 
-TYPE_REGISTRY.add('Note', Note, (item) => <Note data={ item.data }/>, 'description');
-TYPE_REGISTRY.add('Task', Task, (item) => <Task data={ item.data }/>, 'assignment_turned_in');
+TYPE_REGISTRY.add('Note', Note,
+  (viewer, item) => <Note viewer={ viewer } data={ item.data }/>, 'description');
+
+TYPE_REGISTRY.add('Task', Task,
+  (viewer, item) => <Task viewer={ viewer } data={ item.data }/>, 'assignment_turned_in');
 
 export default TYPE_REGISTRY;

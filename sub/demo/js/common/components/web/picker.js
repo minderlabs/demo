@@ -30,11 +30,20 @@ class Picker extends React.Component {
       showPopup: false
     };
 
+    this._selected = null;
     this._focusTimeout = null;
   }
 
   handleListKeyDown(event) {
     switch (event.keyCode) {
+
+      // ENTER:
+      case 13: {
+        if (this._selected) {
+          this.handleItemSelect(this._selected);
+        }
+        break;
+      }
 
       // ESCAPE
       case 27: {
@@ -100,15 +109,16 @@ class Picker extends React.Component {
     });
   }
 
-  handleItemSelect(node) {
-    this.refs.textbox.value = node.title;
-    this.props.onSelect && this.props.onSelect(node.id);
+  handleItemSelect(item) {
+    this.refs.textbox.value = item.title;
+    this.props.onSelect && this.props.onSelect(item);
     this.setState({
       showPopup: false
     });
   }
 
-  handleItemFocusChange(itemId, state) {
+  handleItemFocusChange(item, state) {
+    this._selected = state && item;
     this.showPopup(state);
   }
 
@@ -116,17 +126,17 @@ class Picker extends React.Component {
     let { viewer } = this.props;
 
     // TODO(burdon): Props.
-    let placeholder = `Search ${this.props.type} ...`;
+    let placeholder = `Search ${this.props.type}...`;
 
-    let rows = viewer.items.edges.map((item) => {
+    let rows = viewer.items.edges.map((edge) => {
       return (
-        <input key={ item.node.id }
+        <input key={ edge.node.id }
                readOnly="readOnly"
-               defaultValue={ item.node.title }
+               defaultValue={ edge.node.title }
                onKeyDown={ this.handleListKeyDown.bind(this) }
-               onFocus={ this.handleItemFocusChange.bind(this, item.node.id, true) }
-               onBlur={ this.handleItemFocusChange.bind(this, item.node.id, false) }
-               onClick={ this.handleItemSelect.bind(this, item.node) }/>
+               onFocus={ this.handleItemFocusChange.bind(this, edge.node, true) }
+               onBlur={ this.handleItemFocusChange.bind(this, edge.node, false) }
+               onClick={ this.handleItemSelect.bind(this, edge.node) }/>
       );
     });
 

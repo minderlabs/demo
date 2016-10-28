@@ -60,19 +60,22 @@ class ItemDetail extends React.Component {
   }
 
   render() {
-    let { item } = this.props;
+    let { viewer, item } = this.props;
 
-    let detail = TypeRegistry.render(item.type, item);
+    let detail = TypeRegistry.render(viewer, item);
 
     return (
       <div className="app-item-detail">
         <div className="app-section">
-          <input type="text" className="app-expand app-field-title" title={ item.id } autoFocus="autoFocus"
+          <input type="text"
+                 className="app-expand app-field-title"
+                 title={ item.id }
+                 autoFocus="autoFocus"
                  onChange={ this.handleTextChange.bind(this, 'title') }
                  value={ this.state.item.title }/>
         </div>
 
-        <div className="app-section app-expand">
+        <div className="app-panel-column app-expand">
           { detail }
         </div>
 
@@ -91,10 +94,16 @@ class ItemDetail extends React.Component {
 
 export default Relay.createContainer(ItemDetail, {
 
-  // TODO(burdon): Document fragments.
-
   fragments: {
-    item: () => Relay.QL`
+    viewer: (variables) => Relay.QL`
+      fragment on Viewer {
+        id
+
+        ${ _.map(TypeRegistry.types, (type) => type.getFragment('viewer')) }
+      }
+    `,
+
+    item: (variables) => Relay.QL`
       fragment on Item {
         id
         type,

@@ -56,7 +56,7 @@ class DemoApp extends React.Component {
 export default Relay.createContainer(DemoApp, {
 
   fragments: {
-    viewer: () => Relay.QL`
+    viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
 

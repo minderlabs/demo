@@ -98,7 +98,12 @@ class BaseTypeHandler {
 class TaskTypeHandler extends BaseTypeHandler {
 
   update(data, values) {
+    // TODO(burdon): Pass array of values.
     Util.maybeUpdateItem(data, values, 'priority');
+
+    // TODO(burdon): Convert to IDs.
+    Util.maybeUpdateItem(data, values, 'owner');
+    Util.maybeUpdateItem(data, values, 'assignee');
   }
 
   match(data, text) {
@@ -254,7 +259,7 @@ export class Database {
     return items;
   }
 
-  // TODO(burdon): Enforce bucketId?
+  // TODO(burdon): Enforce bucketId? Schema can't pass this?
   // TODO(burdon): Must check that user has permission to access item (check bucket).
   getItem(itemId) {
     let item = this._items.get(itemId);

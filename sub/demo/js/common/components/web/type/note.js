@@ -31,7 +31,13 @@ class Note extends React.Component {
 export default Relay.createContainer(Note, {
 
   fragments: {
-    data: () => Relay.QL`
+    viewer: (variables) => Relay.QL`
+      fragment on Viewer {
+        id
+      }
+    `,
+
+    data: (variables) => Relay.QL`
       fragment on Note {
         content
       }
