@@ -64,7 +64,23 @@ export class Item {
 
   match(text) {
     // TODO(burdon): Add label queries.
-    return Util.textMatch(this, ['title'], text) || (this.handler && this.handler.match(this.data, text));
+    let match = false;
+    text = text.trim();
+    if (text) {
+      let parts = text.split(/\s+/);
+      for (let part of parts) {
+        if (part[0] == ':') {
+          let label = part.substring(1);
+          if (label) {
+            match |= _.indexOf(this.labels, label) != -1;
+          }
+        } else {
+          match |= Util.textMatch(this, ['title'], part) || (this.handler && this.handler.match(this.data, part));
+        }
+      }
+    }
+
+    return match;
   }
 
   snippet(queryString) {

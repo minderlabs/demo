@@ -11,6 +11,23 @@ import Picker from '../../../../common/components/web/picker';
 
 import './task.less';
 
+class SaveButtons extends React.Component {
+
+  static ACTION_SAVE    = 1;
+  static ACTION_CANCEL  = 2;
+
+  render() {
+    return (
+      <div className="app-buttons">
+        <i className="material-icons">mode_edit</i>
+        <i className="material-icons">done</i>
+        <i className="material-icons">cancel</i>
+      </div>
+    );
+  }
+}
+
+
 /**
  * Task data.
  */

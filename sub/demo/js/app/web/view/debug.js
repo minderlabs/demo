@@ -22,6 +22,10 @@ class DebugView extends React.Component {
     viewer: React.PropTypes.object.isRequired,
   };
 
+  constructor(props, context) {
+    super(props, context);
+  }
+
   handleTypeChange(ev) {
     let type = $(ev.target).val();
     this.props.relay.setVariables({
@@ -61,7 +65,8 @@ class DebugView extends React.Component {
         <div>
           <h3 className="app-section-header">Items</h3>
           <div className="app-toolbar">
-            <select defaultValue={ ListType } onChange={ this.handleTypeChange.bind(this) }>
+            <select defaultValue={ this.props.relay.variables.type }
+                    onChange={ this.handleTypeChange.bind(this) }>
               { options }
             </select>
           </div>
@@ -76,7 +81,9 @@ class DebugView extends React.Component {
         <div>
           <h3 className="app-section-header">Picker</h3>
           <div className="app-toolbar">
-            <Picker viewer={ viewer } type={ PickerType } onSelect={ this.handleSelectItem.bind(this) }/>
+            <Picker viewer={ viewer }
+                    type={ this.props.relay.variables.type }
+                    onSelect={ this.handleSelectItem.bind(this) }/>
           </div>
         </div>
       </div>
@@ -84,15 +91,10 @@ class DebugView extends React.Component {
   }
 }
 
-// NOTE: The type variable passed to <Picker/> and referenced below must be the same.
-const PickerType = 'User';
-const ListType = 'Task';
-
 export default Relay.createContainer(DebugView, {
 
   initialVariables: {
-    listType: ListType,
-    pickerType: PickerType,
+    type: 'Task',
     text: ''
   },
 
@@ -105,7 +107,7 @@ export default Relay.createContainer(DebugView, {
           title
         }
         
-        items(first: 10, type: $listType) {
+        items(first: 10, type: $type) {
           edges {
             node {
               id
@@ -114,7 +116,7 @@ export default Relay.createContainer(DebugView, {
           }
         }
 
-        ${Picker.getFragment('viewer', { type: 'User' })}
+        ${Picker.getFragment('viewer', { type: variables.type })}
       }
     `,
   }
