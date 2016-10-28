@@ -75,13 +75,28 @@ table {
     background-color: #99CCCC;
     padding: 8px;
 
-    h1 {
+    > div:first-child {
+      display: flex;
       flex-grow: 1;
-      margin: 0;
+      align-items: center;
+
+      i {
+        color: #333;
+        font-size: 28px;
+      }
+
+      h1 {
+        flex-grow: 1;
+        margin: 0;
+        margin-left: 8px;
+        font-size: 28px;
+      }
     }
 
-    a {
-      margin-left: 8px;
+    .app-links {
+      a {
+        margin-left: 8px;
+      }
     }
   }
 }
@@ -113,7 +128,6 @@ table {
 
 .app-section {
   display: flex;
-  flex-direction: column;
   padding: 8px;
 }
 
@@ -180,11 +194,15 @@ table {
 }
 
 .app-tag {
+  margin-left: 4px;
   background-color: cornflowerblue;
   color: white;
   padding: 3px 4px;
   border-radius: 4px;
   cursor: pointer;
+}
+.app-tag:first-child {
+  margin-left: 0;
 }
 
 //

@@ -9,6 +9,7 @@ import Relay from 'react-relay';
 
 // TODO(burdon): Create lib for UX and Data.
 import ItemList from '../../../common/components/web/item_list';
+import TextBox from '../../../common/components/web/textbox';
 
 import CreateItemMutation from '../../../common/mutations/create_item';
 
@@ -21,6 +22,8 @@ import './home.less';
  */
 class HomeView extends React.Component {
 
+  // TODO(burdon): Cache in-memory state (e.g., search text).
+
   static propTypes = {
     viewer: React.PropTypes.object.isRequired
   };
@@ -28,8 +31,6 @@ class HomeView extends React.Component {
   static contextTypes = {
     router: React.PropTypes.object.isRequired
   };
-
-  // TODO(burdon): Use TextBox.
 
   constructor(props, context) {
     super(props, context);
@@ -39,7 +40,7 @@ class HomeView extends React.Component {
       title: ''
     };
 
-    // TODO(burdon): Factor out searchbar.
+    // TODO(burdon): Use TextBox.
     this._searchInterval = 200;
     this._searchTimeout = null;
   }
@@ -160,7 +161,10 @@ class HomeView extends React.Component {
     // TODO(burdon): Factor out.
     const SearchBar = (
       <div className="app-toolbar app-toolbar-search">
-        <input ref="search_text" type="text" autoFocus="autoFocus" className="app-expand"
+        <input ref="search_text"
+               type="text"
+               className="app-expand"
+               autoFocus="autoFocus"
                value={ this.state.search }
                onChange={ this.handleTextChange.bind(this) }
                onKeyUp={ this.handleKeyUp.bind(this) }/>
@@ -169,7 +173,9 @@ class HomeView extends React.Component {
 
     const SearchList = (
       <div className="app-section app-panel-column">
-        <ItemList ref="items" viewer={ viewer } onSelect={ this.handleItemSelect.bind(this) }/>
+        <ItemList ref="items"
+                  viewer={ viewer }
+                  onSelect={ this.handleItemSelect.bind(this) }/>
       </div>
     );
 
@@ -182,12 +188,16 @@ class HomeView extends React.Component {
           <option value="Task">Task</option>
         </select>
 
-        <input ref="create_text" type="text" className="app-expand"
+        <input ref="create_text"
+               type="text"
+               className="app-expand"
                value={ this.state.title }
                onChange={ this.handleTextChange.bind(this) }
                onKeyUp={ this.handleKeyUp.bind(this) }/>
 
-        <button onClick={ this.handleCreateButton.bind(this) }><i className="material-icons">add_circle</i></button>
+        <button onClick={ this.handleCreateButton.bind(this) }>
+          <i className="material-icons">add_circle</i>
+        </button>
       </div>
     );
 

@@ -25,7 +25,7 @@ class DebugView extends React.Component {
   handleTypeChange(ev) {
     let type = $(ev.target).val();
     this.props.relay.setVariables({
-      type: type
+      listType: type
     });
   }
 
@@ -59,6 +59,13 @@ class DebugView extends React.Component {
         </div>
 
         <div>
+          <h3 className="app-section-header">Picker</h3>
+          <div className="app-toolbar">
+            <Picker viewer={ viewer } type={ PickerType } onSelect={ this.handleSelectItem.bind(this) }/>
+          </div>
+        </div>
+
+        <div>
           <h3 className="app-section-header">Items</h3>
           <div className="app-toolbar">
             <select defaultValue={ ListType } onChange={ this.handleTypeChange.bind(this) }>
@@ -70,13 +77,6 @@ class DebugView extends React.Component {
             <table>
               <tbody>{ rows }</tbody>
             </table>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="app-section-header">Picker</h3>
-          <div className="app-toolbar">
-            <Picker viewer={ viewer } type={ PickerType } onSelect={ this.handleSelectItem.bind(this) }/>
           </div>
         </div>
       </div>
@@ -91,8 +91,8 @@ const ListType = 'Task';
 export default Relay.createContainer(DebugView, {
 
   initialVariables: {
-    listType: ListType,
     pickerType: PickerType,
+    listType: ListType,
     text: ''
   },
 
