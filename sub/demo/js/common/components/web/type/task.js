@@ -33,7 +33,7 @@ class Task extends React.Component {
     console.log('Selected: %s', JSON.stringify(item));
     this.setState((state, props) => {
       return {
-        data: _.defaults(state, {
+        data: _.defaults(state.data, {
           assignee: item.id
         })
       }
@@ -43,6 +43,10 @@ class Task extends React.Component {
   render() {
     let { viewer } = this.props;
     let { priority, owner, assignee } = this.state.data;
+
+    // TODO(burdon): Mutation (see item_detail). Think about changing to Interface.
+    // TODO(burdon): Picker set value (not just text).
+    // TODO(burdon): Select box for priority.
 
     return (
       <div className="app-panel-column app-item-task">
@@ -54,13 +58,16 @@ class Task extends React.Component {
 
           <div className="app-data-row">
             <div className="app-key">Owner</div>
-            <div className="app-value">{ owner }</div>
+            <div className="app-value">{ owner && owner.title }</div>
           </div>
 
           <div className="app-data-row">
             <div className="app-key">Assignee</div>
             <div className="app-value">
-              <Picker viewer={ viewer } type='User' onSelect={ this.handleSelectItem.bind(this) }/>
+              <Picker viewer={ viewer }
+                      type='User'
+                      value={ assignee && assignee.title }
+                      onSelect={ this.handleSelectItem.bind(this) }/>
             </div>
           </div>
         </div>

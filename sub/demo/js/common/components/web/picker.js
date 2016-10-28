@@ -20,7 +20,8 @@ class Picker extends React.Component {
 
   static propTypes = {
     viewer: React.PropTypes.object.isRequired,
-    type: React.PropTypes.string.isRequired
+    type: React.PropTypes.string.isRequired,
+    value: React.PropTypes.string
   };
 
   constructor(props, context) {

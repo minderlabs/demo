@@ -191,7 +191,9 @@ export class Database {
     // Create users.
     for (let user of data['User']) {
       this.createUser(user);
-      this.createItem(GLOBAL_BUCKET_ID, 'User', _.defaults(user, { type: 'User' }));
+      this.createItem(GLOBAL_BUCKET_ID, 'User', _.defaults(user, {
+        type: 'User'
+      }));
     }
 
     // Create items for users.
@@ -285,7 +287,7 @@ export class Database {
     console.assert(bucketId);
     console.assert(type);
 
-    data.id = this._idGenerator.createId(type);
+    data.id = data.id || this._idGenerator.createId(type);
     data.type = type;
     data.version = 0;
 

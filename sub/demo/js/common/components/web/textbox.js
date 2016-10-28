@@ -24,7 +24,7 @@ export default class TextBox extends React.Component {
     super(props, context);
 
     this.state = {
-      value: ''
+      value: this.props.value || ''
     };
 
     this._timeout = null;
