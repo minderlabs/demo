@@ -51,6 +51,11 @@ import {
   Viewer
 } from './database';
 
+
+// NOTE: Needed so that the webpack client has a dependency for schema changes.
+export const VERSION = '0.0.1';
+
+
 //
 // NOTE: The Database.singleton decouples database implementation dependencies (e.g., lodash) from the schema defs.
 // This is required since babel requires the schema (but not the implementation) to generate the schema.json file.

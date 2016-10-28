@@ -8,6 +8,9 @@ import React from 'react';
 import Relay from 'react-relay';
 import { Link } from 'react-router';
 
+// NOTE: Don't remove (needed to trigger webpack on schema changes).
+import { VERSION } from '../../common/data/schema';
+
 import Path from './path';
 
 import './demo.less';
@@ -27,9 +30,16 @@ class DemoApp extends React.Component {
     return (
       <div className="app-panel">
         <div className="app-header">
-          <h1>{ viewer.user.title }</h1>
-
           <div>
+            <Link to={ Path.HOME }>
+              <i className="material-icons">menu</i>
+            </Link>
+
+            <h1>Demo</h1>
+          </div>
+
+          <div className="app-links">
+            <span>{ viewer.user.title }</span>
             <a href="/graphql" target="_blank">GraphiQL</a>
             <Link to={ Path.DEBUG }>Debug</Link>
             <a href="/logout">Logout</a>

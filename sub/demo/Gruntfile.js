@@ -26,12 +26,6 @@ module.exports = function(grunt) {
           'js/common/data/schema.js'
         ],
         tasks: ['run:update_schema']
-      },
-      schema_json: {
-        files: [
-          'dist/schema.json'
-        ],
-        tasks: ['webpack']
       }
     },
 
