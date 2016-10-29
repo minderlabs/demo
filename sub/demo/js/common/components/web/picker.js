@@ -107,9 +107,9 @@ class Picker extends React.Component {
 
   handleTextChange(text) {
     this.props.relay.setVariables({
-      filter: {
-        text: text || ''    // TODO(burdon): Merge with type.
-      }
+      filter: _.assign({}, this.props.relay.variables.filter, {
+        text: text || ''
+      })
     });
   }
 

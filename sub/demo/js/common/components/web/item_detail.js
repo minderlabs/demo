@@ -110,8 +110,8 @@ export default Relay.createContainer(ItemDetail, {
     item: (variables) => Relay.QL`
       fragment on Item {
         id
-        type,
-        version,
+        type
+        version
 
         title
         labels

@@ -20,7 +20,7 @@ class Note extends React.Component {
     let { content } = this.props.data;
 
     return (
-      <div className="">
+      <div className="app-section">
         <h3>Content</h3>
         <div>{ content }</div>
       </div>

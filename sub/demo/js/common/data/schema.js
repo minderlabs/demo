@@ -169,19 +169,6 @@ const ViewerType = new GraphQLObjectType({
       resolve: (viewer, args) => {
         return connectionFromArray(Database.singleton.getItems(viewer.id, args.filter), args)
       }
-    },
-
-    // TODO(burdon): Redundant given items above?
-    searchItems: {
-      type: new GraphQLList(ItemType),
-
-      // TODO(burdon): Replace with filter.
-      args: {
-        text: { type: new GraphQLNonNull(GraphQLString) }
-      },
-      resolve: (parent, args) => {
-        return Database.singleton.getItems(parent.id, { text: args.text });
-      }
     }
   })
 });

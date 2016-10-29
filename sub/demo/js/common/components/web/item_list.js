@@ -17,7 +17,8 @@ import './item_list.less';
 class ItemList extends React.Component {
 
   static propTypes = {
-    viewer: React.PropTypes.object.isRequired
+    viewer: React.PropTypes.object.isRequired,
+    filter: React.PropTypes.object
   };
 
   handleSelect(node) {
@@ -28,24 +29,30 @@ class ItemList extends React.Component {
   setQuery(text) {
     // https://facebook.github.io/relay/docs/api-reference-relay-container.html#setvariables
     this.props.relay.setVariables({
-      text: text
+      filter: _.assign({}, this.props.relay.variables.filter, {
+        text: text
+      })
     });
   }
 
   render() {
     let { viewer } = this.props;
 
-    let searchItems = viewer.searchItems.map(item => {
+    let items = viewer.items.edges.map(edge => {
       return (
-        <div key={ item.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
-          <Item item={ item } text={ this.props.relay.variables.text } />
+        <div key={ edge.node.id }
+             className="app-list-item"
+             onClick={ this.handleSelect.bind(this, edge.node) }>
+
+          <Item item={ edge.node }
+                filter={ this.props.relay.variables.filter } />
         </div>
       );
     });
 
     return (
       <div>
-        <div className="app-list app-expand">{ searchItems }</div>
+        <div className="app-list app-expand">{ items }</div>
       </div>
     );
   }
@@ -53,10 +60,8 @@ class ItemList extends React.Component {
 
 export default Relay.createContainer(ItemList, {
 
-  // TODO(burdon): Search by filter.
-
   initialVariables: {
-    text: ''
+    filter: {}
   },
 
   fragments: {
@@ -64,11 +69,15 @@ export default Relay.createContainer(ItemList, {
       fragment on Viewer {
         id
 
-        searchItems(text: $text) {
-          id
-          type
+        items(first: 10, filter: $filter) {
+          edges {
+            node {
+              id
+              title
 
-          ${Item.getFragment('item', { text: variables.text })}
+              ${Item.getFragment('item', { filter: variables.filter })}
+            }
+          }
         }
       }
     `
