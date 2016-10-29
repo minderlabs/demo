@@ -61,10 +61,11 @@ table {
   background-color: @app-toolbar-background;
   padding: @app-toolbar-padding;
 
-  input, button, select {
+  > input, button, select {
     margin-left: @app-toolbar-padding;
   }
-  input:first-child, button:first-child, select:first-child {
+
+  > input:first-child, button:first-child, select:first-child {
     margin-left: 0;
   }
 }
