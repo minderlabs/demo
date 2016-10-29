@@ -52,11 +52,15 @@ class ItemDetail extends React.Component {
       })
     );
 
-    this.context.router.goBack();   // TODO(burdon): Should be handled by parent container (via event?)
+    // TODO(burdon): Get properties from data.
+
+    // TODO(burdon): Should be handled by parent container (via event?)
+    this.context.router.goBack();
   }
 
   handleCancel(event) {
-    this.context.router.goBack();   // TODO(burdon): Should be handled by parent container (via event?)
+    // TODO(burdon): Should be handled by parent container (via event?)
+    this.context.router.goBack();
   }
 
   render() {
