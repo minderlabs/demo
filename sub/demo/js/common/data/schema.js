@@ -502,6 +502,8 @@ const RootMutationType = new GraphQLObjectType({
 const RootQueryType = new GraphQLObjectType({
   name: 'Query',
 
+  // Used by Router queries to set-up state.
+
   fields: () => ({
     node: nodeField,
 

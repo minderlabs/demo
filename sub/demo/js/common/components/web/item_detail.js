@@ -66,21 +66,25 @@ class ItemDetail extends React.Component {
 
     return (
       <div className="app-item-detail">
-        <div className="app-section">
-          <input type="text"
-                 className="app-expand app-field-title"
-                 title={ item.id }
-                 autoFocus="autoFocus"
-                 onChange={ this.handleTextChange.bind(this, 'title') }
-                 value={ this.state.item.title }/>
+        <div className="app-panel app-expand">
+
+          <div className="app-row">
+            <input type="text"
+                   className="app-expand app-field-title"
+                   title={ item.id }
+                   autoFocus="autoFocus"
+                   onChange={ this.handleTextChange.bind(this, 'title') }
+                   value={ this.state.item.title }/>
+          </div>
+
+          <div className="app-column app-expand">
+            { detail }
+          </div>
+
         </div>
 
-        <div className="app-panel-column app-expand">
-          { detail }
-        </div>
-
-        <div className="app-section app-debug">
-          { JSON.stringify(item, 0, 2) }
+        <div className="app-panel app-section app-debug">
+          { JSON.stringify(item, 0, 1) }
         </div>
 
         <div className="app-toolbar">

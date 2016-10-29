@@ -11,23 +11,6 @@ import Picker from '../../../../common/components/web/picker';
 
 import './task.less';
 
-class SaveButtons extends React.Component {
-
-  static ACTION_SAVE    = 1;
-  static ACTION_CANCEL  = 2;
-
-  render() {
-    return (
-      <div className="app-buttons">
-        <i className="material-icons">mode_edit</i>
-        <i className="material-icons">done</i>
-        <i className="material-icons">cancel</i>
-      </div>
-    );
-  }
-}
-
-
 /**
  * Task data.
  */
@@ -66,32 +49,36 @@ class Task extends React.Component {
     // TODO(burdon): Select box for priority.
 
     return (
-      <div className="app-panel-column app-item-task">
-        <div className="app-section app-data app-expand">
-          <div className="app-data-row">
-            <div className="app-key">Priority</div>
-            <div className="app-value">{ priority }</div>
-          </div>
+      <div className="app-item-task app-column app-expand">
 
-          <div className="app-data-row">
-            <div className="app-key">Owner</div>
-            <div className="app-value">{ owner && owner.title }</div>
-          </div>
+        <div className="app-section app-expand">
+          <div className="app-data app-expand">
+            <div className="app-data-row">
+              <div className="app-key">Priority</div>
+              <div className="app-value">{ priority }</div>
+            </div>
 
-          <div className="app-data-row">
-            <div className="app-key">Assignee</div>
-            <div className="app-value">
-              <Picker viewer={ viewer }
-                      type='User'
-                      value={ assignee && assignee.title }
-                      onSelect={ this.handleSelectItem.bind(this) }/>
+            <div className="app-data-row">
+              <div className="app-key">Owner</div>
+              <div className="app-value">{ owner && owner.title }</div>
+            </div>
+
+            <div className="app-data-row">
+              <div className="app-key">Assignee</div>
+              <div className="app-value">
+                <Picker viewer={ viewer }
+                        type='User'
+                        value={ assignee && assignee.title }
+                        onSelect={ this.handleSelectItem.bind(this) }/>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="app-section app-debug">
-          { JSON.stringify(_.pick(this.state.data, ['owner', 'assignee', 'priority'])) }
+          { JSON.stringify(_.pick(this.state.data, ['owner', 'assignee', 'priority']), 0, 1) }
         </div>
+
       </div>
     );
   }

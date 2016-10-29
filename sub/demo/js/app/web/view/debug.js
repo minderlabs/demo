@@ -44,11 +44,10 @@ class DebugView extends React.Component {
   render() {
     let { viewer } = this.props;
 
+    // TODO(burdon): Change to list (same for select).
     let rows = viewer.items.edges.map((edge) => {
       return (
-        <tr key={ edge.node.id }>
-          <td>{ edge.node.title }</td>
-        </tr>
+        <div key={ edge.node.id }>{ edge.node.title }</div>
       );
     });
 
@@ -57,35 +56,24 @@ class DebugView extends React.Component {
     });
 
     return (
-      <div className="app-debug-view app-panel-column">
-        <div className="app-section">
-          <h1>Debug</h1>
+      <div className="app-debug-view app-column app-expand">
+
+        <div className="app-toolbar">
+          <select defaultValue={ this.props.relay.variables.type }
+                  onChange={ this.handleTypeChange.bind(this) }>
+            { options }
+          </select>
+
+          <Picker viewer={ viewer }
+                  className="app-expand"
+                  type={ this.props.relay.variables.type }
+                  onSelect={ this.handleSelectItem.bind(this) }/>
         </div>
 
-        <div>
-          <h3 className="app-section-header">Items</h3>
-          <div className="app-toolbar">
-            <select defaultValue={ this.props.relay.variables.type }
-                    onChange={ this.handleTypeChange.bind(this) }>
-              { options }
-            </select>
-          </div>
-
-          <div className="app-section">
-            <table>
-              <tbody>{ rows }</tbody>
-            </table>
-          </div>
+        <div className="app-panel app-section">
+          { rows }
         </div>
 
-        <div>
-          <h3 className="app-section-header">Picker</h3>
-          <div className="app-toolbar">
-            <Picker viewer={ viewer }
-                    type={ this.props.relay.variables.type }
-                    onSelect={ this.handleSelectItem.bind(this) }/>
-          </div>
-        </div>
       </div>
     );
   }

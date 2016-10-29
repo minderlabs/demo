@@ -28,7 +28,7 @@ class DemoApp extends React.Component {
     let { viewer, children } = this.props;
 
     return (
-      <div className="app-panel">
+      <div className="app-column">
         <div className="app-header">
           <div>
             <Link to={ Path.HOME }>
@@ -46,13 +46,11 @@ class DemoApp extends React.Component {
           </div>
         </div>
 
-        <div className="app-section">
-          <div className="app-debug">{ JSON.stringify(viewer, 0, 2) }</div>
-        </div>
-
-        <div className="app-view app-panel-column">
+        <div className="app-view app-column app-expand">
           { children }
         </div>
+
+        <div className="app-footer"></div>
       </div>
     );
   }

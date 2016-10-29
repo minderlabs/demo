@@ -2,25 +2,19 @@
 // Copyright 2016 Alien Laboratories, Inc.
 //
 
-@import (reference) './mixin';
+@import (reference) './defs/mixin';
+@import './defs/theme';
 
 .app-picker {
   position: relative;
 
   background-color: white;
 
-  // All input cells.
-  input {
-    padding: 2px 4px;
-    font-size: 16px;
-  }
-
   > div {
     display: flex;
 
     input {
       flex-grow: 1;
-      border: 1px solid #CCC;
     }
   }
 
@@ -35,13 +29,15 @@
       display: none;
     }
     > div {
+      display: flex;
+      flex-direction: column;
       flex-grow: 1;
 
       max-height: 120px;        // (20 + 4) x 5
       overflow-y: auto;
       overflow-x: hidden;
 
-      border: 1px solid #CCC;
+      border: 1px solid #AAA;   // TODO(burdon): Factor out defs.
       border-top: none;
 
       > input {
@@ -66,5 +62,14 @@
     > div::-webkit-scrollbar-thumb {
       background-color: #666;
     }
+  }
+}
+
+.app-toolbar {
+  .app-picker {
+    margin-left: @app-toolbar-padding;
+  }
+  .app-picker:first-child {
+    margin-left: 0;
   }
 }

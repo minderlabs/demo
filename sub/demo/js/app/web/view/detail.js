@@ -38,7 +38,7 @@ class ItemDetailView extends React.Component {
     }
 
     return (
-      <div className="app-panel-column">
+      <div className="app-column app-expand">
         <ItemDetail viewer={ viewer } item={ item }/>
       </div>
     );

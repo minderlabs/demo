@@ -1,0 +1,104 @@
+//
+// Copyright 2016 Alien Laboratories, Inc.
+//
+
+@import (reference) './mixin';
+@import './theme';
+
+//
+// Generic Elements.
+//
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+i.material-icons {
+  .app-noselect;
+  cursor: pointer;
+}
+
+table {
+  table-layout: fixed;
+}
+
+//
+// Layout
+//
+
+.app-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-column {
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.app-row {
+  display: flex;
+  flex-direction: row;
+  overflow-x: hidden;
+}
+
+.app-expand {
+  flex-grow: 1;
+}
+
+//
+// Toolbar.
+//
+
+.app-toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  box-shadow: @app-panel-boxshaow;
+  background-color: @app-toolbar-background;
+  padding: @app-toolbar-padding;
+
+  input, button, select {
+    margin-left: @app-toolbar-padding;
+  }
+  input:first-child, button:first-child, select:first-child {
+    margin-left: 0;
+  }
+}
+
+//
+// Data table.
+//
+
+.app-data {
+  display: flex;
+  flex-direction: column;
+
+  .app-data-row {
+    display: flex;
+    flex-direction: row;
+  }
+}
+
+// TODO(burdon): ???
+.app-key {
+  color: @app-color-medium;
+  font-size: @app-font-small;
+}
+
+//
+// Icons
+//
+
+.app-icon {
+  cursor: pointer;
+}
+.app-icon-medium {
+  font-size: @app-icon-size-medium;
+}
+.app-icon-star {
+  color: @app-color-star;
+}

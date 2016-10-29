@@ -19,6 +19,7 @@ class Picker extends React.Component {
   // TODO(burdon): Allow text input while paging.
 
   static propTypes = {
+    className: React.PropTypes.string,
     viewer: React.PropTypes.object.isRequired,
     type: React.PropTypes.string.isRequired,
     value: React.PropTypes.string
@@ -142,7 +143,7 @@ class Picker extends React.Component {
     });
 
     return (
-      <div className="app-picker">
+      <div className={ "app-picker" + (' ' + this.props.className || '') }>
         <div>
           <TextBox ref="textbox"
                    value={ this.props.value }

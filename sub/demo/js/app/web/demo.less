@@ -2,212 +2,66 @@
 // Copyright 2016 Alien Laboratories, Inc.
 //
 
-// TODO(burdon): Factor out style and generic styles.
+@import '../../common/components/web/defs/core';
+@import '../../common/components/web/defs/theme';
 
-@import (reference) '../../common/components/web/mixin';
-
-//
-// Generic styles.
-//
-
-body {
-  margin: 0;
-  overflow: hidden;
-
-  background-color: #CCC;
-}
-
-h1, h2, h3 {
-  margin: 0;
-  padding: 0;
-  font-weight: 100;
-}
-
-input, textarea, button {
-  outline: none;
-  spellcheck: none;
-  font-family: Roboto, sans-serif;
-}
-
-a {
-  color: darkblue;
-  text-decoration: none;
-}
-
-i.material-icons {
-  cursor: pointer;
-}
-
-table {
-  table-layout: fixed;
-}
+@import (reference) '../../common/components/web/defs/mixin';
 
 //
 // Container layout.
 //
 
 #app-container {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  .app-fullscreen;
 
   display: flex;
   flex-direction: row;
   justify-content: center;
 
-  font-family: Roboto, sans-serif;
-
-  // Column.
-  > div {
-    display: flex;
-    flex-direction: column;
+  > .app-column {
     width: 500px;
 
-    background-color: whitesmoke;
-    box-shadow: 4px 4px 16px #AAA;
-  }
+    background-color: @app-container-background;
+    box-shadow: @app-boxshadow;
 
-  .app-header {
-    display: flex;
-    flex-direction: row;
-    background-color: #99CCCC;
-    padding: 8px;
+    .app-header {
+      display: flex;
+      flex-direction: row;
+      background-color: @app-header-background;
+      padding: 8px;
 
-    h1 {
-      flex-grow: 1;
-      margin: 0;
+      > div:first-child {
+        display: flex;
+        flex-grow: 1;
+        align-items: center;
+
+        i {
+          color: @app-header-title-color;
+          font-size: @app-font-large;
+        }
+
+        h1 {
+          flex-grow: 1;
+          margin: 0 0 0 8px;
+          font-size: @app-font-large;
+          color: @app-header-title-color;
+        }
+      }
+
+      .app-links {
+        font-weight: 100;
+        color: @app-header-title-color;
+
+        a {
+          margin-left: 8px;
+          color: @app-header-title-color;
+        }
+      }
     }
 
-    a {
-      margin-left: 8px;
+    .app-footer {
+      height: 12px;
+      background-color: @app-footer-background;
     }
   }
-}
-
-//
-// Layout
-//
-
-.app-expand {
-  flex-grow: 1;
-}
-
-.app-panel {
-  display: flex;
-  flex-direction: row;
-  overflow-x: hidden;
-}
-
-.app-panel-column {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  overflow-x: hidden;
-}
-
-//
-// Blocks
-//
-
-.app-section {
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-}
-
-.app-section-header {
-  padding: 2px 8px;
-  background-color: skyblue;
-}
-
-.app-toolbar {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 8px;
-
-  background-color: #DDD;
-
-  button, input {
-    font-size: 16px;
-  }
-
-  select {
-    -webkit-appearance: none;
-    -webkit-border-radius: 0;
-    outline: none;
-    padding: 4px;
-  }
-
-  input {
-    outline: none;
-    spellcheck: none;
-  }
-}
-
-.app-data {
-  display: flex;
-  flex-direction: column;
-
-  .app-data-row {
-    display: flex;
-    flex-direction: row;
-  }
-}
-
-//
-// Components
-//
-
-.app-debug {
-  word-wrap: break-word;
-  font-family: Monaco, monospace;
-  font-size: 12px;
-  color: darkgreen;
-}
-
-.app-error {
-  pre {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-  }
-
-  font-family: Monaco, monospace;
-  font-size: 14px;
-  color: darkred;
-}
-
-.app-tag {
-  background-color: cornflowerblue;
-  color: white;
-  padding: 3px 4px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-//
-// Fields
-//
-
-.app-key {
-  color: #999;
-  font-size: small;
-}
-
-.app-icon {
-  cursor: pointer;
-}
-.app-icon-medium {
-  font-size: 18px;
-}
-.app-icon-edit {
-  color: #CCC;
-}
-.app-icon-edit:hover {
-  color: #333;
-}
-.app-icon-star {
-  color: orange;
 }
