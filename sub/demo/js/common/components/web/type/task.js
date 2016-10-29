@@ -67,7 +67,7 @@ class Task extends React.Component {
               <div className="app-key">Assignee</div>
               <div className="app-value">
                 <Picker viewer={ viewer }
-                        type='User'
+                        filter={ this.props.relay.variables.filter }
                         value={ assignee && assignee.title }
                         onSelect={ this.handleSelectItem.bind(this) }/>
               </div>
@@ -87,11 +87,18 @@ class Task extends React.Component {
 export default Relay.createContainer(Task, {
 
   // TODO(burdon): How to get User specific fields (since Item)?
+  // TODO(burdon): Plugin parse error: https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues/36
+
+  initialVariables: {
+    filter: {
+      type: 'User'
+    }
+  },
 
   fragments: {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
-        ${Picker.getFragment('viewer', { type: 'User' })}
+        ${Picker.getFragment('viewer', { filter: variables.filter })}
       }
     `,
 

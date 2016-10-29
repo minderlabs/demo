@@ -28,7 +28,7 @@ class ItemList extends React.Component {
   setQuery(text) {
     // https://facebook.github.io/relay/docs/api-reference-relay-container.html#setvariables
     this.props.relay.setVariables({
-      query: text
+      text: text
     });
   }
 
@@ -38,7 +38,7 @@ class ItemList extends React.Component {
     let searchItems = viewer.searchItems.map(item => {
       return (
         <div key={ item.__dataID__ } className="app-list-item" onClick={ this.handleSelect.bind(this, item) }>
-          <Item item={ item } query={ this.props.relay.variables.query } />
+          <Item item={ item } text={ this.props.relay.variables.text } />
         </div>
       );
     });
@@ -53,8 +53,10 @@ class ItemList extends React.Component {
 
 export default Relay.createContainer(ItemList, {
 
+  // TODO(burdon): Search by filter.
+
   initialVariables: {
-    query: ''
+    text: ''
   },
 
   fragments: {
@@ -62,11 +64,11 @@ export default Relay.createContainer(ItemList, {
       fragment on Viewer {
         id
 
-        searchItems(text: $query) {
+        searchItems(text: $text) {
           id
           type
 
-          ${Item.getFragment('item', { query: variables.query })}
+          ${Item.getFragment('item', { text: variables.text })}
         }
       }
     `

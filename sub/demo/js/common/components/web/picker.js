@@ -21,7 +21,7 @@ class Picker extends React.Component {
   static propTypes = {
     className: React.PropTypes.string,
     viewer: React.PropTypes.object.isRequired,
-    type: React.PropTypes.string.isRequired,
+    filter: React.PropTypes.object.isRequired,
     value: React.PropTypes.string
   };
 
@@ -107,7 +107,9 @@ class Picker extends React.Component {
 
   handleTextChange(text) {
     this.props.relay.setVariables({
-      text: text || ''
+      filter: {
+        text: text || ''    // TODO(burdon): Merge with type.
+      }
     });
   }
 
@@ -128,7 +130,7 @@ class Picker extends React.Component {
     let { viewer } = this.props;
 
     // TODO(burdon): Props.
-    let placeholder = `Search ${this.props.type}...`;
+    let placeholder = `Search ${this.props.filter.type}...`;
 
     let rows = viewer.items.edges.map((edge) => {
       return (
@@ -166,8 +168,7 @@ class Picker extends React.Component {
 export default Relay.createContainer(Picker, {
 
   initialVariables: {
-    type: '', // Set by parent.
-    text: ''
+    filter: {} // Set by parent.
   },
 
   fragments: {
@@ -175,7 +176,7 @@ export default Relay.createContainer(Picker, {
       fragment on Viewer {
         id
 
-        items(first: 10, type: $type, text: $text) {
+        items(first: 10, filter: $filter) {
           edges {
             node {
               id

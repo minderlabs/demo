@@ -22,14 +22,12 @@ class DebugView extends React.Component {
     viewer: React.PropTypes.object.isRequired,
   };
 
-  constructor(props, context) {
-    super(props, context);
-  }
-
   handleTypeChange(ev) {
     let type = $(ev.target).val();
     this.props.relay.setVariables({
-      type: type
+      filter: {
+        type: type
+      }
     });
   }
 
@@ -59,14 +57,14 @@ class DebugView extends React.Component {
       <div className="app-debug-view app-column app-expand">
 
         <div className="app-toolbar">
-          <select defaultValue={ this.props.relay.variables.type }
+          <select defaultValue={ this.props.relay.variables.filter.type }
                   onChange={ this.handleTypeChange.bind(this) }>
             { options }
           </select>
 
           <Picker viewer={ viewer }
                   className="app-expand"
-                  type={ this.props.relay.variables.type }
+                  filter={ this.props.relay.variables.filter }
                   onSelect={ this.handleSelectItem.bind(this) }/>
         </div>
 
@@ -82,8 +80,9 @@ class DebugView extends React.Component {
 export default Relay.createContainer(DebugView, {
 
   initialVariables: {
-    type: 'Task',
-    text: ''
+    filter: {
+      type: 'Task'
+    }
   },
 
   fragments: {
@@ -95,7 +94,7 @@ export default Relay.createContainer(DebugView, {
           title
         }
         
-        items(first: 10, type: $type) {
+        items(first: 10, filter: $filter) {
           edges {
             node {
               id
@@ -104,7 +103,7 @@ export default Relay.createContainer(DebugView, {
           }
         }
 
-        ${Picker.getFragment('viewer', { type: variables.type })}
+       ${Picker.getFragment('viewer', { filter: variables.filter })}
       }
     `,
   }

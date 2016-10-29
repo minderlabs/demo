@@ -121,6 +121,22 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 //
 
 /**
+ * Used to parameterize filtering items.
+ */
+const ItemFilterType = new GraphQLInputObjectType({
+  name: 'ItemFilterType',
+
+  fields: () => ({
+    type: {
+      type: GraphQLString
+    },
+    text: {
+      type: GraphQLString
+    }
+  })
+});
+
+/**
  * Node that represents the context for the current user.
  */
 const ViewerType = new GraphQLObjectType({
@@ -144,29 +160,27 @@ const ViewerType = new GraphQLObjectType({
 
         // Additional args.
         // https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
-        // https://github.com/facebook/relay/issues/59
-        // E.g., items(first: 10, type: "Task") { edges { node { id } } }
-        type: {
-          type: GraphQLString
-        },
-        text: {
-          type: GraphQLString,
-          description: 'Text query used to filter items.'
+        // E.g., items(first: 10, filter: { type: "Task" }) { edges { node { id } } }
+        filter: {
+          type: ItemFilterType,
+          description: 'Predicates to filter items.'
         }
       },
       resolve: (viewer, args) => {
-        return connectionFromArray(Database.singleton.getItems(viewer.id, args.type, args.text), args)
+        return connectionFromArray(Database.singleton.getItems(viewer.id, args.filter), args)
       }
     },
 
     // TODO(burdon): Redundant given items above?
     searchItems: {
       type: new GraphQLList(ItemType),
+
+      // TODO(burdon): Replace with filter.
       args: {
         text: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (parent, args) => {
-        return Database.singleton.searchItems(parent.id, args.text);
+        return Database.singleton.getItems(parent.id, { text: args.text });
       }
     }
   })
@@ -502,7 +516,9 @@ const RootMutationType = new GraphQLObjectType({
 const RootQueryType = new GraphQLObjectType({
   name: 'Query',
 
+  //
   // Used by Router queries to set-up state.
+  //
 
   fields: () => ({
     node: nodeField,

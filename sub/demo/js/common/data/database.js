@@ -83,10 +83,10 @@ export class Item {
     return match;
   }
 
-  snippet(queryString) {
-    if (queryString) {
-      let snippets = Util.computeSnippet(this, ['title'], queryString);
-      let dataSnippets = this.handler && this.handler.snippet(this.data, queryString);
+  snippet(text) {
+    if (text) {
+      let snippets = Util.computeSnippet(this, ['title'], text);
+      let dataSnippets = this.handler && this.handler.snippet(this.data, text);
       if (dataSnippets) {
         snippets = snippets.concat(dataSnippets);
       }
@@ -108,7 +108,7 @@ class BaseTypeHandler {
 
   match(item, text) {}
 
-  snippet(item, queryString) {}
+  snippet(item, text) {}
 }
 
 class TaskTypeHandler extends BaseTypeHandler {
@@ -126,7 +126,7 @@ class TaskTypeHandler extends BaseTypeHandler {
     return Util.textMatch(data, ['title'], text);
   }
 
-  snippet(data, queryString) {}
+  snippet(data, text) {}
 }
 
 class NoteTypeHandler extends BaseTypeHandler {
@@ -139,8 +139,8 @@ class NoteTypeHandler extends BaseTypeHandler {
     return Util.textMatch(data, ['title', 'content'], text);
   }
 
-  snippet(data, queryString) {
-    return Util.computeSnippet(data, ['content'], queryString);
+  snippet(data, text) {
+    return Util.computeSnippet(data, ['content'], text);
   }
 }
 
@@ -224,15 +224,6 @@ export class Database {
     return this;
   }
 
-  searchItems(userId, text) {
-    console.log('SEARCH["%s"]', text);
-
-    // TODO(burdon): Search from bucket.
-    return [...this._items.values()].filter((item) => {
-      return item.match(text);
-    });
-  }
-
   //
   // Private type-specific implementations, not intended to be part of the public Database interface.
   //
@@ -285,17 +276,21 @@ export class Database {
     return item;
   }
 
-  getItems(bucketId, type, text) {
+  getItems(bucketId, filter=null) {
     // TODO(burdon): By bucket.
 //  let items = Array.from(this.getItemMap(bucketId).values());
+    if (!filter) {
+      filter = {};
+    }
 
     let items = _.filter(Array.from(this._items.values()), (item) => {
-      let match = item.type == type;
-      match &= (text === undefined || item.match(text));
+      let match = false;
+      match |= (filter.type && item.type == filter.type);
+      match |= (filter.text && item.match(filter.text));
       return match;
     });
 
-    console.log('ITEMS.GET[%s; %s; "%s"]: %d', bucketId, type, text, items.length);
+    console.log('ITEMS.GET[%s]: %s => %d', bucketId, JSON.stringify(filter), items.length);
     return items;
   }
 

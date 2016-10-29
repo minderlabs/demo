@@ -171,6 +171,7 @@ class HomeView extends React.Component {
       </div>
     );
 
+    // TODO(burdon): Factor out.
     const SearchList = (
       <div className="app-panel app-column app-expand">
         <ItemList ref="items"
