@@ -8,6 +8,9 @@ import React from 'react';
 import Relay from 'react-relay';
 import { Link } from 'react-router';
 
+// NOTE: Don't remove (needed to trigger webpack on schema changes).
+import { VERSION } from '../../common/data/schema';
+
 import Path from './path';
 
 import './demo.less';
@@ -25,24 +28,29 @@ class DemoApp extends React.Component {
     let { viewer, children } = this.props;
 
     return (
-      <div className="app-panel">
+      <div className="app-column">
         <div className="app-header">
-          <h1>{ viewer.user.title }</h1>
-
           <div>
+            <Link to={ Path.HOME }>
+              <i className="material-icons">menu</i>
+            </Link>
+
+            <h1>Demo</h1>
+          </div>
+
+          <div className="app-links">
+            <span>{ viewer.user.title }</span>
             <a href="/graphql" target="_blank">GraphiQL</a>
             <Link to={ Path.DEBUG }>Debug</Link>
             <a href="/logout">Logout</a>
           </div>
         </div>
 
-        <div className="app-section">
-          <div className="app-debug">{ JSON.stringify(viewer, 0, 2) }</div>
-        </div>
-
-        <div className="app-view app-panel-column">
+        <div className="app-view app-column app-expand">
           { children }
         </div>
+
+        <div className="app-footer"></div>
       </div>
     );
   }
@@ -56,7 +64,7 @@ class DemoApp extends React.Component {
 export default Relay.createContainer(DemoApp, {
 
   fragments: {
-    viewer: () => Relay.QL`
+    viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
 

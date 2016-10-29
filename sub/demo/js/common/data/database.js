@@ -13,6 +13,9 @@ import { Util } from '../util/util';
  */
 export class Viewer {
 
+  // NOTE: This is more than a User; e.g., might contain runtime state for logged in user.
+
+  // TODO(burdon): Remove.
   static KIND = 'Viewer';
 
   constructor(values) {
@@ -28,6 +31,7 @@ export class Viewer {
  */
 export class Item {
 
+  // TODO(burdon): Remove.
   static KIND = 'Item';
 
   static typeRegistry = new Map();
@@ -48,7 +52,6 @@ export class Item {
   }
 
   get handler() {
-    console.assert(this.type);
     return Item.typeRegistry.get(this.type);
   }
 
@@ -56,19 +59,34 @@ export class Item {
     Util.maybeUpdateItem(this, values, 'title');
     Util.updateStringSet(this, values, 'labels');
 
-    this.handler.update(this.data, values['data'] || {})
+    this.handler && this.handler.update(this.data, values['data'] || {})
   }
 
   match(text) {
-    // TODO(burdon): Default query by label.
-    // TODO(burdon): If not debugging then show nothing unless matches something.
-    return !text || Util.textMatch(this, ['title'], text) || this.handler.match(this.data, text);
+    // TODO(burdon): Add label queries.
+    let match = false;
+    text = text.trim();
+    if (text) {
+      let parts = text.split(/\s+/);
+      for (let part of parts) {
+        if (part[0] == ':') {
+          let label = part.substring(1);
+          if (label) {
+            match |= _.indexOf(this.labels, label) != -1;
+          }
+        } else {
+          match |= Util.textMatch(this, ['title'], part) || (this.handler && this.handler.match(this.data, part));
+        }
+      }
+    }
+
+    return match;
   }
 
-  snippet(queryString) {
-    if (queryString) {
-      let snippets = Util.computeSnippet(this, ['title'], queryString);
-      let dataSnippets = this.handler.snippet(this.data, queryString);
+  snippet(text) {
+    if (text) {
+      let snippets = Util.computeSnippet(this, ['title'], text);
+      let dataSnippets = this.handler && this.handler.snippet(this.data, text);
       if (dataSnippets) {
         snippets = snippets.concat(dataSnippets);
       }
@@ -90,20 +108,25 @@ class BaseTypeHandler {
 
   match(item, text) {}
 
-  snippet(item, queryString) {}
+  snippet(item, text) {}
 }
 
 class TaskTypeHandler extends BaseTypeHandler {
 
   update(data, values) {
+    // TODO(burdon): Pass array of values.
     Util.maybeUpdateItem(data, values, 'priority');
+
+    // TODO(burdon): Convert to IDs.
+    Util.maybeUpdateItem(data, values, 'owner');
+    Util.maybeUpdateItem(data, values, 'assignee');
   }
 
   match(data, text) {
     return Util.textMatch(data, ['title'], text);
   }
 
-  snippet(data, queryString) {}
+  snippet(data, text) {}
 }
 
 class NoteTypeHandler extends BaseTypeHandler {
@@ -116,8 +139,8 @@ class NoteTypeHandler extends BaseTypeHandler {
     return Util.textMatch(data, ['title', 'content'], text);
   }
 
-  snippet(data, queryString) {
-    return Util.computeSnippet(data, ['content'], queryString);
+  snippet(data, text) {
+    return Util.computeSnippet(data, ['content'], text);
   }
 }
 
@@ -179,9 +202,14 @@ export class Database {
   init() {
     const data = require('./testing/test.json');
 
+    const GLOBAL_BUCKET_ID = '__GLOBAL__';
+
     // Create users.
     for (let user of data['User']) {
       this.createUser(user);
+      this.createItem(GLOBAL_BUCKET_ID, 'User', _.defaults(user, {
+        type: 'User'
+      }));
     }
 
     // Create items for users.
@@ -194,15 +222,6 @@ export class Database {
     });
 
     return this;
-  }
-
-  searchItems(userId, text) {
-    console.log('SEARCH["%s"]', text);
-
-    // TODO(burdon): Search from bucket.
-    return [...this._items.values()].filter((item) => {
-      return item.match(text);
-    });
   }
 
   //
@@ -249,20 +268,29 @@ export class Database {
     return items;
   }
 
-  // TODO(burdon): Enforce bucketId?
+  // TODO(burdon): Enforce bucketId? Schema can't pass this?
   // TODO(burdon): Must check that user has permission to access item (check bucket).
   getItem(itemId) {
     let item = this._items.get(itemId);
-    console.log('ITEM.GET', itemId, JSON.stringify(item));
+    console.log('ITEM.GET[%s] = %s', itemId, JSON.stringify(item));
     return item;
   }
 
-  getItems(bucketId, type) {
+  getItems(bucketId, filter=null) {
     // TODO(burdon): By bucket.
 //  let items = Array.from(this.getItemMap(bucketId).values());
-    let items = _.filter(Array.from(this._items.values()), (item) => { return item.type == type });
+    if (!filter) {
+      filter = {};
+    }
 
-    console.log('ITEMS.GET', bucketId, type, items.length);
+    let items = _.filter(Array.from(this._items.values()), (item) => {
+      let match = false;
+      match |= (filter.type && item.type == filter.type);
+      match |= (filter.text && item.match(filter.text));
+      return match;
+    });
+
+    console.log('ITEMS.GET[%s]: %s => %d', bucketId, JSON.stringify(filter), items.length);
     return items;
   }
 
@@ -270,12 +298,12 @@ export class Database {
     console.assert(bucketId);
     console.assert(type);
 
-    data.id = this._idGenerator.createId(type);
+    data.id = data.id || this._idGenerator.createId(type);
     data.type = type;
     data.version = 0;
 
     let item = new Item(data); // TODO(burdon): Pass in ID, type separately.
-    console.log('ITEM.CREATE', bucketId, JSON.stringify(item));
+    console.log('ITEM.CREATE[%s] = %s', bucketId, JSON.stringify(item));
     this._items.set(item.id, item);
     this.getItemMap(bucketId).set(item.id, item);
     return item;
@@ -287,7 +315,7 @@ export class Database {
     item.update(values);
     item.version += 1;
 
-    console.log('ITEM.UPDATE', JSON.stringify(item));
+    console.log('ITEM.UPDATE[%s] = %s', JSON.stringify(item));
     return item;
   }
 }

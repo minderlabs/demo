@@ -38,10 +38,8 @@ class ItemDetailView extends React.Component {
     }
 
     return (
-      <div className="app-panel-column">
-        <div className="app-item-detail">
-          <ItemDetail viewer={ viewer } item={ item }/>
-        </div>
+      <div className="app-column app-expand">
+        <ItemDetail viewer={ viewer } item={ item }/>
       </div>
     );
   }
@@ -50,19 +48,21 @@ class ItemDetailView extends React.Component {
 export default Relay.createContainer(ItemDetailView, {
 
   fragments: {
-    viewer: () => Relay.QL`
+    viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
+
+        ${ItemDetail.getFragment('viewer')}
       }
     `,
 
-    item: () => Relay.QL`
+    item: (variables) => Relay.QL`
       fragment on Item {
         id
         type
 
         ${ItemDetail.getFragment('item')}
       }
-    `,
+    `
   }
 });

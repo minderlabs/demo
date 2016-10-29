@@ -12,14 +12,18 @@
 
   <body>
     <div id="app-container">
-      <div class="app-panel">
+      <div class="app-column">
         <div class="app-header">
-          <h1>Error</h1>
+          <div>
+            <h1>Error</h1>
+          </div>
 
-          <a href="/logout">Login</a>
+          <div className="app-links">
+            <a href="/logout">Login</a>
+          </div>
         </div>
 
-        <div class="app-section app-error">
+        <div class="app-panel app-error">
           <pre>{{ error }}</pre>
         </div>
       </div>

@@ -51,6 +51,11 @@ import {
   Viewer
 } from './database';
 
+
+// NOTE: Needed so that the webpack client has a dependency for schema changes.
+export const VERSION = '0.0.1';
+
+
 //
 // NOTE: The Database.singleton decouples database implementation dependencies (e.g., lodash) from the schema defs.
 // This is required since babel requires the schema (but not the implementation) to generate the schema.json file.
@@ -90,6 +95,7 @@ const NODE_TYPE_REGISTRY = new Map();
 const resolveNodeType = (obj) => {
   console.log('Resolve Type:', obj);
 
+  // TODO(burdon): Don't depend on Database implementation. Get from property?
   for (let [ clazz, type ] of NODE_TYPE_REGISTRY.entries()) {
     if (obj instanceof clazz) {
       return type;
@@ -115,6 +121,22 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 //
 
 /**
+ * Used to parameterize filtering items.
+ */
+const ItemFilterType = new GraphQLInputObjectType({
+  name: 'ItemFilterType',
+
+  fields: () => ({
+    type: {
+      type: GraphQLString
+    },
+    text: {
+      type: GraphQLString
+    }
+  })
+});
+
+/**
  * Node that represents the context for the current user.
  */
 const ViewerType = new GraphQLObjectType({
@@ -138,24 +160,14 @@ const ViewerType = new GraphQLObjectType({
 
         // Additional args.
         // https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
-        // https://github.com/facebook/relay/issues/59
-        // E.g., items(first: 10 type: "Task") { edges { node { id } } }
-        type: {
-          type: GraphQLString
+        // E.g., items(first: 10, filter: { type: "Task" }) { edges { node { id } } }
+        filter: {
+          type: ItemFilterType,
+          description: 'Predicates to filter items.'
         }
       },
       resolve: (viewer, args) => {
-        return connectionFromArray(Database.singleton.getItems(viewer.id, args.type), args)
-      }
-    },
-
-    searchItems: {
-      type: new GraphQLList(ItemType),
-      args: {
-        text: { type: new GraphQLNonNull(GraphQLString) }
-      },
-      resolve: (parent, args) => {
-        return Database.singleton.searchItems(parent.id, args.text);
+        return connectionFromArray(Database.singleton.getItems(viewer.id, args.filter), args)
       }
     }
   })
@@ -211,8 +223,8 @@ const ItemType = new GraphQLObjectType({
 // Node Type Registry.
 //
 
-NODE_TYPE_REGISTRY.set(Viewer, ViewerType);
-NODE_TYPE_REGISTRY.set(Item, ItemType);
+NODE_TYPE_REGISTRY.set(Viewer,  ViewerType);
+NODE_TYPE_REGISTRY.set(Item,    ItemType);
 
 //
 // Connection Types.
@@ -272,12 +284,12 @@ const TaskType = new GraphQLObjectType({
 
     owner: {
       type: ItemType,
-      resolve: (data, args) => resolveNodeFromGlobalId(data.owner)        // TODO(burdon): Not node!
+      resolve: (data) => Database.singleton.getItem(data.owner)
     },
 
     assignee: {
       type: ItemType,
-      resolve: (data, args) => resolveNodeFromGlobalId(data.assignee)     // TODO(burdon): Not node!
+      resolve: (data) => Database.singleton.getItem(data.assignee)
     }
   })
 });
@@ -490,6 +502,10 @@ const RootMutationType = new GraphQLObjectType({
 
 const RootQueryType = new GraphQLObjectType({
   name: 'Query',
+
+  //
+  // Used by Router queries to set-up state.
+  //
 
   fields: () => ({
     node: nodeField,

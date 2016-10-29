@@ -19,7 +19,8 @@ import './item.less';
 class Item extends React.Component {
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired
+    item: React.PropTypes.object.isRequired,
+    filter: React.PropTypes.object.isRequired
   };
 
   handleToggleFavorite(event) {
@@ -64,17 +65,26 @@ class Item extends React.Component {
 export default Relay.createContainer(Item, {
 
   initialVariables: {
-    query: ''
+    filter: {},
+    text: ''
+  },
+
+  prepareVariables: (variables) => {
+    return {
+      ...variables,
+      text: variables.filter.text
+    }
   },
 
   fragments: {
-    item: () => Relay.QL`
+    item: (variables) => Relay.QL`
       fragment on Item {
         id
         type
         title
         labels
-        snippet(text: $query)
+
+        snippet(text: $text)
 
         ${UpdateItemMutation.getFragment('item')}
       }

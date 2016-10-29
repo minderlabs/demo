@@ -52,35 +52,46 @@ class ItemDetail extends React.Component {
       })
     );
 
-    this.context.router.goBack();   // TODO(burdon): Should be handled by parent container (via event?)
+    // TODO(burdon): Get properties from data.
+
+    // TODO(burdon): Should be handled by parent container (via event?)
+    this.context.router.goBack();
   }
 
   handleCancel(event) {
-    this.context.router.goBack();   // TODO(burdon): Should be handled by parent container (via event?)
+    // TODO(burdon): Should be handled by parent container (via event?)
+    this.context.router.goBack();
   }
 
   render() {
-    let { item } = this.props;
+    let { viewer, item } = this.props;
 
-    let detail = TypeRegistry.render(item.type, item);
+    let detail = TypeRegistry.render(viewer, item);
 
     return (
       <div className="app-item-detail">
-        <div className="app-section">
-          <input type="text" className="app-expand app-field-title" title={ item.id } autoFocus="autoFocus"
-                 onChange={ this.handleTextChange.bind(this, 'title') }
-                 value={ this.state.item.title }/>
+        <div className="app-panel app-expand">
+
+          <div className="app-row">
+            <input type="text"
+                   className="app-expand app-field-title"
+                   title={ item.id }
+                   autoFocus="autoFocus"
+                   onChange={ this.handleTextChange.bind(this, 'title') }
+                   value={ this.state.item.title }/>
+          </div>
+
+          <div className="app-column app-expand">
+            { detail }
+          </div>
+
         </div>
 
-        <div className="app-section app-expand">
-          { detail }
+        <div className="app-panel app-section app-debug">
+          { JSON.stringify(item, 0, 1) }
         </div>
 
-        <div className="app-section app-debug">
-          { JSON.stringify(item, 0, 2) }
-        </div>
-
-        <div className="app-section app-toolbar">
+        <div className="app-toolbar">
           <button onClick={ this.handleSave.bind(this) }>Save</button>
           <button onClick={ this.handleCancel.bind(this) }>Cancel</button>
         </div>
@@ -91,14 +102,20 @@ class ItemDetail extends React.Component {
 
 export default Relay.createContainer(ItemDetail, {
 
-  // TODO(burdon): Document fragments.
-
   fragments: {
-    item: () => Relay.QL`
+    viewer: (variables) => Relay.QL`
+      fragment on Viewer {
+        id
+
+        ${ _.map(TypeRegistry.types, (type) => type.getFragment('viewer')) }
+      }
+    `,
+
+    item: (variables) => Relay.QL`
       fragment on Item {
         id
-        type,
-        version,
+        type
+        version
 
         title
         labels

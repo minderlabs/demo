@@ -9,6 +9,7 @@ import Relay from 'react-relay';
 
 // TODO(burdon): Create lib for UX and Data.
 import ItemList from '../../../common/components/web/item_list';
+import TextBox from '../../../common/components/web/textbox';
 
 import CreateItemMutation from '../../../common/mutations/create_item';
 
@@ -20,6 +21,8 @@ import './home.less';
  * Home view.
  */
 class HomeView extends React.Component {
+
+  // TODO(burdon): Cache in-memory state (e.g., search text).
 
   static propTypes = {
     viewer: React.PropTypes.object.isRequired
@@ -37,7 +40,7 @@ class HomeView extends React.Component {
       title: ''
     };
 
-    // TODO(burdon): Factor out searchbar.
+    // TODO(burdon): Use TextBox.
     this._searchInterval = 200;
     this._searchTimeout = null;
   }
@@ -90,9 +93,9 @@ class HomeView extends React.Component {
       case this.refs.search_text:
         this.setState({
           search: event.target.value
+        }, () => {
+          this.triggerSearch();
         });
-
-        this.triggerSearch();
         break;
 
       case this.refs.create_text:
@@ -157,40 +160,48 @@ class HomeView extends React.Component {
 
     // TODO(burdon): Factor out.
     const SearchBar = (
-      <div className="app-section app-toolbar app-toolbar-search">
-        <input ref="search_text" type="text" autoFocus="autoFocus" className="app-expand"
+      <div className="app-toolbar app-toolbar-search">
+        <input ref="search_text"
+               type="text"
+               className="app-expand"
+               autoFocus="autoFocus"
                value={ this.state.search }
                onChange={ this.handleTextChange.bind(this) }
                onKeyUp={ this.handleKeyUp.bind(this) }/>
       </div>
     );
 
+    // TODO(burdon): Factor out.
     const SearchList = (
-      <div className="app-section app-panel-column">
-        <ItemList ref="items" viewer={ viewer } onSelect={ this.handleItemSelect.bind(this) }/>
+      <div className="app-panel app-column app-expand">
+        <ItemList ref="items"
+                  viewer={ viewer }
+                  onSelect={ this.handleItemSelect.bind(this) }/>
       </div>
     );
 
     // TODO(burdon): Factor out.
     const CreateBar = (
-      <div className="app-section app-toolbar app-toolbar-create">
+      <div className="app-toolbar app-toolbar-create">
 
         <select ref="type_select">
           <option value="Note">Note</option>
           <option value="Task">Task</option>
         </select>
 
-        <input ref="create_text" type="text" className="app-expand"
+        <input ref="create_text"
+               type="text"
+               className="app-expand"
                value={ this.state.title }
                onChange={ this.handleTextChange.bind(this) }
                onKeyUp={ this.handleKeyUp.bind(this) }/>
 
-        <button onClick={ this.handleCreateButton.bind(this) }><i className="material-icons">add_circle</i></button>
+        <i onClick={ this.handleCreateButton.bind(this) } className="material-icons">add_circle</i>
       </div>
     );
 
     return (
-      <div className="app-panel-column">
+      <div className="app-column app-expand">
         { SearchBar }
         { SearchList }
         { CreateBar }
@@ -202,11 +213,12 @@ class HomeView extends React.Component {
 export default Relay.createContainer(HomeView, {
 
   fragments: {
-    viewer: () => Relay.QL`
+    viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
 
         ${ItemList.getFragment('viewer')}
+
         ${CreateItemMutation.getFragment('viewer')}
       }
     `

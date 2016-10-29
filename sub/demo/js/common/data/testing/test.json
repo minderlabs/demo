@@ -51,13 +51,28 @@
           }
         },
         {
-          "title": "Task 5"
+          "title": "Task 5",
+          "labels": [
+            "_favorite"
+          ]
+        },
+        {
+          "title": "Task 6"
+        },
+        {
+          "title": "Task 7"
+        },
+        {
+          "title": "Task 8"
         }
       ],
 
       "Note": [
         {
           "title": "Note 1",
+          "labels": [
+            "_favorite"
+          ],
           "data": {
             "content": "Squirrels"
           }

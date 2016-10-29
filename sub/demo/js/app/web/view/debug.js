@@ -7,7 +7,11 @@
 import React from 'react';
 import Relay from 'react-relay';
 
+import Picker from '../../../common/components/web/picker';
+
 import { DATA_TYPE_MAP } from '../../../common/data/schema';
+
+import './debug.less';
 
 /**
  * Debug view.
@@ -21,8 +25,14 @@ class DebugView extends React.Component {
   handleTypeChange(ev) {
     let type = $(ev.target).val();
     this.props.relay.setVariables({
-      type: type
-    })
+      filter: {
+        type: type
+      }
+    });
+  }
+
+  handleSelectItem(item) {
+    console.log('Selected: %s', JSON.stringify(item));
   }
 
   //
@@ -32,11 +42,10 @@ class DebugView extends React.Component {
   render() {
     let { viewer } = this.props;
 
-    let items = viewer.items.edges.map((item) => {
+    // TODO(burdon): Change to list (same for select).
+    let rows = viewer.items.edges.map((edge) => {
       return (
-        <tr key={ item.node.id }>
-          <td>{ item.node.title }</td>
-        </tr>
+        <div key={ edge.node.id }>{ edge.node.title }</div>
       );
     });
 
@@ -45,23 +54,24 @@ class DebugView extends React.Component {
     });
 
     return (
-      <div className="app-panel-column">
-        <div className="app-section">
-          <h1>Debug</h1>
-        </div>
+      <div className="app-debug-view app-column app-expand">
 
-        <div className="app-section app-toolbar">
-          <h2 className="app-expand">Items</h2>
-          <select defaultValue="Note" onChange={ this.handleTypeChange.bind(this) }>
+        <div className="app-toolbar">
+          <select defaultValue={ this.props.relay.variables.filter.type }
+                  onChange={ this.handleTypeChange.bind(this) }>
             { options }
           </select>
+
+          <Picker viewer={ viewer }
+                  className="app-expand"
+                  filter={ this.props.relay.variables.filter }
+                  onSelect={ this.handleSelectItem.bind(this) }/>
         </div>
 
-        <div className="app-section">
-          <table>
-            <tbody>{ items }</tbody>
-          </table>
+        <div className="app-panel app-section">
+          { rows }
         </div>
+
       </div>
     );
   }
@@ -70,11 +80,13 @@ class DebugView extends React.Component {
 export default Relay.createContainer(DebugView, {
 
   initialVariables: {
-    type: 'Note'
+    filter: {
+      type: 'Task'
+    }
   },
 
   fragments: {
-    viewer: () => Relay.QL`
+    viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
         
@@ -82,7 +94,7 @@ export default Relay.createContainer(DebugView, {
           title
         }
         
-        items(first: 10, type: $type) {
+        items(first: 10, filter: $filter) {
           edges {
             node {
               id
@@ -90,6 +102,8 @@ export default Relay.createContainer(DebugView, {
             }
           }
         }
+
+       ${Picker.getFragment('viewer', { filter: variables.filter })}
       }
     `,
   }
