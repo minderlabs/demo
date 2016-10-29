@@ -19,6 +19,12 @@ import DebugView from './view/debug';
 import HomeView from './view/home';
 import ItemDetailView from './view/detail';
 
+//
+// NOTE: Don't remove (needed to trigger webpack on schema changes).
+//
+
+import { VERSION } from '../../common/data/schema';
+
 
 //
 // Config JSON variable set by server.

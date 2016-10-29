@@ -44,15 +44,21 @@ class ItemDetail extends React.Component {
   handleSave(event) {
     let { item } = this.props;
 
-    this.props.relay.commitUpdate(
-      new UpdateItemMutation({
-        item: item,
+    // Get properties from data element.
+    let data = TypeRegistry.values(item.type, this.refs.data.refs.component);  // TODO(burdon): Const "data".
 
-        title: this.state.item.title
-      })
-    );
+    let mutation = new UpdateItemMutation({
+      item: item,
 
-    // TODO(burdon): Get properties from data.
+      title: this.state.item.title,
+      data: data
+    });
+
+    this.props.relay.commitUpdate(mutation, {
+      onSuccess: (result) => {
+        console.log('Mutation ID:', result.updateItemMutation.clientMutationId);
+      }
+    });
 
     // TODO(burdon): Should be handled by parent container (via event?)
     this.context.router.goBack();
@@ -66,7 +72,7 @@ class ItemDetail extends React.Component {
   render() {
     let { viewer, item } = this.props;
 
-    let detail = TypeRegistry.render(viewer, item);
+    this.detail = TypeRegistry.render(viewer, item);
 
     return (
       <div className="app-item-detail">
@@ -82,7 +88,7 @@ class ItemDetail extends React.Component {
           </div>
 
           <div className="app-column app-expand">
-            { detail }
+            { this.detail }
           </div>
 
         </div>

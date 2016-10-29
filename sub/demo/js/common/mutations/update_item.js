@@ -31,9 +31,9 @@ export default class UpdateItemMutation extends Relay.Mutation {
       itemId: this.props.item.id,
 
       title: this.props.title,
-      labels: this.props.labels
+      labels: this.props.labels,
 
-      // TODO(burdon): Data
+      data: this.props.data
     };
   }
 
@@ -43,6 +43,7 @@ export default class UpdateItemMutation extends Relay.Mutation {
         item {
           title
           labels
+          data
         }
       }
     `;
@@ -65,6 +66,8 @@ export default class UpdateItemMutation extends Relay.Mutation {
 
     Util.maybeUpdateItem(item, this.props, 'title');
     Util.updateStringSet(item, this.props, 'labels');
+
+    // TODO(burdon): Update data.
 
     return {
       item: item

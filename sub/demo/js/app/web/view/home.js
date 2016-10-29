@@ -7,6 +7,10 @@
 import React from 'react';
 import Relay from 'react-relay';
 
+import {
+  fromGlobalId
+} from 'graphql-relay';
+
 // TODO(burdon): Create lib for UX and Data.
 import ItemList from '../../../common/components/web/item_list';
 import TextBox from '../../../common/components/web/textbox';
@@ -64,16 +68,30 @@ class HomeView extends React.Component {
 
     let title = this.state.title;
     if (title) {
+      let data = {};
+      switch (type) {
+        case 'Task': { // TODO(burdon): Consts from database.
+          let { id: userId } = fromGlobalId(viewer.user.id);
+
+          _.merge(data, {
+            priority: 1,
+            owner: userId
+          });
+          break;
+        }
+      }
+
       let mutation = new CreateItemMutation({
         viewer: viewer,
         type: type,
-        title: title
+        title: title,
+        data: data
       });
 
       // TODO(burdon): Requery on update? Listen for events? Is this cached?
       this.props.relay.commitUpdate(mutation, {
         onSuccess: (result) => {
-          console.log('Committed:', result);
+          console.log('Mutation ID: %s', result.createItemMutation.clientMutationId);
         }
       });
 
@@ -168,6 +186,8 @@ class HomeView extends React.Component {
                value={ this.state.search }
                onChange={ this.handleTextChange.bind(this) }
                onKeyUp={ this.handleKeyUp.bind(this) }/>
+
+        <i onClick={ this.triggerSearch.bind(this) } className="material-icons">search</i>
       </div>
     );
 
@@ -196,7 +216,7 @@ class HomeView extends React.Component {
                onChange={ this.handleTextChange.bind(this) }
                onKeyUp={ this.handleKeyUp.bind(this) }/>
 
-        <i onClick={ this.handleCreateButton.bind(this) } className="material-icons">add_circle</i>
+        <i onClick={ this.handleCreateButton.bind(this) } className="material-icons">add</i>
       </div>
     );
 
@@ -216,6 +236,10 @@ export default Relay.createContainer(HomeView, {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
+
+        user {
+          id
+        }
 
         ${ItemList.getFragment('viewer')}
 

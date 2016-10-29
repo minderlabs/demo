@@ -7,6 +7,10 @@
 import React from 'react';
 import Relay from 'react-relay';
 
+import {
+  fromGlobalId
+} from 'graphql-relay';
+
 import Picker from '../../../../common/components/web/picker';
 
 import './task.less';
@@ -15,6 +19,8 @@ import './task.less';
  * Task data.
  */
 class Task extends React.Component {
+
+  // TODO(burdon): Base type.
 
   static propTypes = {
     viewer: React.PropTypes.object.isRequired,
@@ -29,12 +35,21 @@ class Task extends React.Component {
     };
   }
 
+  get values() {
+    let { priority, owner, assignee } = this.state.data;
+
+    return {
+      priority: priority,
+      owner: owner && fromGlobalId(owner.id).id,
+      assignee: assignee && fromGlobalId(assignee.id).id
+    };
+  }
+
   handleSelectItem(item) {
-    console.log('Selected: %s', JSON.stringify(item));
     this.setState((state, props) => {
       return {
-        data: _.defaults(state.data, {
-          assignee: item.id
+        data: _.assign({}, state.data, {
+          assignee: item
         })
       }
     });
@@ -44,7 +59,6 @@ class Task extends React.Component {
     let { viewer } = this.props;
     let { priority, owner, assignee } = this.state.data;
 
-    // TODO(burdon): Mutation (see item_detail). Think about changing to Interface.
     // TODO(burdon): Picker set value (not just text).
     // TODO(burdon): Select box for priority.
 

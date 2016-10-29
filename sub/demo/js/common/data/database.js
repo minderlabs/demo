@@ -276,6 +276,12 @@ export class Database {
     return item;
   }
 
+  getItemsById(itemIds) {
+    return _.map(itemIds, (itemId) => {
+      return this.getItem(itemId);
+    });
+  }
+
   getItems(bucketId, filter=null) {
     // TODO(burdon): By bucket.
 //  let items = Array.from(this.getItemMap(bucketId).values());
@@ -284,8 +290,14 @@ export class Database {
     }
 
     let items = _.filter(Array.from(this._items.values()), (item) => {
+      if (filter.type && item.type !== filter.type) {
+        return false;
+      }
+
+      // TODO(burdon): Match labels.
+
+      // Match something.
       let match = false;
-      match |= (filter.type && item.type == filter.type);
       match |= (filter.text && item.match(filter.text));
       return match;
     });

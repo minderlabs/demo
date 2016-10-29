@@ -25,6 +25,11 @@ export default class CreateItemMutation extends Relay.Mutation {
     return Relay.QL`mutation { createItemMutation }`;
   }
 
+  //
+  // TODO(burdon): ISSUE: The trouble with a single master Items edge is that it defeats caching.
+  // If we have multiple mutations, the entire "set" must be invalidated each time.
+  //
+
   // TODO(burdon): userId becomes bucket Id? (server already knows which user we are).
 
   /**
@@ -37,9 +42,9 @@ export default class CreateItemMutation extends Relay.Mutation {
       type: this.props.type,
 
       title: this.props.title,
-      labels: this.props.labels
+      labels: this.props.labels,
 
-      // TODO(burdon): Data fields.
+      data: this.props.data
     };
   }
 
@@ -53,8 +58,10 @@ export default class CreateItemMutation extends Relay.Mutation {
               node {
                 id
                 type
+
                 title
                 labels
+                data
               }
             }
           }
@@ -65,6 +72,11 @@ export default class CreateItemMutation extends Relay.Mutation {
     `;
   }
 
+  // TODO(burdon): Error since rangeBehaviors can't match filter arg.
+  // Warning: Using `null` as a rangeBehavior value is deprecated. Use `ignore` to avoid refetching a range.
+  // https://github.com/facebook/relay/issues/293
+  // https://github.com/facebook/relay/issues/538
+
   getConfigs() {
     // https://facebook.github.io/relay/docs/guides-mutations.html#range-add
     return [{
@@ -74,8 +86,7 @@ export default class CreateItemMutation extends Relay.Mutation {
       connectionName: 'items',
       edgeName: 'itemEdge',
       rangeBehaviors: {
-        '': 'append',
-        'orderby(oldest)': 'prepend'
+        '': 'append',   // Append if no args.
       }
     }];
   }
@@ -90,7 +101,8 @@ export default class CreateItemMutation extends Relay.Mutation {
         node: {
           type: this.props.type,
           title: this.props.title,
-          labels: this.props.labels
+          labels: this.props.labels,
+          data: this.props.data
         }
       }
     };

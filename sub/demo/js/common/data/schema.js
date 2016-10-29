@@ -18,8 +18,11 @@
 // https://github.com/facebook/relay/issues/720#issuecomment-174050321
 // https://facebook.github.io/relay/docs/thinking-in-graphql.html#content
 
+import _ from 'lodash';
+
 import {
   GraphQLBoolean,
+  GraphQLEnumType,
   GraphQLFloat,
   GraphQLID,
   GraphQLInt,
@@ -28,6 +31,7 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
+  GraphQLScalarType,
   GraphQLSchema,
   GraphQLString,
   GraphQLUnionType,
@@ -44,6 +48,8 @@ import {
   mutationWithClientMutationId,
   nodeDefinitions,
 } from 'graphql-relay';
+
+import UnionInputType from 'graphql-union-input-type';
 
 import {
   Database,
@@ -211,7 +217,7 @@ const ItemType = new GraphQLObjectType({
     },
 
     data: {
-      type: TypeUnion,
+      type: DataTypeUnion,
       resolve: (item, args) => {
         return item.data;
       }
@@ -265,9 +271,10 @@ const GroupType = new GraphQLObjectType({
 
   fields: () => ({
 
+    // TODO(burdon): Edge? Is this possible since GroupType is not a node?
     members: {
-      type: new GraphQLList(GraphQLID),
-      resolve: (data) => data.members
+      type: new GraphQLList(UserType),
+      resolve: (data) => Database.singleton.getItemsById(data.members)
     }
   })
 });
@@ -319,14 +326,61 @@ DATA_TYPE_MAP.set(NoteType.name,  NoteType);
 DATA_TYPE_MAP.set(TaskType.name,  TaskType);
 
 /**
+ * Convert GraphQLObjectType to GraphQLInputObjectType.
+ * @param type
+ */
+function createInputObject(type) {
+
+  // https://github.com/graphql/graphql-js/issues/207
+  // https://github.com/graphql/graphql-js/issues/312
+  // https://github.com/Cardinal90/graphql-union-input-type
+
+  function convertInputObjectField(field) {
+    let fieldType = field.type;
+
+    const wrappers = [];
+    while (fieldType.ofType) {
+      wrappers.unshift(fieldType.constructor);
+      fieldType = fieldType.ofType;
+    }
+
+    if (!(fieldType instanceof GraphQLInputObjectType ||
+          fieldType instanceof GraphQLScalarType ||
+          fieldType instanceof GraphQLEnumType)) {
+
+      fieldType = fieldType.getInterfaces().includes(nodeInterface) ?
+        GraphQLID : createInputObject(fieldType);
+    }
+
+    fieldType = wrappers.reduce((type, wrapper) => {
+      return new wrapper(type);
+    }, fieldType);
+
+    return { type: fieldType };
+  }
+
+  return new GraphQLInputObjectType({
+    name: type.name + 'Input',
+    fields: _.mapValues(type.getFields(), field => convertInputObjectField(field))
+  });
+}
+
+const DataInputTypeUnion = new UnionInputType({
+  name: 'UnionInputType',
+  inputTypes: _.map(Array.from(DATA_TYPE_MAP.values()), (type) => {
+    return createInputObject(type);
+  })
+});
+
+/**
  * Union of data types.
  *
  * http://graphql.org/graphql-js/type/#graphqluniontype
  * http://stackoverflow.com/questions/32558861/union-types-support-in-relay
  * https://medium.com/the-graphqlhub/graphql-tour-interfaces-and-unions-7dd5be35de0d#.sof4i67f1
  */
-const TypeUnion = new GraphQLUnionType({
-  name: 'TypeUnion',
+const DataTypeUnion = new GraphQLUnionType({   // TODO(burdon): Change to interface?
+  name: 'DataTypeUnion',
   description: 'Base type for all data types.',
   types: Array.from(DATA_TYPE_MAP.values()),
 
@@ -371,8 +425,6 @@ const StringListMutation = new GraphQLList(new GraphQLInputObjectType({
 // https://facebook.github.io/relay/docs/guides-mutations.html
 //
 
-// TODO(burdon): It is possible to reuse with parameterized parent and edge?
-
 const CreateItemMutation = mutationWithClientMutationId({
   name: 'CreateItemMutation',
 
@@ -393,9 +445,9 @@ const CreateItemMutation = mutationWithClientMutationId({
       type: new GraphQLList(GraphQLString)
     },
 
-    // data: {
-    //   type: TypeUnion
-    // }
+    data: {
+      type: DataInputTypeUnion
+    }
   },
 
   outputFields: {
@@ -408,25 +460,31 @@ const CreateItemMutation = mutationWithClientMutationId({
       type: ItemEdge,
       resolve: ({ userId, itemId }) => {
         let item = Database.singleton.getItem(itemId);
-        let localUserId = fromGlobalId(userId).id;
-//      let { id: localUserId } = fromGlobalId(userId)      // TODO(burdon): Rewrite.
+        let { id: localUserId } = fromGlobalId(userId);
+
+        // TODO(burdon): Logging not visible?
+        // TODO(burdon): Do we need to retrieve all items here?
+        // https://github.com/graphql/graphql-relay-js
+        let cursor = cursorForObjectInConnection(Database.singleton.getItems(localUserId), item);
+        console.error('###', cursor);
+        cursor = null; // TODO(burdon): Need filter arg to return a meaningful cursor.
 
         return {
           node: item,
 
-          // TODO(burdon): Do we need to retrieve all items here?
-          cursor: cursorForObjectInConnection(Database.singleton.getItems(localUserId), item)
+          cursor: cursor
         }
       }
     },
   },
 
-  mutateAndGetPayload: ({ userId, type, title, labels }) => {
-    let localUserId = fromGlobalId(userId).id;
+  mutateAndGetPayload: ({ userId, type, title, labels, data }) => {
+    let { id: localUserId } = fromGlobalId(userId);
 
     let item = Database.singleton.createItem(localUserId, type, {
       title: title,
-      labels: labels
+      labels: labels,
+      data: data
     });
 
     return {
@@ -453,12 +511,11 @@ const UpdateItemMutation = mutationWithClientMutationId({
 
     labels: {
       type: StringListMutation
-    }
+    },
 
-    // TODO(burdon): Generalize ot ObjectMutation (like StringListMutation)?
-    // data: {
-    //   type: TypeUnion
-    // }
+    data: {
+      type: DataInputTypeUnion
+    }
   },
 
   outputFields: {
@@ -468,12 +525,13 @@ const UpdateItemMutation = mutationWithClientMutationId({
     }
   },
 
-  mutateAndGetPayload: ({ itemId, title, labels }) => {
-    let localItemId = fromGlobalId(itemId).id;
+  mutateAndGetPayload: ({ itemId, title, labels, data }) => {
+    let { id: localItemId } = fromGlobalId(itemId);
 
     let item = Database.singleton.updateItem(localItemId, {
       title: title,
-      labels: labels
+      labels: labels,
+      data: data
     });
 
     return {

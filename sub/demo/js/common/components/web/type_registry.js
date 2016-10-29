@@ -15,38 +15,52 @@ import Task from './type/task';
  */
 class TypeRegistry {
 
+  // Ref name used to access element.
+  static REF = 'data';
+
   constructor() {
-    this._types = [];
-    this._renderers = new Map();
-    this._icons = new Map();
+    this._types = new Map();
   }
 
-  add(typeName, typeClass, typeRenderer, icon) {
-    this._types.push(typeClass);
-    this._renderers.set(typeName, typeRenderer);
-    this._icons.set(typeName, icon)
+  add(type, props) {
+    this._types.set(type, props);
   }
 
   get types() {
-    return this._types
+    return _.map(Array.from(this._types.values()), (props) => props.type);
   }
 
   icon(typeName) {
-    return this._icons.get(typeName);
+    return this._types.get(typeName)['icon'];
   }
 
   render(viewer, item) {
-    let renderer = this._renderers.get(item.type);
-    return renderer && renderer(viewer, item) || null;
+    return this._types.get(item.type)['render'](viewer, item);
+  }
+
+  values(type, element) {
+    return this._types.get(type)['values'](element);
   }
 }
 
 const TYPE_REGISTRY = new TypeRegistry();
 
-TYPE_REGISTRY.add('Note', Note,
-  (viewer, item) => <Note viewer={ viewer } data={ item.data }/>, 'description');
+TYPE_REGISTRY.add('Note', {
+  type: Note,
+  icon: 'description',
+  render: (viewer, item) => <Note ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
+  values: (component) => {
+    return component.values;
+  }
+});
 
-TYPE_REGISTRY.add('Task', Task,
-  (viewer, item) => <Task viewer={ viewer } data={ item.data }/>, 'assignment_turned_in');
+TYPE_REGISTRY.add('Task', {
+  type: Task,
+  icon: 'assignment_turned_in',
+  render: (viewer, item) => <Task ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
+  values: (component) => {
+    return component.values;
+  }
+});
 
 export default TYPE_REGISTRY;
