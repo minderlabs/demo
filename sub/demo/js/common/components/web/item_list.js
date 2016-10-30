@@ -26,15 +26,6 @@ class ItemList extends React.Component {
     this.props.onSelect && this.props.onSelect(node);
   }
 
-  setQuery(text) {
-    // https://facebook.github.io/relay/docs/api-reference-relay-container.html#setvariables
-    this.props.relay.setVariables({
-      filter: _.assign({}, this.props.relay.variables.filter, {
-        text: text
-      })
-    });
-  }
-
   render() {
     let { viewer } = this.props;
 

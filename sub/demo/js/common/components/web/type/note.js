@@ -51,7 +51,7 @@ class Note extends React.Component {
         <div className="app-row">
           <textarea className="app-expand"
                     rows="5"
-                    value={ this.state.data.content }
+                    value={ this.state.data.content || '' }
                     onChange={ this.handleTextChange.bind(this) }/>
         </div>
       </div>

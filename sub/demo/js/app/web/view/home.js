@@ -26,7 +26,7 @@ import './home.less';
  */
 class HomeView extends React.Component {
 
-  // TODO(burdon): Cache in-memory state (e.g., search text).
+  // TODO(burdon): Cache in-memory state (e.g., search text) for back nav.
 
   static propTypes = {
     viewer: React.PropTypes.object.isRequired
@@ -38,39 +38,20 @@ class HomeView extends React.Component {
 
   constructor(props, context) {
     super(props, context);
-
-    this.state = {
-      search: '',
-      title: ''
-    };
-
-    // TODO(burdon): Use TextBox.
-    this._searchInterval = 200;
-    this._searchTimeout = null;
-  }
-
-  doSearch() {
-    this.refs.items.refs.component.setQuery(this.state.search);
-  }
-
-  triggerSearch() {
-    this._searchTimeout && clearTimeout(this._searchTimeout);
-    this._searchTimeout = setTimeout(() => {
-      this.doSearch();
-    }, this._searchInterval);
   }
 
   createItem() {
     let { viewer } = this.props;
 
     // TODO(burdon): Dynamically customize EditBar by type (or go direct to detail).
-    let type = $(this.refs.type_select).val();
+    let type = $(this.refs.selectType).val();
 
-    let title = this.state.title;
+    let title = this.refs.textTitle.value;
     if (title) {
       let data = {};
       switch (type) {
         case 'Task': { // TODO(burdon): Consts from database.
+          // TODO(burdon): Factor out setting default props.
           let { id: userId } = fromGlobalId(viewer.user.id);
 
           _.merge(data, {
@@ -92,71 +73,23 @@ class HomeView extends React.Component {
       this.props.relay.commitUpdate(mutation, {
         onSuccess: (result) => {
           console.log('Mutation ID: %s', result.createItemMutation.clientMutationId);
+          this.refs.textTitle.value = '';
         }
       });
-
-      this.setState({ title: '' });
     }
 
-    this.refs.create_text.focus();
+    this.refs.textTitle.focus();
   }
 
   //
   // Handlers.
   //
 
-  handleTextChange(event) {
-//  console.log(event.target);
-    switch (event.target) {
-      case this.refs.search_text:
-        this.setState({
-          search: event.target.value
-        }, () => {
-          this.triggerSearch();
-        });
-        break;
-
-      case this.refs.create_text:
-        this.setState({
-          title: event.target.value
-        });
-        break;
-    }
-  }
-
-  handleKeyUp(event) {
-//  console.log(event.target);
+  handleTitleKeyDown(event) {
     switch (event.keyCode) {
       case 13: { // Enter.
-        switch (event.target) {
-          case this.refs.search_text:
-            this.doSearch();
-            break;
-
-          case this.refs.create_text:
-            this.createItem();
-            break;
-        }
-
+        this.createItem();
         break;
-      }
-
-      case 27: { // ESC.
-        switch (event.target) {
-          case this.refs.search_text:
-            this.setState({
-              search: ''
-            }, () => {
-              this.doSearch();
-            });
-            break;
-
-          case this.refs.create_text:
-            this.setState({
-              title: ''
-            });
-            break;
-        }
       }
     }
   }
@@ -169,6 +102,15 @@ class HomeView extends React.Component {
     this.context.router.push(Path.detail(item.id));
   }
 
+  handleSearch(text) {
+    // Change state of sub-components.
+    this.props.relay.setVariables({
+      filter: {
+        text: text
+      }
+    });
+  }
+
   //
   // Layout.
   //
@@ -179,15 +121,13 @@ class HomeView extends React.Component {
     // TODO(burdon): Factor out.
     const SearchBar = (
       <div className="app-toolbar app-toolbar-search">
-        <input ref="search_text"
-               type="text"
-               className="app-expand"
-               autoFocus="autoFocus"
-               value={ this.state.search }
-               onChange={ this.handleTextChange.bind(this) }
-               onKeyUp={ this.handleKeyUp.bind(this) }/>
 
-        <i onClick={ this.triggerSearch.bind(this) } className="material-icons">search</i>
+        <TextBox ref="textSearch"
+                 autoFocus={ true }
+                 placeholder="Search..."
+                 onTextChange={ this.handleSearch.bind(this) }/>
+
+        <i onClick={ () => this.handleSearch(this.refs.textSearch.value) } className="material-icons">search</i>
       </div>
     );
 
@@ -196,25 +136,24 @@ class HomeView extends React.Component {
       <div className="app-panel app-column app-expand">
         <ItemList ref="items"
                   viewer={ viewer }
+                  filter={ this.props.relay.variables.filter }
                   onSelect={ this.handleItemSelect.bind(this) }/>
       </div>
     );
 
     // TODO(burdon): Factor out.
+    // TODO(burdon): Add types to select (factor out control).
     const CreateBar = (
       <div className="app-toolbar app-toolbar-create">
 
-        <select ref="type_select">
-          <option value="Note">Note</option>
+        <select ref="selectType">
           <option value="Task">Task</option>
+          <option value="Note">Note</option>
         </select>
 
-        <input ref="create_text"
-               type="text"
-               className="app-expand"
-               value={ this.state.title }
-               onChange={ this.handleTextChange.bind(this) }
-               onKeyUp={ this.handleKeyUp.bind(this) }/>
+        <TextBox ref="textTitle"
+                 placeholder="Title..."
+                 onKeyDown={ this.handleTitleKeyDown.bind(this) }/>
 
         <i onClick={ this.handleCreateButton.bind(this) } className="material-icons">add</i>
       </div>
@@ -232,6 +171,12 @@ class HomeView extends React.Component {
 
 export default Relay.createContainer(HomeView, {
 
+  initialVariables: {
+    filter: {
+      text: ''
+    }
+  },
+
   fragments: {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
@@ -241,7 +186,7 @@ export default Relay.createContainer(HomeView, {
           id
         }
 
-        ${ItemList.getFragment('viewer')}
+        ${ItemList.getFragment('viewer', { filter: variables.filter })}
 
         ${CreateItemMutation.getFragment('viewer')}
       }

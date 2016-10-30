@@ -95,6 +95,8 @@ export default class TextBox extends React.Component {
     return (
       <input ref="input"
              type="text"
+             autoFocus={ this.props.autoFocus ? 'autoFocus' : '' }
+             className="app-textbox"
              value={ this.state.value }
              placeholder={ this.props.placeholder }
              onChange={ this.handleTextChange.bind(this) }
