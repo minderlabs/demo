@@ -138,6 +138,10 @@ const ItemFilterType = new GraphQLInputObjectType({
     },
     text: {
       type: GraphQLString
+    },
+    matchText: {
+      type: GraphQLBoolean,
+      description: 'If set, the query must match the text (i.e., fail if blank).'
     }
   })
 });

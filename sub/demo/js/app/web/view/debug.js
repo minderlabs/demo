@@ -27,6 +27,9 @@ class DebugView extends React.Component {
     this.props.relay.setVariables({
       filter: {
         type: type
+      },
+      pickerFilter: {
+        type: type
       }
     });
   }
@@ -63,8 +66,7 @@ class DebugView extends React.Component {
           </select>
 
           <Picker viewer={ viewer }
-                  className="app-expand"
-                  filter={ this.props.relay.variables.filter }
+                  filter={ this.props.relay.variables.pickerFilter }
                   onSelect={ this.handleSelectItem.bind(this) }/>
         </div>
 
@@ -77,11 +79,19 @@ class DebugView extends React.Component {
   }
 }
 
+const DEFAULT_TYPE = 'Task';
+
 export default Relay.createContainer(DebugView, {
+
+  // NOTE: Different filters since picker adds "matchText" predicate.
+  // TODO(burdon): Is it a bug that if the picker does this modification this component must care?
 
   initialVariables: {
     filter: {
-      type: 'Task'
+      type: DEFAULT_TYPE
+    },
+    pickerFilter: {
+      type: DEFAULT_TYPE
     }
   },
 
@@ -103,7 +113,7 @@ export default Relay.createContainer(DebugView, {
           }
         }
 
-       ${Picker.getFragment('viewer', { filter: variables.filter })}
+       ${Picker.getFragment('viewer', { filter: variables.pickerFilter })}
       }
     `,
   }

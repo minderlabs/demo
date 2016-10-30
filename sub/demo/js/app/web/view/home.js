@@ -43,19 +43,17 @@ class HomeView extends React.Component {
   createItem() {
     let { viewer } = this.props;
 
-    // TODO(burdon): Dynamically customize EditBar by type (or go direct to detail).
-    let type = $(this.refs.selectType).val();
-
     let title = this.refs.textTitle.value;
     if (title) {
       let data = {};
+
+      let type = $(this.refs.selectType).val();
       switch (type) {
-        case 'Task': { // TODO(burdon): Consts from database.
+        case 'Task': { // TODO(burdon): Type consts from database.
           // TODO(burdon): Factor out setting default props.
           let { id: userId } = fromGlobalId(viewer.user.id);
 
           _.merge(data, {
-            priority: 1,
             owner: userId
           });
           break;
@@ -69,10 +67,11 @@ class HomeView extends React.Component {
         data: data
       });
 
-      // TODO(burdon): Requery on update? Listen for events? Is this cached?
       this.props.relay.commitUpdate(mutation, {
         onSuccess: (result) => {
           console.log('Mutation ID: %s', result.createItemMutation.clientMutationId);
+
+          // TODO(burdon): Nav to detail page.
           this.refs.textTitle.value = '';
         }
       });
@@ -142,7 +141,7 @@ class HomeView extends React.Component {
     );
 
     // TODO(burdon): Factor out.
-    // TODO(burdon): Add types to select (factor out control).
+    // TODO(burdon): Add types to select (factor out Select).
     const CreateBar = (
       <div className="app-toolbar app-toolbar-create">
 
