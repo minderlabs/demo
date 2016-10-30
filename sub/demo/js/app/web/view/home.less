@@ -4,24 +4,38 @@
 
 @import '../../../common/components/web/defs/core';
 
-.app-toolbar-search {
+.app-main-column {
 
-  .app-textbox {
-    .app-expand;
+  .app-toolbar-search {
+
+    .app-textbox {
+      .app-expand;
+    }
+
+    i {
+      margin-left: 8px;
+    }
   }
 
-  i {
-    margin-left: 8px;
+  .app-search-list {
+    overflow-y: scroll;
   }
-}
-
-.app-toolbar-create {
-
-  .app-textbox {
-    .app-expand;
+  .app-search-list::-webkit-scrollbar {
+    width: 4px;
+  }
+  .app-search-list::-webkit-scrollbar-thumb {
+    background-color: #666;
   }
 
-  i {
-    margin-left: 8px;
+  .app-toolbar-create {
+
+    .app-textbox {
+      .app-expand;
+    }
+
+    i {
+      margin-left: 8px;
+    }
   }
+
 }

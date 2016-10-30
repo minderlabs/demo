@@ -45,7 +45,7 @@ class ItemDetail extends React.Component {
     let { item } = this.props;
 
     // Get properties from data element.
-    let data = TypeRegistry.values(item.type, this.refs.data.refs.component);  // TODO(burdon): Const "data".
+    let data = TypeRegistry.values(item.type, this.refs['data'].refs.component);  // TODO(burdon): Const "data".
 
     let mutation = new UpdateItemMutation({
       item: item,

@@ -5,6 +5,8 @@
 @import (reference) './mixin';
 @import './theme';
 
+// TODO(burdon): Name core/mixing/lib classes from specific app components (e.g., app- vs. nx-)
+
 //
 // Generic Elements.
 //
@@ -59,6 +61,7 @@ textarea {
 .app-toolbar {
   display: flex;
   flex-direction: row;
+  flex-shrink: 0;
   align-items: center;
 
   box-shadow: @app-panel-boxshaow;

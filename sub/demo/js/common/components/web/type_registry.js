@@ -11,7 +11,8 @@ import Task from './type/task';
 
 /**
  * Type registry.
- * TODO(burdon): Factor out.
+ *
+ * https://material.io/icons
  */
 class TypeRegistry {
 
@@ -31,15 +32,18 @@ class TypeRegistry {
   }
 
   icon(typeName) {
-    return this._types.get(typeName)['icon'];
+    let props = this._types.get(typeName);
+    return props && props['icon'] || '';
   }
 
   render(viewer, item) {
-    return this._types.get(item.type)['render'](viewer, item);
+    let props = this._types.get(item.type);
+    return props['render'](viewer, item);
   }
 
   values(type, element) {
-    return this._types.get(type)['values'](element);
+    let props = this._types.get(type);
+    return props['values'](element);
   }
 }
 
@@ -62,5 +66,15 @@ TYPE_REGISTRY.add('Task', {
     return component.values;
   }
 });
+
+// TODO(burdon): Don't add until sub-type is added (need fragment).
+
+// TYPE_REGISTRY.add('User', {
+//   icon: 'person_outline',
+// });
+//
+// TYPE_REGISTRY.add('Group', {
+//   icon: 'group',
+// });
 
 export default TYPE_REGISTRY;

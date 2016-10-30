@@ -104,8 +104,15 @@ class HomeView extends React.Component {
   handleSearch(text) {
     // Change state of sub-components.
     this.props.relay.setVariables({
+      filter: text ? { text: text } : { type: this.refs.selectType.value }
+    });
+  }
+
+  handleTypeChange(ev) {
+    let type = $(ev.target).val();
+    this.props.relay.setVariables({
       filter: {
-        text: text
+        type: type
       }
     });
   }
@@ -119,7 +126,7 @@ class HomeView extends React.Component {
 
     // TODO(burdon): Factor out.
     const SearchBar = (
-      <div className="app-toolbar app-toolbar-search">
+      <div className="app-toolbar-search app-toolbar">
 
         <TextBox ref="textSearch"
                  autoFocus={ true }
@@ -132,7 +139,7 @@ class HomeView extends React.Component {
 
     // TODO(burdon): Factor out.
     const SearchList = (
-      <div className="app-panel app-column app-expand">
+      <div className="app-search-list app-panel app-column app-expand">
         <ItemList ref="items"
                   viewer={ viewer }
                   filter={ this.props.relay.variables.filter }
@@ -143,9 +150,9 @@ class HomeView extends React.Component {
     // TODO(burdon): Factor out.
     // TODO(burdon): Add types to select (factor out Select).
     const CreateBar = (
-      <div className="app-toolbar app-toolbar-create">
+      <div className="app-toolbar-create app-toolbar">
 
-        <select ref="selectType">
+        <select ref="selectType" onChange={ this.handleTypeChange.bind(this) }>
           <option value="Task">Task</option>
           <option value="Note">Note</option>
         </select>
@@ -159,7 +166,7 @@ class HomeView extends React.Component {
     );
 
     return (
-      <div className="app-column app-expand">
+      <div className="app-main-column app-column app-expand">
         { SearchBar }
         { SearchList }
         { CreateBar }
@@ -172,7 +179,7 @@ export default Relay.createContainer(HomeView, {
 
   initialVariables: {
     filter: {
-      text: ''
+      type: 'Task'
     }
   },
 
