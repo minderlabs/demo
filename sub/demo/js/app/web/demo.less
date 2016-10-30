@@ -27,8 +27,10 @@
     .app-header {
       display: flex;
       flex-direction: row;
-      background-color: @app-header-background;
+      flex-shrink: 0;
       padding: 8px;
+
+      background-color: @app-header-background;
 
       > div:first-child {
         display: flex;
@@ -60,7 +62,9 @@
     }
 
     .app-footer {
-      height: 12px;
+      flex-shrink: 0;
+      height: 4px;
+
       background-color: @app-footer-background;
     }
   }

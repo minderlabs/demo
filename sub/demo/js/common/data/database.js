@@ -69,6 +69,7 @@ export class Item {
     if (text) {
       let parts = text.split(/\s+/);
       for (let part of parts) {
+        // TODO(burdon): Parsing should be done on client.
         if (part[0] == ':') {
           let label = part.substring(1);
           if (label) {
@@ -276,6 +277,12 @@ export class Database {
     return item;
   }
 
+  getItemsById(itemIds) {
+    return _.map(itemIds, (itemId) => {
+      return this.getItem(itemId);
+    });
+  }
+
   getItems(bucketId, filter=null) {
     // TODO(burdon): By bucket.
 //  let items = Array.from(this.getItemMap(bucketId).values());
@@ -284,9 +291,30 @@ export class Database {
     }
 
     let items = _.filter(Array.from(this._items.values()), (item) => {
+      // Must match something.
       let match = false;
-      match |= (filter.type && item.type == filter.type);
-      match |= (filter.text && item.match(filter.text));
+
+      if (filter.type) {
+        match = (item.type === filter.type);
+        if (!match) {
+          return false;
+        }
+      }
+
+      // TODO(burdon): Match labels.
+
+      if (filter.text) {
+        match = item.match(filter.text);
+        if (!match) {
+          return false;
+        }
+      } else {
+        // Fail if must match text.
+        if (filter.matchText) {
+          return false;
+        }
+      }
+
       return match;
     });
 

@@ -107,8 +107,9 @@ class Picker extends React.Component {
 
   handleTextChange(text) {
     this.props.relay.setVariables({
+      // Preserve type.
       filter: _.assign({}, this.props.relay.variables.filter, {
-        text: text || ''
+        text: text
       })
     });
   }
@@ -145,7 +146,7 @@ class Picker extends React.Component {
     });
 
     return (
-      <div className={ "app-picker" + (' ' + this.props.className || '') }>
+      <div className="app-picker">
         <div>
           <TextBox ref="textbox"
                    value={ this.props.value }
@@ -168,7 +169,13 @@ class Picker extends React.Component {
 export default Relay.createContainer(Picker, {
 
   initialVariables: {
-    filter: {} // Set by parent.
+    filter: {}
+  },
+
+  prepareVariables: (variables) => {
+    // Must actually match some text.
+    variables.filter.matchText = true;
+    return variables
   },
 
   fragments: {

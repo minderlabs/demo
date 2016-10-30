@@ -12,17 +12,48 @@ import Relay from 'react-relay';
  */
 class Note extends React.Component {
 
+  // TODO(burdon): Base type.
+
   static propTypes = {
+    viewer: React.PropTypes.object.isRequired,
     data: React.PropTypes.object.isRequired
   };
 
-  render() {
-    let { content } = this.props.data;
+  constructor(props, context) {
+    super(props, context);
 
+    this.state = {
+      data: _.cloneDeep(this.props.data)
+    };
+  }
+
+  get values() {
+    return this.state.data;
+  }
+
+  handleTextChange(event) {
+
+    let value = event.target.value;
+
+    this.setState((state, props) => {
+      return {
+        data: _.assign({}, state.data, {
+          content: value
+        })
+      };
+    });
+  }
+
+  render() {
     return (
       <div className="app-section">
         <h3>Content</h3>
-        <div>{ content }</div>
+        <div className="app-row">
+          <textarea className="app-expand"
+                    rows="5"
+                    value={ this.state.data.content || '' }
+                    onChange={ this.handleTextChange.bind(this) }/>
+        </div>
       </div>
     );
   }

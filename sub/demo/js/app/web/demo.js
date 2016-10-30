@@ -8,9 +8,6 @@ import React from 'react';
 import Relay from 'react-relay';
 import { Link } from 'react-router';
 
-// NOTE: Don't remove (needed to trigger webpack on schema changes).
-import { VERSION } from '../../common/data/schema';
-
 import Path from './path';
 
 import './demo.less';

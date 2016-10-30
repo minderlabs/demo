@@ -11,42 +11,70 @@ import Task from './type/task';
 
 /**
  * Type registry.
- * TODO(burdon): Factor out.
+ *
+ * https://material.io/icons
  */
 class TypeRegistry {
 
+  // Ref name used to access element.
+  static REF = 'data';
+
   constructor() {
-    this._types = [];
-    this._renderers = new Map();
-    this._icons = new Map();
+    this._types = new Map();
   }
 
-  add(typeName, typeClass, typeRenderer, icon) {
-    this._types.push(typeClass);
-    this._renderers.set(typeName, typeRenderer);
-    this._icons.set(typeName, icon)
+  add(type, props) {
+    this._types.set(type, props);
   }
 
   get types() {
-    return this._types
+    return _.map(Array.from(this._types.values()), (props) => props.type);
   }
 
   icon(typeName) {
-    return this._icons.get(typeName);
+    let props = this._types.get(typeName);
+    return props && props['icon'] || '';
   }
 
   render(viewer, item) {
-    let renderer = this._renderers.get(item.type);
-    return renderer && renderer(viewer, item) || null;
+    let props = this._types.get(item.type);
+    return props['render'](viewer, item);
+  }
+
+  values(type, element) {
+    let props = this._types.get(type);
+    return props['values'](element);
   }
 }
 
 const TYPE_REGISTRY = new TypeRegistry();
 
-TYPE_REGISTRY.add('Note', Note,
-  (viewer, item) => <Note viewer={ viewer } data={ item.data }/>, 'description');
+TYPE_REGISTRY.add('Note', {
+  type: Note,
+  icon: 'description',
+  render: (viewer, item) => <Note ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
+  values: (component) => {
+    return component.values;
+  }
+});
 
-TYPE_REGISTRY.add('Task', Task,
-  (viewer, item) => <Task viewer={ viewer } data={ item.data }/>, 'assignment_turned_in');
+TYPE_REGISTRY.add('Task', {
+  type: Task,
+  icon: 'assignment_turned_in',
+  render: (viewer, item) => <Task ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
+  values: (component) => {
+    return component.values;
+  }
+});
+
+// TODO(burdon): Don't add until sub-type is added (need fragment).
+
+// TYPE_REGISTRY.add('User', {
+//   icon: 'person_outline',
+// });
+//
+// TYPE_REGISTRY.add('Group', {
+//   icon: 'group',
+// });
 
 export default TYPE_REGISTRY;

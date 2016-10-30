@@ -2,16 +2,40 @@
 // Copyright 2016 Alien Laboratories, Inc.
 //
 
-.app-toolbar-create {
+@import '../../../common/components/web/defs/core';
 
-  input {
-    border: none;
-    border-bottom: 1px solid #666;
-    background-color: transparent;
+.app-main-column {
+
+  .app-toolbar-search {
+
+    .app-textbox {
+      .app-expand;
+    }
+
+    i {
+      margin-left: 8px;
+    }
   }
 
-  i {
-    margin-left: 8px;
-    color: red;
+  .app-search-list {
+    overflow-y: scroll;
   }
+  .app-search-list::-webkit-scrollbar {
+    width: 4px;
+  }
+  .app-search-list::-webkit-scrollbar-thumb {
+    background-color: #666;
+  }
+
+  .app-toolbar-create {
+
+    .app-textbox {
+      .app-expand;
+    }
+
+    i {
+      margin-left: 8px;
+    }
+  }
+
 }

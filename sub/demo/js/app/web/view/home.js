@@ -7,6 +7,10 @@
 import React from 'react';
 import Relay from 'react-relay';
 
+import {
+  fromGlobalId
+} from 'graphql-relay';
+
 // TODO(burdon): Create lib for UX and Data.
 import ItemList from '../../../common/components/web/item_list';
 import TextBox from '../../../common/components/web/textbox';
@@ -22,7 +26,7 @@ import './home.less';
  */
 class HomeView extends React.Component {
 
-  // TODO(burdon): Cache in-memory state (e.g., search text).
+  // TODO(burdon): Cache in-memory state (e.g., search text) for back nav.
 
   static propTypes = {
     viewer: React.PropTypes.object.isRequired
@@ -34,111 +38,57 @@ class HomeView extends React.Component {
 
   constructor(props, context) {
     super(props, context);
-
-    this.state = {
-      search: '',
-      title: ''
-    };
-
-    // TODO(burdon): Use TextBox.
-    this._searchInterval = 200;
-    this._searchTimeout = null;
-  }
-
-  doSearch() {
-    this.refs.items.refs.component.setQuery(this.state.search);
-  }
-
-  triggerSearch() {
-    this._searchTimeout && clearTimeout(this._searchTimeout);
-    this._searchTimeout = setTimeout(() => {
-      this.doSearch();
-    }, this._searchInterval);
   }
 
   createItem() {
     let { viewer } = this.props;
 
-    // TODO(burdon): Dynamically customize EditBar by type (or go direct to detail).
-    let type = $(this.refs.type_select).val();
-
-    let title = this.state.title;
+    let title = this.refs.textTitle.value;
     if (title) {
+      let data = {};
+
+      let type = $(this.refs.selectType).val();
+      switch (type) {
+        case 'Task': { // TODO(burdon): Type consts from database.
+          // TODO(burdon): Factor out setting default props.
+          let { id: userId } = fromGlobalId(viewer.user.id);
+
+          _.merge(data, {
+            owner: userId
+          });
+          break;
+        }
+      }
+
       let mutation = new CreateItemMutation({
         viewer: viewer,
         type: type,
-        title: title
+        title: title,
+        data: data
       });
 
-      // TODO(burdon): Requery on update? Listen for events? Is this cached?
       this.props.relay.commitUpdate(mutation, {
         onSuccess: (result) => {
-          console.log('Committed:', result);
+          console.log('Mutation ID: %s', result.createItemMutation.clientMutationId);
+
+          // TODO(burdon): Nav to detail page.
+          this.refs.textTitle.value = '';
         }
       });
-
-      this.setState({ title: '' });
     }
 
-    this.refs.create_text.focus();
+    this.refs.textTitle.focus();
   }
 
   //
   // Handlers.
   //
 
-  handleTextChange(event) {
-//  console.log(event.target);
-    switch (event.target) {
-      case this.refs.search_text:
-        this.setState({
-          search: event.target.value
-        }, () => {
-          this.triggerSearch();
-        });
-        break;
-
-      case this.refs.create_text:
-        this.setState({
-          title: event.target.value
-        });
-        break;
-    }
-  }
-
-  handleKeyUp(event) {
-//  console.log(event.target);
+  handleTitleKeyDown(event) {
     switch (event.keyCode) {
       case 13: { // Enter.
-        switch (event.target) {
-          case this.refs.search_text:
-            this.doSearch();
-            break;
-
-          case this.refs.create_text:
-            this.createItem();
-            break;
-        }
-
+        this.createItem();
         break;
-      }
-
-      case 27: { // ESC.
-        switch (event.target) {
-          case this.refs.search_text:
-            this.setState({
-              search: ''
-            }, () => {
-              this.doSearch();
-            });
-            break;
-
-          case this.refs.create_text:
-            this.setState({
-              title: ''
-            });
-            break;
-        }
       }
     }
   }
@@ -151,6 +101,22 @@ class HomeView extends React.Component {
     this.context.router.push(Path.detail(item.id));
   }
 
+  handleSearch(text) {
+    // Change state of sub-components.
+    this.props.relay.setVariables({
+      filter: text ? { text: text } : { type: this.refs.selectType.value }
+    });
+  }
+
+  handleTypeChange(ev) {
+    let type = $(ev.target).val();
+    this.props.relay.setVariables({
+      filter: {
+        type: type
+      }
+    });
+  }
+
   //
   // Layout.
   //
@@ -160,48 +126,47 @@ class HomeView extends React.Component {
 
     // TODO(burdon): Factor out.
     const SearchBar = (
-      <div className="app-toolbar app-toolbar-search">
-        <input ref="search_text"
-               type="text"
-               className="app-expand"
-               autoFocus="autoFocus"
-               value={ this.state.search }
-               onChange={ this.handleTextChange.bind(this) }
-               onKeyUp={ this.handleKeyUp.bind(this) }/>
+      <div className="app-toolbar-search app-toolbar">
+
+        <TextBox ref="textSearch"
+                 autoFocus={ true }
+                 placeholder="Search..."
+                 onTextChange={ this.handleSearch.bind(this) }/>
+
+        <i onClick={ () => this.handleSearch(this.refs.textSearch.value) } className="material-icons">search</i>
       </div>
     );
 
     // TODO(burdon): Factor out.
     const SearchList = (
-      <div className="app-panel app-column app-expand">
+      <div className="app-search-list app-panel app-column app-expand">
         <ItemList ref="items"
                   viewer={ viewer }
+                  filter={ this.props.relay.variables.filter }
                   onSelect={ this.handleItemSelect.bind(this) }/>
       </div>
     );
 
     // TODO(burdon): Factor out.
+    // TODO(burdon): Add types to select (factor out Select).
     const CreateBar = (
-      <div className="app-toolbar app-toolbar-create">
+      <div className="app-toolbar-create app-toolbar">
 
-        <select ref="type_select">
-          <option value="Note">Note</option>
+        <select ref="selectType" onChange={ this.handleTypeChange.bind(this) }>
           <option value="Task">Task</option>
+          <option value="Note">Note</option>
         </select>
 
-        <input ref="create_text"
-               type="text"
-               className="app-expand"
-               value={ this.state.title }
-               onChange={ this.handleTextChange.bind(this) }
-               onKeyUp={ this.handleKeyUp.bind(this) }/>
+        <TextBox ref="textTitle"
+                 placeholder="Title..."
+                 onKeyDown={ this.handleTitleKeyDown.bind(this) }/>
 
-        <i onClick={ this.handleCreateButton.bind(this) } className="material-icons">add_circle</i>
+        <i onClick={ this.handleCreateButton.bind(this) } className="material-icons">add</i>
       </div>
     );
 
     return (
-      <div className="app-column app-expand">
+      <div className="app-main-column app-column app-expand">
         { SearchBar }
         { SearchList }
         { CreateBar }
@@ -212,12 +177,22 @@ class HomeView extends React.Component {
 
 export default Relay.createContainer(HomeView, {
 
+  initialVariables: {
+    filter: {
+      type: 'Task'
+    }
+  },
+
   fragments: {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
 
-        ${ItemList.getFragment('viewer')}
+        user {
+          id
+        }
+
+        ${ItemList.getFragment('viewer', { filter: variables.filter })}
 
         ${CreateItemMutation.getFragment('viewer')}
       }

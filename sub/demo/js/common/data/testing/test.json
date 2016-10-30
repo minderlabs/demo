@@ -31,13 +31,22 @@
     "minderlabs": {
       "Task": [
         {
-          "title": "Task 1"
+          "title": "Task 1",
+          "data": {
+            "owner": "rich"
+          }
         },
         {
-          "title": "Task 2"
+          "title": "Task 2",
+          "data": {
+            "owner": "adam"
+          }
         },
         {
-          "title": "Task 3"
+          "title": "Task 3",
+          "data": {
+            "owner": "adam"
+          }
         },
         {
           "title": "Task 4",
@@ -54,16 +63,28 @@
           "title": "Task 5",
           "labels": [
             "_favorite"
-          ]
+          ],
+          "data": {
+            "owner": "adam"
+          }
         },
         {
-          "title": "Task 6"
+          "title": "Task 6",
+          "data": {
+            "owner": "adam"
+          }
         },
         {
-          "title": "Task 7"
+          "title": "Task 7",
+          "data": {
+            "owner": "rich"
+          }
         },
         {
-          "title": "Task 8"
+          "title": "Task 8",
+          "data": {
+            "owner": "rich"
+          }
         }
       ],
 

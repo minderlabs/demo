@@ -5,6 +5,8 @@
 @import (reference) './mixin';
 @import './theme';
 
+// TODO(burdon): Name core/mixing/lib classes from specific app components (e.g., app- vs. nx-)
+
 //
 // Generic Elements.
 //
@@ -21,6 +23,10 @@ i.material-icons {
 
 table {
   table-layout: fixed;
+}
+
+textarea {
+  resize: none;
 }
 
 //
@@ -55,6 +61,7 @@ table {
 .app-toolbar {
   display: flex;
   flex-direction: row;
+  flex-shrink: 0;
   align-items: center;
 
   box-shadow: @app-panel-boxshaow;
