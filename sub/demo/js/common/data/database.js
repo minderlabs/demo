@@ -8,6 +8,11 @@ import Random from 'random-seed';
 
 import { Util } from '../util/util';
 
+// TODO(burdon): Buckets
+// STRAT 1: all items in team (global) bucket (as now). Filter by context (owner/assignee).
+// STRAT 2: buckets with denormalized copies (GOOD).
+// STRAT 3: move to public bucket and merge personal and shared buckets (BAD).
+
 /**
  * Viewer.
  */
@@ -117,10 +122,9 @@ class TaskTypeHandler extends BaseTypeHandler {
   update(data, values) {
     // TODO(burdon): Pass array of values.
     Util.maybeUpdateItem(data, values, 'priority');
-
-    // TODO(burdon): Convert to IDs.
     Util.maybeUpdateItem(data, values, 'owner');
     Util.maybeUpdateItem(data, values, 'assignee');
+    Util.maybeUpdateItem(data, values, 'details');
   }
 
   match(data, text) {
@@ -298,6 +302,16 @@ export class Database {
         match = (item.type === filter.type);
         if (!match) {
           return false;
+        }
+      }
+
+      switch (item.type) {
+        // TODO(burdon): Hack to match by owner/assigned (how would indexing work?)
+        case 'Task': {
+          if (bucketId !== item.data.owner && bucketId !== item.data.assignee) {
+            return false;
+          }
+          break;
         }
       }
 

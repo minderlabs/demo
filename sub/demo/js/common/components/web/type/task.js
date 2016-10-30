@@ -21,6 +21,7 @@ import './task.less';
 class Task extends React.Component {
 
   // TODO(burdon): Base type.
+  // TODO(burdon): Factor out textarea.
 
   static propTypes = {
     viewer: React.PropTypes.object.isRequired,
@@ -36,12 +37,13 @@ class Task extends React.Component {
   }
 
   get values() {
-    let { priority, owner, assignee } = this.state.data;
+    let { priority, owner, assignee, details } = this.state.data;
 
     return {
       priority: priority,
       owner: owner && fromGlobalId(owner.id).id,
-      assignee: assignee && fromGlobalId(assignee.id).id
+      assignee: assignee && fromGlobalId(assignee.id).id,
+      details: details
     };
   }
 
@@ -55,9 +57,21 @@ class Task extends React.Component {
     });
   }
 
+  handleTextChange(event) {
+    let value = event.target.value;
+
+    this.setState((state, props) => {
+      return {
+        data: _.assign({}, state.data, {
+          details: value
+        })
+      };
+    });
+  }
+
   render() {
     let { viewer } = this.props;
-    let { priority, owner, assignee } = this.state.data;
+    let { priority, owner, assignee, details } = this.state.data;
 
     // TODO(burdon): Picker set value (not just text).
     // TODO(burdon): Select box for priority.
@@ -67,6 +81,7 @@ class Task extends React.Component {
 
         <div className="app-section app-expand">
           <div className="app-data app-expand">
+
             <div className="app-data-row">
               <div className="app-key">Priority</div>
               <div className="app-value">{ priority }</div>
@@ -86,6 +101,17 @@ class Task extends React.Component {
                         onSelect={ this.handleSelectItem.bind(this) }/>
               </div>
             </div>
+
+            <div className="app-data-row app-details">
+              <div className="app-key">Details</div>
+              <div className="app-value app-row app-expand">
+                <textarea className="app-textarea app-expand"
+                          rows="5"
+                          value={ this.state.data.details || '' }
+                          onChange={ this.handleTextChange.bind(this) }/>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -127,6 +153,7 @@ export default Relay.createContainer(Task, {
           id
           title
         }
+        details
       }
     `
   }
