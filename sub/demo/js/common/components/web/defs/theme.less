@@ -28,6 +28,7 @@
 @app-toolbar-control-background: whitesmoke;
 @app-toolbar-control-background-hover: darken(@app-toolbar-control-background, 20%);
 @app-toolbar-control-border: darken(@app-toolbar-control-background, 40%);
+@app-toolbar-control-border-light: @app-toolbar-control-background;
 
 @app-link-color: darkblue;
 
@@ -91,6 +92,16 @@ input[type=text] {
   border: 0;
   border-top: 1px solid transparent;  // Keep same height as other controls (e.g., select).
   border-bottom: 1px solid @app-toolbar-control-border;
+}
+
+textarea {
+  border: 1px solid @app-toolbar-control-border-light;
+}
+textarea::-webkit-scrollbar {
+  width: 4px;
+}
+textarea::-webkit-scrollbar-thumb {
+  background-color: #666;
 }
 
 button,

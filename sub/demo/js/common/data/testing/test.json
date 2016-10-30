@@ -33,7 +33,8 @@
         {
           "title": "Task 1",
           "data": {
-            "owner": "rich"
+            "owner": "rich",
+            "details": "Need to fix this."
           }
         },
         {

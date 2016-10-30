@@ -301,7 +301,14 @@ const TaskType = new GraphQLObjectType({
     assignee: {
       type: ItemType,
       resolve: (data) => Database.singleton.getItem(data.assignee)
+    },
+
+    details: {
+      type: GraphQLString,
+      description: 'Content in markdown (or html?)',
+      resolve: (data) => data.details
     }
+
   })
 });
 

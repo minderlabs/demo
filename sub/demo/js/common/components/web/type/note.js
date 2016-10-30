@@ -13,6 +13,7 @@ import Relay from 'react-relay';
 class Note extends React.Component {
 
   // TODO(burdon): Base type.
+  // TODO(burdon): Factor out textarea.
 
   static propTypes = {
     viewer: React.PropTypes.object.isRequired,
@@ -32,7 +33,6 @@ class Note extends React.Component {
   }
 
   handleTextChange(event) {
-
     let value = event.target.value;
 
     this.setState((state, props) => {
