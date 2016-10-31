@@ -194,24 +194,21 @@ export default Relay.createContainer(HomeView, {
 
     console.log('<<<', JSON.stringify(variables.filter));
 
-    // TODO(burdon): Enable null.
-    // variables.filter.type = variables.filter.labels ? 'Task' : 'Task';
-
     switch (variables.folder) {
       case 'favorites': {
-        variables.filter.labels = ['_favorite']; // TODO(burdon): Const.
-        variables.filter = {
-          labels: ['_favorite']
-        };
+        variables.filter.labels = ['_favorite']; // TODO(burdon): Const in database.
         break;
       }
 
       default: {
         variables.filter.labels = undefined;
-        variables.filter = {
-          labels: []
-        };
       }
+    }
+
+    // TODO(burdon): Enable null.
+    if (variables.filter.text) {
+      variables.filter.type = undefined;
+      variables.filter.labels = undefined;
     }
 
     console.log('>>>', JSON.stringify(variables.filter));
