@@ -57,7 +57,7 @@ ReactDOM.render(
             }, 1000);
           }
         } else if (state.ready) {
-          console.log('State changed:', _.map(state.events, (event) => { return event.type; }).join(' => '));
+          console.log('State changed:', _.map(state.events, (event) => event.type).join(' => '));
         }
       }
     }

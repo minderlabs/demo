@@ -136,6 +136,9 @@ const ItemFilterType = new GraphQLInputObjectType({
     type: {
       type: GraphQLString
     },
+    labels: {
+      type: new GraphQLList(GraphQLString)
+    },
     text: {
       type: GraphQLString
     },

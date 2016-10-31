@@ -13,7 +13,7 @@ import { Viewer } from '../../common/data/database';
 import config from './config';
 import Path from './path';
 
-import DemoApp from './demo';
+import DemoApp from './app';
 
 import DebugView from './view/debug';
 import HomeView from './view/home';
@@ -64,7 +64,6 @@ const ItemDetailQueries = {
 
 };
 
-
 /**
  * React Relay Router.
  *
@@ -75,13 +74,20 @@ const ItemDetailQueries = {
  */
 export default (
 
+  // TODO(burdon): Factor out consts.
+
   <Route path={ Path.ROOT }
          queries={ HomeQueries }
          component={ DemoApp }>
 
     <IndexRedirect to={ Path.HOME }/>
 
-    <Route path={ Path.HOME }
+    <Route path={ Path.DEBUG }
+           queries={ HomeQueries }
+           prepareParams={ params => ({ ...params, userId: userId }) }
+           component={ DebugView }/>
+
+    <Route path={ Path.ROOT + ':folder' }
            queries={ HomeQueries }
            prepareParams={ params => ({ ...params, userId: userId }) }
            component={ HomeView }/>
@@ -91,12 +97,7 @@ export default (
            prepareParams={ params => ({ ...params, userId: userId }) }
            component={ ItemDetailView }/>
 
-    <Route path={ Path.DEBUG }
-           queries={ HomeQueries }
-           prepareParams={ params => ({ ...params, userId: userId }) }
-           component={ DebugView }/>
-
-    <Redirect from='*' to={ Path.HOME }/>
+    <Redirect from='*' to={ Path.HOME } />
 
   </Route>
 

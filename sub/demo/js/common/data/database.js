@@ -68,22 +68,11 @@ export class Item {
   }
 
   match(text) {
-    // TODO(burdon): Add label queries.
-    let match = false;
     text = text.trim();
+
+    let match = false;
     if (text) {
-      let parts = text.split(/\s+/);
-      for (let part of parts) {
-        // TODO(burdon): Parsing should be done on client.
-        if (part[0] == ':') {
-          let label = part.substring(1);
-          if (label) {
-            match |= _.indexOf(this.labels, label) != -1;
-          }
-        } else {
-          match |= Util.textMatch(this, ['title'], part) || (this.handler && this.handler.match(this.data, part));
-        }
-      }
+      match |= Util.textMatch(this, ['title'], text) || (this.handler && this.handler.match(this.data, text));
     }
 
     return match;
@@ -294,6 +283,9 @@ export class Database {
       filter = {};
     }
 
+    console.log('MATCH: %s', JSON.stringify(filter));
+
+    // TODO(burdon): Factor out filters.
     let items = _.filter(Array.from(this._items.values()), (item) => {
       // Must match something.
       let match = false;
@@ -305,6 +297,7 @@ export class Database {
         }
       }
 
+      // AND type.
       switch (item.type) {
         // TODO(burdon): Hack to match by owner/assigned (how would indexing work?)
         case 'Task': {
@@ -315,8 +308,21 @@ export class Database {
         }
       }
 
-      // TODO(burdon): Match labels.
+      // AND (OR labels).
+      if (filter.labels) {
+        match = false;
+        _.each(item.labels || [], (label) => {
+          if (filter.labels.indexOf(label) != -1) {
+            match = true;
+            return false;
+          }
+        });
+        if (!match) {
+          return false;
+        }
+      }
 
+      // AND text.
       if (filter.text) {
         match = item.match(filter.text);
         if (!match) {

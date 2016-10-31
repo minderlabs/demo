@@ -32,7 +32,6 @@ class ItemDetailView extends React.Component {
     let { viewer, item } = this.props;
 
     // Redirect to home page if not found.
-    // TODO(burdon): Remove from history stack.
     if (!item) {
       this.context.router.push(Path.HOME);
     }

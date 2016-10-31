@@ -10,7 +10,7 @@
 export default class Path {
 
   static ROOT   = '/';
-  static HOME   = '/home';
+  static HOME   = '/inbox';
   static DETAIL = '/detail';
   static DEBUG  = '/debug';
 

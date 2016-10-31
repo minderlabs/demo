@@ -38,6 +38,10 @@ class HomeView extends React.Component {
 
   constructor(props, context) {
     super(props, context);
+
+    this.props.relay.setVariables({
+      folder: this.props.params.folder
+    })
   }
 
   createItem() {
@@ -104,7 +108,7 @@ class HomeView extends React.Component {
   handleSearch(text) {
     // Change state of sub-components.
     this.props.relay.setVariables({
-      filter: text ? { text: text } : { type: this.refs.selectType.value }
+      filter: text ? {text: text} : {type: this.refs.selectType.value}
     });
   }
 
@@ -178,10 +182,46 @@ class HomeView extends React.Component {
 export default Relay.createContainer(HomeView, {
 
   initialVariables: {
+    folder: null,
     filter: {
-      type: 'Task'
+      type: 'Task',
+      labels: []
     }
   },
+
+  // https://facebook.github.io/relay/docs/api-reference-relay-container.html#preparevariables
+  prepareVariables: (variables) => {
+
+    console.log('<<<', JSON.stringify(variables.filter));
+
+    // TODO(burdon): Enable null.
+    // variables.filter.type = variables.filter.labels ? 'Task' : 'Task';
+
+    switch (variables.folder) {
+      case 'favorites': {
+        variables.filter.labels = ['_favorite']; // TODO(burdon): Const.
+        variables.filter = {
+          labels: ['_favorite']
+        };
+        break;
+      }
+
+      default: {
+        variables.filter.labels = undefined;
+        variables.filter = {
+          labels: []
+        };
+      }
+    }
+
+    console.log('>>>', JSON.stringify(variables.filter));
+
+    return variables
+  },
+
+  // Force update when folder changes.
+  // https://facebook.github.io/relay/docs/api-reference-relay-container.html#shouldcomponentupdate
+  shouldComponentUpdate: () => true,
 
   fragments: {
     viewer: (variables) => Relay.QL`
