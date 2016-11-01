@@ -2,12 +2,16 @@
   "passPerPreset": true,
 
   "plugins": [
+    // HRM
+    // http://gaearon.github.io/react-hot-loader/getstarted/
+    "react-hot-loader/babel",
+
+    // Imports schema.
     "./tools/babel/relay_plugin"
   ],
 
   "presets": [
     "react",
-    "react-native",
     "es2015",
     "stage-0"
   ],
@@ -19,8 +23,18 @@
   //
   "env": {
     "react-native": {
-      "plugins": [],
+      "plugins": [
+        "react-native"
+      ],
       "presets": []
+    },
+
+    "server": {
+      "plugins": [],
+      "presets": [
+        "es2015",
+        "stage-0"
+      ]
     }
   }
 }

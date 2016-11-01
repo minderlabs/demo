@@ -4,24 +4,34 @@
 
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 const path = require('path');
 
-var baseConfig = require('./webpack-base.config.js');
+const nodeExternals = require('webpack-node-externals');
+
+const baseConfig = require('./webpack-base.config.js');
 
 const BUILD_DIR = path.resolve(__dirname, 'dist');
 
 //
-// Node (server) config.
+// Webpack Node server config.
 //
 
 module.exports = _.merge(baseConfig, {
 
   target: 'node',
 
+  // https://www.npmjs.com/package/webpack-node-externals
+  externals: [nodeExternals()], // Ignore node_modules.
+
   // https://webpack.github.io/docs/configuration.html#node
   node: {
-    __dirname: true   // Referenced by main.js
+    __dirname: true,   // Referenced by main.js
+
+    console: 'empty',
+    fs: 'empty',
+    net: 'empty',
+    tls: 'empty'
   },
 
   entry: {

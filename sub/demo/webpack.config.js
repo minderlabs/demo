@@ -4,24 +4,30 @@
 
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 const path = require('path');
 
-var baseConfig = require('./webpack-base.config.js');
+const baseConfig = require('./webpack-base.config.js');
 
 const BUILD_DIR = path.resolve(__dirname, 'dist');
 
 //
-// App webpack config.
+// Webpack client config.
 //
-
-// TODO(burdon): Hot reloading [https://shellmonger.com/2016/02/02/automatic-builds-with-webpack]
 
 module.exports = _.merge(baseConfig, {
 
-  entry: {
-    main: path.resolve(__dirname, 'index.web.js')
-  },
+  target: 'web',
+
+  // http://gaearon.github.io/react-hot-loader/getstarted
+  // TODO(burdon): Version 3: https://github.com/gaearon/react-hot-loader
+
+  entry: [
+//  'webpack/hot/dev-server',
+//  'webpack-hot-middleware/client',
+
+    path.resolve(__dirname, 'index.web.js')
+  ],
 
   output: {
     path: BUILD_DIR,

@@ -4,9 +4,9 @@
 
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
-var baseConfig = require('./webpack-base.config.js');
+const baseConfig = require('./webpack-base.config.js');
 
 //
 // Karma config.

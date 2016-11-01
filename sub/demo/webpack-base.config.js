@@ -12,6 +12,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 //
 // Webpack base configuration.
+// TODO(burdon): Weboack 2
 //
 
 module.exports = {
@@ -71,6 +72,8 @@ module.exports = {
   },
 
   plugins: [
+
+    new webpack.HotModuleReplacementPlugin(),
 
     new ExtractTextPlugin('[name].css'),
 

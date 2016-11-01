@@ -9,11 +9,18 @@ import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
-import { applyRouterMiddleware, browserHistory, Router } from 'react-router';
-import useRelay from 'react-router-relay';
+
+import Application from './js/app/web/app';
 
 import config from './js/app/web/config';
-import routes from './js/app/web/routes';
+
+//
+// NOTE: Don't remove (needed to trigger webpack on schema changes).
+//
+
+import { VERSION } from './js/common/data/schema';
+
+_.set(config, 'schema.version', VERSION);
 
 //
 // Set network layer.
@@ -25,47 +32,29 @@ import routes from './js/app/web/routes';
 Relay.injectNetworkLayer(config.getNetworkLayer());
 
 //
-// History
-// https://github.com/ReactTraining/react-router/blob/master/docs/guides/Histories.md
-//
-
-browserHistory.listen((state) => {
-  console.log('History changed:', state.pathname);
-});
-
-//
 // Start app.
-// https://github.com/ReactTraining/react-router
-// https://facebook.github.io/relay/docs/api-reference-relay-renderer.html#content
 //
 
-ReactDOM.render(
-  <Router
-    history={ browserHistory }
-    routes={ routes }
-    render={ applyRouterMiddleware(useRelay) }
-    environment={ Relay.Store }
-    onReadyStateChange={
-      (state) => {
-        if (state.error) {
-          console.error(state.error);
-          if (config['redirectOnError']) {
-            setTimeout(() => {
-              let errorForm = $('#app-error');
-              errorForm.find('input').val(state.error);
-              errorForm.submit();
-            }, 1000);
-          }
-        } else if (state.ready) {
-          console.log('State changed:', _.map(state.events, (event) => event.type).join(' => '));
-        }
-      }
-    }
-  />,
+function render() {
+  ReactDOM.render(
+    <Application config={ config }/>,
 
-  // TODO(burdon): Get ID from config.
-  document.getElementById('app-container')
-);
+    // TODO(burdon): Get ID from config.
+    document.getElementById('app-container')
+  );
+}
 
-// Started.
-console.log('Config =', String(config));
+if (process.env.NODE_ENV === 'development' && module.hot) {
+  console.log('### HMR mode ###');
+
+  // https://github.com/gaearon/react-hot-boilerplate/pull/61
+  // https://medium.com/@dan_abramov/hot-reloading-in-react-1140438583bf#.gvm6d2rd4
+
+  module.hot.accept('./js/app/web/app', () => {
+    require('./js/app/web/app');
+
+    render();
+  });
+}
+
+render();

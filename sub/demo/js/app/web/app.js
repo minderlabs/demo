@@ -6,98 +6,126 @@
 
 import React from 'react';
 import Relay from 'react-relay';
-import { Link } from 'react-router';
+import useRelay from 'react-router-relay';
+import { IndexRedirect, Redirect, Route, Router } from 'react-router';
+import { applyRouterMiddleware, browserHistory } from 'react-router';
+import { toGlobalId } from 'graphql-relay';
 
-import Sidebar from '../../common/components/web/sidebar';
+import { Viewer } from '../../common/data/database';
 
 import Path from './path';
+import Layout from './layout';
 
-import './app.less';
+import DebugView from './view/debug';
+import HomeView from './view/home';
+import ItemDetailView from './view/detail';
+
+
+//
+// Router queries.
+// NOTE: These must match the fragments declared in the router components.
+//
+
+const HomeQueries = {
+
+  viewer: () => Relay.QL`
+    query {
+      viewer(userId: $userId)
+    }
+  `
+
+};
+
+const ItemDetailQueries = {
+
+  viewer: () => Relay.QL`
+    query {
+      viewer(userId: $userId)
+    }
+  `,
+
+  item: () => Relay.QL`
+    query {
+      item(itemId: $itemId)
+    }
+  `
+
+};
+
+// TODO(burdon): Factor out routes?
+const Routes = (config) => {
+
+  // From global config (set-up by server).
+  const userId = toGlobalId(Viewer.KIND, config.get('userId'));
+
+  return (
+    <Route path={ Path.ROOT }
+           queries={ HomeQueries }
+           component={ Layout }>
+
+      <IndexRedirect to={ Path.HOME }/>
+
+      <Route path={ Path.DEBUG }
+             queries={ HomeQueries }
+             prepareParams={ params => ({...params, userId: userId}) }
+             component={ DebugView }/>
+
+      <Route path={ Path.ROOT + ':folder' }
+             queries={ HomeQueries }
+             prepareParams={ params => ({...params, userId: userId}) }
+             component={ HomeView }/>
+
+      <Route path={ Path.DETAIL + '/:itemId' }
+             queries={ ItemDetailQueries }
+             prepareParams={ params => ({...params, userId: userId}) }
+             component={ ItemDetailView }/>
+
+      <Redirect from='*' to={ Path.HOME }/>
+
+    </Route>
+  );
+};
+
 
 /**
- * Root app component.
+ * React Relay Router.
+ *
+ * https://github.com/ReactTraining/react-router
+ * https://github.com/relay-tools/react-router-relay
+ * https://facebook.github.io/relay/docs/api-reference-relay-renderer.html#content
  */
-class DemoApp extends React.Component {
+export default class Application extends React.Component {
 
-  static propTypes = {
-    viewer: React.PropTypes.object.isRequired
-  };
+  constructor(props, context) {
+    super(props, context);
 
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
+    // TODO(burdon): Use config (userId) to configure routes.
+  }
 
-  handleNav(path, event) {
-    this.refs.sidebar.close();
-
-    // TODO(burdon): Root query for folder.
-    this.context.router.push(path);
+  handleReadyStateChange(readyState) {
+    if (readyState.error) {
+      console.error(readyState.error);
+      if (config['redirectOnError']) {
+        setTimeout(() => {
+          let errorForm = $('#app-error');
+          errorForm.find('input').val(readyState.error);
+          errorForm.submit();
+        }, 1000);
+      }
+    } else if (readyState.ready) {
+      console.log('State changed:', _.map(readyState.events, (event) => event.type).join(' => '));
+    }
   }
 
   render() {
-    let { viewer, children } = this.props;
-
-    // TODO(burdon): Move header to base class for view.
-
-    // TODO(burdon): Factor out panel.
-    const sidebar = (
-      <div>
-        <div className="app-list">
-          <a className="app-list-item" onClick={ this.handleNav.bind(this, Path.HOME) }>Inbox</a>
-          <a className="app-list-item" onClick={ this.handleNav.bind(this, Path.ROOT + 'favorites') }>Favorites</a>
-          <a className="app-list-item" onClick={ this.handleNav.bind(this, Path.DEBUG) }>Debug</a>
-        </div>
-      </div>
-    );
-
-    const handleToggleSidebar = (event) => {
-      event.preventDefault(); // Don't steal focus.
-      this.refs.sidebar.toggle();
-    };
-
     return (
-      <div className="app-column">
-        <div className="app-header">
-          <div>
-            <i className="material-icons" onMouseDown={ handleToggleSidebar }>menu</i>
-            <h1>Demo</h1>
-          </div>
-
-          <div className="app-links">
-            <span>{ viewer.user.title }</span>
-            <a href="/graphql" target="_blank">GraphiQL</a>
-            <a href="/logout">Logout</a>
-          </div>
-        </div>
-
-        <Sidebar ref="sidebar" sidebar={ sidebar }>
-          <div className="app-view app-column app-expand">
-            { children }
-          </div>
-        </Sidebar>
-
-        <div className="app-footer"></div>
-      </div>
+      <Router
+        routes={ Routes(this.props.config) }
+        render={ applyRouterMiddleware(useRelay) }
+        history={ browserHistory }
+        environment={ Relay.Store }
+        onReadyStateChange={ this.handleReadyStateChange.bind(this) }
+      />
     );
   }
 }
-
-//
-// Root container
-// https://facebook.github.io/relay/docs/api-reference-relay-container.html
-//
-
-export default Relay.createContainer(DemoApp, {
-
-  fragments: {
-    viewer: (variables) => Relay.QL`
-      fragment on Viewer {
-        id
-
-        user {
-          title
-        }
-      }
-    `
-  }
-});

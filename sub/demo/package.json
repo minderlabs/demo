@@ -39,7 +39,10 @@
     "sinon-chai": "^2.8.0",
     "style-loader": "^0.13.1",
     "webpack": "^1.13.2",
-    "webpack-dev-server": "^1.16.1"
+    "webpack-dev-middleware": "^1.8.4",
+    "webpack-dev-server": "^1.16.1",
+    "webpack-hot-middleware": "^2.13.1",
+    "webpack-node-externals": "^1.5.4"
   },
   "dependencies": {
     "babel-core": "^6.17.0",
@@ -71,7 +74,7 @@
     "docker": "docker-compose up --force-recreate --remove-orphans",
     "update-schema": "babel-node ./tools/babel/update_schema.js",
     "webpack-client": "webpack --watch -d",
-    "webpack-server": "webpack --watch --config webpack-node.config.js",
+    "webpack-server": "webpack --watch --config webpack-server.config.js",
     "android": "BABEL_ENV=react-native react-native run-android",
     "native": "BABEL_ENV=react-native node node_modules/react-native/local-cli/cli.js start",
     "test": "karma start --single-run",

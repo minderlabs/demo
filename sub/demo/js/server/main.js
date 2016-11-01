@@ -19,8 +19,7 @@ import schema from '../common/data/schema';
 import { Database } from '../common/data/database';
 
 
-const LOGGING = true;
-
+const LOGGING = false;
 
 //
 // Database singleton.
@@ -28,17 +27,48 @@ const LOGGING = true;
 
 Database.singleton = new Database().init();
 
-
 //
 // Express node server.
 // http://www.koding.com/docs/what-happened-to-127-0-0-1
 //
 
-const host = process.env['NODE_ENV'] == 'production' ? '0.0.0.0' : '127.0.0.1';
+const env = process.env['NODE_ENV'];
+
+const host = (env === 'production') ? '0.0.0.0' : '127.0.0.1';
 const port = process.env['VIRTUAL_PORT'] || 3000;
 
 const app = express();
 
+//
+// Webpack Hot Module Replacement (HMR)
+// http://madole.github.io/blog/2015/08/26/setting-up-webpack-dev-middleware-in-your-express-application
+// http://webpack.github.io/docs/hot-module-replacement-with-webpack.html
+// https://github.com/gaearon/react-hot-loader/tree/master/docs#starter-kits
+// https://github.com/gaearon/react-hot-boilerplate/issues/102
+//
+
+if (env === 'development') {
+  const webpack = require('webpack');
+  const webpackDevMiddleware = require('webpack-dev-middleware');
+  const webpackHotMiddleware = require('webpack-hot-middleware');
+
+  const webpackConfig = require('../../webpack.config');
+
+  const compiler = webpack(webpackConfig);
+
+  app.use(webpackDevMiddleware(compiler, {
+    publicPath: webpackConfig.output.publicPath,
+    stats: {colors: true}
+  }));
+
+  app.use(webpackHotMiddleware(compiler, {
+    log: console.log
+  }));
+}
+
+//
+// Middleware
+//
 
 app.use(bodyParser.json());                           // JSON post (GraphQL).
 app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
@@ -49,7 +79,6 @@ app.use(cookieParser());
 app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
-
 
 //
 // GraphQL server.

@@ -42,7 +42,7 @@ module.exports = function(grunt) {
         cmd: 'webpack',
         args: [
           '--config',
-          'webpack-node.config.js'
+          'webpack-server.config.js'
         ]
       }
     },
