@@ -10,9 +10,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
 
+import moment from 'moment';
+
 import Application from './js/app/web/app';
 
-import config from './js/app/web/config';
+import Config from './js/app/web/config';
+
 
 //
 // NOTE: Don't remove (needed to trigger webpack on schema changes).
@@ -20,7 +23,8 @@ import config from './js/app/web/config';
 
 import { VERSION } from './js/common/data/schema';
 
-_.set(config, 'schema.version', VERSION);
+Config.set('debug.schema', VERSION);
+
 
 //
 // Set network layer.
@@ -29,32 +33,46 @@ _.set(config, 'schema.version', VERSION);
 // TODO(burdon): Inject logger.
 //
 
-Relay.injectNetworkLayer(config.getNetworkLayer());
+Relay.injectNetworkLayer(Config.getNetworkLayer());
+
+/**
+ * Renders the application.
+ * @param App Root component.
+ */
+function renderApp(App) {
+
+  // TODO(burdon): Get ID from config or const.
+  const root = document.getElementById('app-container');
+
+  ReactDOM.render(
+    <App config={ Config }/>, root
+  );
+}
+
+
+//
+// Hot module reloading.
+//
+
+if (module.hot && _.get(config, 'debug.env') === 'hot') {
+  const log = () => {
+    console.log('### HMR[%s] ###', moment().format('LTS'));
+  };
+
+  // List modules that can be dynamically reloaded.
+  // https://github.com/gaearon/react-hot-boilerplate/pull/61
+  // https://medium.com/@dan_abramov/hot-reloading-in-react-1140438583bf#.gvm6d2rd4
+  module.hot.accept('./js/app/web/app', () => {
+    log();
+    renderApp(require('./js/app/web/app').default);
+  });
+
+  log();
+}
+
 
 //
 // Start app.
 //
 
-function render() {
-  ReactDOM.render(
-    <Application config={ config }/>,
-
-    // TODO(burdon): Get ID from config.
-    document.getElementById('app-container')
-  );
-}
-
-if (process.env.NODE_ENV === 'development' && module.hot) {
-  console.log('### HMR mode ###');
-
-  // https://github.com/gaearon/react-hot-boilerplate/pull/61
-  // https://medium.com/@dan_abramov/hot-reloading-in-react-1140438583bf#.gvm6d2rd4
-
-  module.hot.accept('./js/app/web/app', () => {
-    require('./js/app/web/app');
-
-    render();
-  });
-}
-
-render();
+renderApp(Application);

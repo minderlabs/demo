@@ -52,8 +52,13 @@ const ItemDetailQueries = {
 
 };
 
+//
+// Routes.
 // TODO(burdon): Factor out routes?
+//
+
 const Routes = (config) => {
+  console.log('Config = %s', JSON.stringify(config));
 
   // From global config (set-up by server).
   const userId = toGlobalId(Viewer.KIND, config.get('userId'));
@@ -86,7 +91,6 @@ const Routes = (config) => {
   );
 };
 
-
 /**
  * React Relay Router.
  *
@@ -96,16 +100,11 @@ const Routes = (config) => {
  */
 export default class Application extends React.Component {
 
-  constructor(props, context) {
-    super(props, context);
-
-    // TODO(burdon): Use config (userId) to configure routes.
-  }
-
   handleReadyStateChange(readyState) {
     if (readyState.error) {
       console.error(readyState.error);
-      if (config['redirectOnError']) {
+
+      if (this.props.config.get('redirectOnError')) {
         setTimeout(() => {
           let errorForm = $('#app-error');
           errorForm.find('input').val(readyState.error);

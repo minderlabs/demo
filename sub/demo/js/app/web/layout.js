@@ -13,6 +13,14 @@ import Path from './path';
 
 import './layout.less';
 
+
+// TODO(burdon): Factor out.
+const Const = {
+  root: 'app-container',
+  title: 'Demo'
+};
+
+
 /**
  * Root component.
  */
@@ -36,9 +44,7 @@ class Layout extends React.Component {
   render() {
     let { viewer, children } = this.props;
 
-    // TODO(burdon): Move header to base class for view.
-
-    // TODO(burdon): Factor out panel.
+    // TODO(burdon): Factor out sidepanel list.
     const sidebar = (
       <div>
         <div className="app-list">
@@ -59,7 +65,7 @@ class Layout extends React.Component {
         <div className="app-header">
           <div>
             <i className="material-icons" onMouseDown={ handleToggleSidebar }>menu</i>
-            <h1>Demo34HHH</h1>
+            <h1>{ Const.title }</h1>
           </div>
 
           <div className="app-links">

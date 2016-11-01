@@ -8,7 +8,7 @@ const path = require('path');
 const favicon = require('serve-favicon');
 
 const express = require('express');
-const exphbs = require('express-handlebars');
+const handlebars = require('express-handlebars');
 const cookieParser = require('cookie-parser');
 
 const graphqlHTTP = require('express-graphql');
@@ -17,9 +17,6 @@ const bodyParser = require('body-parser');
 import schema from '../common/data/schema';
 
 import { Database } from '../common/data/database';
-
-
-const LOGGING = false;
 
 //
 // Database singleton.
@@ -32,12 +29,15 @@ Database.singleton = new Database().init();
 // http://www.koding.com/docs/what-happened-to-127-0-0-1
 //
 
-const env = process.env['NODE_ENV'];
+const LOGGING = false;
+
+const env = process.env['NODE_ENV'] || 'development';
 
 const host = (env === 'production') ? '0.0.0.0' : '127.0.0.1';
 const port = process.env['VIRTUAL_PORT'] || 3000;
 
 const app = express();
+
 
 //
 // Webpack Hot Module Replacement (HMR)
@@ -46,13 +46,19 @@ const app = express();
 // https://github.com/gaearon/react-hot-loader/tree/master/docs#starter-kits
 // https://github.com/gaearon/react-hot-boilerplate/issues/102
 //
+// TODO(burdon): Webpack 2?
+// NOTE: Hot mode cannot work with nodemon (must manually reload).
+// npm run webpack-dev-server
+//
 
-if (env === 'development') {
+if (env === 'hot') {
   const webpack = require('webpack');
   const webpackDevMiddleware = require('webpack-dev-middleware');
   const webpackHotMiddleware = require('webpack-hot-middleware');
 
-  const webpackConfig = require('../../webpack.config');
+  // Config.
+  // NOTE: Must rebuild server if modified.
+  const webpackConfig = require('../../webpack-dev.config');
 
   const compiler = webpack(webpackConfig);
 
@@ -66,19 +72,33 @@ if (env === 'development') {
   }));
 }
 
+
 //
 // Middleware
 //
 
+app.use(cookieParser());
+
 app.use(bodyParser.json());                           // JSON post (GraphQL).
 app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
 
-app.use(cookieParser());
 
+//
+// Handlebars.
 // https://github.com/ericf/express-handlebars
-app.engine('handlebars', exphbs());
+//
+
+app.engine('handlebars', handlebars({
+  helpers: {
+    toJSON : function(object) {
+      return JSON.stringify(object);
+    }
+  }
+}));
+
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
+
 
 //
 // GraphQL server.
@@ -132,6 +152,7 @@ app.use('/graphql', (req, res) => {
     })
   })(req, res);
 });
+
 
 //
 // Config serving static files (generated webpack assets and test data).
@@ -202,9 +223,15 @@ app.get(/^\/(.*)/, function(req, res) {
   if (!username) {
     res.redirect('/login');
   } else {
-    res.render('home', {
-      username: username
-    });
+    let config = {
+      debug: {
+        env: env
+      },
+
+      userId: username
+    };
+
+    res.render('app', { config: config });
   }
 });
 
@@ -216,7 +243,7 @@ app.get(/^\/(.*)/, function(req, res) {
 
 let server = app.listen(port, host, () => {
   let addr = server.address();
-  console.log(`### RUNNING http://${addr.address}:${addr.port} ###`);
+  console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
 });
 
 console.log('Starting: %s', host);

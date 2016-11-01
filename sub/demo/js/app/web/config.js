@@ -20,21 +20,25 @@ const DEFAULTS = {
 class Config {
 
   constructor(config) {
-    this.config = config;
+    this._config = config;
   }
 
   toString() {
-    return JSON.stringify(this.config);
+    return JSON.stringify(this._config);
   }
 
-  get(path) {
-    return _.get(this.config, path);
+  get(path, defaultValue=undefined) {
+    return _.get(this._config, path, defaultValue);
+  }
+
+  set(path, value) {
+    _.set(this._config, path, value);
   }
 
   getNetworkLayer() {
-    switch (this.config.relay.network) {
+    switch (this.get('relay.network')) {
 
-      // TODO(burdon): Experimental
+      // TODO(burdon): Experimental.
       case 'custom': {
         return {
           sendMutation(mutationRequest) {
@@ -57,7 +61,7 @@ class Config {
       // node_modules/babel-relay-plugin/node_modules/graphql/graphql.js
       // node_modules/graphql/graphql.js
       case 'local': {
-       const schema = require('../../common/data/schema');
+        const schema = require('../../common/data/schema');
 
         // https://github.com/relay-tools/relay-local-schema
         // http://graphql.org/blog/rest-api-graphql-wrapper/#using-a-client-side-schema-with-relay
@@ -69,7 +73,7 @@ class Config {
       default: {
         let loc = window.location;
         let hostname = loc.hostname + (loc.port ? ':' + loc.port : '');
-        let url = `${loc.protocol}//${hostname}${this.config.relay.path}`;
+        let url = `${loc.protocol}//${hostname}${this.get('relay.path')}`;
         console.log('GraphQL:', url);
         return new Relay.DefaultNetworkLayer(url);
       }
@@ -77,5 +81,4 @@ class Config {
   }
 }
 
-// TODO(burdon): Inject?
 export default new Config(_.defaultsDeep(window.config || {}, DEFAULTS));
