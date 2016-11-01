@@ -29,6 +29,26 @@
 
   "items": {
     "minderlabs": {
+
+      "Favorite": [
+        {
+          "title": "Inbox",
+          "data": {
+            "filter": {
+              "type": "Task"
+            }
+          }
+        },
+        {
+          "title": "Favorites",
+          "data": {
+            "filter": {
+              "labels": ["_favorite"]
+            }
+          }
+        }
+      ],
+
       "Task": [
         {
           "title": "Task 1",

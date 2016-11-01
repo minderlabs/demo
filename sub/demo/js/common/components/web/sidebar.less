@@ -16,6 +16,7 @@
   .app-sidebar-drawer {
     position: absolute;
     width: @app-sidebar-width;
+    overflow: hidden;
     height: 100%;
 
     background-color: whitesmoke;
@@ -27,6 +28,19 @@
     transition: all 0.3s ease;
 
     z-index: 1;
+
+    > div {
+      position: relative;
+
+      input {
+        position: absolute;
+
+        margin: 0;
+        padding: 0;
+        height: 0;
+        border: none;
+      }
+    }
   }
   .app-sidebar-drawer.app-open {
     -webkit-transform: translateX(0);

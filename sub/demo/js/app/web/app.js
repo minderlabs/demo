@@ -27,13 +27,9 @@ class DemoApp extends React.Component {
     router: React.PropTypes.object.isRequired
   };
 
-  // TODO(burdon): Hidden div to detect focus lost (auto close).
-  handleToggleNav() {
-    this.refs.sidebar.toggle();
-  }
-
-  handleNav(path) {
+  handleNav(path, event) {
     this.refs.sidebar.close();
+
     // TODO(burdon): Root query for folder.
     this.context.router.push(path);
   }
@@ -54,11 +50,16 @@ class DemoApp extends React.Component {
       </div>
     );
 
+    const handleToggleSidebar = (event) => {
+      event.preventDefault(); // Don't steal focus.
+      this.refs.sidebar.toggle();
+    };
+
     return (
       <div className="app-column">
         <div className="app-header">
           <div>
-            <i className="material-icons" onClick={ this.handleToggleNav.bind(this) }>menu</i>
+            <i className="material-icons" onMouseDown={ handleToggleSidebar }>menu</i>
             <h1>Demo</h1>
           </div>
 

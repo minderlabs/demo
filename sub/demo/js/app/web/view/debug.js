@@ -22,8 +22,8 @@ class DebugView extends React.Component {
     viewer: React.PropTypes.object.isRequired,
   };
 
-  handleTypeChange(ev) {
-    let type = $(ev.target).val();
+  handleTypeChange(event) {
+    let type = $(event.target).val();
     this.props.relay.setVariables({
       filter: {
         type: type

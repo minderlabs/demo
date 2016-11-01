@@ -191,7 +191,6 @@ export default Relay.createContainer(HomeView, {
 
   // https://facebook.github.io/relay/docs/api-reference-relay-container.html#preparevariables
   prepareVariables: (variables) => {
-
     console.log('<<<', JSON.stringify(variables.filter));
 
     switch (variables.folder) {

@@ -13,6 +13,7 @@ import './sidebar.less';
  */
 export default class Sidebar extends React.Component {
 
+  // TODO(burdon): Nav by keys.
   // http://codepen.io/chriscoyier/pen/umEgv
 
   constructor(props, context) {
@@ -26,6 +27,8 @@ export default class Sidebar extends React.Component {
   open() {
     this.setState({
       open: true
+    }, () => {
+      this.refs.hidden.focus();
     });
   }
 
@@ -35,8 +38,9 @@ export default class Sidebar extends React.Component {
     });
   }
 
-  toggle() {
-    this.open(!this.state.open);
+  toggle(event) {
+    // NOTE: Toggle button should preventDefault to not steal focus.
+    this.state.open ? this.close() : this.open();
   }
 
   render() {
@@ -45,6 +49,10 @@ export default class Sidebar extends React.Component {
     return (
       <div className="app-sidebar">
         <div className={ className }>
+          <div>
+            <input ref="hidden" onBlur={ this.close.bind(this) }/>
+          </div>
+
           { this.props.sidebar }
         </div>
 
