@@ -42,7 +42,7 @@ class ItemDetail extends React.Component {
   }
 
   handleSave(event) {
-    let { item } = this.props;
+    let { viewer, item } = this.props;
 
     // Get properties from data element.
     let data = TypeRegistry.values(item.type, this.refs['data'].refs.component);  // TODO(burdon): Const "data".

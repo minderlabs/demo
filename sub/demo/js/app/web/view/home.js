@@ -36,27 +36,18 @@ class HomeView extends React.Component {
     router: React.PropTypes.object.isRequired
   };
 
-  constructor() {
-    super(...arguments);
-
-    this.props.relay.setVariables({
-      folder: this.props.params.folder
-    })
-  }
-
   createItem() {
     let { viewer } = this.props;
+    let { type } = this.props.relay.variables;
 
     let title = this.refs.textTitle.value;
     if (title) {
       let data = {};
 
-      let type = $(this.refs.selectType).val();
       switch (type) {
         case 'Task': { // TODO(burdon): Type consts from database.
           // TODO(burdon): Factor out setting default props.
           let { id: userId } = fromGlobalId(viewer.user.id);
-
           _.merge(data, {
             owner: userId
           });
@@ -106,18 +97,14 @@ class HomeView extends React.Component {
   }
 
   handleSearch(text) {
-    // Change state of sub-components.
     this.props.relay.setVariables({
-      filter: text ? {text: text} : {type: this.refs.selectType.value}
+      text: text
     });
   }
 
   handleTypeChange(ev) {
-    let type = $(ev.target).val();
     this.props.relay.setVariables({
-      filter: {
-        type: type
-      }
+      type: $(ev.target).val()
     });
   }
 
@@ -127,6 +114,7 @@ class HomeView extends React.Component {
 
   render() {
     let { viewer } = this.props;
+    let { filter } = this.props.relay.variables;
 
     // TODO(burdon): Factor out.
     const SearchBar = (
@@ -146,8 +134,14 @@ class HomeView extends React.Component {
       <div className="app-search-list app-panel app-column app-expand">
         <ItemList ref="items"
                   viewer={ viewer }
-                  filter={ this.props.relay.variables.filter }
+                  filter={ filter }
                   onSelect={ this.handleItemSelect.bind(this) }/>
+      </div>
+    );
+
+    const Debug = (
+      <div className="app-panel app-debug">
+        <div className="app-section">{ JSON.stringify(filter, 0, 1)}</div>
       </div>
     );
 
@@ -156,7 +150,7 @@ class HomeView extends React.Component {
     const CreateBar = (
       <div className="app-toolbar-create app-toolbar">
 
-        <select ref="selectType" onChange={ this.handleTypeChange.bind(this) }>
+        <select value={ this.props.relay.variables.type } onChange={ this.handleTypeChange.bind(this) }>
           <option value="Task">Task</option>
           <option value="Note">Note</option>
         </select>
@@ -173,6 +167,7 @@ class HomeView extends React.Component {
       <div className="app-main-column app-column app-expand">
         { SearchBar }
         { SearchList }
+        { Debug }
         { CreateBar }
       </div>
     );
@@ -182,43 +177,49 @@ class HomeView extends React.Component {
 export default Relay.createContainer(HomeView, {
 
   initialVariables: {
-    folder: null,
-    filter: {
-      type: 'Task',
-      labels: []
-    }
+
+    // Router state.
+    folder: undefined,
+
+    // UX state.
+    type: 'Task',
+    text: '',
+
+    // Filter passed to child fragment.
+    filter: undefined
   },
 
+  // Update variables from current state.
   // https://facebook.github.io/relay/docs/api-reference-relay-container.html#preparevariables
   prepareVariables: (variables) => {
-    console.log('<<<', JSON.stringify(variables.filter));
+    console.log('===>', JSON.stringify(variables));
 
-    switch (variables.folder) {
-      case 'favorites': {
-        variables.filter.labels = ['_favorite']; // TODO(burdon): Const in database.
-        break;
+    if (variables.text) {
+      variables.filter = {
+        text: variables.text
       }
+    } else {
+      variables.filter = {
+        type: variables.type
+      };
 
-      default: {
-        variables.filter.labels = undefined;
+      // TODO(burdon): Get properties from folder object.
+      switch (variables.folder) {
+        case 'favorites': {
+          variables.filter.labels = ['_favorite'];
+          break;
+        }
       }
     }
 
-    // TODO(burdon): Enable null.
-    if (variables.filter.text) {
-      variables.filter.type = undefined;
-      variables.filter.labels = undefined;
-    }
-
-    console.log('>>>', JSON.stringify(variables.filter));
-
-    return variables
+    console.log('<===', JSON.stringify(variables.filter));
+    return variables;
   },
 
   // TODO(burdon): This doesn't work? Is the cache properly invalidated?
   // Force update when folder changes.
   // https://facebook.github.io/relay/docs/api-reference-relay-container.html#shouldcomponentupdate
-  shouldComponentUpdate: () => true,
+  // shouldComponentUpdate: () => true,
 
   fragments: {
     viewer: (variables) => Relay.QL`

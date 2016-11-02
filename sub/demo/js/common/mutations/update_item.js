@@ -26,6 +26,7 @@ export default class UpdateItemMutation extends Relay.Mutation {
     return Relay.QL`mutation { updateItemMutation }`;
   }
 
+  // TODO(burdon): Get viewer.
   getVariables() {
     return {
       itemId: this.props.item.id,
@@ -37,6 +38,7 @@ export default class UpdateItemMutation extends Relay.Mutation {
     };
   }
 
+  // TODO(burdon): Need to invalidate viewer.items.
   getFatQuery() {
     return Relay.QL`
       fragment on UpdateItemMutationPayload {

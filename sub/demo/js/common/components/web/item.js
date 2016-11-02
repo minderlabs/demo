@@ -26,6 +26,7 @@ class Item extends React.Component {
   handleToggleFavorite(event) {
     event.stopPropagation();
 
+    // TODO(burdon): Get viewer.
     let { item } = this.props;
 
     this.props.relay.commitUpdate(
