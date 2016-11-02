@@ -52,6 +52,7 @@ const ItemDetailQueries = {
 
 };
 
+
 //
 // Routes.
 // TODO(burdon): Factor out routes?
@@ -100,10 +101,23 @@ const Routes = (config) => {
  */
 export default class Application extends React.Component {
 
+  // Make error handler available to nested components.
+  static childContextTypes = {
+    errorHandler: React.PropTypes.object
+  };
+
+  getChildContext() {
+    console.log(typeof this.props.errorHandler);
+    return {
+      errorHandler: this.props.errorHandler
+    }
+  }
+
   handleReadyStateChange(readyState) {
     if (readyState.error) {
       console.error(readyState.error);
 
+      // Use form to redirect to server error page (i.e., POST with error values).
       if (this.props.config.get('redirectOnError')) {
         setTimeout(() => {
           let errorForm = $('#app-error');

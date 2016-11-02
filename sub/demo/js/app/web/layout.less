@@ -68,10 +68,26 @@
     }
 
     .app-footer {
+      display: flex;
+      flex-direction: row;
       flex-shrink: 0;
-      height: 4px;
 
       background-color: @app-footer-background;
+
+      i {
+        font-size: 18px;
+      }
+
+      i.app-icon-debug {
+        color: @app-header-title-color;
+      }
+
+      i.app-icon-ok {
+        color: lightgreen;
+      }
+      i.app-icon-error {
+        color: orange;
+      }
     }
   }
 }

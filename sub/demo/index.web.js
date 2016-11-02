@@ -9,10 +9,10 @@ import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
-
 import moment from 'moment';
 
 import Application from './js/app/web/app';
+import ErrorHandler from './js/app/web/util/error';
 
 import Config from './js/app/web/config';
 
@@ -24,6 +24,13 @@ import Config from './js/app/web/config';
 import { VERSION } from './js/common/data/schema';
 
 Config.set('debug.schema', VERSION);
+
+
+//
+// Error handling.
+//
+
+const errorHandler = ErrorHandler.init();
 
 
 //
@@ -45,7 +52,7 @@ function renderApp(App) {
   const root = document.getElementById('app-container');
 
   ReactDOM.render(
-    <App config={ Config }/>, root
+    <App config={ Config } errorHandler={ errorHandler }/>, root
   );
 }
 
@@ -56,12 +63,13 @@ function renderApp(App) {
 
 if (module.hot && _.get(config, 'debug.env') === 'hot') {
   const log = () => {
-    console.log('### HMR[%s] ###', moment().format('LTS'));
+    console.log('### HMR[%s] ###', moment().format('hh:mm:ss'));
   };
 
   // List modules that can be dynamically reloaded.
   // https://github.com/gaearon/react-hot-boilerplate/pull/61
   // https://medium.com/@dan_abramov/hot-reloading-in-react-1140438583bf#.gvm6d2rd4
+  module.hot.accept('./index.web.js');
   module.hot.accept('./js/app/web/app', () => {
     log();
     renderApp(require('./js/app/web/app').default);

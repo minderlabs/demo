@@ -20,8 +20,8 @@ export default class TextBox extends React.Component {
     delay: 100
   };
 
-  constructor(props, context) {
-    super(props, context);
+  constructor() {
+    super(...arguments);
 
     this.state = {
       value: this.props.value || ''

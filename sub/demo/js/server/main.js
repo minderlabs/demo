@@ -50,6 +50,8 @@ const app = express();
 // NOTE: Hot mode cannot work with nodemon (must manually reload).
 // npm run webpack-dev-server
 //
+// NOTE: CSS changes will not rebuild (since in separate bundle).
+//
 
 if (env === 'hot') {
   const webpack = require('webpack');

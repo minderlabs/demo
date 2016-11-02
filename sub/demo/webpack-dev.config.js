@@ -27,6 +27,8 @@ module.exports = _.merge(baseConfig, {
 
   // NOTE: See .babelrc for plugins.
   // http://gaearon.github.io/react-hot-loader/getstarted
+  // https://webpack.github.io/docs/hot-module-replacement-with-webpack.html
+  // https://github.com/glenjamin/webpack-hot-middleware
   // TODO(burdon): Version 3: https://github.com/gaearon/react-hot-loader
 
   entry: [

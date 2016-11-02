@@ -20,8 +20,8 @@ class Note extends React.Component {
     data: React.PropTypes.object.isRequired
   };
 
-  constructor(props, context) {
-    super(props, context);
+  constructor() {
+    super(...arguments);
 
     this.state = {
       data: _.cloneDeep(this.props.data)

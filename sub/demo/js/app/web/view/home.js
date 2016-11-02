@@ -36,8 +36,8 @@ class HomeView extends React.Component {
     router: React.PropTypes.object.isRequired
   };
 
-  constructor(props, context) {
-    super(props, context);
+  constructor() {
+    super(...arguments);
 
     this.props.relay.setVariables({
       folder: this.props.params.folder

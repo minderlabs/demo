@@ -25,8 +25,8 @@ class Picker extends React.Component {
     value: React.PropTypes.string
   };
 
-  constructor(props, context) {
-    super(props, context);
+  constructor() {
+    super(...arguments);
 
     this.state = {
       showPopup: false

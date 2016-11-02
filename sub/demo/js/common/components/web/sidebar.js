@@ -16,8 +16,8 @@ export default class Sidebar extends React.Component {
   // TODO(burdon): Nav by keys.
   // http://codepen.io/chriscoyier/pen/umEgv
 
-  constructor(props, context) {
-    super(props, context);
+  constructor() {
+    super(...arguments);
 
     this.state = {
       open: false
