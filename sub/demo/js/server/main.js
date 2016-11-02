@@ -29,7 +29,7 @@ Database.singleton = new Database().init();
 // http://www.koding.com/docs/what-happened-to-127-0-0-1
 //
 
-const LOGGING = false;
+const LOGGING = true;
 
 const env = process.env['NODE_ENV'] || 'development';
 

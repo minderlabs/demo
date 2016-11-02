@@ -10,10 +10,17 @@ import { Util } from '../util/util';
 
 /**
  * Updates an existing item.
+ * https://facebook.github.io/relay/docs/guides-mutations.html
  */
 export default class UpdateItemMutation extends Relay.Mutation {
 
   static fragments = {
+    viewer: () => Relay.QL`
+      fragment on Viewer {
+        id
+      }
+    `,
+
     item: () => Relay.QL`
       fragment on Item {
         id
@@ -28,16 +35,17 @@ export default class UpdateItemMutation extends Relay.Mutation {
 
   getVariables() {
     return {
+      userId: this.props.viewer.id,
       itemId: this.props.item.id,
 
-      title: this.props.title,
+      title:  this.props.title,
       labels: this.props.labels,
-
-      data: this.props.data
+      data:   this.props.data
     };
   }
 
   getFatQuery() {
+    // TODO(burdon): Invalidate viewer.items.
     return Relay.QL`
       fragment on UpdateItemMutationPayload {
         item {
@@ -70,6 +78,10 @@ export default class UpdateItemMutation extends Relay.Mutation {
     // TODO(burdon): Update data.
 
     return {
+      viewer: {
+        id: this.props.viewer.id
+      },
+
       item: item
     };
   }
