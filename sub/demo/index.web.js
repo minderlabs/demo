@@ -30,6 +30,7 @@ console.log('Config = %s', String(Config));
 
 //
 // Error handling.
+// TODO(burdon): Change to system event handler/listener/logger.
 //
 
 const errorHandler = ErrorHandler.init();
@@ -42,7 +43,9 @@ const errorHandler = ErrorHandler.init();
 // TODO(burdon): Inject logger.
 //
 
-Relay.injectNetworkLayer(Config.getNetworkLayer(errorHandler));
+const environment = new Relay.Environment();
+
+environment.injectNetworkLayer(Config.getNetworkLayer(errorHandler));
 
 
 /**
@@ -56,7 +59,7 @@ function renderApp(App) {
   const root = document.getElementById('app-container');
 
   ReactDOM.render(
-    <App config={ Config } errorHandler={ errorHandler }/>, root
+    <App config={ Config } environment={ environment } errorHandler={ errorHandler }/>, root
   );
 }
 
@@ -69,7 +72,6 @@ function renderApp(App) {
 if (module.hot && _.get(config, 'debug.env') === 'hot') {
 
   // List modules that can be dynamically reloaded.
-  module.hot.accept('./index.web.js');
   module.hot.accept('./js/app/web/app', () => {
     renderApp(require('./js/app/web/app').default);
   });

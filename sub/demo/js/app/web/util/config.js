@@ -45,18 +45,14 @@ class Config {
    *
    * @returns {*}
    */
+  // TODO(burdon): Factor out.
   getNetworkLayer(errorHandler) {
     switch (this.get('relay.network')) {
 
       // https://github.com/relay-tools/relay-local-schema
       // http://graphql.org/blog/rest-api-graphql-wrapper/#using-a-client-side-schema-with-relay
       case 'local': {
-        // TODO(burdon): ERROR: Schema must be an instance of GraphQLSchema.
-        // https://github.com/graphql/graphql-js/issues/159
-        // MUST NOT HAVE 2 Versions:
-        // node_modules/babel-relay-plugin/node_modules/graphql/graphql.js
-        // node_modules/graphql/graphql.js
-
+        // TODO(burdon): Cannot read property 'getViewer' of null
         const schema = require('../../../common/data/schema');
         return new RelayLocalSchema.NetworkLayer({
           schema

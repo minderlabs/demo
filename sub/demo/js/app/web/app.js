@@ -100,6 +100,11 @@ const Routes = (config) => {
  */
 export default class Application extends React.Component {
 
+  static propTypes = {
+    config: React.PropTypes.object.isRequired,
+    environment: React.PropTypes.object.isRequired
+  };
+
   // Make error handler available to nested components.
   static childContextTypes = {
     errorHandler: React.PropTypes.object
@@ -135,7 +140,7 @@ export default class Application extends React.Component {
         routes={ Routes(this.props.config) }
         render={ applyRouterMiddleware(useRelay) }
         history={ browserHistory }
-        environment={ Relay.Store }
+        environment={ this.props.environment }
         onReadyStateChange={ this.handleReadyStateChange.bind(this) }
       />
     );
