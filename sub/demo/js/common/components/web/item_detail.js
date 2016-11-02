@@ -54,11 +54,7 @@ class ItemDetail extends React.Component {
       data: data
     });
 
-    this.props.relay.commitUpdate(mutation, {
-      onSuccess: (result) => {
-        console.log('Mutation ID:', result.updateItemMutation.clientMutationId);
-      }
-    });
+    this.props.relay.commitUpdate(mutation);
 
     // TODO(burdon): Should be handled by parent container (via event?)
     this.context.router.goBack();

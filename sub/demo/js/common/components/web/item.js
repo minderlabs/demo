@@ -38,11 +38,7 @@ class Item extends React.Component {
       }]
     });
 
-    this.props.relay.commitUpdate(mutation, {
-      onSuccess: (result) => {
-        console.log('Mutation ID: %s', result.updateItemMutation.clientMutationId);
-      }
-    });
+    this.props.relay.commitUpdate(mutation);
   }
 
   render() {

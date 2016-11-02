@@ -64,9 +64,7 @@ class HomeView extends React.Component {
 
       this.props.relay.commitUpdate(mutation, {
         onSuccess: (result) => {
-          console.log('Mutation ID: %s', result.createItemMutation.clientMutationId);
-
-          // TODO(burdon): Nav to detail page.
+          // TODO(burdon): Nav to detail page?
           this.refs.textTitle.value = '';
         }
       });

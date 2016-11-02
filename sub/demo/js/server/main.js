@@ -114,10 +114,13 @@ app.use('/graphql', (req, res) => {
     console.log('\n>>> REQ: [{');
     _.each(req.body, (part, key) => {
       switch (typeof part) {
+
+        // Query.
         case 'string':
           part = part.replace(/\n/g, '\n  ');
           break;
 
+        // Variables.
         case 'object':
           part = JSON.stringify(part, 0, 2).replace(/\n/g, '\n  ');
           break;
@@ -227,7 +230,8 @@ app.get(/^\/(.*)/, function(req, res) {
   } else {
     let config = {
       debug: {
-        env: env
+        env: env,
+        logging: true
       },
 
       userId: username

@@ -13,17 +13,19 @@ import moment from 'moment';
 
 import Application from './js/app/web/app';
 import ErrorHandler from './js/app/web/util/error';
-
-import Config from './js/app/web/config';
+import Config from './js/app/web/util/config';
 
 
 //
-// NOTE: Don't remove (needed to trigger webpack on schema changes).
+// App config.
+// NOTE: Don't remove VERSION (needed dependency to trigger webpack on schema changes).
 //
 
 import { VERSION } from './js/common/data/schema';
 
 Config.set('debug.schema', VERSION);
+
+console.log('Config = %s', String(Config));
 
 
 //
@@ -40,7 +42,7 @@ const errorHandler = ErrorHandler.init();
 // TODO(burdon): Inject logger.
 //
 
-Relay.injectNetworkLayer(Config.getNetworkLayer());
+Relay.injectNetworkLayer(Config.getNetworkLayer(errorHandler));
 
 
 /**
@@ -48,6 +50,7 @@ Relay.injectNetworkLayer(Config.getNetworkLayer());
  * @param App Root component.
  */
 function renderApp(App) {
+  console.log('### [%s] ###', moment().format('hh:mm:ss'));
 
   // TODO(burdon): Get ID from config or const.
   const root = document.getElementById('app-container');
@@ -59,24 +62,17 @@ function renderApp(App) {
 
 
 //
-// Hot module reloading.
+// React Hot Loader (3)
+// https://github.com/gaearon/react-hot-boilerplate/pull/61
 //
 
 if (module.hot && _.get(config, 'debug.env') === 'hot') {
-  const log = () => {
-    console.log('### HMR[%s] ###', moment().format('hh:mm:ss'));
-  };
 
   // List modules that can be dynamically reloaded.
-  // https://github.com/gaearon/react-hot-boilerplate/pull/61
-  // https://medium.com/@dan_abramov/hot-reloading-in-react-1140438583bf#.gvm6d2rd4
   module.hot.accept('./index.web.js');
   module.hot.accept('./js/app/web/app', () => {
-    log();
     renderApp(require('./js/app/web/app').default);
   });
-
-  log();
 }
 
 

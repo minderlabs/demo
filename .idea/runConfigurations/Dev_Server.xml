@@ -1,0 +1,33 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Dev Server" type="js.build_tools.npm" factoryName="npm">
+    <package-json value="$PROJECT_DIR$/sub/demo/package.json" />
+    <command value="run-script" />
+    <scripts>
+      <script value="webpack-dev-server" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs>
+      <env name="NODE_ENV" value="hot" />
+    </envs>
+    <method>
+      <option name="NpmBeforeRunTask" enabled="true">
+        <package-json value="$PROJECT_DIR$/sub/demo/package.json" />
+        <command value="run-script" />
+        <scripts>
+          <script value="update-schema" />
+        </scripts>
+        <node-interpreter value="project" />
+        <envs />
+      </option>
+      <option name="NpmBeforeRunTask" enabled="true">
+        <package-json value="$PROJECT_DIR$/sub/demo/package.json" />
+        <command value="run-script" />
+        <scripts>
+          <script value="webpack-server" />
+        </scripts>
+        <node-interpreter value="project" />
+        <envs />
+      </option>
+    </method>
+  </configuration>
+</component>

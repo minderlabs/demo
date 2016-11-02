@@ -59,7 +59,6 @@ const ItemDetailQueries = {
 //
 
 const Routes = (config) => {
-  console.log('Config = %s', JSON.stringify(config));
 
   // From global config (set-up by server).
   const userId = toGlobalId(Viewer.KIND, config.get('userId'));
@@ -107,7 +106,6 @@ export default class Application extends React.Component {
   };
 
   getChildContext() {
-    console.log(typeof this.props.errorHandler);
     return {
       errorHandler: this.props.errorHandler
     }
@@ -115,6 +113,7 @@ export default class Application extends React.Component {
 
   handleReadyStateChange(readyState) {
     if (readyState.error) {
+      // TODO(burdon): Call error handler.
       console.error(readyState.error);
 
       // Use form to redirect to server error page (i.e., POST with error values).
