@@ -215,6 +215,7 @@ export default Relay.createContainer(HomeView, {
     return variables
   },
 
+  // TODO(burdon): This doesn't work? Is the cache properly invalidated?
   // Force update when folder changes.
   // https://facebook.github.io/relay/docs/api-reference-relay-container.html#shouldcomponentupdate
   shouldComponentUpdate: () => true,
