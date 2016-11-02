@@ -48,8 +48,8 @@ class ItemDetail extends React.Component {
     let data = TypeRegistry.values(item.type, this.refs['data'].refs.component);  // TODO(burdon): Const "data".
 
     let mutation = new UpdateItemMutation({
+      viewer: viewer,
       item: item,
-
       title: this.state.item.title,
       data: data
     });
@@ -112,6 +112,8 @@ export default Relay.createContainer(ItemDetail, {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
+
+        ${UpdateItemMutation.getFragment('viewer')}
 
         ${ _.map(TypeRegistry.types, (type) => type.getFragment('viewer')) }
       }

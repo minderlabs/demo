@@ -465,7 +465,7 @@ const CreateItemMutation = mutationWithClientMutationId({
   },
 
   outputFields: {
-    viewer: {
+    viewer: { // TODO(burdon): Why is this needed as an output?
       type: ViewerType,
       resolve: ({ userId }) => resolveNodeFromGlobalId(userId)
     },
@@ -515,6 +515,10 @@ const UpdateItemMutation = mutationWithClientMutationId({
   name: 'UpdateItemMutation',
 
   inputFields: {
+    userId: {
+      type: new GraphQLNonNull(GraphQLID)
+    },
+
     itemId: {
       type: new GraphQLNonNull(GraphQLID)
     },
@@ -533,13 +537,18 @@ const UpdateItemMutation = mutationWithClientMutationId({
   },
 
   outputFields: {
+    viewer: { // TODO(burdon): Why is this needed as an output?
+      type: ViewerType,
+      resolve: ({ userId }) => resolveNodeFromGlobalId(userId)
+    },
+
     item: {
       type: ItemType,
       resolve: ({ itemId }) => resolveNodeFromGlobalId(itemId)
     }
   },
 
-  mutateAndGetPayload: ({ itemId, title, labels, data }) => {
+  mutateAndGetPayload: ({ userId, itemId, title, labels, data }) => {
     let { id: localItemId } = fromGlobalId(itemId);
 
     let item = Database.singleton.updateItem(localItemId, {
@@ -549,6 +558,7 @@ const UpdateItemMutation = mutationWithClientMutationId({
     });
 
     return {
+      userId: userId,
       itemId: itemId
     };
   }

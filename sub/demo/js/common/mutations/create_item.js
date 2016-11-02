@@ -25,13 +25,6 @@ export default class CreateItemMutation extends Relay.Mutation {
     return Relay.QL`mutation { createItemMutation }`;
   }
 
-  //
-  // TODO(burdon): ISSUE: The trouble with a single master Items edge is that it defeats caching.
-  // If we have multiple mutations, the entire "set" must be invalidated each time.
-  //
-
-  // TODO(burdon): userId becomes bucket Id? (server already knows which user we are).
-
   /**
    * Extract variables from the arguments provided to the mutation constructor.
    * These fields should match the inputFields in the mutation type (in the schema).
@@ -39,12 +32,11 @@ export default class CreateItemMutation extends Relay.Mutation {
   getVariables() {
     return {
       userId: this.props.viewer.id,
-      type: this.props.type,
 
-      title: this.props.title,
+      type:   this.props.type,
+      title:  this.props.title,
       labels: this.props.labels,
-
-      data: this.props.data
+      data:   this.props.data
     };
   }
 
@@ -99,10 +91,10 @@ export default class CreateItemMutation extends Relay.Mutation {
 
       itemEdge: {
         node: {
-          type: this.props.type,
-          title: this.props.title,
+          type:   this.props.type,
+          title:  this.props.title,
           labels: this.props.labels,
-          data: this.props.data
+          data:   this.props.data
         }
       }
     };

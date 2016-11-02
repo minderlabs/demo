@@ -18,7 +18,7 @@ class ItemList extends React.Component {
 
   static propTypes = {
     viewer: React.PropTypes.object.isRequired,
-    filter: React.PropTypes.object
+    filter: React.PropTypes.object.isRequired
   };
 
   handleSelect(node) {
@@ -35,7 +35,8 @@ class ItemList extends React.Component {
              className="app-list-item"
              onClick={ this.handleSelect.bind(this, edge.node) }>
 
-          <Item item={ edge.node }
+          <Item viewer={ viewer }
+                item={ edge.node }
                 filter={ this.props.relay.variables.filter } />
         </div>
       );
@@ -59,7 +60,7 @@ export default Relay.createContainer(ItemList, {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
-
+        
         items(first: 10, filter: $filter) {
           edges {
             node {
@@ -70,6 +71,8 @@ export default Relay.createContainer(ItemList, {
             }
           }
         }
+
+        ${Item.getFragment('viewer', { filter: variables.filter })}
       }
     `
   }

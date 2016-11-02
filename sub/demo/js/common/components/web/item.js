@@ -19,25 +19,30 @@ import './item.less';
 class Item extends React.Component {
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired,
+    viewer: React.PropTypes.object.isRequired,
+    item:   React.PropTypes.object.isRequired,
     filter: React.PropTypes.object.isRequired
   };
 
   handleToggleFavorite(event) {
     event.stopPropagation();
 
-    // TODO(burdon): Get viewer.
-    let { item } = this.props;
+    let { viewer, item } = this.props;
 
-    this.props.relay.commitUpdate(
-      new UpdateItemMutation({
-        item: item,
-        labels: [{
-          index: _.indexOf(item['labels'], '_favorite') == -1 ? 0 : -1,
-          value: '_favorite'
-        }]
-      })
-    );
+    let mutation = new UpdateItemMutation({
+      viewer: viewer,
+      item: item,
+      labels: [{
+        index: _.indexOf(item['labels'], '_favorite') == -1 ? 0 : -1,
+        value: '_favorite'
+      }]
+    });
+
+    this.props.relay.commitUpdate(mutation, {
+      onSuccess: (result) => {
+        console.log('Mutation ID: %s', result.updateItemMutation.clientMutationId);
+      }
+    });
   }
 
   render() {
@@ -78,7 +83,15 @@ export default Relay.createContainer(Item, {
   },
 
   fragments: {
-    item: (variables) => Relay.QL`
+    viewer: (variables) => Relay.QL`
+      fragment on Viewer {
+        id
+
+        ${UpdateItemMutation.getFragment('viewer')}
+      }
+    `,
+
+    item: (variables) => Relay.QL`      
       fragment on Item {
         id
         type
