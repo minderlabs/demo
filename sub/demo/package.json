@@ -50,6 +50,7 @@
     "babel-preset-es2015": "^6.16.0",
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-0": "^6.16.0",
+    "babel-relay-plugin": "^0.9.3",
     "body-parser": "^1.15.2",
     "cheerio": "^0.22.0",
     "express": "^4.14.0",
@@ -68,13 +69,15 @@
     "react-native": "0.35.0",
     "react-relay": "^0.9.3",
     "react-router": "^2.8.1",
-    "react-router-relay": "^0.13.5"
+    "react-router-relay": "^0.13.5",
+    "relay-subscriptions": "^1.0.0",
+    "socket.io": "^1.5.1"
   },
   "scripts": {
     "build": "grunt build",
     "docker": "docker-compose up --force-recreate --remove-orphans",
     "update-schema": "babel-node ./tools/babel/update_schema.js",
-    "webpack-server": "webpack --config webpack-server.config.js",
+    "webpack-server": "webpack --watch --config webpack-server.config.js",
     "webpack-dev-server": "NODE_ENV=hot node dist/server.bundle.js",
     "android": "BABEL_ENV=react-native react-native run-android",
     "native": "BABEL_ENV=react-native node node_modules/react-native/local-cli/cli.js start",

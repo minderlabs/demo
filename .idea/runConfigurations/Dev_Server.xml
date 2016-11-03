@@ -19,13 +19,12 @@
         <node-interpreter value="project" />
         <envs />
       </option>
-      <option name="NpmBeforeRunTask" enabled="true">
-        <package-json value="$PROJECT_DIR$/sub/demo/package.json" />
-        <command value="run-script" />
-        <scripts>
-          <script value="webpack-server" />
-        </scripts>
+      <option name="GruntBeforeRunTask" enabled="true">
         <node-interpreter value="project" />
+        <gruntfile value="$PROJECT_DIR$/sub/demo/Gruntfile.js" />
+        <tasks>
+          <task value="run:webpack_server" />
+        </tasks>
         <envs />
       </option>
     </method>

@@ -25,7 +25,9 @@ module.exports = function(grunt) {
         files: [
           'js/common/data/schema.js'
         ],
-        tasks: ['run:update_schema']
+        tasks: [
+          'run:update_schema',
+        ]
       }
     },
 

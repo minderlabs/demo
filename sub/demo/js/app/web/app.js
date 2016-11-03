@@ -107,12 +107,12 @@ export default class Application extends React.Component {
 
   // Make error handler available to nested components.
   static childContextTypes = {
-    errorHandler: React.PropTypes.object
+    eventHandler: React.PropTypes.object
   };
 
   getChildContext() {
     return {
-      errorHandler: this.props.errorHandler
+      eventHandler: this.props.eventHandler
     }
   }
 

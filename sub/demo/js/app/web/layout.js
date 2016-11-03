@@ -26,20 +26,43 @@ class Layout extends React.Component {
 
   static contextTypes = {
     router: React.PropTypes.object.isRequired,
-    errorHandler: React.PropTypes.object.isRequired
+    eventHandler: React.PropTypes.object.isRequired
   };
 
   constructor() {
     super(...arguments);
 
     this.state = {
+      network: false,
       error: null
     };
 
-    this.context.errorHandler.listen('Layout', (error) => {
-      this.setState({
-        error: error
-      })
+    this._netIconTimer = null;
+
+    this.context.eventHandler.listen('Layout', (event) => {
+      switch (event.type) {
+        case 'error': {
+          this.setState({
+            error: event.message
+          });
+          break;
+        }
+
+        case 'net': {
+          this.setState({
+            network: true
+          });
+
+          this._netIconTimer && clearTimeout(this._netIconTimer);
+          this._netIconTimer = setTimeout(() => {
+            this._netIconTimer = null;
+            this.setState({
+              network: false
+            });
+          }, 500);
+          break;
+        }
+      }
     });
   }
 
@@ -50,8 +73,8 @@ class Layout extends React.Component {
     this.context.router.push(path);
   }
 
-  handleDebug() {
-    window.open('/graphql', 'GRAPHQL');
+  handleLink(url) {
+    window.open(url, 'ADMIN');
   }
 
   handleStatusReset() {
@@ -66,11 +89,17 @@ class Layout extends React.Component {
     let statusProps = this.state.error ? {
       title: this.state.error.message,
       className: 'app-icon-error',
-      icon: 'close'
+      icon: 'highlight_off'
     } : {
       title: 'OK',
       className: 'app-icon-ok',
       icon: 'check'
+    };
+
+    let netProps = this.state.network ? {
+      icon: 'wifi'
+    } : {
+      className: 'app-invisible'
     };
 
     const handleToggleSidebar = (event) => {
@@ -110,10 +139,14 @@ class Layout extends React.Component {
         </Sidebar>
 
         <div className="app-footer">
-          <i className="material-icons app-icon-debug"
-             title="GraphiQL"
-             onClick={ this.handleDebug.bind(this) }>bug_report</i>
+          <i className="material-icons app-icon-debug" title="Clients"
+             onClick={ this.handleLink.bind(this, '/clients') }>dns</i>
+          <i className="material-icons app-icon-debug" title="GraphiQL"
+             onClick={ this.handleLink.bind(this, '/graphql') }>bug_report</i>
+
           <div className="app-expand"></div>
+
+          <i className={ 'material-icons app-icon-network ' + netProps.className }>{ netProps.icon }</i>
           <i className={ 'material-icons ' + statusProps.className }
              title={ statusProps.title }
              onClick={ this.handleStatusReset.bind(this) }>{ statusProps.icon }</i>

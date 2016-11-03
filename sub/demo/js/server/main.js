@@ -11,6 +11,11 @@ const express = require('express');
 const handlebars = require('express-handlebars');
 const cookieParser = require('cookie-parser');
 
+const http = require('http');
+const socketio = require('socket.io');
+
+import moment from 'moment';
+
 const graphqlHTTP = require('express-graphql');
 const bodyParser = require('body-parser');
 
@@ -29,7 +34,7 @@ Database.singleton = new Database().init();
 // http://www.koding.com/docs/what-happened-to-127-0-0-1
 //
 
-const LOGGING = true;
+const LOGGING = false; // TODO(burdon): Get from env.
 
 const env = process.env['NODE_ENV'] || 'development';
 
@@ -41,6 +46,8 @@ const app = express();
 
 //
 // Webpack Hot Module Replacement (HMR)
+// NOTE: This replaces the stand-alone webpack-dev-server
+//
 // http://madole.github.io/blog/2015/08/26/setting-up-webpack-dev-middleware-in-your-express-application
 // http://webpack.github.io/docs/hot-module-replacement-with-webpack.html
 // https://github.com/gaearon/react-hot-loader/tree/master/docs#starter-kits
@@ -64,13 +71,15 @@ if (env === 'hot') {
 
   const compiler = webpack(webpackConfig);
 
+  // https://github.com/webpack/webpack-dev-middleware
   app.use(webpackDevMiddleware(compiler, {
     publicPath: webpackConfig.output.publicPath,
-    stats: {colors: true}
+    noInfo: true,
+    stats: { colors: true }
   }));
 
   app.use(webpackHotMiddleware(compiler, {
-    log: console.log
+    log: (msg) => console.log('### [%s] %s ###', moment().format('hh:mm:ss'), msg)
   }));
 }
 
@@ -206,6 +215,61 @@ app.post('/login', function(req, res) {
   }
 });
 
+
+//
+// Client connections.
+//
+
+class ClientManager {
+
+  // TODO(burdon): Connection time.
+
+  constructor() {
+    this._sockets = new Map();
+  }
+
+  get sockets() {
+    return Array.from(this._sockets.values());
+  }
+
+  getSocket(socketId) {
+    return this._sockets.get(socketId);
+  }
+
+  connect(socket) {
+    this._sockets.set(socket.id, socket);
+  }
+
+  disconnect(socketId) {
+    this._sockets.delete(socketId);
+  }
+}
+
+
+const clientManager = new ClientManager();
+
+app.get('/clients', function(req, res) {
+  res.render('clients', {
+    sockets: clientManager.sockets
+  });
+});
+
+app.post('/client/ping', function(req, res) {
+  let socket = clientManager.getSocket(req.body.socketId);
+  if (socket) {
+    socket.emit('ping', {
+      ts: moment().valueOf()
+    });
+  }
+
+  res.redirect('/clients');
+});
+
+
+//
+// Client errors.
+//
+
 app.post('/error', function(req, res) {
   res.render('error', {
     error: req.body.error
@@ -231,7 +295,7 @@ app.get(/^\/(.*)/, function(req, res) {
     let config = {
       debug: {
         env: env,
-        logging: true
+        logging: LOGGING
       },
 
       userId: username
@@ -243,13 +307,32 @@ app.get(/^\/(.*)/, function(req, res) {
 
 
 //
+// Socket.io
+// http://socket.io/get-started/chat
+// https://www.npmjs.com/package/socket.io-client
+//
+
+const server = http.Server(app);
+
+const io = socketio(server);
+
+io.on('connection', function(socket) {
+  console.log('CLIENT.CONNECTED[%s]', socket.id);
+  clientManager.connect(socket);
+
+  socket.on('disconnect', () => {
+    console.log('CLIENT.DISCONNECTED[%s]', socket.id);
+    clientManager.disconnect(socket.id);
+  });
+});
+
+
+//
 // Startup.
 // https://expressjs.com/en/starter/static-files.html
 //
 
-let server = app.listen(port, host, () => {
+server.listen(port, host, () => {
   let addr = server.address();
   console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
 });
-
-console.log('Starting: %s', host);

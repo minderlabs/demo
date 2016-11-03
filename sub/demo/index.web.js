@@ -11,8 +11,10 @@ import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
 import moment from 'moment';
 
+import io from 'socket.io-client';
+
 import Application from './js/app/web/app';
-import ErrorHandler from './js/app/web/util/error';
+import EventHandler from './js/app/web/util/event';
 import Config from './js/app/web/util/config';
 
 
@@ -30,10 +32,9 @@ console.log('Config = %s', String(Config));
 
 //
 // Error handling.
-// TODO(burdon): Change to system event handler/listener/logger.
 //
 
-const errorHandler = ErrorHandler.init();
+const eventHandler = EventHandler.init();
 
 
 //
@@ -45,7 +46,22 @@ const errorHandler = ErrorHandler.init();
 
 const environment = new Relay.Environment();
 
-environment.injectNetworkLayer(Config.getNetworkLayer(errorHandler));
+environment.injectNetworkLayer(Config.getNetworkLayer(eventHandler));
+
+
+//
+// Socket
+// http://socket.io/get-started/chat
+// http://socket.io/docs
+//
+
+let socket = io();
+
+socket.on('ping', (data) => {
+  eventHandler.emit({
+    type: 'net'
+  });
+});
 
 
 /**
@@ -59,7 +75,7 @@ function renderApp(App) {
   const root = document.getElementById('app-container');
 
   ReactDOM.render(
-    <App config={ Config } environment={ environment } errorHandler={ errorHandler }/>, root
+    <App config={ Config } environment={ environment } eventHandler={ eventHandler }/>, root
   );
 }
 

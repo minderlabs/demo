@@ -137,11 +137,13 @@ class HomeView extends React.Component {
       </div>
     );
 
+    /*
     const Debug = (
       <div className="app-panel app-debug">
         <div className="app-section">{ JSON.stringify(filter, 0, 1)}</div>
       </div>
     );
+    */
 
     // TODO(burdon): Factor out.
     // TODO(burdon): Add types to select (factor out Select).
@@ -165,7 +167,6 @@ class HomeView extends React.Component {
       <div className="app-main-column app-column app-expand">
         { SearchBar }
         { SearchList }
-        { Debug }
         { CreateBar }
       </div>
     );

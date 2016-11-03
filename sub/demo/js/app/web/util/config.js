@@ -5,8 +5,8 @@
 'use strict';
 
 import React from 'react';
-import Relay from 'react-relay';
-import RelayLocalSchema from 'relay-local-schema';
+
+import CustomNetworkLayer from './net';
 
 //
 // Default values.
@@ -14,7 +14,7 @@ import RelayLocalSchema from 'relay-local-schema';
 
 const DEFAULTS = {
   relay: {
-    path: '/graphql'
+    path: CustomNetworkLayer.DEFAULT_PATH
   }
 };
 
@@ -45,70 +45,25 @@ class Config {
    *
    * @returns {*}
    */
-  // TODO(burdon): Factor out.
-  getNetworkLayer(errorHandler) {
+  getNetworkLayer(eventHandler) {
     switch (this.get('relay.network')) {
 
       // https://github.com/relay-tools/relay-local-schema
       // http://graphql.org/blog/rest-api-graphql-wrapper/#using-a-client-side-schema-with-relay
-      case 'local': {
-        // TODO(burdon): Cannot read property 'getViewer' of null
-        const schema = require('../../../common/data/schema');
-        return new RelayLocalSchema.NetworkLayer({
-          schema
-        });
+      case 'testing': {
+        return CustomNetworkLayer.testing();
       }
 
-      // https://facebook.github.io/relay/docs/api-reference-relay.html#injectnetworklayer-static-method
       default: {
         let loc = window.location;
         let hostname = loc.hostname + (loc.port ? ':' + loc.port : '');
         let url = `${loc.protocol}//${hostname}${this.get('relay.path')}`;
 
         console.log('GraphQL:', url);
-        return new CustomNetworkLayer(url, errorHandler).setLogging(this.get('debug.logging'));
+        return new CustomNetworkLayer(url, eventHandler)
+          .setLogging(this.get('debug.logging'));
       }
     }
-  }
-}
-
-/**
- * Logging network layer.
- */
-class CustomNetworkLayer extends Relay.DefaultNetworkLayer {
-
-  // TODO(burdon): Custom properties (e.g., retryDelays).
-  // TODO(burdon): https://github.com/nodkz/react-relay-network-layer
-  constructor(url, errorHandler) {
-    super(...arguments);
-
-    this._errorHandler = errorHandler;
-    this._logging = false;
-  }
-
-  setLogging(debug) {
-    this._logging = debug;
-    return this;
-  }
-
-  // https://facebook.github.io/relay/docs/interfaces-relay-mutation-request.html
-  sendMutation(request) {
-    if (this._logging) {
-      // TODO(burdon): Get debug name.
-      console.log('>>> REQ:\n%s\nvariables: %s',
-          request.getQueryString(), JSON.stringify(request.getVariables(), 0, 2));
-    }
-
-    request
-      .then(result => {
-        console.log('<<< RES: %s', JSON.stringify(result, 0, 2));
-      })
-      .catch(error => {
-        console.error('Network Error:', error);   // TODO(burdon): Move to error handler.
-        this._errorHandler.onError(error);
-      });
-
-    return super.sendMutation(request);
   }
 }
 
