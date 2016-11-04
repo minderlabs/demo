@@ -46,6 +46,10 @@ export default class SubscriptionManager {
     let id = component._reactInternalInstance._debugID;
 
     // TODO(burdon): Actually registry query.
+    // TODO(burdon): Implement subscriptions via @live tags.
+    // https://github.com/apollostack/graphql-server/blob/master/ROADMAP.md#websocket-transport
+    // https://github.com/apollostack/graphql-server/issues/34
+
     console.log('SUBSCRIBE: [%s:%d]', component.constructor.name, id);
     this._subscriptions.set(id._debugID, component);
   }

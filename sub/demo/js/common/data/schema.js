@@ -38,6 +38,11 @@ import {
 } from 'graphql';
 
 import {
+  DirectiveLocation,
+  GraphQLDirective
+} from 'graphql/type/directives';
+
+import {
   connectionArgs,
   connectionDefinitions,
   connectionFromArray,
@@ -60,6 +65,22 @@ import {
 
 // NOTE: Needed so that the webpack client has a dependency for schema changes.
 export const VERSION = '0.0.1';
+
+
+//
+// Directives.
+// TODO(burdon): Implement cue for subscriptions.
+// https://medium.com/the-graphqlhub/graphql-tour-directives-558dee4fa903#.ex7wj11dp
+// https://medium.com/front-end-developers/graphql-directives-3dec6106c384#.iapv99yy0
+//
+
+export const SubscriptionDirective = new GraphQLDirective({
+  name: 'subscription',
+  description: 'Determines scope for subscriptions.',
+  locations: [
+    DirectiveLocation.FIELD
+  ]
+});
 
 
 //
@@ -617,6 +638,9 @@ const RootQueryType = new GraphQLObjectType({
 //
 
 const Schema = new GraphQLSchema({
+  directives: [
+    SubscriptionDirective
+  ],
   mutation: RootMutationType,
   query: RootQueryType
 });

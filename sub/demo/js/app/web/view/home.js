@@ -221,7 +221,7 @@ export default Relay.createContainer(HomeView, {
       }
     }
 
-    console.log('<===', JSON.stringify(variables.filter));
+    console.log('<i===', JSON.stringify(variables.filter));
     return variables;
   },
 
