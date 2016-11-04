@@ -70,8 +70,8 @@ RUN npm install
 
 RUN babel-node ./tools/babel/update_schema.js
 
-RUN webpack
-RUN webpack --config webpack-server.config.js
+RUN BABEL_ENV=production webpack
+RUN BABEL_ENV=server webpack --config webpack-server.config.js
 
 #
 # Exposed port for nginx-proxy (matches docker-compose.yml and docker cloud stackfile).

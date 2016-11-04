@@ -1,27 +1,49 @@
 {
+  //
+  // http://babeljs.io/docs/usage/babelrc
+  // http://babeljs.io/docs/usage/options
+  //
+
   "passPerPreset": true,
 
-  "plugins": [
-    // HRM
-    // http://gaearon.github.io/react-hot-loader/getstarted/
-    "react-hot-loader/babel",
-
-    // Imports schema.
-    "./tools/babel/relay_plugin"
-  ],
-
   "presets": [
-    "react",
     "es2015",
     "stage-0"
   ],
 
   //
-  // NOTE: Webpack and the React Native packager both use babel with different configs.
-  // BABEL_ENV=webpack babel-node ./tools/babel/update_schema.js
-  // https://babeljs.io/docs/usage/babelrc
+  // NOTE: Different build configuration are MERGED with the defaults above, for example:
   //
+  // webpack
+  // BABEL_ENV=production webpack
+  // BABEL_ENV=server webpack --config webpack-server.config.js
+  //
+
   "env": {
+
+    // Default.
+    "development": {
+      "plugins": [
+        // Relay Schema.
+        "./tools/babel/relay_plugin",
+
+        // HRM: http://gaearon.github.io/react-hot-loader/getstarted
+        "react-hot-loader/babel"
+      ],
+      "presets": [
+        "react"
+      ]
+    },
+
+    "production": {
+      "plugins": [
+        "./tools/babel/relay_plugin"
+      ],
+      "presets": [
+        "react"
+      ]
+    },
+
     "react-native": {
       "plugins": [
         "react-native"
@@ -31,10 +53,7 @@
 
     "server": {
       "plugins": [],
-      "presets": [
-        "es2015",
-        "stage-0"
-      ]
+      "presets": []
     }
   }
 }
