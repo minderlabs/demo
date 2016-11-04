@@ -9,15 +9,6 @@
  */
 export default class EventHandler {
 
-  static init() {
-    let eventHandler = new EventHandler();
-    window.addEventListener('error', (err) => {
-      eventHandler.onError(err);
-    });
-
-    return eventHandler;
-  }
-
   constructor() {
     this._callbacks = new Map();
   }

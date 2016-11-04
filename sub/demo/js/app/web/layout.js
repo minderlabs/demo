@@ -20,13 +20,14 @@ import './layout.less';
  */
 class Layout extends React.Component {
 
-  static propTypes = {
-    viewer: React.PropTypes.object.isRequired
+  static contextTypes = {
+    router: React.PropTypes.object,
+    eventHandler: React.PropTypes.object,
+    subscriptionManager: React.PropTypes.object
   };
 
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired,
-    eventHandler: React.PropTypes.object.isRequired
+  static propTypes = {
+    viewer: React.PropTypes.object.isRequired
   };
 
   constructor() {
@@ -41,6 +42,8 @@ class Layout extends React.Component {
 
     this.context.eventHandler.listen('Layout', (event) => {
       switch (event.type) {
+
+        // Global JS errors.
         case 'error': {
           this.setState({
             error: event.message
@@ -48,6 +51,7 @@ class Layout extends React.Component {
           break;
         }
 
+        // Network event.
         case 'net': {
           this.setState({
             network: true
@@ -74,7 +78,11 @@ class Layout extends React.Component {
   }
 
   handleLink(url) {
-    window.open(url, 'ADMIN');
+    window.open(url, 'DEMO');
+  }
+
+  handleRefresh() {
+    this.context.subscriptionManager.invalidate();
   }
 
   handleStatusReset() {
@@ -86,7 +94,7 @@ class Layout extends React.Component {
   render() {
     let { viewer, children } = this.props;
 
-    let statusProps = this.state.error ? {
+    const statusProps = this.state.error ? {
       title: this.state.error.message,
       className: 'app-icon-error',
       icon: 'highlight_off'
@@ -96,10 +104,8 @@ class Layout extends React.Component {
       icon: 'check'
     };
 
-    let netProps = this.state.network ? {
-      icon: 'wifi'
-    } : {
-      className: 'app-invisible'
+    const netProps = this.state.network ? {} : {
+      className: 'app-hidden'
     };
 
     const handleToggleSidebar = (event) => {
@@ -139,14 +145,16 @@ class Layout extends React.Component {
         </Sidebar>
 
         <div className="app-footer">
-          <i className="material-icons app-icon-debug" title="Clients"
+          <i className="material-icons app-icon-press" title="Clients"
              onClick={ this.handleLink.bind(this, '/clients') }>dns</i>
-          <i className="material-icons app-icon-debug" title="GraphiQL"
+          <i className="material-icons app-icon-press" title="GraphiQL"
              onClick={ this.handleLink.bind(this, '/graphql') }>bug_report</i>
+          <i className="material-icons app-icon-press" title="Refresh data"
+             onClick={ this.handleRefresh.bind(this) }>refresh</i>
 
           <div className="app-expand"></div>
 
-          <i className={ 'material-icons app-icon-network ' + netProps.className }>{ netProps.icon }</i>
+          <i className={ 'material-icons app-icon-network ' + netProps.className }>wifi</i>
           <i className={ 'material-icons ' + statusProps.className }
              title={ statusProps.title }
              onClick={ this.handleStatusReset.bind(this) }>{ statusProps.icon }</i>

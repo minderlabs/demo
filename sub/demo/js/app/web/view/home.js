@@ -28,13 +28,23 @@ class HomeView extends React.Component {
 
   // TODO(burdon): Cache in-memory state (e.g., search text) for back nav.
 
+  static contextTypes = {
+    router: React.PropTypes.object,
+    subscriptionManager: React.PropTypes.object
+  };
+
   static propTypes = {
     viewer: React.PropTypes.object.isRequired
   };
 
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
-  };
+  constructor() {
+    super(...arguments);
+  }
+
+  componentDidMount() {
+    // TODO(burdon): Unsubscribe when unmount.
+    this.context.subscriptionManager.subscribe(this.refs.items);
+  }
 
   createItem() {
     let { viewer } = this.props;

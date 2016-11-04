@@ -19,7 +19,7 @@ import './item_detail.less';
 class ItemDetail extends React.Component {
 
   static contextTypes = {
-    router: React.PropTypes.object.isRequired
+    router: React.PropTypes.object
   };
 
   static propTypes = {

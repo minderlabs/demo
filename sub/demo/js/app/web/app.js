@@ -101,18 +101,25 @@ const Routes = (config) => {
 export default class Application extends React.Component {
 
   static propTypes = {
-    config: React.PropTypes.object.isRequired,
-    environment: React.PropTypes.object.isRequired
+    config:                 React.PropTypes.object.isRequired,
+    environment:            React.PropTypes.object.isRequired,
+    eventHandler:           React.PropTypes.object.isRequired,
+    subscriptionManager:    React.PropTypes.object.isRequired
   };
 
-  // Make error handler available to nested components.
   static childContextTypes = {
-    eventHandler: React.PropTypes.object
+    eventHandler:           React.PropTypes.object,
+    subscriptionManager:    React.PropTypes.object
   };
+
+  constructor() {
+    super(...arguments);
+  }
 
   getChildContext() {
     return {
-      eventHandler: this.props.eventHandler
+      eventHandler:         this.props.eventHandler,
+      subscriptionManager:  this.props.subscriptionManager
     }
   }
 

@@ -246,7 +246,17 @@ class ClientManager {
 }
 
 
+// TODO(burdon): Wrap subscriptions in ClientManager.
 const clientManager = new ClientManager();
+
+Database.singleton.onMutation(() => {
+  for (let socket of clientManager.sockets) {
+    console.log('INVALIDATE: %s', socket);
+    socket.emit('invalidate', {
+      ts: moment().valueOf()
+    });
+  }
+});
 
 app.get('/clients', function(req, res) {
   res.render('clients', {
@@ -254,10 +264,11 @@ app.get('/clients', function(req, res) {
   });
 });
 
-app.post('/client/ping', function(req, res) {
+app.post('/client/invalidate', function(req, res) {
   let socket = clientManager.getSocket(req.body.socketId);
   if (socket) {
-    socket.emit('ping', {
+    console.log('INVALIDATE: %s', socket);
+    socket.emit('invalidate', {
       ts: moment().valueOf()
     });
   }

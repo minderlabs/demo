@@ -15,6 +15,7 @@ import io from 'socket.io-client';
 
 import Application from './js/app/web/app';
 import EventHandler from './js/app/web/util/event';
+import SubscriptionManager from './js/app/web/util/subscriptions';
 import Config from './js/app/web/util/config';
 
 
@@ -31,10 +32,14 @@ console.log('Config = %s', String(Config));
 
 
 //
-// Error handling.
+// Event handling.
 //
 
-const eventHandler = EventHandler.init();
+const eventHandler = new EventHandler();
+
+window.addEventListener('error', (err) => {
+  eventHandler.onError(err);
+});
 
 
 //
@@ -50,6 +55,13 @@ environment.injectNetworkLayer(Config.getNetworkLayer(eventHandler));
 
 
 //
+// Subscriptions.
+//
+
+const subscriptionManager = new SubscriptionManager();
+
+
+//
 // Socket
 // http://socket.io/get-started/chat
 // http://socket.io/docs
@@ -57,10 +69,8 @@ environment.injectNetworkLayer(Config.getNetworkLayer(eventHandler));
 
 let socket = io();
 
-socket.on('ping', (data) => {
-  eventHandler.emit({
-    type: 'net'
-  });
+socket.on('invalidate', (data) => {
+  subscriptionManager.invalidate();
 });
 
 
@@ -71,11 +81,14 @@ socket.on('ping', (data) => {
 function renderApp(App) {
   console.log('### [%s] ###', moment().format('hh:mm:ss'));
 
-  // TODO(burdon): Get ID from config or const.
-  const root = document.getElementById('app-container');
-
   ReactDOM.render(
-    <App config={ Config } environment={ environment } eventHandler={ eventHandler }/>, root
+    <App config={ Config }
+         environment={ environment }
+         subscriptionManager = { subscriptionManager }
+         eventHandler={ eventHandler }/>,
+
+    // TODO(burdon): Get ID from config or const.
+    document.getElementById('app-container')
   );
 }
 

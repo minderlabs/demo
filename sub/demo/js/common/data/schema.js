@@ -75,7 +75,7 @@ export const VERSION = '0.0.1';
  */
 const resolveNodeFromGlobalId = (globalId) => {
   let { type, id } = fromGlobalId(globalId);
-  console.log(`Resolve Global ID: [${type}:${id}]`);
+  console.log(`RESOLVE.ID: [${type}:${id}]`);
 
   switch (type) {
 
@@ -99,7 +99,7 @@ const NODE_TYPE_REGISTRY = new Map();
  * Used by GraphQL internals when resolving generics (interfaces and unions).
  */
 const resolveNodeType = (obj) => {
-  console.log('Resolve Type:', obj);
+  console.log('RESOLVE.TYPE:', obj);
 
   // TODO(burdon): Don't depend on Database implementation. Get from property?
   for (let [ clazz, type ] of NODE_TYPE_REGISTRY.entries()) {

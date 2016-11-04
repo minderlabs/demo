@@ -191,6 +191,13 @@ export class Database {
 
     // Map of items by user.
     this._userItems = new Map();
+
+    // Callback on mutation.
+    this._mutationHandler = null;
+  }
+
+  onMutation(handler) {
+    this._mutationHandler = handler;
   }
 
   init() {
@@ -364,6 +371,11 @@ export class Database {
     item.version += 1;
 
     console.log('ITEM.UPDATE[%s] = %s', JSON.stringify(item));
+
+    // Trigger invalidations.
+    // TODO(burdon): Need client ID.
+    this._mutationHandler && this._mutationHandler(item);
+
     return item;
   }
 }

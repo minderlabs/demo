@@ -38,13 +38,13 @@
       </div>
     </div>
 
-    <form id="ping" action="/client/ping" method="POST">
+    <form id="invalidate" action="/client/invalidate" method="POST">
       <input type="hidden" name="socketId"/>
     </form>
 
     <script>
       function ping(socketId) {
-        var form = document.getElementById('ping');
+        var form = document.getElementById('invalidate');
         form['socketId'].value = socketId;
         form.submit();
       }

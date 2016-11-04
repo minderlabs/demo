@@ -16,12 +16,12 @@ import Path from '../path';
  */
 class ItemDetailView extends React.Component {
 
-  static propTypes = {
-    viewer: React.PropTypes.object.isRequired
+  static contextTypes = {
+    router: React.PropTypes.object
   };
 
-  static contextTypes = {
-    router: React.PropTypes.object.isRequired
+  static propTypes = {
+    viewer: React.PropTypes.object.isRequired
   };
 
   //

@@ -20,9 +20,11 @@ export default class CustomNetworkLayer extends Relay.DefaultNetworkLayer {
 
   static testing() {
     // TODO(burdon): Cannot read property 'getViewer' of null
+    // https://github.com/relay-tools/relay-local-schema
     const schema = require('../../../common/data/schema');
     return new RelayLocalSchema.NetworkLayer({
-      schema
+      schema,
+      onError: (errors, request) => console.error(errors, request)
     });
   }
 
