@@ -9,6 +9,7 @@
     "less-loader": "^2.2.3",
     "relay-local-schema": "^0.5.4",
     "style-loader": "^0.13.1",
-    "webpack": "^1.13.2"
+    "webpack": "^1.13.2",
+    "webpack-node-externals": "^1.5.4"
   }
 }

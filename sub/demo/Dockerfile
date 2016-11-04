@@ -65,7 +65,7 @@ RUN npm install -g webpack
 RUN npm install
 
 #
-# Build artifacts
+# Build client and server.
 #
 
 RUN BABEL_ENV=production babel-node ./tools/babel/update_schema.js
