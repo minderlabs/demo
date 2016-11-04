@@ -4,8 +4,6 @@
   // http://babeljs.io/docs/usage/options
   //
 
-  "passPerPreset": true,
-
   "presets": [
     "es2015",
     "stage-0"
