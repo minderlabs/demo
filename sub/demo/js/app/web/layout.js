@@ -105,7 +105,7 @@ class Layout extends React.Component {
     let { viewer, children } = this.props;
 
     const statusProps = this.state.error ? {
-      title: this.state.error.message,
+      title: this.state.error,
       className: 'app-icon-error',
       icon: 'close'
     } : {
