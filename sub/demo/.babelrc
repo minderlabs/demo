@@ -44,6 +44,7 @@
 
     "react-native": {
       "plugins": [
+        "react",
         "react-native"
       ],
       "presets": []
