@@ -11,90 +11,98 @@
 // Container layout.
 //
 
-#app-container {
+@app-main-panel-width: 500px;
+
+.app-root-container {
   .app-fullscreen;
 
   display: flex;
-  flex-direction: row;
-  justify-content: center;
 
-  > .app-column {
-    width: 500px;
+  .app-main-container {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    justify-content: center;
 
-    background-color: @app-container-background;
-    box-shadow: @app-boxshadow;
-
-    .app-header {
+    .app-main-panel {
       display: flex;
-      flex-direction: row;
-      flex-shrink: 0;
-      padding: 8px;
 
-      background-color: @app-header-background;
+      width: @app-main-panel-width;
+      background-color: @app-container-background;
+      box-shadow: @app-boxshadow;
 
-      > div:first-child {
+      .app-header {
         display: flex;
-        flex-grow: 1;
-        align-items: center;
+        flex-direction: row;
+        flex-shrink: 0;
+        padding: 8px;
+
+        background-color: @app-header-background;
+
+        > div:first-child {
+          display: flex;
+          flex-grow: 1;
+          align-items: center;
+
+          i {
+            color: @app-header-title-color;
+            font-size: @app-font-large;
+          }
+
+          h1 {
+            flex-grow: 1;
+            margin: 0 0 0 8px;
+            font-size: @app-font-large;
+            color: @app-header-title-color;
+          }
+        }
+
+        .app-links {
+          font-weight: 100;
+          color: @app-header-title-color;
+
+          a {
+            margin-left: 8px;
+            color: @app-header-title-color;
+          }
+        }
+      }
+
+      .app-sidebar {
+        .app-list-item {
+          cursor: pointer;
+        }
+      }
+
+      .app-footer {
+        display: flex;
+        flex-direction: row;
+        flex-shrink: 0;
+
+        padding: 2px;
+
+        background-color: @app-footer-background;
 
         i {
-          color: @app-header-title-color;
-          font-size: @app-font-large;
+          font-size: 18px;
         }
 
-        h1 {
-          flex-grow: 1;
-          margin: 0 0 0 8px;
-          font-size: @app-font-large;
-          color: @app-header-title-color;
+        i.app-icon-press {
+          color: lightgray;
         }
-      }
-
-      .app-links {
-        font-weight: 100;
-        color: @app-header-title-color;
-
-        a {
-          margin-left: 8px;
-          color: @app-header-title-color;
+        i.app-icon-press:hover {
+          color: darkgray;
         }
-      }
-    }
 
-    .app-sidebar {
-      .app-list-item {
-        cursor: pointer;
-      }
-    }
-
-    .app-footer {
-      display: flex;
-      flex-direction: row;
-      flex-shrink: 0;
-
-      padding: 2px;
-
-      background-color: @app-footer-background;
-
-      i {
-        font-size: 18px;
-      }
-
-      i.app-icon-press {
-        color: lightgray;
-      }
-      i.app-icon-press:hover {
-        color: darkgray;
-      }
-
-      i.app-icon-network {
-        color: lightblue;
-      }
-      i.app-icon-ok {
-        color: lightgreen;
-      }
-      i.app-icon-error {
-        color: orange;
+        i.app-icon-network {
+          color: lightblue;
+        }
+        i.app-icon-ok {
+          color: lightgreen;
+        }
+        i.app-icon-error {
+          color: orange;
+        }
       }
     }
   }

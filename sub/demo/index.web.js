@@ -87,8 +87,7 @@ function renderApp(App) {
          subscriptionManager = { subscriptionManager }
          eventHandler={ eventHandler }/>,
 
-    // TODO(burdon): Get ID from config or const.
-    document.getElementById('app-container')
+    document.getElementById(Config.get('root'))
   );
 }
 

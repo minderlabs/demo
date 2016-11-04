@@ -6,6 +6,8 @@
 
 import React from 'react';
 
+import Async from './util/async';
+
 /**
  * Text box.
  */
@@ -27,7 +29,7 @@ export default class TextBox extends React.Component {
       value: this.props.value || ''
     };
 
-    this._timeout = null;
+    this._timeout = Async.timeout(this.props.delay);
   }
 
   get value() {
@@ -49,11 +51,9 @@ export default class TextBox extends React.Component {
    * @param now Do it immediately.
    */
   fireTextChange(now=false) {
-    this._timeout && clearTimeout(this._timeout);
-    this._timeout = setTimeout(() => {
-      this._timeout = null;
+    this._timeout(() => {
       this.props.onTextChange && this.props.onTextChange(this.state.value);
-    }, now ? 0 : this.props.delay);
+    }, now);
   }
 
   handleTextChange(event) {
