@@ -13,6 +13,12 @@ export default class SubscriptionManager {
     this._subscriptions = new Map();
   }
 
+  get info() {
+    return {
+      subscriptions: this._subscriptions.size
+    };
+  }
+
   /**
    * Component hierarchy:
    *

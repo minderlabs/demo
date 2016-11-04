@@ -140,9 +140,14 @@ class Layout extends React.Component {
       </div>
     );
 
+    // Gather debug info.
+    let debugInfo = _.merge({},
+      this.state.debugInfo,
+      this.context.subscriptionManager.info);
+
     return (
       <div className="app-root-container">
-        <Debug ref="debug" open={ this.state.debug } info={ this.state.debugInfo }/>
+        <Debug ref="debug" open={ this.state.debug } info={ debugInfo }/>
 
         <div className="app-main-container">
           <div className="app-main-panel app-column">
