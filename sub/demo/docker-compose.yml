@@ -36,7 +36,7 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
 
   #
-  # Test Server
+  # Demo Server
   # Access via http://dockerhost.net (via /etc/hosts)
   # docker exec -it node-server /bin/bash
   #

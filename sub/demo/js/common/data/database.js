@@ -361,6 +361,11 @@ export class Database {
     console.log('ITEM.CREATE[%s] = %s', bucketId, JSON.stringify(item));
     this._items.set(item.id, item);
     this.getItemMap(bucketId).set(item.id, item);
+
+    // Trigger invalidations.
+    // TODO(burdon): Need client ID.
+    this._mutationHandler && this._mutationHandler(item);
+
     return item;
   }
 

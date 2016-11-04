@@ -40,7 +40,7 @@ ADD .babelrc                  $HOME/app/.babelrc
 ADD package.json              $HOME/app/package.json
 ADD package-dev.json          $HOME/app/package-dev.json
 ADD webpack-base.config.js    $HOME/app/webpack-base.config.js
-ADD webpack-node.config.js    $HOME/app/webpack-node.config.js
+ADD webpack-server.config.js  $HOME/app/webpack-server.config.js
 ADD webpack.config.js         $HOME/app/webpack.config.js
 
 ADD scripts                   $HOME/app/scripts
@@ -65,13 +65,13 @@ RUN npm install -g webpack
 RUN npm install
 
 #
-# Build artifacts
+# Build client and server.
 #
 
-RUN babel-node ./tools/babel/update_schema.js
+RUN BABEL_ENV=production babel-node ./tools/babel/update_schema.js
+RUN BABEL_ENV=production webpack
 
-RUN webpack
-RUN webpack --config webpack-node.config.js
+RUN BABEL_ENV=server webpack --config webpack-server.config.js
 
 #
 # Exposed port for nginx-proxy (matches docker-compose.yml and docker cloud stackfile).

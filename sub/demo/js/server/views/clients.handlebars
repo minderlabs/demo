@@ -11,28 +11,30 @@
   </head>
 
   <body>
-    <div id="app-container">
-      <div class="app-column">
-        <div class="app-header">
-          <div>
-            <h1>Clients</h1>
+    <div class="app-root-container">
+      <div class="app-main-container">
+        <div class="app-main-panel app-column">
+          <div class="app-header">
+            <div>
+              <h1>Clients</h1>
+            </div>
+
+            <div class="app-links">
+              <a href="/logout">Login</a>
+            </div>
           </div>
 
-          <div class="app-links">
-            <a href="/logout">Login</a>
-          </div>
-        </div>
+          {{ socket }}
 
-        {{ socket }}
-
-        <div class="app-panel">
-          <div class="app-section">
-            {{#each sockets}}
-              <div class="app-row" style="margin: 8px">
-                <div class="app-expand">{{ id }}</div>
-                <button onclick="ping('{{ id }}')">Ping</button>
-              </div>
-            {{/each}}
+          <div class="app-panel">
+            <div class="app-section">
+              {{#each sockets}}
+                <div class="app-row" style="margin: 8px">
+                  <div class="app-expand">{{ id }}</div>
+                  <button onclick="ping('{{ id }}')">Ping</button>
+                </div>
+              {{/each}}
+            </div>
           </div>
         </div>
       </div>

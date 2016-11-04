@@ -11,26 +11,28 @@
   </head>
 
   <body>
-    <div id="app-container">
-      <div class="app-column">
-        <div class="app-header">
-          <div>
-            <h1>Login</h1>
+    <div class="app-root-container">
+      <div class="app-main-container">
+        <div class="app-main-panel app-column">
+          <div class="app-header">
+            <div>
+              <h1>Login</h1>
+            </div>
           </div>
-        </div>
 
-        <form id="login_form" action="/login" method="post">
-        <div class="app-toolbar">
-          <input id="username" class="app-expand" type="text" name="username" autofocus/>
-          <button>Login</button>
-        </div>
-        </form>
+          <form id="login_form" action="/login" method="post">
+          <div class="app-toolbar">
+            <input id="username" class="app-expand" type="text" name="username" autofocus/>
+            <button>Login</button>
+          </div>
+          </form>
 
-        <div class="app-panel">
-          <div class="app-section app-row">
-            {{#each users}}
-              <a class="app-tag" onclick="login('{{ id }}')">@{{ id }}</a>
-            {{/each}}
+          <div class="app-panel">
+            <div class="app-section app-row">
+              {{#each users}}
+                <a class="app-tag" onclick="login('{{ id }}')">@{{ id }}</a>
+              {{/each}}
+            </div>
           </div>
         </div>
       </div>

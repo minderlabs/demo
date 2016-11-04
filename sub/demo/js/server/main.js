@@ -304,6 +304,8 @@ app.get(/^\/(.*)/, function(req, res) {
     res.redirect('/login');
   } else {
     let config = {
+      root: 'app-root',
+
       debug: {
         env: env,
         logging: LOGGING
@@ -312,7 +314,9 @@ app.get(/^\/(.*)/, function(req, res) {
       userId: username
     };
 
-    res.render('app', { config: config });
+    res.render('app', {
+      config: config
+    });
   }
 });
 
