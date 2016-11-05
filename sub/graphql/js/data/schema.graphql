@@ -1,0 +1,23 @@
+#
+# Copyright 2016 Alien Laboratories, Inc.
+#
+# https://facebook.github.io/graphql/#sec-Comments
+#
+# NOTE: PyCharm GraphQL plug-in will attempt to validate against the top-level graphql.config.json file.
+#
+
+# TODO(burdon): Simple web page that does a GraphQL render.
+# https://github.com/apollostack/mock-demo/blob/master/app/index.js
+
+type User {
+  id: ID!
+  name: String
+}
+
+type RootQuery {
+  user(id: ID): User
+}
+
+schema {
+  query: RootQuery
+}

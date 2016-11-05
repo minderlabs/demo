@@ -6,10 +6,12 @@
 
 const webpack = require('webpack');
 
-const webpackConfig = require('./webpack-karma.config.js');
+const webpackConfig = require('./webpack.config.js');
 
 //
 // Karma configuration
+// https://github.com/webpack/karma-webpack
+//
 // To run:
 //   karma start
 //
@@ -59,7 +61,6 @@ module.exports = function(config) {
     // Override for manual testing: karma start --browsers=Chrome
     // https://npmjs.org/browse/keyword/karma-launcher
     browsers: [
-//    'Chrome',                       // Test directly in browser (click debug and view console).
       'PhantomJS'                     // Headless (ES5 only: babel transpiles ES6 code via webpack configuration).
     ],
 

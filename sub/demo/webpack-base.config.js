@@ -61,7 +61,7 @@ module.exports = {
       // https://github.com/babel/babel-loader
       {
         test: /\.js$/,
-        exclude: [/node_modules/],                      // Don't transpile deps.
+        exclude: [/node_modules/],  // Don't transpile deps.
         include: [
           path.resolve(__dirname, 'index.web.js'),
           path.resolve(__dirname, 'js')
