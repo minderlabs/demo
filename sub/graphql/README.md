@@ -1,4 +1,3 @@
-# Apollo Tests
+# GraphQL Tests
 
-TODO(burdon): Hello world GraphQL test (via mocha/karma). 
-
+GraphQL tests (via karma/mocha). 
