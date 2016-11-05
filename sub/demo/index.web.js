@@ -37,8 +37,11 @@ console.log('Config = %s', String(Config));
 
 const eventHandler = new EventHandler();
 
-window.addEventListener('error', (err) => {
-  eventHandler.onError(err);
+window.addEventListener('error', (error) => {
+  eventHandler.emit({
+    type: 'error',
+    message: error.message
+  });
 });
 
 

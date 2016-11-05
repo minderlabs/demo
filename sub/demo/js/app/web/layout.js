@@ -105,7 +105,7 @@ class Layout extends React.Component {
     let { viewer, children } = this.props;
 
     const statusProps = this.state.error ? {
-      title: this.state.error.message,
+      title: this.state.error,
       className: 'app-icon-error',
       icon: 'close'
     } : {
@@ -140,9 +140,14 @@ class Layout extends React.Component {
       </div>
     );
 
+    // Gather debug info.
+    let debugInfo = _.merge({},
+      this.state.debugInfo,
+      this.context.subscriptionManager.info);
+
     return (
       <div className="app-root-container">
-        <Debug ref="debug" open={ this.state.debug } info={ this.state.debugInfo }/>
+        <Debug ref="debug" open={ this.state.debug } info={ debugInfo }/>
 
         <div className="app-main-container">
           <div className="app-main-panel app-column">
