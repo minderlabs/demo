@@ -14,10 +14,10 @@ import { introspectionQuery, printSchema } from 'graphql/utilities';
 
 import schema from '../../js/common/data/schema';
 
-const DATA_DIR = path.join(__dirname, '../../dist');
+const DIST_DIR = path.join(__dirname, '../../dist');
 
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR);
+if (!fs.existsSync(DIST_DIR)) {
+  fs.mkdirSync(DIST_DIR);
 }
 
 //
@@ -30,7 +30,7 @@ if (!fs.existsSync(DATA_DIR)) {
     console.error('Schema Error', JSON.stringify(result.errors, null, 2));
   } else {
     fs.writeFileSync(
-      path.join(DATA_DIR, 'schema.json'), JSON.stringify(result, null, 2)
+      path.join(DIST_DIR, 'schema.json'), JSON.stringify(result, null, 2)
     );
   }
 })();
@@ -39,4 +39,4 @@ if (!fs.existsSync(DATA_DIR)) {
 // Saves user readable type system shorthand of schema.
 //
 
-fs.writeFileSync(path.join(DATA_DIR, 'schema.graphql'), printSchema(schema));
+fs.writeFileSync(path.join(DIST_DIR, 'schema.graphql'), printSchema(schema));

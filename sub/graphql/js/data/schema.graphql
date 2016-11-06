@@ -8,6 +8,7 @@
 
 # TODO(burdon): Simple web page that does a GraphQL render.
 # https://github.com/apollostack/mock-demo/blob/master/app/index.js
+# http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
 
 type User {
   id: ID!
