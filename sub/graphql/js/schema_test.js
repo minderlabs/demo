@@ -12,17 +12,14 @@ import {
   GraphQLString
 } from 'graphql';
 
+// https://github.com/apollostack/graphql-tools
 import { makeExecutableSchema, mockServer } from 'graphql-tools';
 
 import schema from './data/schema.graphql';
-
 import { DATA, resolvers } from './data/testing/resolvers';
 
-// TODO(burdon): Add ID (toGlobal) in all resolves.
-
-
 //
-// Tests (3 equivalent variants).
+// 3 Tests (Native GraphQL API + 2 Apollo graphql-tools).
 //
 
 const query = `
@@ -34,22 +31,39 @@ const query = `
   }
 `;
 
-describe('Test Mock Schema', () => {
+const test = (result, done) => {
+  if (result.errors) {
+    console.error(result.errors);
+    fail();
+  } else {
+    console.log(JSON.stringify(result.data.user));
+    expect(result.data.user.name).to.equal(DATA.User.test.name);
+    done();
+  }
+};
 
+//
+// Mock server.
+// https://github.com/apollostack/graphql-tools
+//
+
+describe('Test Mock Server', () => {
+
+  // http://graphql.org/blog/mocking-with-graphql
   let server = mockServer(schema, resolvers);
 
   it('Should just work.', (done) => {
     server.query(query).then((result) => {
-      if (result.errors) {
-        console.error(result.errors);
-        fail();
-      } else {
-        expect(result.data.user.name).to.equal(DATA.User.test.name);
-        done();
-      }
+      test(result, done);
     });
   });
 });
+
+//
+// Executable schema.
+// https://github.com/graphql/graphql-js
+// https://github.com/apollostack/frontpage-server/blob/master/data/schema.js
+//
 
 describe('Test Executable Schema', () => {
 
@@ -60,39 +74,26 @@ describe('Test Executable Schema', () => {
     resolverMap[key] = f();
   });
 
-  // Executable schema.
-  // https://github.com/graphql/graphql-js
-  // https://github.com/apollostack/frontpage-server/blob/master/data/schema.js
-
-  const logger = {
-    log: (error) => console.error(error)
-  };
-
   // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#makeExecutableSchema
   let jsSchema = makeExecutableSchema({
-    typeDefs: [schema],
+    typeDefs: schema,
     resolvers: resolverMap,
-    logger
+    logger: { log: (error) => console.error(error) }
   });
 
   it('Should just work.', (done) => {
-
     graphql(jsSchema, query).then((result) => {
-      if (result.errors) {
-        console.error(result.errors);
-        fail();
-      } else {
-        expect(result.data.user.name).to.equal(DATA.User.test.name);
-        done();
-      }
+      test(result, done);
     });
   });
 });
 
-describe('Test Custom Schema', () => {
+//
+// Native GraphQL API.
+// https://github.com/graphql/graphql-js
+//
 
-  // Executable schema.
-  // https://github.com/graphql/graphql-js
+describe('Test GraphQL API', () => {
 
   let schema = new GraphQLSchema({
     query: new GraphQLObjectType({
@@ -117,7 +118,7 @@ describe('Test Custom Schema', () => {
             }
           },
           resolve: (parent, args) => {
-            return DATA.User[args.id];
+            return { id: args.id, ...DATA.User[args.id] };
           }
         }
       }
@@ -125,15 +126,8 @@ describe('Test Custom Schema', () => {
   });
 
   it('Should just work.', (done) => {
-
     graphql(schema, query).then((result) => {
-      if (result.errors) {
-        console.error(result.errors);
-        fail();
-      } else {
-        expect(result.data.user.name).to.equal(DATA.User.test.name);
-        done();
-      }
+      test(result, done);
     });
   });
 });
