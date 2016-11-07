@@ -30,8 +30,10 @@
     "karma-webpack": "^1.8.0",
     "mocha": "^3.1.2",
     "simon": "^0.2.3",
+    "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "webpack": "^1.13.2",
+    "webpack-dev-server": "^1.16.2",
     "webpack-node-externals": "^1.5.4"
   },
   "dependencies": {

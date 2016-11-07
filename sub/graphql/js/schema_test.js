@@ -108,7 +108,7 @@ describe('Test GraphQL API', () => {
               },
               name: {
                 type: GraphQLString,
-                resolve: (o) => o.name
+                resolve: obj => obj.name
               },
             }
           }),
