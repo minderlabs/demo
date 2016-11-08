@@ -22,7 +22,7 @@ module.exports = {
   target: 'web',
 
   entry: [
-    path.resolve(__dirname, 'js/client/main.js')
+    path.resolve(__dirname, 'js/client/app.js')
   ],
 
   output: {

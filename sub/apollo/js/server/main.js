@@ -70,11 +70,8 @@ const DATA = {
 const resolvers = {
   RootQuery: {
     user: (o, { id }) => {
-      console.log('>>>>', id);
-
-      let d = _.merge({ id }, DATA.User[id]);
-      console.log('<<<', d);
-      return d;
+      console.log('USER.GET[%s]', id);
+      return _.merge({ id }, DATA.User[id]);
     }
   }
 };
@@ -109,7 +106,8 @@ app.get(/^\/(.*)/, function(req, res) {
   res.render('home', {
     config: {
       root: 'app-root',
-      graphql: '/graphql'
+      graphql: '/graphql',
+      userId: 'minder'
     }
   });
 });
