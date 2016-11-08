@@ -60,8 +60,7 @@ class Config {
         let url = `${loc.protocol}//${hostname}${this.get('relay.path')}`;
 
         console.log('GraphQL:', url);
-        return new CustomNetworkLayer(url, eventHandler)
-          .setLogging(this.get('debug.logging'));
+        return new CustomNetworkLayer(url, eventHandler).setLogging(this.get('debug.logging'));
       }
     }
   }

@@ -24,21 +24,16 @@ class ItemDetailView extends React.Component {
     viewer: React.PropTypes.object.isRequired
   };
 
-  handleClose() {
-    this.context.router.goBack();
-  }
+  //
+  // Layout.
+  //
 
   render() {
-    let { viewer, item } = this.props;
-
-    // Redirect to home page if not found.
-    if (!item) {
-      this.context.router.push(Path.HOME);
-    }
+    let { viewer } = this.props;
 
     return (
       <div className="app-column app-expand">
-        <ItemDetail viewer={ viewer } item={ item } onClose={ this.handleClose.bind(this) }/>
+        <h1>CREATE</h1>
       </div>
     );
   }
@@ -52,15 +47,6 @@ export default Relay.createContainer(ItemDetailView, {
         id
 
         ${ItemDetail.getFragment('viewer')}
-      }
-    `,
-
-    item: (variables) => Relay.QL`
-      fragment on Item {
-        id
-        type
-
-        ${ItemDetail.getFragment('item')}
       }
     `
   }

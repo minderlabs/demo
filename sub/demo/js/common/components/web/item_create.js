@@ -18,10 +18,13 @@ import './item_detail.less';
  */
 class ItemDetail extends React.Component {
 
+  static contextTypes = {
+    router: React.PropTypes.object
+  };
+
   static propTypes = {
-    viewer:   React.PropTypes.object.isRequired,
-    item:     React.PropTypes.object.isRequired,
-    onClose:  React.PropTypes.func.isRequired
+    viewer: React.PropTypes.object.isRequired,
+    item: React.PropTypes.object.isRequired
   };
 
   constructor() {
@@ -52,11 +55,14 @@ class ItemDetail extends React.Component {
     });
 
     this.props.relay.commitUpdate(mutation);
-    this.props.onClose();
+
+    // TODO(burdon): Should be handled by parent container (via event?)
+    this.context.router.goBack();
   }
 
   handleCancel(event) {
-    this.props.onClose();
+    // TODO(burdon): Should be handled by parent container (via event?)
+    this.context.router.goBack();
   }
 
   render() {
@@ -98,28 +104,6 @@ class ItemDetail extends React.Component {
 
 export default Relay.createContainer(ItemDetail, {
 
-  // Example:
-  // {
-  //   viewer(userId:"Vmlld2VyOnJpY2g=") {
-  //     id
-  //     user {
-  //       id
-  //       title
-  //     }
-  //     items {
-  //       id
-  //       title
-  //       data {
-  //         __typename
-  //
-  //         ... on Task {
-  //           priority
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-
   fragments: {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
@@ -128,25 +112,6 @@ export default Relay.createContainer(ItemDetail, {
         ${UpdateItemMutation.getFragment('viewer')}
 
         ${ _.map(TypeRegistry.types, (type) => type.getFragment('viewer')) }
-      }
-    `,
-
-    item: (variables) => Relay.QL`
-      fragment on Item {
-        id
-        type
-        version
-
-        title
-        labels
-        
-        data {
-          __typename
-          
-          ${ _.map(TypeRegistry.types, (type) => type.getFragment('data')) }
-        }
-        
-        ${UpdateItemMutation.getFragment('item')}
       }
     `
   }

@@ -25,6 +25,7 @@ class Layout extends React.Component {
 
   static contextTypes = {
     router: React.PropTypes.object,
+    environment: React.PropTypes.object,
     eventHandler: React.PropTypes.object,
     subscriptionManager: React.PropTypes.object
   };
@@ -135,8 +136,16 @@ class Layout extends React.Component {
       this.refs.sidebar.toggle();
     };
 
+    // https://github.com/facebook/relay/blob/master/src/store/RelayEnvironment.js
+    // https://github.com/facebook/relay/blob/master/src/store/RelayStoreData.js
+    let store = this.context.environment.getStoreData();
+
     // Gather debug info.
-    let debugInfo = _.merge({},
+    let debugInfo = _.merge({
+        store: {
+          records: Object.keys(store.getNodeData()).length
+        }
+      },
       this.state.debugInfo,
       this.context.subscriptionManager.info);
 

@@ -8,6 +8,22 @@ import React from 'react';
 import Relay from 'react-relay';
 import RelayLocalSchema from 'relay-local-schema';
 
+// TODO(burdon): Factor out.
+class Logger {
+
+  static singleton = new Logger();
+
+  request(request) {
+    console.log('>>> REQ:\n%s\nvariables: %s',
+      request.getQueryString(), JSON.stringify(request.getVariables(), 0, 2));
+  }
+
+  response(response) {
+    console.log('<<< RES:\n%s',
+      JSON.stringify(response, 0, 2));
+  }
+}
+
 /**
  * Logging network layer.
  *
@@ -35,11 +51,12 @@ export default class CustomNetworkLayer extends Relay.DefaultNetworkLayer {
     super(...arguments);
 
     this._eventHandler = eventHandler;
-    this._logging = false;
+    this._logger = null;
   }
 
+  // TODO(burdon): Allow app to toggle logging state.
   setLogging(debug) {
-    this._logging = debug;
+    this._logger = debug ? Logger.singleton : null;
     return this;
   }
 
@@ -53,6 +70,16 @@ export default class CustomNetworkLayer extends Relay.DefaultNetworkLayer {
     this._eventHandler.emit({
       type: 'net'
     });
+
+    if (this._logger) {
+      _.each(queryRequests, (queryRequest) => {
+        this._logger.request(queryRequest);
+
+        queryRequest.then(result => {
+          this._logger.response(result.response);
+        });
+      });
+    }
 
     return super.sendQueries(queryRequests);
   }
@@ -68,16 +95,14 @@ export default class CustomNetworkLayer extends Relay.DefaultNetworkLayer {
       type: 'net'
     });
 
-    if (this._logging) {
-      // TODO(burdon): Get debug name.
-      console.log('>>> REQ:\n%s\nvariables: %s',
-          mutationRequest.getQueryString(), JSON.stringify(mutationRequest.getVariables(), 0, 2));
+    if (this._logger) {
+      this._logger.request(mutationRequest);
     }
 
     mutationRequest
       .then(result => {
-        if (this._logging) {
-          console.log('<<< RES: %s', JSON.stringify(result, 0, 2));
+        if (this._logger) {
+          this._logger.response(result.response);
         }
       })
       .catch(error => {
