@@ -37,10 +37,6 @@ class HomeView extends React.Component {
     viewer: React.PropTypes.object.isRequired
   };
 
-  constructor() {
-    super(...arguments);
-  }
-
   componentDidMount() {
     // TODO(burdon): Unsubscribe when unmount.
     this.context.subscriptionManager.subscribe(this.refs.items);

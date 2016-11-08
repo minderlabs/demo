@@ -106,10 +106,25 @@ class BaseTypeHandler {
   snippet(item, text) {}
 }
 
+class GroupTypeHandler extends BaseTypeHandler {
+
+  update(data, values) {
+    Util.maybeUpdateItem(data, values, 'members');
+  }
+}
+
+class FolderTypeHandler extends BaseTypeHandler {
+
+  update(data, values) {
+    Util.maybeUpdateItem(data, values, 'itemId');
+    Util.maybeUpdateItem(data, values, 'path');
+    Util.maybeUpdateItem(data, values, 'filter');
+  }
+}
+
 class TaskTypeHandler extends BaseTypeHandler {
 
   update(data, values) {
-    // TODO(burdon): Pass array of values.
     Util.maybeUpdateItem(data, values, 'priority');
     Util.maybeUpdateItem(data, values, 'owner');
     Util.maybeUpdateItem(data, values, 'assignee');
@@ -138,8 +153,10 @@ class NoteTypeHandler extends BaseTypeHandler {
   }
 }
 
-Item.typeRegistry.set('Task', new TaskTypeHandler());
-Item.typeRegistry.set('Note', new NoteTypeHandler());
+Item.typeRegistry.set('Group',  new GroupTypeHandler());
+Item.typeRegistry.set('Folder', new FolderTypeHandler());
+Item.typeRegistry.set('Task',   new TaskTypeHandler());
+Item.typeRegistry.set('Note',   new NoteTypeHandler());
 
 /**
  * Seedable ID generator.
@@ -177,6 +194,8 @@ export class IdGenerator {
  */
 export class Database {
 
+  static GLOBAL_BUCKET_ID = '__GLOBAL__';
+
   static singleton = null;
 
   constructor() {
@@ -203,17 +222,22 @@ export class Database {
   init() {
     const data = require('./testing/test.json');
 
-    const GLOBAL_BUCKET_ID = '__GLOBAL__';
-
     // Create users.
     for (let user of data['User']) {
       this.createUser(user);
-      this.createItem(GLOBAL_BUCKET_ID, 'User', _.defaults(user, {
+      this.createItem(Database.GLOBAL_BUCKET_ID, 'User', _.defaults(user, {
         type: 'User'
       }));
     }
 
-    // Create items for users.
+    // Create groups.
+    for (let group of data['Group']) {
+      this.createItem(Database.GLOBAL_BUCKET_ID, 'Group', _.defaults(group, {
+        type: 'Group'
+      }));
+    }
+
+    // Create items within user buckets.
     _.each(data['items'], (types, bucketId) => {
       _.each(types, (items, type) => {
         for (let item of items) {
@@ -253,6 +277,14 @@ export class Database {
     console.log('USER.CREATE', JSON.stringify(user));
     this._users.set(user.id, user);
     return user;
+  }
+
+  //
+  // Folders
+  //
+
+  getFolders() {
+    return this.getItems(Database.GLOBAL_BUCKET_ID, { type: "Folder" });
   }
 
   //
@@ -349,15 +381,15 @@ export class Database {
     return items;
   }
 
-  createItem(bucketId, type, data) { // TODO(burdon): Rename values.
+  createItem(bucketId, type, values) { // TODO(burdon): Rename values.
     console.assert(bucketId);
     console.assert(type);
 
-    data.id = data.id || this._idGenerator.createId(type);
-    data.type = type;
-    data.version = 0;
+    values.id = values.id || this._idGenerator.createId(type);
+    values.type = type;
+    values.version = 0;
 
-    let item = new Item(data); // TODO(burdon): Pass in ID, type separately.
+    let item = new Item(values); // TODO(burdon): Pass in ID, type separately.
     console.log('ITEM.CREATE[%s] = %s', bucketId, JSON.stringify(item));
     this._items.set(item.id, item);
     this.getItemMap(bucketId).set(item.id, item);

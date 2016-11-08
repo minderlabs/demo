@@ -6,6 +6,7 @@
 
 import React from 'react';
 
+import Group from './type/group';
 import Note from './type/note';
 import Task from './type/task';
 
@@ -38,16 +39,27 @@ class TypeRegistry {
 
   render(viewer, item) {
     let props = this._types.get(item.type);
-    return props['render'](viewer, item);
+    return props && props['render'](viewer, item) || null;
   }
 
   values(type, element) {
     let props = this._types.get(type);
-    return props['values'](element);
+    return props && props['values'](element) || {};
   }
 }
 
 const TYPE_REGISTRY = new TypeRegistry();
+
+// TODO(burdon): Base type.
+
+TYPE_REGISTRY.add('Group', {
+  type: Group,
+  icon: 'group',
+  render: (viewer, item) => <Group ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
+  values: (component) => {
+    return component.values;
+  }
+});
 
 TYPE_REGISTRY.add('Note', {
   type: Note,

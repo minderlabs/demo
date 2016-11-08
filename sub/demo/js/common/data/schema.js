@@ -150,7 +150,7 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 /**
  * Used to parameterize filtering items.
  */
-const ItemFilterType = new GraphQLInputObjectType({
+const ItemFilterType = new GraphQLObjectType({
   name: 'ItemFilterType',
 
   fields: () => ({
@@ -196,13 +196,19 @@ const ViewerType = new GraphQLObjectType({
         // https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
         // E.g., items(first: 10, filter: { type: "Task" }) { edges { node { id } } }
         filter: {
-          type: ItemFilterType,
+          type: createInputObject(ItemFilterType),
           description: 'Predicates to filter items.'
         }
       },
       resolve: (viewer, args) => {
         return connectionFromArray(Database.singleton.getItems(viewer.id, args.filter), args)
       }
+    },
+
+    folders: {
+      type: new GraphQLList(ItemType),
+      description: "List of folder items.",
+      resolve: (user, args) => Database.singleton.getFolders(user.id)
     }
   })
 });
@@ -299,10 +305,33 @@ const GroupType = new GraphQLObjectType({
 
   fields: () => ({
 
-    // TODO(burdon): Edge? Is this possible since GroupType is not a node?
+    // TODO(burdon): Items of type User?
     members: {
-      type: new GraphQLList(UserType),
+      type: new GraphQLList(ItemType),
       resolve: (data) => Database.singleton.getItemsById(data.members)
+    }
+  })
+});
+
+const FolderType = new GraphQLObjectType({
+  name: 'Folder',
+
+  fields: () => ({
+
+    itemId: {
+      type: GraphQLID,
+      resolve: (data) => data.itemId,
+      description: "ID of item if detail view."
+    },
+
+    path: {
+      type: GraphQLString,
+      resolve: (data) => data.path
+    },
+
+    filter: {
+      type: ItemFilterType,
+      resolve: (data) => data.filter
     }
   })
 });
@@ -332,7 +361,6 @@ const TaskType = new GraphQLObjectType({
       description: 'Content in markdown (or html?)',
       resolve: (data) => data.details
     }
-
   })
 });
 
@@ -355,10 +383,11 @@ const NoteType = new GraphQLObjectType({
 
 export const DATA_TYPE_MAP = new Map();
 
-DATA_TYPE_MAP.set(GroupType.name, GroupType);
-DATA_TYPE_MAP.set(UserType.name,  UserType);
-DATA_TYPE_MAP.set(NoteType.name,  NoteType);
-DATA_TYPE_MAP.set(TaskType.name,  TaskType);
+DATA_TYPE_MAP.set( GroupType.name, GroupType);
+DATA_TYPE_MAP.set(  UserType.name, UserType);
+DATA_TYPE_MAP.set(FolderType.name, FolderType);
+DATA_TYPE_MAP.set(  NoteType.name, NoteType);
+DATA_TYPE_MAP.set(  TaskType.name, TaskType);
 
 /**
  * Convert GraphQLObjectType to GraphQLInputObjectType.

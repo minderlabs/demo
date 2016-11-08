@@ -104,6 +104,28 @@ class ItemDetail extends React.Component {
 
 export default Relay.createContainer(ItemDetail, {
 
+  // Example:
+  // {
+  //   viewer(userId:"Vmlld2VyOnJpY2g=") {
+  //     id
+  //     user {
+  //       id
+  //       title
+  //     }
+  //     items {
+  //       id
+  //       title
+  //       data {
+  //         __typename
+  //
+  //         ... on Task {
+  //           priority
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+
   fragments: {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {

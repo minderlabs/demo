@@ -128,6 +128,12 @@ export default class Application extends React.Component {
       // TODO(burdon): Call error handler.
       console.error(readyState.error);
 
+      this.props.eventHandler.emit({
+        type: 'error',
+        message: readyState.error.message
+      });
+
+      // TODO(burdon): If not refresh then show error page in app.
       // Use form to redirect to server error page (i.e., POST with error values).
       if (this.props.config.get('redirectOnError')) {
         setTimeout(() => {
