@@ -24,11 +24,9 @@ class Folders extends React.Component {
 
   render() {
 
-    // TODO(burdon): Factor out ListComponent from ItemsList.
-
     let folders = this.props.viewer.folders.map(folder => {
       return (
-        <a key={ folder.data.path }
+        <a key={ folder.data.itemId || folder.data.path }
            className="app-list-item"
            onClick={ this.handleSelect.bind(this, folder) }>{ folder.title }</a>
       );

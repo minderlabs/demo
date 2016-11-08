@@ -165,7 +165,7 @@ const ItemFilterType = new GraphQLObjectType({
     },
     matchText: {
       type: GraphQLBoolean,
-      description: 'If set, the query must match the text (i.e., fail if blank).'
+      description: 'If set the query must match the text.'
     }
   })
 });
@@ -196,12 +196,12 @@ const ViewerType = new GraphQLObjectType({
         // https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
         // E.g., items(first: 10, filter: { type: "Task" }) { edges { node { id } } }
         filter: {
-          type: createInputObject(ItemFilterType),
+          type: getInputObject(ItemFilterType),
           description: 'Predicates to filter items.'
         }
       },
       resolve: (viewer, args) => {
-        return connectionFromArray(Database.singleton.getItems(viewer.id, args.filter), args)
+        return connectionFromArray(Database.singleton.getItems(viewer.id, args.filter), args);
       }
     },
 
@@ -254,6 +254,19 @@ const ItemType = new GraphQLObjectType({
       type: DataTypeUnion,
       resolve: (item, args) => {
         return item.data;
+      },
+    },
+
+    items: {
+      type: new GraphQLList(ItemType),
+      args: {
+        filter: {
+          type: getInputObject(ItemFilterType),
+          description: 'Predicates to filter items.'
+        }
+      },
+      resolve: (viewer, args) => {
+        return Database.singleton.getItems(viewer.id, args.filter);
       }
     }
   })
@@ -389,11 +402,13 @@ DATA_TYPE_MAP.set(FolderType.name, FolderType);
 DATA_TYPE_MAP.set(  NoteType.name, NoteType);
 DATA_TYPE_MAP.set(  TaskType.name, TaskType);
 
+const INPUT_TYPES = new Map();
+
 /**
  * Convert GraphQLObjectType to GraphQLInputObjectType.
  * @param type
  */
-function createInputObject(type) {
+function getInputObject(type) {
 
   // https://github.com/graphql/graphql-js/issues/207
   // https://github.com/graphql/graphql-js/issues/312
@@ -412,8 +427,9 @@ function createInputObject(type) {
           fieldType instanceof GraphQLScalarType ||
           fieldType instanceof GraphQLEnumType)) {
 
+      // TODO(burdon): Must be singletons?
       fieldType = fieldType.getInterfaces().includes(nodeInterface) ?
-        GraphQLID : createInputObject(fieldType);
+        GraphQLID : getInputObject(fieldType);
     }
 
     fieldType = wrappers.reduce((type, wrapper) => {
@@ -423,16 +439,22 @@ function createInputObject(type) {
     return { type: fieldType };
   }
 
-  return new GraphQLInputObjectType({
-    name: type.name + 'Input',
-    fields: _.mapValues(type.getFields(), field => convertInputObjectField(field))
-  });
+  let inputType = INPUT_TYPES.get(type);
+  if (!inputType) {
+    inputType = new GraphQLInputObjectType({
+      name: type.name + 'Input',
+      fields: _.mapValues(type.getFields(), field => convertInputObjectField(field))
+    });
+
+    INPUT_TYPES.set(type, inputType);
+  }
+  return inputType;
 }
 
 const DataInputTypeUnion = new UnionInputType({
   name: 'UnionInputType',
   inputTypes: _.map(Array.from(DATA_TYPE_MAP.values()), (type) => {
-    return createInputObject(type);
+    return getInputObject(type);
   })
 });
 

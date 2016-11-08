@@ -7,6 +7,8 @@
 import React from 'react';
 import Relay from 'react-relay';
 
+import './group.less';
+
 /**
  * Note data.
  */
@@ -33,15 +35,28 @@ class Group extends React.Component {
   }
 
   render() {
+
+    // TODO(burdon): Add button per user.
+
     let members = this.props.data.members.map(member => {
+      let tasks = member.items.map(task => {
+        return (
+          <div key={ member.id + '/' + task.id }>{ task.title }</div>
+        );
+      });
+
       return (
-        <div key={ member.id }>{ member.title }</div>
+        <div key={ member.id }>
+          <h2>{ member.title }</h2>
+          <div>
+            { tasks }
+          </div>
+        </div>
       );
     });
 
     return (
-      <div className="app-section">
-        <h3>Members</h3>
+      <div className="app-item-group app-section">
         <div>
           { members }
         </div>
@@ -52,7 +67,8 @@ class Group extends React.Component {
 
 export default Relay.createContainer(Group, {
 
-  // TODO(burdon): Get tasks for each user.
+  // TODO(burdon): Change filter to "assigned".
+  // TODO(burdon): What if multiple sets of items? Prefix label?
 
   fragments: {
     viewer: (variables) => Relay.QL`
@@ -66,6 +82,11 @@ export default Relay.createContainer(Group, {
         members {
           id
           title
+
+          items(filter: { type: "Task"}) {
+            id
+            title
+          }
         }
       }
     `

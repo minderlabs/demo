@@ -46,7 +46,7 @@ class Note extends React.Component {
 
   render() {
     return (
-      <div className="app-section">
+      <div className="app-item-note app-section">
         <h3>Content</h3>
         <div className="app-row">
           <textarea className="app-expand"

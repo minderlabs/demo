@@ -179,6 +179,26 @@ class HomeView extends React.Component {
   }
 }
 
+function createFilter(folder, type, text) {
+  let filter = {};
+
+  if (text) {
+    filter = { text };
+  } else {
+    filter = { type };
+
+    // TODO(burdon): Get properties from folder object.
+    switch (folder) {
+      case 'favorites': {
+        filter.labels = ['_favorite'];
+        break;
+      }
+    }
+  }
+
+  return filter;
+}
+
 export default Relay.createContainer(HomeView, {
 
   initialVariables: {
@@ -198,25 +218,7 @@ export default Relay.createContainer(HomeView, {
   // https://facebook.github.io/relay/docs/api-reference-relay-container.html#preparevariables
   prepareVariables: (variables) => {
     console.log('===>', JSON.stringify(variables));
-
-    if (variables.text) {
-      variables.filter = {
-        text: variables.text
-      }
-    } else {
-      variables.filter = {
-        type: variables.type
-      };
-
-      // TODO(burdon): Get properties from folder object.
-      switch (variables.folder) {
-        case 'favorites': {
-          variables.filter.labels = ['_favorite'];
-          break;
-        }
-      }
-    }
-
+    variables.filter = createFilter(variables.folder, variables.type, variables.text);
     console.log('<===', JSON.stringify(variables.filter));
     return variables;
   },

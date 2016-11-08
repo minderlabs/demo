@@ -322,8 +322,6 @@ export class Database {
       filter = {};
     }
 
-    console.log('MATCH: %s', JSON.stringify(filter));
-
     // TODO(burdon): Factor out filters.
     let items = _.filter(Array.from(this._items.values()), (item) => {
       // Must match something.
