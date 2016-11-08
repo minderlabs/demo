@@ -4,10 +4,18 @@
 
 'use strict';
 
+// TODO(burdon): Use webpack
+
+const _ = require('lodash');
+
 const path = require('path');
 const http = require('http');
 const express = require('express');
 const handlebars = require('express-handlebars');
+const bodyParser = require('body-parser');
+
+const graphqlServer = require('graphql-server-express');
+const graphqlTools = require('graphql-tools');
 
 
 //
@@ -27,6 +35,70 @@ const app = express();
 
 
 //
+// Schema
+//
+
+// TODO(burdon): Factor out (share with sub/graphql).
+// TODO(burdon): Do client mocking.
+// http://dev.apollodata.com/tools/graphql-tools/mocking.html
+
+const typeDefs = `
+  
+  type User {
+    id: ID!
+    name: String
+  }
+  
+  type RootQuery {
+    user(id: ID): User
+  }
+  
+  schema {
+    query: RootQuery
+  }
+
+`;
+
+const DATA = {
+  User: {
+    minder: {
+      name: 'Minder'
+    }
+  }
+};
+
+const resolvers = {
+  RootQuery: {
+    user: (o, { id }) => {
+      console.log('>>>>', id);
+
+      let d = _.merge({ id }, DATA.User[id]);
+      console.log('<<<', d);
+      return d;
+    }
+  }
+};
+
+const schema = graphqlTools.makeExecutableSchema({ typeDefs, resolvers });
+
+
+//
+// GraphQL
+// https://github.com/apollostack/graphql-server
+// http://dev.apollodata.com/tools/graphql-server/index.html
+//
+
+app.use(bodyParser.json());                           // JSON post (GraphQL).
+app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
+
+app.use('/graphql', bodyParser.json(), graphqlServer.graphqlExpress({ schema: schema }));
+
+app.use('/graphiql', graphqlServer.graphiqlExpress({
+  endpointURL: '/graphql',
+}));
+
+
+//
 // App
 //
 
@@ -36,7 +108,8 @@ app.use('/assets', express.static(path.join(__dirname, '../../dist')));
 app.get(/^\/(.*)/, function(req, res) {
   res.render('home', {
     config: {
-      root: 'app-root'
+      root: 'app-root',
+      graphql: '/graphql'
     }
   });
 });

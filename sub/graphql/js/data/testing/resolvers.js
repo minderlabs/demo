@@ -10,7 +10,7 @@
 
 export const DATA = {
   User: {
-    test: {
+    minder: {
       name: 'Minder'
     }
   }
@@ -24,8 +24,8 @@ export const DATA = {
 export const resolvers = {
   RootQuery: () => {
     return {
-      user: (o, {id}) => {
-        return {id, ...DATA.User[id]};
+      user: (o, { id }) => {
+        return { id, ...DATA.User[id] };
       }
     }
   }

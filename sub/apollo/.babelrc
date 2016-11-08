@@ -8,5 +8,12 @@
     "es2015",
     "stage-0",
     "react"
+  ],
+
+  // https://babeljs.io/docs/plugins/transform-decorators
+  // https://github.com/babel/babel/issues/2645
+  // https://medium.com/google-developers/exploring-es7-decorators-76ecb65fb841#.60y0ukiag
+  "plugins": [
+    "transform-decorators-legacy"
   ]
 }
