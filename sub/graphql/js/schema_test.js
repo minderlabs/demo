@@ -22,6 +22,8 @@ import { DATA, resolvers } from './data/testing/resolvers';
 // 3 Tests (Native GraphQL API + 2 Apollo graphql-tools).
 //
 
+// TODO(burdon): GraphiQL server.
+
 const query = `
   { 
     user(id: "test") {
@@ -97,7 +99,7 @@ describe('Test GraphQL API', () => {
 
   let schema = new GraphQLSchema({
     query: new GraphQLObjectType({
-      name: 'RootQuery',
+      name: 'Query',
       fields: {
         user: {
           type: new GraphQLObjectType({
