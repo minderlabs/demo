@@ -22,7 +22,7 @@ export const DATA = {
 //
 
 export const resolvers = {
-  RootQuery: () => {
+  Query: () => {
     return {
       user: (o, { id }) => {
         return { id, ...DATA.User[id] };
