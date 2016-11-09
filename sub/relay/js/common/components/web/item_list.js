@@ -56,14 +56,12 @@ export default Relay.createContainer(ItemList, {
     filter: {}
   },
 
-  // TODO(burdon): Experimental: @subscription custom directive.
-
   fragments: {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id 
 
-        items(first: 10, filter: $filter) @subscription {
+        items(first: 10, filter: $filter) {
           edges {
             node {
               id

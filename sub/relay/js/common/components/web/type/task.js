@@ -115,10 +115,6 @@ class Task extends React.Component {
           </div>
         </div>
 
-        <div className="app-section app-debug">
-          { JSON.stringify(_.pick(this.state.data, ['owner', 'assignee', 'priority']), 0, 1) }
-        </div>
-
       </div>
     );
   }

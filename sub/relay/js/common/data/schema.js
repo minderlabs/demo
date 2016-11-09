@@ -73,12 +73,14 @@ export const VERSION = '0.0.1';
 // https://medium.com/the-graphqlhub/graphql-tour-directives-558dee4fa903#.ex7wj11dp
 // https://medium.com/front-end-developers/graphql-directives-3dec6106c384#.iapv99yy0
 //
+// items(first: 10, filter: $filter) @subscription { ... }
+//
 
 export const SubscriptionDirective = new GraphQLDirective({
   name: 'subscription',
   description: 'Determines scope for subscriptions.',
   locations: [
-    DirectiveLocation.FIELD
+    DirectiveLocation.FRAGMENT_DEFINITION
   ]
 });
 

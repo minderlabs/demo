@@ -4,18 +4,61 @@
 
 'use strict';
 
+import Relay from 'react-relay';
+
+/**
+ *
+ */
+class ContainerInfo {
+
+  constructor(containerConstructor) {
+    this.containerConstructor = containerConstructor;
+    this.containerInstances = new Set();
+    this.fragments = new Set();
+  }
+}
+
 /**
  * Manages Relay subscriptions.
  */
 export default class SubscriptionManager {
 
-  constructor() {
-    this._subscriptions = new Map();
+  // Container constructors mapped by component type.
+  static _containers = new Map();
+
+  /**
+   *
+   * @param componentType
+   * @param containerConstructor
+   * @returns {*}
+   */
+  static manage(componentType, containerConstructor) {
+    let info = new ContainerInfo(containerConstructor);
+
+    // TODO(burdon): Registry query based on @subscription tag.
+    // https://facebook.github.io/relay/docs/api-reference-relay-container.html#overview
+    // https://github.com/facebook/relay/blob/master/src/container/RelayContainer.js
+    // https://github.com/facebook/relay/blob/master/src/query/RelayFragmentReference.js
+    this._containers.set(componentType, info);
+
+    _.map(containerConstructor.getFragmentNames(), (name) => {
+      let fragment = containerConstructor.getFragment(name).getFragmentUnconditional();
+      _.each(fragment.directives || [], (directive) => {
+        if (directive.name == 'subscription') {
+          info.fragments.add(name);
+        }
+      });
+    });
+
+    console.log('MANAGER: %s => {%s}', containerConstructor.displayName, Array.from(info.fragments.values()).join(','));
+
+    return containerConstructor;
   }
 
   get info() {
     return {
-      subscriptions: this._subscriptions.size
+      subscriptions: _.map(
+        Array.from(SubscriptionManager._containers.values()), info => info.containerConstructor.displayName)
     };
   }
 
@@ -37,7 +80,7 @@ export default class SubscriptionManager {
    * RelayContainer {
    *   props
    *   refs: {
-   *     component: ReactComponent
+   *     relayContainer: ReactComponent
    *   }
    *   state: {
    *     queryData
@@ -45,31 +88,28 @@ export default class SubscriptionManager {
    *   }
    * }
    *
-   * @param relayContainer
+   * @param componentType
+   * @param container
    */
-  subscribe(relayContainer) {
-    let component = relayContainer.refs.component;
+  subscribe(componentType, container) {
+    let info = SubscriptionManager._containers.get(componentType);
+    console.log('SUBSCRIBE: %s', info.containerConstructor.displayName);
 
-    console.log('SUB', component);
-    let id = component._reactInternalInstance._debugID;
-
-    // TODO(burdon): Actually registry query.
-    // TODO(burdon): Implement subscriptions via @live tags.
-    // https://github.com/apollostack/graphql-server/blob/master/ROADMAP.md#websocket-transport
-    // https://github.com/apollostack/graphql-server/issues/34
-
-    console.log('SUBSCRIBE: [%s:%d]', component.constructor.name, id);
-    this._subscriptions.set(id._debugID, component);
+    // Register instance of container.
+    info.containerInstances.add(container);
   }
 
+  /**
+   * Invalidate subscriptions (either manually or from server).
+   */
   invalidate() {
-    this._subscriptions.forEach((component) => {
-    let id = component._reactInternalInstance._debugID;
-      let relayContainer = component.props.relay;
+    SubscriptionManager._containers.forEach((info) => {
+      console.log('INVALIDATE: %s', info.containerConstructor.displayName);
 
-      // TODO(burdon): Actually match query to invalidation.
-      console.log('INVALIDATE: [%s:%s]', component.constructor.name, id);
-      relayContainer.forceFetch();
+      // TODO(burdon): Match query to invalidation ID.
+      info.containerInstances.forEach((container) => {
+        container.forceFetch();
+      });
     });
   }
 }

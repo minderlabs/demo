@@ -141,7 +141,8 @@ class Layout extends React.Component {
     let store = this.context.environment.getStoreData();
 
     // Gather debug info.
-    let debugInfo = _.merge({
+    let debugInfo = _.merge(
+      {
         store: {
           records: Object.keys(store.getNodeData()).length
         }
@@ -155,6 +156,8 @@ class Layout extends React.Component {
 
         <div className="app-main-container">
           <div className="app-main-panel app-column">
+
+            {/* HEADER */}
             <div className="app-header">
               <div>
                 <i className="material-icons" onMouseDown={ handleToggleSidebar }>menu</i>
@@ -167,14 +170,17 @@ class Layout extends React.Component {
               </div>
             </div>
 
+            {/* SIDEBAR */}
             <Sidebar ref="sidebar" sidebar={
               <Folders viewer={ viewer } onSelect={ this.handleNav.bind(this) }/>
             }>
+              {/* VIEW */}
               <div className="app-view app-column app-expand">
                 { children }
               </div>
             </Sidebar>
 
+            {/* FOOTER */}
             <div className="app-footer">
               <i className="material-icons app-icon-press" title="Debug"
                  onClick={ handleToggleDebug }>bug_report</i>

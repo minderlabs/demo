@@ -74,6 +74,12 @@ class ItemDetail extends React.Component {
 
     this.detail = TypeRegistry.render(viewer, item);
 
+    const debug = false && (
+      <div className="app-panel app-section app-debug">
+        { JSON.stringify(item, 0, 1) }
+      </div>
+    );
+
     return (
       <div className="app-item-detail">
         <div className="app-panel app-expand">
@@ -93,9 +99,7 @@ class ItemDetail extends React.Component {
 
         </div>
 
-        <div className="app-panel app-section app-debug">
-          { JSON.stringify(item, 0, 1) }
-        </div>
+        { debug }
 
         <div className="app-toolbar">
           <button onClick={ this.handleSave.bind(this) }>Save</button>

@@ -8,7 +8,7 @@ import React from 'react';
 import { BrowserRouter, Match } from 'react-router';
 import { ApolloProvider } from 'react-apollo';
 
-import Layout from './container/layout';
+import Layout from './component/layout';
 
 
 /**

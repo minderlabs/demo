@@ -17,7 +17,7 @@ import ApolloClient, { createNetworkInterface } from 'apollo-client';
 
 import moment from 'moment';
 
-import DevTools from './container/devtools';
+import DevTools from './component/devtools';
 import Application from './app';
 
 //

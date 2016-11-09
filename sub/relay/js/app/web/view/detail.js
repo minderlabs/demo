@@ -7,6 +7,8 @@
 import React from 'react';
 import Relay from 'react-relay';
 
+import SubscriptionManager from '../util/subscriptions';
+
 import CreateItemMutation from '../../../common/mutations/create_item';
 
 import ItemDetail from '../../../common/components/web/item_detail';
@@ -25,11 +27,17 @@ class ItemDetailView extends React.Component {
 
   static contextTypes = {
     router: React.PropTypes.object,
+    subscriptionManager: React.PropTypes.object
   };
 
   static propTypes = {
     viewer: React.PropTypes.object.isRequired
   };
+
+  componentDidMount() {
+    // TODO(burdon): Base class; Unsubscribe when unmount.
+    this.context.subscriptionManager.subscribe(ItemDetailView, this.props.relay);
+  }
 
   getChildContext() {
     return {
@@ -98,9 +106,10 @@ class ItemDetailView extends React.Component {
   }
 }
 
-export default Relay.createContainer(ItemDetailView, {
+export default SubscriptionManager.manage(ItemDetailView, Relay.createContainer(ItemDetailView, {
 
   fragments: {
+
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
@@ -112,12 +121,12 @@ export default Relay.createContainer(ItemDetailView, {
     `,
 
     item: (variables) => Relay.QL`
-      fragment on Item {
-        id
+      fragment on Item @subscription {
+        id 
         type
 
         ${ItemDetail.getFragment('item')}
       }
     `
   }
-});
+}));

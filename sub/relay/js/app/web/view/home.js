@@ -7,6 +7,8 @@
 import React from 'react';
 import Relay from 'react-relay';
 
+import SubscriptionManager from '../util/subscriptions';
+
 import {
   fromGlobalId
 } from 'graphql-relay';
@@ -38,8 +40,8 @@ class HomeView extends React.Component {
   };
 
   componentDidMount() {
-    // TODO(burdon): Unsubscribe when unmount.
-    this.context.subscriptionManager.subscribe(this.refs.items);
+    // TODO(burdon): Base class; Unsubscribe when unmount.
+    this.context.subscriptionManager.subscribe(HomeView, this.props.relay);
   }
 
   createItem() {
@@ -135,8 +137,7 @@ class HomeView extends React.Component {
     // TODO(burdon): Factor out.
     const SearchList = (
       <div className="app-search-list app-panel app-column app-expand">
-        <ItemList ref="items"
-                  viewer={ viewer }
+        <ItemList viewer={ viewer }
                   filter={ filter }
                   onSelect={ this.handleItemSelect.bind(this) }/>
       </div>
@@ -198,7 +199,7 @@ function createFilter(folder, type, text) {
   return filter;
 }
 
-export default Relay.createContainer(HomeView, {
+export default SubscriptionManager.manage(HomeView, Relay.createContainer(HomeView, {
 
   initialVariables: {
 
@@ -229,7 +230,7 @@ export default Relay.createContainer(HomeView, {
 
   fragments: {
     viewer: (variables) => Relay.QL`
-      fragment on Viewer {
+      fragment on Viewer @subscription {
         id
 
         ${ItemList.getFragment('viewer', { filter: variables.filter })}
@@ -238,4 +239,4 @@ export default Relay.createContainer(HomeView, {
       }
     `
   }
-});
+}));
