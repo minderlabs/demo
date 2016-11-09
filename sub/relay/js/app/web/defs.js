@@ -8,7 +8,7 @@
 export const Const = {
 
   app: {
-    title: 'Demo Adam'
+    title: 'Demo'
   }
 
 };

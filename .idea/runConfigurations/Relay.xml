@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Dev Server" type="js.build_tools.npm" factoryName="npm">
-    <package-json value="$PROJECT_DIR$/sub/demo/package.json" />
+  <configuration default="false" name="Relay" type="js.build_tools.npm" factoryName="npm">
+    <package-json value="$PROJECT_DIR$/sub/relay/package.json" />
     <command value="run-script" />
     <scripts>
       <script value="webpack-dev-server" />
@@ -11,7 +11,7 @@
     </envs>
     <method>
       <option name="NpmBeforeRunTask" enabled="true">
-        <package-json value="$PROJECT_DIR$/sub/demo/package.json" />
+        <package-json value="$PROJECT_DIR$/sub/relay/package.json" />
         <command value="run-script" />
         <scripts>
           <script value="update-schema" />
@@ -21,7 +21,7 @@
       </option>
       <option name="GruntBeforeRunTask" enabled="true">
         <node-interpreter value="project" />
-        <gruntfile value="$PROJECT_DIR$/sub/demo/Gruntfile.js" />
+        <gruntfile value="$PROJECT_DIR$/sub/relay/Gruntfile.js" />
         <tasks>
           <task value="run:webpack_server" />
         </tasks>
