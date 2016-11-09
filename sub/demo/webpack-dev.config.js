@@ -44,5 +44,4 @@ module.exports = _.merge(baseConfig, {
 
     publicPath: '/assets/' // Path for webpack-dev-server
   }
-
 });

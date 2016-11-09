@@ -41,7 +41,7 @@
     "webpack": "^1.13.2",
     "webpack-dev-middleware": "^1.8.4",
     "webpack-dev-server": "^1.16.1",
-    "webpack-hot-middleware": "^2.13.1",
+    "webpack-hot-middleware": "^2.13.2",
     "webpack-node-externals": "^1.5.4"
   },
   "dependencies": {

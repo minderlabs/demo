@@ -25,7 +25,7 @@
         // Relay Schema.
         "./tools/babel/relay_plugin",
 
-        // HRM: http://gaearon.github.io/react-hot-loader/getstarted
+        // http://gaearon.github.io/react-hot-loader/getstarted
         "react-hot-loader/babel"
       ],
       "presets": [

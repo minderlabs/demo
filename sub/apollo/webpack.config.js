@@ -21,8 +21,15 @@ module.exports = {
 
   target: 'web',
 
+  // Source map shows original source and line numbers (and works with hot loader).
+  // https://webpack.github.io/docs/configuration.html#devtool
+  devtool: '#eval-source-map',
+
   entry: [
-    path.resolve(__dirname, 'js/client/app.js')
+    'webpack/hot/dev-server',
+    'webpack-hot-middleware/client',
+
+    path.resolve(__dirname, 'js/client/main.js')
   ],
 
   output: {
@@ -31,8 +38,6 @@ module.exports = {
 
     publicPath: '/assets/' // Path for webpack-dev-server
   },
-
-  devtool: 'inline-source-map',
 
   resolve: {
     extensions: ['', '.js'],
@@ -79,9 +84,13 @@ module.exports = {
     ]
   },
 
+  // https://github.com/webpack/docs/wiki/list-of-plugins
   plugins: [
 
     new ExtractTextPlugin('[name].css'),
+
+    // https://github.com/webpack/docs/wiki/list-of-plugins#hotmodulereplacementplugin
+    new webpack.HotModuleReplacementPlugin(),
 
     new webpack.ProvidePlugin({
       _: 'lodash'

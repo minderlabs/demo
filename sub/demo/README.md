@@ -17,6 +17,22 @@ See https://github.com/babel/example-node-server
 TODO(madadam): Don't do this in production. See https://github.com/babel/example-node-server#getting-ready-for-production-use
 
 
+## Toolchain and Configuration
+
+~~~~
+  npm start                                                     NODE_ENV=hot|development|production
+    => nodemmon                         nodemon.json
+      => express
+        => webpack-dev-middleware
+          => webpack-hot-middleware
+            => webpack                  webpack.config.js
+              => babel                  .babelrc                BABEL_ENV=development|production|react-native|server
+
+  karma                                 karma.conf.js
+    => webpack                          webpack-karma.config.js
+~~~~
+
+
 ## Running the Server
 
 - nodemon restarts updated node scripts. [https://github.com/remy/nodemon]
@@ -70,6 +86,10 @@ TODO(burdon): Global log of troubleshooting issues by category.
 
 - Karma can't find plugin
     - npm i -g karma-cli
+
+- ERR_INCOMPLETE_CHUNKED_ENCODING
+    - cannot use HMR with nodemon
+
 
 ### react-native run-android:
 

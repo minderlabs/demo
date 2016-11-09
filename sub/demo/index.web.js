@@ -9,9 +9,10 @@ import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
-import moment from 'moment';
 
 import io from 'socket.io-client';
+
+import moment from 'moment';
 
 import Application from './js/app/web/app';
 import EventHandler from './js/app/web/util/event';
@@ -98,9 +99,10 @@ function renderApp(App) {
 //
 // React Hot Loader (3)
 // https://github.com/gaearon/react-hot-boilerplate/pull/61
+// https://webpack.github.io/docs/hot-module-replacement.html
 //
 
-if (module.hot && _.get(config, 'debug.env') === 'hot') {
+if (module.hot && Config.get('debug.env') === 'hot') {
 
   // List modules that can be dynamically reloaded.
   module.hot.accept('./js/app/web/app', () => {

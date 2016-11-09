@@ -71,6 +71,7 @@ module.exports = {
     ]
   },
 
+  // https://github.com/webpack/docs/wiki/list-of-plugins
   plugins: [
 
     new webpack.HotModuleReplacementPlugin(),

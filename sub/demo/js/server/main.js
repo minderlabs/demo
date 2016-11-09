@@ -4,6 +4,8 @@
 
 'use strict';
 
+// TODO(burdon): Change to import.
+
 const path = require('path');
 const http = require('http');
 const favicon = require('serve-favicon');
@@ -78,6 +80,7 @@ if (env === 'hot') {
     stats: { colors: true }
   }));
 
+  // https://github.com/glenjamin/webpack-hot-middleware
   app.use(webpackHotMiddleware(compiler, {
     log: (msg) => console.log('### [%s] %s ###', moment().format('hh:mm:ss'), msg)
   }));

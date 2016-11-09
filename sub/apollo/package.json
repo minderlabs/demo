@@ -34,6 +34,7 @@
     "less": "^2.7.1",
     "less-loader": "^2.2.3",
     "mocha": "^3.1.2",
+    "react-hot-loader": "^3.0.0-beta.6",
     "redux-devtools": "^3.3.1",
     "redux-devtools-dock-monitor": "^1.1.1",
     "redux-devtools-log-monitor": "^1.1.1",
@@ -42,7 +43,9 @@
     "sinon-chai": "^2.8.0",
     "style-loader": "^0.13.1",
     "webpack": "^1.13.2",
+    "webpack-dev-middleware": "^1.8.4",
     "webpack-dev-server": "^1.16.2",
+    "webpack-hot-middleware": "^2.13.2",
     "webpack-node-externals": "^1.5.4"
   },
   "dependencies": {
@@ -62,6 +65,7 @@
     "graphql-server-express": "^0.4.3",
     "graphql-tag": "^0.1.16",
     "graphql-tools": "^0.8.0",
+    "moment": "^2.15.2",
     "react": "^15.3.2",
     "react-apollo": "^0.5.16",
     "react-dom": "^15.3.2",
@@ -70,6 +74,6 @@
   },
   "scripts": {
     "webpack": "webpack --watch",
-    "start": "nodemon js/server/main.js"
+    "start": "NODE_ENV=hot babel-node js/server/main.js"
   }
 }

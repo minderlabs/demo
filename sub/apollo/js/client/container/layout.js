@@ -5,7 +5,7 @@
 'use strict';
 
 import React from 'react';
-import { Match } from 'react-router';
+import { Match, Miss, Redirect } from 'react-router';
 import { withApollo } from 'react-apollo';
 import ApolloClient from 'apollo-client';
 
@@ -29,7 +29,7 @@ export default class Layout extends React.Component {
     // Provided by @withApollo
     // http://dev.apollodata.com/react/higher-order-components.html#withApollo
     // http://dev.apollodata.com/core/apollo-client-api.html#ObservableQuery.refetch
-    console.log('Client', JSON.stringify(this.props.client.store.getState()));
+    console.log('State = %s', JSON.stringify(this.props.client.store.getState()));
   }
 
   render() {
@@ -43,6 +43,7 @@ export default class Layout extends React.Component {
 
           <div className="app-column">
             <Match pattern="/home" component={ Home }/>
+            <Miss render={ () => <Redirect to="/home"/> }/>
           </div>
         </div>
       </div>
