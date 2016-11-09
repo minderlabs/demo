@@ -5,13 +5,13 @@
 'use strict';
 
 const path = require('path');
+const http = require('http');
 const favicon = require('serve-favicon');
 
 const express = require('express');
 const handlebars = require('express-handlebars');
 const cookieParser = require('cookie-parser');
 
-const http = require('http');
 const socketio = require('socket.io');
 
 import moment from 'moment';

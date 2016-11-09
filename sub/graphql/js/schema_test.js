@@ -26,7 +26,7 @@ import { DATA, resolvers } from './data/testing/resolvers';
 
 const query = `
   { 
-    user(id: "test") {
+    user(id: "minder") {
       id
       name
     }
@@ -39,7 +39,7 @@ const test = (result, done) => {
     fail();
   } else {
     console.log(JSON.stringify(result.data.user));
-    expect(result.data.user.name).to.equal(DATA.User.test.name);
+    expect(result.data.user.name).to.equal(DATA.User['minder'].name);
     done();
   }
 };
@@ -110,7 +110,7 @@ describe('Test GraphQL API', () => {
               },
               name: {
                 type: GraphQLString,
-                resolve: (o) => o.name
+                resolve: obj => obj.name
               },
             }
           }),
