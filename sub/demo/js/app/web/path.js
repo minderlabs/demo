@@ -12,7 +12,6 @@ export default class Path {
   static ROOT   = '/';
   static HOME   = '/inbox';
   static DETAIL = '/detail';
-  static CREATE = '/create';
   static DEBUG  = '/debug';
 
   static detail(itemId) {

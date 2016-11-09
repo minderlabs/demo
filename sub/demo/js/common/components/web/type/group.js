@@ -6,6 +6,7 @@
 
 import React from 'react';
 import Relay from 'react-relay';
+import { fromGlobalId } from 'graphql-relay';
 
 import './group.less';
 
@@ -15,10 +16,11 @@ import './group.less';
 class Group extends React.Component {
 
   // TODO(burdon): Base type.
-  // TODO(burdon): Factor out textarea.
 
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
+    itemCreator: React.PropTypes.func,
+    itemSelector: React.PropTypes.func
   };
 
   static propTypes = {
@@ -38,29 +40,22 @@ class Group extends React.Component {
     return this.state.data;
   }
 
-  handleNav(member) {
+  handleMemberSelect(member) {
+    this.context.itemSelector(member);
   }
 
-  handleAddTask(member) {
+  handleTaskSelect(task) {
+    this.context.itemSelector(task);
+  }
 
-    // TODO(burdon): Relay can't handle local state (to satisfy fragments).
-    // https://github.com/facebook/relay/issues/114
-    // https://github.com/facebook/relay/issues/106 (=> Use Flux for local state)
-
-    // TODO(burdon): Options:
-    // Patch and wait for Relay 2: https://facebook.github.io/react/blog/2016/08/05/relay-state-of-the-state.html
-    // Middleware: https://github.com/nodkz/react-relay-network-layer
-    // - https://github.com/facebook/relay/issues/114 (Dec 28 @josephsavona)
-    // Redux (liable to be replaced by Relay 2?)
-    // - https://github.com/reactjs/redux/issues/464
-    // - https://github.com/reactjs/redux/issues/775
-    // Apollo (Relay promises mobile first).
-    // - https://github.com/apollostack/apollo-client/pull/7/files?short_path=83772ba
-    // - OFFLINE: https://github.com/apollostack/apollo-client/issues/424
-
-    // TODO(burdon): Create path (no fragment). Need to cache object in state (redux like)?
-    console.log(member);
-    this.context.router.push('/create');  // TODO(burdon): Handler.
+  handleTaskAdd(member) {
+    this.context.itemCreator({
+      type: 'Task',
+      data: {
+        owner: fromGlobalId(this.props.viewer.id).id,
+        assignee: fromGlobalId(member.id).id
+      }
+    });
   }
 
   render() {
@@ -70,7 +65,8 @@ class Group extends React.Component {
       let tasks = member.items.map(task => {
         return (
           <div key={ member.id + '/' + task.id } className="app-row app-item-task">
-            <i className="material-icons">done</i>
+            <i className="material-icons"
+               onClick={ this.handleTaskSelect.bind(this, task) }>assignment_turned_in</i>
             <div>{ task.title }</div>
           </div>
         );
@@ -79,9 +75,11 @@ class Group extends React.Component {
       return (
         <div key={ member.id }>
           <div className="app-row">
-            <i className="material-icons" onClick={ this.handleNav.bind(this, member) }>person</i>
+            <i className="material-icons"
+               onClick={ this.handleMemberSelect.bind(this, member) }>person</i>
             <h3 className="app-expand">{ member.title }</h3>
-            <i className="material-icons" onClick={ this.handleAddTask.bind(this, member) }>add</i>
+            <i className="material-icons"
+               onClick={ this.handleTaskAdd.bind(this, member) }>add</i>
           </div>
           <div>
             { tasks }
@@ -102,8 +100,6 @@ class Group extends React.Component {
 
 export default Relay.createContainer(Group, {
 
-  // TODO(burdon): Change filter to "assigned".
-  // TODO(burdon): What if multiple sets of items? Prefix label?
 
   fragments: {
     viewer: (variables) => Relay.QL`
@@ -112,13 +108,16 @@ export default Relay.createContainer(Group, {
       }
     `,
 
+    // TODO(burdon): How to configure filter -- e.g., to "assigned".
+    // TODO(burdon): What if multiple sets of items (e.g., ownedBy assignedTo?) Prefix label?
+
     data: (variables) => Relay.QL`
       fragment on Group {
         members {
           id
           title
 
-          items(filter: { type: "Task"}) {
+          items(filter: { type: "Task" }) {
             id
             title
           }

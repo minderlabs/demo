@@ -53,7 +53,7 @@ class HomeView extends React.Component {
       switch (type) {
         case 'Task': { // TODO(burdon): Type consts from database.
           // TODO(burdon): Factor out setting default props.
-          let { id: userId } = fromGlobalId(viewer.user.id);
+          let { id: userId } = fromGlobalId(viewer.id);
           _.merge(data, {
             owner: userId
           });
@@ -63,20 +63,19 @@ class HomeView extends React.Component {
 
       let mutation = new CreateItemMutation({
         viewer: viewer,
-        type: type,
-        title: title,
-        data: data
+        type:   type,
+        title:  title,
+        data:   data
       });
 
       this.props.relay.commitUpdate(mutation, {
+        // TODO(burdon): Nav to detail page?
         onSuccess: (result) => {
-          // TODO(burdon): Nav to detail page?
           this.refs.textTitle.value = '';
+          this.refs.textTitle.focus();
         }
       });
     }
-
-    this.refs.textTitle.focus();
   }
 
   //
@@ -232,10 +231,6 @@ export default Relay.createContainer(HomeView, {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
-
-        user {
-          id
-        }
 
         ${ItemList.getFragment('viewer', { filter: variables.filter })}
 

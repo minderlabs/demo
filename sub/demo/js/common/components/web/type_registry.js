@@ -28,8 +28,8 @@ class TypeRegistry {
     this._types.set(type, props);
   }
 
-  get types() {
-    return _.map(Array.from(this._types.values()), (props) => props.type);
+  get components() {
+    return _.map(Array.from(this._types.values()), (props) => props.component);
   }
 
   icon(typeName) {
@@ -53,7 +53,7 @@ const TYPE_REGISTRY = new TypeRegistry();
 // TODO(burdon): Base type.
 
 TYPE_REGISTRY.add('Group', {
-  type: Group,
+  component: Group,
   icon: 'group',
   render: (viewer, item) => <Group ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
   values: (component) => {
@@ -62,7 +62,7 @@ TYPE_REGISTRY.add('Group', {
 });
 
 TYPE_REGISTRY.add('Note', {
-  type: Note,
+  component: Note,
   icon: 'description',
   render: (viewer, item) => <Note ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
   values: (component) => {
@@ -71,7 +71,7 @@ TYPE_REGISTRY.add('Note', {
 });
 
 TYPE_REGISTRY.add('Task', {
-  type: Task,
+  component: Task,
   icon: 'assignment_turned_in',
   render: (viewer, item) => <Task ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
   values: (component) => {

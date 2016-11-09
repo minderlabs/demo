@@ -40,6 +40,9 @@ export default class CreateItemMutation extends Relay.Mutation {
     };
   }
 
+  // TODO(burdon): Get newly created Item (e.g., for ID).
+  // https://github.com/facebook/relay/issues/166
+
   getFatQuery() {
     // TODO(burdon): Document @relay annotation.
     return Relay.QL`
@@ -64,11 +67,6 @@ export default class CreateItemMutation extends Relay.Mutation {
     `;
   }
 
-  // TODO(burdon): Error since rangeBehaviors can't match filter arg.
-  // Warning: Using `null` as a rangeBehavior value is deprecated. Use `ignore` to avoid refetching a range.
-  // https://github.com/facebook/relay/issues/293
-  // https://github.com/facebook/relay/issues/538
-
   getConfigs() {
     // https://facebook.github.io/relay/docs/guides-mutations.html#range-add
     return [{
@@ -77,26 +75,7 @@ export default class CreateItemMutation extends Relay.Mutation {
       parentID: this.props.viewer.id,
       connectionName: 'items',
       edgeName: 'itemEdge',
-      rangeBehaviors: {
-        '': 'append',   // Append if no args.
-      }
+      rangeBehaviors: () => { return 'ignore'; }
     }];
-  }
-
-  getOptimisticResponse() {
-    return {
-      viewer: {
-        id: this.props.viewer.id
-      },
-
-      itemEdge: {
-        node: {
-          type:   this.props.type,
-          title:  this.props.title,
-          labels: this.props.labels,
-          data:   this.props.data
-        }
-      }
-    };
   }
 }

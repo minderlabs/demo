@@ -16,7 +16,6 @@ import Layout from './layout';
 
 import DebugView from './view/debug';
 import HomeView from './view/home';
-import ItemCreateView from './view/create';
 import ItemDetailView from './view/detail';
 
 //
@@ -70,11 +69,6 @@ const Routes = (config) => {
              queries={ HomeQueries }
              prepareParams={ params => ({ ...params, userId: userId }) }
              component={ DebugView }/>
-
-      <Route path={ Path.CREATE }
-             queries={ HomeQueries }
-             prepareParams={ params => ({ ...params, userId: userId }) }
-             component={ ItemCreateView }/>
 
       <Route path={ Path.DETAIL + '/:itemId' }
              queries={ ItemDetailQueries }

@@ -98,18 +98,24 @@ const resolveNodeFromGlobalId = (globalId) => {
   let { type, id } = fromGlobalId(globalId);
   console.log(`RESOLVE.ID: [${type}:${id}]`);
 
+  let node = null;
   switch (type) {
 
     case Viewer.KIND:
-      return Database.singleton.getViewer(id);
+      node = Database.singleton.getViewer(id);
+      break;
 
     case Item.KIND:
       // TODO(burdon): Require bucketId?
-      return Database.singleton.getItem(id);
+      // TODO(burdon): Hack: return empty item (not null) for unrecognized items (i.e., during create process).
+      node = Database.singleton.getItem(id) || { id: globalId, type: type };
+      break;
 
     default:
       throw 'Invalid type: ' + type;
   }
+
+  return node;
 };
 
 const NODE_TYPE_REGISTRY = new Map();
@@ -544,20 +550,17 @@ const CreateItemMutation = mutationWithClientMutationId({
 
     itemEdge: {
       type: ItemEdge,
-      resolve: ({ userId, itemId }) => {
+      resolve: ({ userId, itemId, type }) => {
         let item = Database.singleton.getItem(itemId);
         let { id: localUserId } = fromGlobalId(userId);
 
-        // TODO(burdon): Logging not visible?
-        // TODO(burdon): Do we need to retrieve all items here?
+        // TODO(burdon): Need filter arg to return a meaningful cursor.
         // https://github.com/graphql/graphql-relay-js
-        let cursor = cursorForObjectInConnection(Database.singleton.getItems(localUserId), item);
-        console.error('###', cursor);
-        cursor = null; // TODO(burdon): Need filter arg to return a meaningful cursor.
+        let items = Database.singleton.getItems(localUserId, { type: type });
+        let cursor = cursorForObjectInConnection(items, item);
 
         return {
           node: item,
-
           cursor: cursor
         }
       }
@@ -575,7 +578,8 @@ const CreateItemMutation = mutationWithClientMutationId({
 
     return {
       userId: userId,
-      itemId: item.id
+      itemId: item.id,
+      type: type
     };
   }
 });

@@ -18,6 +18,10 @@ import './item_detail.less';
  */
 class ItemDetail extends React.Component {
 
+  static getItemState(props) {
+    return _.pick(props.item, ['title', 'labels']);
+  }
+
   static propTypes = {
     viewer:   React.PropTypes.object.isRequired,
     item:     React.PropTypes.object.isRequired,
@@ -28,8 +32,14 @@ class ItemDetail extends React.Component {
     super(...arguments);
 
     this.state = {
-      item: _.pick(this.props.item, ['title', 'labels'])
-    }
+      item: ItemDetail.getItemState(this.props)
+    };
+ }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      item: ItemDetail.getItemState(nextProps)
+    });
   }
 
   handleTextChange(field, event) {
@@ -74,7 +84,7 @@ class ItemDetail extends React.Component {
                    title={ item.id }
                    autoFocus="autoFocus"
                    onChange={ this.handleTextChange.bind(this, 'title') }
-                   value={ this.state.item.title }/>
+                   value={ this.state.item.title || "" }/>
           </div>
 
           <div className="app-column app-expand">
@@ -121,13 +131,15 @@ export default Relay.createContainer(ItemDetail, {
   // }
 
   fragments: {
+
+    // TODO(burdon): Remove dep on viewer from types.
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
 
         ${UpdateItemMutation.getFragment('viewer')}
 
-        ${ _.map(TypeRegistry.types, (type) => type.getFragment('viewer')) }
+        ${ _.map(TypeRegistry.components, (component) => component.getFragment('viewer')) }
       }
     `,
 
@@ -143,7 +155,7 @@ export default Relay.createContainer(ItemDetail, {
         data {
           __typename
           
-          ${ _.map(TypeRegistry.types, (type) => type.getFragment('data')) }
+          ${ _.map(TypeRegistry.components, (component) => component.getFragment('data')) }
         }
         
         ${UpdateItemMutation.getFragment('item')}
