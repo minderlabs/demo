@@ -29,6 +29,7 @@ class Item extends React.Component {
 
     let { viewer, item } = this.props;
 
+    // TODO(burdon): Call context mutator.
     let mutation = new UpdateItemMutation({
       viewer: viewer,
       item: item,

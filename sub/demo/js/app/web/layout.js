@@ -6,13 +6,15 @@
 
 import React from 'react';
 import Relay from 'react-relay';
+import { toGlobalId } from 'graphql-relay';
 
 import Async from '../../common/components/web/util/async';
 import Sidebar from '../../common/components/web/sidebar';
 
-import Debug from './debug';
 import { Const } from './defs';
 import Path from './path';
+import Debug from './debug';
+import Folders from './folders';
 
 import './layout.less';
 
@@ -23,6 +25,7 @@ class Layout extends React.Component {
 
   static contextTypes = {
     router: React.PropTypes.object,
+    environment: React.PropTypes.object,
     eventHandler: React.PropTypes.object,
     subscriptionManager: React.PropTypes.object
   };
@@ -80,11 +83,15 @@ class Layout extends React.Component {
     });
   }
 
-  handleNav(path, event) {
+  handleNav(folder) {
     this.refs.sidebar.close();
 
-    // TODO(burdon): Root query for folder.
-    this.context.router.push(path);
+    if (folder.data.itemId) {
+      // TODO(burdon): Convert to global ID.
+      this.context.router.push(Path.detail(toGlobalId('Item', folder.data.itemId)));
+    } else {
+      this.context.router.push(folder.data.path);
+    }
   }
 
   handleLink(url) {
@@ -129,19 +136,16 @@ class Layout extends React.Component {
       this.refs.sidebar.toggle();
     };
 
-    // TODO(burdon): Factor out sidepanel list.
-    const SidebarContent = (
-      <div>
-        <div className="app-list">
-          <a className="app-list-item"  onClick={ this.handleNav.bind(this, Path.HOME) }>Inbox</a>
-          <a className="app-list-item"  onClick={ this.handleNav.bind(this, Path.ROOT + 'favorites') }>Favorites</a>
-          <a className="app-list-iitem" onClick={ this.handleNav.bind(this, Path.DEBUG) }>Debug</a>
-        </div>
-      </div>
-    );
+    // https://github.com/facebook/relay/blob/master/src/store/RelayEnvironment.js
+    // https://github.com/facebook/relay/blob/master/src/store/RelayStoreData.js
+    let store = this.context.environment.getStoreData();
 
     // Gather debug info.
-    let debugInfo = _.merge({},
+    let debugInfo = _.merge({
+        store: {
+          records: Object.keys(store.getNodeData()).length
+        }
+      },
       this.state.debugInfo,
       this.context.subscriptionManager.info);
 
@@ -163,7 +167,9 @@ class Layout extends React.Component {
               </div>
             </div>
 
-            <Sidebar ref="sidebar" sidebar={ SidebarContent }>
+            <Sidebar ref="sidebar" sidebar={
+              <Folders viewer={ viewer } onSelect={ this.handleNav.bind(this) }/>
+            }>
               <div className="app-view app-column app-expand">
                 { children }
               </div>
@@ -208,6 +214,8 @@ export default Relay.createContainer(Layout, {
         user {
           title
         }
+          
+        ${Folders.getFragment('viewer')}
       }
     `
   }

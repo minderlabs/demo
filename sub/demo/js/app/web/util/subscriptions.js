@@ -49,6 +49,8 @@ export default class SubscriptionManager {
    */
   subscribe(relayContainer) {
     let component = relayContainer.refs.component;
+
+    console.log('SUB', component);
     let id = component._reactInternalInstance._debugID;
 
     // TODO(burdon): Actually registry query.

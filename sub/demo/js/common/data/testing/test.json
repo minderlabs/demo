@@ -3,9 +3,13 @@
     {
       "id": "minderlabs",
       "title": "Minder Labs",
-      "users": [
-        "adam", "rich", "matt"
-      ]
+      "data": {
+        "members": [
+          "adam",
+          "rich",
+          "matt"
+        ]
+      }
     }
   ],
 
@@ -13,27 +17,35 @@
     {
       "id": "adam",
       "title": "Adam Berenzweig",
-      "email": "adam@minderlabs.com"
+      "data": {
+        "email": "adam@minderlabs.com"
+      }
     },
     {
       "id": "rich",
       "title": "Rich Burdon",
-      "email": "rich@minderlabs.com"
+      "data": {
+        "email": "rich@minderlabs.com"
+      }
     },
     {
       "id": "matt",
       "title": "Matt Sullivan",
-      "email": "matt@carbonfive.com"
+      "data": {
+        "email": "matt@carbonfive.com"
+      }
     }
   ],
 
   "items": {
-    "minderlabs": {
 
-      "Favorite": [
+    "__GLOBAL__": {
+
+      "Folder": [
         {
           "title": "Inbox",
           "data": {
+            "path": "/inbox",
             "filter": {
               "type": "Task"
             }
@@ -42,12 +54,22 @@
         {
           "title": "Favorites",
           "data": {
+            "path": "/favorites",
             "filter": {
               "labels": ["_favorite"]
             }
           }
+        },
+        {
+          "title": "Team",
+          "data": {
+            "itemId": "minderlabs"
+          }
         }
-      ],
+      ]
+    },
+
+    "minderlabs": {
 
       "Task": [
         {

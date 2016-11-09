@@ -6,6 +6,7 @@
 
 import React from 'react';
 
+import Group from './type/group';
 import Note from './type/note';
 import Task from './type/task';
 
@@ -27,8 +28,8 @@ class TypeRegistry {
     this._types.set(type, props);
   }
 
-  get types() {
-    return _.map(Array.from(this._types.values()), (props) => props.type);
+  get components() {
+    return _.map(Array.from(this._types.values()), (props) => props.component);
   }
 
   icon(typeName) {
@@ -38,19 +39,30 @@ class TypeRegistry {
 
   render(viewer, item) {
     let props = this._types.get(item.type);
-    return props['render'](viewer, item);
+    return props && props['render'](viewer, item) || null;
   }
 
   values(type, element) {
     let props = this._types.get(type);
-    return props['values'](element);
+    return props && props['values'](element) || {};
   }
 }
 
 const TYPE_REGISTRY = new TypeRegistry();
 
+// TODO(burdon): Base type.
+
+TYPE_REGISTRY.add('Group', {
+  component: Group,
+  icon: 'group',
+  render: (viewer, item) => <Group ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
+  values: (component) => {
+    return component.values;
+  }
+});
+
 TYPE_REGISTRY.add('Note', {
-  type: Note,
+  component: Note,
   icon: 'description',
   render: (viewer, item) => <Note ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
   values: (component) => {
@@ -59,7 +71,7 @@ TYPE_REGISTRY.add('Note', {
 });
 
 TYPE_REGISTRY.add('Task', {
-  type: Task,
+  component: Task,
   icon: 'assignment_turned_in',
   render: (viewer, item) => <Task ref={ TypeRegistry.REF } viewer={ viewer } data={ item.data }/>,
   values: (component) => {

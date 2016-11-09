@@ -32,6 +32,7 @@ export default class EventHandler {
   }
 
   emit(event) {
+    console.log('Event:', JSON.stringify(event));
     this._callbacks.forEach(config => {
       if (!config.type || config.type === event.type) {
         config.callback(event);

@@ -37,10 +37,6 @@ class HomeView extends React.Component {
     viewer: React.PropTypes.object.isRequired
   };
 
-  constructor() {
-    super(...arguments);
-  }
-
   componentDidMount() {
     // TODO(burdon): Unsubscribe when unmount.
     this.context.subscriptionManager.subscribe(this.refs.items);
@@ -57,7 +53,7 @@ class HomeView extends React.Component {
       switch (type) {
         case 'Task': { // TODO(burdon): Type consts from database.
           // TODO(burdon): Factor out setting default props.
-          let { id: userId } = fromGlobalId(viewer.user.id);
+          let { id: userId } = fromGlobalId(viewer.id);
           _.merge(data, {
             owner: userId
           });
@@ -67,20 +63,19 @@ class HomeView extends React.Component {
 
       let mutation = new CreateItemMutation({
         viewer: viewer,
-        type: type,
-        title: title,
-        data: data
+        type:   type,
+        title:  title,
+        data:   data
       });
 
       this.props.relay.commitUpdate(mutation, {
+        // TODO(burdon): Nav to detail page?
         onSuccess: (result) => {
-          // TODO(burdon): Nav to detail page?
           this.refs.textTitle.value = '';
+          this.refs.textTitle.focus();
         }
       });
     }
-
-    this.refs.textTitle.focus();
   }
 
   //
@@ -183,6 +178,26 @@ class HomeView extends React.Component {
   }
 }
 
+function createFilter(folder, type, text) {
+  let filter = {};
+
+  if (text) {
+    filter = { text };
+  } else {
+    filter = { type };
+
+    // TODO(burdon): Get properties from folder object.
+    switch (folder) {
+      case 'favorites': {
+        filter.labels = ['_favorite'];
+        break;
+      }
+    }
+  }
+
+  return filter;
+}
+
 export default Relay.createContainer(HomeView, {
 
   initialVariables: {
@@ -202,25 +217,7 @@ export default Relay.createContainer(HomeView, {
   // https://facebook.github.io/relay/docs/api-reference-relay-container.html#preparevariables
   prepareVariables: (variables) => {
     console.log('===>', JSON.stringify(variables));
-
-    if (variables.text) {
-      variables.filter = {
-        text: variables.text
-      }
-    } else {
-      variables.filter = {
-        type: variables.type
-      };
-
-      // TODO(burdon): Get properties from folder object.
-      switch (variables.folder) {
-        case 'favorites': {
-          variables.filter.labels = ['_favorite'];
-          break;
-        }
-      }
-    }
-
+    variables.filter = createFilter(variables.folder, variables.type, variables.text);
     console.log('<===', JSON.stringify(variables.filter));
     return variables;
   },
@@ -234,10 +231,6 @@ export default Relay.createContainer(HomeView, {
     viewer: (variables) => Relay.QL`
       fragment on Viewer {
         id
-
-        user {
-          id
-        }
 
         ${ItemList.getFragment('viewer', { filter: variables.filter })}
 
