@@ -74,6 +74,9 @@
     "socket.io": "^1.5.1"
   },
   "scripts": {
+    "//": [
+      "NOTE: nodemon cannot be used with hot module replacement."
+    ],
     "build": "grunt build",
     "docker": "docker-compose up --force-recreate --remove-orphans",
     "update-schema": "babel-node ./tools/babel/update_schema.js",

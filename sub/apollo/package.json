@@ -73,7 +73,13 @@
     "redux": "^3.6.0"
   },
   "scripts": {
+    "//": [
+      "nodemon => babel-node: runs the server with auto-rebuild (via babel) on change.",
+      "start => runs the server with hot module replacement (server not updated)"
+    ],
     "webpack": "webpack --watch",
-    "start": "NODE_ENV=hot babel-node js/server/main.js"
+    "babel-node": "babel-node js/server/main.js",
+    "nodemon": "nodemon --exec npm run babel-node",
+    "start": "BABEL_ENV=hot NODE_ENV=hot babel-node js/server/main.js"
   }
 }

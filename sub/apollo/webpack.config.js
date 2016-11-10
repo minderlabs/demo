@@ -25,12 +25,20 @@ module.exports = {
   // https://webpack.github.io/docs/configuration.html#devtool
   devtool: '#eval-source-map',
 
-  entry: [
-    'webpack/hot/dev-server',
-    'webpack-hot-middleware/client',
+  entry: {
+    main: [
+      path.resolve(__dirname, 'js/client/main.js')
+    ],
 
-    path.resolve(__dirname, 'js/client/main.js')
-  ],
+    // BABEL_NODE=hot NODE_ENV=hot
+    hot: [
+      // HMR client (connects to dev app server).
+      'webpack/hot/dev-server',
+      'webpack-hot-middleware/client',
+
+      path.resolve(__dirname, 'js/client/main.js')
+    ]
+  },
 
   output: {
     path: BUILD_DIR,

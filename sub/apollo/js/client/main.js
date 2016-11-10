@@ -1,10 +1,18 @@
 //
 // Copyright 2016 Alien Laboratories, Inc.
 //
-// Apollo Evaluation:
+
+
+// TODO(burdon): Apollo Evaluation:
 // https://dev-blog.apollodata.com/apollo-client-graphql-with-react-and-redux-49b35d0f2641#.ovjpku8rm
 // https://medium.com/@codazeninc/choosing-a-graphql-client-apollo-vs-relay-9398dde5363a#.cf5fsaska
+// https://medium.freecodecamp.com/tutorial-how-to-use-graphql-in-your-redux-app-9bf8ebbeb362#.m5mpkzy7k
 //
+// Tools
+// Caching (mobile/offline roadmap)
+// Paging
+// Muatations
+
 
 'use strict';
 
@@ -20,12 +28,22 @@ import moment from 'moment';
 import DevTools from './component/devtools';
 import Application from './app';
 
+
 //
 // Server provided config.
 //
 
 const config = window.config;
 console.log('Config = %s', JSON.stringify(config));
+
+
+//
+// Error handling.
+//
+
+window.addEventListener('error', (error) => {
+  console.log('ERROR', error);
+});
 
 
 //
@@ -38,7 +56,7 @@ console.log('Config = %s', JSON.stringify(config));
 // http://dev.apollodata.com/core/network.html#networkInterfaceAfterware
 const networkInterface = createNetworkInterface({ uri: config.graphql });
 
-const client = new ApolloClient({
+const apolloClient = new ApolloClient({
   networkInterface
 });
 
@@ -69,24 +87,33 @@ networkInterface.useAfter([{
 const reducers = combineReducers({
 
   // Apollo framework reducer.
-  apollo: client.reducer(),
+  apollo: apolloClient.reducer(),
 
   // App reducers.
   // http://redux.js.org/docs/api/Store.html
-  minder: (state={ userId: config.userId }, action) => {
+  minder: (state={ userId: config.userId, foo: false }, action) => {
+    console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
+    switch (action.type) {
+      case 'MINDER_FOO': {
+        return _.assign(state, {
+          foo: true
+        })
+      }
+    }
+
     return state
   }
 });
 
 const enhancer = compose(
-  applyMiddleware(client.middleware()),
+  applyMiddleware(apolloClient.middleware()),
 
   // https://github.com/gaearon/redux-devtools
   // https://github.com/gaearon/redux-devtools/blob/master/docs/Walkthrough.md
   DevTools.instrument()
 );
 
-const store = createStore(reducers, {}, enhancer);
+const reduxStore = createStore(reducers, {}, enhancer);
 
 
 /**
@@ -97,7 +124,7 @@ function renderApp(App) {
   console.log('### [%s] ###', moment().format('hh:mm:ss'));
 
   ReactDOM.render(
-    <App config={ config } client={ client } store={ store }/>,
+    <App config={ config } client={ apolloClient } store={ reduxStore }/>,
 
     document.getElementById(config.root)
   );
@@ -110,10 +137,7 @@ function renderApp(App) {
 // https://webpack.github.io/docs/hot-module-replacement.html
 //
 
-console.log(module.hot, config.debug.env);
-
 if (module.hot && _.get(config, 'debug.env') === 'hot') {
-
   // List modules that can be dynamically reloaded.
   module.hot.accept('./app', () => {
     renderApp(require('./app').default);

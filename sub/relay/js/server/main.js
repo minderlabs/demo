@@ -4,22 +4,17 @@
 
 'use strict';
 
-// TODO(burdon): Change to import.
-
-const path = require('path');
-const http = require('http');
-const favicon = require('serve-favicon');
-
-const express = require('express');
-const handlebars = require('express-handlebars');
-const cookieParser = require('cookie-parser');
-
-const socketio = require('socket.io');
-
+import path from 'path';
+import http from 'http';
+import express from 'express';
+import handlebars from 'express-handlebars';
+import bodyParser from 'body-parser';
 import moment from 'moment';
+import favicon from 'serve-favicon';
+import cookieParser from 'cookie-parser';
+import socketio from 'socket.io';
 
-const graphqlHTTP = require('express-graphql');
-const bodyParser = require('body-parser');
+import graphqlHTTP from 'express-graphql';
 
 import schema from '../common/data/schema';
 

@@ -4,20 +4,16 @@
 
 'use strict';
 
-import _ from 'lodash';
+import path from 'path';
+import http from 'http';
+import express from 'express';
+import handlebars from 'express-handlebars';
+import bodyParser from 'body-parser';
+import moment from 'moment';
 
-// TODO(burdon): Use import, etc. (since using babel-node).
+import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 
-const path = require('path');
-const http = require('http');
-const express = require('express');
-const handlebars = require('express-handlebars');
-const bodyParser = require('body-parser');
-
-const moment = require('moment');
-
-const graphqlServer = require('graphql-server-express');
-const graphqlTools = require('graphql-tools');
+import schema from './schema';
 
 
 //
@@ -77,54 +73,6 @@ if (env === 'hot') {
 
 
 //
-// Schema
-//
-
-// TODO(burdon): Use /relay/dist/schema.graphql?
-// TODO(burdon): Factor out (share with sub/graphql).
-// TODO(burdon): Client mocking (use same schema).
-// http://dev.apollodata.com/tools/graphql-tools/mocking.html
-
-// TODO(burdon): Change to Viewer.
-
-const typeDefs = `
-  
-  type User {
-    id: ID!
-    name: String
-  }
-  
-  type RootQuery {
-    user(id: ID): User
-  }
-  
-  schema {
-    query: RootQuery
-  }
-
-`;
-
-const DATA = {
-  User: {
-    minder: {
-      name: 'Minder'
-    }
-  }
-};
-
-const resolvers = {
-  RootQuery: {
-    user: (node, { id }) => {
-      console.log('USER.GET[%s]', id);
-      return _.merge({ id }, DATA.User[id]);
-    }
-  }
-};
-
-const schema = graphqlTools.makeExecutableSchema({ typeDefs, resolvers });
-
-
-//
 // GraphQL
 // https://github.com/apollostack/graphql-server
 // http://dev.apollodata.com/tools/graphql-server/index.html
@@ -133,9 +81,9 @@ const schema = graphqlTools.makeExecutableSchema({ typeDefs, resolvers });
 app.use(bodyParser.json());                           // JSON post (GraphQL).
 app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
 
-app.use('/graphql', bodyParser.json(), graphqlServer.graphqlExpress({ schema: schema }));
+app.use('/graphql', bodyParser.json(), graphqlExpress({ schema: schema }));
 
-app.use('/graphiql', graphqlServer.graphiqlExpress({
+app.use('/graphiql', graphiqlExpress({
   endpointURL: '/graphql',
 }));
 
@@ -144,10 +92,17 @@ app.use('/graphiql', graphqlServer.graphiqlExpress({
 // App
 //
 
+const WEBPACK_ENTRY = {
+  "development":  "main",
+  "production":   "main",
+  "hot":          "hot"
+};
+
 app.use('/assets', express.static(path.join(__dirname, '../../dist')));
 
 app.get(/^\/(.*)/, function(req, res) {
   res.render('home', {
+    app: WEBPACK_ENTRY[env],
     config: {
       root: 'app-root',
       graphql: '/graphql',

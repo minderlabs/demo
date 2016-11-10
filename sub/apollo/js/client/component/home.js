@@ -5,28 +5,43 @@
 'use strict';
 
 import React from 'react';
+import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
 import gql from 'graphql-tag';
+
+import List from './list';
+import Search from './search';
+
 
 //
 // Queries
 //
 
 // TODO(burdon): DevTools.
+// TODO(burdon): Logging (and error handling).
 
 const Query = gql`
-  query user($userId: ID!) { 
-    user(id: $userId) {
+  query Home($userId: ID!) { 
+
+    viewer(userId: $userId) {
       id
-      name
+      user {
+        name
+      }
     }
   }
 `;
 
+
 /**
  * Home View.
  * http://dev.apollodata.com/react
+ *
+ * NOTES
+ * @graphql creates a "Higher Order Component" (i.e., a smart container that wraps the "dumb" React component).
  * http://dev.apollodata.com/react/higher-order-components.html
+ *
+ * TODO(burdon): Does this replace Redux connect()?
  */
 @withApollo
 @graphql(Query, {
@@ -35,6 +50,7 @@ const Query = gql`
   // http://dev.apollodata.com/react/queries.html#graphql-options
   options: (props) => {
     let state = props.client.store.getState()['minder'];
+    console.assert(state.userId);
     return {
       variables: {
         userId: state.userId
@@ -42,14 +58,17 @@ const Query = gql`
     };
   }
 })
-export default class Home extends React.Component {
+class Home extends React.Component {
 
   static propTypes = {
+
+    // Provided by apollo.
+    // http://dev.apollodata.com/react/queries.html#default-result-props
     data: React.PropTypes.shape({
       loading: React.PropTypes.bool.isRequired,
 
       // Query result.
-      user: React.PropTypes.object
+      viewer: React.PropTypes.object
     })
   };
 
@@ -62,11 +81,9 @@ export default class Home extends React.Component {
     let state = this.props.client.store.getState()['minder'];
 
     // http://dev.apollodata.com/react/queries.html#default-result-props
-    let { user } = this.props.data;
+    let { viewer } = this.props.data;
 
     // TODO(burdon): Move statusbar (e.g., loading, network stats) to parent layout.
-
-    // TODO(burdon): Implement list (use /relay schema and server?)
 
     return (
       <div className="app-column">
@@ -74,24 +91,80 @@ export default class Home extends React.Component {
 
         <div className="app-expand">
           <div>
+            <Search/>
+          </div>
+
+          <div>
+            <h3>State</h3>
+            <pre>{ JSON.stringify({ foo: this.props.foo }) }</pre>
+          </div>
+
+          <div>
             <h3>Request</h3>
             <pre>{ JSON.stringify(state) }</pre>
           </div>
 
           <div>
             <h3>Response</h3>
-            <pre>{ JSON.stringify(user) }</pre>
+            <pre>{ JSON.stringify(viewer) }</pre>
+          </div>
+
+          <div>
+            <List/>
           </div>
         </div>
 
         <div className="app-row">
-          <div className="app-expand">
+          <div className="app-row app-expand">
             <button onClick={ this.handleRefresh.bind(this) }>Refresh</button>
+            <button onClick={ this.props.handleFoo.bind(null, true) }>Foo</button>
           </div>
 
-          <div>{ this.props.data.loading ? 'Loading...' : '' }</div>
+          <div>
+            <div>{ this.props.data.loading ? 'LOADING' : this.props.data.error ? 'ERROR' : 'OK' }</div>
+          </div>
         </div>
       </div>
     );
   }
 }
+
+// Redux.
+// http://redux.js.org/docs/basics/UsageWithReact.html
+// http://redux.js.org/docs/basics/ExampleTodoList.html
+
+// TODO(burdon): Move apollo defs here? Or use compose?
+// http://dev.apollodata.com/react/higher-order-components.html#compose
+
+/**
+ * Map Redux state onto component properties.
+ * NOTE: Using @withApollo we could access this via props.client.store (==state)
+ *
+ * @param state
+ * @param ownProps
+ * @returns {{active: string}}
+ */
+const mapStateToProps = (state, ownProps) => {
+  // TODO(burdon): Trigger?
+  return {
+    userId: state.minder.userId,
+    foo:    state.minder.foo
+  }
+};
+
+/**
+ * Provide handlers that will dispatch Redux actions.
+ *
+ * @param dispatch
+ * @param ownProps
+ * @returns {{onClick: (function())}}
+ */
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    handleFoo: (value) => {
+      dispatch({ type: 'MINDER_FOO', value });   // TODO(burdon): Factor out (and def consts).
+    }
+  }
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Home);
