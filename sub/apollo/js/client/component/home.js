@@ -129,13 +129,6 @@ class Home extends React.Component {
   }
 }
 
-// Redux.
-// http://redux.js.org/docs/basics/UsageWithReact.html
-// http://redux.js.org/docs/basics/ExampleTodoList.html
-
-// TODO(burdon): Move apollo defs here? Or use compose?
-// http://dev.apollodata.com/react/higher-order-components.html#compose
-
 /**
  * Map Redux state onto component properties.
  * NOTE: Using @withApollo we could access this via props.client.store (==state)
@@ -145,7 +138,6 @@ class Home extends React.Component {
  * @returns {{active: string}}
  */
 const mapStateToProps = (state, ownProps) => {
-  // TODO(burdon): Trigger?
   return {
     userId: state.minder.userId,
     foo:    state.minder.foo
@@ -161,10 +153,22 @@ const mapStateToProps = (state, ownProps) => {
  */
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
+    // TODO(burdon): Move to SearchBar.
     handleFoo: (value) => {
       dispatch({ type: 'MINDER_FOO', value });   // TODO(burdon): Factor out (and def consts).
     }
   }
 };
+
+//
+// Connect creates the Redux Higher Order Object.
+// NOTE: This keeps the Component dry (it defines the properties that it needs).
+//
+// http://redux.js.org/docs/basics/UsageWithReact.html
+// http://redux.js.org/docs/basics/ExampleTodoList.html
+//
+
+// TODO(burdon): Move apollo defs here? Or use compose?
+// http://dev.apollodata.com/react/higher-order-components.html#compose
 
 export default connect(mapStateToProps, mapDispatchToProps)(Home);
