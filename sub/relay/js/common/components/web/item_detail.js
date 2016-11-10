@@ -7,7 +7,8 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import UpdateItemMutation from '../../mutations/update_item';
+import { Database } from '../../data/database';
+import UpdateItemMutation from '../../data/mutations/update_item';
 
 import TypeRegistry from './type_registry';
 
@@ -51,6 +52,7 @@ class ItemDetail extends React.Component {
   handleSave(event) {
     let { viewer, item } = this.props;
 
+    // TODO(burdon): Call context mutator.
     // Get properties from data element.
     let data = TypeRegistry.values(item.type, this.refs['data'].refs.component);  // TODO(burdon): Const "data".
 
@@ -66,6 +68,22 @@ class ItemDetail extends React.Component {
   }
 
   handleCancel(event) {
+    this.props.onClose();
+  }
+
+  handleDelete(event) {
+    let { viewer, item } = this.props;
+
+    // TODO(burdon): Call context mutator.
+    let mutation = new UpdateItemMutation({
+      viewer: viewer,
+      item: item,
+      labels: [{
+        value: Database.LABEL.DELETED
+      }]
+    });
+
+    this.props.relay.commitUpdate(mutation);
     this.props.onClose();
   }
 
@@ -104,6 +122,7 @@ class ItemDetail extends React.Component {
         <div className="app-toolbar">
           <button onClick={ this.handleSave.bind(this) }>Save</button>
           <button onClick={ this.handleCancel.bind(this) }>Cancel</button>
+          <button onClick={ this.handleDelete.bind(this) }>Delete</button>
         </div>
       </div>
     );

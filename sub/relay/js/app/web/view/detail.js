@@ -9,7 +9,7 @@ import Relay from 'react-relay';
 
 import SubscriptionManager from '../util/subscriptions';
 
-import CreateItemMutation from '../../../common/mutations/create_item';
+import CreateItemMutation from '../../../common/data/mutations/create_item';
 
 import ItemDetail from '../../../common/components/web/item_detail';
 

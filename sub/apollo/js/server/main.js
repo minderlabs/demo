@@ -80,9 +80,12 @@ if (env === 'hot') {
 // Schema
 //
 
+// TODO(burdon): Use /relay/dist/schema.graphql?
 // TODO(burdon): Factor out (share with sub/graphql).
 // TODO(burdon): Client mocking (use same schema).
 // http://dev.apollodata.com/tools/graphql-tools/mocking.html
+
+// TODO(burdon): Change to Viewer.
 
 const typeDefs = `
   
@@ -111,7 +114,7 @@ const DATA = {
 
 const resolvers = {
   RootQuery: {
-    user: (o, { id }) => {
+    user: (node, { id }) => {
       console.log('USER.GET[%s]', id);
       return _.merge({ id }, DATA.User[id]);
     }

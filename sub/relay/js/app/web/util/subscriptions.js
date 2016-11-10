@@ -7,7 +7,7 @@
 import Relay from 'react-relay';
 
 /**
- *
+ * Relay container info.
  */
 class ContainerInfo {
 
@@ -27,11 +27,13 @@ export default class SubscriptionManager {
   static _containers = new Map();
 
   /**
+   * Manage Relay container.
    *
    * @param componentType
    * @param containerConstructor
    * @returns {*}
    */
+  // TODO(burdon): Monkey patch Relay.createContainer?
   static manage(componentType, containerConstructor) {
     let info = new ContainerInfo(containerConstructor);
 
@@ -50,7 +52,8 @@ export default class SubscriptionManager {
       });
     });
 
-    console.log('MANAGER: %s => {%s}', containerConstructor.displayName, Array.from(info.fragments.values()).join(','));
+    console.log('MANAGER: %s => {%s}',
+      containerConstructor.displayName, Array.from(info.fragments.values()).join(','));
 
     return containerConstructor;
   }

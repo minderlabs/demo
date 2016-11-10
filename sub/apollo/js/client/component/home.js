@@ -66,6 +66,8 @@ export default class Home extends React.Component {
 
     // TODO(burdon): Move statusbar (e.g., loading, network stats) to parent layout.
 
+    // TODO(burdon): Implement list (use /relay schema and server?)
+
     return (
       <div className="app-column">
         <h2>Home</h2>

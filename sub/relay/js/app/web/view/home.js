@@ -13,11 +13,12 @@ import {
   fromGlobalId
 } from 'graphql-relay';
 
+import { Database } from '../../../common/data/database';
+import CreateItemMutation from '../../../common/data/mutations/create_item';
+
 // TODO(burdon): Create lib for UX and Data.
 import ItemList from '../../../common/components/web/item_list';
 import TextBox from '../../../common/components/web/textbox';
-
-import CreateItemMutation from '../../../common/mutations/create_item';
 
 import Path from '../path';
 
@@ -190,7 +191,7 @@ function createFilter(folder, type, text) {
     // TODO(burdon): Get properties from folder object.
     switch (folder) {
       case 'favorites': {
-        filter.labels = ['_favorite'];
+        filter.labels = [Database.LABEL.FAVORITE];
         break;
       }
     }

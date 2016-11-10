@@ -6,7 +6,7 @@
 
 import Relay from 'react-relay';
 
-import { Util } from '../util/util';
+import { Util } from '../../util/util';
 
 /**
  * Updates an existing item.

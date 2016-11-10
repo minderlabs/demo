@@ -13,6 +13,7 @@ import { Util } from '../util/util';
 // STRAT 2: buckets with denormalized copies (GOOD).
 // STRAT 3: move to public bucket and merge personal and shared buckets (BAD).
 
+
 /**
  * Viewer.
  */
@@ -92,6 +93,7 @@ export class Item {
     }
   }
 }
+
 
 //
 // Types
@@ -196,6 +198,11 @@ export class Database {
 
   static GLOBAL_BUCKET_ID = '__GLOBAL__';
 
+  static LABEL = {
+    DELETED:    '_deleted',
+    FAVORITE:   '_favorite'
+  };
+
   static singleton = null;
 
   constructor() {
@@ -248,6 +255,7 @@ export class Database {
 
     return this;
   }
+
 
   //
   // Private type-specific implementations, not intended to be part of the public Database interface.
@@ -327,6 +335,14 @@ export class Database {
       // Must match something.
       let match = false;
 
+      // Deleted.
+      if (_.indexOf(item.labels, Database.LABEL.DELETED) != -1) {
+        if (_.indexOf(filter.label, Database.LABEL.DELETED) == -1) {
+          return false;
+        }
+      }
+
+      // Type.
       if (filter.type) {
         match = (item.type === filter.type);
         if (!match) {
@@ -334,8 +350,9 @@ export class Database {
         }
       }
 
-      // AND type.
+      // TODO(burdon): Enhance query spec for additional field predicates.
       switch (item.type) {
+
         // TODO(burdon): Hack to match by owner/assigned (how would indexing work?)
         case 'Task': {
           if (bucketId !== item.data.owner && bucketId !== item.data.assignee) {

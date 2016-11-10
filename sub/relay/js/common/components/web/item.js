@@ -7,7 +7,8 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import UpdateItemMutation from '../../mutations/update_item';
+import { Database } from '../../data/database';
+import UpdateItemMutation from '../../data/mutations/update_item';
 
 import TypeRegistry from './type_registry';
 
@@ -34,8 +35,8 @@ class Item extends React.Component {
       viewer: viewer,
       item: item,
       labels: [{
-        index: _.indexOf(item['labels'], '_favorite') == -1 ? 0 : -1,
-        value: '_favorite'
+        index: _.indexOf(item['labels'], Database.LABEL.FAVORITE) == -1 ? 0 : -1,
+        value: Database.LABEL.FAVORITE
       }]
     });
 
@@ -51,7 +52,7 @@ class Item extends React.Component {
       <div>
         <i className="app-icon app-icon-medium app-icon-star material-icons"
            onClick={ this.handleToggleFavorite.bind(this) }>
-          { _.indexOf(item['labels'], '_favorite') != -1 ? 'star': 'star_border' }
+          { _.indexOf(item['labels'], Database.LABEL.FAVORITE) != -1 ? 'star': 'star_border' }
         </i>
 
         <div className="app-expand">
