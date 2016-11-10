@@ -71,7 +71,7 @@ class ItemDetail extends React.Component {
     this.props.onClose();
   }
 
-  handleDelete(event) {
+  handleToggleDelete(set, event) {
     let { viewer, item } = this.props;
 
     // TODO(burdon): Call context mutator.
@@ -79,6 +79,7 @@ class ItemDetail extends React.Component {
       viewer: viewer,
       item: item,
       labels: [{
+        index: set ? 0 : -1,
         value: Database.LABEL.DELETED
       }]
     });
@@ -91,6 +92,8 @@ class ItemDetail extends React.Component {
     let { viewer, item } = this.props;
 
     this.detail = TypeRegistry.render(viewer, item);
+
+    let deleted = _.indexOf(item.labels, Database.LABEL.DELETED) != -1;
 
     const debug = false && (
       <div className="app-panel app-section app-debug">
@@ -122,7 +125,7 @@ class ItemDetail extends React.Component {
         <div className="app-toolbar">
           <button onClick={ this.handleSave.bind(this) }>Save</button>
           <button onClick={ this.handleCancel.bind(this) }>Cancel</button>
-          <button onClick={ this.handleDelete.bind(this) }>Delete</button>
+          <button onClick={ this.handleToggleDelete.bind(this, !deleted) }>{ deleted ? 'Undelete' : 'Delete' }</button>
         </div>
       </div>
     );

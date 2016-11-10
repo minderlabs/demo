@@ -190,7 +190,13 @@ function createFilter(folder, type, text) {
 
     // TODO(burdon): Get properties from folder object.
     switch (folder) {
+      case 'deleted': {
+        filter.type = undefined;
+        filter.labels = [Database.LABEL.DELETED];
+        break;
+      }
       case 'favorites': {
+        filter.type = undefined;
         filter.labels = [Database.LABEL.FAVORITE];
         break;
       }
@@ -218,9 +224,9 @@ export default SubscriptionManager.manage(HomeView, Relay.createContainer(HomeVi
   // Update variables from current state.
   // https://facebook.github.io/relay/docs/api-reference-relay-container.html#preparevariables
   prepareVariables: (variables) => {
-    console.log('===>', JSON.stringify(variables));
+//  console.log(JSON.stringify(variables));
     variables.filter = createFilter(variables.folder, variables.type, variables.text);
-    console.log('<===', JSON.stringify(variables.filter));
+    console.log('FILTER: %s', JSON.stringify(variables.filter));
     return variables;
   },
 

@@ -61,6 +61,15 @@
           }
         },
         {
+          "title": "Deleted",
+          "data": {
+            "path": "/deleted",
+            "filter": {
+              "labels": ["_deleted"]
+            }
+          }
+        },
+        {
           "title": "Team",
           "data": {
             "itemId": "minderlabs"

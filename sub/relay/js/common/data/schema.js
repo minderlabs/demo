@@ -110,7 +110,7 @@ const resolveNodeFromGlobalId = (globalId) => {
     case Item.KIND:
       // TODO(burdon): Require bucketId?
       // TODO(burdon): Hack: return empty item (not null) for unrecognized items (i.e., during create process).
-      node = Database.singleton.getItem(id) || { id: globalId, type: type };
+      node = Database.singleton.getItem(id);
       break;
 
     default:
@@ -127,17 +127,17 @@ const NODE_TYPE_REGISTRY = new Map();
  *
  * Used by GraphQL internals when resolving generics (interfaces and unions).
  */
-const resolveNodeType = (obj) => {
-  console.log('RESOLVE.TYPE:', obj);
+const resolveNodeType = (node) => {
+  console.log('RESOLVE.TYPE: [%s]', node.id);
 
   // TODO(burdon): Don't depend on Database implementation. Get from property?
   for (let [ clazz, type ] of NODE_TYPE_REGISTRY.entries()) {
-    if (obj instanceof clazz) {
+    if (node instanceof clazz) {
       return type;
     }
   }
 
-  throw 'Invalid node type: ' + obj;
+  throw 'Invalid node type: ' + node;
 };
 
 /**
@@ -230,6 +230,7 @@ const ItemType = new GraphQLObjectType({
 
   fields: () => ({
     id: globalIdField(ItemType.name),
+
     type: {
       type: GraphQLString,
       description: 'Primary type of this item.',
@@ -369,12 +370,12 @@ const TaskType = new GraphQLObjectType({
 
     owner: {
       type: ItemType,
-      resolve: (data) => Database.singleton.getItem(data.owner)
+      resolve: (data) => data.owner && Database.singleton.getItem(data.owner)
     },
 
     assignee: {
       type: ItemType,
-      resolve: (data) => Database.singleton.getItem(data.assignee)
+      resolve: (data) => data.assignee && Database.singleton.getItem(data.assignee)
     },
 
     details: {
@@ -580,7 +581,7 @@ const CreateItemMutation = mutationWithClientMutationId({
 
     return {
       userId: userId,
-      itemId: item.id,
+      itemId: toGlobalId(Item.KIND, item.id),
       type: type
     };
   }

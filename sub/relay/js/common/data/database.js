@@ -313,7 +313,9 @@ export class Database {
   // TODO(burdon): Must check that user has permission to access item (check bucket).
   getItem(itemId) {
     let item = this._items.get(itemId);
+    console.assert(itemId, 'Null ID.');
     console.log('ITEM.GET[%s] = %s', itemId, JSON.stringify(item));
+    console.assert(item, 'Missing item: ' + itemId);
     return item;
   }
 
@@ -321,6 +323,67 @@ export class Database {
     return _.map(itemIds, (itemId) => {
       return this.getItem(itemId);
     });
+  }
+
+  // TODO(burdon): Factor out and unit test.
+  static matchItem(bucketId, filter, item) {
+
+    // Must match something.
+    let match = false;
+
+    // Deleted.
+    if (_.indexOf(item.labels, Database.LABEL.DELETED) != -1) {
+      if (_.indexOf(filter.labels, Database.LABEL.DELETED) == -1) {
+        return false;
+      }
+    }
+
+    // Type.
+    if (filter.type) {
+      match = (item.type === filter.type);
+      if (!match) {
+        return false;
+      }
+    }
+
+    // TODO(burdon): Enhance query spec for additional field predicates.
+    switch (item.type) {
+
+      // TODO(burdon): Hack to match by owner/assigned (how would indexing work?)
+      case 'Task': {
+        if (bucketId !== item.data.owner && bucketId !== item.data.assignee) {
+          return false;
+        }
+        break;
+      }
+    }
+
+    // AND (OR labels).
+    if (filter.labels) {
+      let labels = _.filter(item.labels, (label) => {
+        return _.indexOf(filter.labels, label) != -1;
+      });
+
+      match = labels.length > 0;
+      if (!match) {
+        return false;
+      }
+    }
+
+    // AND text.
+    if (filter.text) {
+      match = item.match(filter.text);
+      if (!match) {
+        return false;
+      }
+    } else {
+      // Fail if must match text.
+      if (filter.matchText) {
+        return false;
+      }
+    }
+
+    return match;
   }
 
   getItems(bucketId, filter=null) {
@@ -331,64 +394,10 @@ export class Database {
     }
 
     // TODO(burdon): Factor out filters.
+//  console.log('FILTER: %s', JSON.stringify(filter));
     let items = _.filter(Array.from(this._items.values()), (item) => {
-      // Must match something.
-      let match = false;
-
-      // Deleted.
-      if (_.indexOf(item.labels, Database.LABEL.DELETED) != -1) {
-        if (_.indexOf(filter.label, Database.LABEL.DELETED) == -1) {
-          return false;
-        }
-      }
-
-      // Type.
-      if (filter.type) {
-        match = (item.type === filter.type);
-        if (!match) {
-          return false;
-        }
-      }
-
-      // TODO(burdon): Enhance query spec for additional field predicates.
-      switch (item.type) {
-
-        // TODO(burdon): Hack to match by owner/assigned (how would indexing work?)
-        case 'Task': {
-          if (bucketId !== item.data.owner && bucketId !== item.data.assignee) {
-            return false;
-          }
-          break;
-        }
-      }
-
-      // AND (OR labels).
-      if (filter.labels) {
-        match = false;
-        _.each(item.labels || [], (label) => {
-          if (filter.labels.indexOf(label) != -1) {
-            match = true;
-            return false;
-          }
-        });
-        if (!match) {
-          return false;
-        }
-      }
-
-      // AND text.
-      if (filter.text) {
-        match = item.match(filter.text);
-        if (!match) {
-          return false;
-        }
-      } else {
-        // Fail if must match text.
-        if (filter.matchText) {
-          return false;
-        }
-      }
-
+      let match = Database.matchItem(bucketId, filter, item);
+//    console.log('MATCH[%s]: %s', match ? '+' : ' ', JSON.stringify(item));
       return match;
     });
 
