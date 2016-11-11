@@ -37,8 +37,10 @@
     "mocha": "^3.1.2",
     "react-hot-loader": "^3.0.0-beta.6",
     "redux-devtools": "^3.3.1",
+    "redux-devtools-chart-monitor": "^1.5.1",
     "redux-devtools-dock-monitor": "^1.1.1",
     "redux-devtools-log-monitor": "^1.1.1",
+    "redux-devtools-themes": "^1.0.0",
     "simon": "^0.2.3",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
@@ -59,6 +61,7 @@
     "babel-preset-stage-0": "^6.16.0",
     "babel-relay-plugin": "^0.9.3",
     "body-parser": "^1.15.2",
+    "chance": "^1.0.4",
     "cheerio": "^0.22.0",
     "express": "^4.14.0",
     "express-handlebars": "^3.0.0",
@@ -68,12 +71,12 @@
     "graphql-tag": "^0.1.16",
     "graphql-tools": "^0.8.0",
     "moment": "^2.15.2",
+    "random-seed": "^0.3.0",
     "react": "^15.3.2",
     "react-apollo": "^0.5.16",
     "react-dom": "^15.3.2",
     "react-router": "^4.0.0-alpha.5",
-    "redux": "^3.6.0",
-    "redux-devtools-themes": "^1.0.0"
+    "redux": "^3.6.0"
   },
   "scripts": {
     "//": [

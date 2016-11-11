@@ -12,7 +12,6 @@
 //
 // https://www.reindex.io/blog/redux-and-relay
 //
-// TODO(burdon): Tools
 // TODO(burdon): Paging/Cursors
 // TODO(burdon): Native
 // TODO(burdon): Caching (mobile/offline roadmap)
@@ -39,7 +38,7 @@ import ApolloClient, { createNetworkInterface } from 'apollo-client';
 
 import moment from 'moment';
 
-import DevTools from './component/devtools';
+import { Monitor } from './component/devtools';
 import Application from './app';
 import Reducers from './reducers';
 
@@ -129,7 +128,7 @@ const enhancer = compose(
   // NOTE: Must go last.
   // https://github.com/gaearon/redux-devtools
   // https://github.com/gaearon/redux-devtools/blob/master/docs/Walkthrough.md
-  DevTools.instrument()
+  Monitor.instrument()
 );
 
 const preloadedState = {};
@@ -146,7 +145,7 @@ function renderApp(App) {
   console.log('### [%s] ###', moment().format('hh:mm:ss'));
 
   ReactDOM.render(
-    <App config={ config } client={ apolloClient } store={ reduxStore } devtools={ DevTools }/>,
+    <App config={ config } client={ apolloClient } store={ reduxStore }/>,
 
     document.getElementById(config.root)
   );

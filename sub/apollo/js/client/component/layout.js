@@ -9,7 +9,7 @@ import { Match, Miss, Redirect } from 'react-router';
 import { withApollo } from 'react-apollo';
 import ApolloClient from 'apollo-client';
 
-import DevTools from './devtools';
+import { Monitor, Chart } from './devtools';
 import Home from './home';
 
 import './layout.less';
@@ -19,10 +19,6 @@ import './layout.less';
  */
 @withApollo
 export default class Layout extends React.Component {
-
-  static contextTypes = {
-    devtools: React.PropTypes.func.isRequired
-  };
 
   static propTypes = {
     client: React.PropTypes.instanceOf(ApolloClient).isRequired
@@ -55,7 +51,7 @@ export default class Layout extends React.Component {
           </div>
 
           <div className="app-debug">
-            <DevTools/>
+            <Monitor/>
           </div>
         </div>
       </div>

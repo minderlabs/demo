@@ -15,21 +15,11 @@ import Layout from './component/layout';
  */
 export default class Application extends React.Component {
 
-  static childContextTypes = {
-    devtools: React.PropTypes.func
-  };
-
   static propTypes = {
     config: React.PropTypes.object.isRequired,
     client: React.PropTypes.object.isRequired,
     store:  React.PropTypes.object.isRequired
   };
-
-  getChildContext() {
-    return {
-      devtools: this.props.devtools
-    }
-  }
 
   render() {
 

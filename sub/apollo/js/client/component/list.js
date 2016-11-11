@@ -41,14 +41,28 @@ export class List extends React.Component {
       });
   }
 
+  handleMore() {
+    this.props.fetchMoreItems().then(() => {
+      // Glue to bottom.
+      let el = $(this.refs.items);
+      el[0].scrollTop = el[0].scrollHeight;
+    });
+  }
+
   render() {
-    let { items=[] } = this.props.data;
+    let { items=[] } = this.props;
 
     return (
-      <div className="app-section app-column app-list">
-        {items.map(item =>
-        <Item key={ item.id } item={ item } onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
-        )}
+      <div className="app-column ">
+        <div ref="items" className="app-section app-column app-list">
+          {items.map(item =>
+          <Item key={ item.id } item={ item } onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
+          )}
+        </div>
+
+        <div className="app-section app-row">
+          <button className="app-expand" onClick={ this.handleMore.bind(this) }>More</button>
+        </div>
       </div>
     );
   }
@@ -61,9 +75,9 @@ export class List extends React.Component {
 //
 
 const GetItemsQuery = gql`
-  query GetItems($text: String) { 
+  query GetItems($text: String, $offset: Int, $count: Int) { 
 
-    items(text: $text) {
+    items(text: $text, offset: $offset, count: $count) {
       id
       
       ...ItemFragment
@@ -101,9 +115,33 @@ export default compose(
         fragments: Item.fragments.item.fragments(),
 
         variables: {
-          text: props.text
+          text: props.text,
+          offset: 0,
+          count: 10
         }
       };
+    },
+
+    // http://dev.apollodata.com/react/pagination.html
+    props({ data: { loading, items, fetchMore } }) {
+      return {
+        loading,
+        items,
+
+        fetchMoreItems() {
+          return fetchMore({
+            variables: {
+              offset: items.length
+            },
+
+            updateQuery: (previousResult, { fetchMoreResult }) => {
+              return _.assign({}, previousResult, {
+                items: [...previousResult.items, ...fetchMoreResult.data.items]
+              });
+            }
+          });
+        }
+      }
     }
   }),
 

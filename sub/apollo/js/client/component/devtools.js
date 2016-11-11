@@ -5,10 +5,10 @@
 'use strict';
 
 import React from 'react';
-import * as themes from 'redux-devtools-themes';
-
 import { createDevTools } from 'redux-devtools';
+import 'redux-devtools-themes';
 
+import ChartMonitor from 'redux-devtools-chart-monitor';
 import DockMonitor from 'redux-devtools-dock-monitor';
 import LogMonitor from 'redux-devtools-log-monitor';
 
@@ -18,10 +18,16 @@ import LogMonitor from 'redux-devtools-log-monitor';
 // https://github.com/gaearon/redux-devtools-log-monitor
 //
 
-const DevTools = createDevTools(
-  <DockMonitor defaultIsVisible={ true } toggleVisibilityKey="ctrl-h" changePositionKey="">
+export const Monitor = createDevTools(
+  <DockMonitor defaultIsVisible={ true }
+               changeMonitorKey="ctrl-m"
+               toggleVisibilityKey="ctrl-h"
+               changePositionKey="ctrl-p">
     <LogMonitor theme="grayscale"/>
+
+    {/*
+    <ChartMonitor/>
+    */}
+
   </DockMonitor>
 );
-
-export default DevTools;

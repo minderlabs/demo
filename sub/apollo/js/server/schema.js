@@ -8,6 +8,7 @@ import _ from 'lodash';
 import { Kind } from 'graphql/language';
 import { makeExecutableSchema } from 'graphql-tools';
 
+import { Chance } from 'chance';
 
 //
 // Schema
@@ -61,7 +62,7 @@ const typeDefs = `
 
   type RootQuery {
     viewer(userId: ID!): Viewer
-    items(text: String): [Item]!
+    items(text: String, offset: Int, count: Int): [Item]!
   }
   
   # Mutations
@@ -87,16 +88,21 @@ const DATA = {
     }
   },
 
-  Item: {
-    "i-001": { title: "New York",   labels: ['_favorite']},
-    "i-002": { title: "Los Angeles" },
-    "i-003": { title: "London"      },
-    "i-004": { title: "Tokyo"       },
-    "i-005": { title: "Bangkok"     },
-    "i-006": { title: "Paris"       },
-    "i-007": { title: "Amsterdam"   },
-    "i-008": { title: "Hong Kong"   },
-    "i-009": { title: "Singapore"   }
+  Item: {}
+};
+
+const generate = (n) => {
+
+  const chance = new Chance(0);
+
+  for (let i = 0; i < n; i++) {
+    let id = `i-${_.pad(i,3)}`;
+
+    DATA.Item[id] = {
+      id: id,
+      title: chance.city(),
+      labels: chance.bool({ likelihood: 20 }) ? ['_favorite'] : []
+    }
   }
 };
 
@@ -136,8 +142,8 @@ const resolvers = {
       };
     },
 
-    items: (node, { text }) => {
-      console.log('QUERY.ITEMS[%s]', text);
+    items: (node, { text, offset, count }) => {
+      console.log('QUERY.ITEMS[%d:%d][%s]', offset, count, text);
       text = _.lowerCase(text);
 
       let items = [];
@@ -146,8 +152,11 @@ const resolvers = {
           return;
         }
 
-        items.push(_.defaults({}, item, { id: itemId, labels: [] }));
+        items.push(item);
       });
+
+      items = _.sortBy(items, ['title']);
+      items = _.slice(items, offset, offset + count);
 
       return items;
     }
@@ -172,7 +181,7 @@ const resolvers = {
         }
       });
 
-      return _.defaults({}, item, { id: itemId });
+      return item;
     }
   }
 };
@@ -182,5 +191,7 @@ const resolvers = {
 //
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+generate(100);
 
 export default schema;
