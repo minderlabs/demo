@@ -12,7 +12,6 @@ import gql from 'graphql-tag';
 import List from './list';
 import Search from './search';
 
-
 //
 // Queries
 //
@@ -31,7 +30,6 @@ const Query = gql`
     }
   }
 `;
-
 
 /**
  * Home View.

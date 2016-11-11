@@ -9,7 +9,6 @@ import { connect } from 'react-redux';
 
 import { ACTION } from '../reducers';
 
-
 /**
  * Search bar.
  */

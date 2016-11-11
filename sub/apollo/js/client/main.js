@@ -126,12 +126,16 @@ const enhancer = compose(
   // Apollo-Redux bindings.
   applyMiddleware(apolloClient.middleware()),
 
+  // NOTE: Must go last.
   // https://github.com/gaearon/redux-devtools
   // https://github.com/gaearon/redux-devtools/blob/master/docs/Walkthrough.md
   DevTools.instrument()
 );
 
-const reduxStore = createStore(reducers, {}, enhancer);
+const preloadedState = {};
+
+// https://github.com/reactjs/redux/blob/master/docs/api/createStore.md
+const reduxStore = createStore(reducers, preloadedState, enhancer);
 
 
 /**
@@ -142,7 +146,7 @@ function renderApp(App) {
   console.log('### [%s] ###', moment().format('hh:mm:ss'));
 
   ReactDOM.render(
-    <App config={ config } client={ apolloClient } store={ reduxStore }/>,
+    <App config={ config } client={ apolloClient } store={ reduxStore } devtools={ DevTools }/>,
 
     document.getElementById(config.root)
   );

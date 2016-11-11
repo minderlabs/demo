@@ -10,18 +10,14 @@ import { ApolloProvider } from 'react-apollo';
 
 import Layout from './component/layout';
 
-
 /**
  * Main Application Root component.
  */
 export default class Application extends React.Component {
 
-  //
-  // Apollo + Router (v4)
-  // http://dev.apollodata.com/react
-  // https://github.com/ReactTraining/react-router/tree/v4
-  // https://react-router.now.sh/quick-start
-  //
+  static childContextTypes = {
+    devtools: React.PropTypes.func
+  };
 
   static propTypes = {
     config: React.PropTypes.object.isRequired,
@@ -29,9 +25,20 @@ export default class Application extends React.Component {
     store:  React.PropTypes.object.isRequired
   };
 
+  getChildContext() {
+    return {
+      devtools: this.props.devtools
+    }
+  }
+
   render() {
 
+    //
+    // Apollo + Router (v4)
     // NOTE: Router Mmust use declarative component (not render) otherwise squashes router properties.
+    // https://react-router.now.sh/quick-start
+    // https://github.com/ReactTraining/react-router/tree/v4
+    //
 
     return (
       <ApolloProvider client={ this.props.client } store={ this.props.store }>

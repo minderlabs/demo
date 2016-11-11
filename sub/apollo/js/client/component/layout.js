@@ -9,6 +9,7 @@ import { Match, Miss, Redirect } from 'react-router';
 import { withApollo } from 'react-apollo';
 import ApolloClient from 'apollo-client';
 
+import DevTools from './devtools';
 import Home from './home';
 
 import './layout.less';
@@ -18,6 +19,10 @@ import './layout.less';
  */
 @withApollo
 export default class Layout extends React.Component {
+
+  static contextTypes = {
+    devtools: React.PropTypes.func.isRequired
+  };
 
   static propTypes = {
     client: React.PropTypes.instanceOf(ApolloClient).isRequired
@@ -34,6 +39,7 @@ export default class Layout extends React.Component {
 
   render() {
 
+    // TODO(burdon): Skip DevTools in prod.
     // TODO(burdon): Display errors in status bar?
 
     return (
@@ -46,6 +52,10 @@ export default class Layout extends React.Component {
           <div className="app-column">
             <Match pattern="/home" component={ Home }/>
             <Miss render={ () => <Redirect to="/home"/> }/>
+          </div>
+
+          <div className="app-debug">
+            <DevTools/>
           </div>
         </div>
       </div>

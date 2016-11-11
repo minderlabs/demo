@@ -8,7 +8,6 @@ import React from 'react';
 import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
 
-
 /**
  * Item.
  */

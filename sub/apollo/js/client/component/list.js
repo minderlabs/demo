@@ -11,7 +11,6 @@ import gql from 'graphql-tag';
 
 import Item from './item';
 
-
 /**
  * Item List.
  *

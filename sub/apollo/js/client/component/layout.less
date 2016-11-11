@@ -17,8 +17,18 @@ pre {
   white-space: pre-line;
 }
 
-input {
+button, input {
   outline: none;
+  border: 1px solid #AAA;
+  font-size: 18px;
+  margin: 0;
+  padding: 2px;
+}
+button {
+  background-color: #CCC;
+}
+button:hover {
+  background-color: #999;
 }
 
 i.material-icons {
@@ -55,15 +65,38 @@ i.material-icons {
   flex-direction: column;
   flex-grow: 1;
   overflow-x: hidden;
+  overflow-y: scroll;
+}
+.app-column::-webkit-scrollbar {
+  width: 4px;
+}
+.app-column::-webkit-scrollbar-thumb {
+  background-color: #666;
 }
 
 .app-row {
   display: flex;
   flex-direction: row;
   flex-shrink: 0;
+  align-items: center;
+
+  i.material-icons:first-child {
+    padding-right: 8px;
+  }
 }
 
 .app-expand {
   display: flex;
   flex-grow: 1;
+}
+
+.app-debug {
+  font-size: 11px;
+
+  > div {
+    > div {
+      left: 0 !important;
+      width: 300px !important;
+    }
+  }
 }
