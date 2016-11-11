@@ -12,14 +12,22 @@
 //
 // https://www.reindex.io/blog/redux-and-relay
 //
-// Native
-// Caching (mobile/offline roadmap)
-// Paging
-// Muatations
-// Tools
+// TODO(burdon): Tools
+// TODO(burdon): Paging/Cursors
+// TODO(burdon): Native
+// TODO(burdon): Caching (mobile/offline roadmap)
 
-// TODO(burdon): Fragments
-// TODO(burdon): Mutations
+// Benefits over Relay:
+//  - simplicity
+//    - micro-frameworks
+//    - native schema with separate resolvers
+//    - client syntax
+//    - no magic
+//    - tools
+//  - redux
+//    - state machine (HUGE benefit for complex apps)
+//    - tools
+//  - Relay 2.0 looks sketchy (and moving towards Apollo)
 
 
 import React from 'react';
@@ -44,7 +52,7 @@ const config = window.config;
 console.log('Config = %s', JSON.stringify(config));
 
 
-//h
+//
 // Error handling.
 //
 
@@ -65,6 +73,7 @@ const networkInterface = createNetworkInterface({ uri: config.graphql });
 
 const apolloClient = new ApolloClient({
 
+  // Normalization (for client caching).
   // http://dev.apollodata.com/react/cache-updates.html#dataIdFromObject
   dataIdFromObject: (result) => {
 

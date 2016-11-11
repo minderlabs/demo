@@ -43,22 +43,19 @@ const Query = gql`
  *
  * TODO(burdon): Does this replace Redux connect()?
  */
-@withApollo
 @graphql(Query, {
 
   // Configure query (from redux state).
   // http://dev.apollodata.com/react/queries.html#graphql-options
   options: (props) => {
-    let state = props.client.store.getState()['minder'];
-    console.assert(state.userId);
-
     return {
       variables: {
-        userId: state.userId
+        userId: props.userId
       }
     };
   }
 })
+@withApollo
 class Home extends React.Component {
 
   static propTypes = {
@@ -88,28 +85,20 @@ class Home extends React.Component {
 
     return (
       <div className="app-column">
-        <h2>Home</h2>
-
-        <div className="app-column app-expand">
-          <div className="app-column app-expand">
-            <Search/>
-            <List/>
-          </div>
-
-          <div>
-            <div>
-              <h3>Request</h3>
-              <pre>{ JSON.stringify(state) }</pre>
-            </div>
-
-            <div>
-              <h3>Response</h3>
-              <pre>{ JSON.stringify(viewer) }</pre>
-            </div>
-          </div>
+        <div className="app-section">
+          <Search/>
         </div>
 
-        <div className="app-row">
+        <div className="app-section app-expand">
+          <List/>
+        </div>
+
+        <div className="app-section">
+          <h3>State</h3>
+          <pre>{ JSON.stringify(state) }</pre>
+        </div>
+
+        <div className="app-section app-row">
           <div className="app-row app-expand">
             <button onClick={ this.handleRefresh.bind(this) }>Refresh</button>
           </div>

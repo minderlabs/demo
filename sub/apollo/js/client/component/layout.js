@@ -39,7 +39,9 @@ export default class Layout extends React.Component {
     return (
       <div className="app-main-container">
         <div className="app-main-panel">
-          <h1>Apollo Redux Demo</h1>
+          <div className="app-section">
+            <h1>Apollo React Redux Demo</h1>
+          </div>
 
           <div className="app-column">
             <Match pattern="/home" component={ Home }/>

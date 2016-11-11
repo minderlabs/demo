@@ -68,6 +68,7 @@ class Search extends React.Component {
     return (
       <div className="app-row">
         <input type="text"
+               className="app-expand"
                autoFocus="autoFocus"
                value={ this.state.value }
                onChange={ this.handleChange.bind(this) }/>
