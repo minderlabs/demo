@@ -2,19 +2,22 @@
 // Copyright 2016 Alien Laboratories, Inc.
 //
 
+'use strict';
+
 
 // TODO(burdon): Apollo Evaluation:
 // https://dev-blog.apollodata.com/apollo-client-graphql-with-react-and-redux-49b35d0f2641#.ovjpku8rm
 // https://medium.com/@codazeninc/choosing-a-graphql-client-apollo-vs-relay-9398dde5363a#.cf5fsaska
 // https://medium.freecodecamp.com/tutorial-how-to-use-graphql-in-your-redux-app-9bf8ebbeb362#.m5mpkzy7k
 //
-// Tools
+// https://www.reindex.io/blog/redux-and-relay
+//
+// Native
 // Caching (mobile/offline roadmap)
 // Paging
 // Muatations
+// Tools
 
-
-'use strict';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -27,6 +30,7 @@ import moment from 'moment';
 
 import DevTools from './component/devtools';
 import Application from './app';
+import Reducers from './reducers';
 
 
 //
@@ -37,7 +41,7 @@ const config = window.config;
 console.log('Config = %s', JSON.stringify(config));
 
 
-//
+//h
 // Error handling.
 //
 
@@ -90,22 +94,12 @@ const reducers = combineReducers({
   apollo: apolloClient.reducer(),
 
   // App reducers.
-  // http://redux.js.org/docs/api/Store.html
-  minder: (state={ userId: config.userId, foo: false }, action) => {
-    console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
-    switch (action.type) {
-      case 'MINDER_FOO': {
-        return _.assign(state, {
-          foo: true
-        })
-      }
-    }
-
-    return state
-  }
+  ...Reducers(config),
 });
 
 const enhancer = compose(
+
+  // Apollo-Redux bindings.
   applyMiddleware(apolloClient.middleware()),
 
   // https://github.com/gaearon/redux-devtools

@@ -56,15 +56,15 @@ const DATA = {
   },
 
   Item: {
-    "item-1": {
-      title: "Item 1"
-    },
-    "item-2": {
-      title: "Item 2"
-    },
-    "item-3": {
-      title: "Item 3"
-    }
+    "i-001": { title: "New York" },
+    "i-002": { title: "Los Angeles" },
+    "i-003": { title: "London" },
+    "i-004": { title: "Tokyo" },
+    "i-005": { title: "Bangkok" },
+    "i-006": { title: "Paris" },
+    "i-007": { title: "Amsterdam" },
+    "i-008": { title: "Hong Kong" },
+    "i-009": { title: "Singapore" }
   }
 };
 
@@ -88,8 +88,7 @@ const resolvers = {
 
       let items = [];
       _.each(DATA.Item, (item, itemId) => {
-        console.log(item);
-        if (text && _.indexOf(_.lowerCase(item.title), text) == -1) {
+        if (text && _.lowerCase(item.title).indexOf(text) == -1) {
           return;
         }
 

@@ -100,8 +100,8 @@ module.exports = {
     // https://github.com/webpack/docs/wiki/list-of-plugins#hotmodulereplacementplugin
     new webpack.HotModuleReplacementPlugin(),
 
-    new webpack.ProvidePlugin({
-      _: 'lodash'
-    })
+    new webpack.ProvidePlugin({ $: 'jquery' }),
+
+    new webpack.ProvidePlugin({ _: 'lodash' })
   ]
 };

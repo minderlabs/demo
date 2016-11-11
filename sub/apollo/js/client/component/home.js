@@ -51,6 +51,7 @@ const Query = gql`
   options: (props) => {
     let state = props.client.store.getState()['minder'];
     console.assert(state.userId);
+
     return {
       variables: {
         userId: state.userId
@@ -89,35 +90,28 @@ class Home extends React.Component {
       <div className="app-column">
         <h2>Home</h2>
 
-        <div className="app-expand">
-          <div>
+        <div className="app-column app-expand">
+          <div className="app-column app-expand">
             <Search/>
-          </div>
-
-          <div>
-            <h3>State</h3>
-            <pre>{ JSON.stringify({ foo: this.props.foo }) }</pre>
-          </div>
-
-          <div>
-            <h3>Request</h3>
-            <pre>{ JSON.stringify(state) }</pre>
-          </div>
-
-          <div>
-            <h3>Response</h3>
-            <pre>{ JSON.stringify(viewer) }</pre>
-          </div>
-
-          <div>
             <List/>
+          </div>
+
+          <div>
+            <div>
+              <h3>Request</h3>
+              <pre>{ JSON.stringify(state) }</pre>
+            </div>
+
+            <div>
+              <h3>Response</h3>
+              <pre>{ JSON.stringify(viewer) }</pre>
+            </div>
           </div>
         </div>
 
         <div className="app-row">
           <div className="app-row app-expand">
             <button onClick={ this.handleRefresh.bind(this) }>Refresh</button>
-            <button onClick={ this.props.handleFoo.bind(null, true) }>Foo</button>
           </div>
 
           <div>
@@ -131,6 +125,8 @@ class Home extends React.Component {
 
 /**
  * Map Redux state onto component properties.
+ * Called whenever the state is updated via a reducer.
+ * The component is rerendered if DIRECT objects that are accessed are updated.
  * NOTE: Using @withApollo we could access this via props.client.store (==state)
  *
  * @param state
@@ -138,25 +134,14 @@ class Home extends React.Component {
  * @returns {{active: string}}
  */
 const mapStateToProps = (state, ownProps) => {
-  return {
-    userId: state.minder.userId,
-    foo:    state.minder.foo
-  }
-};
 
-/**
- * Provide handlers that will dispatch Redux actions.
- *
- * @param dispatch
- * @param ownProps
- * @returns {{onClick: (function())}}
- */
-const mapDispatchToProps = (dispatch, ownProps) => {
+  // TODO(burdon): Tools.
+  // http://stackoverflow.com/questions/36815210/react-rerender-in-redux
+  // http://redux.js.org/docs/FAQ.html#react-rendering-too-often
+  // https://github.com/markerikson/redux-ecosystem-links/blob/master/devtools.md#component-update-monitoring
+
   return {
-    // TODO(burdon): Move to SearchBar.
-    handleFoo: (value) => {
-      dispatch({ type: 'MINDER_FOO', value });   // TODO(burdon): Factor out (and def consts).
-    }
+    userId: state.minder.userId
   }
 };
 
@@ -171,4 +156,4 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 // TODO(burdon): Move apollo defs here? Or use compose?
 // http://dev.apollodata.com/react/higher-order-components.html#compose
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default connect(mapStateToProps)(Home);

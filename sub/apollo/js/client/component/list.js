@@ -5,6 +5,7 @@
 'use strict';
 
 import React from 'react';
+import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
 import gql from 'graphql-tag';
 
@@ -35,15 +36,16 @@ const Query = gql`
   // http://dev.apollodata.com/react/queries.html#graphql-options
   options: (props) => {
     let state = props.client.store.getState()['minder'];
+
     return {
       variables: {
         userId: state.userId,
-        text: ""                      // TODO(burdon): Current input from search component.
+        text: props.text
       }
     };
   }
 })
-export default class List extends React.Component {
+class List extends React.Component {
 
   static propTypes = {
     data: React.PropTypes.shape({
@@ -68,3 +70,11 @@ export default class List extends React.Component {
     );
   }
 }
+
+const mapStateToProps = (state, ownProps) => {
+  return {
+    text: state.minder.search.text
+  }
+};
+
+export default connect(mapStateToProps)(List);
