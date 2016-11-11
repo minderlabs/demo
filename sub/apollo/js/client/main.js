@@ -18,6 +18,9 @@
 // Muatations
 // Tools
 
+// TODO(burdon): Fragments
+// TODO(burdon): Mutations
+
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -61,6 +64,18 @@ window.addEventListener('error', (error) => {
 const networkInterface = createNetworkInterface({ uri: config.graphql });
 
 const apolloClient = new ApolloClient({
+
+  // http://dev.apollodata.com/react/cache-updates.html#dataIdFromObject
+  dataIdFromObject: (result) => {
+
+    // Extract the ID for types.
+    if (result.__typename && result.id) {
+      return result.__typename + '/' + result.id;
+    }
+
+    return null;
+  },
+
   networkInterface
 });
 

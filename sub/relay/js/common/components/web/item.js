@@ -52,7 +52,7 @@ class Item extends React.Component {
       <div>
         <i className="app-icon app-icon-medium app-icon-star material-icons"
            onClick={ this.handleToggleFavorite.bind(this) }>
-          { _.indexOf(item['labels'], Database.LABEL.FAVORITE) != -1 ? 'star': 'star_border' }
+          { _.indexOf(item['labels'], Database.LABEL.FAVORITE) == -1 ? 'star_border' : 'star' }
         </i>
 
         <div className="app-expand">

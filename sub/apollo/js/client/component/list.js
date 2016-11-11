@@ -12,14 +12,27 @@ import gql from 'graphql-tag';
 
 //
 // Queries
+// TODO(burdon): Naming standards?
 //
 
-const Query = gql`
-  query Items($userId: ID!, $text: String!) { 
+const GetItemsQuery = gql`
+  query GetItems($text: String!) { 
 
-    items(userId: $userId, text: $text) {
+    items(text: $text) {
       id
       title
+      labels
+    }
+  }
+`;
+
+// TODO(burdon): Individual actions?
+const UpdateLabelsMutation = gql`
+  mutation UpdateLabels($itemId: ID!, $labels: [ArrayDelta]!) {
+    
+    updateLabels(itemId: $itemId, labels: $labels) {
+      id
+      labels
     }
   }
 `;
@@ -30,7 +43,7 @@ const Query = gql`
  * http://dev.apollodata.com/react/higher-order-components.html
  */
 @withApollo
-@graphql(Query, {
+@graphql(GetItemsQuery, {
 
   // Configure query (from redux state).
   // http://dev.apollodata.com/react/queries.html#graphql-options
@@ -39,15 +52,32 @@ const Query = gql`
 
     return {
       variables: {
-        userId: state.userId,
         text: props.text
       }
     };
   }
 })
+@graphql(UpdateLabelsMutation, {
+
+  // TODO(burdon): Optimistic UI.
+  // http://dev.apollodata.com/react/mutations.html#optimistic-ui
+
+  props: ({ mutate }) => ({
+
+    updateLabels: (itemId, labels) => mutate({
+      variables: {
+        itemId: itemId,
+        labels: labels
+      }
+    })
+  })
+})
 class List extends React.Component {
 
   static propTypes = {
+
+    updateLabels: React.PropTypes.func.isRequired,
+
     data: React.PropTypes.shape({
 
       // System.
@@ -58,14 +88,41 @@ class List extends React.Component {
     })
   };
 
+  handleToggleFavorite(item) {
+
+    // Toggle
+    let index = _.indexOf(item.labels, '_favorite') == -1 ? 0 : -1;
+
+    // TODO(burdon): Mutation.
+    // http://dev.apollodata.com/react/mutations.html
+    this.props.updateLabels(item.id, [{ index: index, value: '_favorite' }])
+      .then(({ data }) => {
+        console.log('OK: %s', JSON.stringify(data));
+        item.labels = data.labels;
+      })
+      .catch((error) => {
+        console.error('Failed:', error);
+      });
+  }
+
   render() {
     let { items=[] } = this.props.data;
 
+    let rows = items.map(item => (
+      <div className="app-list-item app-row" key={ item.id }>
+        <i className="material-icons" onClick={ this.handleToggleFavorite.bind(this, item) }>
+          { _.indexOf(item.labels, '_favorite') == -1 ? 'star_border' : 'star' }</i>
+        <div className="app-expand">{ item.title }</div>
+      </div>)
+    );
+
     return (
-      <div className="app-column">
+      <div className="app-list app-column">
         <h3>Items</h3>
 
-        { items.map(item => <div key={ item.id }>{ item.title }</div>) }
+        <div>
+          { rows }
+        </div>
       </div>
     );
   }
