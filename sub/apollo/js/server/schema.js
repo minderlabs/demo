@@ -101,6 +101,11 @@ const resolvers = {
       };
     },
 
+    folders: (root, { userId }) => {
+      console.log('GET.FOLDERS[%s]', userId);
+      return []
+    },
+
     item: (root, { itemId }) => {
       console.log('GET.ITEM[%s]', itemId);
       return DATA.Item[itemId];
@@ -180,6 +185,7 @@ const schema = makeExecutableSchema({ typeDefs, resolvers, logger });
 // TODO(burdon): Write JSON object?
 // console.log(Object.keys(schema.getTypeMap()));
 
+// TODO(burdon): Factor out database and call generate in main.
 generate(100);
 
 export default schema;

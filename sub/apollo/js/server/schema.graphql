@@ -98,6 +98,13 @@ type Group implements Item {
   members: [User]!
 }
 
+type Folder implements Item {
+  id: ID!
+  type: String!
+  title: String!
+  labels: [String]!
+}
+
 type Task implements Item {
   id: ID!
   type: String!
@@ -122,8 +129,9 @@ type City implements Item {
 
 type RootQuery {
   viewer(userId: ID!): Viewer!
+  folders(userId: ID!): [Folder]!
   item(itemId: ID!): Item!
-  items(text: String, offset: Int, count: Int): [Item]!
+  items(text: String, offset: Int, count: Int): [Item]!   # TODO(burdon): Change to filter.
 }
 
 #

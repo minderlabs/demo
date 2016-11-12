@@ -51,6 +51,9 @@ class Home extends React.Component {
 
     // TODO(burdon): Move statusbar (e.g., loading, network stats) to parent layout.
 
+    // TODO(burdon): Get filter from store (add to query).
+    console.log(this.props.params.folder);
+
     return (
       <div className="app-column">
         <div className="app-section">

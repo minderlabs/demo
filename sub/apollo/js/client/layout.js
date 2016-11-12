@@ -11,6 +11,7 @@ import ApolloClient from 'apollo-client';
 
 import Detail from './view/detail';
 import Home from './view/home';
+
 import Monitor from './component/devtools';
 
 import './layout.less';
@@ -38,6 +39,8 @@ export default class Layout extends React.Component {
 
   render() {
 
+    // TODO(burdon): Sidebar and query folders (available to views in redux state?)
+
     // TODO(burdon): Skip DevTools in prod.
     // TODO(burdon): Display errors in status bar.
 
@@ -45,14 +48,18 @@ export default class Layout extends React.Component {
       <div className="app-main-container">
         <div className="app-main-panel">
 
-          <div className="app-section">
-            <Link to="/home">
-              <h1>Apollo React Redux Demo</h1>
-            </Link>
+          <div className="app-section app-header app-row">
+            <div className="app-expand">
+              <h1>Apollo Demo</h1>
+            </div>
+            <div>
+              <Link to="/inbox">Inbox</Link>
+              <Link to="/favorites">Favorites</Link>
+            </div>
           </div>
 
           <div className="app-column">
-            <Match pattern="/home" component={ Home }/>
+            <Match pattern="/:folder" component={ Home }/>
             <Match pattern="/detail/:itemId" component={ Detail }/>
             <Miss render={ () => <Redirect to="/home"/> }/>
           </div>
