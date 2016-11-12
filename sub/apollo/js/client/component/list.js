@@ -38,8 +38,9 @@ export class List extends React.Component {
 
   handleLabelUpdate(item, label, add=true) {
 
+    // TODO(burdon): Where should mutations be applied?
     // http://dev.apollodata.com/react/mutations.html
-    this.props.updateLabels(item.id, [{ index: add ? 0 : -1, value: label }])
+    this.props.updateLabels(item.id, [{ index: add ? 0 : -1, value: { string: label } }])
       .then(({ data }) => {
         console.log('OK: %s', JSON.stringify(data));
       });

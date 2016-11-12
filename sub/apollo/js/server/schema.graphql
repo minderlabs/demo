@@ -16,22 +16,36 @@
 #
 
 scalar Date
-
-scalar Void
+scalar Timestamp
+scalar Version
 
 #
 # Input types.
 #
 
+input Value {
+  int:      Int
+  float:    Float
+  string:   String
+  boolean:  Boolean
+  id:       ID
+
+  array:    ArrayDelta
+}
+
 input ArrayDelta {
   index: Int
-  value: Void!
+  value: Value!
 }
 
 input FieldDelta {
   field: String!
-  value: Void!
+  value: Value
 }
+
+#
+# Misc types.
+#
 
 type Geo {
   lat: Float!
@@ -67,6 +81,15 @@ type User implements Item {
   labels: [String]!
 
   username: String!
+}
+
+type Group implements Item {
+  id: ID!
+  type: String!
+  title: String!
+  labels: [String]!
+
+  members: [User]!
 }
 
 type Task implements Item {

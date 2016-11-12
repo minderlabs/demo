@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import TypeRegistry from '../component/type/registry';
+import TypeRegistry from '../component/registry';
 
 /**
  * Detail view.
@@ -50,6 +50,8 @@ class Detail extends React.Component {
 // TODO(burdon): Factor out queries.
 //
 
+// TODO(burdon): Dynamically change query fragments based on type? (why statically compiled AST?)
+
 const Query = gql`
   query Home($userId: ID!, $itemId: ID!) { 
 
@@ -70,8 +72,6 @@ const Query = gql`
     }
   }
 `;
-
-// TODO(burdon): Dynamically change query fragments based on type?
 
 const mapStateToProps = (state, ownProps) => {
   return {

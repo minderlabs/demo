@@ -27,7 +27,7 @@ export const TaskFragments = {
 export default class Task extends React.Component {
 
   static propTypes = {
-    item: TaskFragments.item.propType,
+    item: TaskFragments.item.propType
   };
 
   render() {
@@ -35,7 +35,7 @@ export default class Task extends React.Component {
       <div>
         <h3>Task</h3>
         <pre>
-          { this.props.item.status }
+          { JSON.stringify(_.pick(this.props.item, ['status']), 0, 2) }
         </pre>
       </div>
     );

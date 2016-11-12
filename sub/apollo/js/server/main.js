@@ -101,6 +101,9 @@ app.use('/graphiql', graphiqlExpress({
 // App
 //
 
+// TODO(burdon): Login.
+const userId = 'rich';
+
 const WEBPACK_ENTRY = {
   "development":  "main",
   "production":   "main",
@@ -115,7 +118,7 @@ app.get(/^\/(.*)/, function(req, res) {
     config: {
       root: 'app-root',
       graphql: '/graphql',
-      userId: 'minder',
+      userId: userId,
       debug: {
         env: env
       }

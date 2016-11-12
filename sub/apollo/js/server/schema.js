@@ -22,10 +22,12 @@ import typeDefs from './schema.graphql';
 
 const DATA = {
 
+  // TODO(burdon): Struture by type.
+
   User: {
-    minder: {
-      title: 'Minder',
-      username: 'minder'
+    rich: {
+      title: 'Rich Burdon',
+      username: 'rich'
     }
   },
 
@@ -67,9 +69,8 @@ const resolvers = {
   // http://dev.apollodata.com/tools/graphql-tools/scalars.html
   //
 
-  Void: {
+  Date: {
     __parseValue(value) {
-      // TODO(burdon): Other types.
       return String(value);
     }
   },
@@ -138,9 +139,9 @@ const resolvers = {
       item.labels = item.labels || [];
       _.each(labels, (delta) => {
         if (delta.index == -1) {
-          _.pull(item.labels, delta.value);
+          _.pull(item.labels, delta.value.value);
         } else {
-          item.labels = _.union(item.labels, [delta.value]);
+          item.labels = _.union(item.labels, [delta.value.string]);
         }
       });
 
@@ -151,10 +152,17 @@ const resolvers = {
 
 //
 // Schema
-//
+// http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#makeExecutableSchema
+// TODO(burdon): Modularize
+// http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#modularizing
 //
 
-const schema = makeExecutableSchema({ typeDefs, resolvers });
+const logger = { log: (e) => console.log(e) };
+
+const schema = makeExecutableSchema({ typeDefs, resolvers, logger });
+
+// TODO(burdon): Write JSON object?
+// console.log(Object.keys(schema.getTypeMap()));
 
 generate(100);
 

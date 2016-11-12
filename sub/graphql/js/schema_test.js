@@ -16,6 +16,7 @@ import {
 import { makeExecutableSchema, mockServer } from 'graphql-tools';
 
 import schema from './data/schema.graphql';
+
 import { DATA, resolvers } from './data/testing/resolvers';
 
 //
