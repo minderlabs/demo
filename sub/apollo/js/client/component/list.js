@@ -22,8 +22,7 @@ export class List extends React.Component {
 
     onItemSelect: React.PropTypes.func.isRequired,
 
-    // TODO(burdon): Generalize mutation.
-    updateLabels: React.PropTypes.func.isRequired,
+    updateItem: React.PropTypes.func.isRequired,
 
     data: React.PropTypes.shape({
       loading: React.PropTypes.bool.isRequired,
@@ -37,10 +36,23 @@ export class List extends React.Component {
   }
 
   handleLabelUpdate(item, label, add=true) {
+    let mutation = [
+      {
+        key: 'labels',
+        value: {
+          list: {
+            index: add ? 0 : -1,
+            value: {
+              string: label
+            }
+          }
+        }
+      }
+    ];
 
     // TODO(burdon): Where should mutations be applied?
     // http://dev.apollodata.com/react/mutations.html
-    this.props.updateLabels(item.id, [{ index: add ? 0 : -1, value: { string: label } }])
+    this.props.updateItem(item.id, mutation)
       .then(({ data }) => {
         console.log('OK: %s', JSON.stringify(data));
       });
@@ -93,12 +105,13 @@ const GetItemsQuery = gql`
   }
 `;
 
-const UpdateLabelsMutation = gql`
-  mutation UpdateLabels($itemId: ID!, $labels: [ArrayDelta]!) {
+const UpdateItemMutation = gql`
+  mutation UpdateItem($itemId: ID!, $deltas: [ObjectDelta]!) {
     
-    updateLabels(itemId: $itemId, labels: $labels) {
+    updateItem(itemId: $itemId, deltas: $deltas) {
       id
       labels
+      title
     }
   }
 `;
@@ -159,13 +172,13 @@ export default compose(
     }
   }),
 
-  graphql(UpdateLabelsMutation, {
+  graphql(UpdateItemMutation, {
 
     props: ({ mutate }) => ({
-      updateLabels: (itemId, labels) => mutate({
+      updateItem: (itemId, deltas) => mutate({
         variables: {
           itemId: itemId,
-          labels: labels
+          deltas: deltas
         },
 
         // TODO(burdon): Optimistic UI.

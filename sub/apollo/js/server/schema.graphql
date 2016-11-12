@@ -15,9 +15,10 @@
 # http://graphql.org/graphql-js/type
 #
 
-scalar Date
 scalar Timestamp
 scalar Version
+
+scalar Date
 
 #
 # Input types.
@@ -30,16 +31,21 @@ input Value {
   boolean:  Boolean
   id:       ID
 
-  array:    ArrayDelta
+  date:     Date
+
+  list:     ListDelta         # TODO(burdon): Bad names.
+  object:   ObjectDelta
+
+  values:   [Value]
 }
 
-input ArrayDelta {
+input ListDelta {
   index: Int
   value: Value!
 }
 
-input FieldDelta {
-  field: String!
+input ObjectDelta {
+  key: String!
   value: Value
 }
 
@@ -126,8 +132,7 @@ type RootQuery {
 
 type RootMutation {
 
-  # TODO(burdon): Generalize with FieldDelta.
-  updateLabels(itemId: ID!, labels: [ArrayDelta]!): Item!
+  updateItem(itemId: ID!, deltas: [ObjectDelta]!): Item!
 }
 
 #

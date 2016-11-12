@@ -132,16 +132,32 @@ const resolvers = {
 
   RootMutation: {
 
-    updateLabels: (root, { itemId, labels }) => {
-      console.log('MUTATION.UPDATE_LABELS', itemId, labels);
+    // TODO(burdon): Unit test.
+    // TODO(burdon): Move schema to ../graphql
+
+    updateItem: (root, { itemId, deltas }) => {
+      console.log('MUTATION.UPDATE', itemId, deltas);
 
       let item = DATA.Item[itemId];
-      item.labels = item.labels || [];
-      _.each(labels, (delta) => {
-        if (delta.index == -1) {
-          _.pull(item.labels, delta.value.value);
-        } else {
-          item.labels = _.union(item.labels, [delta.value.string]);
+      console.assert(item);
+
+      _.each(deltas, (delta) => {
+        let key = delta.key;
+        let value = delta.value;
+
+        // TODO(burdon): If scalar then just set.
+        if (value.list) {
+          let values = item[key] || [];
+
+          // TODO(burdon): Need to apply based on value type).
+          let delta = value.list;
+          if (delta.index == -1) {
+            _.pull(values, delta.value.string);
+          } else {
+            values = _.union(values, [delta.value.string]);
+          }
+
+          item[key] = values;
         }
       });
 
