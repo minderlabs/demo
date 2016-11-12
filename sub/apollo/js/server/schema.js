@@ -5,87 +5,27 @@
 'use strict';
 
 import _ from 'lodash';
-import { Kind } from 'graphql/language';
 import { makeExecutableSchema } from 'graphql-tools';
 
 import { Chance } from 'chance';
+
+import typeDefs from './schema.graphql';
+
+// TODO(burdon): Tests.
+// TODO(burdon): Factor out common schema (and database) for all demos?
+// TODO(burdon): Client mocking (use same schema) http://dev.apollodata.com/tools/graphql-tools/mocking.html
 
 //
 // Schema
 // http://graphql.org/learn
 //
 
-// TODO(burdon): Factor out common schema (and database) for all demos?
-
-// TODO(burdon): Factor out (share with sub/graphql).
-// TODO(burdon): Client mocking (use same schema) http://dev.apollodata.com/tools/graphql-tools/mocking.html
-
-const typeDefs = `
-  
-  # Custom scalars.
-  # http://graphql.org/learn/schema/#scalar-types
-  # http://dev.apollodata.com/tools/graphql-tools/scalars.html
-  # http://dev.apollodata.com/tools/graphql-tools/resolvers.html
-  # https://github.com/mugli/learning-graphql/blob/master/7.%20Deep%20Dive%20into%20GraphQL%20Type%20System.md
-  # http://graphql.org/graphql-js/type
-
-  scalar Date
-  
-  scalar Void
-    
-  input ArrayDelta {
-    index: Int
-    value: Void!
-  }
-
-  # Root node
-  
-  type Viewer {
-    id: ID!
-    user: User!
-  }
-
-  # Node types
-
-  type User {
-    id: ID!
-    name: String!
-  }
-  
-  type Item {
-    id: ID!
-    title: String!
-    labels: [String]!
-  }
-
-  # Queries
-
-  type RootQuery {
-    viewer(userId: ID!): Viewer!
-    item(itemId: ID!): Item!
-    items(text: String, offset: Int, count: Int): [Item]!
-  }
-  
-  # Mutations
-  
-  type RootMutation {
-    updateLabels(itemId: ID!, labels: [ArrayDelta]!): Item!
-  }
-  
-  # Schema
-
-  schema {
-    query: RootQuery
-    mutation: RootMutation
-  }
-
-`;
-
 const DATA = {
 
   User: {
     minder: {
-      name: 'Minder'
+      title: 'Minder',
+      username: 'minder'
     }
   },
 
@@ -93,29 +33,34 @@ const DATA = {
 };
 
 const generate = (n) => {
+  console.log('GENERATE: %d', n);
 
   const chance = new Chance(0);
-
   for (let i = 1; i <= n; i++) {
     let itemId = `i-${_.padStart(i, 3, '0')}`;
 
     DATA.Item[itemId] = {
       id: itemId,
+      type: 'City',
       title: chance.city(),
-      labels: chance.bool({ likelihood: 20 }) ? ['_favorite'] : []
+      labels: chance.bool({ likelihood: 20 }) ? ['_favorite'] : [],
+      geo: {
+        lat: chance.latitude(),
+        lng: chance.longitude()
+      }
     }
   }
 };
 
 //
 // Resolvers
+// TODO(burdon): Factor out database.
 // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
+// TODO(burdon): See args and return values (incl. promise).
+// http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
 //
 
 const resolvers = {
-
-  // TODO(burdon): Build map from Data (and set ID).
-  // TODO(burdon): What is the node property?
 
   //
   // Custom types.
@@ -123,9 +68,21 @@ const resolvers = {
   //
 
   Void: {
-    // TODO(burdon): Other types.
     __parseValue(value) {
+      // TODO(burdon): Other types.
       return String(value);
+    }
+  },
+
+  //
+  // Interfaces.
+  // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Unions-and-interfaces
+  //
+
+  Item: {
+    __resolveType(root, context, info) {
+      console.assert(root.type);
+      return root.type;
     }
   },
 
@@ -135,20 +92,20 @@ const resolvers = {
 
   RootQuery: {
 
-    viewer: (node, { userId }) => {
+    viewer: (root, { userId }) => {
       console.log('GET.VIEWER[%s]', userId);
       return {
         id: userId,
-        user: DATA.User[userId]
+        user: { id: userId, type: 'User', ...DATA.User[userId] }
       };
     },
 
-    item: (node, { itemId }) => {
+    item: (root, { itemId }) => {
       console.log('GET.ITEM[%s]', itemId);
       return DATA.Item[itemId];
     },
 
-    items: (node, { text, offset, count }) => {
+    items: (root, { text, offset, count }) => {
       console.log('GET.ITEMS[%d:%d][%s]', offset, count, text);
       text = _.lowerCase(text);
 
@@ -174,7 +131,7 @@ const resolvers = {
 
   RootMutation: {
 
-    updateLabels: (node, { itemId, labels }) => {
+    updateLabels: (root, { itemId, labels }) => {
       console.log('MUTATION.UPDATE_LABELS', itemId, labels);
 
       let item = DATA.Item[itemId];
@@ -194,6 +151,7 @@ const resolvers = {
 
 //
 // Schema
+//
 //
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });

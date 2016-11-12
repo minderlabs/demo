@@ -86,7 +86,7 @@ const Query = gql`
     viewer(userId: $userId) {
       id
       user {
-        name
+        title
       }
     }
   }

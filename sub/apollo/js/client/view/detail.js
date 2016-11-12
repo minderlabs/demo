@@ -9,6 +9,8 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
+import TypeRegistry from '../component/type/registry';
+
 /**
  * Detail view.
  */
@@ -24,13 +26,19 @@ class Detail extends React.Component {
   render() {
     let { item } = this.props.data;
 
+    let detail = item && TypeRegistry.render(item);
+
     return (
       <div className="app-column">
         <div className="app-section">
           <h1>Detail</h1>
-          <div>
-            { JSON.stringify(item) }
-          </div>
+          <pre>
+            { JSON.stringify(item, null, 2) }
+          </pre>
+        </div>
+
+        <div className="app-section">
+          { detail }
         </div>
       </div>
     );
@@ -48,17 +56,22 @@ const Query = gql`
     viewer(userId: $userId) {
       id
       user {
-        name
+        title
       }
     }
     
     item(itemId: $itemId) {
       id
+      type
       labels
       title
+      
+      ${_.map(TypeRegistry.names, (name) => '...' + name).join('\n')}
     }
   }
 `;
+
+// TODO(burdon): Dynamically change query fragments based on type?
 
 const mapStateToProps = (state, ownProps) => {
   return {
@@ -72,6 +85,8 @@ export default compose(
   graphql(Query, {
     options: (props) => {
       return {
+        fragments: TypeRegistry.fragments,
+
         variables: {
           userId: props.userId,
           itemId: props.params.itemId

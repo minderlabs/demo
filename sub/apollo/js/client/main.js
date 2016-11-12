@@ -12,6 +12,7 @@
 // https://medium.freecodecamp.com/tutorial-how-to-use-graphql-in-your-redux-app-9bf8ebbeb362#.m5mpkzy7k
 
 // TODO(burdon): Subscriptions.
+// https://github.com/apollostack/graphql-subscriptions (Redis/Rethink)
 // http://dev.apollodata.com/react/receiving-updates.html#Subscriptions
 // TODO(burdon): Caching (mobile/offline roadmap)?
 // http://dev.apollodata.com/react/receiving-updates.html
@@ -92,6 +93,7 @@ networkInterface.use([{
     request.query.definitions = _.filter(request.query.definitions, (definition) => {
       let name = definition.name.value;
       if (definitions[name]) {
+        console.warn('SKIPPING: %s', name);
         return false;
       } else {
         definitions[name] = true;

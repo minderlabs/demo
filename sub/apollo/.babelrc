@@ -15,7 +15,10 @@
     // https://babeljs.io/docs/plugins/transform-decorators
     // https://github.com/babel/babel/issues/2645
     // https://medium.com/google-developers/exploring-es7-decorators-76ecb65fb841#.60y0ukiag
-    "transform-decorators-legacy"
+    "transform-decorators-legacy",
+
+    // https://www.npmjs.com/package/babel-plugin-inline-import
+    "babel-plugin-inline-import"
   ],
 
   "env": {

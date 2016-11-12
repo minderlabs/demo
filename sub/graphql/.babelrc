@@ -5,6 +5,7 @@
   ],
 
   "plugins": [
+    // https://www.npmjs.com/package/babel-plugin-inline-import
     "babel-plugin-inline-import"
   ]
 }
