@@ -89,7 +89,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     onSearch: (value) => {
-      dispatch({ type: ACTION.MINDER_SEARCH, value });
+      dispatch({ type: ACTION.SEARCH, value });
     }
   }
 };

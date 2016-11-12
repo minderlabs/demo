@@ -9,7 +9,9 @@
  */
 export const ACTION = {
 
-  MINDER_SEARCH: 'MINDER_SEARCH'
+  NAVIGATE: 'APP_NAVIGATE',
+
+  SEARCH:   'APP_SEARCH'
 };
 
 /**
@@ -19,13 +21,15 @@ export const ACTION = {
  * @param config
  * @returns Redux state object.
  */
-export default (config) => {
+export const AppReducer = (config) => {
+
+  // TODO(burdon): Multiple reducers? Split by section?
 
   const initialSate = {
     minder: {
       userId: config.userId,
       search: {
-        text: 'A'
+        text: ''
       }
     }
   };
@@ -35,7 +39,7 @@ export default (config) => {
       console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
 
       switch (action.type) {
-        case ACTION.MINDER_SEARCH: {
+        case ACTION.SEARCH: {
           return _.set(state, 'search.text', action.value);
         }
       }

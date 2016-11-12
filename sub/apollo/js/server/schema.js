@@ -61,7 +61,8 @@ const typeDefs = `
   # Queries
 
   type RootQuery {
-    viewer(userId: ID!): Viewer
+    viewer(userId: ID!): Viewer!
+    item(itemId: ID!): Item!
     items(text: String, offset: Int, count: Int): [Item]!
   }
   
@@ -95,11 +96,11 @@ const generate = (n) => {
 
   const chance = new Chance(0);
 
-  for (let i = 0; i < n; i++) {
-    let id = `i-${_.pad(i,3)}`;
+  for (let i = 1; i <= n; i++) {
+    let itemId = `i-${_.padStart(i, 3, '0')}`;
 
-    DATA.Item[id] = {
-      id: id,
+    DATA.Item[itemId] = {
+      id: itemId,
       title: chance.city(),
       labels: chance.bool({ likelihood: 20 }) ? ['_favorite'] : []
     }
@@ -135,15 +136,20 @@ const resolvers = {
   RootQuery: {
 
     viewer: (node, { userId }) => {
-      console.log('QUERY.VIEWER[%s]', userId);
+      console.log('GET.VIEWER[%s]', userId);
       return {
         id: userId,
         user: DATA.User[userId]
       };
     },
 
+    item: (node, { itemId }) => {
+      console.log('GET.ITEM[%s]', itemId);
+      return DATA.Item[itemId];
+    },
+
     items: (node, { text, offset, count }) => {
-      console.log('QUERY.ITEMS[%d:%d][%s]', offset, count, text);
+      console.log('GET.ITEMS[%d:%d][%s]', offset, count, text);
       text = _.lowerCase(text);
 
       let items = [];

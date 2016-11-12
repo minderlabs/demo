@@ -20,8 +20,8 @@ export const ItemFragments = {
   item: new Fragment(gql`
     fragment ItemFragment on Item {
       id
-      title
       labels
+      title
     }
   `)
 
@@ -34,12 +34,16 @@ export class Item extends React.Component {
 
   static propTypes = {
     item: ItemFragments.item.propType,
+    onSelect: React.PropTypes.func.isRequired,
     onLabelUpdate: React.PropTypes.func.isRequired
   };
 
+  handleSelect() {
+    this.props.onSelect(this.props.item);
+  }
+
   handleToggleFavorite() {
     let { item } = this.props;
-
     this.props.onLabelUpdate(item, '_favorite', _.indexOf(item.labels, '_favorite') == -1);
   }
 
@@ -48,9 +52,14 @@ export class Item extends React.Component {
 
     return (
       <div className="app-list-item app-row">
-        <i className="material-icons" onClick={ this.handleToggleFavorite.bind(this) }>
-          { _.indexOf(item.labels, '_favorite') == -1 ? 'star_border' : 'star' }</i>
-        <div className="app-expand">{ item.title }</div>
+        <i className="material-icons"
+           onClick={ this.handleToggleFavorite.bind(this) }>
+          { _.indexOf(item.labels, '_favorite') == -1 ? 'star_border' : 'star' }
+        </i>
+
+        <div className="app-expand"
+           onClick={ this.handleSelect.bind(this) }>{ item.title }
+        </div>
       </div>
     );
   }

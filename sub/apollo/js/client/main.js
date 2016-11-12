@@ -38,10 +38,11 @@ import { BrowserRouter, Match } from 'react-router';
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import { ApolloProvider } from 'react-apollo';
 import ApolloClient, { createNetworkInterface } from 'apollo-client';
+import createBrowserHistory from 'history/createBrowserHistory'
 
 import moment from 'moment';
 
-import appReducers from './reducers';
+import { ACTION, AppReducer } from './reducers';
 
 import Application from './app';
 import Monitor from './component/devtools';
@@ -82,7 +83,8 @@ const TIMESTAMP = 'hh:mm:ss.SSS';
 // http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
 networkInterface.use([{
   applyMiddleware({ request }, next) {
-    console.log('[%s] >>>', moment().format(TIMESTAMP), _.pick(request, ['operationName', 'variables']));
+    console.log('[%s] >>>', moment().format(TIMESTAMP),
+      JSON.stringify(_.pick(request, ['operationName', 'variables'])));
 
     // TODO(burdon): Bug workaround (see list.js)
     // https://github.com/apollostack/apollo-client/issues/897
@@ -152,13 +154,32 @@ const apolloClient = new ApolloClient({
 // https://github.com/reactjs/react-redux
 //
 
+const history = createBrowserHistory();
+
+const initialRouterState = {
+  location: history.location,
+  action: history.action
+};
+
 const reducers = combineReducers({
 
   // Apollo framework reducer.
   apollo: apolloClient.reducer(),
 
+  // History router.
+  router: (state=initialRouterState, action) => {
+    if (action.type === ACTION.NAVIGATE) {
+      return {
+        location: action.location,
+        action: action.action
+      }
+    }
+
+    return state;
+  },
+
   // App reducers.
-  ...appReducers(config),
+  ...AppReducer(config),
 });
 
 const enhancer = compose(
@@ -184,7 +205,7 @@ function renderApp(App) {
   console.log('### [%s] ###', moment().format('hh:mm:ss'));
 
   ReactDOM.render(
-    <App config={ config } client={ apolloClient } store={ reduxStore }/>,
+    <App config={ config } history={ history } client={ apolloClient } store={ reduxStore }/>,
 
     document.getElementById(config.root)
   );

@@ -70,12 +70,14 @@
     "graphql-server-express": "^0.4.3",
     "graphql-tag": "^0.1.16",
     "graphql-tools": "^0.8.0",
+    "history": "^4.4.0",
     "moment": "^2.15.2",
     "random-seed": "^0.3.0",
     "react": "^15.3.2",
     "react-apollo": "^0.5.16",
     "react-dom": "^15.3.2",
     "react-router": "^4.0.0-alpha.5",
+    "react-router-addons-controlled": "0.0.1",
     "redux": "^3.6.0"
   },
   "scripts": {

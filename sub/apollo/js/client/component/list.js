@@ -20,6 +20,9 @@ export class List extends React.Component {
 
   static propTypes = {
 
+    onItemSelect: React.PropTypes.func.isRequired,
+
+    // TODO(burdon): Generalize mutation.
     updateLabels: React.PropTypes.func.isRequired,
 
     data: React.PropTypes.shape({
@@ -28,6 +31,10 @@ export class List extends React.Component {
       items: React.PropTypes.array
     })
   };
+
+  handleItemSelect(item) {
+    this.props.onItemSelect(item);
+  }
 
   handleLabelUpdate(item, label, add=true) {
 
@@ -55,6 +62,7 @@ export class List extends React.Component {
           {items.map(item =>
           <Item key={ item.id }
                 item={ ItemFragments.item.filter(item) }
+                onSelect={ this.handleItemSelect.bind(this, item) }
                 onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
           )}
         </div>

@@ -5,12 +5,13 @@
 'use strict';
 
 import React from 'react';
-import { Match, Miss, Redirect } from 'react-router';
-import { withApollo } from 'react-apollo';
+import { Link, Match, Miss, Redirect } from 'react-router';
+import { compose, withApollo } from 'react-apollo';
 import ApolloClient from 'apollo-client';
 
-import Monitor from './devtools';
-import Home from './home';
+import Detail from './view/detail';
+import Home from './view/home';
+import Monitor from './component/devtools';
 
 import './layout.less';
 
@@ -38,17 +39,21 @@ export default class Layout extends React.Component {
   render() {
 
     // TODO(burdon): Skip DevTools in prod.
-    // TODO(burdon): Display errors in status bar?
+    // TODO(burdon): Display errors in status bar.
 
     return (
       <div className="app-main-container">
         <div className="app-main-panel">
+
           <div className="app-section">
-            <h1>Apollo React Redux Demo</h1>
+            <Link to="/home">
+              <h1>Apollo React Redux Demo</h1>
+            </Link>
           </div>
 
           <div className="app-column">
             <Match pattern="/home" component={ Home }/>
+            <Match pattern="/detail/:itemId" component={ Detail }/>
             <Miss render={ () => <Redirect to="/home"/> }/>
           </div>
 

@@ -6,30 +6,13 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-import { graphql, withApollo } from 'react-apollo';
+import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import List from './list';
-import Search from './search';
+import { ACTION } from '../reducers';
 
-//
-// Queries
-//
-
-// TODO(burdon): DevTools.
-// TODO(burdon): Logging (and error handling).
-
-const Query = gql`
-  query Home($userId: ID!) { 
-
-    viewer(userId: $userId) {
-      id
-      user {
-        name
-      }
-    }
-  }
-`;
+import List from '../component/list';
+import Search from '../component/search';
 
 /**
  * Home View.
@@ -38,22 +21,7 @@ const Query = gql`
  * NOTES
  * @graphql creates a "Higher Order Component" (i.e., a smart container that wraps the "dumb" React component).
  * http://dev.apollodata.com/react/higher-order-components.html
- *
- * TODO(burdon): Does this replace Redux connect()?
  */
-@graphql(Query, {
-
-  // Configure query (from redux state).
-  // http://dev.apollodata.com/react/queries.html#graphql-options
-  options: (props) => {
-    return {
-      variables: {
-        userId: props.userId
-      }
-    };
-  }
-})
-@withApollo
 class Home extends React.Component {
 
   static propTypes = {
@@ -73,6 +41,10 @@ class Home extends React.Component {
     this.props.data.refetch();
   }
 
+  handleItemSelect(item) {
+    this.props.navigate(item.id);
+  }
+
   render() {
     // http://dev.apollodata.com/react/queries.html#default-result-props
     let { viewer } = this.props.data;
@@ -86,7 +58,7 @@ class Home extends React.Component {
         </div>
 
         <div className="app-section app-expand">
-          <List/>
+          <List onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
         <div className="app-section app-row">
@@ -103,11 +75,27 @@ class Home extends React.Component {
   }
 }
 
+//
+// Queries
+// TODO(burdon): List fragment.
+//
+
+const Query = gql`
+  query Home($userId: ID!) { 
+
+    viewer(userId: $userId) {
+      id
+      user {
+        name
+      }
+    }
+  }
+`;
+
 /**
  * Map Redux state onto component properties.
  * Called whenever the state is updated via a reducer.
  * The component is rerendered if DIRECT objects that are accessed are updated.
- * NOTE: Using @withApollo we could access this via props.client.store (==state)
  *
  * @param state
  * @param ownProps
@@ -115,13 +103,26 @@ class Home extends React.Component {
  */
 const mapStateToProps = (state, ownProps) => {
 
-  // TODO(burdon): Tools.
   // http://stackoverflow.com/questions/36815210/react-rerender-in-redux
   // http://redux.js.org/docs/FAQ.html#react-rendering-too-often
   // https://github.com/markerikson/redux-ecosystem-links/blob/master/devtools.md#component-update-monitoring
 
   return {
     userId: state.minder.userId
+  }
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    navigate: (itemId) => {
+      dispatch({
+        type: ACTION.NAVIGATE,
+        location: {
+          pathname: '/detail/' + itemId  // TODO(burdon): Const.
+        },
+        action: 'PUSH'
+      });
+    }
   }
 };
 
@@ -133,7 +134,19 @@ const mapStateToProps = (state, ownProps) => {
 // http://redux.js.org/docs/basics/ExampleTodoList.html
 //
 
-// TODO(burdon): Move apollo defs here? Or use compose?
-// http://dev.apollodata.com/react/higher-order-components.html#compose
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
 
-export default connect(mapStateToProps)(Home);
+  // Configure query (from redux state).
+  // http://dev.apollodata.com/react/queries.html#graphql-options
+  graphql(Query, {
+    options: (props) => {
+      return {
+        variables: {
+          userId: props.userId
+        }
+      };
+    }
+  })
+
+)(Home);
