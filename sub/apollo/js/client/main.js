@@ -73,20 +73,35 @@ window.addEventListener('error', (error) => {
 
 // TODO(burdon): Batching.
 // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
-// http://dev.apollodata.com/core/network.html#networkInterfaceAfterware
 const networkInterface = createNetworkInterface({
   uri: config.graphql
 });
 
 const TIMESTAMP = 'hh:mm:ss.SSS';
 
+// http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
 networkInterface.use([{
   applyMiddleware({ request }, next) {
     console.log('[%s] >>>', moment().format(TIMESTAMP), _.pick(request, ['operationName', 'variables']));
+
+    // TODO(burdon): Bug workaround (see list.js)
+    // https://github.com/apollostack/apollo-client/issues/897
+    let definitions = {};
+    request.query.definitions = _.filter(request.query.definitions, (definition) => {
+      let name = definition.name.value;
+      if (definitions[name]) {
+        return false;
+      } else {
+        definitions[name] = true;
+        return true;
+      }
+    });
+
     next();
   }
 }]);
 
+// http://dev.apollodata.com/core/network.html#networkInterfaceAfterware
 networkInterface.useAfter([{
   applyAfterware({ response }, next) {
     // https://github.com/apollostack/core-docs/issues/224
