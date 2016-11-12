@@ -50,6 +50,7 @@ export class List extends React.Component {
       }
     ];
 
+    // TODO(burdon): How to invalidate cache to update queries?
     // TODO(burdon): Where should mutations be applied?
     // http://dev.apollodata.com/react/mutations.html
     this.props.updateItem(item.id, mutation)

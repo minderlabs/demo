@@ -32,6 +32,13 @@
 //    - tools
 //  - Relay 2.0 looks sketchy (and moving towards Apollo)
 
+// NEXT
+// TODO(burdon): Edit title in detail.
+// TODO(burdon): Favorites/folders (how to invalidate cache)?
+// TODO(burdon): Factor out GraphQL and tests to ../graphql
+// TODO(burdon): Subscriptions.
+
+
 
 import React from 'react';
 import ReactDOM from 'react-dom';
