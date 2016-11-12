@@ -60,6 +60,8 @@ export class Item extends React.Component {
         <div className="app-expand"
            onClick={ this.handleSelect.bind(this) }>{ item.title }
         </div>
+
+        <div>{ item.id }</div>
       </div>
     );
   }

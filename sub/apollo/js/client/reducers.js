@@ -36,7 +36,7 @@ export const AppReducer = (config) => {
 
   return {
     minder: (state=initialSate.minder, action) => {
-      console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
+//    console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
 
       switch (action.type) {
         case ACTION.SEARCH: {

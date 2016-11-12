@@ -56,6 +56,8 @@ export class List extends React.Component {
   render() {
     let { items=[] } = this.props;
 
+    // TODO(burdon): Track scroll position in redux so that it can be restored.
+
     return (
       <div className="app-column app-list">
         <div ref="items" className="app-column app-scroll-container">

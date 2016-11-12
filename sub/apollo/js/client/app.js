@@ -26,19 +26,44 @@ class Application extends React.Component {
     store:    React.PropTypes.object.isRequired
   };
 
+  // https://github.com/ReactTraining/react-router-addons-controlled
   handleChange(location, action) {
-    this.props.dispatch({
-      type: ACTION.NAVIGATE,
-      action: (action === 'SYNC') ? this.props.action : action,
-      location
-    });
+    console.log('NAVIGATE[%s]: %s', action, location.pathname);
+
+    // SYNC | PUSH | POP
+    switch (action) {
+      case 'SYNC': {
+        this.props.dispatch({
+          type: ACTION.NAVIGATE,
+          location,
+          action: this.props.action
+        });
+        break;
+      }
+
+      default: {
+        // TODO(burdon): Prevent navigation if same path.
+        /*
+        if (location.pathname === this.props.location.pathname) {
+          break;
+        }
+        */
+
+        // TODO(burdon): Prevent navigate away.
+        this.props.dispatch({
+          type: ACTION.NAVIGATE,
+          location,
+          action
+        });
+      }
+    }
   }
 
   render() {
 
     //
     // Apollo + Router (v4)
-    // NOTE: Router Mmust use declarative component (not render) otherwise squashes router properties.
+    // NOTE: Router must use declarative component (not render) otherwise squashes router properties.
     // https://react-router.now.sh/quick-start
     // https://github.com/ReactTraining/react-router/tree/v4
     //
