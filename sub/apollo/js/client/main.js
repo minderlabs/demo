@@ -6,15 +6,18 @@
 
 
 // TODO(burdon): Apollo Evaluation:
+// https://www.reindex.io/blog/redux-and-relay
 // https://dev-blog.apollodata.com/apollo-client-graphql-with-react-and-redux-49b35d0f2641#.ovjpku8rm
 // https://medium.com/@codazeninc/choosing-a-graphql-client-apollo-vs-relay-9398dde5363a#.cf5fsaska
 // https://medium.freecodecamp.com/tutorial-how-to-use-graphql-in-your-redux-app-9bf8ebbeb362#.m5mpkzy7k
-//
-// https://www.reindex.io/blog/redux-and-relay
-//
-// TODO(burdon): Paging/Cursors
-// TODO(burdon): Native
-// TODO(burdon): Caching (mobile/offline roadmap)
+
+// TODO(burdon): Subscriptions.
+// http://dev.apollodata.com/react/receiving-updates.html#Subscriptions
+// TODO(burdon): Caching (mobile/offline roadmap)?
+// http://dev.apollodata.com/react/receiving-updates.html
+// TODO(burdon): Native?
+// TODO(burdon): Optimistic UI.
+// TODO(burdon): Update cache with updateQueries.
 
 // Benefits over Relay:
 //  - simplicity
@@ -38,9 +41,10 @@ import ApolloClient, { createNetworkInterface } from 'apollo-client';
 
 import moment from 'moment';
 
-import { Monitor } from './component/devtools';
+import appReducers from './reducers';
+
 import Application from './app';
-import Reducers from './reducers';
+import Monitor from './component/devtools';
 
 
 //
@@ -67,8 +71,47 @@ window.addEventListener('error', (error) => {
 // https://github.com/apollostack/GitHunt-React
 //
 
+// TODO(burdon): Batching.
+// https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
 // http://dev.apollodata.com/core/network.html#networkInterfaceAfterware
-const networkInterface = createNetworkInterface({ uri: config.graphql });
+const networkInterface = createNetworkInterface({
+  uri: config.graphql
+});
+
+const TIMESTAMP = 'hh:mm:ss.SSS';
+
+networkInterface.use([{
+  applyMiddleware({ request }, next) {
+    console.log('[%s] >>>', moment().format(TIMESTAMP), _.pick(request, ['operationName', 'variables']));
+    next();
+  }
+}]);
+
+networkInterface.useAfter([{
+  applyAfterware({ response }, next) {
+    // https://github.com/apollostack/core-docs/issues/224
+    // https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
+    response.clone().json().then((result) => {
+      console.log('[%s] <<<', moment().format(TIMESTAMP), JSON.stringify({
+        status: response.status,
+        data: result
+      }));
+    });
+
+    switch (response.status) {
+      case 200: {
+        break;
+      }
+
+      default: {
+        // TODO(burdon): How to propagate to components? Set Redux state?
+        console.error(response.statusText);
+      }
+    }
+
+    next();
+  }
+}]);
 
 const apolloClient = new ApolloClient({
 
@@ -87,23 +130,6 @@ const apolloClient = new ApolloClient({
   networkInterface
 });
 
-networkInterface.useAfter([{
-  applyAfterware({ response }, next) {
-    switch (response.status) {
-      case 200: {
-        console.log('Net: %s', moment().format('hh:mm:ss'));
-        break;
-      }
-
-      default: {
-        // TODO(burdon): How to propagate to components?
-        console.error(response.statusText);
-      }
-    }
-    next();
-  }
-}]);
-
 
 //
 // Redux
@@ -117,7 +143,7 @@ const reducers = combineReducers({
   apollo: apolloClient.reducer(),
 
   // App reducers.
-  ...Reducers(config),
+  ...appReducers(config),
 });
 
 const enhancer = compose(
@@ -131,10 +157,8 @@ const enhancer = compose(
   Monitor.instrument()
 );
 
-const preloadedState = {};
-
 // https://github.com/reactjs/redux/blob/master/docs/api/createStore.md
-const reduxStore = createStore(reducers, preloadedState, enhancer);
+const reduxStore = createStore(reducers, {}, enhancer);
 
 
 /**

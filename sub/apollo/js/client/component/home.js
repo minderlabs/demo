@@ -74,8 +74,6 @@ class Home extends React.Component {
   }
 
   render() {
-    let state = this.props.client.store.getState()['minder'];
-
     // http://dev.apollodata.com/react/queries.html#default-result-props
     let { viewer } = this.props.data;
 
@@ -89,11 +87,6 @@ class Home extends React.Component {
 
         <div className="app-section app-expand">
           <List/>
-        </div>
-
-        <div className="app-section">
-          <h3>State</h3>
-          <pre>{ JSON.stringify(state) }</pre>
         </div>
 
         <div className="app-section app-row">

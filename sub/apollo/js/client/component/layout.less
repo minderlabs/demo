@@ -54,6 +54,23 @@ i.material-icons {
 
     background-color: white;
     box-shadow: 4px 4px 16px #AAA;
+
+    > .app-section {
+      background-color: lightblue;
+      color: darkblue;
+    }
+  }
+}
+
+.app-list {
+  .app-scroll-container {
+    background-color: #F5F5F5;
+  }
+
+  .app-toolbar {
+    button {
+      font-size: 12px;
+    }
   }
 }
 
@@ -66,13 +83,16 @@ i.material-icons {
   flex-direction: column;
   flex-grow: 1;
   overflow-x: hidden;
-  overflow-y: scroll;
 }
 .app-column::-webkit-scrollbar {
   width: 4px;
 }
 .app-column::-webkit-scrollbar-thumb {
   background-color: #666;
+}
+
+.app-scroll-container {
+  overflow-y: scroll;
 }
 
 .app-row {

@@ -18,7 +18,10 @@ import LogMonitor from 'redux-devtools-log-monitor';
 // https://github.com/gaearon/redux-devtools-log-monitor
 //
 
-export const Monitor = createDevTools(
+// TODO(burdon): Time travel doesn't work with apollo?
+// https://github.com/apollostack/apollo-client/issues/701
+
+export default createDevTools(
   <DockMonitor defaultIsVisible={ true }
                changeMonitorKey="ctrl-m"
                toggleVisibilityKey="ctrl-h"

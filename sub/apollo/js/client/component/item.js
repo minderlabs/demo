@@ -9,12 +9,31 @@ import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
 
 /**
+ * Fragments.
+ */
+export const ItemFragments = {
+
+  // https://github.com/apollostack/graphql-fragments
+  // http://dev.apollodata.com/react/fragments.html
+  // http://dev.apollodata.com/core/fragments.html
+
+  item: new Fragment(gql`
+    fragment ItemFragment on Item {
+      id
+      title
+      labels
+    }
+  `)
+
+};
+
+/**
  * Item.
  */
 export class Item extends React.Component {
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired,
+    item: ItemFragments.item.propType,
     onLabelUpdate: React.PropTypes.func.isRequired
   };
 
@@ -36,24 +55,5 @@ export class Item extends React.Component {
     );
   }
 }
-
-//
-// Queries
-// TODO(burdon): Factor out bindings (keep component dry).
-//
-
-Item.fragments = {
-
-  // http://dev.apollodata.com/react/fragments.html
-
-  item: new Fragment(gql`
-    fragment ItemFragment on Item {
-      id
-      title
-      labels
-    }
-  `)
-
-};
 
 export default Item;

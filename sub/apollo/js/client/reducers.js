@@ -4,7 +4,6 @@
 
 'use strict';
 
-
 /**
  * Action types.
  */
@@ -13,40 +12,28 @@ export const ACTION = {
   MINDER_SEARCH: 'MINDER_SEARCH'
 };
 
-
 /**
- * Return app reducers.
+ * Compute initial state.
+ * http://redux.js.org/docs/api/Store.html
  *
  * @param config
- * @returns {Function}
+ * @returns Redux state object.
  */
 export default (config) => {
 
-  // TODO(burdon): Create layers.
-
-  //
-  // Redux state.
-  //
-
-  const initialState = {
-
-    userId: config.userId,
-
-    search: {
-      text: ''
+  const initialSate = {
+    minder: {
+      userId: config.userId,
+      search: {
+        text: 'A'
+      }
     }
   };
 
-  //
-  // Reducer.
-  //
-
   return {
-
-    // App reducers.
-    // http://redux.js.org/docs/api/Store.html
-    minder: (state=initialState, action) => {
+    minder: (state=initialSate.minder, action) => {
       console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
+
       switch (action.type) {
         case ACTION.MINDER_SEARCH: {
           return _.set(state, 'search.text', action.value);
@@ -56,4 +43,4 @@ export default (config) => {
       return state
     }
   };
-}
+};

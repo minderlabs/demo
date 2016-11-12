@@ -9,7 +9,7 @@ import { Match, Miss, Redirect } from 'react-router';
 import { withApollo } from 'react-apollo';
 import ApolloClient from 'apollo-client';
 
-import { Monitor, Chart } from './devtools';
+import Monitor from './devtools';
 import Home from './home';
 
 import './layout.less';
@@ -30,7 +30,9 @@ export default class Layout extends React.Component {
     // Provided by @withApollo
     // http://dev.apollodata.com/react/higher-order-components.html#withApollo
     // http://dev.apollodata.com/core/apollo-client-api.html#ObservableQuery.refetch
-    console.log('State = %s', JSON.stringify(this.props.client.store.getState()));
+    console.log('State = %s', JSON.stringify(this.props.client.store.getState()['minder'], (key, value) => {
+      return value;
+    }));
   }
 
   render() {

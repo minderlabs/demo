@@ -75,13 +75,22 @@ if (env === 'hot') {
 //
 // GraphQL
 // https://github.com/apollostack/graphql-server
+// https://github.com/graphql/express-graphql#options
 // http://dev.apollodata.com/tools/graphql-server/index.html
 //
 
 app.use(bodyParser.json());                           // JSON post (GraphQL).
 app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
 
-app.use('/graphql', bodyParser.json(), graphqlExpress({ schema: schema }));
+app.use('/graphql', bodyParser.json(), graphqlExpress({
+  schema: schema,
+  pretty: true,
+  formatError: error => ({
+    message: error.message,
+    locations: error.locations,
+    stack: error.stack
+  })
+}));
 
 app.use('/graphiql', graphiqlExpress({
   endpointURL: '/graphql',
