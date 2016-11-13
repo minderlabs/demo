@@ -161,6 +161,18 @@ export default compose(
           filter: updateFilter(filter, text),
           offset: 0,
           count: 10
+        },
+
+        // TODO(burdon): Use reducer to invalidate other cached queries?
+        // https://github.com/apollostack/apollo-client/issues/903
+        // http://dev.apollodata.com/react/cache-updates.html#resultReducers
+        reducer: (previousResult, action) => {
+          console.log('Reducer[%s]: %s', action.type, action.operationName);
+          if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === 'UpdateItemMutation') {
+            console.log('UpdateItemMutation');
+          }
+
+          return previousResult;
         }
       };
     },
@@ -195,7 +207,6 @@ export default compose(
   }),
 
   graphql(UpdateItemMutation, {
-
     props: ({ ownProps, mutate }) => ({
       updateItem: (itemId, deltas) => mutate({
         variables: {
@@ -236,12 +247,6 @@ export default compose(
               items: items
             };
           }
-        },
-
-        // TODO(burdon): Reducer?
-        // http://dev.apollodata.com/react/cache-updates.html#resultReducers
-        reducer: (previousResult, action) => {
-          console.log('Reducer: %s', JSON.stringify(action));
         }
       })
     })
