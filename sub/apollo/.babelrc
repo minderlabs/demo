@@ -18,6 +18,7 @@
     "transform-decorators-legacy",
 
     // https://www.npmjs.com/package/babel-plugin-inline-import
+    // NOTE: BABEL_DISABLE_CACHE=1 otherwise cached.
     "babel-plugin-inline-import"
   ],
 

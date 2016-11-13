@@ -6,7 +6,10 @@
 
 import React from 'react';
 import { Link, Match, Miss, Redirect } from 'react-router';
-import { compose, withApollo } from 'react-apollo';
+import { connect } from 'react-redux';
+import { compose, graphql, withApollo } from 'react-apollo';
+import gql from 'graphql-tag';
+
 import ApolloClient from 'apollo-client';
 
 import Detail from './view/detail';
@@ -20,7 +23,7 @@ import './layout.less';
  * Root Application.
  */
 @withApollo
-export default class Layout extends React.Component {
+class Layout extends React.Component {
 
   static propTypes = {
     client: React.PropTypes.instanceOf(ApolloClient).isRequired
@@ -72,3 +75,77 @@ export default class Layout extends React.Component {
     );
   }
 }
+
+//
+// Queries
+//
+
+const Query = gql`
+  query Layout($userId: ID!) { 
+
+    viewer(userId: $userId) {
+      id
+      user {
+        title
+      }
+    }
+  }
+`;
+
+//
+// Chain:
+// 1). Redux.connect(mapStateToProps(state)) => component.props
+// 2). => graphql.options(props) => query {variables}
+// 3). => graphql.props(oldProps, data) =>
+//
+// 1). Redux connect(mapStateToProps(state)) maps the app state to the components props.
+// 2). Apollo graphql(options(props)) maps component props to query variables.
+// 3). Apollo graphql(props(oldProps, data)) replaces the component's data property with custom
+//     properties (e.g., adding dispatcher).
+
+/**
+ * Map Redux state onto component properties.
+ * Called whenever the state is updated via a reducer.
+ * The component is rerendered if DIRECT objects that are accessed are updated.
+ *
+ * http://stackoverflow.com/questions/36815210/react-rerender-in-redux
+ * http://redux.js.org/docs/FAQ.html#react-rendering-too-often
+ * https://github.com/markerikson/redux-ecosystem-links/blob/master/devtools.md#component-update-monitoring
+ *
+ * @param state
+ * @param ownProps
+ * @returns {{active: string}}
+ */
+const mapStateToProps = (state, ownProps) => {
+  return {
+    userId: state.minder.userId
+  }
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {}
+};
+
+/**
+ * Connect creates the Redux Higher Order Object.
+ * NOTE: This keeps the Component dry (it defines the properties that it needs).
+ *
+ * http://redux.js.org/docs/basics/UsageWithReact.html
+ * http://redux.js.org/docs/basics/ExampleTodoList.html
+ */
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+
+  // Configure query (from redux state).
+  // http://dev.apollodata.com/react/queries.html#graphql-options
+  graphql(Query, {
+    options: (props) => {
+      return {
+        variables: {
+          userId: props.userId
+        }
+      };
+    }
+  })
+
+)(Layout);

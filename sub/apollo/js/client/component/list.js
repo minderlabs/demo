@@ -96,9 +96,9 @@ export class List extends React.Component {
 //
 
 const GetItemsQuery = gql`
-  query GetItems($text: String, $offset: Int, $count: Int) { 
+  query GetItems($filter: Filter, $offset: Int, $count: Int) { 
 
-    items(text: $text, offset: $offset, count: $count) {
+    items(filter: $filter, offset: $offset, count: $count) {
       id
       
       ...ItemFragment
@@ -118,10 +118,26 @@ const UpdateItemMutation = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
-
   return {
     text: state.minder.search.text
   }
+};
+
+/**
+ * Override current filter (redux state should trump filter set by parent).
+ * @param filter
+ * @param text
+ */
+const updateFilter = (filter, text) => {
+  filter = _.omitBy(filter, (v) => v === null);
+
+  if (text) {
+    filter = {
+      text: text
+    }
+  }
+
+  return filter;
 };
 
 export default compose(
@@ -130,35 +146,38 @@ export default compose(
 
   graphql(GetItemsQuery, {
 
-    // Configure query (from redux state).
+    // Configure query variables.
     // http://dev.apollodata.com/react/queries.html#graphql-options
-    options: ({ text }) => {
+    options: (props) => {
+      let { filter, text } = props;
+
       return {
         fragments: ItemFragments.item.fragments(),
 
         variables: {
-          text: text,
+          filter: updateFilter(filter, text),
           offset: 0,
           count: 10
         }
       };
     },
 
+    // Configure props passed to component.
+    // http://dev.apollodata.com/react/queries.html#graphql-props
     // http://dev.apollodata.com/react/pagination.html
-    props({ ownProps: { text }, data: { loading, items, fetchMore } }) {
+    props: ({ data, ownProps }) => {
+      let { loading, items, fetchMore } = data;
+      let { filter, text } = ownProps;
+
       return {
         loading,
-        text,
         items,
 
-        // TODO(burdon): Paging bug when non-null text filter.
-        // https://github.com/apollostack/apollo-client/issues/897
-        // "There can only be one fragment named ItemFragment" (from server).
         // http://dev.apollodata.com/react/cache-updates.html#fetchMore
-        fetchMoreItems() {
+        fetchMoreItems: () => {
           return fetchMore({
             variables: {
-              text: text,
+              filter: updateFilter(filter, text),
               offset: items.length
             },
 

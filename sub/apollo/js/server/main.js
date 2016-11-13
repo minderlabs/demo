@@ -12,8 +12,12 @@ import bodyParser from 'body-parser';
 import moment from 'moment';
 
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
+import { makeExecutableSchema } from 'graphql-tools';
 
-import schema from './schema';
+import Resolvers from '../data/resolvers';
+import Database from '../data/database';
+import Randomizer from '../data/testing/randomizer';
+import TypeDefs from '../data/schema.graphql';
 
 
 //
@@ -73,6 +77,45 @@ if (env === 'hot') {
 
 
 //
+// Schema and Database
+//
+
+let database = new Database();
+
+// TODO(burdon): Login.
+const userId = 'rich';
+
+database.upsertItems([
+  {
+    id: userId,
+    type: 'User',
+    title: 'Rich Burdon',
+    username: 'rich'
+  }
+]);
+
+database.upsertItems([
+  {
+    id: 'inbox',
+    type: 'Folder',
+    title: 'Inbox'
+  },
+  {
+    id: 'favorites',
+    type: 'Folder',
+    title: 'Favorites',
+    filter: {
+      labels: ['_favorite']
+    }
+  },
+]);
+
+// TODO(burdon): Trigger from webhook.
+new Randomizer(database)
+  .generate('City', 100);
+
+
+//
 // GraphQL
 // https://github.com/apollostack/graphql-server
 // https://github.com/graphql/express-graphql#options
@@ -81,6 +124,14 @@ if (env === 'hot') {
 
 app.use(bodyParser.json());                           // JSON post (GraphQL).
 app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
+
+const schema = makeExecutableSchema({
+  typeDefs: TypeDefs,
+  resolvers: Resolvers(database),
+  logger: {
+    log: (error) => console.log('Schema Error', error)
+  }
+});
 
 app.use('/graphql', bodyParser.json(), graphqlExpress({
   schema: schema,
@@ -100,9 +151,6 @@ app.use('/graphiql', graphiqlExpress({
 //
 // App
 //
-
-// TODO(burdon): Login.
-const userId = 'rich';
 
 const WEBPACK_ENTRY = {
   "development":  "main",

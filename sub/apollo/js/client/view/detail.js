@@ -47,7 +47,6 @@ class Detail extends React.Component {
 
 //
 // Queries
-// TODO(burdon): Factor out queries.
 //
 
 // TODO(burdon): Dynamically change query fragments based on type? (why statically compiled AST?)

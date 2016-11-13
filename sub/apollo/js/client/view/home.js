@@ -24,21 +24,10 @@ import Search from '../component/search';
  */
 class Home extends React.Component {
 
-  static propTypes = {
-
-    // Provided by apollo.
-    // http://dev.apollodata.com/react/queries.html#default-result-props
-    data: React.PropTypes.shape({
-      loading: React.PropTypes.bool.isRequired,
-
-      // Query result.
-      viewer: React.PropTypes.object
-    })
-  };
-
   handleRefresh() {
+    // TODO(burdon): Refetch list.
     // http://dev.apollodata.com/core/apollo-client-api.html#QuerySubscription
-    this.props.data.refetch();
+    this.props.refetch();
   }
 
   handleItemSelect(item) {
@@ -47,12 +36,9 @@ class Home extends React.Component {
 
   render() {
     // http://dev.apollodata.com/react/queries.html#default-result-props
-    let { viewer } = this.props.data;
+    let { filter } = this.props;
 
     // TODO(burdon): Move statusbar (e.g., loading, network stats) to parent layout.
-
-    // TODO(burdon): Get filter from store (add to query).
-    console.log(this.props.params.folder);
 
     return (
       <div className="app-column">
@@ -61,7 +47,7 @@ class Home extends React.Component {
         </div>
 
         <div className="app-section app-expand">
-          <List onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <List filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
         <div className="app-section app-row">
@@ -70,7 +56,7 @@ class Home extends React.Component {
           </div>
 
           <div>
-            <div>{ this.props.data.loading ? 'LOADING' : this.props.data.error ? 'ERROR' : 'OK' }</div>
+            <div>{ this.props.loading ? 'LOADING' : this.props.error ? 'ERROR' : 'OK' }</div>
           </div>
         </div>
       </div>
@@ -80,8 +66,9 @@ class Home extends React.Component {
 
 //
 // Queries
-// TODO(burdon): List fragment.
 //
+
+// TODO(burdon): Factor out filter fragment (cannot request all).
 
 const Query = gql`
   query Home($userId: ID!) { 
@@ -92,24 +79,19 @@ const Query = gql`
         title
       }
     }
+    
+    folders(userId: $userId) {
+      id
+      filter {
+        type
+        labels
+        text
+      }
+    }
   }
 `;
 
-/**
- * Map Redux state onto component properties.
- * Called whenever the state is updated via a reducer.
- * The component is rerendered if DIRECT objects that are accessed are updated.
- *
- * @param state
- * @param ownProps
- * @returns {{active: string}}
- */
 const mapStateToProps = (state, ownProps) => {
-
-  // http://stackoverflow.com/questions/36815210/react-rerender-in-redux
-  // http://redux.js.org/docs/FAQ.html#react-rendering-too-often
-  // https://github.com/markerikson/redux-ecosystem-links/blob/master/devtools.md#component-update-monitoring
-
   return {
     userId: state.minder.userId
   }
@@ -121,7 +103,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       dispatch({
         type: ACTION.NAVIGATE,
         location: {
-          pathname: '/detail/' + itemId  // TODO(burdon): Const.
+          pathname: '/detail/' + itemId   // TODO(burdon): Const.
         },
         action: 'PUSH'
       });
@@ -129,26 +111,40 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   }
 };
 
-//
-// Connect creates the Redux Higher Order Object.
-// NOTE: This keeps the Component dry (it defines the properties that it needs).
-//
-// http://redux.js.org/docs/basics/UsageWithReact.html
-// http://redux.js.org/docs/basics/ExampleTodoList.html
-//
-
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
 
-  // Configure query (from redux state).
-  // http://dev.apollodata.com/react/queries.html#graphql-options
   graphql(Query, {
+
     options: (props) => {
       return {
         variables: {
           userId: props.userId
         }
       };
+    },
+
+    props: ({ data, ownProps }) => {
+      let { loading, error, refetch, folders } = data;
+
+      // Match current folder.
+      // TODO(burdon): Handler error/redirect if not found.
+      let filter = {};
+      _.each(folders, (folder) => {
+        // TODO(burdon): Match folder's short name rather than ID.
+        if (folder.id == ownProps.params.folder) {
+          filter = _.omit(folder.filter, '__typename');
+          return false;
+        }
+      });
+
+      return {
+        loading,
+        error,
+        refetch,
+        folders,
+        filter
+      }
     }
   })
 

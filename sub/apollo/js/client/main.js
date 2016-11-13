@@ -88,14 +88,18 @@ const networkInterface = createNetworkInterface({
 
 const TIMESTAMP = 'hh:mm:ss.SSS';
 
+//
 // http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
+//
+
 networkInterface.use([{
   applyMiddleware({ request }, next) {
-    console.log('[%s] >>>', moment().format(TIMESTAMP),
-      JSON.stringify(_.pick(request, ['operationName', 'variables'])));
+    console.log('[%s] >>> [%s]: %s', moment().format(TIMESTAMP),
+      request.operationName, JSON.stringify(request.variables));
 
-    // TODO(burdon): Bug workaround (see list.js)
+    // TODO(burdon): Paging bug when non-null text filter.
     // https://github.com/apollostack/apollo-client/issues/897
+    // "There can only be one fragment named ItemFragment" (from server).
     let definitions = {};
     request.query.definitions = _.filter(request.query.definitions, (definition) => {
       let name = definition.name.value;
@@ -112,30 +116,34 @@ networkInterface.use([{
   }
 }]);
 
+//
 // http://dev.apollodata.com/core/network.html#networkInterfaceAfterware
+// https://github.com/apollostack/apollo-client/issues/657
+//
+
 networkInterface.useAfter([{
   applyAfterware({ response }, next) {
     // https://github.com/apollostack/core-docs/issues/224
     // https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
-    response.clone().json().then((result) => {
-      console.log('[%s] <<<', moment().format(TIMESTAMP), JSON.stringify({
-        status: response.status,
-        data: result
-      }));
-    });
+    if (!response.ok) {
+      response.clone().text().then(bodyText => {
+        console.error(`Network Error [ ${response.status}]: (${response.statusText}) (${bodyText})`);
+        next();
+      });
+    } else {
+      response.clone().json().then((result) => {
+        let { data, errors } = result;
 
-    switch (response.status) {
-      case 200: {
-        break;
-      }
+        if (errors) {
+          console.error('GraphQL Error:', errors.map(error => error.message));
+        } else {
+          console.log('[%s] <<<', moment().format(TIMESTAMP),
+            JSON.stringify(data, (key, value) => { return _.isArray(value) ? value.length : value }));
+        }
 
-      default: {
-        // TODO(burdon): How to propagate to components? Set Redux state?
-        console.error(response.statusText);
-      }
+        next();
+      });
     }
-
-    next();
   }
 }]);
 

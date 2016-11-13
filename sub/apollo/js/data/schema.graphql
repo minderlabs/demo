@@ -77,14 +77,14 @@ interface Item {
   id: ID!
   type: String!
   title: String!
-  labels: [String]!
+  labels: [String]
 }
 
 type User implements Item {
   id: ID!
   type: String!
   title: String!
-  labels: [String]!
+  labels: [String]
 
   username: String!
 }
@@ -93,7 +93,7 @@ type Group implements Item {
   id: ID!
   type: String!
   title: String!
-  labels: [String]!
+  labels: [String]
 
   members: [User]!
 }
@@ -102,14 +102,16 @@ type Folder implements Item {
   id: ID!
   type: String!
   title: String!
-  labels: [String]!
+  labels: [String]
+
+  filter: FilterDef
 }
 
 type Task implements Item {
   id: ID!
   type: String!
   title: String!
-  labels: [String]!
+  labels: [String]
 
   status: Int!
 }
@@ -118,20 +120,34 @@ type City implements Item {
   id: ID!
   type: String!
   title: String!
-  labels: [String]!
+  labels: [String]
 
   geo: Geo
 }
 
 #
 # Queries.
+# NOTE: Must only have Input types (since regular types might be recursive and therefore not serializable).
+# https://github.com/graphql/graphql-js/issues/312
 #
+
+input Filter {
+  type: String
+  labels: [String]
+  text: String
+}
+
+type FilterDef {
+  type: String
+  labels: [String]
+  text: String
+}
 
 type RootQuery {
   viewer(userId: ID!): Viewer!
   folders(userId: ID!): [Folder]!
   item(itemId: ID!): Item!
-  items(text: String, offset: Int, count: Int): [Item]!   # TODO(burdon): Change to filter.
+  items(filter: Filter, offset: Int, count: Int): [Item]!
 }
 
 #

@@ -85,11 +85,13 @@
   "scripts": {
     "//": [
       "nodemon => babel-node: runs the server with auto-rebuild (via babel) on change.",
-      "start => runs the server with hot module replacement (server not updated)"
+      "start => runs the server with hot module replacement (server not updated)",
+
+      "NOTE: nodemon seems to cache .graphql imports"
     ],
     "webpack": "webpack --watch",
-    "babel-node": "babel-node js/server/main.js",
+    "babel-node": "BABEL_DISABLE_CACHE=1 babel-node js/server/main.js",
     "nodemon": "nodemon --exec npm run babel-node",
-    "start": "BABEL_ENV=hot NODE_ENV=hot babel-node js/server/main.js"
+    "start": "BABEL_DISABLE_CACHE=1 BABEL_ENV=hot NODE_ENV=hot babel-node js/server/main.js"
   }
 }
