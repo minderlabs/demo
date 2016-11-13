@@ -18,6 +18,10 @@ import Item, { ItemFragments } from './item';
  */
 export class List extends React.Component {
 
+  static contextTypes = {
+    queryRegistry: React.PropTypes.object
+  };
+
   static propTypes = {
 
     onItemSelect: React.PropTypes.func.isRequired,
@@ -25,11 +29,13 @@ export class List extends React.Component {
     updateItem: React.PropTypes.func.isRequired,
 
     data: React.PropTypes.shape({
-      loading: React.PropTypes.bool.isRequired,
-
       items: React.PropTypes.array
     })
   };
+
+  componentWillReceiveProps(nextProps) {
+    this.context.queryRegistry.register(this, nextProps.data);
+  }
 
   handleItemSelect(item) {
     this.props.onItemSelect(item);
@@ -50,13 +56,7 @@ export class List extends React.Component {
       }
     ];
 
-    // TODO(burdon): How to invalidate cache to update queries?
-    // TODO(burdon): Where should mutations be applied?
-    // http://dev.apollodata.com/react/mutations.html
-    this.props.updateItem(item.id, mutation)
-      .then(({ data }) => {
-        console.log('OK: %s', JSON.stringify(data));
-      });
+    this.props.updateItem(item.id, mutation);
   }
 
   handleMore() {
@@ -68,7 +68,7 @@ export class List extends React.Component {
   }
 
   render() {
-    let { items=[] } = this.props;
+    let { items=[] } = this.props.data;
 
     // TODO(burdon): Track scroll position in redux so that it can be restored.
 
@@ -95,8 +95,8 @@ export class List extends React.Component {
 // Queries
 //
 
-const GetItemsQuery = gql`
-  query GetItems($filter: Filter, $offset: Int, $count: Int) { 
+const ItemsQuery = gql`
+  query ItemsQuery($filter: Filter, $offset: Int, $count: Int) { 
 
     items(filter: $filter, offset: $offset, count: $count) {
       id
@@ -107,7 +107,7 @@ const GetItemsQuery = gql`
 `;
 
 const UpdateItemMutation = gql`
-  mutation UpdateItem($itemId: ID!, $deltas: [ObjectDelta]!) {
+  mutation UpdateItemMutation($itemId: ID!, $deltas: [ObjectDelta]!) {
     
     updateItem(itemId: $itemId, deltas: $deltas) {
       id
@@ -118,8 +118,11 @@ const UpdateItemMutation = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
+  let { minder } = state;
+
   return {
-    text: state.minder.search.text
+    matcher: minder.matcher,
+    text: minder.search.text
   }
 };
 
@@ -144,7 +147,7 @@ export default compose(
 
   connect(mapStateToProps),
 
-  graphql(GetItemsQuery, {
+  graphql(ItemsQuery, {
 
     // Configure query variables.
     // http://dev.apollodata.com/react/queries.html#graphql-options
@@ -165,13 +168,12 @@ export default compose(
     // Configure props passed to component.
     // http://dev.apollodata.com/react/queries.html#graphql-props
     // http://dev.apollodata.com/react/pagination.html
-    props: ({ data, ownProps }) => {
-      let { loading, items, fetchMore } = data;
+    props: ({ ownProps, data }) => {
+      let { items, refetch, fetchMore } = data;
       let { filter, text } = ownProps;
 
       return {
-        loading,
-        items,
+        data,
 
         // http://dev.apollodata.com/react/cache-updates.html#fetchMore
         fetchMoreItems: () => {
@@ -194,7 +196,7 @@ export default compose(
 
   graphql(UpdateItemMutation, {
 
-    props: ({ mutate }) => ({
+    props: ({ ownProps, mutate }) => ({
       updateItem: (itemId, deltas) => mutate({
         variables: {
           itemId: itemId,
@@ -204,17 +206,43 @@ export default compose(
         // TODO(burdon): Optimistic UI.
         // http://dev.apollodata.com/react/optimistic-ui.html
         // http://dev.apollodata.com/react/mutations.html#optimistic-ui
-        optimisticResponse: {},
+        // optimisticResponse: {},
 
-        // TODO(burdon): Reducer.
-        // http://dev.apollodata.com/react/cache-updates.html#resultReducers
-        reducer: (previousResult, action) => {
-          console.log('reducer: %s', JSON.stringify(action));
+        // Called after optimisticResponse and once mutation has been returned from server.
+        // https://github.com/apollostack/apollo-client/issues/621
+        // http://dev.apollodata.com/react/cache-updates.html#updateQueries
+        updateQueries: {
+          ItemsQuery: (prev, { mutationResult, queryVariables }) => {
+            // TODO(burdon): Doesn't update other queries (e.g., favorites).
+
+            // TODO(burdon): Factor out.
+            // Check if mutated item still matched current filter.
+            let mutatedItem = mutationResult.data.updateItem;
+            console.assert(mutatedItem);
+            let match = ownProps.matcher.match(queryVariables.filter, mutatedItem);
+
+            let items = [];
+            _.each(prev.items, (item) => {
+              if (item.id === mutatedItem.id) {
+                if (match) {
+                  items.push(mutatedItem);
+                }
+              } else {
+                items.push(item);
+              }
+            });
+
+            return {
+              items: items
+            };
+          }
         },
 
-        // TODO(burdon): Check query miss.
-        // http://dev.apollodata.com/react/cache-updates.html#updateQueries
-        updateQueries: {}
+        // TODO(burdon): Reducer?
+        // http://dev.apollodata.com/react/cache-updates.html#resultReducers
+        reducer: (previousResult, action) => {
+          console.log('Reducer: %s', JSON.stringify(action));
+        }
       })
     })
   })

@@ -90,6 +90,8 @@ export default (database) => {
       // TODO(burdon): Unit test.
       // TODO(burdon): Move schema to ../graphql
 
+      // http://dev.apollodata.com/react/receiving-updates.html
+
       updateItem: (root, { itemId, deltas }) => {
         console.log('MUTATION.UPDATE', itemId, deltas);
 

@@ -6,6 +6,8 @@
 
 import _ from 'lodash';
 
+import Matcher from './matcher';
+
 /**
  * In-memory database.
  */
@@ -30,6 +32,9 @@ export default class Database {
   constructor() {
     // Items indexed by ID.
     this._items = new Map();
+
+    // Query matcher.
+    this._matcher = new Matcher();
   }
 
   upsertItems(items) {
@@ -51,23 +56,9 @@ export default class Database {
   }
 
   queryItems(filter, offset=0, count=10) {
-    let text = _.lowerCase(filter.text);
-
-    // TODO(burdon): Factor out matcher.
     let items = [];
     this._items.forEach((item) => {
-      // Type match.
-      if (filter.type && filter.type != item.type) {
-        return;
-      }
-
-      // Label match.
-      if (filter.labels && _.intersection(filter.labels, item.labels).length == 0) {
-        return;
-      }
-
-      // Text match.
-      if (text && _.lowerCase(item.title).indexOf(text) == -1) {
+      if (!this._matcher.match(filter, item)) {
         return;
       }
 

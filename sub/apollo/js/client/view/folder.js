@@ -15,20 +15,27 @@ import List from '../component/list';
 import Search from '../component/search';
 
 /**
- * Home View.
+ * Folder View.
  * http://dev.apollodata.com/react
  *
  * NOTES
  * @graphql creates a "Higher Order Component" (i.e., a smart container that wraps the "dumb" React component).
  * http://dev.apollodata.com/react/higher-order-components.html
  */
-class Home extends React.Component {
+class FolderView extends React.Component {
 
-  handleRefresh() {
-    // TODO(burdon): Refetch list.
-    // http://dev.apollodata.com/core/apollo-client-api.html#QuerySubscription
-    this.props.refetch();
-  }
+  static contextTypes = {
+    queryRegistry: React.PropTypes.object
+  };
+
+  static propTypes = {
+
+    data: React.PropTypes.shape({
+
+      viewer: React.PropTypes.object.isRequired,
+      folders: React.PropTypes.array.isRequired
+    })
+  };
 
   handleItemSelect(item) {
     this.props.navigate(item.id);
@@ -49,16 +56,6 @@ class Home extends React.Component {
         <div className="app-section app-expand">
           <List filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
-
-        <div className="app-section app-row">
-          <div className="app-row app-expand">
-            <button onClick={ this.handleRefresh.bind(this) }>Refresh</button>
-          </div>
-
-          <div>
-            <div>{ this.props.loading ? 'LOADING' : this.props.error ? 'ERROR' : 'OK' }</div>
-          </div>
-        </div>
       </div>
     );
   }
@@ -70,8 +67,8 @@ class Home extends React.Component {
 
 // TODO(burdon): Factor out filter fragment (cannot request all).
 
-const Query = gql`
-  query Home($userId: ID!) { 
+const FolderQuery = gql`
+  query FolderQuery($userId: ID!) { 
 
     viewer(userId: $userId) {
       id
@@ -114,7 +111,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
 
-  graphql(Query, {
+  graphql(FolderQuery, {
 
     options: (props) => {
       return {
@@ -124,8 +121,12 @@ export default compose(
       };
     },
 
-    props: ({ data, ownProps }) => {
+    props: ({ ownProps, data }) => {
       let { loading, error, refetch, folders } = data;
+
+      // TODO(burdon): This happens too late. On load, options above has no filter and causes the list
+      // to be rendered, then we are called and update the filter resulting in flickering results (2 server calls).
+      // solution should be to update redux state and address that above.
 
       // Match current folder.
       // TODO(burdon): Handler error/redirect if not found.
@@ -148,4 +149,4 @@ export default compose(
     }
   })
 
-)(Home);
+)(FolderView);

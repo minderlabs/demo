@@ -12,8 +12,8 @@ import gql from 'graphql-tag';
 
 import ApolloClient from 'apollo-client';
 
-import Detail from './view/detail';
-import Home from './view/home';
+import DetailView from './view/detail';
+import FolderView from './view/folder';
 
 import Monitor from './component/devtools';
 
@@ -24,6 +24,10 @@ import './layout.less';
  */
 @withApollo
 class Layout extends React.Component {
+
+  static contextTypes = {
+    queryRegistry: React.PropTypes.object
+  };
 
   static propTypes = {
     client: React.PropTypes.instanceOf(ApolloClient).isRequired
@@ -38,6 +42,10 @@ class Layout extends React.Component {
     console.log('State = %s', JSON.stringify(this.props.client.store.getState()['minder'], (key, value) => {
       return value;
     }));
+  }
+
+  handleRefresh() {
+    this.context.queryRegistry.refetch();
   }
 
   render() {
@@ -62,9 +70,19 @@ class Layout extends React.Component {
           </div>
 
           <div className="app-column">
-            <Match pattern="/:folder" component={ Home }/>
-            <Match pattern="/detail/:itemId" component={ Detail }/>
-            <Miss render={ () => <Redirect to="/home"/> }/>
+            <Match pattern="/detail/:itemId" component={ DetailView }/>
+            <Match pattern="/:folder" exactly={ true } component={ FolderView }/>
+            <Miss render={ () => <Redirect to="/inbox"/> }/>
+          </div>
+
+          <div className="app-section app-footer app-row">
+            <div className="app-row app-expand">
+              <button onClick={ this.handleRefresh.bind(this) }>Refresh</button>
+            </div>
+
+            <div>
+              <div>{ this.props.data.loading ? 'LOADING' : this.props.data.error ? 'ERROR' : 'OK' }</div>
+            </div>
           </div>
 
           <div className="app-debug">

@@ -18,15 +18,17 @@ export const ACTION = {
  * Compute initial state.
  * http://redux.js.org/docs/api/Store.html
  *
- * @param config
+ * @param config App configuration (provided by server).
+ * @param matcher Item matcher.
  * @returns Redux state object.
  */
-export const AppReducer = (config) => {
+export const AppReducer = (config, matcher) => {
 
   // TODO(burdon): Multiple reducers? Split by section?
 
   const initialSate = {
     minder: {
+      matcher: matcher,
       userId: config.userId,
       search: {
         text: ''

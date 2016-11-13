@@ -19,12 +19,22 @@ import Layout from './layout';
  */
 class Application extends React.Component {
 
+  static childContextTypes = {
+    queryRegistry: React.PropTypes.object
+  };
+
   static propTypes = {
     config:   React.PropTypes.object.isRequired,
     history:  React.PropTypes.object.isRequired,
     client:   React.PropTypes.object.isRequired,
     store:    React.PropTypes.object.isRequired
   };
+
+  getChildContext() {
+    return {
+      queryRegistry: this.props.queryRegistry,
+    }
+  }
 
   // https://github.com/ReactTraining/react-router-addons-controlled
   handleChange(location, action) {
@@ -36,7 +46,7 @@ class Application extends React.Component {
         this.props.dispatch({
           type: ACTION.NAVIGATE,
           location,
-          action: this.props.action
+          action: this.props.action     // TODO(burdon): Why?
         });
         break;
       }

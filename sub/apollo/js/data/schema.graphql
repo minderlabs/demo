@@ -155,7 +155,6 @@ type RootQuery {
 #
 
 type RootMutation {
-
   updateItem(itemId: ID!, deltas: [ObjectDelta]!): Item!
 }
 

@@ -14,7 +14,11 @@ import TypeRegistry from '../component/registry';
 /**
  * Detail view.
  */
-class Detail extends React.Component {
+class DetailView extends React.Component {
+
+  static contextTypes = {
+    queryRegistry: React.PropTypes.object
+  };
 
   static propTypes = {
     data: React.PropTypes.shape({
@@ -51,8 +55,8 @@ class Detail extends React.Component {
 
 // TODO(burdon): Dynamically change query fragments based on type? (why statically compiled AST?)
 
-const Query = gql`
-  query Home($userId: ID!, $itemId: ID!) { 
+const DetailQuery = gql`
+  query DetailQuery($userId: ID!, $itemId: ID!) { 
 
     viewer(userId: $userId) {
       id
@@ -81,7 +85,7 @@ const mapStateToProps = (state, ownProps) => {
 export default compose(
   connect(mapStateToProps),
 
-  graphql(Query, {
+  graphql(DetailQuery, {
     options: (props) => {
       return {
         fragments: TypeRegistry.fragments,
@@ -94,4 +98,4 @@ export default compose(
     }
   })
 
-)(Detail);
+)(DetailView);

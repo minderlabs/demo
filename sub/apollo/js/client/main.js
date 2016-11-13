@@ -42,13 +42,14 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter, Match } from 'react-router';
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
-import { ApolloProvider } from 'react-apollo';
 import ApolloClient, { createNetworkInterface } from 'apollo-client';
 import createBrowserHistory from 'history/createBrowserHistory'
 
 import moment from 'moment';
+
+import Matcher from '../data/matcher';
+import QueryRegistry from './subscriptions';
 
 import { ACTION, AppReducer } from './reducers';
 
@@ -62,6 +63,9 @@ import Monitor from './component/devtools';
 
 const config = window.config;
 console.log('Config = %s', JSON.stringify(config));
+
+// TODO(burdon): Inject database tools.
+const matcher = new Matcher();
 
 
 //
@@ -196,7 +200,7 @@ const reducers = combineReducers({
   },
 
   // App reducers.
-  ...AppReducer(config),
+  ...AppReducer(config, matcher),
 });
 
 const enhancer = compose(
@@ -222,7 +226,13 @@ function renderApp(App) {
   console.log('### [%s] ###', moment().format('hh:mm:ss'));
 
   ReactDOM.render(
-    <App config={ config } history={ history } client={ apolloClient } store={ reduxStore }/>,
+    <App
+      config={ config }
+      history={ history }
+      client={ apolloClient }
+      store={ reduxStore }
+      queryRegistry={ new QueryRegistry() }
+    />,
 
     document.getElementById(config.root)
   );

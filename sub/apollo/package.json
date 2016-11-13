@@ -76,6 +76,7 @@
     "moment": "^2.15.2",
     "random-seed": "^0.3.0",
     "react": "^15.3.2",
+    "react-addons-update": "^15.3.2",
     "react-apollo": "^0.5.16",
     "react-dom": "^15.3.2",
     "react-router": "^4.0.0-alpha.5",
@@ -86,7 +87,6 @@
     "//": [
       "nodemon => babel-node: runs the server with auto-rebuild (via babel) on change.",
       "start => runs the server with hot module replacement (server not updated)",
-
       "NOTE: nodemon seems to cache .graphql imports"
     ],
     "webpack": "webpack --watch",
