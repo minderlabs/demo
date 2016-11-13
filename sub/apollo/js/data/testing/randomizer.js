@@ -28,7 +28,7 @@ export default class Randomizer {
     }
   };
 
-  constructor(database, seed=0) {
+  constructor(database, seed=1) {
     this._database = database;
     this._chance = new Chance(seed);
   }

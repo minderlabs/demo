@@ -114,6 +114,9 @@ export default compose(
   graphql(FolderQuery, {
 
     options: (props) => {
+
+      console.log('*** options ***', JSON.stringify(props));
+
       return {
         variables: {
           userId: props.userId
@@ -126,7 +129,7 @@ export default compose(
 
       // TODO(burdon): This happens too late. On load, options above has no filter and causes the list
       // to be rendered, then we are called and update the filter resulting in flickering results (2 server calls).
-      // solution should be to update redux state and address that above.
+      // TODO(burdon): Solution is set the redux state in the layout? so can be used above in props?
 
       // Match current folder.
       // TODO(burdon): Handler error/redirect if not found.

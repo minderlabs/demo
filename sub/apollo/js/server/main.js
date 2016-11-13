@@ -13,7 +13,7 @@ import handlebars from 'express-handlebars';
 import bodyParser from 'body-parser';
 import moment from 'moment';
 
-import graphqlHTTP from 'express-graphql';
+import graphqlHTTP from 'express-graphql';  // TODO(burdon): Figure out logging issue below.
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 
@@ -139,27 +139,29 @@ const schema = makeExecutableSchema({
 
 //
 // Logging
+// TODO(burdon): Factor out (PR for graphql-server-express)?
 // TODO(burdon): winston logging (loggly)
 //
 
-const graphqlLogger = () => {
+const graphqlLogger = (options={ logging: true }) => {
   return (req, res, next) => {
-    let { operationName, query, variables } = req.body;
+    if (options.logging) {
+      let {operationName, query, variables} = req.body;
 
-    let input = {
-      operationName,
-      query: query.replace(/\s*\n\s*/g, ' '),
-      variables
-    };
+      let input = {
+        operationName,
+        query: query.replace(/\s*\n\s*/g, ' '),
+        variables
+      };
 
-    console.log('>>> REQ: [%s]', JSON.stringify(input, 0, 2));
+      console.log('>>> REQ: [%s]', JSON.stringify(input, 0, 2));
 
-    let original = res.end;
-    res.end = (json) => {
-      console.log(typeof json);
-      console.log('<<< RES: [%s]', JSON.stringify(JSON.parse(json), 0, 2));
-      return original.call(res, json);
-    };
+      let original = res.end;
+      res.end = (json) => {
+        console.log('<<< RES: [%s]', JSON.stringify(JSON.parse(json), 0, 2));
+        return original.call(res, json);
+      };
+    }
 
     next();
   }
@@ -171,20 +173,20 @@ router.use('/graphql', graphqlLogger());
 app.use('/', router);
 
 
+//
+// GraphQL server.
+// TODO(burdon): Logging doesn't work with graphqlExpress.
+//
 
-app.use('/graphql', (req, res) => {
-
-return graphqlHTTP({
-  // return graphqlExpress({
-    schema: schema,
-    pretty: true,
-    formatError: error => ({
-      message: error.message,
-      locations: error.locations,
-      stack: error.stack
-    })
-  })(req, res);
-});
+app.use('/graphql', graphqlHTTP({
+  schema: schema,
+  pretty: true,
+  formatError: error => ({
+    message: error.message,
+    locations: error.locations,
+    stack: error.stack
+  })
+}));
 
 app.use('/graphiql', graphiqlExpress({
   endpointURL: '/graphql',

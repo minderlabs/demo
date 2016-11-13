@@ -163,11 +163,13 @@ export default compose(
           count: 10
         },
 
+        // TODO(burdon): Factor out JSON logger that compacts lists.
+
         // TODO(burdon): Use reducer to invalidate other cached queries?
         // https://github.com/apollostack/apollo-client/issues/903
         // http://dev.apollodata.com/react/cache-updates.html#resultReducers
         reducer: (previousResult, action) => {
-          console.log('*** reducer[%s]: %s ***', action.type, action.operationName);
+          console.log('*** reducer[%s]: %s ***', action.type, action.operationName, previousResult);
           if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === 'UpdateItemMutation') {
             console.log('UpdateItemMutation');
           }
@@ -219,12 +221,15 @@ export default compose(
         // http://dev.apollodata.com/react/mutations.html#optimistic-ui
         // optimisticResponse: {},
 
+        // TODO(burdon): Only called once -- can't invalidate other folder.
+        // https://github.com/apollostack/apollo-client/issues/903
+
         // Called after optimisticResponse and once mutation has been returned from server.
         // https://github.com/apollostack/apollo-client/issues/621
         // http://dev.apollodata.com/react/cache-updates.html#updateQueries
         updateQueries: {
           ItemsQuery: (prev, { mutationResult, queryVariables }) => {
-            console.log('*** updateQueries ***');
+            console.log('*** updateQueries ***', JSON.stringify(queryVariables));
             // TODO(burdon): Doesn't update other queries (e.g., favorites).
 
             // TODO(burdon): Factor out.
