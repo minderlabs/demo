@@ -167,7 +167,7 @@ export default compose(
         // https://github.com/apollostack/apollo-client/issues/903
         // http://dev.apollodata.com/react/cache-updates.html#resultReducers
         reducer: (previousResult, action) => {
-          console.log('Reducer[%s]: %s', action.type, action.operationName);
+          console.log('*** reducer[%s]: %s ***', action.type, action.operationName);
           if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === 'UpdateItemMutation') {
             console.log('UpdateItemMutation');
           }
@@ -224,6 +224,7 @@ export default compose(
         // http://dev.apollodata.com/react/cache-updates.html#updateQueries
         updateQueries: {
           ItemsQuery: (prev, { mutationResult, queryVariables }) => {
+            console.log('*** updateQueries ***');
             // TODO(burdon): Doesn't update other queries (e.g., favorites).
 
             // TODO(burdon): Factor out.

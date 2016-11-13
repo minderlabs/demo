@@ -4,6 +4,8 @@
 
 'use strict';
 
+import _ from 'lodash';
+
 import path from 'path';
 import http from 'http';
 import express from 'express';
@@ -11,6 +13,7 @@ import handlebars from 'express-handlebars';
 import bodyParser from 'body-parser';
 import moment from 'moment';
 
+import graphqlHTTP from 'express-graphql';
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 
@@ -133,15 +136,55 @@ const schema = makeExecutableSchema({
   }
 });
 
-app.use('/graphql', bodyParser.json(), graphqlExpress({
-  schema: schema,
-  pretty: true,
-  formatError: error => ({
-    message: error.message,
-    locations: error.locations,
-    stack: error.stack
-  })
-}));
+
+//
+// Logging
+// TODO(burdon): winston logging (loggly)
+//
+
+const graphqlLogger = () => {
+  return (req, res, next) => {
+    let { operationName, query, variables } = req.body;
+
+    let input = {
+      operationName,
+      query: query.replace(/\s*\n\s*/g, ' '),
+      variables
+    };
+
+    console.log('>>> REQ: [%s]', JSON.stringify(input, 0, 2));
+
+    let original = res.end;
+    res.end = (json) => {
+      console.log(typeof json);
+      console.log('<<< RES: [%s]', JSON.stringify(JSON.parse(json), 0, 2));
+      return original.call(res, json);
+    };
+
+    next();
+  }
+};
+
+
+const router = express.Router();
+router.use('/graphql', graphqlLogger());
+app.use('/', router);
+
+
+
+app.use('/graphql', (req, res) => {
+
+return graphqlHTTP({
+  // return graphqlExpress({
+    schema: schema,
+    pretty: true,
+    formatError: error => ({
+      message: error.message,
+      locations: error.locations,
+      stack: error.stack
+    })
+  })(req, res);
+});
 
 app.use('/graphiql', graphiqlExpress({
   endpointURL: '/graphql',
