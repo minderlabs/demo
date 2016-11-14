@@ -47,6 +47,8 @@ class FolderView extends React.Component {
   }
 
   render() {
+    console.log('Folder.render');
+
     // http://dev.apollodata.com/react/queries.html#default-result-props
     let { filter } = this.props;
 
@@ -70,7 +72,7 @@ class FolderView extends React.Component {
 // Queries
 //
 
-// TODO(burdon): Factor out filter fragment (cannot request all).
+// TODO(burdon): Factor out filter fragment (move to Layout).
 
 const FolderQuery = gql`
   query FolderQuery($userId: ID!) { 
@@ -125,7 +127,6 @@ export default compose(
   graphql(FolderQuery, {
 
     options: (props) => {
-
       console.log('*** options ***', JSON.stringify(props));
 
       return {

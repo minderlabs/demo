@@ -71,6 +71,9 @@ class Application extends React.Component {
 
   render() {
 
+    // TODO(burdon): Support Server Side Rendering (SSR),
+    // http://dev.apollodata.com/react/server-side-rendering.html
+
     //
     // Apollo + Router (v4)
     // NOTE: Router must use declarative component (not render) otherwise squashes router properties.

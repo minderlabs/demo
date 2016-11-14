@@ -92,16 +92,31 @@ const networkInterface = createNetworkInterface({
   uri: config.graphql
 });
 
+
+//
+// Log request/response.
+// http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
+// TODO(burdon): Factor out.
+//
+
+let requestCount = 0;
+const requestMap = new Map();
+const requestIdHeader = 'x-req-id';
+
 const TIMESTAMP = 'hh:mm:ss.SSS';
 
-//
-// http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
-//
-
 networkInterface.use([{
-  applyMiddleware({ request }, next) {
+  applyMiddleware({ request, options }, next) {
+
+    // Track request ID.
+    // https://github.com/apollostack/apollo-client/issues/657
+    const requestId = `${request.operationName}:${++requestCount}`;
+    if (!options.headers) { options.headers = {}; }
+    options.headers[requestIdHeader] = requestId;
+    requestMap.set(requestId, request);
+
     console.log('[%s] >>> [%s]: %s', moment().format(TIMESTAMP),
-      request.operationName, JSON.stringify(request.variables, Util.JSON_REPLACER));
+      requestId, JSON.stringify(request.variables, Util.JSON_REPLACER));
 
     // TODO(burdon): Paging bug when non-null text filter.
     // https://github.com/apollostack/apollo-client/issues/897
@@ -128,7 +143,11 @@ networkInterface.use([{
 //
 
 networkInterface.useAfter([{
-  applyAfterware({ response }, next) {
+  applyAfterware({ response, options }, next) {
+    const requestId = options.headers[requestIdHeader];
+    const request = requestMap.get(requestId);
+    requestMap.delete(requestId);
+
     // https://github.com/apollostack/core-docs/issues/224
     // https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
     if (!response.ok) {
@@ -141,9 +160,10 @@ networkInterface.useAfter([{
         let { data, errors } = result;
 
         if (errors) {
-          console.error('GraphQL Error:', errors.map(error => error.message));
+          console.error('GraphQL Error [%s]:', requestId, errors.map(error => error.message));
         } else {
-          console.log('[%s] <<<', moment().format(TIMESTAMP), JSON.stringify(data, Util.JSON_REPLACER));
+          console.log('[%s] <<< [%s]', moment().format(TIMESTAMP),
+            requestId, JSON.stringify(data, Util.JSON_REPLACER));
         }
 
         next();

@@ -90,6 +90,7 @@
       "start => runs the server with hot module replacement (server not updated)",
       "NOTE: nodemon seems to cache .graphql imports"
     ],
+    "update-schema": "babel-node ./tools/babel/update_schema.js",
     "webpack": "webpack --watch",
     "babel-node": "BABEL_DISABLE_CACHE=1 babel-node js/server/main.js",
     "nodemon": "nodemon --exec npm run babel-node",

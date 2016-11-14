@@ -17,6 +17,16 @@ module.exports = function(grunt) {
       ],
     },
 
+    run: {
+      update_schema: {
+        cmd: 'npm',
+        args: [
+          'run',
+          'update-schema'
+        ]
+      }
+    },
+
     // Webpack
     // NOTE: Use webpack --watch to automatically update all config entries.
     // https://webpack.github.io/docs/usage-with-grunt.html
@@ -45,5 +55,5 @@ module.exports = function(grunt) {
   //
 
   grunt.registerTask('default', ['build']);
-  grunt.registerTask('build', ['clean', 'webpack']);
+  grunt.registerTask('build', ['clean', 'run:update_schema', 'webpack']);
 };

@@ -49,16 +49,19 @@ class Layout extends React.Component {
   }
 
   render() {
+    console.log('Layout.render');
 
     // TODO(burdon): Sidebar and query folders (available to views in redux state?)
-
-    // TODO(burdon): Skip DevTools in prod.
     // TODO(burdon): Display errors in status bar.
+    // TODO(burdon): Skip DevTools in prod.
 
     return (
       <div className="app-main-container">
         <div className="app-main-panel">
 
+          {/*
+            * Header.
+            */}
           <div className="app-section app-header app-row">
             <div className="app-expand">
               <h1>Apollo Demo</h1>
@@ -69,12 +72,27 @@ class Layout extends React.Component {
             </div>
           </div>
 
+          {/*
+            * Views:
+            */}
           <div className="app-column">
+
+            {/*
+              * Item detail.
+              */}
             <Match pattern="/detail/:itemId" component={ DetailView }/>
+
+            {/*
+              * Folder view.
+              */}
             <Match pattern="/:folder" exactly={ true } component={ FolderView }/>
+
             <Miss render={ () => <Redirect to="/inbox"/> }/>
           </div>
 
+          {/*
+            * Footer.
+            */}
           <div className="app-section app-footer app-row">
             <div className="app-row app-expand">
               <button onClick={ this.handleRefresh.bind(this) }>Refresh</button>
@@ -85,6 +103,9 @@ class Layout extends React.Component {
             </div>
           </div>
 
+          {/*
+            * Debug sidebar.
+            */}
           <div className="app-debug">
             <Monitor/>
           </div>
@@ -98,8 +119,30 @@ class Layout extends React.Component {
 // Queries
 //
 
-const Query = gql`
-  query Layout($userId: ID!) { 
+// TODO(burdon): Pass folders to nested containers.
+// https://github.com/apollostack/react-apollo/issues/262
+//
+// Pending question for above.
+// I have the following container tree:
+// <App>
+//   <Match pattern="/:folder" component={ FolderView }/>
+// </App>
+//
+// <FolderView>
+//   <ListView/>
+// </FolderView>
+// Now, the App container makes a query for metadata associated with each each folder (e.g., a filter) that can be displayed within the <FolderView>.
+// But the container queries are called (and rendered) in reverse order (i.e., ListView, FolderView, App).
+// 1). I agree with @sedubois that one of the powerful features of GraphQL is fragment composition (I'm also coming from Relay, where this is trivially supported)>
+// 2). The additional benefit is enabling child containers to be "well-formed" i.e., only rendered once their data requirements are satisfied (i.e., passed in as props); also, the child's rendering function doesn't have to handle "null" data (making the code simpler and more robust).
+// 3). Furthermore, the react-relay-router can block until these queries are satisfied, so that on error a different router path can be displayed. This also prevents render "flickering" i.e., the child component making a default invalid query, and then re-rendering once the parent's query loads and then reconfigures the child.
+
+
+// TODO(burdon): Try importing fragments!!!!!!!!!!!
+
+
+const LayoutQuery = gql`
+  query LayoutQuery($userId: ID!) { 
 
     viewer(userId: $userId) {
       id
@@ -107,11 +150,22 @@ const Query = gql`
         title
       }
     }
+    
+    folders(userId: $userId) {
+      id
+      filter {
+        type
+        labels
+        text
+      }
+    }
   }
 `;
 
 //
 // Chain:
+// https://github.com/alienlaboratories/react-demos/master/rb-apollo/docs/kbase/apollo_sequence.png
+//
 // 1). Redux.connect(mapStateToProps(state)) => component.props
 // 2). => graphql.options(props) => query {variables}
 // 3). => graphql.props(oldProps, data) =>
@@ -156,7 +210,7 @@ export default compose(
 
   // Configure query (from redux state).
   // http://dev.apollodata.com/react/queries.html#graphql-options
-  graphql(Query, {
+  graphql(LayoutQuery, {
     options: (props) => {
       return {
         variables: {

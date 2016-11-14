@@ -147,6 +147,8 @@ new Randomizer(database)
 app.use(bodyParser.json());                           // JSON post (GraphQL).
 app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
 
+// Generate GraphQLSchema instance.
+// http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
 const schema = makeExecutableSchema({
   typeDefs: TypeDefs,
   resolvers: Resolvers(database),
