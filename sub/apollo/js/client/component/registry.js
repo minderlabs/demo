@@ -8,7 +8,7 @@ import React from 'react';
 
 import User,  { UserFragments   } from './type/user';
 import Group, { GroupFragments  } from './type/group';
-import City,  { CityFragments   } from './type/city';
+import Place, { PlaceFragments  } from './type/place';
 import Task,  { TaskFragments   } from './type/task';
 
 /**
@@ -38,7 +38,7 @@ const registry = new TypeRegistry();
 
 registry.types.set('User',  { fragment: UserFragments,  render: (item) => <User   item={ item }/> });
 registry.types.set('Group', { fragment: GroupFragments, render: (item) => <Group  item={ item }/> });
-registry.types.set('City',  { fragment: CityFragments,  render: (item) => <City   item={ item }/> });
+registry.types.set('Place', { fragment: PlaceFragments, render: (item) => <Place  item={ item }/> });
 registry.types.set('Task',  { fragment: TaskFragments,  render: (item) => <Task   item={ item }/> });
 
 export default registry;

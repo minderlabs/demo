@@ -18,9 +18,21 @@ export default class Database {
     return JSON.parse(JSON.stringify(item));
   }
 
-  static i = 0;
+  static fromGlobalId(globalId) {
+    console.assert(globalId);
+    let parts = atob(globalId).match(/(.+)\/(.+)/);
+    return {
+      type: parts[1],
+      id: parts[2]
+    }
+  }
 
-  // TODO(burdon): ID should encode type.
+  static toGlobalId(type, localId) {
+    console.assert(type && localId);
+    return btoa(type + '/' + localId);
+  }
+
+  static i = 0;
   static createId(type) {
     console.assert(type);
     // TODO(burdon): Random with seed.
@@ -37,6 +49,10 @@ export default class Database {
     this._matcher = new Matcher();
   }
 
+  /**
+   *
+   * @param items
+   */
   upsertItems(items) {
     _.each(items, (item) => {
       item = Database.clone(item);
@@ -49,12 +65,25 @@ export default class Database {
     });
   }
 
-  getItem(itemId) {
+  /**
+   *
+   * @param type
+   * @param itemId
+   * @returns {*}
+   */
+  getItem(type, itemId) {
     console.log('DB.GET[%s]', itemId);
 
     return Database.clone(this._items.get(itemId));
   }
 
+  /**
+   *
+   * @param filter
+   * @param offset
+   * @param count
+   * @returns {Array}
+   */
   queryItems(filter, offset=0, count=10) {
     let items = [];
     this._items.forEach((item) => {

@@ -101,6 +101,8 @@ const ItemsQuery = gql`
     items(filter: $filter, offset: $offset, count: $count) {
       id
       
+      __typename
+      
       ...ItemFragment
     }
   }

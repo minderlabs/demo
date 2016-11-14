@@ -35,7 +35,6 @@ export default class User extends React.Component {
   render() {
     return (
       <div>
-        <h3>City</h3>
         <pre>
           { JSON.stringify(_.pick(this.props.item, ['username']), 0, 2) }
         </pre>

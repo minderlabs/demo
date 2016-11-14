@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
+import Database from '../../data/database';
 import TypeRegistry from '../component/registry';
 
 /**

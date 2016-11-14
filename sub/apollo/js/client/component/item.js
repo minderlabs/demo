@@ -20,6 +20,7 @@ export const ItemFragments = {
   item: new Fragment(gql`
     fragment ItemFragment on Item {
       id
+      type
       labels
       title
     }

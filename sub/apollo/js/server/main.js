@@ -17,10 +17,18 @@ import graphqlHTTP from 'express-graphql';  // TODO(burdon): Figure out logging 
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 
+import { Util } from '../common/util';
+
 import Resolvers from '../data/resolvers';
 import Database from '../data/database';
 import Randomizer from '../data/testing/randomizer';
 import TypeDefs from '../data/schema.graphql';
+
+
+// Emulate browser atob and btoa.
+// TODO(burdon): Inject wrapper.
+global.btoa = function (str) { return new Buffer(str).toString('base64'); };
+global.atob = function (str) { return new Buffer(str, 'base64').toString(); };
 
 
 //
@@ -115,7 +123,7 @@ database.upsertItems([
 
 // TODO(burdon): Trigger from webhook.
 new Randomizer(database)
-  .generate('City', 100);
+  .generate('Place', 10);
 
 
 //
@@ -143,10 +151,15 @@ const schema = makeExecutableSchema({
 // TODO(burdon): winston logging (loggly)
 //
 
-const graphqlLogger = (options={ logging: true }) => {
+const graphqlLogger = (options={ logging: true, pretty: false }) => {
   return (req, res, next) => {
     if (options.logging) {
-      let {operationName, query, variables} = req.body;
+
+      let stringify = options.pretty ?
+        (json) => JSON.stringify(json, 0, 2) :
+        (json) => JSON.stringify(json, Util.JSON_REPLACER, 0);
+
+      let { operationName, query, variables } = req.body;
 
       let input = {
         operationName,
@@ -154,11 +167,11 @@ const graphqlLogger = (options={ logging: true }) => {
         variables
       };
 
-      console.log('>>> REQ: [%s]', JSON.stringify(input, 0, 2));
+      console.log('>>> REQ: [%s]', stringify(input));
 
       let original = res.end;
       res.end = (json) => {
-        console.log('<<< RES: [%s]', JSON.stringify(JSON.parse(json), 0, 2));
+        console.log('<<< RES: [%s]', stringify(JSON.parse(json)));
         return original.call(res, json);
       };
     }
@@ -211,7 +224,7 @@ app.get(/^\/(.*)/, function(req, res) {
     config: {
       root: 'app-root',
       graphql: '/graphql',
-      userId: userId,
+      userId: Database.toGlobalId('User', userId),    // TODO(burdon): Get name from schema.
       debug: {
         env: env
       }

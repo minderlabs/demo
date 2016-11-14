@@ -3,7 +3,8 @@
 #
 
 #
-# http://graphql.org/learn/schema/
+# http://graphql.org/learn/schema
+# https://facebook.github.io/graphql
 #
 
 #
@@ -116,7 +117,7 @@ type Task implements Item {
   status: Int!
 }
 
-type City implements Item {
+type Place implements Item {
   id: ID!
   type: String!
   title: String!

@@ -6,6 +6,8 @@
 
 import _ from 'lodash';
 
+import Database from './database';
+
 //
 // Resolvers
 // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
@@ -56,24 +58,27 @@ export default (database) => {
 
     RootQuery: {
 
-      // TODO(burdon): User ID for all (or pass in request context?)
+      // TODO(burdon): Get userId from context.
 
       viewer: (root, { userId }) => {
+        let { type, id:localUserId } = Database.fromGlobalId(userId);
         return {
-          id: userId,
+          id: localUserId,
           user: {
-            id: userId,
-            ...database.getItem(userId)
+            id: localUserId,
+            ...database.getItem('User', localUserId)
           }
         };
       },
 
       folders: (root, { userId }) => {
+        let { type, id:localUserId } = Database.fromGlobalId(userId);
         return database.queryItems({ type: 'Folder' });
       },
 
       item: (root, { itemId }) => {
-        return database.getItem(itemId);
+        let { type, id:localItemId } = Database.fromGlobalId(itemId);
+        return database.getItem(type, localItemId);
       },
 
       items: (root, { filter, offset, count }) => {
@@ -93,9 +98,10 @@ export default (database) => {
       // http://dev.apollodata.com/react/receiving-updates.html
 
       updateItem: (root, { itemId, deltas }) => {
-        console.log('MUTATION.UPDATE', itemId, deltas);
+        let { type, id:localItemId } = Database.fromGlobalId(itemId);
+        console.log('MUTATION.UPDATE[%s]', type, localItemId, deltas);
 
-        let item = database.getItem(itemId);
+        let item = database.getItem(type, localItemId);
         console.assert(item);
 
         _.each(deltas, (delta) => {

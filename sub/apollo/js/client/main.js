@@ -48,6 +48,8 @@ import createBrowserHistory from 'history/createBrowserHistory'
 
 import moment from 'moment';
 
+import { Util } from '../common/util';
+
 import Matcher from '../data/matcher';
 import QueryRegistry from './subscriptions';
 
@@ -99,7 +101,7 @@ const TIMESTAMP = 'hh:mm:ss.SSS';
 networkInterface.use([{
   applyMiddleware({ request }, next) {
     console.log('[%s] >>> [%s]: %s', moment().format(TIMESTAMP),
-      request.operationName, JSON.stringify(request.variables));
+      request.operationName, JSON.stringify(request.variables, Util.JSON_REPLACER));
 
     // TODO(burdon): Paging bug when non-null text filter.
     // https://github.com/apollostack/apollo-client/issues/897
@@ -141,8 +143,7 @@ networkInterface.useAfter([{
         if (errors) {
           console.error('GraphQL Error:', errors.map(error => error.message));
         } else {
-          console.log('[%s] <<<', moment().format(TIMESTAMP),
-            JSON.stringify(data, (key, value) => { return _.isArray(value) ? value.length : value }));
+          console.log('[%s] <<<', moment().format(TIMESTAMP), JSON.stringify(data, Util.JSON_REPLACER));
         }
 
         next();

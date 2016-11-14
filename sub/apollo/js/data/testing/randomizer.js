@@ -16,7 +16,7 @@ import Database from '../database';
 export default class Randomizer {
 
   static generators = {
-    'City': (chance) => {
+    'Place': (chance) => {
       return {
         title: chance.city(),
 

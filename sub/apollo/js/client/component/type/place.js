@@ -11,10 +11,10 @@ import gql from 'graphql-tag';
 /**
  * Fragments.
  */
-export const CityFragments = {
+export const PlaceFragments = {
 
   item: new Fragment(gql`
-    fragment CityFragment on City {
+    fragment PlaceFragment on Place {
       geo {
         lat
         lng
@@ -25,12 +25,12 @@ export const CityFragments = {
 };
 
 /**
- * Task
+ * Place
  */
-export default class City extends React.Component {
+export default class Place extends React.Component {
 
   static propTypes = {
-    item: CityFragments.item.propType
+    item: PlaceFragments.item.propType
   };
 
   // TODO(burdon): Google map.
@@ -38,7 +38,6 @@ export default class City extends React.Component {
   render() {
     return (
       <div>
-        <h3>City</h3>
         <pre>
           { JSON.stringify(_.pick(this.props.item, ['geo']), 0, 2) }
         </pre>

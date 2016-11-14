@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
+import Database from '../../data/database';
 import { ACTION } from '../reducers';
 
 import List from '../component/list';
@@ -38,7 +39,7 @@ class FolderView extends React.Component {
   };
 
   handleItemSelect(item) {
-    this.props.navigate(item.id);
+    this.props.navigateItem(item);
   }
 
   render() {
@@ -96,11 +97,12 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
-    navigate: (itemId) => {
+    navigateItem: (item) => {
       dispatch({
         type: ACTION.NAVIGATE,
         location: {
-          pathname: '/detail/' + itemId   // TODO(burdon): Const.
+          // TODO(burdon): Const path.
+          pathname: '/detail/' + Database.toGlobalId(item.type, item.id)
         },
         action: 'PUSH'
       });
