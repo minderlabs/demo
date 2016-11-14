@@ -9,7 +9,15 @@ import { connect } from 'react-redux';
 import { compose, graphql, withApollo } from 'react-apollo';
 import gql from 'graphql-tag';
 
+// TODO(burdon): Inject.
+import QueryParser from '../../data/parser';
+import TypeRegistry from '../component/registry';
+
+import Database from '../../data/database';
+
 import Item, { ItemFragments } from './item';
+
+const queryParser = new QueryParser();
 
 /**
  * Item List.
@@ -56,7 +64,7 @@ export class List extends React.Component {
       }
     ];
 
-    this.props.updateItem(item.id, mutation);
+    this.props.updateItem(item, mutation);
   }
 
   handleMore() {
@@ -78,6 +86,7 @@ export class List extends React.Component {
           {items.map(item =>
           <Item key={ item.id }
                 item={ ItemFragments.item.filter(item) }
+                icon={ TypeRegistry.icon(item.type) }
                 onSelect={ this.handleItemSelect.bind(this, item) }
                 onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
           )}
@@ -100,7 +109,6 @@ const ItemsQuery = gql`
 
     items(filter: $filter, offset: $offset, count: $count) {
       id
-      
       __typename
       
       ...ItemFragment
@@ -124,6 +132,8 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     matcher: minder.matcher,
+
+    // TODO(burdon): Make list more general purpose (i.e., not bound to state/search box).
     text: minder.search.text
   }
 };
@@ -137,9 +147,7 @@ const updateFilter = (filter, text) => {
   filter = _.omitBy(filter, (v) => v === null);
 
   if (text) {
-    filter = {
-      text: text
-    }
+    filter = queryParser.parse(text);
   }
 
   return filter;
@@ -212,9 +220,9 @@ export default compose(
 
   graphql(UpdateItemMutation, {
     props: ({ ownProps, mutate }) => ({
-      updateItem: (itemId, deltas) => mutate({
+      updateItem: (item, deltas) => mutate({
         variables: {
-          itemId: itemId,
+          itemId: Database.toGlobalId(item.type, item.id),
           deltas: deltas
         },
 

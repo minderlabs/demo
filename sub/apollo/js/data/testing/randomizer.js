@@ -15,7 +15,16 @@ import Database from '../database';
  */
 export default class Randomizer {
 
+  // http://chancejs.com/
+
   static generators = {
+
+    'Task': (chance) => {
+      return {
+        title: chance.sentence({words: 5})
+      }
+    },
+
     'Place': (chance) => {
       return {
         title: chance.city(),
@@ -28,7 +37,7 @@ export default class Randomizer {
     }
   };
 
-  constructor(database, seed=1) {
+  constructor(database, seed=1000) {
     this._database = database;
     this._chance = new Chance(seed);
   }

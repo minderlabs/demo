@@ -15,7 +15,7 @@ export const UserFragments = {
 
   item: new Fragment(gql`
     fragment UserFragment on User {
-      username
+      email
     }
   `)
 
@@ -36,7 +36,7 @@ export default class User extends React.Component {
     return (
       <div>
         <pre>
-          { JSON.stringify(_.pick(this.props.item, ['username']), 0, 2) }
+          { JSON.stringify(_.pick(this.props.item, ['email']), 0, 2) }
         </pre>
       </div>
     );

@@ -38,6 +38,10 @@ class FolderView extends React.Component {
     })
   };
 
+  handleSearch(text) {
+    this.props.onSearch(text);
+  }
+
   handleItemSelect(item) {
     this.props.navigateItem(item);
   }
@@ -51,7 +55,7 @@ class FolderView extends React.Component {
     return (
       <div className="app-column">
         <div className="app-section">
-          <Search/>
+          <Search value={ this.props.search.text } onSearch={ this.handleSearch.bind(this) }/>
         </div>
 
         <div className="app-section app-expand">
@@ -91,12 +95,17 @@ const FolderQuery = gql`
 
 const mapStateToProps = (state, ownProps) => {
   return {
-    userId: state.minder.userId
+    userId: state.minder.userId,
+    search: state.minder.search
   }
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
+    onSearch: (value) => {
+      dispatch({ type: ACTION.SEARCH, value });
+    },
+
     navigateItem: (item) => {
       dispatch({
         type: ACTION.NAVIGATE,

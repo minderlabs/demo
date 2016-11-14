@@ -49,7 +49,7 @@ export class Item extends React.Component {
   }
 
   render() {
-    let { item } = this.props;
+    let { item, icon } = this.props;
 
     return (
       <div className="app-list-item app-row">
@@ -62,7 +62,7 @@ export class Item extends React.Component {
            onClick={ this.handleSelect.bind(this) }>{ item.title }
         </div>
 
-        <div>{ item.id }</div>
+        <i className="material-icons">{ icon }</i>
       </div>
     );
   }

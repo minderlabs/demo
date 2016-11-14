@@ -17,28 +17,37 @@ import Task,  { TaskFragments   } from './type/task';
 class TypeRegistry {
 
   constructor() {
-    this.types = new Map();
+    this._types = new Map();
   }
 
   render(item) {
-    let value = this.types.get(item.type);
+    let value = this._types.get(item.type);
     return value.render(item);
   }
 
+  icon(type) {
+    let values = this._types.get(type);
+    return values && values.icon || '';
+  }
+
   get names() {
-    return _.map(Array.from(this.types.values()), (value) => value.fragment.item.document.definitions[0].name.value);
+    return _.map(Array.from(this._types.values()), (value) => value.fragment.item.document.definitions[0].name.value);
   }
 
   get fragments() {
-    return _.map(Array.from(this.types.values()), (value) => value.fragment.item.fragments());
+    return _.map(Array.from(this._types.values()), (value) => value.fragment.item.fragments());
   }
 }
 
 const registry = new TypeRegistry();
 
-registry.types.set('User',  { fragment: UserFragments,  render: (item) => <User   item={ item }/> });
-registry.types.set('Group', { fragment: GroupFragments, render: (item) => <Group  item={ item }/> });
-registry.types.set('Place', { fragment: PlaceFragments, render: (item) => <Place  item={ item }/> });
-registry.types.set('Task',  { fragment: TaskFragments,  render: (item) => <Task   item={ item }/> });
+registry._types.set('User',
+  { fragment: UserFragments,  render: (item) => <User   item={ item }/>, icon: 'accessibility' });
+registry._types.set('Group',
+  { fragment: GroupFragments, render: (item) => <Group  item={ item }/>, icon: 'group' });
+registry._types.set('Place',
+  { fragment: PlaceFragments, render: (item) => <Place  item={ item }/>, icon: 'location_city' });
+registry._types.set('Task',
+  { fragment: TaskFragments,  render: (item) => <Task   item={ item }/>, icon: 'assignment_turned_in' });
 
 export default registry;

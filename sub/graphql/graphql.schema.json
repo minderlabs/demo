@@ -8,7 +8,7 @@
       "mutationType": {
         "name": "Mutation"
       },
-      "types": [
+      "_types": [
         {
           "kind": "OBJECT",
           "name": "Query",

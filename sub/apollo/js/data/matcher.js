@@ -16,12 +16,12 @@ export default class Matcher {
     let text = _.lowerCase(filter.text);
 
     // Type match.
-    if (filter.type && filter.type != item.type) {
+    if (filter.type && _.toLower(filter.type) != _.toLower(item.type)) {
       return false;
     }
 
     // Label match.
-    if (filter.labels && _.intersection(filter.labels, item.labels).length == 0) {
+    if (!_.isEmpty(filter.labels) && _.intersection(filter.labels, item.labels).length == 0) {
       return false;
     }
 

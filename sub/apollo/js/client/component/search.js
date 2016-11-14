@@ -12,7 +12,7 @@ import { ACTION } from '../reducers';
 /**
  * Search bar.
  */
-class Search extends React.Component {
+export default class Search extends React.Component {
 
   // TODO(burdon): Factor out cross-module utils.
   static timeout = (delay = 500) => {
@@ -77,21 +77,3 @@ class Search extends React.Component {
     );
   }
 }
-
-// TODO(burdon): Separate Redux bindings from components.
-
-const mapStateToProps = (state, ownProps) => {
-  return {
-    value: state.minder.search.text
-  }
-};
-
-const mapDispatchToProps = (dispatch, ownProps) => {
-  return {
-    onSearch: (value) => {
-      dispatch({ type: ACTION.SEARCH, value });
-    }
-  }
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Search);

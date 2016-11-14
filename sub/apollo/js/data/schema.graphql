@@ -87,7 +87,7 @@ type User implements Item {
   title: String!
   labels: [String]
 
-  username: String!
+  email: String!
 }
 
 type Group implements Item {

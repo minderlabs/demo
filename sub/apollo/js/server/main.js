@@ -93,15 +93,25 @@ if (env === 'hot') {
 
 let database = new Database();
 
-// TODO(burdon): Login.
-const userId = 'rich';
-
+// TODO(burdon): From JSON file.
 database.upsertItems([
   {
-    id: userId,
+    id: 'rich',
     type: 'User',
     title: 'Rich Burdon',
-    username: 'rich'
+    email: 'rich'
+  },
+  {
+    id: 'adam',
+    type: 'User',
+    title: 'Adam Berenzweig',
+    email: 'adam'
+  },
+  {
+    id: 'matt',
+    type: 'User',
+    title: 'Matt Sullivan',
+    email: 'matt@carbonfive.com',
   }
 ]);
 
@@ -123,7 +133,8 @@ database.upsertItems([
 
 // TODO(burdon): Trigger from webhook.
 new Randomizer(database)
-  .generate('Place', 10);
+  .generate('Task',   20)
+  .generate('Place', 100);
 
 
 //
@@ -224,7 +235,7 @@ app.get(/^\/(.*)/, function(req, res) {
     config: {
       root: 'app-root',
       graphql: '/graphql',
-      userId: Database.toGlobalId('User', userId),    // TODO(burdon): Get name from schema.
+      userId: Database.toGlobalId('User', 'rich'),    // TODO(burdon): cookie.
       debug: {
         env: env
       }
