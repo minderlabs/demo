@@ -50,6 +50,12 @@ input ObjectDelta {
   value: Value
 }
 
+# TODO(burdon): Add op; nested?
+input Predicate {
+  key: String!
+  value: Value
+}
+
 #
 # Misc types.
 #
@@ -77,6 +83,7 @@ type Viewer {
 interface Item {
   id: ID!
   type: String!
+  alias: String           # User short-name for links.
   title: String!
   labels: [String]
 }
@@ -88,16 +95,18 @@ interface Item {
 type User implements Item {
   id: ID!
   type: String!
+  alias: String
   title: String!
   labels: [String]
 
   contact: Contact
-  tasks: [Task]
+  tasks(filter: Filter): [Task]!
 }
 
 type Group implements Item {
   id: ID!
   type: String!
+  alias: String
   title: String!
   labels: [String]
 
@@ -107,6 +116,7 @@ type Group implements Item {
 type Folder implements Item {
   id: ID!
   type: String!
+  alias: String
   title: String!
   labels: [String]
 
@@ -116,6 +126,7 @@ type Folder implements Item {
 type Contact implements Item {
   id: ID!
   type: String!
+  alias: String
   title: String!
   labels: [String]
 
@@ -125,6 +136,7 @@ type Contact implements Item {
 type Task implements Item {
   id: ID!
   type: String!
+  alias: String
   title: String!
   labels: [String]
 
@@ -136,6 +148,7 @@ type Task implements Item {
 type Event implements Item {
   id: ID!
   type: String!
+  alias: String
   title: String!
   labels: [String]
 
@@ -146,6 +159,7 @@ type Event implements Item {
 type Place implements Item {
   id: ID!
   type: String!
+  alias: String
   title: String!
   labels: [String]
 
@@ -158,16 +172,22 @@ type Place implements Item {
 # https://github.com/graphql/graphql-js/issues/312
 #
 
+# TODO(burdon): Build AST for query syntax?
+
 input Filter {
   type: String
   labels: [String]
   text: String
+  predicate: Predicate
 }
+
+# TODO(burdon): Why can't inputs be used for types? How to reuse?
 
 type FilterDef {
   type: String
   labels: [String]
   text: String
+#  predicate: Predicate
 }
 
 type RootQuery {

@@ -6,7 +6,7 @@
 
 import _ from 'lodash';
 
-import { Util, TypeUtil } from '../common/util';
+import { TypeUtil } from '../common/util/type';
 
 import Matcher from './matcher';
 
@@ -53,7 +53,7 @@ export default class Database {
    */
   upsertItems(items) {
     _.each(items, (item) => {
-      item = Util.clone(item);
+      item = TypeUtil.clone(item);
       if (!item.id) {
         item.id = Database.createId(item.type);
       }
@@ -72,7 +72,7 @@ export default class Database {
   getItem(type, itemId) {
     console.log('DB.GET[%s]', itemId);
 
-    return Util.clone(this._items.get(itemId));
+    return TypeUtil.clone(this._items.get(itemId));
   }
 
   /**
@@ -89,7 +89,7 @@ export default class Database {
         return;
       }
 
-      items.push(Util.clone(item));
+      items.push(TypeUtil.clone(item));
     });
 
     items = _.sortBy(items, ['title']);

@@ -9,7 +9,6 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import Database from '../../data/database';
 import TypeRegistry from '../component/registry';
 
 /**
@@ -56,6 +55,13 @@ class DetailView extends React.Component {
 
 // TODO(burdon): Dynamically change query fragments based on type? (why statically compiled AST?)
 
+// TODO(burdon): Use directives to only include fragment of appropriate type.
+// http://graphql.org/learn/queries/#inline-fragments
+// ...Task @include(if: $type='Task')
+
+// __typename
+// http://graphql.org/learn/queries/#meta-fields
+
 const DetailQuery = gql`
   query DetailQuery($userId: ID!, $itemId: ID!) { 
 
@@ -72,6 +78,7 @@ const DetailQuery = gql`
       labels
       title
       
+      __typename
       ${_.map(TypeRegistry.names, (name) => '...' + name).join('\n')}
     }
   }

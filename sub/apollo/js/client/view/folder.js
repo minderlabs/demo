@@ -113,7 +113,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
         type: ACTION.NAVIGATE,
         location: {
           // TODO(burdon): Const path.
-          pathname: '/detail/' + Database.toGlobalId(item.type, item.id)
+          pathname: '/item/' + Database.toGlobalId(item.type, item.id)
         },
         action: 'PUSH'
       });

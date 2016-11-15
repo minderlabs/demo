@@ -17,8 +17,10 @@ import Database from './database';
 // TODO(burdon): Factor out common schema (and database) for all demos?
 // TODO(burdon): Client mocking (use same schema) http://dev.apollodata.com/tools/graphql-tools/mocking.html
 
+// TODO(burdon): Inject field-level resolvers (e.g., User.tasks); where not just ID reference.
+
 /**
- *
+ * Schema factory.
  */
 export default class SchemeFactory {
 
@@ -35,6 +37,7 @@ export default class SchemeFactory {
     const resolvers = this.getResolvers(this._typeMap, this._database);
 
     // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
+    console.log('Creating schema...');
     const schema = makeExecutableSchema({
       typeDefs: TypeDefs,
       resolvers: resolvers,
@@ -46,6 +49,7 @@ export default class SchemeFactory {
     /**
      * Create the type map for introspection.
      */
+    console.log('Creating schema defs...');
     return graphql(schema, introspectionQuery).then((result) => {
       let jsonSchema = result.data.__schema;
       _.each(jsonSchema.types, (type) => {
@@ -59,6 +63,7 @@ export default class SchemeFactory {
   //
   // Resolvers
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
+  // http://graphql.org/learn/execution/#root-fields-resolvers
   // TODO(burdon): See args and return values (incl. promise).
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
   // TODO(burdon): Modularize
@@ -94,6 +99,15 @@ export default class SchemeFactory {
         }
       },
 
+
+      // TODO(burdon): Replace reduceItem below and implement all ID lookup and query members.
+
+      User: {
+        title: (obj, args, context) => {
+          return obj.title;
+        }
+      },
+
       //
       // Queries
       //
@@ -116,7 +130,7 @@ export default class SchemeFactory {
         },
 
         item: (root, { itemId }) => {
-          let {type, id:localItemId} = Database.fromGlobalId(itemId);
+          let { type, id:localItemId } = Database.fromGlobalId(itemId);
 
           // TODO(burdon): Should only return required fields and resolve IDs -> objects.
           return this.resovleItem(this._database.getItem(type, localItemId));
@@ -180,7 +194,7 @@ export default class SchemeFactory {
    * @param item
    */
   resovleItem(item) {
-
+    console.assert(item.type);
     let typeDef = this._typeMap.get(item.type);
     _.each(typeDef.fields, (field) => {
 
@@ -188,32 +202,63 @@ export default class SchemeFactory {
       // TODO(burdon): Note this could potentially be recursive (need to check what is being asked for).
       //               I.e., how many levels.
 
+
       let fieldType = field.type;
 
       // TODO(burdon): AST DEFS ARE RECURSIVE: e.g., members => NON_NULL => LIST. Need more complex parser.
       let nonNull = false;
-      if (fieldType.kind == 'NON_NULL') {
+      if (fieldType.kind === 'NON_NULL') {
         fieldType = fieldType.ofType;
 
         // TODO(burdon): Warn if null.
         nonNull = true;
       }
 
+      //
+      // TODO(burdon): RESOLVE IS RECURSIVE SO MAKE SURE ONLY GET FIELDS THAT ARE REQUESTED.
+      //
+
       switch (fieldType.kind) {
         case 'OBJECT': {
-          item[field.name] = this._database.getItem(fieldType.name, item[field.name]);
+          let linkedItemId = item[field.name];
+          console.assert(linkedItemId || !nonNull);
+          if (linkedItemId) {
+            item[field.name] = this.resovleItem(this._database.getItem(fieldType.name, linkedItemId));
+          }
+
           break;
         }
 
         case 'LIST': {
           // TODO(burdon): Only one level deep! (not list of lists).
           let listType = fieldType.ofType;
-          console.log('>>>>>>', listType);
           switch (listType.kind) {
             case 'OBJECT': {
-              item[field.name] = _.map(item[field.name], (id) => {
-                return this._database.getItem(listType.name, id);
-              });
+              // Query or ID lookup?
+              if (!_.isEmpty(field.args)) {
+
+                // TODO(burdon): Get values from root resolver handler.
+                // https://github.com/facebook/graphql/issues/204 (ARGS IN FRAGMENTS)
+
+                // TODO(burdon): Something isn't right here: framework should be walking the tree for us. And passing fields.
+                // http://graphql.org/learn/execution/#list-resolvers
+                // OTHER LIBS?
+
+                // TODO(burdon): Hack to resolve user tasks (create parser map Type.field).
+                // TODO(burdon): Getting complicated -- need unit tests (move to graphql sub).
+                console.log('========FIELD=========', JSON.stringify(field));
+                let filter = { labels: ['xxx'] };
+
+                // TODO(burdon): Use filter.
+                item[field.name] = _.map(this._database.queryItems(filter), (item) => {
+                  return this.resovleItem(item);
+                });
+              } else {
+                item[field.name] = _.map(item[field.name], (id) => {
+                  return this.resovleItem(this._database.getItem(listType.name, id));
+                });
+              }
+
               break;
             }
           }

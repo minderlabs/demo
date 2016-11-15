@@ -1,0 +1,17 @@
+{
+  "name": "nx-core",
+  "version": "0.0.1",
+  "description": "Common JS libs.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com:alienlabs/react-demos.git"
+  },
+  "main": "index.js",
+  "devDependencies": {
+  },
+  "dependencies": {
+  },
+  "scripts": {
+  }
+}

@@ -71,7 +71,7 @@ class Layout extends React.Component {
             <div>
               <Link to="/inbox">Inbox</Link>
               <Link to="/favorites">Favorites</Link>
-              <Link to={ '/detail/' + Database.toGlobalId('Group', 'minderlabs') }>Team</Link>
+              <Link to={ '/team/' + Database.toGlobalId('Group', 'minderlabs') }>Team</Link>
             </div>
           </div>
 
@@ -83,7 +83,7 @@ class Layout extends React.Component {
             {/*
               * Item detail.
               */}
-            <Match pattern="/detail/:itemId" component={ DetailView } queries="aa"/>
+            <Match pattern="/:itemView/:itemId" component={ DetailView } queries="aa"/>
 
             {/*
               * Folder view.

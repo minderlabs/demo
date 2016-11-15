@@ -11,6 +11,14 @@
 // https://medium.com/@codazeninc/choosing-a-graphql-client-apollo-vs-relay-9398dde5363a#.cf5fsaska
 // https://medium.freecodecamp.com/tutorial-how-to-use-graphql-in-your-redux-app-9bf8ebbeb362#.m5mpkzy7k
 
+// TODO(burdon): Fragment composition
+// https://github.com/facebook/graphql/issues/204 (ARGS IN FRAGMENTS)>>>>>> stubailo
+// https://github.com/apollostack/react-apollo/issues/140
+// http://dev.apollodata.com/core/fragments.html
+// http://graphql.org/learn/queries/#fragments
+// createFragment vs new Fragment
+// Try declaring vars in fragment (does it automatically get passed down?)
+
 // TODO(burdon): Subscriptions.
 // https://github.com/apollostack/graphql-subscriptions (Redis/Rethink)
 // http://dev.apollodata.com/react/receiving-updates.html#Subscriptions
@@ -19,6 +27,7 @@
 // TODO(burdon): Native?
 // TODO(burdon): Optimistic UI.
 // TODO(burdon): Update cache with updateQueries.
+
 
 // Benefits over Relay:
 //  - simplicity
@@ -48,7 +57,7 @@ import createBrowserHistory from 'history/createBrowserHistory'
 
 import moment from 'moment';
 
-import { Util } from '../common/util';
+import { TypeUtil } from '../common/util/type';
 
 import Matcher from '../data/matcher';
 import QueryRegistry from './subscriptions';
@@ -116,7 +125,7 @@ networkInterface.use([{
     requestMap.set(requestId, request);
 
     console.log('[%s] >>> [%s]: %s', moment().format(TIMESTAMP),
-      requestId, JSON.stringify(request.variables, Util.JSON_REPLACER));
+      requestId, JSON.stringify(request.variables, TypeUtil.JSON_REPLACER));
 
     // TODO(burdon): Paging bug when non-null text filter.
     // https://github.com/apollostack/apollo-client/issues/897
@@ -163,7 +172,7 @@ networkInterface.useAfter([{
           console.error('GraphQL Error [%s]:', requestId, errors.map(error => error.message));
         } else {
           console.log('[%s] <<< [%s]', moment().format(TIMESTAMP),
-            requestId, JSON.stringify(data, Util.JSON_REPLACER));
+            requestId, JSON.stringify(data, TypeUtil.JSON_REPLACER));
         }
 
         next();

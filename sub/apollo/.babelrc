@@ -30,5 +30,8 @@
         "react-hot-loader/babel"
       ]
     }
+
+    // TODO(burdon): Prod.
+    // "babel-preset-react-optimize"
   }
 }

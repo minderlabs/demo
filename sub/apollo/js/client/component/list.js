@@ -165,6 +165,7 @@ export default compose(
       let { filter, text } = props;
 
       return {
+        // TODO(burdon): Can we pass variables?
         fragments: ItemFragments.item.fragments(),
 
         variables: {

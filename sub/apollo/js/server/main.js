@@ -17,9 +17,9 @@ import moment from 'moment';
 import graphqlHTTP from 'express-graphql';
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 
-import { Util } from '../common/util';
+import { TypeUtil } from '../common/util/type';
 
-import SchemeFactory from '../data/schemaFactory';
+import SchemeFactory from '../data/schema';
 import Database from '../data/database';
 import Randomizer from '../data/testing/randomizer';
 
@@ -132,7 +132,7 @@ const graphqlLogger = (options={ logging: true, pretty: false }) => {
 
       let stringify = options.pretty ?
         (json) => JSON.stringify(json, 0, 2) :
-        (json) => JSON.stringify(json, Util.JSON_REPLACER, 0);
+        (json) => JSON.stringify(json, TypeUtil.JSON_REPLACER, 0);
 
       let { operationName, query, variables } = req.body;
 

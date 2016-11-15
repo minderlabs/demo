@@ -13,9 +13,23 @@ import gql from 'graphql-tag';
  */
 export const UserFragments = {
 
+  // TODO(burdon): Different fragments for different item view types.
+
+  // TODO(burdon): $taskFilter must be unique and set by parent DetailQuery query.
+
+  // TODO(burdon): Query prefix (e.g., two collections of items? How to configure fragments for each?)
+
+  // TODO(burdon): Pass variables to fragments (e.g., filter tasks).
+  // https://github.com/apollostack/react-apollo/issues/140
+  // https://github.com/apollostack/react-apollo/issues/122
+
   item: new Fragment(gql`
     fragment UserFragment on User {
       title
+      
+      tasks(filter: { labels: ["_favorite"] }) {
+        title
+      }
     }
   `)
 

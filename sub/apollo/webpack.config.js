@@ -11,6 +11,10 @@ const webpack = require('webpack');
 // https://github.com/webpack/extract-text-webpack-plugin
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+// TODO(burdon): Support symlinks.
+// https://github.com/babel/babel-loader/issues/149
+// https://github.com/webpack/webpack/issues/1643
+
 //
 // Webpack app configuration.
 //
