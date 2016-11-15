@@ -25,6 +25,14 @@ export default class Matcher {
       return false;
     }
 
+    // Predicate match.
+    // TODO(burdon): Other operators.
+    if (filter.predicate) {
+      if (item[filter.predicate.field] != filter.predicate.value) {
+        return false;
+      }
+    }
+
     // Text match.
     if (text && _.lowerCase(item.title).indexOf(text) == -1) {
       return false;

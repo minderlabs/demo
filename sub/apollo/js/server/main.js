@@ -107,7 +107,6 @@ _.each(data, (items, type) => {
 });
 
 // TODO(burdon): Trigger from webhook.
-if (false)
 new Randomizer(database)
   .generate('Task', 20,
     {
@@ -115,8 +114,8 @@ new Randomizer(database)
       assignee: { type: 'User', likelihood: 0.5 }
     }
   )
-  .generate('Contact',    20)
-  .generate('Place',      50);
+  .generate('Contact', 20)
+  .generate('Place', 10);
 
 
 //

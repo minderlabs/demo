@@ -30,15 +30,17 @@ class DetailView extends React.Component {
   render() {
     let { item } = this.props.data;
 
+    // TODO(burdon): Can we ensure component is well-formed?
+    if (!item) {
+      return <div/>;
+    }
+
     let detail = item && TypeRegistry.render(item);
 
     return (
       <div className="app-column">
         <div className="app-section">
-          <h1>Detail</h1>
-          <pre>
-            { JSON.stringify(item, null, 2) }
-          </pre>
+          <h1>{ item.title }</h1>
         </div>
 
         <div className="app-section">

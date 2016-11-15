@@ -147,9 +147,6 @@ class Layout extends React.Component {
 // 3). Furthermore, the react-relay-router can block until these queries are satisfied, so that on error a different router path can be displayed. This also prevents render "flickering" i.e., the child component making a default invalid query, and then re-rendering once the parent's query loads and then reconfigures the child.
 
 
-// TODO(burdon): Try importing fragments!!!!!!!!!!!
-
-
 const LayoutQuery = gql`
   query LayoutQuery($userId: ID!) { 
 
@@ -228,9 +225,6 @@ export default compose(
       };
     },
     props: ({ ownProps, data }) => {
-
-      console.log('*************************** Layout.data', data);
-
       return {
         data
       }

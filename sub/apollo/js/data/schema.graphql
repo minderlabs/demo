@@ -34,26 +34,58 @@ input Value {
 
   date:     Date
 
-  list:     ListDelta         # TODO(burdon): Bad names.
+  list:     ListDelta         # TODO(burdon): Rename.
   object:   ObjectDelta
 
   values:   [Value]
 }
+
+#
+# List transformation.
+#
 
 input ListDelta {
   index: Int
   value: Value!
 }
 
+#
+# Object transformation.
+#
+
 input ObjectDelta {
-  key: String!
+  field: String!
   value: Value
 }
 
+#
+# Query/Filter primitives.
+#
+
 # TODO(burdon): Add op; nested?
+# TODO(burdon): Build AST for query syntax?
+# TODO(burdon): Why can't inputs be used for outputs?
+# https://github.com/graphql/graphql-js/issues/423
+
 input Predicate {
-  key: String!
+  field: String!
   value: Value
+}
+
+input Filter {
+  type: String
+  labels: [String]
+  text: String
+  predicate: Predicate
+}
+
+# TODO(burdon): Defs needed for folders? Just serialize to JSON?
+
+type FilterDef {
+  type: String
+  labels: [String]
+  text: String
+# predicate: Predicate
 }
 
 #
@@ -140,7 +172,6 @@ type Task implements Item {
   title: String!
   labels: [String]
 
-  status: Int!
   owner: User
   assignee: User
 }
@@ -171,24 +202,6 @@ type Place implements Item {
 # NOTE: Must only have Input types (since regular types might be recursive and therefore not serializable).
 # https://github.com/graphql/graphql-js/issues/312
 #
-
-# TODO(burdon): Build AST for query syntax?
-
-input Filter {
-  type: String
-  labels: [String]
-  text: String
-  predicate: Predicate
-}
-
-# TODO(burdon): Why can't inputs be used for types? How to reuse?
-
-type FilterDef {
-  type: String
-  labels: [String]
-  text: String
-#  predicate: Predicate
-}
 
 type RootQuery {
   viewer(userId: ID!): Viewer!

@@ -40,25 +40,22 @@ class Application extends React.Component {
   handleChange(location, action) {
     console.log('NAVIGATE[%s]: %s', action, location.pathname);
 
+    // TODO(burdon): Error on PUSH.
+    // Warning: setState(...): Can only update a mounted or mounting component.
+
     // SYNC | PUSH | POP
     switch (action) {
       case 'SYNC': {
         this.props.dispatch({
           type: ACTION.NAVIGATE,
           location,
-          action: this.props.action     // TODO(burdon): Why?
+          action: this.props.action     // TODO(burdon): Document?
         });
         break;
       }
 
       default: {
         // TODO(burdon): Prevent navigation if same path.
-        /*
-        if (location.pathname === this.props.location.pathname) {
-          break;
-        }
-        */
-
         // TODO(burdon): Prevent navigate away.
         this.props.dispatch({
           type: ACTION.NAVIGATE,

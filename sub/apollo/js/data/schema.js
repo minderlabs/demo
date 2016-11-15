@@ -17,8 +17,6 @@ import Database from './database';
 // TODO(burdon): Factor out common schema (and database) for all demos?
 // TODO(burdon): Client mocking (use same schema) http://dev.apollodata.com/tools/graphql-tools/mocking.html
 
-// TODO(burdon): Inject field-level resolvers (e.g., User.tasks); where not just ID reference.
-
 /**
  * Schema factory.
  */
@@ -61,9 +59,9 @@ export default class SchemeFactory {
   }
 
   //
-  // Resolvers
-  // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
-  // http://graphql.org/learn/execution/#root-fields-resolvers
+  // Resolver Map
+  // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-map
+  //
   // TODO(burdon): See args and return values (incl. promise).
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
   // TODO(burdon): Modularize
@@ -95,16 +93,59 @@ export default class SchemeFactory {
       Item: {
         __resolveType(root, context, info) {
           console.assert(root.type);
+          // The type property maps onto the GraphQL schema type name.
           return root.type;
         }
       },
 
+      //
+      // Type resolvers.
+      // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
+      // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-result-format
+      //
+      // fieldName: (root, args, context, info) => result
+      //
 
-      // TODO(burdon): Replace reduceItem below and implement all ID lookup and query members.
+      Group: {
+
+        members: (root, args) => {
+          return _.map(root.members, itemId => this._database.getItem('User', itemId));
+        }
+      },
 
       User: {
-        title: (obj, args, context) => {
-          return obj.title;
+
+        tasks: (root, args) => {
+          let { filter } = args || {};
+
+          filter.type = 'Task';
+
+          let predicate = _.get(filter, 'predicate', { field: 'assignee' });
+          switch (predicate.field) {
+            case 'owner':
+            case 'assignee':
+              predicate.value = root.id;
+              break;
+          }
+
+          return this._database.queryItems(filter);
+        }
+      },
+
+      Task: {
+
+        owner: (root) => {
+          let userId = root.owner;
+          if (userId) {
+            return this._database.getItem('User', userId);
+          }
+        },
+
+        assignee: (root) => {
+          let userId = root.assignee;
+          if (userId) {
+            return this._database.getItem('User', userId);
+          }
         }
       },
 
@@ -132,13 +173,11 @@ export default class SchemeFactory {
         item: (root, { itemId }) => {
           let { type, id:localItemId } = Database.fromGlobalId(itemId);
 
-          // TODO(burdon): Should only return required fields and resolve IDs -> objects.
-          return this.resovleItem(this._database.getItem(type, localItemId));
+          return this._database.getItem(type, localItemId);
         },
 
         items: (root, { filter, offset, count }) => {
-          // TODO(burdon): Should only return required fields and resolve IDs -> objects.
-          return _.map(this._database.queryItems(filter, offset, count), item => this.resovleItem(item));
+          return this._database.queryItems(filter, offset, count);
         }
       },
 
@@ -149,11 +188,8 @@ export default class SchemeFactory {
 
       RootMutation: {
 
-        // TODO(burdon): Unit test.
-        // TODO(burdon): Document where mutation should set ID for object reference.
-
         updateItem: (root, { itemId, deltas }) => {
-          let {type, id:localItemId} = Database.fromGlobalId(itemId);
+          let { type, id:localItemId } = Database.fromGlobalId(itemId);
           console.log('MUTATION.UPDATE[%s]', type, localItemId, deltas);
 
           let item = this._database.getItem(type, localItemId);
@@ -161,12 +197,12 @@ export default class SchemeFactory {
 
           // Process value deltas.
           _.each(deltas, (delta) => {
-            let key = delta.key;
+            let field = delta.field;
             let value = delta.value;
 
             // TODO(burdon): If scalar then just set.
             if (value.list) {
-              let values = item[key] || [];
+              let values = item[field] || [];
 
               // TODO(burdon): Need to apply based on value type).
               let delta = value.list;
@@ -176,7 +212,7 @@ export default class SchemeFactory {
                 values = _.union(values, [delta.value.string]);
               }
 
-              item[key] = values;
+              item[field] = values;
             }
           });
 
@@ -185,88 +221,5 @@ export default class SchemeFactory {
         }
       }
     };
-  }
-
-  /**
-   * Resolve specific fields (from introspection).
-   * E.g., Interpret object types as a reference to another item by Id returned by database field.
-   *
-   * @param item
-   */
-  resovleItem(item) {
-    console.assert(item.type);
-    let typeDef = this._typeMap.get(item.type);
-    _.each(typeDef.fields, (field) => {
-
-      // TODO(burdon): Note that is database dependent (schema can't tell us that).
-      // TODO(burdon): Note this could potentially be recursive (need to check what is being asked for).
-      //               I.e., how many levels.
-
-
-      let fieldType = field.type;
-
-      // TODO(burdon): AST DEFS ARE RECURSIVE: e.g., members => NON_NULL => LIST. Need more complex parser.
-      let nonNull = false;
-      if (fieldType.kind === 'NON_NULL') {
-        fieldType = fieldType.ofType;
-
-        // TODO(burdon): Warn if null.
-        nonNull = true;
-      }
-
-      //
-      // TODO(burdon): RESOLVE IS RECURSIVE SO MAKE SURE ONLY GET FIELDS THAT ARE REQUESTED.
-      //
-
-      switch (fieldType.kind) {
-        case 'OBJECT': {
-          let linkedItemId = item[field.name];
-          console.assert(linkedItemId || !nonNull);
-          if (linkedItemId) {
-            item[field.name] = this.resovleItem(this._database.getItem(fieldType.name, linkedItemId));
-          }
-
-          break;
-        }
-
-        case 'LIST': {
-          // TODO(burdon): Only one level deep! (not list of lists).
-          let listType = fieldType.ofType;
-          switch (listType.kind) {
-            case 'OBJECT': {
-              // Query or ID lookup?
-              if (!_.isEmpty(field.args)) {
-
-                // TODO(burdon): Get values from root resolver handler.
-                // https://github.com/facebook/graphql/issues/204 (ARGS IN FRAGMENTS)
-
-                // TODO(burdon): Something isn't right here: framework should be walking the tree for us. And passing fields.
-                // http://graphql.org/learn/execution/#list-resolvers
-                // OTHER LIBS?
-
-                // TODO(burdon): Hack to resolve user tasks (create parser map Type.field).
-                // TODO(burdon): Getting complicated -- need unit tests (move to graphql sub).
-                console.log('========FIELD=========', JSON.stringify(field));
-                let filter = { labels: ['xxx'] };
-
-                // TODO(burdon): Use filter.
-                item[field.name] = _.map(this._database.queryItems(filter), (item) => {
-                  return this.resovleItem(item);
-                });
-              } else {
-                item[field.name] = _.map(item[field.name], (id) => {
-                  return this.resovleItem(this._database.getItem(listType.name, id));
-                });
-              }
-
-              break;
-            }
-          }
-        }
-      }
-    });
-
-    // TODO(burdon): Build up resolved item from fields of database item.
-    return item;
   }
 }

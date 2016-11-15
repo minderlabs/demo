@@ -15,7 +15,14 @@ export const TaskFragments = {
 
   item: new Fragment(gql`
     fragment TaskFragment on Task {
-      status
+      owner {
+        id
+        title
+      }
+      assignee {
+        id
+        title
+      }
     }
   `)
 
@@ -33,10 +40,18 @@ export default class Task extends React.Component {
   render() {
     return (
       <div>
-        <h3>Task</h3>
-        <pre>
-          { JSON.stringify(_.pick(this.props.item, ['status']), 0, 2) }
-        </pre>
+        <table>
+          <tbody>
+          <tr>
+            <td>Owner</td>
+            <td>{ _.get(this.props.item, 'owner.title') }</td>
+          </tr>
+          <tr>
+            <td>Assignee</td>
+            <td>{ _.get(this.props.item, 'assignee.title') }</td>
+          </tr>
+          </tbody>
+        </table>
       </div>
     );
   }

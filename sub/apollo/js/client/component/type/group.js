@@ -5,8 +5,11 @@
 'use strict';
 
 import React from 'react';
+import { Link } from 'react-router';
 import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
+
+import Database from '../../../data/database';
 
 /**
  * Fragments.
@@ -18,6 +21,11 @@ export const GroupFragments = {
       members {
         id
         title
+      
+        tasks(filter: { predicate: { field: "assignee" } }) {
+          id
+          title
+        }
       }
     }
   `)
@@ -33,15 +41,33 @@ export default class Group extends React.Component {
     item: GroupFragments.item.propType
   };
 
-  // TODO(burdon): Google map.
-
   render() {
     return (
       <div>
-        <h3>City</h3>
-        <pre>
-          { JSON.stringify(_.pick(this.props.item, ['members']), 0, 2) }
-        </pre>
+        <h2>Team Agenda</h2>
+        <div>
+          {this.props.item.members.map(member => (
+          <div key={ member.id }>
+            <div className="app-row">
+              <Link to={ '/member/' + Database.toGlobalId('User', member.id) }>
+                <i className="material-icons">accessibility</i>
+              </Link>
+              <h3 className="app-expand">{ member.title }</h3>
+              <i className="material-icons">add</i>
+            </div>
+            <div>
+              {member.tasks.map(task => (
+                <div key={ task.id } className="app-row">
+                  <Link to={ '/task/' + Database.toGlobalId('Task', task.id) }>
+                    <i className="material-icons">assignment_turned_in</i>
+                  </Link>
+                  <div className="app-expand">{ task.title }</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          ))}
+        </div>
       </div>
     );
   }

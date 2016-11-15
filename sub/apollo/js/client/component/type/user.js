@@ -5,29 +5,32 @@
 'use strict';
 
 import React from 'react';
+import { Link } from 'react-router';
 import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
+
+import Database from '../../../data/database';
 
 /**
  * Fragments.
  */
 export const UserFragments = {
 
-  // TODO(burdon): Different fragments for different item view types.
-
-  // TODO(burdon): $taskFilter must be unique and set by parent DetailQuery query.
-
-  // TODO(burdon): Query prefix (e.g., two collections of items? How to configure fragments for each?)
-
-  // TODO(burdon): Pass variables to fragments (e.g., filter tasks).
+  // TODO(burdon): Pass variables to fragments (e.g., filter tasks)?
   // https://github.com/apollostack/react-apollo/issues/140
   // https://github.com/apollostack/react-apollo/issues/122
 
   item: new Fragment(gql`
     fragment UserFragment on User {
       title
-      
-      tasks(filter: { labels: ["_favorite"] }) {
+
+      ownerTasks: tasks(filter: { predicate: { field: "owner" } }) {
+        id
+        title
+      }
+
+      assigneeTasks: tasks(filter: { predicate: { field: "assignee" } }) {
+        id
         title
       }
     }
@@ -44,14 +47,39 @@ export default class User extends React.Component {
     item: UserFragments.item.propType
   };
 
-  // TODO(burdon): Google map.
-
   render() {
     return (
       <div>
-        <pre>
-          { JSON.stringify(_.pick(this.props.item, ['email']), 0, 2) }
-        </pre>
+        <h2>Tasks</h2>
+
+        <div className="app-row">
+          <h3 className="app-expand">Owned</h3>
+          <i className="material-icons">add</i>
+        </div>
+        <div>
+          {this.props.item.ownerTasks.map(task => (
+            <div key={ task.id } className="app-row">
+              <Link to={ '/task/' + Database.toGlobalId('Task', task.id) }>
+                <i className="material-icons">assignment_turned_in</i>
+              </Link>
+              <div className="app-expand">{ task.title }</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="app-row">
+          <h3 className="app-expand">Assigned</h3>
+        </div>
+        <div>
+          {this.props.item.assigneeTasks.map(task => (
+            <div key={ task.id } className="app-row">
+              <Link to={ '/task/' + Database.toGlobalId('Task', task.id) }>
+                <i className="material-icons">assignment_turned_in</i>
+              </Link>
+              <div className="app-expand">{ task.title }</div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

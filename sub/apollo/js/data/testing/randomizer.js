@@ -64,8 +64,6 @@ export default class Randomizer {
 
       // Generate fields.
       _.each(fields, (spec, field) => {
-
-
         if (this._chance.bool({ likelihood: spec.likelihood * 100 })) {
           let values = this._database.queryItems({type: spec.type});
           if (values.length) {

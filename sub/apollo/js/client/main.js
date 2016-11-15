@@ -41,6 +41,9 @@
 //    - tools
 //  - Relay 2.0 looks sketchy (and moving towards Apollo)
 
+
+// Shared code for client/server mutations and query matching.
+
 // NEXT
 // TODO(burdon): Edit title in detail.
 // TODO(burdon): Favorites/folders (how to invalidate cache)?

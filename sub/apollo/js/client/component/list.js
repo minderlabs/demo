@@ -52,7 +52,7 @@ export class List extends React.Component {
   handleLabelUpdate(item, label, add=true) {
     let mutation = [
       {
-        key: 'labels',
+        field: 'labels',
         value: {
           list: {
             index: add ? 0 : -1,
