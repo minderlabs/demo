@@ -69,7 +69,7 @@ type Viewer {
 }
 
 #
-# Item types.
+# Item.
 # http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Unions-and-interfaces
 # https://github.com/apollostack/graphql-server/issues/172
 #
@@ -81,13 +81,18 @@ interface Item {
   labels: [String]
 }
 
+#
+# Item Types:
+#
+
 type User implements Item {
   id: ID!
   type: String!
   title: String!
   labels: [String]
 
-  email: String!
+  contact: Contact
+  tasks: [Task]
 }
 
 type Group implements Item {
@@ -108,6 +113,15 @@ type Folder implements Item {
   filter: FilterDef
 }
 
+type Contact implements Item {
+  id: ID!
+  type: String!
+  title: String!
+  labels: [String]
+
+  email: String!
+}
+
 type Task implements Item {
   id: ID!
   type: String!
@@ -115,6 +129,18 @@ type Task implements Item {
   labels: [String]
 
   status: Int!
+  owner: User
+  assignee: User
+}
+
+type Event implements Item {
+  id: ID!
+  type: String!
+  title: String!
+  labels: [String]
+
+  location: Place
+  participants: [Contact]
 }
 
 type Place implements Item {

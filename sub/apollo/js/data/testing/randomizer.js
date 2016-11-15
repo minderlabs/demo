@@ -15,13 +15,19 @@ import Database from '../database';
  */
 export default class Randomizer {
 
-  // http://chancejs.com/
+  // http://chancejs.com
 
   static generators = {
 
     'Task': (chance) => {
       return {
-        title: chance.sentence({words: 5})
+        title: chance.sentence({ words: 5 })
+      }
+    },
+
+    'Contact': (chance) => {
+      return {
+        title: chance.name()
       }
     },
 
@@ -42,16 +48,36 @@ export default class Randomizer {
     this._chance = new Chance(seed);
   }
 
-  generate(type, n) {
+  generate(type, n, fields={}) {
     console.log('GENERATE[%s]: %d', type, n);
 
-    let items = _.times(n, (i) => ({
-      id: Database.createId(type),
-      type: type,
-      labels: this._chance.bool({ likelihood: 20 }) ? ['_favorite'] : [],
+    let items = _.times(n, (i) => {
 
-      ...Randomizer.generators[type](this._chance)
-    }));
+      // Generate item.
+      let item = {
+        id: Database.createId(type),
+        type: type,
+        labels: this._chance.bool({ likelihood: 20 }) ? ['_favorite'] : [],
+
+        ...Randomizer.generators[type](this._chance)
+      };
+
+      // Generate fields.
+      _.each(fields, (spec, field) => {
+
+
+        if (this._chance.bool({ likelihood: spec.likelihood * 100 })) {
+          let values = this._database.queryItems({type: spec.type});
+          if (values.length) {
+            let index = this._chance.integer({min: 0, max: values.length - 1});
+            let value = values[index];
+            item[field] = value.id;
+          }
+        }
+      });
+
+      return item;
+    });
 
     this._database.upsertItems(items);
     return this;

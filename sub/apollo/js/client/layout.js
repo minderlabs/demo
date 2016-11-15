@@ -5,12 +5,14 @@
 'use strict';
 
 import React from 'react';
-import { Link, Match, Miss, Redirect } from 'react-router';
 import { connect } from 'react-redux';
+import { Link, Match, Miss, Redirect } from 'react-router';
 import { compose, graphql, withApollo } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import ApolloClient from 'apollo-client';
+
+import Database from '../data/database';
 
 import DetailView from './view/detail';
 import FolderView from './view/folder';
@@ -69,6 +71,7 @@ class Layout extends React.Component {
             <div>
               <Link to="/inbox">Inbox</Link>
               <Link to="/favorites">Favorites</Link>
+              <Link to={ '/detail/' + Database.toGlobalId('Group', 'minderlabs') }>Team</Link>
             </div>
           </div>
 
@@ -80,12 +83,18 @@ class Layout extends React.Component {
             {/*
               * Item detail.
               */}
-            <Match pattern="/detail/:itemId" component={ DetailView }/>
+            <Match pattern="/detail/:itemId" component={ DetailView } queries="aa"/>
 
             {/*
               * Folder view.
               */}
-            <Match pattern="/:folder" exactly={ true } component={ FolderView }/>
+            <Match pattern="/:folder" exactly={ true } __component={ FolderView }
+                   render={ (props) => {
+                     // TODO(burdon): get data?
+                     console.log('###################', props);
+                     return <FolderView foo="1000"/>
+                   }
+             }/>
 
             <Miss render={ () => <Redirect to="/inbox"/> }/>
           </div>
@@ -217,6 +226,14 @@ export default compose(
           userId: props.userId
         }
       };
+    },
+    props: ({ ownProps, data }) => {
+
+      console.log('*************************** Layout.data', data);
+
+      return {
+        data
+      }
     }
   })
 

@@ -13,16 +13,15 @@ import handlebars from 'express-handlebars';
 import bodyParser from 'body-parser';
 import moment from 'moment';
 
-import graphqlHTTP from 'express-graphql';  // TODO(burdon): Figure out logging issue below.
+// TODO(burdon): Figure out logging issue below (see apollo-client github issue).
+import graphqlHTTP from 'express-graphql';
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
-import { makeExecutableSchema } from 'graphql-tools';
 
 import { Util } from '../common/util';
 
-import Resolvers from '../data/resolvers';
+import SchemeFactory from '../data/schemaFactory';
 import Database from '../data/database';
 import Randomizer from '../data/testing/randomizer';
-import TypeDefs from '../data/schema.graphql';
 
 
 // Emulate browser atob and btoa.
@@ -38,6 +37,13 @@ global.atob = function (str) { return new Buffer(str, 'base64').toString(); };
 const env = process.env['NODE_ENV'] || 'development';
 const host = (env === 'production') ? '0.0.0.0' : '127.0.0.1';
 const port = process.env['VIRTUAL_PORT'] || 3000;
+
+
+//
+// Allow async start.
+//
+
+let promises = [];
 
 
 //
@@ -93,69 +99,24 @@ if (env === 'hot') {
 
 let database = new Database();
 
-// TODO(burdon): From JSON file.
-database.upsertItems([
-  {
-    id: 'rich',
-    type: 'User',
-    title: 'Rich Burdon',
-    email: 'rich'
-  },
-  {
-    id: 'adam',
-    type: 'User',
-    title: 'Adam Berenzweig',
-    email: 'adam'
-  },
-  {
-    id: 'matt',
-    type: 'User',
-    title: 'Matt Sullivan',
-    email: 'matt@carbonfive.com',
-  }
-]);
+const data = require('../data/testing/test.json');
 
-database.upsertItems([
-  {
-    id: 'inbox',
-    type: 'Folder',
-    title: 'Inbox'
-  },
-  {
-    id: 'favorites',
-    type: 'Folder',
-    title: 'Favorites',
-    filter: {
-      labels: ['_favorite']
-    }
-  },
-]);
+// System data.
+_.each(data, (items, type) => {
+  database.upsertItems(_.map(items, (item) => ({ type, ...item })));
+});
 
 // TODO(burdon): Trigger from webhook.
+if (false)
 new Randomizer(database)
-  .generate('Task',   20)
-  .generate('Place', 100);
-
-
-//
-// GraphQL
-// https://github.com/apollostack/graphql-server
-// https://github.com/graphql/express-graphql#options
-// http://dev.apollodata.com/tools/graphql-server/index.html
-//
-
-app.use(bodyParser.json());                           // JSON post (GraphQL).
-app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
-
-// Generate GraphQLSchema instance.
-// http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
-const schema = makeExecutableSchema({
-  typeDefs: TypeDefs,
-  resolvers: Resolvers(database),
-  logger: {
-    log: (error) => console.log('Schema Error', error)
-  }
-});
+  .generate('Task', 20,
+    {
+      owner:    { type: 'User', likelihood: 1.0 },
+      assignee: { type: 'User', likelihood: 0.5 }
+    }
+  )
+  .generate('Contact',    20)
+  .generate('Place',      50);
 
 
 //
@@ -167,6 +128,7 @@ const schema = makeExecutableSchema({
 const graphqlLogger = (options={ logging: true, pretty: false }) => {
   return (req, res, next) => {
     if (options.logging) {
+      console.assert(req.body);
 
       let stringify = options.pretty ?
         (json) => JSON.stringify(json, 0, 2) :
@@ -194,28 +156,40 @@ const graphqlLogger = (options={ logging: true, pretty: false }) => {
 };
 
 
-const router = express.Router();
-router.use('/graphql', graphqlLogger());
-app.use('/', router);
-
-
 //
 // GraphQL server.
-// TODO(burdon): Logging doesn't work with graphqlExpress.
+// https://github.com/apollostack/graphql-server
+// https://github.com/graphql/express-graphql#options
+// http://dev.apollodata.com/tools/graphql-server/index.html
 //
 
-app.use('/graphql', graphqlHTTP({
-  schema: schema,
-  pretty: true,
-  formatError: error => ({
-    message: error.message,
-    locations: error.locations,
-    stack: error.stack
-  })
-}));
+promises.push(new SchemeFactory(database).makeExecutableSchema().then((schema) => {
+  console.assert(schema);
 
-app.use('/graphiql', graphiqlExpress({
-  endpointURL: '/graphql',
+  // MIME type.
+  app.use(bodyParser.json());                           // JSON post (GraphQL).
+  app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
+
+  // Logging.
+  const router = express.Router();
+  router.use('/graphql', graphqlLogger());
+  app.use('/', router);
+
+  // Bind server.
+  app.use('/graphql', graphqlHTTP({
+    schema: schema,
+    pretty: true,
+    formatError: error => ({
+      message: error.message,
+      locations: error.locations,
+      stack: error.stack
+    })
+  }));
+
+  // Bind debug UX.
+  app.use('/graphiql', graphiqlExpress({
+    endpointURL: '/graphql',
+  }));
 }));
 
 
@@ -267,9 +241,12 @@ app.set('views', path.join(__dirname, 'views'));
 // Start-up
 //
 
-const server = http.Server(app);
+Promise.all(promises).then(() => {
+  const server = http.Server(app);
 
-server.listen(port, host, () => {
-  let addr = server.address();
-  console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
+  server.listen(port, host, () => {
+    let addr = server.address();
+    console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
+  });
 });
+

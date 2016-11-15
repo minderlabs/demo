@@ -1,0 +1,42 @@
+{
+  "Group": [
+    {
+      "id": "minderlabs",
+      "title": "Minder Labs",
+      "members": [
+        "adam",
+        "rich",
+        "matt"
+      ]
+    }
+  ],
+
+  "User": [
+    {
+      "id": "adam",
+      "title": "Adam Berenzweig"
+    },
+    {
+      "id": "rich",
+      "title": "Rich Burdon"
+    },
+    {
+      "id": "matt",
+      "title": "Matt Sullivan"
+    }
+  ],
+
+  "Folder": [
+    {
+      "id": "inbox",
+      "title": "Inbox"
+    },
+    {
+      "id": "favorites",
+      "title": "Favorites",
+      "filter": {
+        "labels": ["_favorite"]
+      }
+    }
+  ]
+}

@@ -9,7 +9,7 @@ import path from 'path';
 
 import { graphql }  from 'graphql';
 import { makeExecutableSchema } from 'graphql-tools';
-import { introspectionQuery, printSchema } from 'graphql/utilities';
+import { introspectionQuery } from 'graphql/utilities';
 
 import TypeDefs from '../../js/data/schema.graphql';
 
@@ -24,7 +24,6 @@ if (!fs.existsSync(DIST_DIR)) {
 //
 
 (async () => {
-
   const schema = makeExecutableSchema({
     typeDefs: TypeDefs
   });
@@ -37,5 +36,4 @@ if (!fs.existsSync(DIST_DIR)) {
       path.join(DIST_DIR, 'schema.json'), JSON.stringify(result, null, 2)
     );
   }
-
 })();

@@ -15,7 +15,7 @@ export const UserFragments = {
 
   item: new Fragment(gql`
     fragment UserFragment on User {
-      email
+      title
     }
   `)
 
