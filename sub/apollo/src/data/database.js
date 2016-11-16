@@ -6,7 +6,7 @@
 
 import _ from 'lodash';
 
-import { TypeUtil } from '../common/util/type';
+import { TypeUtil } from 'minder-core';
 
 import Matcher from './matcher';
 

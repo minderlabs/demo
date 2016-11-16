@@ -83,18 +83,12 @@ class Layout extends React.Component {
             {/*
               * Item detail.
               */}
-            <Match pattern="/:itemView/:itemId" component={ DetailView } queries="aa"/>
+            <Match pattern="/:itemView/:itemId" component={ DetailView }/>
 
             {/*
               * Folder view.
               */}
-            <Match pattern="/:folder" exactly={ true } __component={ FolderView }
-                   render={ (props) => {
-                     // TODO(burdon): get data?
-                     console.log('###################', props);
-                     return <FolderView foo="1000"/>
-                   }
-             }/>
+            <Match pattern="/:folder" exactly={ true } component={ FolderView }/>
 
             <Miss render={ () => <Redirect to="/inbox"/> }/>
           </div>

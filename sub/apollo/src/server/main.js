@@ -17,7 +17,7 @@ import moment from 'moment';
 import graphqlHTTP from 'express-graphql';
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 
-import { TypeUtil } from '../common/util/type';
+import { TypeUtil } from 'minder-core';
 
 import SchemeFactory from '../data/schema';
 import Database from '../data/database';

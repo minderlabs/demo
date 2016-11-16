@@ -15,5 +15,5 @@ node_modules/
 server/assets/
 web/src/
 
-npm-debug.log
+npm-debug.log*
 

@@ -11,7 +11,7 @@ import gql from 'graphql-tag';
 
 // TODO(burdon): Inject.
 import QueryParser from '../../data/parser';
-import TypeRegistry from '../component/registry';
+import TypeRegistry from '../component/typeRegistry';
 
 import Database from '../../data/database';
 

@@ -37,13 +37,13 @@ module.exports = function(config) {
       // Test suite.
       // Specifies single bundle entry point for webpack.
       // https://github.com/webpack/karma-webpack#alternative-usage
-      'js/webpack.tests.js'
+      'src/webpack.tests.js'
     ],
 
     preprocessors: {
       // Transpile test suite.
       // https://github.com/webpack/karma-webpack#alternative-usage
-      'js/webpack.tests.js': ['webpack']
+      'src/webpack.tests.js': ['webpack']
     },
 
     webpack: webpackConfig,

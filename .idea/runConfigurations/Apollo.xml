@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Apollo" type="js.build_tools.npm" factoryName="npm" singleton="false">
+    <package-json value="$PROJECT_DIR$/sub/apollo/package.json" />
+    <command value="run-script" />
+    <scripts>
+      <script value="webpack-dev-server" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs>
+      <env name="NODE_ENV" value="hot" />
+      <env name="BABEL_ENV" value="hot" />
+      <env name="BABEL_DISABLE_CACHE" value="1" />
+    </envs>
+    <method />
+  </configuration>
+</component>

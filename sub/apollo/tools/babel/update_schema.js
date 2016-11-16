@@ -11,7 +11,7 @@ import { graphql }  from 'graphql';
 import { makeExecutableSchema } from 'graphql-tools';
 import { introspectionQuery } from 'graphql/utilities';
 
-import TypeDefs from '../../js/data/schema.graphql';
+import TypeDefs from '../../src/data/schema.graphql';
 
 const DIST_DIR = path.join(__dirname, '../../dist');
 

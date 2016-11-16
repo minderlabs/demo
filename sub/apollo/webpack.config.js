@@ -7,6 +7,7 @@
 var _ = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
+const webpackLinkPlugin = require('webpack-link');
 
 // https://github.com/webpack/extract-text-webpack-plugin
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -31,7 +32,7 @@ module.exports = {
 
   entry: {
     main: [
-      path.resolve(__dirname, 'js/client/main.js')
+      path.resolve(__dirname, 'src/client/main.js')
     ],
 
     // BABEL_NODE=hot NODE_ENV=hot
@@ -40,7 +41,7 @@ module.exports = {
       'webpack/hot/dev-server',
       'webpack-hot-middleware/client',
 
-      path.resolve(__dirname, 'js/client/main.js')
+      path.resolve(__dirname, 'src/client/main.js')
     ]
   },
 
@@ -82,7 +83,8 @@ module.exports = {
         test: /\.js$/,
         exclude: [/node_modules/],  // Don't transpile deps.
         include: [
-          path.resolve(__dirname, 'js')
+          path.resolve(__dirname, 'src'),
+          path.resolve(__dirname, '../core/src')
         ],
         loader: 'babel-loader'
       },
@@ -96,10 +98,21 @@ module.exports = {
     ]
   },
 
+  // https://www.npmjs.com/package/webpack-link
+  // Comma separated list (or --link=minder-core)
+  link: 'minder-core',
+
   // https://github.com/webpack/docs/wiki/list-of-plugins
   plugins: [
 
     new ExtractTextPlugin('[name].css'),
+
+    // webpack --link=minder-core
+    // NOTE: dependent project must have appropriate deps installed.
+    // https://www.npmjs.com/package/webpack-link
+    new webpackLinkPlugin({
+      'minder-core': path.resolve(__dirname, '../core')
+    }),
 
     // https://github.com/webpack/docs/wiki/list-of-plugins#hotmodulereplacementplugin
     new webpack.HotModuleReplacementPlugin(),

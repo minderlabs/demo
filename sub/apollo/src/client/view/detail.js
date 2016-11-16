@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import TypeRegistry from '../component/registry';
+import TypeRegistry from '../component/typeRegistry';
 
 /**
  * Detail view.

@@ -15,9 +15,9 @@ import {
 // https://github.com/apollostack/graphql-tools
 import { makeExecutableSchema, mockServer } from 'graphql-tools';
 
-import schema from './data/schema.graphql';
+import schema from './schema.graphql';
 
-import { DATA, resolvers } from './data/testing/resolvers';
+import { DATA, resolvers } from './testing/resolvers';
 
 //
 // 3 Tests (Native GraphQL API + 2 Apollo graphql-tools).

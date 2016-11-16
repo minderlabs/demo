@@ -1,4 +1,6 @@
+//
 // Copyright 2016 Alien Laboratories, Inc.
+//
 
 'use strict';
 
@@ -33,7 +35,6 @@ module.exports = function(grunt) {
     // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
     // TODO(burdon): Debug options.
     webpack: {
-      options: {},
       client: require('./webpack.config.js')
     },
   });

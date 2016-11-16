@@ -7,7 +7,7 @@
 /**
  * Async utils.
  */
-export default class Async {
+export class Async {
 
   /**
    * Cancelable timeout function.

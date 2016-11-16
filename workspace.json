@@ -1,0 +1,6 @@
+{
+  "links": {
+    "minder-core": "sub/core",
+    "minder-graphql": "sub/graphql"
+  }
+}

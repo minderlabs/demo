@@ -43,7 +43,7 @@ module.exports = {
         test: /\.js$/,
         exclude: [/node_modules/],  // Don't transpile deps.
         include: [
-          path.resolve(__dirname, 'js')
+          path.resolve(__dirname, 'src')
         ],
         loader: 'babel-loader'
       }

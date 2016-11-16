@@ -22,7 +22,7 @@ class TypeRegistry {
 
   render(item) {
     let value = this._types.get(item.type);
-    return value.render(item);
+    return value && value.render(item) || (<div>NO TYPE HANDLER FOR [{ item.type }]</div>);
   }
 
   icon(type) {

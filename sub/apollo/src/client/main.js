@@ -60,7 +60,7 @@ import createBrowserHistory from 'history/createBrowserHistory'
 
 import moment from 'moment';
 
-import { TypeUtil } from '../common/util/type';
+import { TypeUtil } from 'minder-core';
 
 import Matcher from '../data/matcher';
 import QueryRegistry from './subscriptions';
