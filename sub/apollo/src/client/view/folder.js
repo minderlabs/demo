@@ -127,7 +127,7 @@ export default compose(
   graphql(FolderQuery, {
 
     options: (props) => {
-      console.log('*** Folder options ***', JSON.stringify(props));
+      console.log('### Folder.options ', JSON.stringify(props));
 
       return {
         variables: {

@@ -9,6 +9,8 @@ import { connect } from 'react-redux';
 import { compose, graphql, withApollo } from 'react-apollo';
 import gql from 'graphql-tag';
 
+import { TypeUtil } from 'minder-core';
+
 // TODO(burdon): Inject.
 import QueryParser from '../../data/parser';
 import TypeRegistry from '../component/typeRegistry';
@@ -174,13 +176,11 @@ export default compose(
           count: 10
         },
 
-        // TODO(burdon): Factor out JSON logger that compacts lists.
-
         // TODO(burdon): Use reducer to invalidate other cached queries?
         // https://github.com/apollostack/apollo-client/issues/903
         // http://dev.apollodata.com/react/cache-updates.html#resultReducers
         reducer: (previousResult, action) => {
-          console.log('*** reducer[%s]: %s ***', action.type, action.operationName, previousResult);
+          console.log('### reducer[%s:%s] %s', action.operationName, action.type, TypeUtil.JSON(previousResult));
           if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === 'UpdateItemMutation') {
             console.log('UpdateItemMutation');
           }
@@ -240,7 +240,7 @@ export default compose(
         // http://dev.apollodata.com/react/cache-updates.html#updateQueries
         updateQueries: {
           ItemsQuery: (prev, { mutationResult, queryVariables }) => {
-            console.log('*** updateQueries ***', JSON.stringify(queryVariables));
+            console.log('### updateQueries ', JSON.stringify(queryVariables));
             // TODO(burdon): Doesn't update other queries (e.g., favorites).
 
             // TODO(burdon): Factor out.

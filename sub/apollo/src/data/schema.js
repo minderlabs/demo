@@ -20,7 +20,7 @@ import Database from './database';
 /**
  * Schema factory.
  */
-export default class SchemeFactory {
+export default class SchemaFactory {
 
   constructor(database) {
     this._database = database;

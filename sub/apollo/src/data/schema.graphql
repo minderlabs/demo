@@ -21,6 +21,8 @@ scalar Version
 
 scalar Date
 
+# TODO(burdon): Directives.
+
 #
 # Input types.
 #
