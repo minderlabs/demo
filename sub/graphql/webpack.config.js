@@ -4,56 +4,26 @@
 
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 const path = require('path');
-const webpack = require('webpack');
+
+const baseConfig = require('./webpack-base.config.js');
 
 //
-// Webpack karma configuration.
+// Webpack default configuration.
 //
 
-module.exports = {
+module.exports = _.merge(baseConfig, {
 
-  target: 'node',
-
-  devtool: 'inline-source-map',
-
-  resolve: {
-    extensions: ['', '.js'],
-
-    // Where to resolve imports/requires.
-    modulesDirectories: [
-      'node_modules'
+  entry: {
+    main: [
+      path.resolve(baseConfig.context, 'src/main.js')
     ]
   },
 
-  module: {
-
-    // NPM modules
-    // https://webpack.github.io/docs/configuration.html#module-loaders
-    resolveLoader: {
-      root: path.join(__dirname, 'node_modules')
-    },
-
-    loaders: [
-
-      // See .babelrc for the presets.
-      // https://github.com/babel/babel-loader
-      {
-        test: /\.js$/,
-        exclude: [/node_modules/],  // Don't transpile deps.
-        include: [
-          path.resolve(__dirname, 'src')
-        ],
-        loader: 'babel-loader'
-      }
-    ]
-  },
-
-  plugins: [
-
-    new webpack.ProvidePlugin({
-      _: 'lodash'
-    })
-  ]
-};
+  output: {
+    path: path.join(baseConfig.context, 'dist'),
+    filename: '[name].bundle.js',
+    publicPath: '/assets/' // Path for webpack-dev-server
+  }
+});

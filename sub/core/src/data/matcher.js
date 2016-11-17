@@ -4,13 +4,12 @@
 
 'use strict';
 
-// TODO(burdon): Use webpack since shared code.
 import _ from 'lodash';
 
 /**
  * Query matcher.
  */
-export default class Matcher {
+export class Matcher {
 
   match(filter, item) {
     let text = _.lowerCase(filter.text);

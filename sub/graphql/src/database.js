@@ -6,36 +6,12 @@
 
 import _ from 'lodash';
 
-import { TypeUtil } from 'minder-core';
-
-import Matcher from './matcher';
+import { ID, Matcher, TypeUtil } from 'minder-core';
 
 /**
  * In-memory database.
  */
-export default class Database {
-
-  // TODO(burdon): Factor out.
-  static fromGlobalId(globalId) {
-    console.assert(_.isString(globalId));
-    let parts = atob(globalId).match(/(.+)\/(.+)/);
-    return {
-      type: parts[1],
-      id: parts[2]
-    }
-  }
-
-  static toGlobalId(type, localId) {
-    console.assert(_.isString(type) && _.isString(localId));
-    return btoa(type + '/' + localId);
-  }
-
-  static i = 0;
-  static createId(type) {
-    console.assert(type);
-    // TODO(burdon): Random with seed.
-    return `i-${_.padStart(++Database.i, 3, '0')}`;
-  }
+export class Database {
 
   // TODO(burdon): Logger.
 
@@ -52,14 +28,16 @@ export default class Database {
    * @param items
    */
   upsertItems(items) {
-    _.each(items, (item) => {
+    return _.map(items, (item) => {
       item = TypeUtil.clone(item);
       if (!item.id) {
-        item.id = Database.createId(item.type);
+        item.id = ID.createId(item.type);
       }
 
       console.log('DB.UPSERT[%s]', item.id, JSON.stringify(item));
       this._items.set(item.id, item);
+
+      return item;
     });
   }
 
@@ -71,6 +49,7 @@ export default class Database {
    */
   getItem(type, itemId) {
     console.log('DB.GET[%s]', itemId);
+    console.assert(type && itemId);
 
     return TypeUtil.clone(this._items.get(itemId));
   }
@@ -82,7 +61,7 @@ export default class Database {
    * @param count
    * @returns {Array}
    */
-  queryItems(filter, offset=0, count=10) {
+  queryItems(filter={}, offset=0, count=10) {
     let items = [];
     this._items.forEach((item) => {
       if (!this._matcher.match(filter, item)) {
@@ -95,7 +74,7 @@ export default class Database {
     items = _.sortBy(items, ['title']);
     items = _.slice(items, offset, offset + count);
 
-    console.log('DB.QUERY[%d:%d][%s]: %d', offset, count, JSON.stringify(filter), items.length);
+    console.log('DB.QUERY[%d:%d][%s]: %s', offset, count, JSON.stringify(filter), TypeUtil.JSON({ items: items }));
     return items;
   }
 }

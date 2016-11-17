@@ -15,11 +15,8 @@ import moment from 'moment';
 
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 
-import { graphqlLogger, loggingRouter } from 'minder-graphql';
-
-import SchemaFactory from '../data/schema';
-import Database from '../data/database';
-import Randomizer from '../data/testing/randomizer';
+import { ID } from 'minder-core';
+import { Database, SchemaFactory, Randomizer, graphqlLogger, loggingRouter } from 'minder-graphql';
 
 
 // Emulate browser atob and btoa.
@@ -38,28 +35,27 @@ const port = process.env['VIRTUAL_PORT'] || 3000;
 
 
 //
-// Schema and Database
+// Database
 //
 
-let database = new Database();
+const database = new Database();
 
-const data = require('../data/testing/test.json');
-
-// System data.
+const data = require('./testing/test.json');
 _.each(data, (items, type) => {
   database.upsertItems(_.map(items, (item) => ({ type, ...item })));
 });
 
 // TODO(burdon): Trigger from webhook.
-new Randomizer(database)
-  .generate('Task', 20,
+// TODO(burdon): Run in thread.
+const randomizer = new Randomizer(database)
+  .generate('Contact',  20)
+  .generate('Place',    10)
+  .generate('Task',     20,
     {
       owner:    { type: 'User', likelihood: 1.0 },
       assignee: { type: 'User', likelihood: 0.5 }
     }
-  )
-  .generate('Contact', 20)
-  .generate('Place',   10);
+  );
 
 
 //
@@ -130,8 +126,12 @@ if (env === 'hot') {
 // http://dev.apollodata.com/tools/graphql-server/index.html
 //
 
+// TODO(burdon): Move to router in graphql
 promises.push(new SchemaFactory(database).makeExecutableSchema().then((schema) => {
   console.assert(schema);
+
+  console.log('::::::::::::', typeof schema);
+//console.log(schema instanceof GraphQLSchema);
 
   // TODO(burdon): Checkout graphqlHTTP.getGraphQLParams to augment request/response.
 
@@ -166,6 +166,7 @@ promises.push(new SchemaFactory(database).makeExecutableSchema().then((schema) =
 //
 
 const WEBPACK_ENTRY = {
+  "test":         "test",
   "development":  "main",
   "production":   "main",
   "hot":          "hot"
@@ -179,7 +180,7 @@ app.get(/^\/(.*)/, function(req, res) {
     config: {
       root: 'app-root',
       graphql: '/graphql',
-      userId: Database.toGlobalId('User', 'rich'),    // TODO(burdon): cookie.
+      userId: ID.toGlobalId('User', 'rich'),    // TODO(burdon): cookie.
       debug: {
         env: env
       }

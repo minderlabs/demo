@@ -8,12 +8,10 @@ import _ from 'lodash';
 
 import { Chance } from 'chance';
 
-import Database from '../database';
-
 /**
  * Randomizer
  */
-export default class Randomizer {
+export class Randomizer {
 
   // http://chancejs.com
 
@@ -55,7 +53,6 @@ export default class Randomizer {
 
       // Generate item.
       let item = {
-        id: Database.createId(type),
         type: type,
         labels: this._chance.bool({ likelihood: 20 }) ? ['_favorite'] : [],
 

@@ -12,38 +12,76 @@ import {
   GraphQLString
 } from 'graphql';
 
-// https://github.com/apollostack/graphql-tools
 import { makeExecutableSchema, mockServer } from 'graphql-tools';
+
+import { ID } from 'minder-core';
+
+import { Database } from './database';
+import { SchemaFactory } from './schema';
 
 import schema from './schema.graphql';
 
-import { DATA, resolvers } from './testing/resolvers';
+
+// TODO(burdon): GraphiQL server testing?
 
 //
 // 3 Tests (Native GraphQL API + 2 Apollo graphql-tools).
 //
 
-// TODO(burdon): GraphiQL server.
-
+// TODO(burdon): Variables.
 const query = `
   { 
-    user(id: "minder") {
+    viewer(userId: "${ID.toGlobalId('User', 'minder')}") {
       id
-      name
+      user {
+        title
+      }
     }
   }
 `;
 
 const test = (result, done) => {
   if (result.errors) {
-    console.error(result.errors);
+    console.error('TEST FAILED', result.errors);
     fail();
   } else {
-    console.log(JSON.stringify(result.data.user));
-    expect(result.data.user.name).to.equal(DATA.User['minder'].name);
+    let { viewer } = result.data;
+    console.log('viewer: %s', JSON.stringify(viewer));
+    expect(viewer.id).to.equal('minder');
+    expect(viewer.user.title).to.equal('Minder');
     done();
   }
 };
+
+
+//
+// Database.
+// TODO(burdon): Move to database_test.js
+//
+
+describe('Database', () => {
+
+  // TODO(burdon): console.assert doesn't work.
+
+  let database = new Database();
+
+  // TODO(burdon): Move test to core.
+  it('Convert between glocal to local IDs', () => {
+    let globalId = ID.toGlobalId('User', 'minder');
+    let { type, id } = ID.fromGlobalId(globalId);
+    expect(type).to.equal('User');
+    expect(id).to.equal('minder');
+  });
+
+  it('Create and get items', () => {
+    let items = database.upsertItems([{ type: 'User', title: 'Minder' }]);
+    expect(items.length).to.equal(1);
+
+    let item = database.getItem('User', items[0].id);
+    expect(item.title).to.equal(items[0].title);
+  });
+});
+
 
 //
 // Mock server.
@@ -52,10 +90,26 @@ const test = (result, done) => {
 
 describe('Test Mock Server', () => {
 
-  // http://graphql.org/blog/mocking-with-graphql
-  let server = mockServer(schema, resolvers);
+  let database = new Database();
+  let resolvers = new SchemaFactory(database).getResolvers();
 
-  it('Should just work.', (done) => {
+  database.upsertItems([{ id: 'minder', type: 'User', title: 'Minder' }]);
+
+  // Convert to resolver map to functions.
+  // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
+  let resolverMap = {};
+  _.each(resolvers, (f, key) => {
+    resolverMap[key] = () => f;
+  });
+
+  // http://graphql.org/blog/mocking-with-graphql
+  let server = mockServer(schema, resolverMap);
+
+  it('Query viewer', (done) => {
+    let item = database.getItem('User', 'minder');
+    expect(item.id).to.equal('minder');
+
+    // TODO(burdon): Inject variables?
     server.query(query).then((result) => {
       test(result, done);
     });
@@ -70,21 +124,22 @@ describe('Test Mock Server', () => {
 
 describe('Test Executable Schema', () => {
 
-  // Convert to resolver map.
-  // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
-  let resolverMap = {};
-  _.each(resolvers, (f, key) => {
-    resolverMap[key] = f();
-  });
+  let database = new Database();
+  let resolvers = new SchemaFactory(database).getResolvers();
+
+  database.upsertItems([{ id: 'minder', type: 'User', title: 'Minder' }]);
 
   // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#makeExecutableSchema
   let jsSchema = makeExecutableSchema({
     typeDefs: schema,
-    resolvers: resolverMap,
+    resolvers: resolvers,
     logger: { log: (error) => console.error(error) }
   });
 
-  it('Should just work.', (done) => {
+  it('Query viewer', (done) => {
+    let item = database.getItem('User', 'minder');
+    expect(item.id).to.equal('minder');
+
     graphql(jsSchema, query).then((result) => {
       test(result, done);
     });
@@ -96,23 +151,25 @@ describe('Test Executable Schema', () => {
 // https://github.com/graphql/graphql-js
 //
 
+// TODO(burdon): Implement trivial top-level query only.
+
+if (false)
 describe('Test GraphQL API', () => {
+
+  let database = new Database();
+  let resolvers = new SchemaFactory(database).getResolvers();
 
   let schema = new GraphQLSchema({
     query: new GraphQLObjectType({
       name: 'Query',
       fields: {
-        user: {
+        viewer: {
           type: new GraphQLObjectType({
-            name: 'User',
+            name: 'Viewer',
             fields: {
               id: {
                 type: GraphQLID
-              },
-              name: {
-                type: GraphQLString,
-                resolve: obj => obj.name
-              },
+              }
             }
           }),
           args: {
@@ -121,14 +178,14 @@ describe('Test GraphQL API', () => {
             }
           },
           resolve: (parent, args) => {
-            return { id: args.id, ...DATA.User[args.id] };
+            return null; // TODO(burdon): Database.
           }
         }
       }
     })
   });
 
-  it('Should just work.', (done) => {
+  it('Query viewer', (done) => {
     graphql(schema, query).then((result) => {
       test(result, done);
     });

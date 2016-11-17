@@ -4,4 +4,9 @@
 
 'use strict';
 
-export * from './logger';
+console.log(module);
+
+export * from './util/logger';
+export * from './testing/randomizer';
+export * from './database';
+export * from './schema';

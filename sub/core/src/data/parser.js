@@ -4,13 +4,12 @@
 
 'use strict';
 
-// TODO(burdon): Use webpack since shared code.
 import _ from 'lodash';
 
 /**
  * Query parser.
  */
-export default class QueryParser {
+export class QueryParser {
 
   /**
    * Parse text query.
@@ -37,7 +36,7 @@ export default class QueryParser {
       if (str[0] == '#') {
         switch (str.substring(1)) {
           case 'fav': {
-            filter.labels.push('_favorite');
+            filter.labels.push('_favorite');  // TODO(burdon): Const.
             break;
           }
         }

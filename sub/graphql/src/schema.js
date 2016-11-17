@@ -7,24 +7,23 @@
 import _ from 'lodash';
 
 import { graphql }  from 'graphql';
+import { GraphQLSchema } from 'graphql';
 import { makeExecutableSchema } from 'graphql-tools';
 import { introspectionQuery } from 'graphql/utilities';
 
-import TypeDefs from './schema.graphql';
-import Database from './database';
+import { ID } from 'minder-core';
 
-// TODO(burdon): Tests.
-// TODO(burdon): Factor out common schema (and database) for all demos?
-// TODO(burdon): Client mocking (use same schema) http://dev.apollodata.com/tools/graphql-tools/mocking.html
+import TypeDefs from './schema.graphql';
 
 /**
  * Schema factory.
  */
-export default class SchemaFactory {
+export class SchemaFactory {
 
   constructor(database) {
     this._database = database;
     this._typeMap = new Map();
+    const resolvers = this.getResolvers();
   }
 
   /**
@@ -32,17 +31,20 @@ export default class SchemaFactory {
    * @returns {*}
    */
   makeExecutableSchema() {
-    const resolvers = this.getResolvers(this._typeMap, this._database);
 
     // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
     console.log('Creating schema...');
     const schema = makeExecutableSchema({
       typeDefs: TypeDefs,
-      resolvers: resolvers,
+      resolvers: this.getResolvers(),
       logger: {
         log: (error) => console.log('Schema Error', error)
       }
     });
+
+    // TODO(burdon): Error in apollo.
+    // "Schema must be an instance of GraphQLSchema. Also ensure that there are not multiple versions of GraphQL installed in your node_modules directory.
+    console.log('::::::::::::::::::', schema instanceof GraphQLSchema);
 
     /**
      * Create the type map for introspection.
@@ -158,7 +160,8 @@ export default class SchemaFactory {
         // TODO(burdon): Get userId from context.
 
         viewer: (root, { userId }) => {
-          let { type, id:localUserId } = Database.fromGlobalId(userId);
+          let { type, id:localUserId } = ID.fromGlobalId(userId);
+
           return {
             id: localUserId,
             user: this._database.getItem('User', localUserId)
@@ -166,12 +169,12 @@ export default class SchemaFactory {
         },
 
         folders: (root, { userId }) => {
-          let {type, id:localUserId} = Database.fromGlobalId(userId);
+          let {type, id:localUserId} = ID.fromGlobalId(userId);
           return this._database.queryItems({ type: 'Folder' });
         },
 
         item: (root, { itemId }) => {
-          let { type, id:localItemId } = Database.fromGlobalId(itemId);
+          let { type, id:localItemId } = ID.fromGlobalId(itemId);
 
           return this._database.getItem(type, localItemId);
         },
@@ -189,7 +192,7 @@ export default class SchemaFactory {
       RootMutation: {
 
         updateItem: (root, { itemId, deltas }) => {
-          let { type, id:localItemId } = Database.fromGlobalId(itemId);
+          let { type, id:localItemId } = ID.fromGlobalId(itemId);
           console.log('MUTATION.UPDATE[%s]', type, localItemId, deltas);
 
           let item = this._database.getItem(type, localItemId);

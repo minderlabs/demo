@@ -51,7 +51,6 @@
 // TODO(burdon): Subscriptions.
 
 
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
@@ -60,12 +59,10 @@ import createBrowserHistory from 'history/createBrowserHistory'
 
 import moment from 'moment';
 
-import { TypeUtil } from 'minder-core';
-
-import Matcher from '../data/matcher';
-import QueryRegistry from './subscriptions';
+import { Matcher, TypeUtil } from 'minder-core';
 
 import { ACTION, AppReducer } from './reducers';
+import { QueryRegistry } from './subscriptions';
 
 import Application from './app';
 import Monitor from './component/devtools';

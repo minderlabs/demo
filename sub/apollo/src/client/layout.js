@@ -12,7 +12,7 @@ import gql from 'graphql-tag';
 
 import ApolloClient from 'apollo-client';
 
-import Database from '../data/database';
+import { ID } from 'minder-core';
 
 import DetailView from './view/detail';
 import FolderView from './view/folder';
@@ -71,7 +71,7 @@ class Layout extends React.Component {
             <div>
               <Link to="/inbox">Inbox</Link>
               <Link to="/favorites">Favorites</Link>
-              <Link to={ '/team/' + Database.toGlobalId('Group', 'minderlabs') }>Team</Link>
+              <Link to={ '/team/' + ID.toGlobalId('Group', 'minderlabs') }>Team</Link>
             </div>
           </div>
 

@@ -9,7 +9,7 @@
 /**
  * Manage queries.
  */
-export default class QueryRegistry {
+export class QueryRegistry {
 
   // http://dev.apollodata.com/core/apollo-client-api.html#QuerySubscription
 

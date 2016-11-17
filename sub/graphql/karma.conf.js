@@ -6,7 +6,7 @@
 
 const webpack = require('webpack');
 
-const webpackConfig = require('./webpack.config.js');
+const webpackConfig = require('./webpack-karma.config.js');
 
 //
 // Karma configuration
@@ -65,7 +65,10 @@ module.exports = function(config) {
     ],
 
     // https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: [
+      'progress',
+      'verbose'
+    ],
 
     frameworks: [
       'mocha',                        // Test framework https://mochajs.org
@@ -86,6 +89,7 @@ module.exports = function(config) {
       'karma-babel-preprocessor',     // https://github.com/babel/karma-babel-preprocessor
       'karma-phantomjs-launcher',     // https://www.npmjs.com/package/karma-phantomjs-launcher
       'karma-chrome-launcher',        // https://www.npmjs.com/package/karma-chrome-launcher
+      'karma-verbose-reporter',       // https://www.npmjs.com/package/karma-verbose-reporter
 
       require('karma-webpack')
     ],

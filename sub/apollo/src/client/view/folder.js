@@ -9,7 +9,8 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import Database from '../../data/database';
+import { ID } from 'minder-core';
+
 import { ACTION } from '../reducers';
 
 import List from '../component/list';
@@ -113,7 +114,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
         type: ACTION.NAVIGATE,
         location: {
           // TODO(burdon): Const path.
-          pathname: '/item/' + Database.toGlobalId(item.type, item.id)
+          pathname: '/item/' + ID.toGlobalId(item.type, item.id)
         },
         action: 'PUSH'
       });

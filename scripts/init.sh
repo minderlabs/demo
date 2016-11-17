@@ -10,7 +10,10 @@
 
 npm install -g npm-workspace
 
+npm-workspace clean
 npm-workspace install
 
-pushd sub/graphql && npm-workspace install && popd
-pushd sub/apollo  && npm-workspace install && popd
+# TODO(burdon): Is this needed?
+pushd sub/core    && npm-workspace install -v && popd
+pushd sub/graphql && npm-workspace install -v && popd
+pushd sub/apollo  && npm-workspace install -v && popd

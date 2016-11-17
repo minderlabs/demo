@@ -9,13 +9,9 @@ import { connect } from 'react-redux';
 import { compose, graphql, withApollo } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { TypeUtil } from 'minder-core';
+import { ID, QueryParser, TypeUtil } from 'minder-core';
 
-// TODO(burdon): Inject.
-import QueryParser from '../../data/parser';
 import TypeRegistry from '../component/typeRegistry';
-
-import Database from '../../data/database';
 
 import Item, { ItemFragments } from './item';
 
@@ -223,7 +219,7 @@ export default compose(
     props: ({ ownProps, mutate }) => ({
       updateItem: (item, deltas) => mutate({
         variables: {
-          itemId: Database.toGlobalId(item.type, item.id),
+          itemId: ID.toGlobalId(item.type, item.id),
           deltas: deltas
         },
 

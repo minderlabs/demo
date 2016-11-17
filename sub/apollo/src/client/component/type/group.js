@@ -9,7 +9,7 @@ import { Link } from 'react-router';
 import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
 
-import Database from '../../../data/database';
+import { ID } from 'minder-core';
 
 /**
  * Fragments.
@@ -49,7 +49,7 @@ export default class Group extends React.Component {
           {this.props.item.members.map(member => (
           <div key={ member.id }>
             <div className="app-row">
-              <Link to={ '/member/' + Database.toGlobalId('User', member.id) }>
+              <Link to={ '/member/' + ID.toGlobalId('User', member.id) }>
                 <i className="material-icons">accessibility</i>
               </Link>
               <h3 className="app-expand">{ member.title }</h3>
@@ -58,7 +58,7 @@ export default class Group extends React.Component {
             <div>
               {member.tasks.map(task => (
                 <div key={ task.id } className="app-row">
-                  <Link to={ '/task/' + Database.toGlobalId('Task', task.id) }>
+                  <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
                     <i className="material-icons">assignment_turned_in</i>
                   </Link>
                   <div className="app-expand">{ task.title }</div>

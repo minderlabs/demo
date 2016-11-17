@@ -5,8 +5,9 @@
       "title": "Minder Labs",
       "members": [
         "adam",
+        "matt",
         "rich",
-        "matt"
+        "trey"
       ]
     }
   ],
@@ -17,12 +18,16 @@
       "title": "Adam Berenzweig"
     },
     {
+      "id": "matt",
+      "title": "Matt Sullivan"
+    },
+    {
       "id": "rich",
       "title": "Rich Burdon"
     },
     {
-      "id": "matt",
-      "title": "Matt Sullivan"
+      "id": "trey",
+      "title": "Trey Lawrence"
     }
   ],
 

@@ -1,0 +1,47 @@
+{
+  "Group": [
+    {
+      "id": "minderlabs",
+      "title": "Minder Labs",
+      "members": [
+        "adam",
+        "matt",
+        "rich",
+        "trey"
+      ]
+    }
+  ],
+
+  "User": [
+    {
+      "id": "adam",
+      "title": "Adam Berenzweig"
+    },
+    {
+      "id": "matt",
+      "title": "Matt Sullivan"
+    },
+    {
+      "id": "rich",
+      "title": "Rich Burdon"
+    },
+    {
+      "id": "trey",
+      "title": "Trey Lawrence"
+    }
+  ],
+
+  "Folder": [
+    {
+      "id": "inbox",
+      "title": "Inbox"
+    },
+    {
+      "id": "favorites",
+      "title": "Favorites",
+      "filter": {
+        "labels": ["_favorite"]
+      }
+    }
+  ]
+}
