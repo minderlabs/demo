@@ -29,6 +29,9 @@
         // http://gaearon.github.io/react-hot-loader/getstarted
         "react-hot-loader/babel"
       ]
+    },
+    "native": {
+      "presets": ["react-native"]
     }
 
     // TODO(burdon): Prod.
