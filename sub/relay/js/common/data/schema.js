@@ -648,7 +648,7 @@ const UpdateItemMutation = mutationWithClientMutationId({
 //
 
 const RootMutationType = new GraphQLObjectType({
-  name: 'Mutation',
+  name: 'RootMutation',
 
   fields: () => ({
     createItemMutation: CreateItemMutation,
@@ -662,7 +662,7 @@ const RootMutationType = new GraphQLObjectType({
 //
 
 const RootQueryType = new GraphQLObjectType({
-  name: 'Query',
+  name: 'RootQuery',
 
   //
   // Used by Router queries to set-up state.

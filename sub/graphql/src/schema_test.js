@@ -7,19 +7,21 @@
 import {
   graphql,
   GraphQLID,
+  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString
 } from 'graphql';
 
 import { makeExecutableSchema, mockServer } from 'graphql-tools';
+import { introspectionQuery, printSchema } from 'graphql/utilities';
 
 import { ID } from 'minder-core';
 
 import { Database } from './database';
 import { SchemaFactory } from './schema';
 
-import schema from './schema.graphql';
+import SchemaType from './schema.graphql';
 
 
 // TODO(burdon): GraphiQL server testing?
@@ -28,12 +30,12 @@ import schema from './schema.graphql';
 // 3 Tests (Native GraphQL API + 2 Apollo graphql-tools).
 //
 
-// TODO(burdon): Variables.
 const query = `
-  { 
-    viewer(userId: "${ID.toGlobalId('User', 'minder')}") {
+  query TestQuery($userId: ID!) { 
+    viewer(userId: $userId) {
       id
       user {
+        id
         title
       }
     }
@@ -41,8 +43,9 @@ const query = `
 `;
 
 const test = (result, done) => {
+  console.assert(result);
   if (result.errors) {
-    console.error('TEST FAILED', result.errors);
+    console.error('### ERROR ###\n', result.errors);
     fail();
   } else {
     let { viewer } = result.data;
@@ -53,34 +56,12 @@ const test = (result, done) => {
   }
 };
 
-
 //
-// Database.
-// TODO(burdon): Move to database_test.js
+// Debugging
+// - Install PyCharm chrome extension.
+// - Create Debug configuration.
+// - Reload Chrome tab to re-run tests (temperamental).
 //
-
-describe('Database', () => {
-
-  // TODO(burdon): console.assert doesn't work.
-
-  let database = new Database();
-
-  // TODO(burdon): Move test to core.
-  it('Convert between glocal to local IDs', () => {
-    let globalId = ID.toGlobalId('User', 'minder');
-    let { type, id } = ID.fromGlobalId(globalId);
-    expect(type).to.equal('User');
-    expect(id).to.equal('minder');
-  });
-
-  it('Create and get items', () => {
-    let items = database.upsertItems([{ type: 'User', title: 'Minder' }]);
-    expect(items.length).to.equal(1);
-
-    let item = database.getItem('User', items[0].id);
-    expect(item.title).to.equal(items[0].title);
-  });
-});
 
 
 //
@@ -88,50 +69,52 @@ describe('Database', () => {
 // https://github.com/apollostack/graphql-tools
 //
 
-describe('Test Mock Server', () => {
+describe('GraphQL Mock Server', () => {
 
-  let database = new Database();
-  let resolvers = new SchemaFactory(database).getResolvers();
-
-  database.upsertItems([{ id: 'minder', type: 'User', title: 'Minder' }]);
-
-  // Convert to resolver map to functions.
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
-  let resolverMap = {};
-  _.each(resolvers, (f, key) => {
-    resolverMap[key] = () => f;
-  });
+  let resolverMap = {
+    RootQuery: () => ({
+      viewer: (root, args) => {
+        let { type, id:userId } = ID.fromGlobalId(args.userId);
+        return {
+          id: userId,
+          user: {
+            id: userId,
+            type: type,
+            title: 'Minder'
+          }
+        }
+      }
+    })
+  };
 
   // http://graphql.org/blog/mocking-with-graphql
-  let server = mockServer(schema, resolverMap);
+  let server = mockServer(SchemaType, resolverMap);
 
   it('Query viewer', (done) => {
-    let item = database.getItem('User', 'minder');
-    expect(item.id).to.equal('minder');
-
-    // TODO(burdon): Inject variables?
-    server.query(query).then((result) => {
+    let vars = { userId: ID.toGlobalId('User', 'minder') };
+    server.query(query, vars).then((result) => {
       test(result, done);
     });
   });
 });
 
 //
-// Executable schema.
+// Executable schema (using database).
 // https://github.com/graphql/graphql-js
 // https://github.com/apollostack/frontpage-server/blob/master/data/schema.js
 //
 
-describe('Test Executable Schema', () => {
+describe('GraphQL Executable Schema', () => {
 
   let database = new Database();
-  let resolvers = new SchemaFactory(database).getResolvers();
-
   database.upsertItems([{ id: 'minder', type: 'User', title: 'Minder' }]);
 
+  let resolvers = new SchemaFactory(database).getResolvers();
+
   // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#makeExecutableSchema
-  let jsSchema = makeExecutableSchema({
-    typeDefs: schema,
+  let schema = makeExecutableSchema({
+    typeDefs: SchemaType,
     resolvers: resolvers,
     logger: { log: (error) => console.error(error) }
   });
@@ -140,7 +123,9 @@ describe('Test Executable Schema', () => {
     let item = database.getItem('User', 'minder');
     expect(item.id).to.equal('minder');
 
-    graphql(jsSchema, query).then((result) => {
+    // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
+    let vars = { userId: ID.toGlobalId('User', 'minder') };
+    graphql(schema, query, {}, {}, vars).then((result) => {
       test(result, done);
     });
   });
@@ -151,42 +136,65 @@ describe('Test Executable Schema', () => {
 // https://github.com/graphql/graphql-js
 //
 
-// TODO(burdon): Implement trivial top-level query only.
-
-if (false)
-describe('Test GraphQL API', () => {
+describe('GraphQL JS API', () => {
 
   let database = new Database();
-  let resolvers = new SchemaFactory(database).getResolvers();
+  database.upsertItems([{ id: 'minder', type: 'User', title: 'Minder' }]);
 
   let schema = new GraphQLSchema({
     query: new GraphQLObjectType({
-      name: 'Query',
+      name: 'RootQuery',
       fields: {
         viewer: {
           type: new GraphQLObjectType({
             name: 'Viewer',
             fields: {
               id: {
-                type: GraphQLID
+                type: new GraphQLNonNull(GraphQLID)
+              },
+              user: {
+                type: new GraphQLObjectType({
+                  name: 'User',
+                  fields: {
+                    id: {
+                      type: new GraphQLNonNull(GraphQLID)
+                    },
+                    title: {
+                      type: new GraphQLNonNull(GraphQLString)
+                    }
+                  }
+                })
               }
-            }
+            },
           }),
           args: {
-            id: {
-              type: GraphQLID
+            userId: {
+              type: new GraphQLNonNull(GraphQLID)
             }
           },
-          resolve: (parent, args) => {
-            return null; // TODO(burdon): Database.
+          resolve(node, args) {
+            let { type, id:userId } = ID.fromGlobalId(args.userId);
+            return {
+              id: userId,
+              user: database.getItem(type, userId)
+            }
           }
         }
       }
     })
   });
 
+  it('Generate JSON', (done) => {
+    graphql(schema, introspectionQuery).then((result) => {
+//    console.error('SCHEMA:\n', JSON.stringify(result, 0, 2));
+      done();
+    })
+  });
+
   it('Query viewer', (done) => {
-    graphql(schema, query).then((result) => {
+    // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
+    let vars = { userId: ID.toGlobalId('User', 'minder') };
+    graphql(schema, query, {}, {}, vars).then((result) => {
       test(result, done);
     });
   });
