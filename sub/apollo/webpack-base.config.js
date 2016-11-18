@@ -50,7 +50,7 @@ module.exports = {
         exclude: [/node_modules/],  // Don't transpile deps.
         include: [
           path.resolve(__dirname, 'src'),
-          path.resolve(__dirname, '../core/src'),                 // TODO(burdon): ???
+          path.resolve(__dirname, '../core/src'),
           path.resolve(__dirname, '../graphql/src')
         ],
         loader: 'babel-loader'
@@ -82,7 +82,7 @@ module.exports = {
     // NOTE: Dependent project must have appropriate deps installed.
     // https://www.npmjs.com/package/webpack-link
     new webpackLinkPlugin({
-      'minder-core':    path.resolve(__dirname, '../core'),       // TODO(burdon): ???
+      'minder-core':    path.resolve(__dirname, '../core'),
       'minder-graphql': path.resolve(__dirname, '../graphql'),
     }),
 

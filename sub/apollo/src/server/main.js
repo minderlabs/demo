@@ -11,10 +11,10 @@ import http from 'http';
 import express from 'express';
 import handlebars from 'express-handlebars';
 
-import { loggingRouter } from 'minder-core';
 import { Database, Randomizer, graphqlRouter } from 'minder-graphql';
 
 import { appRouter, hotRouter } from './app';
+import { loggingRouter } from './logger';
 
 
 //

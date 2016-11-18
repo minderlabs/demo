@@ -1,7 +1,16 @@
-# Created by .ignore support plugin (hsz.mobi)
-node_modules/
+#
+# Basic
+#
 
-# Jetbrains user-specific stuff.
+node_modules/
+npm-debug.log*
+
+dist/
+
+#
+# PyCharm (local-only settings).
+#
+
 .idea/compiler.xml
 .idea/workspace.xml
 .idea/tasks.xml
@@ -10,10 +19,3 @@ node_modules/
 .idea/jsLibraryMappings.xml
 .idea/codeStyleSettings.xml
 .idea/copyright/
-
-*.swp
-server/assets/
-web/src/
-
-npm-debug.log*
-

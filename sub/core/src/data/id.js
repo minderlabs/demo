@@ -11,7 +11,7 @@ import _ from 'lodash';
 // TODO(burdon): Factor out node/web abstraction layer.
 //
 
-if (typeof module !== undefined) {
+if (typeof btoa === 'undefined') {
   // Emulate browser atob and btoa.
   global.btoa = function(str) {
     return new Buffer(str).toString('base64');

@@ -7,7 +7,6 @@
 const _ = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
-const webpackLinkPlugin = require('webpack-link');
 
 //
 // Webpack base configuration.
@@ -40,22 +39,16 @@ module.exports = {
 
     loaders: [
 
-      {
-        test: /\.json$/,
-        loader: 'json-loader'
-      },
-
       // See .babelrc for the presets.
       // https://github.com/babel/babel-loader
       {
         test: /\.js$/,
         exclude: [/node_modules/],  // Don't transpile deps.
         include: [
-          path.resolve(__dirname, 'src'),
-          path.resolve(__dirname, '../core/src')
+          path.resolve(__dirname, 'src')
         ],
         loader: 'babel-loader'
-      },
+      }
     ]
   },
 
@@ -64,17 +57,6 @@ module.exports = {
   link: 'minder-core',
 
   plugins: [
-
-    // webpack --link=minder-core
-    // NOTE: Dependent project must have appropriate deps installed.
-    // https://www.npmjs.com/package/webpack-link
-    // TODO(burdon): Can't trigger loader from here (must be added explicitely above).
-    // https://github.com/thebeansgroup/webpack-link/issues/2
-    new webpackLinkPlugin({
-      'minder-core': [
-        path.resolve(__dirname, '../core')
-      ]
-    }),
 
     new webpack.ProvidePlugin({ _: 'lodash' })
   ]

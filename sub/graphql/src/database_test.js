@@ -4,7 +4,6 @@
 
 'use strict';
 
-import { ID } from 'minder-core';
 import { Database } from './database';
 
 //
@@ -13,13 +12,6 @@ import { Database } from './database';
 
 describe('Database', () => {
   let database = new Database();
-
-  it('Convert between glocal to local IDs', () => {
-    let globalId = ID.toGlobalId('User', 'minder');
-    let { type, id } = ID.fromGlobalId(globalId);
-    expect(type).to.equal('User');
-    expect(id).to.equal('minder');
-  });
 
   it('Create and get items', () => {
     let items = database.upsertItems([{ type: 'User', title: 'Minder' }]);

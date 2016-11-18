@@ -5,7 +5,6 @@
 'use strict';
 
 export * from './util/async';
-export * from './util/logger';
 export * from './util/type';
 export * from './data/id';
 export * from './data/matcher';
