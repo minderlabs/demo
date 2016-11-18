@@ -20,10 +20,10 @@ import TypeDefs from './schema.graphql';
  */
 export class SchemaFactory {
 
+  static TypeDefs = TypeDefs;
+
   constructor(database) {
     this._database = database;
-    this._typeMap = new Map();
-    const resolvers = this.getResolvers();
   }
 
   /**
@@ -31,32 +31,13 @@ export class SchemaFactory {
    * @returns {*}
    */
   makeExecutableSchema() {
-
     // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
-    console.log('Creating schema...');
-    const schema = makeExecutableSchema({
-      typeDefs: TypeDefs,
+    return makeExecutableSchema({
+      typeDefs: SchemaFactory.TypeDefs,
       resolvers: this.getResolvers(),
       logger: {
         log: (error) => console.log('Schema Error', error)
       }
-    });
-
-    // TODO(burdon): Error in apollo.
-    // "Schema must be an instance of GraphQLSchema. Also ensure that there are not multiple versions of GraphQL installed in your node_modules directory.
-    console.log('::::::::::::::::::', schema instanceof GraphQLSchema);
-
-    /**
-     * Create the type map for introspection.
-     */
-    console.log('Creating schema defs...');
-    return graphql(schema, introspectionQuery).then((result) => {
-      let jsonSchema = result.data.__schema;
-      _.each(jsonSchema.types, (type) => {
-        this._typeMap.set(type.name, type);
-      });
-
-      return schema;
     });
   }
 

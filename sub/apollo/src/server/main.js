@@ -13,7 +13,9 @@ import handlebars from 'express-handlebars';
 import bodyParser from 'body-parser';
 import moment from 'moment';
 
+import { graphql, GraphQLSchema } from 'graphql';
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
+import { makeExecutableSchema } from 'graphql-tools';
 
 import { ID } from 'minder-core';
 import { Database, SchemaFactory, Randomizer, graphqlLogger, loggingRouter } from 'minder-graphql';
@@ -47,7 +49,7 @@ _.each(data, (items, type) => {
 
 // TODO(burdon): Trigger from webhook.
 // TODO(burdon): Run in thread.
-const randomizer = new Randomizer(database)
+const randomizer = null && new Randomizer(database)
   .generate('Contact',  20)
   .generate('Place',    10)
   .generate('Task',     20,
@@ -126,14 +128,54 @@ if (env === 'hot') {
 // http://dev.apollodata.com/tools/graphql-server/index.html
 //
 
-// TODO(burdon): Move to router in graphql
-promises.push(new SchemaFactory(database).makeExecutableSchema().then((schema) => {
-  console.assert(schema);
+const factory = new SchemaFactory(database);
 
-  console.log('::::::::::::', typeof schema);
-//console.log(schema instanceof GraphQLSchema);
+// Cannot factor out schema creation since dependency on minder-graphql creates multiple
+// instances of GraphQLSchema.
+// TODO(burdon): ERROR "Also ensure that there are not multiple versions of GraphQL installed in your node_modules directory."
+// https://github.com/npm/npm/issues/7742
+// https://github.com/graphql/graphql-js/issues/594
+// https://github.com/graphql/graphiql/issues/58
 
-  // TODO(burdon): Checkout graphqlHTTP.getGraphQLParams to augment request/response.
+const schema = makeExecutableSchema({
+  typeDefs: SchemaFactory.TypeDefs,
+  resolvers: factory.getResolvers(),
+  logger: {
+    log: (error) => console.log('Schema Error', error)
+  }
+});
+
+/**
+ * Async test schema.
+ * @type {Promise}
+ */
+const testSchema = new Promise((resolve, reject) => {
+
+  // Test schema is working.
+  let vars = { userId: ID.toGlobalId('User', 'tester') };
+  let query = `
+    query TestQuery($userId: ID!) { 
+      viewer(userId: $userId) {
+        id
+        user {
+          id
+          title
+        }
+      }
+    }
+  `;
+
+  graphql(schema, query, {}, {}, vars).then((result) => {
+    if (result.errors) {
+      console.error(result.errors);
+      reject();
+    } else {
+      resolve();
+    }
+  });
+});
+
+promises.push(testSchema.then(() => {
 
   // MIME type.
   app.use(bodyParser.json());                           // JSON post (GraphQL).

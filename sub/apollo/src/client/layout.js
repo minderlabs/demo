@@ -9,7 +9,6 @@ import { connect } from 'react-redux';
 import { Link, Match, Miss, Redirect } from 'react-router';
 import { compose, graphql, withApollo } from 'react-apollo';
 import gql from 'graphql-tag';
-
 import ApolloClient from 'apollo-client';
 
 import { ID } from 'minder-core';

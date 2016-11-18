@@ -110,14 +110,7 @@ describe('GraphQL Executable Schema', () => {
   let database = new Database();
   database.upsertItems([{ id: 'minder', type: 'User', title: 'Minder' }]);
 
-  let resolvers = new SchemaFactory(database).getResolvers();
-
-  // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#makeExecutableSchema
-  let schema = makeExecutableSchema({
-    typeDefs: SchemaType,
-    resolvers: resolvers,
-    logger: { log: (error) => console.error(error) }
-  });
+  let schema = new SchemaFactory(database).makeExecutableSchema();
 
   it('Query viewer', (done) => {
     let item = database.getItem('User', 'minder');
