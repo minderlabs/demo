@@ -1,5 +1,5 @@
 #
-# Copyright 2016 Alien Laboratories, Inc.
+# Copyright 2016 Minder Labs.
 #
 # Test Node Server Dockerfile
 # alienlaboratories/react-demos

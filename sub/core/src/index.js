@@ -1,12 +1,11 @@
 //
-// Copyright 2016 Alien Laboratories, Inc.
+// Copyright 2016 Minder Labs.
 //
 
 'use strict';
 
-// TODO(burdon): Must be platform independent (factor out UX).
-
 export * from './util/async';
+export * from './util/logger';
 export * from './util/type';
 export * from './data/id';
 export * from './data/matcher';

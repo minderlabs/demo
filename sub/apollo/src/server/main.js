@@ -1,5 +1,5 @@
 //
-// Copyright 2016 Alien Laboratories, Inc.
+// Copyright 2016 Minder Labs.
 //
 
 'use strict';
@@ -10,25 +10,15 @@ import path from 'path';
 import http from 'http';
 import express from 'express';
 import handlebars from 'express-handlebars';
-import bodyParser from 'body-parser';
-import moment from 'moment';
 
-import { graphql, GraphQLSchema } from 'graphql';
-import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
-import { makeExecutableSchema } from 'graphql-tools';
+import { loggingRouter } from 'minder-core';
+import { Database, Randomizer, graphqlRouter } from 'minder-graphql';
 
-import { ID } from 'minder-core';
-import { Database, SchemaFactory, Randomizer, graphqlLogger, loggingRouter } from 'minder-graphql';
-
-
-// Emulate browser atob and btoa.
-// TODO(burdon): Inject wrapper; move to core.
-global.btoa = function (str) { return new Buffer(str).toString('base64'); };
-global.atob = function (str) { return new Buffer(str, 'base64').toString(); };
+import { appRouter, hotRouter } from './app';
 
 
 //
-// Env
+// Env.
 //
 
 const env = process.env['NODE_ENV'] || 'development';
@@ -37,7 +27,21 @@ const port = process.env['VIRTUAL_PORT'] || 3000;
 
 
 //
-// Database
+// Express.
+//
+
+const app = express();
+
+
+//
+// Logging.
+//
+
+app.use('/', loggingRouter());
+
+
+//
+// GraphQL server.
 //
 
 const database = new Database();
@@ -48,7 +52,6 @@ _.each(data, (items, type) => {
 });
 
 // TODO(burdon): Trigger from webhook.
-// TODO(burdon): Run in thread.
 const randomizer = null && new Randomizer(database)
   .generate('Contact',  20)
   .generate('Place',    10)
@@ -59,180 +62,27 @@ const randomizer = null && new Randomizer(database)
     }
   );
 
-
-//
-// Allow async start.
-//
-
-let promises = [];
+app.use('/', graphqlRouter(database, { debug: true }));
 
 
 //
-// Express
+// Hot loader.
 //
 
-const app = express();
-
-
-//
-// Logging
-//
-
-app.use('/', loggingRouter());
-
-
-//
-// Webpack Hot Module Replacement (HMR)
-// NOTE: This replaces the stand-alone webpack-dev-server
-//
-// http://madole.github.io/blog/2015/08/26/setting-up-webpack-dev-middleware-in-your-express-application
-// http://webpack.github.io/docs/hot-module-replacement-with-webpack.html
-// https://github.com/gaearon/react-hot-loader/tree/master/docs#starter-kits
-// https://github.com/gaearon/react-hot-boilerplate/issues/102 [Resolved]
-//
-// TODO(burdon): Webpack 2?
-// NOTE: Hot mode cannot work with nodemon (must manually reload).
-//
-// NOTE: CSS changes will not rebuild (since in separate bundle).
-//
-
-// TODO(burdon): Factor out.
 if (env === 'hot') {
-  const webpack = require('webpack');
-  const webpackDevMiddleware = require('webpack-dev-middleware');
-  const webpackHotMiddleware = require('webpack-hot-middleware');
-
-  // Config.
-  const webpackConfig = require('../../webpack.config');
-
-  const compiler = webpack(webpackConfig);
-
-  // https://github.com/webpack/webpack-dev-middleware
-  app.use(webpackDevMiddleware(compiler, {
-    publicPath: webpackConfig.output.publicPath,
-    noInfo: true,
-    stats: { colors: true }
-  }));
-
-  // https://github.com/glenjamin/webpack-hot-middleware
-  app.use(webpackHotMiddleware(compiler, {
-    log: (msg) => console.log('### [%s] %s ###', moment().format('hh:mm:ss'), msg)
-  }));
+  app.use(hotRouter());
 }
-
-
-//
-// GraphQL server.
-// https://github.com/apollostack/graphql-server
-// https://github.com/graphql/express-graphql#options
-// http://dev.apollodata.com/tools/graphql-server/index.html
-//
-
-const factory = new SchemaFactory(database);
-
-// Cannot factor out schema creation since dependency on minder-graphql creates multiple
-// instances of GraphQLSchema.
-// TODO(burdon): ERROR "Also ensure that there are not multiple versions of GraphQL installed in your node_modules directory."
-// https://github.com/npm/npm/issues/7742
-// https://github.com/graphql/graphql-js/issues/594
-// https://github.com/graphql/graphiql/issues/58
-
-const schema = makeExecutableSchema({
-  typeDefs: SchemaFactory.TypeDefs,
-  resolvers: factory.getResolvers(),
-  logger: {
-    log: (error) => console.log('Schema Error', error)
-  }
-});
-
-/**
- * Async test schema.
- * @type {Promise}
- */
-const testSchema = new Promise((resolve, reject) => {
-
-  // Test schema is working.
-  let vars = { userId: ID.toGlobalId('User', 'tester') };
-  let query = `
-    query TestQuery($userId: ID!) { 
-      viewer(userId: $userId) {
-        id
-        user {
-          id
-          title
-        }
-      }
-    }
-  `;
-
-  graphql(schema, query, {}, {}, vars).then((result) => {
-    if (result.errors) {
-      console.error(result.errors);
-      reject();
-    } else {
-      resolve();
-    }
-  });
-});
-
-promises.push(testSchema.then(() => {
-
-  // MIME type.
-  app.use(bodyParser.json());                           // JSON post (GraphQL).
-  app.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
-
-  // Log GraphQL (debug-only).
-  app.use('/graphql', graphqlLogger());
-
-  // Bind server.
-  // https://github.com/graphql/express-graphql
-  app.use('/graphql', graphqlExpress({
-    schema: schema,
-    pretty: true,
-    formatError: error => ({
-      message: error.message,
-      locations: error.locations,
-      stack: error.stack
-    })
-  }));
-
-  // Bind debug UX.
-  app.use('/graphiql', graphiqlExpress({
-    endpointURL: '/graphql',
-  }));
-}));
 
 
 //
 // App
 //
 
-const WEBPACK_ENTRY = {
-  "test":         "test",
-  "development":  "main",
-  "production":   "main",
-  "hot":          "hot"
-};
-
-app.use('/assets', express.static(path.join(__dirname, '../../dist')));
-
-app.get(/^\/(.*)/, function(req, res) {
-  res.render('home', {
-    app: WEBPACK_ENTRY[env],
-    config: {
-      root: 'app-root',
-      graphql: '/graphql',
-      userId: ID.toGlobalId('User', 'rich'),    // TODO(burdon): cookie.
-      debug: {
-        env: env
-      }
-    }
-  });
-});
+app.use(appRouter());
 
 
 //
-// Handlebars.
+// Handlebars views.
 // https://github.com/ericf/express-handlebars
 //
 
@@ -249,15 +99,13 @@ app.set('views', path.join(__dirname, 'views'));
 
 
 //
-// Start-up
+// Start-up.
 //
 
-Promise.all(promises).then(() => {
-  const server = http.Server(app);
+const server = http.Server(app);
 
-  server.listen(port, host, () => {
-    let addr = server.address();
-    console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
-  });
+server.listen(port, host, () => {
+  let addr = server.address();
+  console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
 });
 

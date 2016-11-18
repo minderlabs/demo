@@ -1,10 +1,25 @@
 //
-// Copyright 2016 Alien Laboratories, Inc.
+// Copyright 2016 Minder Labs.
 //
 
 'use strict';
 
 import _ from 'lodash';
+
+//
+// Detect node.
+// TODO(burdon): Factor out node/web abstraction layer.
+//
+
+if (typeof module !== undefined) {
+  // Emulate browser atob and btoa.
+  global.btoa = function(str) {
+    return new Buffer(str).toString('base64');
+  };
+  global.atob = function(str) {
+    return new Buffer(str, 'base64').toString();
+  };
+}
 
 /**
  * ID Utils.

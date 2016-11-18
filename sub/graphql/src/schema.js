@@ -1,5 +1,5 @@
 //
-// Copyright 2016 Alien Laboratories, Inc.
+// Copyright 2016 Minder Labs.
 //
 
 'use strict';
@@ -25,6 +25,8 @@ export class SchemaFactory {
   constructor(database) {
     this._database = database;
   }
+
+  // TODO(burdon): rename class and remove below
 
   /**
    * Create the executable schema.

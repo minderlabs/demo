@@ -1,5 +1,5 @@
 //
-// Copyright 2016 Alien Laboratories, Inc.
+// Copyright 2016 Minder Labs.
 //
 // Webpack Karma configuration
 // https://webpack.github.io/docs/configuration.html
