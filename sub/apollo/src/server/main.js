@@ -78,7 +78,7 @@ if (env === 'hot') {
 // App
 //
 
-app.use(appRouter());
+app.use(appRouter({ env: env }));
 
 
 //

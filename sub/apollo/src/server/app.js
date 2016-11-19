@@ -52,6 +52,7 @@ export const hotRouter = (options) => {
 
 //
 // Client bundles (map NODE_ENV to bundle).
+// See webpack.config.js
 //
 
 const WEBPACK_BUNDLE = {

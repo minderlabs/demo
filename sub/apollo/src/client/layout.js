@@ -65,7 +65,7 @@ class Layout extends React.Component {
             */}
           <div className="app-section app-header app-row">
             <div className="app-expand">
-              <h1>Apollo Demo</h1>
+              <h1>Apollo Dem2o</h1>
             </div>
             <div>
               <Link to="/inbox">Inbox</Link>

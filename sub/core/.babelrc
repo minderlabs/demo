@@ -8,30 +8,5 @@
     "es2015",
     "stage-0",
     "react"
-  ],
-
-  "plugins": [
-
-    // https://babeljs.io/docs/plugins/transform-decorators
-    // https://github.com/babel/babel/issues/2645
-    // https://medium.com/google-developers/exploring-es7-decorators-76ecb65fb841#.60y0ukiag
-//    "transform-decorators-legacy",
-
-    // https://www.npmjs.com/package/babel-plugin-inline-import
-    // NOTE: BABEL_DISABLE_CACHE=1 otherwise cached.
-//    "babel-plugin-inline-import"
-  ],
-
-  "env": {
-    "hot": {
-      "plugins": [
-
-        // http://gaearon.github.io/react-hot-loader/getstarted
-        "react-hot-loader/babel"
-      ]
-    }
-
-    // TODO(burdon): Prod.
-    // "babel-preset-react-optimize"
-  }
+  ]
 }

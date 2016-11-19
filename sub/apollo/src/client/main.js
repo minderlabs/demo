@@ -253,7 +253,7 @@ const reduxStore = createStore(reducers, {}, enhancer);
  * @param App Root component.
  */
 function renderApp(App) {
-  console.log('### [%s] ###', moment().format('hh:mm:ss'));
+  console.log('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(config, 'debug.env'));
 
   ReactDOM.render(
     <App
