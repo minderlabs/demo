@@ -11,7 +11,7 @@ import bodyParser from 'body-parser';
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 
-import { SchemaFactory } from './schema';
+import { Resolvers } from './resolvers';
 import { graphqlLogger } from './util/logger';
 
 /**
@@ -29,21 +29,9 @@ export const graphqlRouter = (database, options) => {
 
   options = _.defaults(options, { graphql: '/graphql', graphiql: '/graphiql' });
 
-  const factory = new SchemaFactory(database);
-
-  // NOTE: Can't create the schema in one module and use it with graphqlExpress in another (via npm link)
-  // Cannot factor out schema creation since dependency on minder-graphql creates multiple
-  // instances of GraphQLSchema.
-  // ERROR "Also ensure that there are not multiple versions of GraphQL installed in your node_modules directory."
-  // https://github.com/npm/npm/issues/7742
-  // https://github.com/graphql/graphql-js/issues/594
-  // https://github.com/graphql/graphiql/issues/58
-  // Solution:
-  // http://stackoverflow.com/questions/31169760/how-to-avoid-react-loading-twice-with-webpack-when-developing
-
   const schema = makeExecutableSchema({
-    typeDefs: SchemaFactory.TypeDefs,
-    resolvers: factory.getResolvers(),
+    typeDefs: Resolvers.typeDefs,
+    resolvers: Resolvers.getResolvers(database),
     logger: {
       log: (error) => console.log('Schema Error', error)
     }

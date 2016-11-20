@@ -52,11 +52,13 @@
     "graphql-subscriptions": "^0.2.1",
     "graphql-tag": "^0.1.16",
     "graphql-tools": "^0.8.1",
+    "immutability-helper": "^2.0.0",
     "lodash": "^4.17.2",
     "minder-core": "0.0.1",
     "moment": "^2.16.0"
   },
   "scripts": {
-    "test": "BABEL_DISABLE_CACHE=1 karma start --single-run"
+    "test": "BABEL_DISABLE_CACHE=1 karma start --single-run",
+    "update-schema": "babel-node ./tools/babel/update_schema.js"
   }
 }

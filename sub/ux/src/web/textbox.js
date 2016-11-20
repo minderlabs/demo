@@ -13,11 +13,27 @@ import { Async } from 'minder-core';
  */
 export class TextBox extends React.Component {
 
+  /**
+   * Returns key filter
+   *
+   * @param keyCode
+   * @param callback Callback invoked with textbox value.
+   * @returns {function(*)}
+   */
+  static filter(keyCode, callback) {
+    return (event) => {
+      if (event.keyCode == keyCode) {
+        callback(event.target.value);
+      }
+    }
+  }
+
   static propTypes = {
     autoFocus:    React.PropTypes.bool,
-    className:    React.PropTypes.string,   // TODO(burdon): Standardize.
+    className:    React.PropTypes.string,
     delay:        React.PropTypes.number,
     onChange:     React.PropTypes.func,
+    onKeyDown:    React.PropTypes.func,
     placeholder:  React.PropTypes.string,
     value:        React.PropTypes.string
   };

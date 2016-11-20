@@ -31,7 +31,7 @@ export default class Search extends React.Component {
         <TextBox ref="text"
                  className='app-expand'
                  autoFocus={ true }
-                 placeholder='Search...'
+                 placeholder='Search... [@type] [#label]'
                  value={ this.props.value}
                  onChange={ this.handleSearch.bind(this) }
         />

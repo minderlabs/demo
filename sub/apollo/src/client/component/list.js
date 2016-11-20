@@ -6,10 +6,13 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-import { compose, graphql, withApollo } from 'react-apollo';
+import { compose, graphql } from 'react-apollo';
+import update from 'immutability-helper';
 import gql from 'graphql-tag';
 
 import { ID, QueryParser, TypeUtil } from 'minder-core';
+
+import { UpdateItemMutation } from '../data/mutation';
 
 import TypeRegistry from '../component/typeRegistry';
 
@@ -29,9 +32,7 @@ export class List extends React.Component {
   };
 
   static propTypes = {
-
     onItemSelect: React.PropTypes.func.isRequired,
-
     updateItem: React.PropTypes.func.isRequired,
 
     data: React.PropTypes.shape({
@@ -114,17 +115,6 @@ const ItemsQuery = gql`
   }
 `;
 
-const UpdateItemMutation = gql`
-  mutation UpdateItemMutation($itemId: ID!, $deltas: [ObjectDelta]!) {
-    
-    updateItem(itemId: $itemId, deltas: $deltas) {
-      id
-      labels
-      title
-    }
-  }
-`;
-
 const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
 
@@ -169,16 +159,42 @@ export default compose(
         variables: {
           filter: updateFilter(filter, text),
           offset: 0,
-          count: 10
+          count: 20
         },
 
         // TODO(burdon): Use reducer to invalidate other cached queries?
         // https://github.com/apollostack/apollo-client/issues/903
         // http://dev.apollodata.com/react/cache-updates.html#resultReducers
         reducer: (previousResult, action) => {
-          console.log('### reducer[%s:%s] %s', action.operationName, action.type, TypeUtil.JSON(previousResult));
+          console.log('###### ItemsQuery.reducer[%s:%s] %s', action.operationName, action.type);
           if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === 'UpdateItemMutation') {
-            console.log('UpdateItemMutation');
+            console.log('====== UpdateItemMutation:', TypeUtil.JSON(action), TypeUtil.JSON(previousResult));
+
+            console.log('====##', previousResult);
+
+            // TODO(burdon): Unit test.
+            // TODO(burdon): Delete.
+            // TODO(burdon): Distinguish create from update.
+            // TODO(burdon): Factor out mutation and query logic (into sub/graphql).
+            // TODO(burdon): Need to preserve sort order (if set, otherwise top/bottom of list).
+            // https://github.com/kolodny/immutability-helper
+            // https://facebook.github.io/react/docs/update.html#available-commands
+            let item = action.result.data.updateItem;
+            let result = update(previousResult, {
+              items: {
+                $apply: (items) => {
+                  // Find existing.
+                  let existing = _.find(items, existing => existing.id === item.id);
+                  if (!existing) {
+                    return update(items, { $push: [item] });
+                  }
+                }
+              }
+            });
+
+            console.log('==####', result);
+
+            return result;
           }
 
           return previousResult;

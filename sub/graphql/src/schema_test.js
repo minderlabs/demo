@@ -19,7 +19,7 @@ import { introspectionQuery, printSchema } from 'graphql/utilities';
 import { ID } from 'minder-core';
 
 import { Database } from './database';
-import { SchemaFactory } from './schema';
+import { Resolvers } from './resolvers';
 
 import SchemaType from './schema.graphql';
 
@@ -110,7 +110,14 @@ describe('GraphQL Executable Schema', () => {
   let database = new Database();
   database.upsertItems([{ id: 'minder', type: 'User', title: 'Minder' }]);
 
-  let schema = new SchemaFactory(database).makeExecutableSchema();
+  // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
+  let schema = makeExecutableSchema({
+    typeDefs: Resolvers.typeDefs,
+    resolvers: Resolvers.getResolvers(database),
+    logger: {
+      log: (error) => console.log('Schema Error', error)
+    }
+  });
 
   it('Query viewer', (done) => {
     let item = database.getItem('User', 'minder');

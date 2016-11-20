@@ -12,6 +12,8 @@ import gql from 'graphql-tag';
 import { ID } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
+import { UpdateItemMutation } from '../data/mutation';
+
 import { ACTION } from '../reducers';
 
 import List from '../component/list';
@@ -48,6 +50,26 @@ class FolderView extends React.Component {
     this.props.navigateItem(item);
   }
 
+  handleItemCreate() {
+    let title = _.trim(this.refs.text.value);
+    if (title) {
+      let mutation = [
+        {
+          field: 'title',
+          value: {
+            string: title
+          }
+        }
+      ];
+
+      // TODO(burdon): Get type from picker.
+      this.props.createItem('Task', mutation);
+
+      this.refs.text.value = '';
+      this.refs.text.focus();
+    }
+  }
+
   render() {
     console.log('Folder.render');
 
@@ -59,7 +81,8 @@ class FolderView extends React.Component {
     return (
       <div className="app-column">
         <div className="app-section">
-          <Search value={ this.props.search.text } onSearch={ this.handleSearch.bind(this) }/>
+          <Search value={ this.props.search.text }
+                  onSearch={ this.handleSearch.bind(this) }/>
         </div>
 
         <div className="app-section app-expand">
@@ -67,8 +90,10 @@ class FolderView extends React.Component {
         </div>
 
         <div className="app-section app-row">
-          <TextBox className="app-expand"/>
-          <i className="material-icons">add</i>
+          <TextBox ref="text" className="app-expand"
+                   onKeyDown={ TextBox.filter(13, this.handleItemCreate.bind(this)) }/>
+          <i className="app-icon-add material-icons"
+             onClick={ this.handleItemCreate.bind(this) }/>
         </div>
       </div>
     );
@@ -104,6 +129,7 @@ const FolderQuery = gql`
 
 const mapStateToProps = (state, ownProps) => {
   return {
+    idGenerator: state.minder.idGenerator,      // TODO(burdon): Injector.
     userId: state.minder.userId,
     search: state.minder.search
   }
@@ -171,6 +197,21 @@ export default compose(
         filter
       }
     }
+  }),
+
+  graphql(UpdateItemMutation, {
+    props: ({ ownProps, mutate }) => ({
+      createItem: (type, deltas) => {
+        let itemId = ownProps.idGenerator.createId();     // TODO(burdon): IdGenerator from context?
+        console.log('#####', itemId);
+        return mutate({
+          variables: {
+            itemId: ID.toGlobalId(type, itemId),
+            deltas: deltas
+          }
+        });
+      }
+    })
   })
 
 )(FolderView);

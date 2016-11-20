@@ -16,31 +16,12 @@ import { ID } from 'minder-core';
 import TypeDefs from './schema.graphql';
 
 /**
- * Schema factory.
+ * Resolver map.
  */
-export class SchemaFactory {
+export class Resolvers {
 
-  static TypeDefs = TypeDefs;
-
-  constructor(database) {
-    this._database = database;
-  }
-
-  // TODO(burdon): rename class and remove below
-
-  /**
-   * Create the executable schema.
-   * @returns {*}
-   */
-  makeExecutableSchema() {
-    // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
-    return makeExecutableSchema({
-      typeDefs: SchemaFactory.TypeDefs,
-      resolvers: this.getResolvers(),
-      logger: {
-        log: (error) => console.log('Schema Error', error)
-      }
-    });
+  static get typeDefs() {
+    return TypeDefs;
   }
 
   //
@@ -49,6 +30,7 @@ export class SchemaFactory {
   //
   // TODO(burdon): See args and return values (incl. promise).
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
+  //
   // TODO(burdon): Modularize
   // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#modularizing
   //
@@ -56,7 +38,7 @@ export class SchemaFactory {
   /**
    * Create the resolver map.
    */
-  getResolvers() {
+  static getResolvers(database) {
     return {
 
       //
@@ -94,7 +76,7 @@ export class SchemaFactory {
       Group: {
 
         members: (root, args) => {
-          return _.map(root.members, itemId => this._database.getItem('User', itemId));
+          return _.map(root.members, itemId => database.getItem('User', itemId));
         }
       },
 
@@ -113,7 +95,7 @@ export class SchemaFactory {
               break;
           }
 
-          return this._database.queryItems(filter);
+          return database.queryItems(filter);
         }
       },
 
@@ -122,14 +104,14 @@ export class SchemaFactory {
         owner: (root) => {
           let userId = root.owner;
           if (userId) {
-            return this._database.getItem('User', userId);
+            return database.getItem('User', userId);
           }
         },
 
         assignee: (root) => {
           let userId = root.assignee;
           if (userId) {
-            return this._database.getItem('User', userId);
+            return database.getItem('User', userId);
           }
         }
       },
@@ -147,23 +129,23 @@ export class SchemaFactory {
 
           return {
             id: localUserId,
-            user: this._database.getItem('User', localUserId)
+            user: database.getItem('User', localUserId)
           }
         },
 
         folders: (root, { userId }) => {
           let {type, id:localUserId} = ID.fromGlobalId(userId);
-          return this._database.queryItems({ type: 'Folder' });
+          return database.queryItems({ type: 'Folder' });
         },
 
         item: (root, { itemId }) => {
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
 
-          return this._database.getItem(type, localItemId);
+          return database.getItem(type, localItemId);
         },
 
         items: (root, { filter, offset, count }) => {
-          return this._database.queryItems(filter, offset, count);
+          return database.queryItems(filter, offset, count);
         }
       },
 
@@ -176,18 +158,36 @@ export class SchemaFactory {
 
         updateItem: (root, { itemId, deltas }) => {
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
-          console.log('MUTATION.UPDATE[%s]', type, localItemId, deltas);
+          console.log('MUTATION.UPDATE[%s]: %s:%s', localItemId, type, JSON.stringify(deltas));
 
-          let item = this._database.getItem(type, localItemId);
-          console.assert(item);
+          // TODO(burdon): Validate type.
+
+          // Get existing item (or undefined).
+          let item = database.getItem(type, localItemId);
+          if (!item) {
+            item = {
+              id: itemId,
+              type: type,
+              title: ''
+            };
+          }
 
           // Process value deltas.
           _.each(deltas, (delta) => {
             let field = delta.field;
             let value = delta.value;
 
-            // TODO(burdon): If scalar then just set.
-            if (value.list) {
+            // TODO(burdon): Introspect for type-checking.
+            // TODO(burdon): Factor out operational transformation.
+
+            // TODO(burdon): Handle null (delete field).
+
+            // TODO(burdon): Other scalars.
+            if (undefined !== value.string) {
+              item[field] = value.string;
+            }
+
+            if (undefined !== value.list) {
               let values = item[field] || [];
 
               // TODO(burdon): Need to apply based on value type).
@@ -202,7 +202,9 @@ export class SchemaFactory {
             }
           });
 
-          this._database.upsertItems([item]);
+          console.log('=========================================', JSON.stringify(item));
+
+          database.upsertItems([item]);
           return item;
         }
       }

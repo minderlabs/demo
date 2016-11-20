@@ -18,3 +18,13 @@
     - https://github.com/npm/npm/issues/7742
     - Solution:
         - http://stackoverflow.com/questions/31169760/how-to-avoid-react-loading-twice-with-webpack-when-developing
+
+- ERROR: "Also ensure that there are not multiple versions of GraphQL installed in your node_modules directory."
+     NOTE: Can't create the schema in one module and use it with graphqlExpress in another (via npm link)
+     Cannot factor out schema creation since dependency on minder-graphql creates multiple
+     instances of GraphQLSchema.
+     - https://github.com/npm/npm/issues/7742
+     - https://github.com/graphql/graphql-js/issues/594
+     - https://github.com/graphql/graphiql/issues/58
+    - Solution:
+        - http://stackoverflow.com/questions/31169760/how-to-avoid-react-loading-twice-with-webpack-when-developing

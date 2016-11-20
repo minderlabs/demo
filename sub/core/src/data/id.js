@@ -5,6 +5,7 @@
 'use strict';
 
 import _ from 'lodash';
+import Random from 'random-seed';
 
 //
 // Detect node.
@@ -39,11 +40,31 @@ export class ID {
     console.assert(_.isString(type) && _.isString(localId));
     return btoa(type + '/' + localId);
   }
+}
 
-  // TODO(burdon): GUID.
-  static i = 0;
-  static createId(type) {
-    console.assert(type);
-    return `i-${_.padStart(++ID.i, 3, '0')}`;
+/**
+ * Seedable ID generator.
+ * NOTE: Use same seed for in-memory datastore testing. With persistent store MUST NOT be constant.
+ */
+export class IdGenerator {
+
+  // TODO(burdon): Ensure consistent with server.
+
+  constructor(seed=undefined) {
+    this._random = Random.create(seed);
+  }
+
+  /**
+   * Unique ID compatible with server.
+   * @returns {string}
+   */
+  createId() {
+    const s4 = () => {
+      return Math.floor(this._random.floatBetween(1, 2) * 0x10000)
+        .toString(16)
+        .substring(1);
+    };
+
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
   }
 }

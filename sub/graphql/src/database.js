@@ -6,7 +6,7 @@
 
 import _ from 'lodash';
 
-import { ID, Matcher, TypeUtil } from 'minder-core';
+import { ID, IdGenerator, Matcher, TypeUtil } from 'minder-core';
 
 /**
  * In-memory database.
@@ -14,6 +14,8 @@ import { ID, Matcher, TypeUtil } from 'minder-core';
 export class Database {
 
   // TODO(burdon): Logger.
+
+  static IdGenerator = new IdGenerator(1000);
 
   constructor() {
     // Map items.
@@ -30,10 +32,13 @@ export class Database {
   upsertItems(items) {
     return _.map(items, (item) => {
       item = TypeUtil.clone(item);
+
+      console.assert(item.type);
       if (!item.id) {
-        item.id = ID.createId(item.type);
+        item.id = Database.IdGenerator.createId();
       }
 
+      // TODO(burdon): Enforce immutable type.
       console.log('DB.UPSERT[%s]', item.id, JSON.stringify(item));
       this._items.set(item.id, item);
 
@@ -51,7 +56,8 @@ export class Database {
     console.log('DB.GET[%s]', itemId);
     console.assert(type && itemId);
 
-    return TypeUtil.clone(this._items.get(itemId));
+    let item = this._items.get(itemId);
+    return item && TypeUtil.clone(item);
   }
 
   /**

@@ -22,13 +22,14 @@ export const ACTION = {
  * @param matcher Item matcher.
  * @returns Redux state object.
  */
-export const AppReducer = (config, matcher) => {
+export const AppReducer = (config, matcher, idGenerator) => {
 
   // TODO(burdon): Multiple reducers? Split by section?
 
   const initialSate = {
     minder: {
       matcher: matcher,
+      idGenerator: idGenerator,       // TODO(burdon): Injector.
       userId: config.userId,
       search: {
         text: ''

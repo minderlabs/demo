@@ -59,7 +59,7 @@ import createBrowserHistory from 'history/createBrowserHistory'
 
 import moment from 'moment';
 
-import { Matcher, TypeUtil } from 'minder-core';
+import { IdGenerator, Matcher, TypeUtil } from 'minder-core';
 
 import { ACTION, AppReducer } from './reducers';
 import { QueryRegistry } from './subscriptions';
@@ -77,7 +77,7 @@ console.log('Config = %s', JSON.stringify(config));
 
 // TODO(burdon): Inject database tools.
 const matcher = new Matcher();
-
+const idGenerator = new IdGenerator();
 
 //
 // Error handling.
@@ -230,7 +230,7 @@ const reducers = combineReducers({
   },
 
   // App reducers.
-  ...AppReducer(config, matcher),
+  ...AppReducer(config, matcher, idGenerator),
 });
 
 const enhancer = compose(

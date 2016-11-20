@@ -67,6 +67,7 @@
     "graphql-tag": "^0.1.16",
     "graphql-tools": "^0.8.1",
     "history": "^4.4.0",
+    "immutability-helper": "^2.0.0",
     "lodash": "^4.17.2",
     "minder-core": "0.0.1",
     "minder-graphql": "0.0.1",
@@ -88,7 +89,6 @@
       "start => runs the server with hot module replacement (server not updated)",
       "NOTE: nodemon seems to cache .graphql imports"
     ],
-    "update-schema": "babel-node ./tools/babel/update_schema.js",
     "webpack": "webpack --watch",
     "babel-node": "BABEL_DISABLE_CACHE=1 babel-node src/server/main.js",
     "nodemon": "nodemon --exec npm run babel-node",

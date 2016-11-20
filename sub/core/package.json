@@ -30,6 +30,7 @@
     "express": "^4.14.0",
     "lodash": "^4.17.1",
     "morgan": "^1.7.0",
+    "random-seed": "^0.3.0",
     "react": "^15.4.0"
   },
   "scripts": {}
