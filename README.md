@@ -16,3 +16,7 @@
 
 - npm-check-updates -u
 
+
+## Troubleshooting
+
+- See own github issues: https://github.com/issues

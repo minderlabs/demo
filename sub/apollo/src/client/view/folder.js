@@ -10,6 +10,7 @@ import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { ID } from 'minder-core';
+import { TextBox } from 'minder-ux';
 
 import { ACTION } from '../reducers';
 
@@ -63,6 +64,11 @@ class FolderView extends React.Component {
 
         <div className="app-section app-expand">
           <List filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+        </div>
+
+        <div className="app-section app-row">
+          <TextBox className="app-expand"/>
+          <i className="material-icons">add</i>
         </div>
       </div>
     );

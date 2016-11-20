@@ -1,0 +1,128 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+@import (reference) './mixin';
+@import './theme';
+
+// TODO(burdon): Name core/mixing/lib classes from specific app components (e.g., app- vs. nx-)
+
+//
+// Generic Elements.
+//
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+i.material-icons {
+  .app-noselect;
+  cursor: pointer;
+}
+
+table {
+  table-layout: fixed;
+}
+
+textarea {
+  resize: none;
+}
+
+//
+// Layout
+//
+
+.app-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-column {
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+.app-column::-webkit-scrollbar {
+  width: 4px;
+}
+.app-column::-webkit-scrollbar-thumb {
+  background-color: #666;
+}
+
+.app-row {
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  overflow-x: hidden;
+  align-items: center;
+}
+
+.app-expand {
+  flex-grow: 1;
+}
+
+//
+// Toolbar.
+//
+
+.app-toolbar {
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  align-items: center;
+
+  box-shadow: @app-panel-boxshaow;
+  background-color: @app-toolbar-background;
+  padding: @app-toolbar-padding;
+
+  > input, button, select {
+    margin-left: @app-toolbar-padding;
+  }
+
+  > input:first-child, button:first-child, select:first-child {
+    margin-left: 0;
+  }
+}
+
+//
+// Data table.
+//
+
+.app-data {
+  display: flex;
+  flex-direction: column;
+
+  .app-data-row {
+    display: flex;
+    flex-direction: row;
+  }
+}
+
+// TODO(burdon): ???
+.app-key {
+  color: @app-color-medium;
+  font-size: @app-font-small;
+}
+
+//
+// General
+//
+
+.app-hidden {
+  visibility: hidden;
+}
+
+//
+// Icons
+//
+
+.app-icon {
+  cursor: pointer;
+}
+.app-icon-medium {
+  font-size: @app-icon-size-medium;
+}
+.app-icon-star {
+  color: @app-color-star;
+}

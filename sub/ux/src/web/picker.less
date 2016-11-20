@@ -1,0 +1,75 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+@import (reference) './defs/mixin';
+@import './defs/theme';
+
+.app-picker {
+  position: relative;
+
+  background-color: white;
+
+  > div {
+    display: flex;
+
+    input {
+      flex-grow: 1;
+    }
+  }
+
+  .app-picker-popup {
+    display: flex;
+    position: absolute;
+    width: 100%;
+
+    background-color: white;
+
+    > div:empty {
+      display: none;
+    }
+    > div {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+
+      max-height: 120px;        // (20 + 4) x 5
+      overflow-y: auto;
+      overflow-x: hidden;
+
+      border: 1px solid #AAA;   // TODO(burdon): Factor out defs.
+      border-top: none;
+
+      > input {
+        .app-noselect;
+
+        line-height: 20px;
+
+        border: none;
+        cursor: pointer;
+      }
+      > input:focus {
+        background-color: #EEE;
+      }
+      > input:hover {
+        background-color: #EEE;
+      }
+    }
+
+    > div::-webkit-scrollbar {
+      width: 4px;
+    }
+    > div::-webkit-scrollbar-thumb {
+      background-color: #666;
+    }
+  }
+}
+
+.app-toolbar {
+  .app-picker {
+    margin-left: @app-toolbar-padding;
+  }
+  .app-picker:first-child {
+    margin-left: 0;
+  }
+}

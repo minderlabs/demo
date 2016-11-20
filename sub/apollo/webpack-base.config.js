@@ -24,7 +24,15 @@ module.exports = {
     // Where to resolve imports/requires.
     modulesDirectories: [
       'node_modules'
-    ]
+    ],
+
+    // Prevent multiple copies.
+    // https://facebook.github.io/react/warnings/refs-must-have-owner.html#multiple-copies-of-react
+    // http://stackoverflow.com/questions/31169760/how-to-avoid-react-loading-twice-with-webpack-when-developing
+    alias: {
+      graphql:  path.resolve('./node_modules/graphql'),
+      react:    path.resolve('./node_modules/react'),
+    }
   },
 
   module: {
@@ -51,7 +59,8 @@ module.exports = {
         include: [
           path.resolve(__dirname, 'src'),
           path.resolve(__dirname, '../core/src'),
-          path.resolve(__dirname, '../graphql/src')
+          path.resolve(__dirname, '../graphql/src'),
+          path.resolve(__dirname, '../ux/src')
         ],
         loader: 'babel-loader'
       },
@@ -84,6 +93,7 @@ module.exports = {
     new webpackLinkPlugin({
       'minder-core':    path.resolve(__dirname, '../core'),
       'minder-graphql': path.resolve(__dirname, '../graphql'),
+      'minder-ux':      path.resolve(__dirname, '../ux')
     }),
 
     new webpack.ProvidePlugin({ _: 'lodash' }),

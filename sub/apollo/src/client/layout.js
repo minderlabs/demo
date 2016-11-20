@@ -13,6 +13,18 @@ import ApolloClient from 'apollo-client';
 
 import { ID } from 'minder-core';
 
+//import { Sidebar } from 'minder-ux';
+
+            // {/* SIDEBAR */}
+            // <Sidebar ref="sidebar" sidebar={
+            //   <Folders viewer={ viewer } onSelect={ this.handleNav.bind(this) }/>
+            // }>
+            //   {/* VIEW */}
+            //   <div className="app-view app-column app-expand">
+            //     { children }
+            //   </div>
+            // </Sidebar>
+
 import DetailView from './view/detail';
 import FolderView from './view/folder';
 
@@ -65,7 +77,7 @@ class Layout extends React.Component {
             */}
           <div className="app-section app-header app-row">
             <div className="app-expand">
-              <h1>Apollo Dem2o</h1>
+              <h1>Apollo Demo</h1>
             </div>
             <div>
               <Link to="/inbox">Inbox</Link>

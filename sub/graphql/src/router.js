@@ -38,6 +38,8 @@ export const graphqlRouter = (database, options) => {
   // https://github.com/npm/npm/issues/7742
   // https://github.com/graphql/graphql-js/issues/594
   // https://github.com/graphql/graphiql/issues/58
+  // Solution:
+  // http://stackoverflow.com/questions/31169760/how-to-avoid-react-loading-twice-with-webpack-when-developing
 
   const schema = makeExecutableSchema({
     typeDefs: SchemaFactory.TypeDefs,

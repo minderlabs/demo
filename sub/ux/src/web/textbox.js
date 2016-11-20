@@ -6,16 +6,20 @@
 
 import React from 'react';
 
-import Async from '../../util/async';
+import { Async } from 'minder-core';
 
 /**
  * Text box.
  */
-export default class TextBox extends React.Component {
+export class TextBox extends React.Component {
 
   static propTypes = {
-    value: React.PropTypes.string,
-    delay: React.PropTypes.number
+    autoFocus:    React.PropTypes.bool,
+    className:    React.PropTypes.string,   // TODO(burdon): Standardize.
+    delay:        React.PropTypes.number,
+    onChange:     React.PropTypes.func,
+    placeholder:  React.PropTypes.string,
+    value:        React.PropTypes.string
   };
 
   static defaultProps = {
@@ -52,7 +56,7 @@ export default class TextBox extends React.Component {
    */
   fireTextChange(now=false) {
     this._timeout(() => {
-      this.props.onTextChange && this.props.onTextChange(this.state.value);
+      this.props.onChange && this.props.onChange(this.state.value);
     }, now);
   }
 
@@ -92,10 +96,12 @@ export default class TextBox extends React.Component {
   }
 
   render() {
+    let className = _.join([this.props.className, 'app-textbox'], ' ');
+
     return (
       <input ref="input"
              type="text"
-             className="app-textbox"
+             className={ className }
              autoFocus={ this.props.autoFocus ? 'autoFocus' : '' }
              value={ this.state.value }
              placeholder={ this.props.placeholder }
