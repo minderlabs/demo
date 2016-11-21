@@ -51,6 +51,8 @@ input ArrayDelta {
 
 #
 # Object transformation.
+# E.g., { field: 'title', value: { string: 'Minder' } }
+# TODO(burdon): More compact would be { title: { string: 'Minder' }}
 #
 
 input ObjectDelta {
