@@ -49,11 +49,11 @@ export class List extends React.Component {
   }
 
   handleLabelUpdate(item, label, add=true) {
-    let mutation = [
+    let mutation = [ // TODO(burdon): Util?
       {
         field: 'labels',
         value: {
-          list: {
+          array: {
             index: add ? 0 : -1,
             value: {
               string: label
@@ -166,11 +166,10 @@ export default compose(
         // https://github.com/apollostack/apollo-client/issues/903
         // http://dev.apollodata.com/react/cache-updates.html#resultReducers
         reducer: (previousResult, action) => {
-          console.log('###### ItemsQuery.reducer[%s:%s] %s', action.operationName, action.type);
+          console.log('###### ItemsQuery.reducer[%s:%s]', action.type, action.operationName);
           if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === 'UpdateItemMutation') {
-            console.log('====== UpdateItemMutation:', TypeUtil.JSON(action), TypeUtil.JSON(previousResult));
-
-            console.log('====##', previousResult);
+            let item = action.result.data.updateItem;
+            console.log('>>>>>> %s ===> %s', TypeUtil.JSON(item), TypeUtil.JSON(previousResult));
 
             // TODO(burdon): Unit test.
             // TODO(burdon): Delete.
@@ -179,7 +178,6 @@ export default compose(
             // TODO(burdon): Need to preserve sort order (if set, otherwise top/bottom of list).
             // https://github.com/kolodny/immutability-helper
             // https://facebook.github.io/react/docs/update.html#available-commands
-            let item = action.result.data.updateItem;
             let result = update(previousResult, {
               items: {
                 $apply: (items) => {
@@ -192,8 +190,7 @@ export default compose(
               }
             });
 
-            console.log('==####', result);
-
+//          console.log('==####', result);
             return result;
           }
 
@@ -252,7 +249,7 @@ export default compose(
         // http://dev.apollodata.com/react/cache-updates.html#updateQueries
         updateQueries: {
           ItemsQuery: (prev, { mutationResult, queryVariables }) => {
-            console.log('### updateQueries ', JSON.stringify(queryVariables));
+            console.log('###### UpdateItemMutation.updateQueries: %s', JSON.stringify(queryVariables));
             // TODO(burdon): Doesn't update other queries (e.g., favorites).
 
             // TODO(burdon): Factor out.

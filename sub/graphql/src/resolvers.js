@@ -134,7 +134,7 @@ export class Resolvers {
         },
 
         folders: (root, { userId }) => {
-          let {type, id:localUserId} = ID.fromGlobalId(userId);
+          let { type, id:localUserId } = ID.fromGlobalId(userId);
           return database.queryItems({ type: 'Folder' });
         },
 
@@ -172,42 +172,98 @@ export class Resolvers {
             };
           }
 
-          // Process value deltas.
-          _.each(deltas, (delta) => {
-            let field = delta.field;
-            let value = delta.value;
-
-            // TODO(burdon): Introspect for type-checking.
-            // TODO(burdon): Factor out operational transformation.
-
-            // TODO(burdon): Handle null (delete field).
-
-            // TODO(burdon): Other scalars.
-            if (undefined !== value.string) {
-              item[field] = value.string;
-            }
-
-            if (undefined !== value.list) {
-              let values = item[field] || [];
-
-              // TODO(burdon): Need to apply based on value type).
-              let delta = value.list;
-              if (delta.index == -1) {
-                _.pull(values, delta.value.string);
-              } else {
-                values = _.union(values, [delta.value.string]);
-              }
-
-              item[field] = values;
-            }
-          });
-
-          console.log('=========================================', JSON.stringify(item));
+          Transforms.applyObjectDeltas(item, deltas);
 
           database.upsertItems([item]);
           return item;
         }
       }
     };
+  }
+}
+
+/**
+ * Apply schema transformations.
+ */
+class Transforms {
+
+  // TODO(burdon): Tests.
+  // TODO(burdon): Factor out operational transformations (client/server).
+
+  /**
+   *
+   * @param item
+   * @param deltas
+   */
+  static applyObjectDeltas(item, deltas) {
+    console.log('APPLY.DELTA[%s:%s]', item.type, item.id);
+
+    // Process value deltas.
+    _.each(deltas, (delta) => {
+      Transforms.applyObjectDelta(item, delta);
+    });
+  }
+
+  static applyObjectDelta(obj, delta) {
+    let field = delta.field;
+    let value = delta.value;
+
+    // TODO(burdon): Introspect for type-checking.
+
+    // Null.
+    if (value === undefined) {
+      delete obj[field];
+      return;
+    }
+
+    // Array delta.
+    if (value.array !== undefined) {
+      obj[field] = Transforms.applyArrayDelta(obj[field] || [], value.array);
+      return;
+    }
+
+    // Object delta.
+    if (value.object !== undefined) {
+      obj[field] = Transforms.applyObjectDelta(obj[field] || {}, value.object);
+      return;
+    }
+
+    // Scalars.
+    let scalar = Transforms.scalarValue(value);
+    console.assert(scalar);
+    obj[field] = scalar;
+  }
+
+  /**
+   *
+   * @param array
+   * @param delta
+   */
+  static applyArrayDelta(array, delta) {
+    console.assert(array && delta);
+
+    let scalar = Transforms.scalarValue(delta.value);
+    console.assert(scalar);
+
+    if (delta.index == -1) {
+      _.pull(array, scalar);
+    } else {
+      array = _.union(array, [scalar]);
+    }
+
+    return array;
+  }
+
+  static scalarValue(value) {
+    let scalar = undefined;
+    const scalars = ['int', 'float', 'string', 'boolean', 'id', 'date'];
+    _.forEach(scalars, (s) => {
+      if (value[s] !== undefined) {
+        scalar = value[s];
+        return false;
+      }
+    });
+
+    return scalar;
   }
 }

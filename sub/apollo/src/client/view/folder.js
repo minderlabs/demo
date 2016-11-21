@@ -160,7 +160,7 @@ export default compose(
   graphql(FolderQuery, {
 
     options: (props) => {
-      console.log('### Folder.options ', JSON.stringify(props));
+//    console.log('### Folder.options ', JSON.stringify(props));
 
       return {
         variables: {
@@ -203,7 +203,7 @@ export default compose(
     props: ({ ownProps, mutate }) => ({
       createItem: (type, deltas) => {
         let itemId = ownProps.idGenerator.createId();     // TODO(burdon): IdGenerator from context?
-        console.log('#####', itemId);
+//      console.log('#####', itemId);
         return mutate({
           variables: {
             itemId: ID.toGlobalId(type, itemId),

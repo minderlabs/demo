@@ -32,21 +32,19 @@ input Value {
   float:    Float
   string:   String
   boolean:  Boolean
-  id:       ID
 
+  id:       ID
   date:     Date
 
-  list:     ListDelta         # TODO(burdon): Rename.
+  array:    ArrayDelta
   object:   ObjectDelta
-
-  values:   [Value]
 }
 
 #
-# List transformation.
+# Array transformation.
 #
 
-input ListDelta {
+input ArrayDelta {
   index: Int
   value: Value!
 }
