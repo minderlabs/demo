@@ -14,6 +14,7 @@ import { ID, IdGenerator } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutation';
+import { Path } from '../path';
 
 import { ACTION } from '../reducers';
 
@@ -122,6 +123,8 @@ const FolderQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
+  console.log('Folder.mapStateToProps: %s', JSON.stringify(Object.keys(ownProps)));
+
   let { minder } = state;
 
   return {
@@ -138,19 +141,21 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     },
 
     navigateItem: (item) => {
-      // TODO(burdon): Const path.
-      dispatch(push('/item/' + ID.toGlobalId(item.type, item.id)));
+      dispatch(push(Path.folder('item', ID.toGlobalId(item.type, item.id))));
     }
   }
 };
 
 export default compose(
+
+  // Redux.
   connect(mapStateToProps, mapDispatchToProps),
 
+  // Query.
   graphql(FolderQuery, {
 
     options: (props) => {
-//    console.log('### Folder.options ', JSON.stringify(props));
+      console.log('Folder.options: ', JSON.stringify(Object.keys(props)));
 
       return {
         variables: {
@@ -160,16 +165,18 @@ export default compose(
     },
 
     props: ({ ownProps, data }) => {
+      console.log('Folder.props: ', JSON.stringify(Object.keys(data)));
+
       let { loading, error, refetch, folders } = data;
 
       // TODO(burdon): This happens too late. On load, options above has no filter and causes the list
       // to be rendered, then we are called and update the filter resulting in flickering results (2 server calls).
+      // TODO(burdon): List should return zero items if no filter.
 
       // TODO(burdon): Solution is set the redux state in the layout? so can be used above in props?
-
-      // Match current folder.
       // TODO(burdon): Handler error/redirect if not found.
 
+      // Match current folder.
       let filter = {};
       _.each(folders, (folder) => {
         // TODO(burdon): Match folder's short name rather than ID.
@@ -189,6 +196,7 @@ export default compose(
     }
   }),
 
+  // Mutation.
   graphql(UpdateItemMutation, {
     props: ({ ownProps, mutate }) => ({
       createItem: (type, mutation) => {

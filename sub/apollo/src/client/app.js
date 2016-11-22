@@ -5,13 +5,15 @@
 'use strict';
 
 import React from 'react';
-import { Router, Route } from 'react-router'
+import { IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { connect } from 'react-redux'
 import { ApolloProvider } from 'react-apollo';
 
 import Layout from './view/layout';
 import DetailView from './view/detail';
 import FolderView from './view/folder';
+
+import { Path } from './path';
 
 /**
  * Main Application Root component.
@@ -38,10 +40,14 @@ class Application extends React.Component {
 
         <Router history={ this.props.history }>
 
-          <Route pattern="/" component={ Layout }>
+          <Route pattern={ Path.ROOT } component={ Layout }>
+
+            <IndexRedirect to={ Path.HOME }/>
 
             <Route path=":folder" component={ FolderView }/>
             <Route path=":itemView/:itemId" component={ DetailView }/>
+
+            <Redirect from='*' to={ Path.HOME }/>
 
           </Route>
         </Router>

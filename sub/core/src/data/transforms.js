@@ -17,11 +17,11 @@ export class Transforms {
    * @param object
    * @param mutations
    */
-  static applyObjectDeltas(object, mutations) {
+  static applyObjectMutations(object, mutations) {
     console.assert(object && mutations);
 
     _.each(mutations, (delta) => {
-      Transforms.applyObjectDelta(object, delta);
+      Transforms.applyObjectMutation(object, delta);
     });
 
     return object;
@@ -33,7 +33,7 @@ export class Transforms {
    * @param mutation
    * @returns {*}
    */
-  static applyObjectDelta(object, mutation) {
+  static applyObjectMutation(object, mutation) {
     console.assert(object && mutation);
 
     let field = mutation.field;
@@ -50,13 +50,13 @@ export class Transforms {
 
     // Array delta.
     if (value.array !== undefined) {
-      object[field] = Transforms.applyArrayDelta(object[field] || [], value.array);
+      object[field] = Transforms.applyArrayMutation(object[field] || [], value.array);
       return;
     }
 
     // Object delta.
     if (value.object !== undefined) {
-      object[field] = Transforms.applyObjectDelta(object[field] || {}, value.object);
+      object[field] = Transforms.applyObjectMutation(object[field] || {}, value.object);
       return;
     }
 
@@ -73,7 +73,7 @@ export class Transforms {
    * @param array
    * @param mutation
    */
-  static applyArrayDelta(array, mutation) {
+  static applyArrayMutation(array, mutation) {
     console.assert(array && mutation);
 
     let scalar = Transforms.scalarValue(mutation.value);

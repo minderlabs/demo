@@ -20,7 +20,7 @@ import { QueryRegistry } from './data/subscriptions';
 
 import Application from './app';
 import networkInterface from './network';
-import Monitor from './component/devtools';
+import Monitor from './view/component/devtools';
 
 
 //

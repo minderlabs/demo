@@ -101,7 +101,7 @@ export class List extends React.Component {
 //
 
 const ItemsQuery = gql`
-  query ItemsQuery($filter: Filter, $offset: Int, $count: Int) { 
+  query ItemsQuery($filter: FilterInput, $offset: Int, $count: Int) { 
 
     items(filter: $filter, offset: $offset, count: $count) {
       id

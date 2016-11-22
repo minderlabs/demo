@@ -13,7 +13,7 @@ import { introspectionQuery } from 'graphql/utilities';
 
 import { ID, Transforms } from 'minder-core';
 
-import TypeDefs from './schema.graphql';
+import Schema from './schema.graphql';
 
 /**
  * Resolver map.
@@ -21,7 +21,7 @@ import TypeDefs from './schema.graphql';
 export class Resolvers {
 
   static get typeDefs() {
-    return TypeDefs;
+    return Schema;
   }
 
   //
@@ -172,7 +172,7 @@ export class Resolvers {
             };
           }
 
-          Transforms.applyObjectDeltas(item, deltas);
+          Transforms.applyObjectMutations(item, deltas);
 
           database.upsertItems([item]);
           return item;

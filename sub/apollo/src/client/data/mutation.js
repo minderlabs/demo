@@ -12,9 +12,9 @@ import gql from 'graphql-tag';
 //
 
 export const UpdateItemMutation = gql`
-  mutation UpdateItemMutation($itemId: ID!, $deltas: [ObjectDelta]!) {
+  mutation UpdateItemMutation($itemId: ID!, $mutations: [ObjectMutationInput]!) {
     
-    updateItem(itemId: $itemId, deltas: $deltas) {
+    updateItem(itemId: $itemId, mutations: $mutations) {
       id
       type,
       labels

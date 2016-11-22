@@ -51,8 +51,7 @@ _.each(data, (items, type) => {
   database.upsertItems(_.map(items, (item) => ({ type, ...item })));
 });
 
-// TODO(burdon): Trigger from webhook.
-const randomizer = null && new Randomizer(database)
+const randomizer = new Randomizer(database)
   .generate('Contact',  20)
   .generate('Place',    10)
   .generate('Task',     20,

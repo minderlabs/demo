@@ -21,7 +21,7 @@ import { ID } from 'minder-core';
 import { Database } from './database';
 import { Resolvers } from './resolvers';
 
-import SchemaType from './schema.graphql';
+import Schema from './schema.graphql';
 
 
 // TODO(burdon): GraphiQL server testing?
@@ -89,7 +89,7 @@ describe('GraphQL Mock Server', () => {
   };
 
   // http://graphql.org/blog/mocking-with-graphql
-  let server = mockServer(SchemaType, resolverMap);
+  let server = mockServer(Schema, resolverMap);
 
   it('Query viewer', (done) => {
     let vars = { userId: ID.toGlobalId('User', 'minder') };

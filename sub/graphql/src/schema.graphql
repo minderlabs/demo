@@ -27,7 +27,7 @@ scalar Date
 # Input types.
 #
 
-input Value {
+input ValueInput {
   int:      Int
   float:    Float
   string:   String
@@ -36,28 +36,28 @@ input Value {
   id:       ID
   date:     Date
 
-  array:    ArrayDelta
-  object:   ObjectDelta
+  array:    ArrayMutationInput
+  object:   ObjectMutationInput
 }
 
 #
-# Array transformation.
+# Array mutation.
 #
 
-input ArrayDelta {
+input ArrayMutationInput {
   index: Int
-  value: Value!
+  value: ValueInput!
 }
 
 #
-# Object transformation.
+# Object mutation.
 # E.g., { field: 'title', value: { string: 'Minder' } }
 # TODO(burdon): More compact would be { title: { string: 'Minder' }}
 #
 
-input ObjectDelta {
+input ObjectMutationInput {
   field: String!
-  value: Value
+  value: ValueInput
 }
 
 #
@@ -67,27 +67,46 @@ input ObjectDelta {
 # TODO(burdon): Add op; nested?
 # TODO(burdon): Build AST for query syntax?
 # TODO(burdon): Why can't inputs be used for outputs?
-# https://github.com/graphql/graphql-js/issues/423
+#   https://github.com/graphql/graphql-js/issues/599
+#   https://github.com/graphql/graphql-js/issues/423
+#   https://github.com/apollostack/graphql-tools/issues/179
 
-input Predicate {
+input PredicateInput {
+  field: String!
+  value: ValueInput
+}
+
+input FilterInput {
+  type: String
+  labels: [String]
+  text: String
+  predicate: PredicateInput
+}
+
+#
+# Output types
+#
+
+type Value {
+  int:      Int
+  float:    Float
+  string:   String
+  boolean:  Boolean
+
+  id:       ID
+  date:     Date
+}
+
+type Predicate {
   field: String!
   value: Value
 }
 
-input Filter {
+type Filter {
   type: String
   labels: [String]
   text: String
   predicate: Predicate
-}
-
-# TODO(burdon): Defs needed for folders? Just serialize to JSON?
-
-type FilterDef {
-  type: String
-  labels: [String]
-  text: String
-# predicate: Predicate
 }
 
 #
@@ -134,7 +153,7 @@ type User implements Item {
   labels: [String]
 
   contact: Contact
-  tasks(filter: Filter): [Task]!
+  tasks(filter: FilterInput): [Task]!
 }
 
 type Group implements Item {
@@ -154,7 +173,7 @@ type Folder implements Item {
   title: String!
   labels: [String]
 
-  filter: FilterDef
+  filter: Filter
 }
 
 type Contact implements Item {
@@ -209,7 +228,7 @@ type RootQuery {
   viewer(userId: ID!): Viewer!
   folders(userId: ID!): [Folder]!
   item(itemId: ID!): Item!
-  items(filter: Filter, offset: Int, count: Int): [Item]!
+  items(filter: FilterInput, offset: Int, count: Int): [Item]!
 }
 
 #
@@ -217,7 +236,7 @@ type RootQuery {
 #
 
 type RootMutation {
-  updateItem(itemId: ID!, deltas: [ObjectDelta]!): Item!
+  updateItem(itemId: ID!, mutations: [ObjectMutationInput]!): Item!
 }
 
 #

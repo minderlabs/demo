@@ -39,7 +39,10 @@
   "Folder": [
     {
       "id": "inbox",
-      "title": "Inbox"
+      "title": "Inbox",
+      "filter": {
+        "type": "Task"
+      }
     },
     {
       "id": "favorites",

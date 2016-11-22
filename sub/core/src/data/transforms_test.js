@@ -18,7 +18,7 @@ describe('Transforms', () => {
       value: { string: 'Minder' }
     }];
 
-    let result = Transforms.applyObjectDeltas(object, deltas);
+    let result = Transforms.applyObjectMutations(object, deltas);
     expect(_.get(result, 'title')).to.equal('Minder');
   });
 
@@ -31,7 +31,7 @@ describe('Transforms', () => {
       field: 'title'
     }];
 
-    let result = Transforms.applyObjectDeltas(object, deltas);
+    let result = Transforms.applyObjectMutations(object, deltas);
     expect(_.get(result, 'title')).to.equal(undefined);
   });
 
@@ -51,7 +51,7 @@ describe('Transforms', () => {
       }
     ];
 
-    let result = Transforms.applyObjectDeltas(object, deltas);
+    let result = Transforms.applyObjectMutations(object, deltas);
     expect(_.get(result, 'labels').length).to.equal(2);
   });
 });

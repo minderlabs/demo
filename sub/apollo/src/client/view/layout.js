@@ -13,9 +13,8 @@ import { Sidebar, SidebarToggle } from 'minder-ux';
 
 import { QueryRegistry } from '../data/subscriptions';
 
-import { Folders } from './folders';
-
 import Monitor from './component/devtools';
+import { Folders } from './component/folders';
 
 import './layout.less';
 
