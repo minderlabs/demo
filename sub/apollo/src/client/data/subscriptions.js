@@ -4,8 +4,6 @@
 
 'use strict';
 
-// TODO(burdon): Factor out.
-
 /**
  * Manage queries.
  */

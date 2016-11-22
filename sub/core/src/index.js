@@ -5,6 +5,7 @@
 'use strict';
 
 export * from './util/async';
+export * from './util/injector';
 export * from './util/type';
 
 export * from './data/id';

@@ -13,10 +13,10 @@ import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
 
-import { IdGenerator, Matcher } from 'minder-core';
+import { IdGenerator, Injector, Matcher } from 'minder-core';
 
 import { AppReducer } from './reducers';
-import { QueryRegistry } from './subscriptions';
+import { QueryRegistry } from './data/subscriptions';
 
 import Application from './app';
 import networkInterface from './network';
@@ -27,11 +27,19 @@ import Monitor from './component/devtools';
 // Server provided config.
 //
 
+// TODO(burdon): Wrap.
 const config = window.config;
 
-// TODO(burdon): Injector for Redux.
-const matcher = new Matcher();
-const idGenerator = new IdGenerator();
+
+//
+// Dependency injection (accessible to component props via Redux store).
+//
+
+const injector = new Injector([
+  Injector.provider(new Matcher()),
+  Injector.provider(new IdGenerator()),
+  Injector.provider(new QueryRegistry())
+]);
 
 
 //
@@ -84,7 +92,7 @@ const reducers = combineReducers({
   apollo: apolloClient.reducer(),
 
   // App reducers.
-  ...AppReducer(config, matcher, idGenerator),
+  ...AppReducer(config, injector),
 });
 
 const enhancer = compose(
@@ -122,11 +130,9 @@ function renderApp(App) {
 
   ReactDOM.render(
     <App
-      config={ config }
+      client={ apolloClient }
       history={ history }
       store={ store }
-      client={ apolloClient }
-      queryRegistry={ new QueryRegistry() }
     />,
 
     document.getElementById(config.root)

@@ -9,7 +9,8 @@
  */
 export const ACTION = {
 
-  SEARCH:   'APP_SEARCH'
+  SEARCH: 'MINDER_SEARCH'
+
 };
 
 /**
@@ -17,17 +18,16 @@ export const ACTION = {
  * http://redux.js.org/docs/api/Store.html
  *
  * @param config App configuration (provided by server).
- * @param matcher Item matcher.
+ * @param injector Dependency injector.
  * @returns Redux state object.
  */
-export const AppReducer = (config, matcher, idGenerator) => {
+export const AppReducer = (config, injector) => {
 
   // TODO(burdon): Multiple reducers? Split by section?
 
   const initialSate = {
     minder: {
-      matcher: matcher,
-      idGenerator: idGenerator,       // TODO(burdon): Injector.
+      injector: injector,
       userId: config.userId,
       search: {
         text: ''

@@ -7,55 +7,40 @@
 import React from 'react';
 import { Link } from 'react-router'
 import { connect } from 'react-redux';
-import { compose, graphql, withApollo } from 'react-apollo';
+import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import ApolloClient from 'apollo-client';
 
 import { ID } from 'minder-core';
 
+import { QueryRegistry } from '../data/subscriptions';
+
 //import { Sidebar } from 'minder-ux';
 
-            // {/* SIDEBAR */}
-            // <Sidebar ref="sidebar" sidebar={
-            //   <Folders viewer={ viewer } onSelect={ this.handleNav.bind(this) }/>
-            // }>
-            //   {/* VIEW */}
-            //   <div className="app-view app-column app-expand">
-            //     { children }
-            //   </div>
-            // </Sidebar>
+// {/* SIDEBAR */}
+// <Sidebar ref="sidebar" sidebar={
+//   <Folders viewer={ viewer } onSelect={ this.handleNav.bind(this) }/>
+// }>
+//   {/* VIEW */}
+//   <div className="app-view app-column app-expand">
+//     { children }
+//   </div>
+// </Sidebar>
 
-import Monitor from './component/devtools';
+import Monitor from '../component/devtools';
 
 import './layout.less';
 
 /**
  * Root Application.
  */
-@withApollo
 class Layout extends React.Component {
 
-  static contextTypes = {
-    queryRegistry: React.PropTypes.object
-  };
-
   static propTypes = {
-    client: React.PropTypes.instanceOf(ApolloClient).isRequired
+    queryRegistry: React.PropTypes.object.isRequired
   };
-
-  constructor() {
-    super(...arguments);
-
-    // Provided by @withApollo
-    // http://dev.apollodata.com/react/higher-order-components.html#withApollo
-    // http://dev.apollodata.com/core/apollo-client-api.html#ObservableQuery.refetch
-    console.log('State = %s', JSON.stringify(this.props.client.store.getState()['minder'], (key, value) => {
-      return value;
-    }));
-  }
 
   handleRefresh() {
-    this.context.queryRegistry.refetch();
+    this.props.queryRegistry.refetch();
   }
 
   render() {
@@ -89,18 +74,7 @@ class Layout extends React.Component {
             * Views:
             */}
           <div className="app-column">
-
             { children }
-
-            {/*
-              * Item detail.
-            <Match pattern="/:itemView/:itemId" component={ DetailView }/>
-
-              * Folder view.
-            <Match pattern="/:folder" exactly={ true } component={ FolderView }/>
-
-            <Miss render={ () => <Redirect to="/inbox"/> }/>
-              */}
           </div>
 
           {/*
@@ -199,8 +173,11 @@ const LayoutQuery = gql`
  * @returns {{active: string}}
  */
 const mapStateToProps = (state, ownProps) => {
+  let { minder } = state;
+
   return {
-    userId: state.minder.userId
+    queryRegistry: minder.injector.get(QueryRegistry),
+    userId: minder.userId
   }
 };
 

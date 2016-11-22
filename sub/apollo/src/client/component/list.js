@@ -10,9 +10,10 @@ import { compose, graphql } from 'react-apollo';
 import update from 'immutability-helper';
 import gql from 'graphql-tag';
 
-import { ID, QueryParser, TypeUtil } from 'minder-core';
+import { ID, Matcher, QueryParser, TypeUtil } from 'minder-core';
 
 import { UpdateItemMutation } from '../data/mutation';
+import { QueryRegistry } from '../data/subscriptions';
 
 import TypeRegistry from '../component/typeRegistry';
 
@@ -27,12 +28,9 @@ const queryParser = new QueryParser();
  */
 export class List extends React.Component {
 
-  static contextTypes = {
-    queryRegistry: React.PropTypes.object
-  };
-
   static propTypes = {
     onItemSelect: React.PropTypes.func.isRequired,
+    queryRegistry: React.PropTypes.object.isRequired,
     updateItem: React.PropTypes.func.isRequired,
 
     data: React.PropTypes.shape({
@@ -41,7 +39,7 @@ export class List extends React.Component {
   };
 
   componentWillReceiveProps(nextProps) {
-    this.context.queryRegistry.register(this, nextProps.data);
+    this.props.queryRegistry.register(this, nextProps.data);
   }
 
   handleItemSelect(item) {
@@ -119,7 +117,8 @@ const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
 
   return {
-    matcher: minder.matcher,
+    queryRegistry: minder.injector.get(QueryRegistry),
+    matcher: minder.injector.get(Matcher),
 
     // TODO(burdon): Make list more general purpose (i.e., not bound to state/search box).
     text: minder.search.text

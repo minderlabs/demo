@@ -9,7 +9,7 @@ import { Router, Route } from 'react-router'
 import { connect } from 'react-redux'
 import { ApolloProvider } from 'react-apollo';
 
-import Layout from './layout';
+import Layout from './view/layout';
 import DetailView from './view/detail';
 import FolderView from './view/folder';
 
@@ -18,22 +18,11 @@ import FolderView from './view/folder';
  */
 class Application extends React.Component {
 
-  static childContextTypes = {
-    queryRegistry: React.PropTypes.object
-  };
-
   static propTypes = {
-    config:   React.PropTypes.object.isRequired,
-    history:  React.PropTypes.object.isRequired,
-    client:   React.PropTypes.object.isRequired,
-    store:    React.PropTypes.object.isRequired
+    client: React.PropTypes.object.isRequired,
+    history: React.PropTypes.object.isRequired,
+    store: React.PropTypes.object.isRequired
   };
-
-  getChildContext() {
-    return {
-      queryRegistry: this.props.queryRegistry,
-    }
-  }
 
   render() {
 
@@ -42,12 +31,10 @@ class Application extends React.Component {
     // https://github.com/reactjs/react-router-redux
     //
 
-    // TODO(burdon): Factor out routes.
     // TODO(burdon): Move Layout to view.
 
     return (
-      <ApolloProvider client={ this.props.client }
-                      store={ this.props.store }>
+      <ApolloProvider client={ this.props.client } store={ this.props.store }>
 
         <Router history={ this.props.history }>
 

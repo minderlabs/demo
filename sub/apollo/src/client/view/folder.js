@@ -10,7 +10,7 @@ import { push } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ID } from 'minder-core';
+import { ID, IdGenerator } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutation';
@@ -122,10 +122,12 @@ const FolderQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
+  let { minder } = state;
+
   return {
-    idGenerator: state.minder.idGenerator,      // TODO(burdon): Injector.
-    userId: state.minder.userId,
-    search: state.minder.search
+    idGenerator: minder.injector.get(IdGenerator),
+    userId: minder.userId,
+    search: minder.search
   }
 };
 
