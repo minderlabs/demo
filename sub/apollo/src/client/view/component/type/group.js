@@ -39,7 +39,7 @@ export const GroupFragments = {
 export default class Group extends React.Component {
 
   static contextTypes = {
-    createItem: React.PropTypes.func.isRequired
+    mutator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -62,7 +62,6 @@ export default class Group extends React.Component {
   }
 
   handleCreateTask(member, text) {
-    // TODO(burdon): Pass down to item?
     let mutation = [
       {
         field: 'title',
@@ -79,15 +78,13 @@ export default class Group extends React.Component {
       {
         field: 'owner',
         value: {
-          id: this.props.userId       // local Id.
+          id: this.props.userId
         }
       }
     ];
 
-    // TODO(burdon): Rename onItemUpdate()
-    this.context.createItem('Task', mutation);
+    this.context.mutator.createItem('Task', mutation);
 
-    console.log(JSON.stringify(mutation));
     this.setState({
       inlineEdit: null
     })

@@ -10,10 +10,10 @@ import { goBack } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ID, IdGenerator } from 'minder-core';
+import { Matcher, Mutator, Reducer } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
-import { UpdateItemMutation } from '../data/mutation';
+import { UpdateItemMutation } from '../data/mutations';
 
 import TypeRegistry from './component/type_registry';
 
@@ -23,15 +23,12 @@ import TypeRegistry from './component/type_registry';
 class DetailView extends React.Component {
 
   // Pass down through component tree.
-  // TODO(burdon): ItemMutator interface.
   static childContextTypes = {
-    createItem: React.PropTypes.func,
-    updateItem: React.PropTypes.func
+    mutator: React.PropTypes.object,
   };
 
   static propTypes = {
-    createItem: React.PropTypes.func.isRequired,
-    updateItem: React.PropTypes.func.isRequired,
+    mutator: React.PropTypes.object.isRequired,
 
     onClose: React.PropTypes.func.isRequired,
 
@@ -42,8 +39,7 @@ class DetailView extends React.Component {
 
   getChildContext() {
     return {
-      createItem: this.props.createItem,
-      updateItem: this.props.updateItem
+      mutator: this.props.mutator
     };
   }
 
@@ -134,7 +130,7 @@ const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
 
   return {
-    idGenerator: minder.injector.get(IdGenerator),
+    injector: minder.injector,
     userId: minder.userId
   }
 };
@@ -144,6 +140,19 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     onClose: (save) => {
       dispatch(goBack());
     }
+  }
+};
+
+// TODO(burdon): Get from type.
+const PATH = (previousResult, item, op) => {
+  // Find associated member.
+  let idx = _.findIndex(_.get(previousResult, 'item.members'), (member) => member.id === _.get(item, 'assignee.id'));
+
+  // TODO(burdon): Mutation must define fragments.
+  if (idx === -1) {
+    console.warn('NO MATCH', item, _.get(previousResult, 'item.members'));
+  } else {
+    return { item: { members: { [idx]: { tasks: op } } } };
   }
 };
 
@@ -157,30 +166,15 @@ export default compose(
 
         variables: {
           itemId: props.params.itemId
-        }
+        },
+
+        // TODO(burdon): Provide multiple sets (different fragments).
+        reducer: Reducer.reduce(props.injector.get(Matcher), UpdateItemMutation, DetailQuery, {}, PATH)
       };
     }
   }),
 
-  graphql(UpdateItemMutation, {
-    props: ({ ownProps, mutate }) => ({
-      createItem: (type, mutations) => {
-        let itemId = ownProps.idGenerator.createId();   // TODO(burdon): Factor out?
-        return mutate({
-          variables: {
-            itemId: ID.toGlobalId(type, itemId),
-            mutations: mutations
-          }
-        });
-      },
-
-      updateItem: (item, mutations) => mutate({
-        variables: {
-          itemId: ID.toGlobalId(item.type, item.id),    // TODO(burdon): ID? createItem?
-          mutations: mutations
-        }
-      })
-    })
-  })
+  // Mutator.
+  Mutator.graphql(UpdateItemMutation),
 
 )(DetailView);

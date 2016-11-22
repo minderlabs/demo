@@ -7,12 +7,11 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
-import update from 'immutability-helper';
 import gql from 'graphql-tag';
 
-import { ID, Matcher, QueryParser, TypeUtil } from 'minder-core';
+import { Matcher, QueryParser, Mutator, Reducer } from 'minder-core';
 
-import { UpdateItemMutation } from '../../data/mutation';
+import { UpdateItemMutation } from '../../data/mutations';
 import { QueryRegistry } from '../../data/subscriptions';
 
 import TypeRegistry from './type_registry';
@@ -28,9 +27,10 @@ const queryParser = new QueryParser();
 export class List extends React.Component {
 
   static propTypes = {
+    injector: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired,
+
     onItemSelect: React.PropTypes.func.isRequired,
-    queryRegistry: React.PropTypes.object.isRequired,
-    updateItem: React.PropTypes.func.isRequired,
 
     data: React.PropTypes.shape({
       items: React.PropTypes.array
@@ -38,7 +38,7 @@ export class List extends React.Component {
   };
 
   componentWillReceiveProps(nextProps) {
-    this.props.queryRegistry.register(this, nextProps.data);
+    this.props.injector.get(QueryRegistry).register(this, nextProps.data);
   }
 
   handleItemSelect(item) {
@@ -60,7 +60,7 @@ export class List extends React.Component {
       }
     ];
 
-    this.props.updateItem(item, mutation);
+    this.props.mutator.updateItem(item, mutation);
   }
 
   handleMore() {
@@ -116,10 +116,9 @@ const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
 
   return {
-    queryRegistry: minder.injector.get(QueryRegistry),
-    matcher: minder.injector.get(Matcher),
+    injector: minder.injector,
 
-    // TODO(burdon): Make list more general purpose (i.e., not bound to state/search box).
+    // TODO(burdon): This shouldn't be tied to the textbox (many lists).
     text: minder.search.text
   }
 };
@@ -151,50 +150,17 @@ export default compose(
       let { filter, text } = props;
 
       return {
-        // TODO(burdon): Can we pass variables?
+        // TODO(burdon): Can we pass variables to fragments?
         fragments: ItemFragments.item.fragments(),
 
         variables: {
           filter: updateFilter(filter, text),
           offset: 0,
-          count: 20
+          count: 20   // TODO(burdon): Const.
         },
 
-        // TODO(burdon): Use reducer to invalidate other cached queries?
-        // https://github.com/apollostack/apollo-client/issues/903
-        // http://dev.apollodata.com/react/cache-updates.html#resultReducers
-        reducer: (previousResult, action) => {
-          console.log('###### ItemsQuery.reducer[%s:%s]', action.type, action.operationName);
-          if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === 'UpdateItemMutation') {
-            let item = action.result.data.updateItem;
-            console.log('>>>>>> %s ===> %s', TypeUtil.JSON(item), TypeUtil.JSON(previousResult));
-
-            // TODO(burdon): Unit test.
-            // TODO(burdon): Delete.
-            // TODO(burdon): Distinguish create from update.
-            // TODO(burdon): Factor out mutation and query logic (into sub/graphql).
-            // TODO(burdon): Need to preserve sort order (if set, otherwise top/bottom of list).
-            // https://github.com/kolodny/immutability-helper
-            // https://facebook.github.io/react/docs/update.html#available-commands
-            let result = update(previousResult, {
-              items: {
-                $apply: (items) => {
-                  // Find existing.
-                  let existing = _.find(items, existing => existing.id === item.id);
-                  if (!existing) {
-                    return update(items, { $push: [item] });
-                  }
-                }
-              }
-            });
-
-//          console.log('==####', result);
-            return result;
-          }
-
-          return previousResult;
-        }
-      };
+        reducer: Reducer.reduce(props.injector.get(Matcher), UpdateItemMutation, ItemsQuery, filter),
+      }
     },
 
     // Configure props passed to component.
@@ -226,54 +192,7 @@ export default compose(
     }
   }),
 
-  graphql(UpdateItemMutation, {
-    props: ({ ownProps, mutate }) => ({
-      updateItem: (item, mutations) => mutate({
-        variables: {
-          itemId: ID.toGlobalId(item.type, item.id),
-          mutations: mutations
-        },
-
-        // TODO(burdon): Optimistic UI.
-        // http://dev.apollodata.com/react/optimistic-ui.html
-        // http://dev.apollodata.com/react/mutations.html#optimistic-ui
-        // optimisticResponse: {},
-
-        // TODO(burdon): Only called once -- can't invalidate other folder.
-        // https://github.com/apollostack/apollo-client/issues/903
-
-        // Called after optimisticResponse and once mutation has been returned from server.
-        // https://github.com/apollostack/apollo-client/issues/621
-        // http://dev.apollodata.com/react/cache-updates.html#updateQueries
-        updateQueries: {
-          ItemsQuery: (prev, { mutationResult, queryVariables }) => {
-            console.log('###### UpdateItemMutation.updateQueries: %s', JSON.stringify(queryVariables));
-            // TODO(burdon): Doesn't update other queries (e.g., favorites).
-
-            // TODO(burdon): Factor out.
-            // Check if mutated item still matched current filter.
-            let mutatedItem = mutationResult.data.updateItem;
-            console.assert(mutatedItem);
-            let match = ownProps.matcher.match(queryVariables.filter, mutatedItem);
-
-            let items = [];
-            _.each(prev.items, (item) => {
-              if (item.id === mutatedItem.id) {
-                if (match) {
-                  items.push(mutatedItem);
-                }
-              } else {
-                items.push(item);
-              }
-            });
-
-            return {
-              items: items
-            };
-          }
-        }
-      })
-    })
-  })
+  // Provides mutator property.
+  Mutator.graphql(UpdateItemMutation)
 
 )(List);

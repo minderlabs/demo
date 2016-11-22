@@ -10,12 +10,12 @@ import { push } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ID, IdGenerator } from 'minder-core';
+import { ID, Mutator } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
-import { UpdateItemMutation } from '../data/mutation';
-import { Path } from '../path';
+import { UpdateItemMutation } from '../data/mutations';
 
+import { Path } from '../path';
 import { ACTION } from '../reducers';
 
 import List from './component/list';
@@ -55,7 +55,7 @@ class FolderView extends React.Component {
   handleItemCreate() {
     let title = _.trim(this.refs.text.value);
     if (title) {
-      let mutation = [
+      let mutations = [
         {
           field: 'title',
           value: {
@@ -65,7 +65,7 @@ class FolderView extends React.Component {
       ];
 
       // TODO(burdon): Get type from picker.
-      this.props.createItem('Task', mutation);
+      this.props.mutator.createItem('Task', mutations);
 
       this.refs.text.value = '';
       this.refs.text.focus();
@@ -128,7 +128,7 @@ const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
 
   return {
-    idGenerator: minder.injector.get(IdGenerator),
+    injector: minder.injector,
     userId: minder.userId,
     search: minder.search
   }
@@ -186,19 +186,7 @@ export default compose(
     }
   }),
 
-  // Mutation.
-  graphql(UpdateItemMutation, {
-    props: ({ ownProps, mutate }) => ({
-      createItem: (type, mutations) => {
-        let itemId = ownProps.idGenerator.createId();   // TODO(burdon): Factor out?
-        return mutate({
-          variables: {
-            itemId: ID.toGlobalId(type, itemId),
-            mutations: mutations
-          }
-        });
-      }
-    })
-  })
+  // Mutator.
+  Mutator.graphql(UpdateItemMutation),
 
 )(FolderView);

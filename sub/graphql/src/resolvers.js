@@ -85,8 +85,8 @@ export class Resolvers {
         tasks: (root, args) => {
           let { filter } = args || {};
 
+          // TODO(burdon): Move into matcher.
           filter.type = 'Task';
-
           let predicate = _.get(filter, 'predicate', { field: 'assignee' });
           switch (predicate.field) {
             case 'owner':
