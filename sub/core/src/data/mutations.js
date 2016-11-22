@@ -10,7 +10,38 @@ import update from 'immutability-helper';
 import { ID, IdGenerator } from './id';
 
 // TODO(burdon): Unit tests.
-// TODO(burdon): Depends on Apollo Client (move out of core)?
+// TODO(burdon): Dependency on Apollo Client (move out of core)? (OK to have server depend on this?)
+
+
+//
+// In general, Apollo cannot know how to update its cache after a mutation.
+// It's a trivial matter when an Item is updated: it checks for fields declared in the query and if any of these
+// have changed, it updates the associated item. But there are cases where it can't know:
+// 1). The query contains a filter and the mutation changes the match of the item to the filter.
+// 2). The query has nested items.
+// The Apollo framework has escape hatches to solve this; the most flexible is the reducer call back of the
+// graphql(Query).options definition.
+//
+// For simple queries (i.e., against a flat list of items), we can inject the Matcher and attempt to match
+// the mutated item against the current filter (see below).
+// - In the case that a mutated item still matches the query's filter we do nothing and the framework updates
+//   the cache for us.
+// - In the case that the item no longer matches the filter, we manually remove it.
+// - In the case that the item doesn't exist in the current cache, we add it.
+//
+// Consider a complex query (e.g., for the Group detail page):
+//   Group() { items { title ... GroupFragment { members { title tasks({ assignee }) { title } } } } }
+//   "Get the Tasks assigned to each Member of the Group".
+//
+// We need to tell the reducer how to find the appropriate sub-collection (e.g., Member A's tasks).
+// NOTE: Mutations must also return all relevant fields for the type.
+//
+// TODO(burdon): Provide context to matcher to resolve "magic" variables.
+//  (E.g., assignee == PARENT; see User.tasks resolver).
+// TODO(burdon): ISSUE: Are all queries' reducers called for all mutations?
+//
+// NOTE: If we get this right, things should work offline.
+
 
 /**
  * Helper for reducer functions.
@@ -23,15 +54,15 @@ export class Reducer {
    * Updates the cache for an item mutation for the given filter.
    *
    * @param matcher
+   * @param typeRegistry
    * @param mutation
    * @param query
    * @param filter
-   * @param path
    *
    * @returns {function(*, *)}
    */
-  static reduce(matcher, mutation, query, filter, path=null) {
-    console.assert(matcher && mutation && query && filter);
+  static reduce(matcher, typeRegistry, mutation, query, filter={}) {
+    console.assert(matcher && typeRegistry && mutation && query);
 
     let mutationName = mutation.definitions[0].name.value;
     let queryName = query.definitions[0].name.value;
@@ -75,11 +106,16 @@ export class Reducer {
         }
 
         if (op) {
-          let transform = path ? path(previousResult, updatedItem, op) : { items: op };
-          if (transform) {
-            console.log('Transform', transform);
-            result = update(previousResult, transform);
+          // TODO(burdon): Instead of this should have MutationContext that understands the Query "shape".
+          //  E.g., "Task" may be updated in different contexts (Task List, Team page, etc.)
+          let path = typeRegistry.path(updatedItem.type);
+          let transform = path && path(previousResult, updatedItem, op);
+          if (!transform) {
+            transform = { items: op };
           }
+
+          console.log('Transform: %s', JSON.stringify(transform));
+          result = update(previousResult, transform);
         }
       }
 

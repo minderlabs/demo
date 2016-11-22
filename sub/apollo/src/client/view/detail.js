@@ -15,7 +15,7 @@ import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
-import TypeRegistry from './component/type_registry';
+import TypeRegistry from './component/type_registry'; // TODO(burdon): Inject.
 
 /**
  * Detail view.
@@ -143,19 +143,6 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   }
 };
 
-// TODO(burdon): Get from type.
-const PATH = (previousResult, item, op) => {
-  // Find associated member.
-  let idx = _.findIndex(_.get(previousResult, 'item.members'), (member) => member.id === _.get(item, 'assignee.id'));
-
-  // TODO(burdon): Mutation must define fragments.
-  if (idx === -1) {
-    console.warn('NO MATCH', item, _.get(previousResult, 'item.members'));
-  } else {
-    return { item: { members: { [idx]: { tasks: op } } } };
-  }
-};
-
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
 
@@ -169,7 +156,7 @@ export default compose(
         },
 
         // TODO(burdon): Provide multiple sets (different fragments).
-        reducer: Reducer.reduce(props.injector.get(Matcher), UpdateItemMutation, DetailQuery, {}, PATH)
+        reducer: Reducer.reduce(props.injector.get(Matcher), TypeRegistry, UpdateItemMutation, DetailQuery)
       };
     }
   }),

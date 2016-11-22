@@ -30,6 +30,12 @@ class TypeRegistry {
     return values && values.icon || '';
   }
 
+  // TODO(burdon): Varies by fragment (key off of Query).
+  path(type) {
+    let values = this._types.get(type);
+    return values && values.path;
+  }
+
   get names() {
     return _.map(Array.from(this._types.values()), (value) => value.fragment.item.document.definitions[0].name.value);
   }
@@ -62,7 +68,18 @@ registry._types.set('Place', {
 registry._types.set('Task', {
   fragment: TaskFragments,
   render: (item, userId) => <Task  userId={ userId } item={ item }/>,
-  icon: 'assignment_turned_in'
+  icon: 'assignment_turned_in',
+
+  // TODO(burdon): Move to MuationContextManager (manages map of fragments and paths).
+  path: (previousResult, item, op) => {
+    // Find associated member.
+    let idx = _.findIndex(_.get(previousResult, 'item.members'), (member) => member.id === _.get(item, 'assignee.id'));
+    if (idx === -1) {
+      console.warn('NO MATCH', item, _.get(previousResult, 'item.members'));
+    } else {
+      return { item: { members: { [idx]: { tasks: op } } } };
+    }
+  }
 });
 
 export default registry;

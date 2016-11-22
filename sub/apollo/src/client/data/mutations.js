@@ -6,6 +6,7 @@
 
 import gql from 'graphql-tag';
 
+// TODO(burdon): Move TypeRegistry to core (sans UX).
 // TODO(burdon): Pass into mutation generator.
 import TypeRegistry from '../view/component/type_registry';
 
@@ -21,18 +22,20 @@ export const UpdateItemMutation = gql`
       labels
       title
 
-      ... on Task {
-        owner {
-          id
-        }
-        assignee {
-          id
-        }
-      }
+      ... TaskMutationFragment
+    }
+  }
+  
+  fragment TaskMutationFragment on Task {
+    owner {
+      id
+    }
+    assignee {
+      id
     }
   }
 `;
 
-// TODO(burdon): Get all possible mutation fragments.
+// TODO(burdon): Get all mutation fragments.
 // __typename
 // ${_.map(TypeRegistry.names, (name) => '...' + name).join('\n')}

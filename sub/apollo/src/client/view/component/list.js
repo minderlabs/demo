@@ -14,7 +14,8 @@ import { Matcher, QueryParser, Mutator, Reducer } from 'minder-core';
 import { UpdateItemMutation } from '../../data/mutations';
 import { QueryRegistry } from '../../data/subscriptions';
 
-import TypeRegistry from './type_registry';
+import TypeRegistry from './type_registry'; // TODO(burdon): Inject.
+
 import Item, { ItemFragments } from './item';
 
 const queryParser = new QueryParser();
@@ -159,7 +160,7 @@ export default compose(
           count: 20   // TODO(burdon): Const.
         },
 
-        reducer: Reducer.reduce(props.injector.get(Matcher), UpdateItemMutation, ItemsQuery, filter),
+        reducer: Reducer.reduce(props.injector.get(Matcher), TypeRegistry, UpdateItemMutation, ItemsQuery, filter),
       }
     },
 
