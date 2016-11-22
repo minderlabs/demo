@@ -26,7 +26,7 @@ import { QueryRegistry } from '../data/subscriptions';
 //   </div>
 // </Sidebar>
 
-import Monitor from '../component/devtools';
+import Monitor from './component/devtools';
 
 import './layout.less';
 

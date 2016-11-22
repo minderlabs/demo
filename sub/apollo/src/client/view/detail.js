@@ -10,30 +10,44 @@ import { goBack } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
+import { ID } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
-import { ACTION } from '../reducers';
+import { UpdateItemMutation } from '../data/mutation';
 
-import TypeRegistry from '../component/typeRegistry';
+import TypeRegistry from './component/typeRegistry';
 
 /**
  * Detail view.
  */
 class DetailView extends React.Component {
 
-  static contextTypes = {
-    queryRegistry: React.PropTypes.object
-  };
-
   static propTypes = {
     onClose: React.PropTypes.func.isRequired,
+    updateItem: React.PropTypes.func.isRequired,
 
     data: React.PropTypes.shape({
       item: React.PropTypes.object
     })
   };
 
-  handleSave() {
+  handleSave(item) {
+    let mutation = [];
+
+    // TODO(burdon): Generalize.
+    if (this.props.data.item.title != this.refs.title.value) {
+      mutation.push({
+        field: 'title',
+        value: {
+          string: this.refs.title.value
+        }
+      });
+    }
+
+    if (mutation.length) {
+      this.props.updateItem(item, mutation);
+    }
+
     this.props.onClose(true);
   }
 
@@ -55,7 +69,7 @@ class DetailView extends React.Component {
       <div className="app-column">
         <div className="app-section">
           <div className="app-row">
-            <TextBox className="app-expand" value={ item.title }/>
+            <TextBox ref="title" className="app-expand" value={ item.title }/>
           </div>
         </div>
 
@@ -64,7 +78,7 @@ class DetailView extends React.Component {
         </div>
 
         <div className="app-toolbar app-center">
-          <button onClick={ this.handleSave.bind(this) }>Save</button>
+          <button onClick={ this.handleSave.bind(this, item) }>Save</button>
           <button onClick={ this.handleCancel.bind(this) }>Cancel</button>
         </div>
       </div>
@@ -128,6 +142,17 @@ export default compose(
         }
       };
     }
+  }),
+
+  graphql(UpdateItemMutation, {
+    props: ({ ownProps, mutate }) => ({
+      updateItem: (item, mutation) => mutate({
+        variables: {
+          itemId: ID.toGlobalId(item.type, item.id),
+          deltas: mutation
+        }
+      })
+    })
   })
 
 )(DetailView);

@@ -12,11 +12,10 @@ import gql from 'graphql-tag';
 
 import { ID, Matcher, QueryParser, TypeUtil } from 'minder-core';
 
-import { UpdateItemMutation } from '../data/mutation';
-import { QueryRegistry } from '../data/subscriptions';
+import { UpdateItemMutation } from '../../data/mutation';
+import { QueryRegistry } from '../../data/subscriptions';
 
-import TypeRegistry from '../component/typeRegistry';
-
+import TypeRegistry from './typeRegistry';
 import Item, { ItemFragments } from './item';
 
 const queryParser = new QueryParser();
@@ -47,7 +46,7 @@ export class List extends React.Component {
   }
 
   handleLabelUpdate(item, label, add=true) {
-    let mutation = [ // TODO(burdon): Util?
+    let mutation = [
       {
         field: 'labels',
         value: {
@@ -229,10 +228,10 @@ export default compose(
 
   graphql(UpdateItemMutation, {
     props: ({ ownProps, mutate }) => ({
-      updateItem: (item, deltas) => mutate({
+      updateItem: (item, mutation) => mutate({
         variables: {
           itemId: ID.toGlobalId(item.type, item.id),
-          deltas: deltas
+          deltas: mutation
         },
 
         // TODO(burdon): Optimistic UI.

@@ -17,8 +17,8 @@ import { UpdateItemMutation } from '../data/mutation';
 
 import { ACTION } from '../reducers';
 
-import List from '../component/list';
-import Search from '../component/search';
+import List from './component/list';
+import Search from './component/search';
 
 /**
  * Folder View.
@@ -191,13 +191,13 @@ export default compose(
 
   graphql(UpdateItemMutation, {
     props: ({ ownProps, mutate }) => ({
-      createItem: (type, deltas) => {
-        let itemId = ownProps.idGenerator.createId();     // TODO(burdon): IdGenerator from context?
+      createItem: (type, mutation) => {
+        let itemId = ownProps.idGenerator.createId();
 //      console.log('#####', itemId);
         return mutate({
           variables: {
             itemId: ID.toGlobalId(type, itemId),
-            deltas: deltas
+            deltas: mutation
           }
         });
       }

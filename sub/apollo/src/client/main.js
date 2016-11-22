@@ -125,7 +125,7 @@ history.listen(location => { console.log('Router: %s', location.pathname); });
  * Renders the application (used by hot loader).
  * @param App Root component.
  */
-function renderApp(App) {
+const renderApp = (App) => {
   console.log('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(config, 'debug.env'));
 
   ReactDOM.render(
@@ -137,7 +137,7 @@ function renderApp(App) {
 
     document.getElementById(config.root)
   );
-}
+};
 
 
 //

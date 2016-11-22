@@ -15,12 +15,12 @@ export class Transforms {
   /**
    *
    * @param object
-   * @param deltas
+   * @param mutations
    */
-  static applyObjectDeltas(object, deltas) {
-    console.assert(object && deltas);
+  static applyObjectDeltas(object, mutations) {
+    console.assert(object && mutations);
 
-    _.each(deltas, (delta) => {
+    _.each(mutations, (delta) => {
       Transforms.applyObjectDelta(object, delta);
     });
 
@@ -30,14 +30,14 @@ export class Transforms {
   /**
    *
    * @param object
-   * @param delta
+   * @param mutation
    * @returns {*}
    */
-  static applyObjectDelta(object, delta) {
-    console.assert(object && delta);
+  static applyObjectDelta(object, mutation) {
+    console.assert(object && mutation);
 
-    let field = delta.field;
-    let value = delta.value;
+    let field = mutation.field;
+    let value = mutation.value;
 
     // TODO(burdon): Field dot paths (_.set/get).
     // TODO(burdon): Introspect for type-checking.
@@ -71,15 +71,15 @@ export class Transforms {
   /**
    *
    * @param array
-   * @param delta
+   * @param mutation
    */
-  static applyArrayDelta(array, delta) {
-    console.assert(array && delta);
+  static applyArrayDelta(array, mutation) {
+    console.assert(array && mutation);
 
-    let scalar = Transforms.scalarValue(delta.value);
+    let scalar = Transforms.scalarValue(mutation.value);
     console.assert(scalar);
 
-    if (delta.index == -1) {
+    if (mutation.index == -1) {
       _.pull(array, scalar);
     } else {
       array = _.union(array, [scalar]);
