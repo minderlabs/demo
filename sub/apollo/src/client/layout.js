@@ -5,8 +5,8 @@
 'use strict';
 
 import React from 'react';
+import { Link } from 'react-router'
 import { connect } from 'react-redux';
-import { Link, Match, Miss, Redirect } from 'react-router';
 import { compose, graphql, withApollo } from 'react-apollo';
 import gql from 'graphql-tag';
 import ApolloClient from 'apollo-client';
@@ -24,9 +24,6 @@ import { ID } from 'minder-core';
             //     { children }
             //   </div>
             // </Sidebar>
-
-import DetailView from './view/detail';
-import FolderView from './view/folder';
 
 import Monitor from './component/devtools';
 
@@ -64,6 +61,8 @@ class Layout extends React.Component {
   render() {
     console.log('Layout.render');
 
+    let { children } = this.props;
+
     // TODO(burdon): Sidebar and query folders (available to views in redux state?)
     // TODO(burdon): Display errors in status bar.
     // TODO(burdon): Skip DevTools in prod.
@@ -91,17 +90,17 @@ class Layout extends React.Component {
             */}
           <div className="app-column">
 
-            {/*
-              * Item detail.
-              */}
-            <Match pattern="/:itemView/:itemId" component={ DetailView }/>
+            { children }
 
             {/*
+              * Item detail.
+            <Match pattern="/:itemView/:itemId" component={ DetailView }/>
+
               * Folder view.
-              */}
             <Match pattern="/:folder" exactly={ true } component={ FolderView }/>
 
             <Miss render={ () => <Redirect to="/inbox"/> }/>
+              */}
           </div>
 
           {/*

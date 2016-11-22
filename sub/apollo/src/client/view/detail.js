@@ -6,8 +6,13 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
+import { goBack } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
+
+import { TextBox } from 'minder-ux';
+
+import { ACTION } from '../reducers';
 
 import TypeRegistry from '../component/typeRegistry';
 
@@ -21,11 +26,20 @@ class DetailView extends React.Component {
   };
 
   static propTypes = {
+    onClose: React.PropTypes.func.isRequired,
+
     data: React.PropTypes.shape({
-      viewer: React.PropTypes.object,
       item: React.PropTypes.object
     })
   };
+
+  handleSave() {
+    this.props.onClose(true);
+  }
+
+  handleCancel() {
+    this.props.onClose(false);
+  }
 
   render() {
     let { item } = this.props.data;
@@ -40,11 +54,18 @@ class DetailView extends React.Component {
     return (
       <div className="app-column">
         <div className="app-section">
-          <h1>{ item.title }</h1>
+          <div className="app-row">
+            <TextBox className="app-expand" value={ item.title }/>
+          </div>
         </div>
 
-        <div className="app-section">
+        <div className="app-section app-expand">
           { detail }
+        </div>
+
+        <div className="app-toolbar app-center">
+          <button onClick={ this.handleSave.bind(this) }>Save</button>
+          <button onClick={ this.handleCancel.bind(this) }>Cancel</button>
         </div>
       </div>
     );
@@ -65,15 +86,8 @@ class DetailView extends React.Component {
 // http://graphql.org/learn/queries/#meta-fields
 
 const DetailQuery = gql`
-  query DetailQuery($userId: ID!, $itemId: ID!) { 
+  query DetailQuery($itemId: ID!) { 
 
-    viewer(userId: $userId) {
-      id
-      user {
-        title
-      }
-    }
-    
     item(itemId: $itemId) {
       id
       type
@@ -92,8 +106,16 @@ const mapStateToProps = (state, ownProps) => {
   }
 };
 
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    onClose: (save) => {
+      dispatch(goBack());
+    }
+  }
+};
+
 export default compose(
-  connect(mapStateToProps),
+  connect(mapStateToProps, mapDispatchToProps),
 
   graphql(DetailQuery, {
     options: (props) => {

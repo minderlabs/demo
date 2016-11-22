@@ -22,7 +22,7 @@ import LogMonitor from 'redux-devtools-log-monitor';
 // https://github.com/apollostack/apollo-client/issues/701
 
 export default createDevTools(
-  <DockMonitor defaultIsVisible={ true }
+  <DockMonitor defaultIsVisible={ false }
                changeMonitorKey="ctrl-m"
                toggleVisibilityKey="ctrl-h"
                changePositionKey="ctrl-p">

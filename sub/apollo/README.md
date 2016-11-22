@@ -1,6 +1,45 @@
 # Apollo
 
 
+
+TODO(burdon): Apollo Evaluation:
+https://www.reindex.io/blog/redux-and-relay
+https://dev-blog.apollodata.com/apollo-client-graphql-with-react-and-redux-49b35d0f2641#.ovjpku8rm
+https://medium.com/@codazeninc/choosing-a-graphql-client-apollo-vs-relay-9398dde5363a#.cf5fsaska
+https://medium.freecodecamp.com/tutorial-how-to-use-graphql-in-your-redux-app-9bf8ebbeb362#.m5mpkzy7k
+
+TODO(burdon): Fragment composition
+https://github.com/facebook/graphql/issues/204 (ARGS IN FRAGMENTS)>>>>>> stubailo
+https://github.com/apollostack/react-apollo/issues/140
+http://dev.apollodata.com/core/fragments.html
+http://graphql.org/learn/queries/#fragments
+createFragment vs new Fragment
+Try declaring vars in fragment (does it automatically get passed down?)
+
+TODO(burdon): Subscriptions.
+https://github.com/apollostack/graphql-subscriptions (Redis/Rethink)
+http://dev.apollodata.com/react/receiving-updates.html#Subscriptions
+TODO(burdon): Caching (mobile/offline roadmap)?
+http://dev.apollodata.com/react/receiving-updates.html
+TODO(burdon): Native?
+TODO(burdon): Optimistic UI.
+TODO(burdon): Update cache with updateQueries.
+
+
+Benefits over Relay:
+ - simplicity
+   - micro-frameworks
+   - native schema with separate resolvers
+   - client syntax
+   - no magic
+   - tools
+ - redux
+   - state machine (HUGE benefit for complex apps)
+   - tools
+ - Relay 2.0 looks sketchy (and moving towards Apollo)
+
+
+
 ## Troubleshoorting:
 
 - ERROR: [index.js Uncaught SyntaxError: Unexpected token export]

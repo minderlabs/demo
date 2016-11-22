@@ -9,8 +9,6 @@
  */
 export const ACTION = {
 
-  NAVIGATE: 'APP_NAVIGATE',
-
   SEARCH:   'APP_SEARCH'
 };
 

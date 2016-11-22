@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
+import { push } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
@@ -34,10 +35,10 @@ class FolderView extends React.Component {
   };
 
   static propTypes = {
+    onSearch: React.PropTypes.func.isRequired,
+    navigateItem: React.PropTypes.func.isRequired,
 
     data: React.PropTypes.shape({
-
-      viewer: React.PropTypes.object.isRequired,
       folders: React.PropTypes.array.isRequired
     })
   };
@@ -109,13 +110,6 @@ class FolderView extends React.Component {
 const FolderQuery = gql`
   query FolderQuery($userId: ID!) { 
 
-    viewer(userId: $userId) {
-      id
-      user {
-        title
-      }
-    }
-    
     folders(userId: $userId) {
       id
       filter {
@@ -142,14 +136,8 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     },
 
     navigateItem: (item) => {
-      dispatch({
-        type: ACTION.NAVIGATE,
-        location: {
-          // TODO(burdon): Const path.
-          pathname: '/item/' + ID.toGlobalId(item.type, item.id)
-        },
-        action: 'PUSH'
-      });
+      // TODO(burdon): Const path.
+      dispatch(push('/item/' + ID.toGlobalId(item.type, item.id)));
     }
   }
 };
