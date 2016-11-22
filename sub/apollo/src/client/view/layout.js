@@ -5,26 +5,15 @@
 'use strict';
 
 import React from 'react';
-import { Link } from 'react-router'
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ID } from 'minder-core';
+import { Sidebar, SidebarToggle } from 'minder-ux';
 
 import { QueryRegistry } from '../data/subscriptions';
 
-//import { Sidebar } from 'minder-ux';
-
-// {/* SIDEBAR */}
-// <Sidebar ref="sidebar" sidebar={
-//   <Folders viewer={ viewer } onSelect={ this.handleNav.bind(this) }/>
-// }>
-//   {/* VIEW */}
-//   <div className="app-view app-column app-expand">
-//     { children }
-//   </div>
-// </Sidebar>
+import { Folders } from './folders';
 
 import Monitor from './component/devtools';
 
@@ -36,7 +25,11 @@ import './layout.less';
 class Layout extends React.Component {
 
   static propTypes = {
-    queryRegistry: React.PropTypes.object.isRequired
+    queryRegistry: React.PropTypes.object.isRequired,
+
+    data: React.PropTypes.shape({
+      viewer: React.PropTypes.object
+    })
   };
 
   handleRefresh() {
@@ -47,6 +40,7 @@ class Layout extends React.Component {
     console.log('Layout.render');
 
     let { children } = this.props;
+    let { viewer } = this.props.data;
 
     // TODO(burdon): Sidebar and query folders (available to views in redux state?)
     // TODO(burdon): Display errors in status bar.
@@ -61,28 +55,28 @@ class Layout extends React.Component {
             */}
           <div className="app-section app-header app-row">
             <div className="app-expand">
+              <SidebarToggle sidebar={ () => this.refs.sidebar }/>
               <h1>Apollo Demo</h1>
             </div>
             <div>
-              <Link to="/inbox">Inbox</Link>
-              <Link to="/favorites">Favorites</Link>
-              <Link to={ '/team/' + ID.toGlobalId('Group', 'minderlabs') }>Team</Link>
+              { viewer && viewer.user.title }
             </div>
           </div>
 
-          {/*
-            * Views:
-            */}
-          <div className="app-column">
-            { children }
-          </div>
+          {/* SIDEBAR */}
+          <Sidebar ref="sidebar" sidebar={ <Folders/> }>
+            {/* VIEW */}
+            <div className="app-column">
+              { children }
+            </div>
+          </Sidebar>
 
           {/*
             * Footer.
             */}
           <div className="app-section app-footer app-row">
             <div className="app-row app-expand">
-              <button onClick={ this.handleRefresh.bind(this) }>Refresh</button>
+              <i className="material-icons" onClick={ this.handleRefresh.bind(this) }>refresh</i>
             </div>
 
             <div>

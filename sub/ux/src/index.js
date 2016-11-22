@@ -8,4 +8,5 @@
 // https://github.com/markerikson/redux-ecosystem-links
 // https://github.com/vakhtang/react-search-bar
 
+export * from './web/sidebar';
 export * from './web/textbox';

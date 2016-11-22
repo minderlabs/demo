@@ -11,7 +11,7 @@ import './sidebar.less';
 /**
  * Sidebar nav.
  */
-export default class Sidebar extends React.Component {
+export class Sidebar extends React.Component {
 
   // TODO(burdon): Nav by keys.
   // http://codepen.io/chriscoyier/pen/umEgv
@@ -44,7 +44,7 @@ export default class Sidebar extends React.Component {
   }
 
   render() {
-    let className = _.join(['app-sidebar-drawer', this.state.open && 'app-open'], '');
+    let className = _.join(['app-sidebar-drawer', this.state.open ? 'app-open' : ''], ' ');
 
     return (
       <div className="app-sidebar">
@@ -58,6 +58,30 @@ export default class Sidebar extends React.Component {
 
         { this.props.children }
       </div>
+    );
+  }
+}
+
+/**
+ * Toggle button.
+ */
+export class SidebarToggle extends React.Component {
+
+  static propTypes = {
+    sidebar: React.PropTypes.func.isRequired
+  };
+
+  handleToggleSidebar(event) {
+    // Don't steal focus (which would cause the sidebar to close).
+    event.preventDefault();
+
+    this.props.sidebar().toggle();
+  }
+
+  render() {
+    return (
+      <i className="app-sidebar-toggle material-icons"
+         onMouseDown={ this.handleToggleSidebar.bind(this) }>menu</i>
     );
   }
 }
