@@ -20,9 +20,9 @@ class TypeRegistry {
     this._types = new Map();
   }
 
-  render(item) {
+  render(item, userId) {
     let value = this._types.get(item.type);
-    return value && value.render(item) || (<div>NO TYPE HANDLER FOR [{ item.type }]</div>);
+    return value && value.render(item, userId) || (<div>NO TYPE HANDLER FOR [{ item.type }]</div>);
   }
 
   icon(type) {
@@ -41,13 +41,28 @@ class TypeRegistry {
 
 const registry = new TypeRegistry();
 
-registry._types.set('User',
-  { fragment: UserFragments,  render: (item) => <User   item={ item }/>, icon: 'accessibility' });
-registry._types.set('Group',
-  { fragment: GroupFragments, render: (item) => <Group  item={ item }/>, icon: 'group' });
-registry._types.set('Place',
-  { fragment: PlaceFragments, render: (item) => <Place  item={ item }/>, icon: 'location_city' });
-registry._types.set('Task',
-  { fragment: TaskFragments,  render: (item) => <Task   item={ item }/>, icon: 'assignment_turned_in' });
+registry._types.set('User', {
+  fragment: UserFragments,
+  render: (item, userId) => <User  userId={ userId } item={ item }/>,
+  icon: 'accessibility'
+});
+
+registry._types.set('Group', {
+  fragment: GroupFragments,
+  render: (item, userId) => <Group userId={ userId } item={ item }/>,
+  icon: 'group'
+});
+
+registry._types.set('Place', {
+  fragment: PlaceFragments,
+  render: (item, userId) => <Place userId={ userId } item={ item }/>,
+  icon: 'location_city'
+});
+
+registry._types.set('Task', {
+  fragment: TaskFragments,
+  render: (item, userId) => <Task  userId={ userId } item={ item }/>,
+  icon: 'assignment_turned_in'
+});
 
 export default registry;

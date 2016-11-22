@@ -9,8 +9,6 @@ import express from 'express';
 import moment from 'moment';
 import path from 'path';
 
-import { ID } from 'minder-core';
-
 //
 // Webpack Hot Module Replacement (HMR)
 // NOTE: This replaces the stand-alone webpack-dev-server
@@ -74,7 +72,7 @@ export const appRouter = (options) => {
       app: WEBPACK_BUNDLE[options.env],
       config: {
         root: 'app-root',
-        userId: ID.toGlobalId('User', 'tester'),    // TODO(burdon): OAuth cookie.
+        userId: 'tester',    // TODO(burdon): OAuth cookie.
         graphql: options.graphql,
         debug: {
           env: options.env

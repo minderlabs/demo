@@ -33,6 +33,7 @@ export class TextBox extends React.Component {
     className:    React.PropTypes.string,
     delay:        React.PropTypes.number,
     onChange:     React.PropTypes.func,
+    onEnter:      React.PropTypes.func,
     onKeyDown:    React.PropTypes.func,
     placeholder:  React.PropTypes.string,
     value:        React.PropTypes.string
@@ -92,6 +93,7 @@ export class TextBox extends React.Component {
       // ENTER
       case 13: {
         this.fireTextChange(true);
+        this.props.onEnter && this.props.onEnter(this.value);
         break;
       }
 

@@ -133,8 +133,7 @@ export class Resolvers {
           }
         },
 
-        folders: (root, { userId }) => {
-          let { type, id:localUserId } = ID.fromGlobalId(userId);
+        folders: (root) => {
           return database.queryItems({ type: 'Folder' });
         },
 
@@ -156,9 +155,9 @@ export class Resolvers {
 
       RootMutation: {
 
-        updateItem: (root, { itemId, deltas }) => {
+        updateItem: (root, { itemId, mutations }) => {
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
-          console.log('MUTATION.UPDATE[%s]: %s:%s', localItemId, type, JSON.stringify(deltas));
+          console.log('MUTATION.UPDATE[%s:%s]: %s', type, localItemId, JSON.stringify(mutations));
 
           // TODO(burdon): Validate type.
 
@@ -172,7 +171,7 @@ export class Resolvers {
             };
           }
 
-          Transforms.applyObjectMutations(item, deltas);
+          Transforms.applyObjectMutations(item, mutations);
 
           database.upsertItems([item]);
           return item;

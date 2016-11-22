@@ -15,7 +15,7 @@ import { ID, Matcher, QueryParser, TypeUtil } from 'minder-core';
 import { UpdateItemMutation } from '../../data/mutation';
 import { QueryRegistry } from '../../data/subscriptions';
 
-import TypeRegistry from './typeRegistry';
+import TypeRegistry from './type_registry';
 import Item, { ItemFragments } from './item';
 
 const queryParser = new QueryParser();
@@ -228,10 +228,10 @@ export default compose(
 
   graphql(UpdateItemMutation, {
     props: ({ ownProps, mutate }) => ({
-      updateItem: (item, mutation) => mutate({
+      updateItem: (item, mutations) => mutate({
         variables: {
           itemId: ID.toGlobalId(item.type, item.id),
-          deltas: mutation
+          mutations: mutations
         },
 
         // TODO(burdon): Optimistic UI.

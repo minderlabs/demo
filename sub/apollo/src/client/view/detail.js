@@ -10,26 +10,42 @@ import { goBack } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ID } from 'minder-core';
+import { ID, IdGenerator } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutation';
 
-import TypeRegistry from './component/typeRegistry';
+import TypeRegistry from './component/type_registry';
 
 /**
  * Detail view.
  */
 class DetailView extends React.Component {
 
+  // Pass down through component tree.
+  // TODO(burdon): ItemMutator interface.
+  static childContextTypes = {
+    createItem: React.PropTypes.func,
+    updateItem: React.PropTypes.func
+  };
+
   static propTypes = {
-    onClose: React.PropTypes.func.isRequired,
+    createItem: React.PropTypes.func.isRequired,
     updateItem: React.PropTypes.func.isRequired,
+
+    onClose: React.PropTypes.func.isRequired,
 
     data: React.PropTypes.shape({
       item: React.PropTypes.object
     })
   };
+
+  getChildContext() {
+    return {
+      createItem: this.props.createItem,
+      updateItem: this.props.updateItem
+    };
+  }
 
   handleSave(item) {
     let mutation = [];
@@ -63,7 +79,7 @@ class DetailView extends React.Component {
       return <div/>;
     }
 
-    let detail = item && TypeRegistry.render(item);
+    let detail = item && TypeRegistry.render(item, this.props.userId);
 
     return (
       <div className="app-column">
@@ -101,7 +117,7 @@ class DetailView extends React.Component {
 
 const DetailQuery = gql`
   query DetailQuery($itemId: ID!) { 
-
+    
     item(itemId: $itemId) {
       id
       type
@@ -115,8 +131,11 @@ const DetailQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
+  let { minder } = state;
+
   return {
-    userId: state.minder.userId
+    idGenerator: minder.injector.get(IdGenerator),
+    userId: minder.userId
   }
 };
 
@@ -137,7 +156,6 @@ export default compose(
         fragments: TypeRegistry.fragments,
 
         variables: {
-          userId: props.userId,
           itemId: props.params.itemId
         }
       };
@@ -146,10 +164,20 @@ export default compose(
 
   graphql(UpdateItemMutation, {
     props: ({ ownProps, mutate }) => ({
-      updateItem: (item, mutation) => mutate({
+      createItem: (type, mutations) => {
+        let itemId = ownProps.idGenerator.createId();   // TODO(burdon): Factor out?
+        return mutate({
+          variables: {
+            itemId: ID.toGlobalId(type, itemId),
+            mutations: mutations
+          }
+        });
+      },
+
+      updateItem: (item, mutations) => mutate({
         variables: {
-          itemId: ID.toGlobalId(item.type, item.id),
-          deltas: mutation
+          itemId: ID.toGlobalId(item.type, item.id),    // TODO(burdon): ID? createItem?
+          mutations: mutations
         }
       })
     })

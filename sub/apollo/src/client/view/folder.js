@@ -93,7 +93,7 @@ class FolderView extends React.Component {
 
         <div className="app-section app-row">
           <TextBox ref="text" className="app-expand"
-                   onKeyDown={ TextBox.filter(13, this.handleItemCreate.bind(this)) }/>
+                   onEnter={ this.handleItemCreate.bind(this) }/>
           <i className="app-icon-add material-icons"
              onClick={ this.handleItemCreate.bind(this) }/>
         </div>
@@ -109,9 +109,9 @@ class FolderView extends React.Component {
 // TODO(burdon): Factor out filter fragment (move to Layout).
 
 const FolderQuery = gql`
-  query FolderQuery($userId: ID!) { 
+  query FolderQuery { 
 
-    folders(userId: $userId) {
+    folders {
       id
       filter {
         type
@@ -154,16 +154,6 @@ export default compose(
   // Query.
   graphql(FolderQuery, {
 
-    options: (props) => {
-      console.log('Folder.options: ', JSON.stringify(Object.keys(props)));
-
-      return {
-        variables: {
-          userId: props.userId
-        }
-      };
-    },
-
     props: ({ ownProps, data }) => {
       console.log('Folder.props: ', JSON.stringify(Object.keys(data)));
 
@@ -199,13 +189,12 @@ export default compose(
   // Mutation.
   graphql(UpdateItemMutation, {
     props: ({ ownProps, mutate }) => ({
-      createItem: (type, mutation) => {
-        let itemId = ownProps.idGenerator.createId();
-//      console.log('#####', itemId);
+      createItem: (type, mutations) => {
+        let itemId = ownProps.idGenerator.createId();   // TODO(burdon): Factor out?
         return mutate({
           variables: {
             itemId: ID.toGlobalId(type, itemId),
-            deltas: mutation
+            mutations: mutations
           }
         });
       }

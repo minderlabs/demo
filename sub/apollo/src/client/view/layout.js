@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
+import { ID } from 'minder-core';
 import { Sidebar, SidebarToggle } from 'minder-ux';
 
 import { QueryRegistry } from '../data/subscriptions';
@@ -128,7 +129,7 @@ const LayoutQuery = gql`
       }
     }
     
-    folders(userId: $userId) {
+    folders {
       id
       filter {
         type
@@ -194,7 +195,7 @@ export default compose(
     options: (props) => {
       return {
         variables: {
-          userId: props.userId
+          userId: ID.toGlobalId('User', props.userId)
         }
       };
     },

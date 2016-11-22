@@ -225,8 +225,8 @@ type Place implements Item {
 #
 
 type RootQuery {
-  viewer(userId: ID!): Viewer!
-  folders(userId: ID!): [Folder]!
+  viewer(userId: ID!): Viewer!      # TODO(burdon): Remove userId (get from cookie).
+  folders: [Folder]!
   item(itemId: ID!): Item!
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
 }
