@@ -75,7 +75,7 @@ registry._types.set('Task', {
     // Find associated member.
     let idx = _.findIndex(_.get(previousResult, 'item.members'), (member) => member.id === _.get(item, 'assignee.id'));
     if (idx === -1) {
-      console.warn('NO MATCH', item, _.get(previousResult, 'item.members'));
+      console.warn('INVALID PATH', item, _.get(previousResult, 'item.members'));
     } else {
       return { item: { members: { [idx]: { tasks: op } } } };
     }

@@ -22,6 +22,8 @@ import TypeRegistry from './component/type_registry'; // TODO(burdon): Inject.
  */
 class DetailView extends React.Component {
 
+  // TODO(burdon): When Nav from Group -> Task keeps Detail and title is the same.
+
   static DETAIL_REF = 'detail';
 
   // Pass down through component tree.
@@ -60,6 +62,7 @@ class DetailView extends React.Component {
 
     // Get state from types.
     mutations = [...mutations, ...(this.refs[DetailView.DETAIL_REF].mutations || [])];
+    console.log('Mutations: %s', JSON.stringify(mutations));
 
     if (mutations.length) {
       this.props.mutator.updateItem(item, mutations);
@@ -74,6 +77,8 @@ class DetailView extends React.Component {
 
   render() {
     let { item } = this.props.data;
+
+    console.log('############', JSON.stringify(item));
 
     // TODO(burdon): Can we ensure component is well-formed?
     if (!item) {

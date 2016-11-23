@@ -23,6 +23,11 @@ TODO(burdon): When is render triggered?
 
         // NOTE: Called after Redux below.
         static defaultProps {}
+
+        // NOTE: Update state here since component will be re-used by HOC.
+        componentWillReceiveProps(nextProps) {
+            this.state = { ... };
+        }
         
         // Called after graphql.props
         render() {

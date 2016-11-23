@@ -45,24 +45,18 @@ export default class Task extends React.Component {
     this._values = {};
   }
 
-  componentWillReceiveProps(nextProps) {
-    let { item } = this.props;
-    _.set(this._values, 'assignee', _.get(item, 'assignee.id'));
-    return nextProps;
-  }
-
   // TODO(burdon): Base class for values.
   get mutations() {
     let { item } = this.props;
     let mutations = [];
 
-    // TODO(burdon): Generalize.
-    console.log(':::::', this._values);
-    if (_.get(this._values, 'assignee') !== _.get(item, 'assignee.id')) {
+    // TODO(burdon): Generalize utils.
+    let value = _.get(this._values, 'assignee');
+    if (!_.isEmpty(value) && value !== _.get(item, 'assignee.id')) {
       mutations.push({
         field: 'assignee',
         value: {
-          id: _.get(this._values, 'assignee')
+          id: value
         }
       });
     }

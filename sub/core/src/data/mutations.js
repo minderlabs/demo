@@ -83,48 +83,55 @@ export class Reducer {
         console.assert(updatedItem);
         console.log('Reducer[%s:%s]: %s', queryName, action.operationName, JSON.stringify(updatedItem));
 
-        // Determine if currently matches filter.
-        let match = matcher.match(filter, updatedItem);
-
-        // If no match, is this new? (otherwise must be removed).
-        let insert = match && _.findIndex(previousResult.items, item => item.id === updatedItem.id) === -1;
-
-        // TODO(burdon): Use path.
-        // https://github.com/kolodny/immutability-helper
-        // https://facebook.github.io/react/docs/update.html#available-commands
-        update.extend('$remove', (item, items) => _.filter(items, item => item.id !== updatedItem.id));
-
-
         //
         //
         // TODO(burdon): Check if update (on single item not list)
         //
         //
-        
 
-        let op = null;
-        if (insert) {
-          // Append item.
-          // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
-          console.log('APPEND: %s', updatedItem.id);
-          op = { $push: [updatedItem] };
-        } else if (!match) {
-          // Remove item from list.
-          console.log('REMOVE: %s', updatedItem.id);
-          op = { $remove: updatedItem };
-        }
+        console.log('!!!!', TypeUtil.JSON(previousResult));
+        if (previousResult.items) {
 
-        if (op) {
-          // TODO(burdon): Instead of this should have MutationContext that understands the Query "shape".
-          //  E.g., "Task" may be updated in different contexts (Task List, Team page, etc.)
-          let path = typeRegistry.path(updatedItem.type);
-          let transform = path && path(previousResult, updatedItem, op);
-          if (!transform) {
-            transform = { items: op };
+          // Determine if currently matches filter.
+          let match = matcher.match(filter, updatedItem);
+
+          // If no match, is this new? (otherwise must be removed).
+          let insert = match && _.findIndex(previousResult.items, item => item.id === updatedItem.id) === -1;
+
+          // Update list.
+          console.log('UP LIST', match, insert);
+
+          // TODO(burdon): Use path.
+          // https://github.com/kolodny/immutability-helper
+          // https://facebook.github.io/react/docs/update.html#available-commands
+          update.extend('$remove', (item, items) => _.filter(items, item => item.id !== updatedItem.id));
+
+
+          // NOTE: DO NOTHING IF JUST CHANGE ITEM.
+          let op = null;
+          if (insert) {
+            // Append item.
+            // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
+            console.log('APPEND: %s', updatedItem.id);
+            op = { $push: [updatedItem] };
+          } else if (!match) {
+            // Remove item from list.
+            console.log('REMOVE: %s', updatedItem.id);
+            op = { $remove: updatedItem };
           }
 
-          console.log('Transform: %s', TypeUtil.JSON(previousResult), JSON.stringify(transform));
-          result = update(previousResult, transform);
+          if (op) {
+            // TODO(burdon): Instead of this should have MutationContext that understands the Query "shape".
+            //  E.g., "Task" may be updated in different contexts (Task List, Team page, etc.)
+            let path = typeRegistry.path(updatedItem.type);
+            let transform = path && path(previousResult, updatedItem, op);
+            if (!transform) {
+              transform = { items: op };
+            }
+
+            console.log('Transform: %s', TypeUtil.JSON(previousResult), JSON.stringify(transform, 0, 2));
+            result = update(previousResult, transform);
+          }
         }
       }
 

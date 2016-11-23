@@ -48,11 +48,15 @@ export class TextBox extends React.Component {
   constructor() {
     super(...arguments);
 
-    this.state = {
-      value: this.props.value || ''
-    };
+    this.state = {};
 
     this._timeout = Async.timeout(this.props.delay);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.state = {
+      value: nextProps.value || ''
+    }
   }
 
   get value() {
@@ -104,11 +108,6 @@ export class TextBox extends React.Component {
       // ESCAPE
       case 27: {
         this.props.onCancel && this.props.onCancel(this.value);
-        // this.setState({
-        //   value: ''
-        // }, () => {
-        //   this.fireTextChange(true);
-        // });
         break;
       }
     }

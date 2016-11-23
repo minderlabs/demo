@@ -21,6 +21,7 @@ const ItemsQuery = gql`
   }
 `;
 
+// TODO(burdon): Name ItemsQueryWrapper
 export default graphql(ItemsQuery, {
 
   options: (props) => {
