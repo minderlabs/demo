@@ -22,6 +22,8 @@ import TypeRegistry from './component/type_registry'; // TODO(burdon): Inject.
  */
 class DetailView extends React.Component {
 
+  static DETAIL_REF = 'detail';
+
   // Pass down through component tree.
   static childContextTypes = {
     mutator: React.PropTypes.object,
@@ -44,11 +46,11 @@ class DetailView extends React.Component {
   }
 
   handleSave(item) {
-    let mutation = [];
+    let mutations = [];
 
     // TODO(burdon): Generalize.
     if (this.props.data.item.title != this.refs.title.value) {
-      mutation.push({
+      mutations.push({
         field: 'title',
         value: {
           string: this.refs.title.value
@@ -56,8 +58,11 @@ class DetailView extends React.Component {
       });
     }
 
-    if (mutation.length) {
-      this.props.updateItem(item, mutation);
+    // Get state from types.
+    mutations = [...mutations, ...(this.refs[DetailView.DETAIL_REF].mutations || [])];
+
+    if (mutations.length) {
+      this.props.mutator.updateItem(item, mutations);
     }
 
     this.props.onClose(true);
@@ -75,7 +80,10 @@ class DetailView extends React.Component {
       return <div/>;
     }
 
-    let detail = item && TypeRegistry.render(item, this.props.userId);
+    // Get detail component and add reference.
+    let detail =  React.cloneElement(TypeRegistry.render(item, this.props.userId), {
+      ref: DetailView.DETAIL_REF
+    });
 
     return (
       <div className="app-column">
@@ -130,6 +138,7 @@ const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
 
   return {
+    // Provide for Mutator.graphql
     injector: minder.injector,
     userId: minder.userId
   }

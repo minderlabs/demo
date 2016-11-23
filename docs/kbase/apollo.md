@@ -3,4 +3,131 @@
 ![Apollo](https://github.com/alienlaboratories/react-demos/raw/rb-apollo/docs/kbase/apollo.png "Apollo")
 
 
-## Tools
+## Call Sequence.
+
+TODO(burdon): When is redux callback triggered (all called on each action?)
+TODO(burdon): When are queries triggered?
+TODO(burdon): When is reduce triggered (any mutation?)
+TODO(burdon): When is render triggered?
+
+~~~~
+    class Foo extends React.Component {
+
+        static propTypes {
+
+            // Provided by graphql below:
+            data: React.PropTypes.shape({
+                items: React.PropTypes.array
+            })
+        }
+
+        // NOTE: Called after Redux below.
+        static defaultProps {}
+        
+        // Called after graphql.props
+        render() {
+            let { items } = props.data;
+        }
+    }
+
+    // Map Redux state to component's properties.
+    mapStateToProps = (state, ownProps) => {
+    }
+
+    // Create function bindings to dispatch Redux actions.
+    mapStateToDispatch = (dispatch, ownProps) => {
+    
+        // Invoke Redux action.
+        foo: (value) => { dispatch({ type: 'FOO', value }); }
+        
+        // Invoke Redux Router action.
+        nav: (id) => { dispatch(push('/path/' + id)); }
+    }
+
+    // GraphQL query.
+    const Query = gql`
+        query Query($foo: String) {
+            items(foo: $foo) { ... }
+        }
+    `;
+    
+    // GraphQL mutation.
+    const Mutation = gql`
+        mutation Mutation($foo: String) {
+            updateItem(foo: $foo) { ... }
+        }
+    `;
+
+    compose(
+    
+        // Redux callbacks.
+        connect(mapStateToProps, mapStateToDispatch),
+        
+        // Apollo query callbacks.
+        graphql(Query, {
+
+            // Map component properties to query variables (and handle response).
+            // http://dev.apollodata.com/react/queries.html#graphql-options
+            options: (props) => ({
+                fragments: {},
+                
+                variables: {},
+                
+                // Manually update cache after mutation action.
+                reducer: (previousResult, action) => {
+                    if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === 'Mutation') {
+                        // Compute new result based on mutation.
+                    }
+                
+                    return previousResult;
+                }
+            })
+            
+            // Map query results to properties (and provide data functions).
+            // http://dev.apollodata.com/react/queries.html#graphql-props
+            props: ({ ownProps, data }) ({
+            
+                // Vars returned by the query.
+                data,
+                
+                refetch: () => {
+                    data.refectch({ ... });
+                }
+                
+                fetchMore: () => {
+                    return data.fetchMore({ 
+                        variables: { ... } 
+                        
+                        updateQuery: (previousResult, { fetchMoreResult }) => {
+                            return update(previousResult, { $push: fetchMoreResult.items })
+                        }
+                    });
+                }
+            })
+        }),
+
+        // Apollo mutation callbacks.
+        graphql(Mutation, {
+        
+            // http://dev.apollodata.com/react/mutations.html
+            props: ({ ownProps, mutate }) => ({
+            
+                // http://dev.apollodata.com/react/mutations.html#optimistic-ui
+                optimisticResponse: {
+                    __typename: 'Mutation',
+                    ...
+                },
+                
+                // Called after optimisticResponse and response from server.
+                // NOTE: reducer above is more flexible (and focued on the query).
+                // http://dev.apollodata.com/react/cache-updates.html#updateQueries
+                updateQueries: {
+                    Mutation: (previousResults, { mutationResult }) => {
+                        // Compute new result based on mutation.
+                        return previousResult;
+                    }
+                }
+            })
+        })
+    )
+~~~~

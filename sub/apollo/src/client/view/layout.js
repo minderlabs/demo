@@ -25,6 +25,7 @@ import './layout.less';
 class Layout extends React.Component {
 
   static propTypes = {
+    // TODO(burdon): Get from injector?
     queryRegistry: React.PropTypes.object.isRequired,
 
     data: React.PropTypes.shape({

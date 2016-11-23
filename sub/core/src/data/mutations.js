@@ -8,6 +8,7 @@ import { graphql } from 'react-apollo';
 import update from 'immutability-helper';
 
 import { ID, IdGenerator } from './id';
+import { TypeUtil } from '../util/type';
 
 // TODO(burdon): Unit tests.
 // TODO(burdon): Dependency on Apollo Client (move out of core)? (OK to have server depend on this?)
@@ -93,6 +94,14 @@ export class Reducer {
         // https://facebook.github.io/react/docs/update.html#available-commands
         update.extend('$remove', (item, items) => _.filter(items, item => item.id !== updatedItem.id));
 
+
+        //
+        //
+        // TODO(burdon): Check if update (on single item not list)
+        //
+        //
+        
+
         let op = null;
         if (insert) {
           // Append item.
@@ -114,7 +123,7 @@ export class Reducer {
             transform = { items: op };
           }
 
-          console.log('Transform: %s', JSON.stringify(transform));
+          console.log('Transform: %s', TypeUtil.JSON(previousResult), JSON.stringify(transform));
           result = update(previousResult, transform);
         }
       }

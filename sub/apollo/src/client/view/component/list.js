@@ -9,16 +9,14 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { Matcher, QueryParser, Mutator, Reducer } from 'minder-core';
+import { Matcher, Mutator, Reducer } from 'minder-core';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { QueryRegistry } from '../../data/subscriptions';
 
 import TypeRegistry from './type_registry'; // TODO(burdon): Inject.
 
-import Item, { ItemFragments } from './item';
-
-const queryParser = new QueryParser();
+import { Item } from './item';
 
 /**
  * Item List.
@@ -33,9 +31,18 @@ export class List extends React.Component {
 
     onItemSelect: React.PropTypes.func.isRequired,
 
+    count: React.PropTypes.number,
+
     data: React.PropTypes.shape({
       items: React.PropTypes.array
     })
+  };
+
+  // NOTE: React.defaultProps is called after Redux.
+  static defaults = (props) => {
+    return _.defaults({}, props, {
+      count: 20
+    });
   };
 
   componentWillReceiveProps(nextProps) {
@@ -46,8 +53,9 @@ export class List extends React.Component {
     this.props.onItemSelect(item);
   }
 
+  // TODO(burdon): Move down.
   handleLabelUpdate(item, label, add=true) {
-    let mutation = [
+    let mutations = [
       {
         field: 'labels',
         value: {
@@ -61,7 +69,7 @@ export class List extends React.Component {
       }
     ];
 
-    this.props.mutator.updateItem(item, mutation);
+    this.props.mutator.updateItem(item, mutations);
   }
 
   handleMore() {
@@ -82,7 +90,7 @@ export class List extends React.Component {
         <div ref="items" className="app-column app-scroll-container">
           {items.map(item =>
           <Item key={ item.id }
-                item={ ItemFragments.item.filter(item) }
+                item={ Item.Fragments.item.filter(item) }
                 icon={ TypeRegistry.icon(item.type) }
                 onSelect={ this.handleItemSelect.bind(this, item) }
                 onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
@@ -101,6 +109,8 @@ export class List extends React.Component {
 // Queries
 //
 
+// TODO(burdon): Factor out.
+
 const ItemsQuery = gql`
   query ItemsQuery($filter: FilterInput, $offset: Int, $count: Int) { 
 
@@ -117,26 +127,9 @@ const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
 
   return {
-    injector: minder.injector,
-
-    // TODO(burdon): This shouldn't be tied to the textbox (many lists).
-    text: minder.search.text
+    // Provide for Mutator.graphql
+    injector: minder.injector
   }
-};
-
-/**
- * Override current filter (redux state should trump filter set by parent).
- * @param filter
- * @param text
- */
-const updateFilter = (filter, text) => {
-  filter = _.omitBy(filter, (v) => v === null);
-
-  if (text) {
-    filter = queryParser.parse(text);
-  }
-
-  return filter;
 };
 
 export default compose(
@@ -148,16 +141,14 @@ export default compose(
     // Configure query variables.
     // http://dev.apollodata.com/react/queries.html#graphql-options
     options: (props) => {
-      let { filter, text } = props;
+      let { filter, count } = List.defaults(props);
 
       return {
         // TODO(burdon): Can we pass variables to fragments?
-        fragments: ItemFragments.item.fragments(),
+        fragments: Item.Fragments.item.fragments(),
 
         variables: {
-          filter: updateFilter(filter, text),
-          offset: 0,
-          count: 20   // TODO(burdon): Const.
+          filter, count, offset: 0
         },
 
         reducer: Reducer.reduce(props.injector.get(Matcher), TypeRegistry, UpdateItemMutation, ItemsQuery, filter),
@@ -166,20 +157,20 @@ export default compose(
 
     // Configure props passed to component.
     // http://dev.apollodata.com/react/queries.html#graphql-props
-    // http://dev.apollodata.com/react/pagination.html
     props: ({ ownProps, data }) => {
-      let { items, refetch, fetchMore } = data;
-      let { filter, text } = ownProps;
+      let { items } = data;
+      let { filter, count } = ownProps;
 
       return {
         data,
 
+        // Paging.
+        // http://dev.apollodata.com/react/pagination.html
         // http://dev.apollodata.com/react/cache-updates.html#fetchMore
         fetchMoreItems: () => {
-          return fetchMore({
+          return data.fetchMore({
             variables: {
-              filter: updateFilter(filter, text),
-              offset: items.length
+              filter, count, offset: items.length
             },
 
             updateQuery: (previousResult, { fetchMoreResult }) => {

@@ -6,12 +6,12 @@
 
 import React from 'react';
 
-import { TextBox } from 'minder-ux';
+import { TextBox } from './textbox';
 
 /**
  * Search bar.
  */
-export default class Search extends React.Component {
+export class SearchBar extends React.Component {
 
   static propTypes = {
     className:  React.PropTypes.string,
@@ -21,6 +21,10 @@ export default class Search extends React.Component {
 
   handleSearch(event) {
     this.props.onSearch(this.refs.text.value);
+  }
+
+  handleCancel(event) {
+    this.refs.text.value = '';
   }
 
   render() {
@@ -33,6 +37,7 @@ export default class Search extends React.Component {
                  autoFocus={ true }
                  placeholder='Search... [@type] [#label]'
                  value={ this.props.value}
+                 onCancel={ this.handleCancel.bind(this) }
                  onChange={ this.handleSearch.bind(this) }
         />
 

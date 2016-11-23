@@ -8,6 +8,9 @@
 // https://github.com/webpack/karma-webpack#alternative-usage
 // http://webpack.github.io/docs/context.html#require-context
 
-const context = require.context('.', true, /^\.\/.*_test\.js$/);
-console.log('[TESTS]\n' + context.keys().join('\n'));
-context.keys().forEach(context);
+const testsContext = require.context('.', true, /_test\.js$/);
+
+testsContext.keys().forEach(function(path) {
+  console.log('### TESTING [' + path + '] ###');
+  testsContext(path);
+});

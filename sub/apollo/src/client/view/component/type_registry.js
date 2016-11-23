@@ -21,27 +21,27 @@ class TypeRegistry {
   }
 
   render(item, userId) {
-    let value = this._types.get(item.type);
-    return value && value.render(item, userId) || (<div>NO TYPE HANDLER FOR [{ item.type }]</div>);
+    let spec = this._types.get(item.type);
+    return spec && spec.render(item, userId) || (<div>NO TYPE HANDLER FOR [{ item.type }]</div>);
+  }
+
+  // TODO(burdon): Factor out mutator requirements (provide object).
+  path(type) {
+    let spec = this._types.get(type);
+    return spec && spec.path;
   }
 
   icon(type) {
-    let values = this._types.get(type);
-    return values && values.icon || '';
-  }
-
-  // TODO(burdon): Varies by fragment (key off of Query).
-  path(type) {
-    let values = this._types.get(type);
-    return values && values.path;
+    let spec = this._types.get(type);
+    return spec && spec.icon || '';
   }
 
   get names() {
-    return _.map(Array.from(this._types.values()), (value) => value.fragment.item.document.definitions[0].name.value);
+    return _.map(Array.from(this._types.values()), (spec) => spec.fragment.item.document.definitions[0].name.value);
   }
 
   get fragments() {
-    return _.map(Array.from(this._types.values()), (value) => value.fragment.item.fragments());
+    return _.map(Array.from(this._types.values()), (spec) => spec.fragment.item.fragments());
   }
 }
 

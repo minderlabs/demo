@@ -29,14 +29,16 @@ export class TextBox extends React.Component {
   }
 
   static propTypes = {
-    autoFocus:    React.PropTypes.bool,
-    className:    React.PropTypes.string,
-    delay:        React.PropTypes.number,
-    onChange:     React.PropTypes.func,
-    onEnter:      React.PropTypes.func,
-    onKeyDown:    React.PropTypes.func,
-    placeholder:  React.PropTypes.string,
-    value:        React.PropTypes.string
+    autoFocus:      React.PropTypes.bool,
+    className:      React.PropTypes.string,
+    delay:          React.PropTypes.number,
+    onCancel:       React.PropTypes.func,
+    onChange:       React.PropTypes.func,
+    onEnter:        React.PropTypes.func,
+    onFocusChange:  React.PropTypes.func,
+    onKeyDown:      React.PropTypes.func,
+    placeholder:    React.PropTypes.string,
+    value:          React.PropTypes.string
   };
 
   static defaultProps = {
@@ -60,6 +62,8 @@ export class TextBox extends React.Component {
   set value(value) {
     this.setState({
       value: value
+    }, () => {
+      this.fireTextChange(true);
     });
   }
 
@@ -99,11 +103,12 @@ export class TextBox extends React.Component {
 
       // ESCAPE
       case 27: {
-        this.setState({
-          value: ''
-        }, () => {
-          this.fireTextChange(true);
-        });
+        this.props.onCancel && this.props.onCancel(this.value);
+        // this.setState({
+        //   value: ''
+        // }, () => {
+        //   this.fireTextChange(true);
+        // });
         break;
       }
     }

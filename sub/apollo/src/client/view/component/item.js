@@ -9,13 +9,16 @@ import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
 
 /**
- * Fragments.
+ * Defines properties needed by Item.
+ * NOTE: External definition used by static propTypes.
+ *
+ * @type {{item}}
  */
-export const ItemFragments = {
+const Fragments = {
 
   // https://github.com/apollostack/graphql-fragments
-  // http://dev.apollodata.com/react/fragments.html
   // http://dev.apollodata.com/core/fragments.html
+  // http://dev.apollodata.com/react/fragments.html
 
   item: new Fragment(gql`
     fragment ItemFragment on Item {
@@ -33,8 +36,13 @@ export const ItemFragments = {
  */
 export class Item extends React.Component {
 
+  /**
+   * Fragments.
+   */
+  static Fragments = Fragments;
+
   static propTypes = {
-    item: ItemFragments.item.propType,
+    item: Fragments.item.propType,
     onSelect: React.PropTypes.func.isRequired,
     onLabelUpdate: React.PropTypes.func.isRequired
   };
@@ -67,5 +75,3 @@ export class Item extends React.Component {
     );
   }
 }
-
-export default Item;

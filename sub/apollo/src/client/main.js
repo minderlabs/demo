@@ -13,7 +13,7 @@ import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
 
-import { IdGenerator, Injector, Matcher } from 'minder-core';
+import { IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
 
 import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
@@ -36,8 +36,9 @@ const config = window.config;
 //
 
 const injector = new Injector([
-  Injector.provider(new Matcher()),
   Injector.provider(new IdGenerator()),
+  Injector.provider(new Matcher()),
+  Injector.provider(new QueryParser()),
   Injector.provider(new QueryRegistry())
 ]);
 

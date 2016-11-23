@@ -8,7 +8,7 @@ import { Mutator, Reducer } from './mutations';
 
 describe('Mutations', () => {
 
-  it('.', () => {
-
+  it('SANE.', () => {
+    expect(true).to.equal(true);
   });
 });

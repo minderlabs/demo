@@ -42,9 +42,9 @@ class TypeRegistry {
     return props && props['render'](viewer, item) || null;
   }
 
-  values(type, element) {
+  values(type, component) {
     let props = this._types.get(type);
-    return props && props['values'](element) || {};
+    return props && props['values'](component) || {};
   }
 }
 

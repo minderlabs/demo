@@ -12,7 +12,7 @@ import _ from 'lodash';
 export class Matcher {
 
   match(filter, item) {
-    let text = _.lowerCase(filter.text);
+    let match = false;
 
     // Type match.
     if (filter.type && _.toLower(filter.type) != _.toLower(item.type)) {
@@ -32,12 +32,17 @@ export class Matcher {
       }
     }
 
-    // Text match.
-    if (text && _.lowerCase(item.title).indexOf(text) == -1) {
+    // Must match something.
+    if (filter.strict && !filter.text) {
       return false;
+    } else {
+      // Text match.
+      let text = _.lowerCase(filter.text);
+      if (text && _.lowerCase(item.title).indexOf(text) == -1) {
+        return false;
+      }
     }
 
-    // TODO(burdon): Filter option to skip if no positive match.
     return true;
   }
 }

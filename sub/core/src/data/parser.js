@@ -12,12 +12,32 @@ import _ from 'lodash';
 export class QueryParser {
 
   /**
+   * Determines if filter is empty (has no effect).
+   * @param filter
+   * @returns {boolean}
+   */
+  static isEmpty(filter) {
+    return _.isEmpty(filter.labels) && !filter.type && !filter.text;
+  }
+
+  /**
+   * Remove blank fields.
+   * @param filter
+   * @returns {*}
+   */
+  // TODO(burdon): Move to util.
+  static trim(filter) {
+    return _.omitBy(filter, (value, key) => _.isEmpty(value));
+  }
+
+  /**
    * Parse text query.
    * @param text Plain text from user
    * @returns {filter}
    */
   parse(text) {
     let filter = {
+      type: undefined,
       labels: [],
       text: ''
     };

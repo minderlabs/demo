@@ -6,33 +6,39 @@
 
 import React from 'react';
 
-import TextBox from './textbox';
+import { TextBox } from './textbox';
 
 import './picker.less';
 
 /**
  * Compact view of an Item.
  */
-class Picker extends React.Component {
+export class Picker extends React.Component {
 
   // TODO(burdon): Allow text input while paging.
 
   static propTypes = {
-    className:  React.PropTypes.string,
-    viewer:     React.PropTypes.object.isRequired,
-    filter:     React.PropTypes.object.isRequired,
-    value:      React.PropTypes.string
+    onTextChange:   React.PropTypes.func,
+    className:      React.PropTypes.string,
+    items:          React.PropTypes.array,
+    value:          React.PropTypes.string
   };
 
   constructor() {
     super(...arguments);
 
     this.state = {
+      value: null,
       showPopup: false
     };
 
     this._selected = null;
     this._focusTimeout = null;
+  }
+
+  get value() {
+    console.log('::::::::::');
+    return this.state.value;
   }
 
   handleListKeyDown(event) {
@@ -105,18 +111,18 @@ class Picker extends React.Component {
   }
 
   handleTextChange(text) {
-    this.props.relay.setVariables({
-      // Preserve type.
-      filter: _.assign({}, this.props.relay.variables.filter, {
-        text: text
-      })
-    });
+    this.props.onTextChange && this.props.onTextChange(text);
+  }
+
+  handleCancel() {
+    this.refs.textbox.value = '';
   }
 
   handleItemSelect(item) {
     this.refs.textbox.value = item.title;
     this.props.onSelect && this.props.onSelect(item);
     this.setState({
+      value: item.title,
       showPopup: false
     });
   }
@@ -127,24 +133,25 @@ class Picker extends React.Component {
   }
 
   render() {
-    let { viewer } = this.props;
+    let { items=[] } = this.props;
 
-    // TODO(burdon): Define props.
-    let placeholder = `Search ${this.props.filter.type}...`;
+    // TODO(burdon): Default props.
+    let placeholder = `Search...`;
 
-    let rows = viewer.items.edges.map((edge) => {
+    // TODO(burdon): Reuse List (for cursor).
+    let rows = items.map((item) => {
       return (
-        <input key={ edge.node.id }
+        <input key={ item.id }
                readOnly="readOnly"
-               defaultValue={ edge.node.title }
+               defaultValue={ item.title }
                onKeyDown={ this.handleListKeyDown.bind(this) }
-               onFocus={ this.handleItemFocusChange.bind(this, edge.node, true) }
-               onBlur={ this.handleItemFocusChange.bind(this, edge.node, false) }
-               onClick={ this.handleItemSelect.bind(this, edge.node) }/>
+               onFocus={ this.handleItemFocusChange.bind(this, item, true) }
+               onBlur={ this.handleItemFocusChange.bind(this, item, false) }
+               onClick={ this.handleItemSelect.bind(this, item) }/>
       );
     });
 
-    let className = _.join([this.props.className, 'app-picker'], ' ');
+    let className = _.join(['app-picker', this.props.className], ' ');
 
     return (
       <div className={ className }>
@@ -152,8 +159,9 @@ class Picker extends React.Component {
           <TextBox ref="textbox"
                    value={ this.props.value }
                    placeholder={ placeholder }
+                   onCancel={ this.handleCancel.bind(this) }
+                   onChange={ this.handleTextChange.bind(this) }
                    onKeyDown={ this.handleTextKeyDown.bind(this) }
-                   onTextChange={ this.handleTextChange.bind(this) }
                    onFocusChange={ this.handleTextFocusChange.bind(this) }/>
         </div>
 
