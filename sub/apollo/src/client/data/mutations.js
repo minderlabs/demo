@@ -6,10 +6,6 @@
 
 import gql from 'graphql-tag';
 
-// TODO(burdon): Move TypeRegistry to core (sans UX).
-// TODO(burdon): Pass into mutation generator.
-import TypeRegistry from '../view/component/type_registry';
-
 /**
  * Upsert item.
  */

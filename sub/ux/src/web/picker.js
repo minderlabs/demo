@@ -28,6 +28,7 @@ export class Picker extends React.Component {
     super(...arguments);
 
     this.state = {
+      text: this.props.value,     // Manage child textbox's state.
       value: null,
       showPopup: false
     };
@@ -37,7 +38,6 @@ export class Picker extends React.Component {
   }
 
   get value() {
-    console.log('::::::::::');
     return this.state.value;
   }
 
@@ -112,6 +112,9 @@ export class Picker extends React.Component {
 
   handleTextChange(text) {
     this.props.onTextChange && this.props.onTextChange(text);
+    this.setState({
+      text: text
+    });
   }
 
   handleCancel() {
@@ -155,15 +158,13 @@ export class Picker extends React.Component {
 
     return (
       <div className={ className }>
-        <div>
-          <TextBox ref="textbox"
-                   value={ this.props.value }
-                   placeholder={ placeholder }
-                   onCancel={ this.handleCancel.bind(this) }
-                   onChange={ this.handleTextChange.bind(this) }
-                   onKeyDown={ this.handleTextKeyDown.bind(this) }
-                   onFocusChange={ this.handleTextFocusChange.bind(this) }/>
-        </div>
+        <TextBox ref="textbox"
+                 value={ this.state.text }
+                 placeholder={ placeholder }
+                 onCancel={ this.handleCancel.bind(this) }
+                 onChange={ this.handleTextChange.bind(this) }
+                 onKeyDown={ this.handleTextKeyDown.bind(this) }
+                 onFocusChange={ this.handleTextFocusChange.bind(this) }/>
 
         <div ref="items" className="app-picker-popup" style={ {'display': this.state.showPopup ? 'block' : 'none' } }>
           <div>

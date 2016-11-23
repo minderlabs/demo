@@ -17,6 +17,7 @@ import { IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
 
 import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
+import { TypeRegistry } from './view/component/type_registry';
 
 import Application from './app';
 import networkInterface from './network';
@@ -39,7 +40,8 @@ const injector = new Injector([
   Injector.provider(new IdGenerator()),
   Injector.provider(new Matcher()),
   Injector.provider(new QueryParser()),
-  Injector.provider(new QueryRegistry())
+  Injector.provider(new QueryRegistry()),
+  Injector.provider(TypeRegistry.singleton)
 ]);
 
 

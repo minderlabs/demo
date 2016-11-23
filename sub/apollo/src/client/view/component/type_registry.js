@@ -14,7 +14,14 @@ import Task,  { TaskFragments   } from './type/task';
 /**
  * Type registry.
  */
-class TypeRegistry {
+export class TypeRegistry {
+
+  // TODO(burdon): Support different views per type.
+
+  // TODO(burdon): Remove (currently needed for static query defs).
+  static get singleton() {
+    return registry;
+  };
 
   constructor() {
     this._types = new Map();
@@ -56,7 +63,18 @@ registry._types.set('User', {
 registry._types.set('Group', {
   fragment: GroupFragments,
   render: (item, userId) => <Group userId={ userId } item={ item }/>,
-  icon: 'group'
+  icon: 'group',
+
+  path: (previousResult, item, op) => {
+
+    // TODO(burdon): Move to MuationContextManager (manages map of fragments and paths).
+
+    // Find associated member.
+    let members = _.get(previousResult, 'item.members');
+    let idx = _.findIndex(members, (member) => member.id === _.get(item, 'assignee.id'));
+    console.assert(idx);
+    return { item: { members: { [idx]: { tasks: op } } } };
+  }
 });
 
 registry._types.set('Place', {
@@ -68,18 +86,5 @@ registry._types.set('Place', {
 registry._types.set('Task', {
   fragment: TaskFragments,
   render: (item, userId) => <Task  userId={ userId } item={ item }/>,
-  icon: 'assignment_turned_in',
-
-  // TODO(burdon): Move to MuationContextManager (manages map of fragments and paths).
-  path: (previousResult, item, op) => {
-    // Find associated member.
-    let idx = _.findIndex(_.get(previousResult, 'item.members'), (member) => member.id === _.get(item, 'assignee.id'));
-    if (idx === -1) {
-      console.warn('INVALID PATH', item, _.get(previousResult, 'item.members'));
-    } else {
-      return { item: { members: { [idx]: { tasks: op } } } };
-    }
-  }
+  icon: 'assignment_turned_in'
 });
-
-export default registry;

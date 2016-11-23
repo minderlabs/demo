@@ -45,18 +45,22 @@ export class TextBox extends React.Component {
     delay: 100
   };
 
+  static initialState(props) {
+    return {
+      value: props.value || ''
+    }
+  }
+
   constructor() {
     super(...arguments);
 
-    this.state = {};
+    this.state = TextBox.initialState(this.props);
 
     this._timeout = Async.timeout(this.props.delay);
   }
 
   componentWillReceiveProps(nextProps) {
-    this.state = {
-      value: nextProps.value || ''
-    }
+    this.state = TextBox.initialState(nextProps);
   }
 
   get value() {

@@ -4,10 +4,9 @@
 
 'use strict';
 
-import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
+import { graphql } from 'react-apollo';
 
-// TODO(burdon): Move to core and factor out with list.
 // TODO(burdon): Pass in fragment.
 
 const ItemsQuery = gql`
@@ -21,8 +20,10 @@ const ItemsQuery = gql`
   }
 `;
 
-// TODO(burdon): Name ItemsQueryWrapper
-export default graphql(ItemsQuery, {
+/**
+ * Wraps ItemsQuery managing filters.
+ */
+export const ItemsQueryWrapper = graphql(ItemsQuery, {
 
   options: (props) => {
     let { filter, count } = props;

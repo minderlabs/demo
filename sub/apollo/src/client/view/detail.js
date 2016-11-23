@@ -10,12 +10,12 @@ import { goBack } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { Matcher, Mutator, Reducer } from 'minder-core';
+import { Matcher, Mutator, MutationUtil, Reducer, TypeUtil } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
-import TypeRegistry from './component/type_registry'; // TODO(burdon): Inject.
+import { TypeRegistry } from './component/type_registry';
 
 /**
  * Detail view.
@@ -50,18 +50,13 @@ class DetailView extends React.Component {
   handleSave(item) {
     let mutations = [];
 
-    // TODO(burdon): Generalize.
-    if (this.props.data.item.title != this.refs.title.value) {
-      mutations.push({
-        field: 'title',
-        value: {
-          string: this.refs.title.value
-        }
-      });
-    }
+    // Item values.
+    TypeUtil.maybeAppend(mutations,
+      MutationUtil.field('title', 'string', this.refs.title.value, item.title));
 
-    // Get state from types.
-    mutations = [...mutations, ...(this.refs[DetailView.DETAIL_REF].mutations || [])];
+    // Detail type values.
+    TypeUtil.maybeAppend(mutations, this.refs[DetailView.DETAIL_REF].mutations);
+
     console.log('Mutations: %s', JSON.stringify(mutations));
 
     if (mutations.length) {
@@ -78,15 +73,14 @@ class DetailView extends React.Component {
   render() {
     let { item } = this.props.data;
 
-    console.log('############', JSON.stringify(item));
-
     // TODO(burdon): Can we ensure component is well-formed?
     if (!item) {
       return <div/>;
     }
 
     // Get detail component and add reference.
-    let detail =  React.cloneElement(TypeRegistry.render(item, this.props.userId), {
+    let typeRegistry = this.props.injector.get(TypeRegistry);
+    let detail =  React.cloneElement(typeRegistry.render(item, this.props.userId), {
       ref: DetailView.DETAIL_REF
     });
 
@@ -128,13 +122,14 @@ const DetailQuery = gql`
   query DetailQuery($itemId: ID!) { 
     
     item(itemId: $itemId) {
+      __typename
+
       id
       type
       labels
       title
       
-      __typename
-      ${_.map(TypeRegistry.names, (name) => '...' + name).join('\n')}
+      ${_.map(TypeRegistry.singleton.names, (name) => '...' + name).join('\n')}
     }
   }
 `;
@@ -162,15 +157,18 @@ export default compose(
 
   graphql(DetailQuery, {
     options: (props) => {
+      let matcher = props.injector.get(Matcher);
+      let typeRegistry = props.injector.get(TypeRegistry);
+
       return {
-        fragments: TypeRegistry.fragments,
+        fragments: typeRegistry.fragments,
 
         variables: {
           itemId: props.params.itemId
         },
 
         // TODO(burdon): Provide multiple sets (different fragments).
-        reducer: Reducer.reduce(props.injector.get(Matcher), TypeRegistry, UpdateItemMutation, DetailQuery)
+        reducer: Reducer.reduce(matcher, typeRegistry, UpdateItemMutation, DetailQuery)
       };
     }
   }),

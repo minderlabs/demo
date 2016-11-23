@@ -83,29 +83,38 @@ export class Reducer {
         console.assert(updatedItem);
         console.log('Reducer[%s:%s]: %s', queryName, action.operationName, JSON.stringify(updatedItem));
 
+        let transform = null;
+
         //
-        //
-        // TODO(burdon): Check if update (on single item not list)
-        //
+        // Update items list within item (e.g., tasks for member of team).
         //
 
-        console.log('!!!!', TypeUtil.JSON(previousResult));
+        if (previousResult.item) {
+          console.log('Update item: %s', previousResult.item.type);
+
+          // TODO(burdon): Assume add.
+          let op = { $push: [updatedItem] };
+
+          // TODO(burdon): Instead of this should have MutationContext that understands the Query "shape".
+          //  E.g., "Task" may be updated in different contexts (Task List, Team page, etc.)
+          let path = typeRegistry.path(previousResult.item.type);
+          if (path) {
+            transform = path(previousResult, updatedItem, op);
+          }
+        }
+
+        //
+        // Update list (e.g., favorites).
+        //
+
         if (previousResult.items) {
+          console.log('Update items.');
 
           // Determine if currently matches filter.
           let match = matcher.match(filter, updatedItem);
 
           // If no match, is this new? (otherwise must be removed).
           let insert = match && _.findIndex(previousResult.items, item => item.id === updatedItem.id) === -1;
-
-          // Update list.
-          console.log('UP LIST', match, insert);
-
-          // TODO(burdon): Use path.
-          // https://github.com/kolodny/immutability-helper
-          // https://facebook.github.io/react/docs/update.html#available-commands
-          update.extend('$remove', (item, items) => _.filter(items, item => item.id !== updatedItem.id));
-
 
           // NOTE: DO NOTHING IF JUST CHANGE ITEM.
           let op = null;
@@ -117,21 +126,23 @@ export class Reducer {
           } else if (!match) {
             // Remove item from list.
             console.log('REMOVE: %s', updatedItem.id);
+
+            // TODO(burdon): Use path.
+            // TODO(burdon): Just use apply?
+            // https://github.com/kolodny/immutability-helper
+            // https://facebook.github.io/react/docs/update.html#available-commands
+            update.extend('$remove', (item, items) => _.filter(items, item => item.id !== updatedItem.id));
             op = { $remove: updatedItem };
           }
 
           if (op) {
-            // TODO(burdon): Instead of this should have MutationContext that understands the Query "shape".
-            //  E.g., "Task" may be updated in different contexts (Task List, Team page, etc.)
-            let path = typeRegistry.path(updatedItem.type);
-            let transform = path && path(previousResult, updatedItem, op);
-            if (!transform) {
-              transform = { items: op };
-            }
-
-            console.log('Transform: %s', TypeUtil.JSON(previousResult), JSON.stringify(transform, 0, 2));
-            result = update(previousResult, transform);
+            transform = { items: op };
           }
+        }
+
+        if (transform) {
+          console.log('Transform: %s', TypeUtil.JSON(previousResult), JSON.stringify(transform));
+          result = update(previousResult, transform);
         }
       }
 
@@ -142,12 +153,37 @@ export class Reducer {
 }
 
 /**
+ * Utils to create mutations.
+ */
+export class MutationUtil {
+
+  /**
+   *
+   * @param field
+   * @param type
+   * @param oldValue
+   * @param newValue
+   * @returns {{field: *, value: {}}}
+   */
+  static field(field, type, newValue, oldValue=undefined) {
+
+    // TODO(burdon): If newValue is undefined then remove? Different semantics from "only if set").
+    if (!_.isEmpty(newValue) && newValue !== oldValue) {
+      return {
+        field: field,
+        value: {
+          [type]: newValue
+        }
+      };
+    }
+  }
+}
+
+/**
  * Helper class that manages item mutations.
  * The Mutator is used directly by components to create and update items.
  */
 export class Mutator {
-
-  // TODO(burdon): Static helpers to create object/array mutations (e.g., add delete label).
 
   /**
    * Returns a standard mutation wrapper supplied to redux's combine() method.

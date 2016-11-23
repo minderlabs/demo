@@ -8,7 +8,9 @@ import React from 'react';
 import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
 
-import ListPicker from '../list_picker';
+import { MutationUtil, TypeUtil } from 'minder-core';
+
+import ItemsPicker from '../items_picker';
 
 /**
  * Fragments.
@@ -48,18 +50,11 @@ export default class Task extends React.Component {
   // TODO(burdon): Base class for values.
   get mutations() {
     let { item } = this.props;
+
     let mutations = [];
 
-    // TODO(burdon): Generalize utils.
-    let value = _.get(this._values, 'assignee');
-    if (!_.isEmpty(value) && value !== _.get(item, 'assignee.id')) {
-      mutations.push({
-        field: 'assignee',
-        value: {
-          id: value
-        }
-      });
-    }
+    TypeUtil.maybeAppend(mutations,
+      MutationUtil.field('assignee', 'id', _.get(this._values, 'assignee'), _.get(item, 'assignee.id')));
 
     return mutations;
   }
@@ -87,9 +82,9 @@ export default class Task extends React.Component {
           <tr>
             <td>Assignee</td>
             <td>
-              <ListPicker filter={ filter }
-                          value={ _.get(item, 'assignee.title') }
-                          onSelect={ this.handleSelectPicker.bind(this, 'assignee') }/>
+              <ItemsPicker filter={ filter }
+                           value={ _.get(item, 'assignee.title') }
+                           onSelect={ this.handleSelectPicker.bind(this, 'assignee') }/>
             </td>
           </tr>
           </tbody>

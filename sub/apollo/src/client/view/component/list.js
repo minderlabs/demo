@@ -14,7 +14,7 @@ import { Matcher, Mutator, Reducer } from 'minder-core';
 import { UpdateItemMutation } from '../../data/mutations';
 import { QueryRegistry } from '../../data/subscriptions';
 
-import TypeRegistry from './type_registry'; // TODO(burdon): Inject.
+import { TypeRegistry } from './type_registry';
 
 import { Item } from './item';
 
@@ -83,6 +83,8 @@ export class List extends React.Component {
   render() {
     let { items=[] } = this.props.data;
 
+    let typeRegistry = this.props.injector.get(TypeRegistry);
+
     // TODO(burdon): Track scroll position in redux so that it can be restored.
 
     return (
@@ -91,7 +93,7 @@ export class List extends React.Component {
           {items.map(item =>
           <Item key={ item.id }
                 item={ Item.Fragments.item.filter(item) }
-                icon={ TypeRegistry.icon(item.type) }
+                icon={ typeRegistry.icon(item.type) }
                 onSelect={ this.handleItemSelect.bind(this, item) }
                 onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
           )}
@@ -115,8 +117,9 @@ const ItemsQuery = gql`
   query ItemsQuery($filter: FilterInput, $offset: Int, $count: Int) { 
 
     items(filter: $filter, offset: $offset, count: $count) {
-      id
       __typename
+
+      id
       
       ...ItemFragment
     }
@@ -143,6 +146,9 @@ export default compose(
     options: (props) => {
       let { filter, count } = List.defaults(props);
 
+      let matcher = props.injector.get(Matcher);
+      let typeRegistry = this.props.injector.get(TypeRegistry);
+
       return {
         // TODO(burdon): Can we pass variables to fragments?
         fragments: Item.Fragments.item.fragments(),
@@ -151,7 +157,7 @@ export default compose(
           filter, count, offset: 0
         },
 
-        reducer: Reducer.reduce(props.injector.get(Matcher), TypeRegistry, UpdateItemMutation, ItemsQuery, filter),
+        reducer: Reducer.reduce(matcher, typeRegistry, UpdateItemMutation, ItemsQuery, filter),
       }
     },
 

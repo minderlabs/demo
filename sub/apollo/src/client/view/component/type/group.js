@@ -57,12 +57,14 @@ export default class Group extends React.Component {
 
   handleAddTask(member) {
     this.setState({
+
+      // Add task for member.
       inlineEdit: member
     });
   }
 
   handleCreateTask(member, text) {
-    let mutation = [
+    let mutations = [
       {
         field: 'title',
         value: {
@@ -83,7 +85,7 @@ export default class Group extends React.Component {
       }
     ];
 
-    this.context.mutator.createItem('Task', mutation);
+    this.context.mutator.createItem('Task', mutations);
 
     this.setState({
       inlineEdit: null
