@@ -18,6 +18,8 @@ import { TypeRegistry } from './type_registry';
 
 import { Item } from './item';
 
+import './list.less';
+
 /**
  * Item List.
  *
@@ -86,13 +88,16 @@ export class List extends React.Component {
 
     // TODO(burdon): Track scroll position in redux so that it can be restored.
 
+    // Only show icon if type isn't constrained.
+    let showIcon = !this.props.filter.type;
+
     return (
       <div className="app-column app-list">
         <div ref="items" className="app-column app-scroll-container">
           {items.map(item =>
           <Item key={ item.id }
                 item={ Item.Fragments.item.filter(item) }
-                icon={ typeRegistry.icon(item.type) }
+                icon={ showIcon && typeRegistry.icon(item.type) }
                 onSelect={ this.handleItemSelect.bind(this, item) }
                 onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
           )}

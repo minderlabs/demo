@@ -15,13 +15,7 @@ import './status.less';
  */
 export class StatusBar extends React.Component {
 
-  static BUTTON = {
-    BUG:      0,
-    REFRESH:  1,
-    CLIENTS:  2,
-    GRAPH:    3,
-    ERROR:    4
-  };
+  // TODO(burdon): Pass in model?
 
   static propTypes = {
     onClick: React.PropTypes.func
@@ -40,7 +34,7 @@ export class StatusBar extends React.Component {
   showNetwork() {
     this.setState({
       network: true
-    }),
+    });
 
     this._netIconTimeout(() => {
       this.setState({
@@ -61,13 +55,13 @@ export class StatusBar extends React.Component {
     return (
       <div className="app-toolbar app-status-toolbar">
         <div>
-          <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, StatusBar.BUTTON.BUG) }>bug_report</i>
-          <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, 'refresh') }>refresh</i>
+          <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, 'bug') }>bug_report</i>
           <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, 'clients') }>dns</i>
           <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, 'graph') }>share</i>
         </div>
         <div>
           <i className={ "app-icon material-icons " + netrops.className || '' }>wifi</i>
+          <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, 'refresh') }>refresh</i>
           <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, 'error') }>check</i>
         </div>
       </div>

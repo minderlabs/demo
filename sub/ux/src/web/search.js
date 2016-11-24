@@ -41,7 +41,7 @@ export class SearchBar extends React.Component {
                  onChange={ this.handleSearch.bind(this) }
         />
 
-        <button onClick={ this.handleSearch.bind(this) }>Search</button>
+        <i className="app-icon material-icons" onClick={ this.handleSearch.bind(this) }>search</i>
       </div>
     );
   }

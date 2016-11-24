@@ -59,6 +59,10 @@ export class QueryParser {
             filter.labels.push('_favorite');  // TODO(burdon): Const.
             break;
           }
+
+          case 'del': {
+            filter.labels.push('_deleted');  // TODO(burdon): Const.
+          }
         }
         return;
       }

@@ -34,8 +34,14 @@ class Layout extends React.Component {
     })
   };
 
-  handleRefresh() {
-    this.props.queryRegistry.refetch();
+  handleToolbarClick(id) {
+    console.log(id);
+    switch (id) {
+      case 'refresh': {
+        this.props.queryRegistry.refetch();
+        break;
+      }
+    }
   }
 
   render() {
@@ -80,17 +86,7 @@ class Layout extends React.Component {
             * Footer.
             */}
           <div className="app-footer">
-            <StatusBar/>
-
-            {/*
-            <div className="app-row app-expand">
-              <i className="material-icons" onClick={ this.handleRefresh.bind(this) }>refresh</i>
-            </div>
-
-            <div>
-              <div>{ this.props.data.loading ? 'LOADING' : this.props.data.error ? 'ERROR' : 'OK' }</div>
-            </div>
-            */}
+            <StatusBar onClick={ this.handleToolbarClick.bind(this) }/>
           </div>
 
           {/*

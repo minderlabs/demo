@@ -9,6 +9,8 @@ import { Link } from 'react-router'
 
 import { ID } from 'minder-core';
 
+import './folders.less';
+
 /**
  *
  */
@@ -18,7 +20,7 @@ export class Folders extends React.Component {
 
   render() {
     return (
-      <div className="app-folder-items app-section app-column">
+      <div className="app-folder-items app-column">
         <Link to="/inbox">Inbox</Link>
         <Link to="/favorites">Favorites</Link>
         <Link to="/deleted">Deleted</Link>

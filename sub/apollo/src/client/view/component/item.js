@@ -51,26 +51,30 @@ export class Item extends React.Component {
     this.props.onSelect(this.props.item);
   }
 
-  handleToggleFavorite() {
+  handleToggleLabel(label) {
     let { item } = this.props;
-    this.props.onLabelUpdate(item, '_favorite', _.indexOf(item.labels, '_favorite') == -1);
+    this.props.onLabelUpdate(item, label, _.indexOf(item.labels, label) == -1);
   }
 
   render() {
     let { item, icon } = this.props;
 
+    // TODO(burdon): Const for labels.
+
     return (
-      <div className="app-list-item app-row">
-        <i className="material-icons"
-           onClick={ this.handleToggleFavorite.bind(this) }>
+      <div className="app-list-item app-row app-data-row">
+        <i className="app-icon material-icons"
+           onClick={ this.handleToggleLabel.bind(this, '_favorite') }>
           { _.indexOf(item.labels, '_favorite') == -1 ? 'star_border' : 'star' }
         </i>
 
-        <div className="app-expand"
+        <div className="app-text app-expand"
            onClick={ this.handleSelect.bind(this) }>{ item.title }
         </div>
 
-        <i className="material-icons">{ icon }</i>
+        <i className="app-icon app-icon-type material-icons">{ icon }</i>
+        <i className="app-icon app-icon-delete material-icons"
+           onClick={ this.handleToggleLabel.bind(this, '_deleted') }>cancel</i>
       </div>
     );
   }

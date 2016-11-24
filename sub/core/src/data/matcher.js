@@ -12,7 +12,7 @@ import _ from 'lodash';
 export class Matcher {
 
   match(filter, item) {
-    let match = false;
+//  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
 
     // Type match.
     if (filter.type && _.toLower(filter.type) != _.toLower(item.type)) {
@@ -20,8 +20,8 @@ export class Matcher {
     }
 
     // Deleted.
-    if (_.findIndex(item.labels, '_deleted') != -1 &&
-        _.findIndex(filter.labels, '_deleted') == -1) { // TODO(burdon): Const.
+    if (_.indexOf(item.labels, '_deleted') != -1 &&
+        _.indexOf(filter.labels, '_deleted') == -1) { // TODO(burdon): Const.
       return false;
     }
 
