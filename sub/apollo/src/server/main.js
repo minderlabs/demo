@@ -14,6 +14,7 @@ import handlebars from 'express-handlebars';
 import { Database, Randomizer, graphqlRouter } from 'minder-graphql';
 
 import { appRouter, hotRouter } from './app';
+import { loginRouter } from './login';
 import { loggingRouter } from './logger';
 
 
@@ -46,12 +47,11 @@ app.use('/', loggingRouter());
 
 const database = new Database();
 
-const data = require('./testing/test.json');
-_.each(data, (items, type) => {
+_.each(require('./testing/test.json'), (items, type) => {
   database.upsertItems(_.map(items, (item) => ({ type, ...item })));
 });
 
-const randomizer = new Randomizer(database)
+new Randomizer(database)
   .generate('Contact',  20)
   .generate('Place',    10)
   .generate('Task',     20,
@@ -77,7 +77,14 @@ if (env === 'hot') {
 // App
 //
 
-app.use(appRouter({ env: env }));
+app.use(loginRouter({
+  env: env,
+  users: database.queryItems({ type: 'User' })
+}));
+
+app.use(appRouter({
+  env: env
+}));
 
 
 //
@@ -86,14 +93,26 @@ app.use(appRouter({ env: env }));
 //
 
 app.engine('handlebars', handlebars({
+
+  layoutsDir: path.join(__dirname, 'views/layouts'),
+
+  defaultLayout: 'main',
+
   helpers: {
-    toJSON : function(object) {
+
+    section: function(name, options) {
+      if (!this.sections) { this.sections = {}; }
+      this.sections[name] = options.fn(this);
+    },
+
+    toJSON: function(object) {
       return JSON.stringify(object);
     }
   }
 }));
 
 app.set('view engine', 'handlebars');
+
 app.set('views', path.join(__dirname, 'views'));
 
 

@@ -206,7 +206,7 @@ app.post('/login', function(req, res) {
     res.redirect('/login');
   } else {
     // Set user cookie.
-    res.cookie('username', username, {});
+    res.cookie(USER_COOKE, username, {});
 
     // Redirect to app.
     res.redirect('/');

@@ -1,0 +1,47 @@
+/**
+ * Copyright 2016 Minder Labs.
+ */
+
+.title {
+  display: flex;
+  flex-direction: row;
+
+  margin-top: 80px;
+
+  color: white;
+  font-size: 60px;
+  font-family: Poiret One, sans-serif;
+  font-weight: 100;
+  letter-spacing: 10px;
+}
+
+.title div:first-child {
+  transition-duration: 1000ms;
+
+  width: 400px;
+  flex-grow: 1;
+  text-align: right;
+  opacity: .4;
+}
+.title div:last-child {
+  transition-duration: 1000ms;
+
+  width: 470px;
+  flex-grow: 1;
+  text-align: left;
+  opacity: .4;
+}
+
+.title div.mind {
+  opacity: .8;
+  color: whitesmoke;
+  transition-duration: 500ms;
+}
+.title.bright div.mind {
+  color: white;
+  opacity: 1;
+}
+
+.title div.fade {
+  opacity: 0;
+}

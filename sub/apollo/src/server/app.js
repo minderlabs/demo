@@ -9,6 +9,64 @@ import express from 'express';
 import moment from 'moment';
 import path from 'path';
 
+import { USER_COOKE } from './login';
+
+//
+// Client bundles (map NODE_ENV to bundle).
+// See webpack.config.js
+//
+
+const WEBPACK_BUNDLE = {
+  "test":         "test",
+  "development":  "main",
+  "production":   "main",
+  "hot":          "hot"
+};
+
+/**
+ * Sets-up serving the app (and related assets).
+ *
+ * @param options
+ * @returns {core.Router|*}
+ */
+export const appRouter = (options) => {
+  const router = express.Router();
+
+  options = _.defaults(options, {
+    env: 'development',
+    graphql: '/graphql'
+  });
+
+  // Public assets.
+  // https://expressjs.com/en/starter/static-files.html
+  router.use(express.static(path.join(__dirname, 'public')));
+
+  // Webpack assets.
+  router.use('/assets', express.static(path.join(__dirname, '../../dist')));
+
+  // Client.
+  router.get(/^\/(.*)/, function(req, res) {
+    let username = req.cookies[USER_COOKE];
+    if (!username) {
+      res.redirect('/login');
+    } else {
+      res.render('app', {
+        app: WEBPACK_BUNDLE[options.env],
+        config: {
+          root: 'app-root',
+          userId: username,
+          graphql: options.graphql,
+          debug: {
+            env: options.env
+          }
+        }
+      });
+    }
+  });
+
+  return router;
+};
+
 //
 // Webpack Hot Module Replacement (HMR)
 // NOTE: This replaces the stand-alone webpack-dev-server
@@ -44,42 +102,6 @@ export const hotRouter = (options) => {
   router.use(webpackHotMiddleware(compiler, {
     log: (msg) => console.log('### [%s] %s ###', moment().format('hh:mm:ss'), msg)
   }));
-
-  return router;
-};
-
-//
-// Client bundles (map NODE_ENV to bundle).
-// See webpack.config.js
-//
-
-const WEBPACK_BUNDLE = {
-  "test":         "test",
-  "development":  "main",
-  "production":   "main",
-  "hot":          "hot"
-};
-
-export const appRouter = (options) => {
-  const router = express.Router();
-
-  options = _.defaults(options, { env: 'development', graphql: '/graphql' });
-
-  router.use('/assets', express.static(path.join(__dirname, '../../dist')));
-
-  router.get(/^\/(.*)/, function(req, res) {
-    res.render('home', {
-      app: WEBPACK_BUNDLE[options.env],
-      config: {
-        root: 'app-root',
-        userId: 'tester',    // TODO(burdon): OAuth cookie.
-        graphql: options.graphql,
-        debug: {
-          env: options.env
-        }
-      }
-    });
-  });
 
   return router;
 };

@@ -1,0 +1,12 @@
+{{#section 'head'}}
+  <link rel="stylesheet" href="/assets/{{ app }}.css">
+{{/section}}
+
+<div id="{{ config.root }}"></div>
+
+{{!-- Safestring syntax. --}}
+<script>
+  window.config = {{{ toJSON config }}};
+</script>
+
+<script src="/assets/{{ app }}.bundle.js"></script>

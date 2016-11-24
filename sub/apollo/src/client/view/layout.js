@@ -61,7 +61,10 @@ class Layout extends React.Component {
               <h1>Apollo Demo</h1>
             </div>
             <div>
-              { viewer && viewer.user.title }
+              <ul>
+                <li>{ viewer && viewer.user.title }</li>
+                <li><a href="/logout">Logout</a></li>
+              </ul>
             </div>
           </div>
 

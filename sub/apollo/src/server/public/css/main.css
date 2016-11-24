@@ -1,0 +1,78 @@
+/**
+ * Copyright 2016 Minder Labs.
+ */
+
+body {
+  display: flex;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: 0;
+
+  background-color: #185588;
+
+  font-family: Roboto, sans-serif;
+}
+
+input, button {
+  outline: none;
+  font-size: 20px;
+  border: 1px solid darkgray;
+  padding: 4px;
+}
+button:hover,
+button:focus {
+  background-color: #DDD;
+}
+
+.app-header {
+  margin-bottom: 16px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-weight: 100;
+  font-size: 30px;
+}
+
+.app-logo {
+  font-size: 30px;
+  color: #185588;
+}
+
+.app-container {
+  display: flex;
+  flex-grow: 1;
+  justify-content: center;
+}
+
+.app-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.app-login-container {
+  display: flex;
+  justify-content: center;
+}
+
+.app-login {
+  width: 400px;
+  background-color: whitesmoke;
+  box-shadow: 4px 4px 16px darkslategray;
+  padding: 24px 16px;
+}
+
+.app-row {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  align-items: center;
+}
+
+.app-expand {
+  flex-grow: 1;
+}
