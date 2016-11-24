@@ -86,21 +86,17 @@ export class Reducer {
         let transform = null;
 
         //
-        // Update items list within item (e.g., tasks for member of team).
+        // Update item.
+        // Check with TypeRegistry to potentially do complex merge (e.g., update task for member of team).
         //
 
         if (previousResult.item) {
-          console.log('Update item: %s', previousResult.item.type);
-
-          // TODO(burdon): Assume add.
-          let op = { $push: [updatedItem] };
+          console.log('Update item: %s', TypeUtil.JSON(previousResult));
 
           // TODO(burdon): Instead of this should have MutationContext that understands the Query "shape".
           //  E.g., "Task" may be updated in different contexts (Task List, Team page, etc.)
           let path = typeRegistry.path(previousResult.item.type);
-          if (path) {
-            transform = path(previousResult, updatedItem, op);
-          }
+          transform = path && path(matcher, previousResult, updatedItem);
         }
 
         //
@@ -108,7 +104,7 @@ export class Reducer {
         //
 
         if (previousResult.items) {
-          console.log('Update items.');
+          console.log('Update items: %s', TypeUtil.JSON(previousResult));
 
           // Determine if currently matches filter.
           let match = matcher.match(filter, updatedItem);
@@ -141,7 +137,7 @@ export class Reducer {
         }
 
         if (transform) {
-          console.log('Transform: %s', TypeUtil.JSON(previousResult), JSON.stringify(transform));
+          console.log('Transform: %s', TypeUtil.JSON(previousResult), JSON.stringify(transform, 0, 2));
           result = update(previousResult, transform);
         }
       }

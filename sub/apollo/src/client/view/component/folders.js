@@ -18,9 +18,11 @@ export class Folders extends React.Component {
 
   render() {
     return (
-      <div className="app-section app-column">
+      <div className="app-folder-items app-section app-column">
         <Link to="/inbox">Inbox</Link>
         <Link to="/favorites">Favorites</Link>
+        <Link to="/deleted">Deleted</Link>
+
         <Link to={ '/team/' + ID.toGlobalId('Group', 'minderlabs') }>Team</Link>
       </div>
     );

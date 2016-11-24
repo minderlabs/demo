@@ -19,6 +19,12 @@ export class Matcher {
       return false;
     }
 
+    // Deleted.
+    if (_.findIndex(item.labels, '_deleted') != -1 &&
+        _.findIndex(filter.labels, '_deleted') == -1) { // TODO(burdon): Const.
+      return false;
+    }
+
     // Label match.
     if (!_.isEmpty(filter.labels) && _.intersection(filter.labels, item.labels).length == 0) {
       return false;

@@ -4,6 +4,14 @@
 
 // TODO(burdon): Factor out style defs and components (see relay).
 
+// TODO(burdon): Import from ux?
+.app-noselect {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 body {
   margin: 0;
   overflow: hidden;
@@ -209,6 +217,7 @@ i.material-icons {
 }
 
 .app-icon {
+  .app-noselect;
 }
 .app-icon-add:after {
   color: #999;

@@ -65,14 +65,43 @@ registry._types.set('Group', {
   render: (item, userId) => <Group userId={ userId } item={ item }/>,
   icon: 'group',
 
-  path: (previousResult, item, op) => {
+  path: (matcher, previousResult, item) => {
 
     // TODO(burdon): Move to MuationContextManager (manages map of fragments and paths).
+    // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
+    // TODO(burdon): First pass: factor out common parts with Reducer.
 
     // Find associated member.
     let members = _.get(previousResult, 'item.members');
-    let idx = _.findIndex(members, (member) => member.id === _.get(item, 'assignee.id'));
-    console.assert(idx);
+    let assignee = _.get(item, 'assignee.id');
+    let idx = _.findIndex(members, (member) => member.id === assignee);
+    console.assert(idx != -1, 'Invalid ID: %s', assignee);
+
+    // Add, update or remove.
+    let member = members[idx];
+    let tasks = member.tasks;
+    let taskIdx = _.findIndex(tasks, (task) => task.id == item.id);
+
+    let op = {
+      $apply: (tasks) => {
+        if (taskIdx == -1) {
+          return [...tasks, item];
+        } else {
+          return _.compact(_.map(tasks, (task) => {
+            if (task.id == item.id) {
+              // TODO(burdon): Extract filter from query and use matcher to determine if remove.
+              const filter = { predicate: { field: "assignee", value: { id: member.id } } };
+              if (matcher.match(filter, item)) {
+                return item;
+              }
+            } else {
+              return task;
+            }
+          }));
+        }
+      }
+    };
+
     return { item: { members: { [idx]: { tasks: op } } } };
   }
 });

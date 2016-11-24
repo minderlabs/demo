@@ -50,6 +50,13 @@
       "filter": {
         "labels": ["_favorite"]
       }
+    },
+    {
+      "id": "deleted",
+      "title": "Deleted",
+      "filter": {
+        "labels": ["_deleted"]
+      }
     }
   ]
 }

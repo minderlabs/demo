@@ -53,7 +53,6 @@ export class List extends React.Component {
     this.props.onItemSelect(item);
   }
 
-  // TODO(burdon): Move down.
   handleLabelUpdate(item, label, add=true) {
     let mutations = [
       {

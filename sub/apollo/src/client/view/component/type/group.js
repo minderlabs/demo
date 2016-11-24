@@ -23,10 +23,12 @@ export const GroupFragments = {
     fragment GroupFragment on Group {
       members {
         id
+        type
         title
       
         tasks(filter: { predicate: { field: "assignee" } }) {
           id
+          type
           title
         }
       }
@@ -53,19 +55,42 @@ export default class Group extends React.Component {
     super(...arguments);
 
     this.state = {
+      // User ID of inline task.
       inlineEdit: null
     };
   }
 
   handleTaskAdd(member) {
     this.setState({
-
-      // Add task for member.
-      inlineEdit: member
+      inlineEdit: member.id
     });
   }
 
-  handleTaskSave(member, save) {
+  handleTaskDelete(item) {
+    console.log('DELETE: ', JSON.stringify(item));
+
+    // TODO(burdon): Factor out (MutationUtil).
+    let mutations = [
+      {
+        field: 'labels',
+        value: {
+          array: {
+            index: 0,
+            value: {
+              string: '_deleted'
+            }
+          }
+        }
+      }
+    ];
+
+    // TODO(burdon): Transform $push returned object.
+    this.context.mutator.updateItem(item, mutations);
+  }
+
+  handleTaskSave(member, save, text, event) {
+    console.assert(member && member.id);
+
     if (save !== false) {
       let text = this.refs.task_create.value;
       if (_.isEmpty(text)) {
@@ -95,14 +120,23 @@ export default class Group extends React.Component {
       ];
 
       this.context.mutator.createItem('Task', mutations);
+
+      // Another.
+      // TODO(burdon): Wait until commit?
+      if (event && event.shiftKey) {
+        return;
+      }
     }
 
     this.setState({
       inlineEdit: null
-    })
+    });
   }
 
   render() {
+
+    // TODO(burdon): Factor out item row (use in inbox).
+
     return (
       <div className="app-column app-type-group">
 
@@ -115,7 +149,7 @@ export default class Group extends React.Component {
                 <i className="material-icons">accessibility</i>
               </Link>
               <h3 className="app-expand">{ member.title }</h3>
-              <i className="app-icon-add material-icons"
+              <i className="app-icon app-icon-add material-icons"
                  onClick={ this.handleTaskAdd.bind(this, member) }></i>
             </div>
 
@@ -126,18 +160,23 @@ export default class Group extends React.Component {
                   <i className="material-icons">assignment_turned_in</i>
                 </Link>
                 <div className="app-text app-expand">{ task.title }</div>
+                <i className="app-icon app-icon-delete material-icons"
+                   onClick={ this.handleTaskDelete.bind(this, task) }>cancel</i>
               </div>
               ))}
 
-              {this.state.inlineEdit === member &&
+              <div>{ this.state.inlineEdit && this.state.inlineEdit.id }</div>
+
+              {this.state.inlineEdit === member.id &&
               <div className="app-row app-data-row">
                 <i className="material-icons">assignment_turned_in</i>
                 <TextBox ref="task_create"
                          className="app-expand" autoFocus={ true }
-                         onEnter={ this.handleTaskSave.bind(this, member) }/>
-                <i className="app-icon-save material-icons"
+                         onEnter={ this.handleTaskSave.bind(this, member, true) }
+                         onCancel={ this.handleTaskSave.bind(this, member, false)} />
+                <i className="app-icon app-icon-save material-icons"
                    onClick={ this.handleTaskSave.bind(this, member) }>check</i>
-                <i className="app-icon-cancel material-icons"
+                <i className="app-icon app-icon-cancel material-icons"
                    onClick={ this.handleTaskSave.bind(this, member, false) }>cancel</i>
               </div>}
             </div>
