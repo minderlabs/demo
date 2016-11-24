@@ -21,8 +21,7 @@ import { TypeRegistry } from './view/component/type_registry';
 
 import Application from './app';
 import networkInterface from './network';
-import Monitor from './view/component/devtools';
-
+import { Monitor } from './view/component/devtools';
 
 //
 // Server provided config.
@@ -30,7 +29,6 @@ import Monitor from './view/component/devtools';
 
 // TODO(burdon): Wrap.
 const config = window.config;
-
 
 //
 // Dependency injection (accessible to component props via Redux store).
@@ -44,7 +42,6 @@ const injector = new Injector([
   Injector.provider(TypeRegistry.singleton)
 ]);
 
-
 //
 // Error handling.
 //
@@ -52,7 +49,6 @@ const injector = new Injector([
 window.addEventListener('error', (error) => {
   console.log('ERROR', error);
 });
-
 
 //
 // Apollo
@@ -78,13 +74,11 @@ const apolloClient = new ApolloClient({
   networkInterface
 });
 
-
 //
 // Redux
 // http://dev.apollodata.com/react/redux.html
 // https://github.com/reactjs/react-redux
 //
-
 
 const reducers = combineReducers({
 
@@ -123,7 +117,6 @@ const history = syncHistoryWithStore(browserHistory, store);
 // TODO(burdon): Factor out logging.
 history.listen(location => { console.log('Router: %s', location.pathname); });
 
-
 /**
  * Renders the application (used by hot loader).
  * @param App Root component.
@@ -142,7 +135,6 @@ const renderApp = (App) => {
   );
 };
 
-
 //
 // React Hot Loader (3)
 // https://github.com/gaearon/react-hot-boilerplate/pull/61
@@ -156,7 +148,6 @@ if (module.hot && _.get(config, 'debug.env') === 'hot') {
     renderApp(require('./app').default);
   });
 }
-
 
 //
 // Start app.

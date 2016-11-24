@@ -14,8 +14,9 @@ import { Sidebar, SidebarToggle } from 'minder-ux';
 
 import { QueryRegistry } from '../data/subscriptions';
 
-import Monitor from './component/devtools';
+import { Monitor } from './component/devtools';
 import { Folders } from './component/folders';
+import { StatusBar } from './component/status';
 
 import './layout.less';
 
@@ -75,7 +76,10 @@ class Layout extends React.Component {
           {/*
             * Footer.
             */}
-          <div className="app-section app-footer app-row">
+          <div className="app-footer">
+            <StatusBar/>
+
+            {/*
             <div className="app-row app-expand">
               <i className="material-icons" onClick={ this.handleRefresh.bind(this) }>refresh</i>
             </div>
@@ -83,6 +87,7 @@ class Layout extends React.Component {
             <div>
               <div>{ this.props.data.loading ? 'LOADING' : this.props.data.error ? 'ERROR' : 'OK' }</div>
             </div>
+            */}
           </div>
 
           {/*
@@ -113,6 +118,7 @@ class Layout extends React.Component {
 // <FolderView>
 //   <ListView/>
 // </FolderView>
+//
 // Now, the App container makes a query for metadata associated with each each folder (e.g., a filter) that can be displayed within the <FolderView>.
 // But the container queries are called (and rendered) in reverse order (i.e., ListView, FolderView, App).
 // 1). I agree with @sedubois that one of the powerful features of GraphQL is fragment composition (I'm also coming from Relay, where this is trivially supported)>
@@ -141,6 +147,8 @@ const LayoutQuery = gql`
   }
 `;
 
+//
+// TODO(burdon): Moved docs to docs/kbase/apollo.md
 //
 // Chain:
 // https://github.com/alienlaboratories/react-demos/master/rb-apollo/docs/kbase/apollo_sequence.png
