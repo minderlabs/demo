@@ -72,7 +72,7 @@ export default class Task extends React.Component {
     };
 
     return (
-      <div>
+      <div className="app-column">
         <table>
           <tbody>
           <tr>

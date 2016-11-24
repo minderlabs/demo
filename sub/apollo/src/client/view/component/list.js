@@ -147,7 +147,7 @@ export default compose(
       let { filter, count } = List.defaults(props);
 
       let matcher = props.injector.get(Matcher);
-      let typeRegistry = this.props.injector.get(TypeRegistry);
+      let typeRegistry = props.injector.get(TypeRegistry);
 
       return {
         // TODO(burdon): Can we pass variables to fragments?

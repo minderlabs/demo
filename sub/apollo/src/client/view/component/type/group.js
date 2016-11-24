@@ -94,9 +94,9 @@ export default class Group extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="app-column">
         <h2>Team Agenda</h2>
-        <div>
+        <div className="app-column app-expand">
           {this.props.item.members.map(member => (
           <div key={ member.id }>
 
