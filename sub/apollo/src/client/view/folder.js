@@ -146,7 +146,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 
     // Navigate to detail view.
     navigateItem: (item) => {
-      dispatch(push(Path.folder('item', ID.toGlobalId(item.type, item.id))));
+      dispatch(push(Path.detail(item.type, ID.toGlobalId(item.type, item.id))));
     }
   }
 };

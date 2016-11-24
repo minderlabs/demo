@@ -2,15 +2,20 @@
 // Copyright 2016 Minder Labs.
 //
 
+// TODO(burdon): Factor out style defs and components (see relay).
+
 body {
   margin: 0;
   overflow: hidden;
+  box-sizing: border-box;
 
+  color: #333;
   font-family: Roboto, sans-serif;
+  font-size: 18px;
 }
 
 a {
-  color: darkblue;
+  color: #333;
   text-decoration: none;
 }
 
@@ -25,7 +30,6 @@ h2 {
   font-size: 19px;
 }
 h3 {
-  margin: 6px 0;
   font-size: 18px;
 }
 
@@ -38,7 +42,7 @@ button, input {
   border: 1px solid #AAA;
   font-size: 18px;
   margin: 0;
-  padding: 2px;
+  padding: 0;
 }
 button {
   background-color: #CCC;
@@ -46,6 +50,9 @@ button {
 }
 button:hover {
   background-color: #999;
+}
+input, textarea {
+  background-color: transparent;
 }
 
 i.material-icons {
@@ -73,7 +80,11 @@ i.material-icons {
 
     .app-header {
       background-color: lightblue;
-      color: darkblue;
+      color: #333;
+
+      h1 {
+        padding: 0 8px;
+      }
 
       ul {
         list-style-type: none;
@@ -132,11 +143,41 @@ i.material-icons {
   overflow-y: scroll;
 }
 
+.app-banner {
+  padding: 4px 8px;
+  background-color: #CCC;
+}
+
 .app-row {
   display: flex;
   flex-direction: row;
   flex-shrink: 0;
   align-items: center;
+
+  > i:first-child,
+  > a i:first-child {
+    margin-right: 8px;
+  }
+
+  * {
+    display: flex;                  // Outer element like <a> should not add padding.
+  }
+}
+
+.app-data-label {
+  font-size: 14px;
+  padding-right: 4px;
+}
+
+.app-data-row {
+  .app-text {
+    font-size: 18px;
+    margin: 1px;                    // Align with inline input (border).
+  }
+
+  input {
+    font-size: 18px;
+  }
 }
 
 .app-toolbar {
@@ -174,6 +215,6 @@ i.material-icons {
   content: 'add';
 }
 .app-icon-add:hover:after {
-  color: red;
+  color: darkred;
   content: 'add_circle';
 }

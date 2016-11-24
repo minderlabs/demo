@@ -17,6 +17,8 @@ import { UpdateItemMutation } from '../data/mutations';
 
 import { TypeRegistry } from './component/type_registry';
 
+import './detail.less';
+
 /**
  * Detail view.
  */
@@ -85,14 +87,12 @@ class DetailView extends React.Component {
     });
 
     return (
-      <div className="app-column">
-        <div className="app-section">
-          <div className="app-row">
-            <TextBox ref="title" className="app-expand" value={ item.title }/>
-          </div>
+      <div className="app-item-detail app-column">
+        <div className="app-section app-row">
+          <TextBox ref="title" className="app-expand" value={ item.title }/>
         </div>
 
-        <div className="app-section app-expand">
+        <div className="app-item-detail-content app-expand">
           { detail }
         </div>
 

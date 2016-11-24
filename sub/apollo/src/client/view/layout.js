@@ -58,7 +58,7 @@ class Layout extends React.Component {
           <div className="app-section app-header app-row">
             <div className="app-expand">
               <SidebarToggle sidebar={ () => this.refs.sidebar }/>
-              <h1>Apollo Demo</h1>
+              <h1>Minder</h1>
             </div>
             <div>
               <ul>

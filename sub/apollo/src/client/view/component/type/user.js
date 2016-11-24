@@ -49,7 +49,7 @@ export default class User extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="app-section">
         <h2>Tasks</h2>
 
         <div className="app-row">

@@ -72,19 +72,25 @@ export default class Task extends React.Component {
     };
 
     return (
-      <div className="app-column">
+      <div className="app-section app-column">
         <table>
           <tbody>
           <tr>
-            <td>Owner</td>
-            <td>{ _.get(this.props.item, 'owner.title') }</td>
+            <td className="app-data-label">Owner</td>
+            <td>
+              <div className="app-data-row">
+                <div className="app-text">{ _.get(this.props.item, 'owner.title') }</div>
+              </div>
+            </td>
           </tr>
           <tr>
-            <td>Assignee</td>
+            <td className="app-data-label">Assignee</td>
             <td>
-              <ItemsPicker filter={ filter }
-                           value={ _.get(item, 'assignee.title') }
-                           onSelect={ this.handleSelectPicker.bind(this, 'assignee') }/>
+              <div className="app-data-row">
+                <ItemsPicker filter={ filter }
+                             value={ _.get(item, 'assignee.title') }
+                             onSelect={ this.handleSelectPicker.bind(this, 'assignee') }/>
+              </div>
             </td>
           </tr>
           </tbody>
