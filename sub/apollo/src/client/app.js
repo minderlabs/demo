@@ -18,7 +18,7 @@ import { Path } from './path';
 /**
  * Main Application Root component.
  */
-class Application extends React.Component {
+export class Application extends React.Component {
 
   static propTypes = {
     client: React.PropTypes.object.isRequired,

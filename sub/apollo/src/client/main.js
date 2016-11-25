@@ -13,15 +13,18 @@ import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
 
-import { IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
+import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
 
 import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
 import { TypeRegistry } from './view/component/type_registry';
 
-import Application from './app';
-import networkInterface from './network';
+import { NetworkManager } from './network';
 import { Monitor } from './view/component/devtools';
+
+import Application from './app';
+
+// TODO(burdon): Move to index.web.js
 
 //
 // Server provided config.
@@ -29,6 +32,24 @@ import { Monitor } from './view/component/devtools';
 
 // TODO(burdon): Wrap.
 const config = window.config;
+
+let eventHandler = new EventHandler();
+let networkManager = new NetworkManager(config, eventHandler);
+
+
+//
+// Events
+//
+
+// TODO(burdon): Configure networkInterface
+
+window.addEventListener('error', (error) => {
+  eventHandler.emit({
+    type: 'error',
+    message: error.message
+  });
+});
+
 
 //
 // Dependency injection (accessible to component props via Redux store).
@@ -42,13 +63,6 @@ const injector = new Injector([
   Injector.provider(TypeRegistry.singleton)
 ]);
 
-//
-// Error handling.
-//
-
-window.addEventListener('error', (error) => {
-  console.log('ERROR', error);
-});
 
 //
 // Apollo
@@ -71,7 +85,7 @@ const apolloClient = new ApolloClient({
     return null;
   },
 
-  networkInterface
+  networkInterface: networkManager.networkInterface
 });
 
 //

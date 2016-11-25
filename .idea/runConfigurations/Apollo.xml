@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Apollo" type="js.build_tools.npm" factoryName="npm" singleton="false">
     <package-json value="$PROJECT_DIR$/sub/apollo/package.json" />
-    <command value="run-script" />
+    <command value="run" />
     <scripts>
       <script value="webpack-dev-server" />
     </scripts>
