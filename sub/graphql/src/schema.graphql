@@ -64,12 +64,14 @@ input ObjectMutationInput {
 # Query/Filter primitives.
 #
 
-# TODO(burdon): Add op; nested?
-# TODO(burdon): Build AST for query syntax?
 # TODO(burdon): Why can't inputs be used for outputs?
 #   https://github.com/graphql/graphql-js/issues/599
 #   https://github.com/graphql/graphql-js/issues/423
 #   https://github.com/apollostack/graphql-tools/issues/179
+
+# TODO(burdon): Predicate operator.
+# TODO(burdon): Build AST for query syntax? Boolean logic.
+# TODO(burdon): Generalize other filter fields to predicates (except type).
 
 input PredicateInput {
   field: String!

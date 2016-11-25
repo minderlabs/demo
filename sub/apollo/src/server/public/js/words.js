@@ -96,6 +96,8 @@ class Words {
     }
 
     setTimeout(function() {
+      $('.title').addClass('running');
+
       next(period);
     }, delay * 1000);
 
@@ -104,6 +106,7 @@ class Words {
 
   stop() {
     console.log('Stopping...');
+    $('.title').removeClass('running');
     $('.title').addClass('bright');
     this.update([null, 'er']);
     return this;
@@ -132,5 +135,5 @@ class Words {
 $(document).ready(function() {
   let words = new Words();
 
-  words.start(3);
+  words.start(3, 30);
 });

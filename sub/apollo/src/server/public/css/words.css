@@ -13,6 +13,12 @@
   font-family: Poiret One, sans-serif;
   font-weight: 100;
   letter-spacing: 10px;
+
+  transition-duration: 1000ms;
+  margin-left: -70px;
+}
+.title.running {
+  margin-left: 0;
 }
 
 .title div:first-child {
@@ -26,7 +32,7 @@
 .title div:last-child {
   transition-duration: 1000ms;
 
-  width: 470px;
+  width: 400px;
   flex-grow: 1;
   text-align: left;
   opacity: .4;
