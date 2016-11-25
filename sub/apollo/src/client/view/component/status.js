@@ -52,6 +52,8 @@ export class StatusBar extends React.Component {
       className: 'app-hidden'
     };
 
+    // call_missed (push) import_export call_made call_received adjust vertical_align_bottom
+
     return (
       <div className="app-toolbar app-status-toolbar">
         <div>
@@ -60,9 +62,12 @@ export class StatusBar extends React.Component {
           <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, 'graph') }>share</i>
         </div>
         <div>
-          <i className={ "app-icon material-icons " + netrops.className || '' }>wifi</i>
           <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, 'refresh') }>refresh</i>
-          <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, 'error') }>check</i>
+
+          <i className={ "app-icon material-icons " + netrops.className || '' }>call_made</i>
+          <i className={ "app-icon material-icons " + netrops.className || '' }>call_received</i>
+
+          <i className="app-icon material-icons" onClick={ this.handleClick.bind(this, 'error') }>radio_button_unchecked</i>
         </div>
       </div>
     );
