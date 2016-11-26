@@ -26,10 +26,11 @@ const WEBPACK_BUNDLE = {
 /**
  * Sets-up serving the app (and related assets).
  *
+ * @param {ClientManager} clientManager
  * @param options
  * @returns {core.Router|*}
  */
-export const appRouter = (options) => {
+export const appRouter = (clientManager, options) => {
   const router = express.Router();
 
   options = _.defaults(options, {
@@ -45,7 +46,8 @@ export const appRouter = (options) => {
   router.use('/assets', express.static(path.join(__dirname, '../../dist')));
 
   // Client.
-  router.get(/^\/(.*)/, function(req, res) {
+  // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
+  router.get(/^\/app\/?(.*)/, function(req, res) {
     let username = req.cookies[USER_COOKE];
     if (!username) {
       res.redirect('/login');
@@ -55,6 +57,7 @@ export const appRouter = (options) => {
         config: {
           root: 'app-root',
           userId: username,
+          clientId: clientManager.create(username).id,
           graphql: options.graphql,
           debug: {
             env: options.env

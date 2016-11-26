@@ -55,8 +55,8 @@ export class Application extends React.Component {
 
             <IndexRedirect to={ Path.HOME }/>
 
-            <Route path=":folder" component={ FolderView }/>
-            <Route path=":itemView/:itemId" component={ DetailView }/>
+            <Route path="app/:folder" component={ FolderView }/>
+            <Route path="app/:itemView/:itemId" component={ DetailView }/>
 
             <Redirect from='*' to={ Path.HOME }/>
 

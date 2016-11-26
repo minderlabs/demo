@@ -5,10 +5,86 @@
 'use strict';
 
 import moment from 'moment';
+import io from 'socket.io-client';
 
 import { createNetworkInterface } from 'apollo-client';
 
 import { TypeUtil } from 'minder-core';
+
+/**
+ * Manages client connection.
+ */
+export class ConnectionManager {
+
+  //
+  // Register client and connect socket.
+  // http://api.jquery.com/jquery.ajax
+  //
+  // https://www.npmjs.com/package/socket.io-client
+  // http://socket.io/get-started/chat
+  // http://socket.io/docs
+  //
+
+  // TODO(burdon): Injector.
+  constructor(queryRegistry, eventHandler) {
+    console.assert(queryRegistry && eventHandler);
+
+    this._queryRegistry = queryRegistry;
+    this._eventHandler = eventHandler;
+    this._socket = io();
+  }
+
+  // TODO(burdon): Implement auto-reconnect.
+
+  /**
+   * Async connect
+   * @returns {ConnectionManager}
+   */
+  connect() {
+    return new Promise((resolve, reject) => {
+      this._socket.on('connect', () => {
+        let socketId = this._socket.io.engine.id;
+        console.assert(socketId);
+
+        // TODO(burdon): Factor out (nx-lite utils).
+        let url = $('<a href="/client/register">')[0].href;
+
+        // http://api.jquery.com/jquery.ajax
+        $.ajax({
+          url: url,
+          type: 'POST',
+          contentType: 'application/json; charset=utf-8',
+          dataType: 'json',
+          data: JSON.stringify({
+            clientId: config.clientId,
+            socketId: socketId
+          }),
+
+          success: (response) => {
+            console.log('Registered[%s]: %s', socketId, JSON.stringify(response));
+
+            // Listen for invalidations.
+            this._socket.on('invalidate', (data) => {
+              console.log('### INVALIDATE: %s', JSON.stringify(data));
+              this._eventHandler.emit({
+                type: 'network.in'
+              });
+
+              // TODO(burdon): Invalidate specified queries.
+              this._queryRegistry.invalidate();
+            });
+
+            resolve();
+          },
+
+          error: (error) => {
+            reject(error);
+          }
+        });
+      });
+    });
+  }
+}
 
 /**
  * Wrapper for network.

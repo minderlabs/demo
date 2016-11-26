@@ -21,6 +21,20 @@ h1 {
   font-weight: 100;
 }
 
+table {
+  width: 100%;
+}
+table th {
+  font-weight: 100;
+  text-align: left;
+}
+table td {
+  padding-right: 1em;
+}
+table td:last-child {
+  padding-right: 0;
+}
+
 input, button {
   outline: none;
   font-size: 20px;
@@ -74,7 +88,6 @@ button:focus {
   background-color: whitesmoke;
   box-shadow: 4px 4px 16px darkslategray;
   padding: 24px 16px;
-  width: 400px;
 }
 
 .app-row {
@@ -82,6 +95,11 @@ button:focus {
   flex-direction: row;
   flex-grow: 1;
   align-items: center;
+}
+
+.app-data {
+  font-family: Monaco, monospace;
+  font-size: 14px;
 }
 
 .app-expand {

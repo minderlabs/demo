@@ -45,8 +45,8 @@ export const graphqlRouter = (database, options) => {
   router.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
 
   // Logging (must happen before graphql endpoint.
-  if (options.debug) {
-    router.use(options.graphql, graphqlLogger());
+  if (options.logging) {
+    router.use(options.graphql, graphqlLogger(options));
   }
 
   // Bind server.

@@ -1,0 +1,55 @@
+{{#section 'head'}}
+  <link rel="stylesheet" href="/css/main.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+{{/section}}
+
+<div class="app-container">
+  <div class="app-column">
+
+    <div class="app-window-container">
+      <div class="app-window">
+        <h1>Clients</h1>
+
+        <table>
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Client ID</th>
+              <th>Socket ID</th>
+              <th>Registered</th>
+            </tr>
+          </thead>
+          <tbody>
+          {{#each clients}}
+            <tr>
+              <td class="app-data">{{ userId }}</td>
+              <td class="app-data">{{ id }}</td>
+              <td class="app-data">{{ socketId }}</td>
+              <td class="app-data app-expand">{{ time registered }}</td>
+              <td>
+                <button onclick="ping('{{ id }}')">Ping</button>
+              </td>
+            </tr>
+          {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function ping(clientId) {
+      // TODO(burdon): Factor out.
+      $.ajax({
+        url: '/client/invalidate',
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: JSON.stringify({
+          clientId: clientId
+        })
+      });
+    }
+  </script>
+</div>

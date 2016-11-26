@@ -72,7 +72,7 @@ class FolderView extends React.Component {
   }
 
   render() {
-    console.log('Folder.render');
+//  console.log('Folder.render');
 
     // http://dev.apollodata.com/react/queries.html#default-result-props
     let { filter } = this.props;
@@ -122,7 +122,7 @@ const FolderQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  console.log('Folder.mapStateToProps: %s', JSON.stringify(Object.keys(ownProps)));
+//console.log('Folder.mapStateToProps: %s', JSON.stringify(Object.keys(ownProps)));
 
   let { injector, search } = state.minder;
   let queryParser = injector.get(QueryParser);
@@ -162,7 +162,7 @@ export default compose(
     // Configure props passed to component.
     // http://dev.apollodata.com/react/queries.html#graphql-props
     props: ({ ownProps, data }) => {
-      console.log('Folder.props: ', JSON.stringify(Object.keys(data)));
+//    console.log('Folder.props: ', JSON.stringify(Object.keys(data)));
 
       let { loading, error, refetch, folders } = data;
       let { filter } = ownProps;

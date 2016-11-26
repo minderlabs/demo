@@ -68,22 +68,22 @@ export class StatusBar extends React.Component {
   render() {
     function state(state) { return state ? ' app-icon-on' : '' }
 
+    // TODO(burdon): "/clients" should be admin.
+
     return (
       <div className="app-toolbar app-status-toolbar">
         <div>
-          <i className="app-icon app-icon-action material-icons"
+          <i className="app-icon app-icon-action material-icons" title="Debug info"
              onClick={ this.handleAction.bind(this, 'bug') }>bug_report</i>
-          <a href="/clients" target="MINDER_CLIENTS">
-            <i className="app-icon app-icon-action material-icons"
-               onClick={ this.handleAction.bind(this, 'clients') }>dns</i>
+          <a href="/graphiql" target="MINDER_GRAPHIQL" title="GraphiQL">
+            <i className="app-icon app-icon-action material-icons" title="GraphiQL">language</i>
           </a>
-          <a href="/graphiql" target="MINDER_GRAPHIQL">
-            <i className="app-icon app-icon-action material-icons"
-               onClick={ this.handleAction.bind(this, 'graph') }>share</i>
+          <a href="/admin" target="MINDER_CLIENTS">
+            <i className="app-icon app-icon-action material-icons" title="Admin">graphic_eq</i>
           </a>
         </div>
         <div>
-          <i className="app-icon app-icon-action material-icons"
+          <i className="app-icon app-icon-action material-icons" title="Refresh queries"
              onClick={ this.handleAction.bind(this, 'refresh') }>refresh</i>
 
           <i className={ "app-icon app-icon-network-in material-icons" + state(this.state.networkIn) }></i>

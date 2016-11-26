@@ -9,14 +9,16 @@
  */
 export class Path {
 
-  static ROOT = '/';
-  static HOME = '/inbox';
+  // TODO(burdon): Share with server.
+
+  static ROOT = '/app';
+  static HOME = '/app/inbox';
 
   static folder(alias) {
-    return `/${alias}`;
+    return `/app/${alias}`;
   }
 
   static detail(view, itemId) {
-    return `/${view}/${itemId}`;
+    return `/app/${view}/${itemId}`;
   }
 }

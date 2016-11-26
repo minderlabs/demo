@@ -223,23 +223,23 @@ class ClientManager {
   // TODO(burdon): Connection time.
 
   constructor() {
-    this._sockets = new Map();
+    this._clients = new Map();
   }
 
   get sockets() {
-    return Array.from(this._sockets.values());
+    return Array.from(this._clients.values());
   }
 
   getSocket(socketId) {
-    return this._sockets.get(socketId);
+    return this._clients.get(socketId);
   }
 
   connect(socket) {
-    this._sockets.set(socket.id, socket);
+    this._clients.set(socket.id, socket);
   }
 
   disconnect(socketId) {
-    this._sockets.delete(socketId);
+    this._clients.delete(socketId);
   }
 }
 
@@ -322,7 +322,6 @@ app.get(/^\/(.*)/, function(req, res) {
 //
 // Socket.io
 // http://socket.io/get-started/chat
-// https://www.npmjs.com/package/socket.io-client
 //
 
 const server = http.Server(app);

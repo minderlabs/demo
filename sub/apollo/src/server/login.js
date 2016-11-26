@@ -39,7 +39,8 @@ export const loginRouter = (options) => {
     res.cookie(USER_COOKE, username);
 
     // Redirect to app.
-    res.redirect('/');
+    // TODO(burdon): Const (share path with client).
+    res.redirect('/app');
   });
 
   router.use('/login', function(req, res) {

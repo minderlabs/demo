@@ -11,7 +11,6 @@ import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-router-redux'
 import ApolloClient from 'apollo-client';
 
-import io from 'socket.io-client';
 import moment from 'moment';
 
 import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
@@ -20,7 +19,7 @@ import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
 import { TypeRegistry } from './view/component/type_registry';
 
-import { NetworkManager } from './network';
+import { ConnectionManager, NetworkManager } from './network';
 import { Monitor } from './view/component/devtools';
 
 import Application from './app';
@@ -35,40 +34,25 @@ import Application from './app';
 const config = window.config;
 
 let eventHandler = new EventHandler();
+
 let networkManager = new NetworkManager(config, eventHandler);
+
+let queryRegistry = new QueryRegistry();
+
+// TODO(burdon): Injector.
+let connectionManager = new ConnectionManager(queryRegistry, eventHandler, config);
+connectionManager.connect();
 
 
 //
 // Events
 //
 
-// TODO(burdon): Configure networkInterface
-
 window.addEventListener('error', (error) => {
   eventHandler.emit({
     type: 'error',
     message: error.message
   });
-});
-
-
-//
-// Socket
-// http://socket.io/get-started/chat
-// http://socket.io/docs
-//
-
-let queryRegistry = new QueryRegistry();
-
-let socket = io();
-
-socket.on('invalidate', (data) => {
-  // TODO(burdon): Invalidate.
-  console.log('### INVALIDATE ###');
-  eventHandler.emit({
-    type: 'network.in'
-  });
-  queryRegistry.invalidate();
 });
 
 

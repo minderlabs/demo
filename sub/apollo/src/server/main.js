@@ -16,7 +16,7 @@ import { Database, Randomizer, graphqlRouter } from 'minder-graphql';
 import { appRouter, hotRouter } from './app';
 import { loginRouter } from './login';
 import { loggingRouter } from './logger';
-import { clientRouter, SocketManager } from './socket';
+import { adminRouter, clientRouter, ClientManager, SocketManager } from './client';
 
 
 //
@@ -54,6 +54,7 @@ _.each(require('./testing/test.json'), (items, type) => {
   database.upsertItems(_.map(items, (item) => ({ type, ...item })));
 });
 
+if (false)
 new Randomizer(database)
   .generate('Contact',  20)
   .generate('Place',    10)
@@ -64,7 +65,7 @@ new Randomizer(database)
     }
   );
 
-app.use('/', graphqlRouter(database, { debug: true }));
+app.use('/', graphqlRouter(database, { logging: true }));
 
 
 //
@@ -80,17 +81,22 @@ if (env === 'hot') {
 // App
 //
 
+let socketManager = new SocketManager(server);
+
+let clientManager = new ClientManager(socketManager);
+
 app.use(loginRouter({
   env: env,
   users: database.queryItems({ type: 'User' })
 }));
 
-app.use(clientRouter(new SocketManager(server)));
+app.use(adminRouter(clientManager));
 
-app.use(appRouter({
+app.use(clientRouter(clientManager, server));
+
+app.use(appRouter(clientManager, {
   env: env
 }));
-
 
 //
 // Handlebars views.
@@ -105,6 +111,7 @@ app.engine('handlebars', handlebars({
 
   helpers: {
 
+    // TODO(burdon): ???
     section: function(name, options) {
       if (!this.sections) { this.sections = {}; }
       this.sections[name] = options.fn(this);
@@ -112,14 +119,20 @@ app.engine('handlebars', handlebars({
 
     toJSON: function(object) {
       return JSON.stringify(object);
+    },
+
+    time: function(object) {
+      return object && object.fromNow();
     }
   }
 }));
 
 app.set('view engine', 'handlebars');
-
 app.set('views', path.join(__dirname, 'views'));
 
+app.use(function(req, res) {
+  res.redirect('/login');
+});
 
 //
 // Start-up.
