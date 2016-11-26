@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ID } from 'minder-core';
+import { EventHandler, ID } from 'minder-core';
 import { Sidebar, SidebarToggle } from 'minder-ux';
 
 import { QueryRegistry } from '../data/subscriptions';
@@ -25,6 +25,10 @@ import './layout.less';
  */
 class Layout extends React.Component {
 
+  static contextTypes = {
+    injector: React.PropTypes.object,
+  };
+
   static propTypes = {
     // TODO(burdon): Get from injector?
     queryRegistry: React.PropTypes.object.isRequired,
@@ -34,8 +38,17 @@ class Layout extends React.Component {
     })
   };
 
+  constructor() {
+    super(...arguments);
+
+    // TODO(burdon): Need to display error state on startup (status not yet rendered).
+    this.context.injector.get(EventHandler)
+      .listen('error',        () => { this.refs.status && this.refs.status.error();       })
+      .listen('network.in',   () => { this.refs.status && this.refs.status.networkIn();   })
+      .listen('network.out',  () => { this.refs.status && this.refs.status.networkOut();  });
+  }
+
   handleToolbarClick(id) {
-    console.log(id);
     switch (id) {
       case 'refresh': {
         this.props.queryRegistry.refetch();
@@ -86,7 +99,7 @@ class Layout extends React.Component {
             * Footer.
             */}
           <div className="app-footer">
-            <StatusBar onClick={ this.handleToolbarClick.bind(this) }/>
+            <StatusBar ref="status" onClick={ this.handleToolbarClick.bind(this) }/>
           </div>
 
           {/*

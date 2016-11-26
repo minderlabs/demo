@@ -53,6 +53,7 @@ export class NetworkManager {
         }
         options.headers[Logger.REQUEST_ID_HEADER] = requestId;
         this._requestMap.set(requestId, request);
+        eventListener.emit({ type: 'network.out' });
 
         // TODO(burdon): Paging bug when non-null text filter.
         // https://github.com/apollostack/apollo-client/issues/897

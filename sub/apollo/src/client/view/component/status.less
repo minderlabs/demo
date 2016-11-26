@@ -16,4 +16,39 @@
   i {
     font-size: 18px;
   }
+
+  i.app-icon-action {
+    color: #CCC;
+  }
+  i.app-icon-action:hover {
+    color: #999;
+  }
+
+  i.app-icon-network-in:after {
+    content: 'call_received';
+    color: #666;
+  }
+  i.app-icon-network-in.app-icon-on:after {
+    color: orange;
+  }
+
+  i.app-icon-network-out:after {
+    content: 'call_made';
+    color: #666;
+  }
+  i.app-icon-network-out.app-icon-on:after {
+    color: lightgreen;
+  }
+
+  i.app-icon-error:after {
+    content: 'radio_button_unchecked';
+    color: lightgreen;
+  }
+  i.app-icon-error.app-icon-on:after {
+    content: 'radio_button_checked';
+    color: red;
+  }
+
+   // call_missed (push) import_export call_made call_received adjust vertical_align_bottom radio_button_unchecked
 }
+

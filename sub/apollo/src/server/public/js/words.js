@@ -106,8 +106,7 @@ class Words {
 
   stop() {
     console.log('Stopping...');
-    $('.title').removeClass('running');
-    $('.title').addClass('bright');
+    $('.title').removeClass('running').addClass('bright');
     this.update([null, 'er']);
     return this;
   }

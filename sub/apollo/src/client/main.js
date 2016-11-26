@@ -56,6 +56,7 @@ window.addEventListener('error', (error) => {
 //
 
 const injector = new Injector([
+  Injector.provider(eventHandler),
   Injector.provider(new IdGenerator()),
   Injector.provider(new Matcher()),
   Injector.provider(new QueryParser()),
@@ -140,6 +141,7 @@ const renderApp = (App) => {
 
   ReactDOM.render(
     <App
+      injector={ injector }
       client={ apolloClient }
       history={ history }
       store={ store }

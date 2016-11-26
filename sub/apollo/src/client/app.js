@@ -20,11 +20,22 @@ import { Path } from './path';
  */
 export class Application extends React.Component {
 
+  static childContextTypes = {
+    injector: React.PropTypes.object,
+  };
+
   static propTypes = {
+    injector: React.PropTypes.object.isRequired,
     client: React.PropTypes.object.isRequired,
     history: React.PropTypes.object.isRequired,
     store: React.PropTypes.object.isRequired
   };
+
+  getChildContext() {
+    return {
+      injector: this.props.injector
+    };
+  }
 
   render() {
 
