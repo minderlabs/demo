@@ -25,7 +25,7 @@ export class StatusBar extends React.Component {
     super(...arguments);
 
     this._timer = {
-      networkIn: Async.timeout(500),
+      networkIn: Async.timeout(750),
       networkOut: Async.timeout(500)
     };
 
@@ -73,10 +73,14 @@ export class StatusBar extends React.Component {
         <div>
           <i className="app-icon app-icon-action material-icons"
              onClick={ this.handleAction.bind(this, 'bug') }>bug_report</i>
-          <i className="app-icon app-icon-action material-icons"
-             onClick={ this.handleAction.bind(this, 'clients') }>dns</i>
-          <i className="app-icon app-icon-action material-icons"
-             onClick={ this.handleAction.bind(this, 'graph') }>share</i>
+          <a href="/clients" target="MINDER_CLIENTS">
+            <i className="app-icon app-icon-action material-icons"
+               onClick={ this.handleAction.bind(this, 'clients') }>dns</i>
+          </a>
+          <a href="/graphiql" target="MINDER_GRAPHIQL">
+            <i className="app-icon app-icon-action material-icons"
+               onClick={ this.handleAction.bind(this, 'graph') }>share</i>
+          </a>
         </div>
         <div>
           <i className="app-icon app-icon-action material-icons"

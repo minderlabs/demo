@@ -51,7 +51,7 @@ class Layout extends React.Component {
   handleToolbarClick(id) {
     switch (id) {
       case 'refresh': {
-        this.props.queryRegistry.refetch();
+        this.props.queryRegistry.invalidate();
         break;
       }
     }

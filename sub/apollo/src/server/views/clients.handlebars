@@ -1,0 +1,35 @@
+{{#section 'head'}}
+  <link rel="stylesheet" href="/css/main.css">
+{{/section}}
+
+<div class="app-container">
+  <div class="app-column">
+
+    <div class="app-window-container">
+      <div class="app-window">
+        <h1>Clients</h1>
+
+        <div>
+          {{#each sockets}}
+            <div class="app-row">
+              <div class="app-expand">{{ id }}</div>
+              <button onclick="ping('{{ id }}')">Ping</button>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form id="invalidate" action="/client/invalidate" method="POST">
+    <input type="hidden" name="socketId"/>
+  </form>
+
+  <script>
+    function ping(socketId) {
+      var form = document.getElementById('invalidate');
+      form['socketId'].value = socketId;
+      form.submit();
+    }
+  </script>
+</div>

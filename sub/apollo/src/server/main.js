@@ -16,6 +16,7 @@ import { Database, Randomizer, graphqlRouter } from 'minder-graphql';
 import { appRouter, hotRouter } from './app';
 import { loginRouter } from './login';
 import { loggingRouter } from './logger';
+import { clientRouter, SocketManager } from './socket';
 
 
 //
@@ -32,6 +33,8 @@ const port = process.env['VIRTUAL_PORT'] || 3000;
 //
 
 const app = express();
+
+const server = http.Server(app);
 
 
 //
@@ -82,6 +85,8 @@ app.use(loginRouter({
   users: database.queryItems({ type: 'User' })
 }));
 
+app.use(clientRouter(new SocketManager(server)));
+
 app.use(appRouter({
   env: env
 }));
@@ -119,8 +124,6 @@ app.set('views', path.join(__dirname, 'views'));
 //
 // Start-up.
 //
-
-const server = http.Server(app);
 
 server.listen(port, host, () => {
   let addr = server.address();

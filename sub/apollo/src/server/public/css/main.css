@@ -16,6 +16,11 @@ body {
   font-family: Roboto, sans-serif;
 }
 
+h1 {
+  margin: 8px 0;
+  font-weight: 100;
+}
+
 input, button {
   outline: none;
   font-size: 20px;
@@ -51,19 +56,25 @@ button:focus {
 .app-column {
   display: flex;
   flex-direction: column;
+}
+
+.app-center {
   justify-content: center;
 }
 
-.app-login-container {
+.app-window-container {
   display: flex;
+  flex-direction: row;
   justify-content: center;
 }
 
-.app-login {
-  width: 400px;
+.app-window {
+  display: flex;
+  flex-direction: column;
   background-color: whitesmoke;
   box-shadow: 4px 4px 16px darkslategray;
   padding: 24px 16px;
+  width: 400px;
 }
 
 .app-row {

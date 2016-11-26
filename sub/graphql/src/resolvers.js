@@ -20,6 +20,8 @@ import Schema from './schema.graphql';
  */
 export class Resolvers {
 
+  // TODO(burdon): Context object (e.g., OAuth userId).
+
   static get typeDefs() {
     return Schema;
   }

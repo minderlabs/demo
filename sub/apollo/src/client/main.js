@@ -11,6 +11,7 @@ import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-router-redux'
 import ApolloClient from 'apollo-client';
 
+import io from 'socket.io-client';
 import moment from 'moment';
 
 import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
@@ -52,15 +53,35 @@ window.addEventListener('error', (error) => {
 
 
 //
+// Socket
+// http://socket.io/get-started/chat
+// http://socket.io/docs
+//
+
+let queryRegistry = new QueryRegistry();
+
+let socket = io();
+
+socket.on('invalidate', (data) => {
+  // TODO(burdon): Invalidate.
+  console.log('### INVALIDATE ###');
+  eventHandler.emit({
+    type: 'network.in'
+  });
+  queryRegistry.invalidate();
+});
+
+
+//
 // Dependency injection (accessible to component props via Redux store).
 //
 
 const injector = new Injector([
   Injector.provider(eventHandler),
+  Injector.provider(queryRegistry),
   Injector.provider(new IdGenerator()),
   Injector.provider(new Matcher()),
   Injector.provider(new QueryParser()),
-  Injector.provider(new QueryRegistry()),
   Injector.provider(TypeRegistry.singleton)
 ]);
 

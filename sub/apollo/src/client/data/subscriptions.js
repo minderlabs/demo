@@ -23,7 +23,7 @@ export class QueryRegistry {
   /**
    * Manually refetch registered queries.
    */
-  refetch() {
+  invalidate() {
     console.log('Refetch: %d', this._registered.size);
     this._registered.forEach((data, component) => {
       data.refetch();
