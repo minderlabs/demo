@@ -1,0 +1,11 @@
+{
+  "//": "https://github.com/remy/nodemon/blob/master/doc/sample-nodemon.md#sample-nodemonjson",
+
+  "verbose": true,
+  "ignore": ["*.test.js"],
+  "watch": [
+    "src/server",
+    "../core/src",
+    "../graphql/src"
+  ]
+}

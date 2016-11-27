@@ -9,7 +9,7 @@ import express from 'express';
 import moment from 'moment';
 import path from 'path';
 
-import { USER_COOKE } from './login';
+import { requestContext } from './auth';
 
 //
 // Client bundles (map NODE_ENV to bundle).
@@ -48,16 +48,16 @@ export const appRouter = (clientManager, options) => {
   // Client.
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
   router.get(/^\/app\/?(.*)/, function(req, res) {
-    let username = req.cookies[USER_COOKE];
-    if (!username) {
+    let { userId } = requestContext(req);
+    if (!userId) {
       res.redirect('/login');
     } else {
       res.render('app', {
         app: WEBPACK_BUNDLE[options.env],
         config: {
           root: 'app-root',
-          userId: username,
-          clientId: clientManager.create(username).id,
+          userId: userId,
+          clientId: clientManager.create(userId).id,
           graphql: options.graphql,
           debug: {
             env: options.env

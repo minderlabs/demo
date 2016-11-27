@@ -20,9 +20,7 @@ import morgan from 'morgan';
  * @returns {*}
  */
 export const loggingRouter = (options) => {
-
-  // https://expressjs.com/en/guide/routing.html
-  const router = express.Router();
+  let router = express.Router();
 
   router.use(morgan(':date[iso] [:status] :method :url'));
 

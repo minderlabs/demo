@@ -35,13 +35,9 @@ const config = window.config;
 
 let eventHandler = new EventHandler();
 
-let networkManager = new NetworkManager(config, eventHandler);
+let networkManager = new NetworkManager(eventHandler, config);
 
 let queryRegistry = new QueryRegistry();
-
-// TODO(burdon): Injector.
-let connectionManager = new ConnectionManager(queryRegistry, eventHandler, config);
-connectionManager.connect();
 
 
 //
@@ -176,4 +172,10 @@ if (module.hot && _.get(config, 'debug.env') === 'hot') {
 
 console.log('Config = %s', JSON.stringify(config));
 
-renderApp(Application);
+// TODO(burdon): Injector.
+new ConnectionManager(queryRegistry, eventHandler, config)
+  .connect().then(() => {
+    console.log('Connected');
+
+    renderApp(Application);
+  });

@@ -37,6 +37,9 @@ export class StatusBar extends React.Component {
   }
 
   error(state) {
+
+    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
     this.setState({
       error: state
     });
@@ -68,8 +71,6 @@ export class StatusBar extends React.Component {
   render() {
     function state(state) { return state ? ' app-icon-on' : '' }
 
-    // TODO(burdon): "/clients" should be admin.
-
     return (
       <div className="app-toolbar app-status-toolbar">
         <div>
@@ -90,6 +91,7 @@ export class StatusBar extends React.Component {
           <i className={ "app-icon app-icon-network-out material-icons" + state(this.state.networkOut) }></i>
 
           <i className={ "app-icon app-icon-error material-icons" + state(this.state.error) }
+             title={ this.state.error }
              onClick={ this.handleClickError.bind(this, 'error') }></i>
         </div>
       </div>

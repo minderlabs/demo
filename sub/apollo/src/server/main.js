@@ -14,10 +14,9 @@ import handlebars from 'express-handlebars';
 import { Database, Randomizer, graphqlRouter } from 'minder-graphql';
 
 import { appRouter, hotRouter } from './app';
-import { loginRouter } from './login';
+import { loginRouter, requestContext } from './auth';
 import { loggingRouter } from './logger';
 import { adminRouter, clientRouter, ClientManager, SocketManager } from './client';
-
 
 //
 // Env.
@@ -36,6 +35,16 @@ const app = express();
 
 const server = http.Server(app);
 
+// TODO(burdon): Use injector pattern (esp for async startup).
+
+const socketManager = new SocketManager(server);
+
+const clientManager = new ClientManager(socketManager);
+
+const database = new Database().onMutation(() => {
+  clientManager.invalidateOthers();
+});
+
 
 //
 // Logging.
@@ -45,31 +54,32 @@ app.use('/', loggingRouter());
 
 
 //
-// GraphQL server.
+// Database.
 //
-
-const database = new Database();
 
 _.each(require('./testing/test.json'), (items, type) => {
   database.upsertItems(_.map(items, (item) => ({ type, ...item })));
 });
 
-if (false)
-new Randomizer(database)
-  .generate('Contact',  20)
-  .generate('Place',    10)
-  .generate('Task',     20,
-    {
-      owner:    { type: 'User', likelihood: 1.0 },
-      assignee: { type: 'User', likelihood: 0.5 }
-    }
-  );
+// TODO(burdon): Webhook.
+const testData = true;
 
-app.use('/', graphqlRouter(database, { logging: true }));
+if (testData) {
+  new Randomizer(database)
+    .generate('Contact', 20)
+    .generate('Place', 10)
+    .generate('Task', 30,
+      {
+        owner: { type: 'User', likelihood: 1.0 },
+        assignee: { type: 'User', likelihood: 0.5 }
+      }
+    );
+}
 
 
 //
 // Hot loader.
+// NOTE: Must come first.
 //
 
 if (env === 'hot') {
@@ -78,16 +88,19 @@ if (env === 'hot') {
 
 
 //
-// App
+// Routers.
 //
 
-let socketManager = new SocketManager(server);
-
-let clientManager = new ClientManager(socketManager);
-
 app.use(loginRouter({
-  env: env,
+  env,
   users: database.queryItems({ type: 'User' })
+}));
+
+app.use(graphqlRouter(database, {
+  logging: true,
+
+  // Gets the user context from the request.
+  resolverContext: (req) => { return requestContext(req) },
 }));
 
 app.use(adminRouter(clientManager));
@@ -95,8 +108,9 @@ app.use(adminRouter(clientManager));
 app.use(clientRouter(clientManager, server));
 
 app.use(appRouter(clientManager, {
-  env: env
+  env
 }));
+
 
 //
 // Handlebars views.

@@ -11,12 +11,14 @@ import moment from 'moment';
 
 import { IdGenerator } from 'minder-core';
 
+import { requestContext } from './auth';
+
 /**
  * Admin endpoints.
  * TODO(burdon): Injector from nx-util?
  */
 export const adminRouter = (clientManager, options) => {
-  const router = express.Router();
+  let router = express.Router();
 
   router.get('/admin', function(req, res) {
     res.render('admin', {
@@ -31,13 +33,14 @@ export const adminRouter = (clientManager, options) => {
  * Client endpoints.
  */
 export const clientRouter = (clientManager, options) => {
-  const router = express.Router();
+  let router = express.Router();
 
   // Registers the client.
   router.post('/client/register', function(req, res) {
     console.log('### REGISTER: %s', JSON.stringify(req.body));
     let { clientId, socketId } = req.body;
-    clientManager.register(clientId, socketId);
+    let { userId } = requestContext(req);
+    clientManager.register(userId, clientId, socketId);
     res.send({});
   });
 
@@ -107,16 +110,20 @@ export class ClientManager {
    * Called by client on start-up.
    * NOTE: mobile devices requet ID here.
    */
-  register(clientId, socketId) {
-    console.assert(clientId && socketId);
+  register(userId, clientId, socketId) {
+    console.assert(userId, clientId && socketId);
 
     let client = this._clients.get(clientId);
     if (!client) {
       console.warn('Invalid client: %s', clientId);
     } else {
-      console.log('CLIENT.REGISTER[%s] :%s', clientId, socketId);
-      client.socketId = socketId;
-      client.registered = moment();
+      if (userId != client.userId) {
+        console.error('Invalid user: %s', userId);
+      } else {
+        console.log('CLIENT.REGISTER[%s] :%s', clientId, socketId);
+        client.socketId = socketId;
+        client.registered = moment();
+      }
     }
   }
 
@@ -135,6 +142,15 @@ export class ClientManager {
         });
       }
     }
+  }
+
+  // TODO(burdon): Replace this and above with queryId, etc.
+  invalidateOthers(clientId) {
+    this._clients.forEach((client) => {
+      if (client.id != clientId) {
+        this.invalidate(client.id);
+      }
+    });
   }
 
   // Admin.

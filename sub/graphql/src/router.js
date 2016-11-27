@@ -6,6 +6,7 @@
 
 import _ from 'lodash';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
@@ -22,11 +23,14 @@ import { graphqlLogger } from './util/logger';
  *
  * @param database
  * @param options
+ *  {
+ *    {Function(request)} resolverContext
+ *  }
+ *
  * @returns {*}
  */
 export const graphqlRouter = (database, options) => {
   console.assert(database);
-
   options = _.defaults(options, { graphql: '/graphql', graphiql: '/graphiql' });
 
   const schema = makeExecutableSchema({
@@ -37,29 +41,44 @@ export const graphqlRouter = (database, options) => {
     }
   });
 
-  // https://expressjs.com/en/guide/routing.html
-  const router = express.Router();
+  let router = express.Router();
 
-  // MIME type.
-  router.use(bodyParser.json());                           // JSON post (GraphQL).
-  router.use(bodyParser.urlencoded({ extended: true }));   // Encoded bodies (Form post).
+  // Coockies (e.g., OAuth).
+  router.use(cookieParser());
 
-  // Logging (must happen before graphql endpoint.
-  if (options.logging) {
-    router.use(options.graphql, graphqlLogger(options));
-  }
+  // JSON body.
+  router.use(bodyParser.json());
 
   // Bind server.
   // https://github.com/graphql/express-graphql
-  router.use(options.graphql, graphqlExpress({
+  // http://dev.apollodata.com/tools/graphql-server/setup.html#graphqlOptions
+  // http://dev.apollodata.com/tools/graphql-server/setup.html#options-function
+
+  // TODO(burdon): Simulate errors?
+  router.use(options.graphql, graphqlExpress(req => ({
+
+    // Executable schema.
     schema: schema,
+
+    // TODO(burdon): Cookies are blank.
+    // client and auth have different routers and GET/POST but OK; so issue with graphqlExpress?
+
+    // TODO(burdon): Client doesn't send cookies (set header instead).
+    // https://github.com/apollostack/apollo-client/issues/132
+
+    // Request context for resolvers (e.g., authenticated user).
+    // http://dev.apollodata.com/tools/graphql-server/setup.html
+    // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
+    context: options.resolverContext && options.resolverContext(req) || {},
+
     pretty: true,
+
     formatError: error => ({
       message: error.message,
       locations: error.locations,
       stack: error.stack
     })
-  }));
+  })));
 
   // Bind debug UX.
   router.use(options.graphiql, graphiqlExpress({

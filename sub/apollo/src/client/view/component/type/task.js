@@ -67,7 +67,6 @@ export default class Task extends React.Component {
     let { item } = this.props;
 
     let filter = {
-      strict: true,
       type: 'User'
     };
 

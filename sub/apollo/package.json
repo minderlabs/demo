@@ -93,7 +93,7 @@
     ],
     "webpack": "webpack --watch",
     "babel-node": "BABEL_DISABLE_CACHE=1 babel-node src/server/main.js",
-    "nodemon": "nodemon --exec npm run babel-node",
+    "nodemon": "nodemon --config nodemon.json --exec npm run babel-node",
     "start": "BABEL_DISABLE_CACHE=1 BABEL_ENV=hot NODE_ENV=hot babel-node src/server/main.js"
   }
 }

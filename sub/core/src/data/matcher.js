@@ -14,6 +14,11 @@ export class Matcher {
   match(filter, item) {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
 
+    // Must match something.
+    if (!(filter.type || filter.labels || filter.predicate || filter.text)) {
+      return false;
+    }
+
     // Type match.
     if (filter.type && _.toLower(filter.type) != _.toLower(item.type)) {
       return false;
@@ -38,15 +43,10 @@ export class Matcher {
       }
     }
 
-    // Must match something.
-    if (filter.strict && !filter.text) {
+    // Text match.
+    let text = _.lowerCase(filter.text);
+    if (text && _.lowerCase(item.title).indexOf(text) == -1) {
       return false;
-    } else {
-      // Text match.
-      let text = _.lowerCase(filter.text);
-      if (text && _.lowerCase(item.title).indexOf(text) == -1) {
-        return false;
-      }
     }
 
     return true;

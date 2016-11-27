@@ -42,17 +42,19 @@ export const graphqlLogger = (options={ pretty: false }) => {
     // http://stackoverflow.com/questions/19215042/express-logging-response-body
     let originalWrite = res.write;
     res.write = (data) => {
+      // TODO(burdon): Not efficient intercepting write.
+      let json = JSON.parse(data);
       switch (res.statusCode) {
         case 200:
           if (options.pretty) {
-            console.log(PRETTY_RES, moment().format(TS), stringify(JSON.parse(data)));
+            console.log(PRETTY_RES, moment().format(TS), stringify(json));
           } else {
-            console.log('### RES ### %s', data);
+            console.log('### RES ### %s', stringify(json));
           }
           break;
 
         default:
-          console.error(data);
+          console.error('Network error: %d', res.statusCode);
       }
 
       return originalWrite.call(res, data);

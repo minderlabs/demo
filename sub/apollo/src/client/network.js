@@ -66,9 +66,7 @@ export class ConnectionManager {
             // Listen for invalidations.
             this._socket.on('invalidate', (data) => {
               console.log('### INVALIDATE: %s', JSON.stringify(data));
-              this._eventHandler.emit({
-                type: 'network.in'
-              });
+              this._eventHandler.emit({ type: 'network.in' });
 
               // TODO(burdon): Invalidate specified queries.
               this._queryRegistry.invalidate();
@@ -91,15 +89,16 @@ export class ConnectionManager {
  */
 export class NetworkManager {
 
-  // TODO(burdon): Event emitter.
+  // TODO(burdon): Move to external defs.
+  // NOTE: must be lowercase.
+  static HEADER_REQUEST_ID  = 'mx-request-id';
+  static HEADER_USER_ID     = 'mx-user-id';
 
-  static REQUEST_ID_HEADER = 'x-req-id';
+  // TODO(burdon): Class or functor?
 
-  constructor(config, eventListener) {
+  constructor(eventListener, config) {
 
-    // TODO(burdon): Emit send/recv events.
-    this._eventListener = eventListener;
-
+    // Log and match request/reponses.
     this._requestCount = 0;
     this._requestMap = new Map();
 
@@ -110,30 +109,37 @@ export class NetworkManager {
     // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
 
     // Create the interface.
+    // http://dev.apollodata.com/core/network.html
     this._networkInterface = createNetworkInterface({
       uri: config.graphql
     });
 
     /**
-     * Intercept request.
-     * http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
+     * Add headers for execution context.
      */
-    this._networkInterface.use([{
+    const addHeaders = {
       applyMiddleware: ({ request, options }, next) => {
 
-        // Track request ID.
-        // https://github.com/apollostack/apollo-client/issues/657
-        const requestId = `${request.operationName}:${++this._requestCount}`;
-        if (!options.headers) {
-          options.headers = {};
-        }
-        options.headers[Logger.REQUEST_ID_HEADER] = requestId;
-        this._requestMap.set(requestId, request);
-        eventListener.emit({ type: 'network.out' });
+        // TODO(burdon): Cookies or header for auth?
+        // https://github.com/apollostack/apollo-client/issues/132
+        // https://github.com/github/fetch/blob/7f71c9bdccedaf65cf91b450b74065f8bed26d36/README.md#sending-cookies
+        options.headers = _.defaults(options.headers, {
+          [NetworkManager.HEADER_USER_ID]: config.userId
+        });
 
-        // TODO(burdon): Paging bug when non-null text filter.
-        // https://github.com/apollostack/apollo-client/issues/897
-        // "There can only be one fragment named ItemFragment" (from server).
+        next();
+      }
+    };
+
+    /**
+     * TODO(burdon): Paging bug when non-null text filter.
+     * https://github.com/apollostack/apollo-client/issues/897
+     * "There can only be one fragment named ItemFragment" (from server).
+     */
+    const fixFetchMoreBug = {
+      applyMiddleware: ({ request, options }, next) => {
+
+        // Remove duplicate fragment.
         let definitions = {};
         request.query.definitions = _.filter(request.query.definitions, (definition) => {
           let name = definition.name.value;
@@ -146,48 +152,79 @@ export class NetworkManager {
           }
         });
 
+        next();
+      }
+    };
+
+    /**
+     * Intercept request.
+     * http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
+     */
+    const logRequest = {
+      applyMiddleware: ({ request, options }, next) => {
+
+        // Track request ID.
+        // https://github.com/apollostack/apollo-client/issues/657
+        const requestId = `${request.operationName}:${++this._requestCount}`;
+        this._requestMap.set(requestId, request);
+
+        // Add header to track response.
+        options.headers = _.assign(options.headers, {
+          [NetworkManager.HEADER_REQUEST_ID]: requestId
+        });
+
         this._logger.logRequest(requestId, request);
+
+        eventListener.emit({ type: 'network.out' });
 
         next();
       }
-    }]);
+    };
 
     /**
      * Intercept response.
      * http://dev.apollodata.com/core/network.html#networkInterfaceAfterware
      * https://github.com/apollostack/apollo-client/issues/657
      */
-    this._networkInterface.useAfter([{
+    const logResponse = {
       applyAfterware: ({ response, options }, next) => {
 
         // Match request.
-        const requestId = options.headers[Logger.REQUEST_ID_HEADER];
-        this._requestMap.delete(requestId);
+        const requestId = options.headers[NetworkManager.HEADER_REQUEST_ID];
+        let removed = this._requestMap.delete(requestId);
+        console.assert(removed, 'Request not found: %s', requestId);
 
-        // https://github.com/apollostack/core-docs/issues/224
-        // https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
         if (response.ok) {
-          response.clone().json().then((response) => {
-            if (response.errors) {
-              // TODO(burdon): Emit error.
-              this._logger.logError(response.errors);
-            } else {
+          // Clone the result to access body.
+          // https://github.com/apollostack/core-docs/issues/224
+          // https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
+          response.clone().json()
+            .then(response => {
               this._logger.logResponse(requestId, response);
-            }
 
-            next();
-          });
+              // TODO(burdon): When can errors happen?
+              console.assert(!response.errors);
+            });
         } else {
-          response.clone().text().then(bodyText => {
-            // TODO(burdon): Use logger.
-            // TODO(burdon): Emit error.
-            console.error(`Network Error [ ${response.status}]: (${response.statusText}) (${bodyText})`);
-
-            next();
+          // GraphQL Error.
+          response.clone().text().then(text => {
+            eventListener.emit({ type: 'error', message: response.statusText });
           });
         }
+
+        next();
       }
-    }]);
+    };
+
+    this._networkInterface
+      .use([
+        addHeaders,
+        fixFetchMoreBug,
+        logRequest
+      ])
+      .useAfter([
+        logResponse
+      ]);
   }
 
   get networkInterface() {
@@ -207,12 +244,12 @@ class Logger {
   constructor(options) {}
 
   logRequest(requestId, request) {
-    console.log('[%s] >>> [%s]: %s', moment().format(Logger.TIMESTAMP),
-      requestId, JSON.stringify(request.variables, TypeUtil.JSON_REPLACER));
+    console.log('[%s] ===>>> [%s]: %s', moment().format(Logger.TIMESTAMP),
+      requestId, JSON.stringify(request.variables || {}, TypeUtil.JSON_REPLACER));
   }
 
   logResponse(requestId, response) {
-    console.log('[%s] <<< [%s]', moment().format(Logger.TIMESTAMP),
+    console.log('[%s] <<<=== [%s]', moment().format(Logger.TIMESTAMP),
       requestId, JSON.stringify(response.data, TypeUtil.JSON_REPLACER));
   }
 

@@ -13,6 +13,7 @@ import { ID, IdGenerator, Matcher, TypeUtil } from 'minder-core';
  */
 export class Database {
 
+  // TODO(burdon): Execution context.
   // TODO(burdon): Logger.
 
   static IdGenerator = new IdGenerator(1000);
@@ -23,6 +24,15 @@ export class Database {
 
     // Query matcher.
     this._matcher = new Matcher();
+
+    // Callback.
+    this._onMutation = null;
+  }
+
+  // TODO(burdon): Evolve into mutation dispatcher to query registry.
+  onMutation(callback) {
+    this._onMutation = callback;
+    return this;
   }
 
   /**

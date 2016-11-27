@@ -124,9 +124,8 @@ export class Resolvers {
 
       RootQuery: {
 
-        // TODO(burdon): Get userId from context.
-
-        viewer: (root, { userId }) => {
+        viewer: (root, { userId }, context) => {
+          console.log('### CONTEXT: %s', JSON.stringify(context));
           let { type, id:localUserId } = ID.fromGlobalId(userId);
 
           return {
@@ -135,17 +134,22 @@ export class Resolvers {
           }
         },
 
-        folders: (root) => {
+        folders: (root, args, context) => {
+          console.log('### CONTEXT: %s', JSON.stringify(context));
+
           return database.queryItems({ type: 'Folder' });
         },
 
-        item: (root, { itemId }) => {
+        item: (root, { itemId }, context) => {
+          console.log('### CONTEXT: %s', JSON.stringify(context));
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
 
           return database.getItem(type, localItemId);
         },
 
-        items: (root, { filter, offset, count }) => {
+        items: (root, { filter, offset, count }, context) => {
+          console.log('### CONTEXT: %s', JSON.stringify(context));
+
           return database.queryItems(filter, offset, count);
         }
       },

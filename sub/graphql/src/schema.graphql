@@ -79,7 +79,6 @@ input PredicateInput {
 }
 
 input FilterInput {
-  strict: Boolean
   type: String
   labels: [String]
   text: String
