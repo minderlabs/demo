@@ -23,7 +23,16 @@ npm-workspace install
 # https://facebook.github.io/react/warnings/refs-must-have-owner.html#multiple-copies-of-react
 #
 
-pushd sub/apollo  && npm-workspace install -v && popd
-pushd sub/core    && npm-workspace install -v && popd
-pushd sub/graphql && npm-workspace install -v && popd
-pushd sub/ux      && npm-workspace install -v && popd
+DIRS=(
+  'sub/core'
+  'sub/ux'
+  'sub/graphql'
+  'sub/apollo'
+)
+
+for dir in $"${DIRS[@]}"; do
+  echo "\n### [$dir] ###"
+  pushd $dir
+  npm-workspace install -v
+  popd
+done

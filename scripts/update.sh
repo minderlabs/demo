@@ -1,17 +1,21 @@
 #!/bin/sh
 
 #
-# Run node tests.
+# Update node deps.
 #
 
 DIRS=(
   'sub/core'
+  'sub/ux'
   'sub/graphql'
+  'sub/apollo'
 )
 
 for dir in $"${DIRS[@]}"; do
   echo "\n### [$dir] ###"
   pushd $dir
-  karma start --single-run
+  npm prune
+  npm update
+  npm outdated
   popd
 done

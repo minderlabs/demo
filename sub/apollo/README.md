@@ -1,7 +1,5 @@
 # Apollo
 
-
-
 TODO(burdon): Apollo Evaluation:
 https://www.reindex.io/blog/redux-and-relay
 https://dev-blog.apollodata.com/apollo-client-graphql-with-react-and-redux-49b35d0f2641#.ovjpku8rm

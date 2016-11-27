@@ -8,8 +8,6 @@ import React from 'react';
 
 /**
  * Item List.
- *
- * http://dev.apollodata.com/react/higher-order-components.html
  */
 export class List extends React.Component {
 

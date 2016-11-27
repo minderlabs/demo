@@ -19,7 +19,7 @@
     "babel-preset-stage-0": "^6.16.0",
     "body-parser": "^1.15.2",
     "chai": "^3.5.0",
-    "css-loader": "^0.25.0",
+    "css-loader": "^0.26.0",
     "extract-text-webpack-plugin": "^1.0.1",
     "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.0.0",
@@ -47,7 +47,6 @@
     "webpack-link": "^0.2.0"
   },
   "dependencies": {
-    "apollo-client": "^0.5.0",
     "lodash": "^4.17.2",
     "minder-core": "0.0.1",
     "moment": "^2.15.2",

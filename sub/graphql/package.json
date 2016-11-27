@@ -46,16 +46,17 @@
     "body-parser": "^1.15.2",
     "cheerio": "^0.22.0",
     "express": "^4.14.0",
-    "graphql": "^0.8.0",
+    "graphql": "^0.7.0",
     "graphql-fragments": "^0.1.0",
     "graphql-server-express": "^0.4.3",
     "graphql-subscriptions": "^0.2.1",
-    "graphql-tag": "^0.1.16",
+    "graphql-tag": "^1.0.0",
     "graphql-tools": "^0.8.1",
     "immutability-helper": "^2.0.0",
     "lodash": "^4.17.2",
     "minder-core": "0.0.1",
-    "moment": "^2.17.0"
+    "moment": "^2.17.0",
+    "redis": "^2.6.3"
   },
   "scripts": {
     "test": "BABEL_DISABLE_CACHE=1 karma start --single-run",
