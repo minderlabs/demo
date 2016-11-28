@@ -25,7 +25,7 @@ export class MemoryDatabase extends Database {
   }
 
   upsertItems(context, items) {
-    return _.map(items, (item) => {
+    let modifiedItems = _.map(items, (item) => {
       item = TypeUtil.clone(item);
 
       console.assert(item.type);
@@ -33,12 +33,16 @@ export class MemoryDatabase extends Database {
         item.id = Database.IdGenerator.createId();
       }
 
-      // TODO(burdon): Enforce immutable type.
+      // TODO(burdon): Enforce immutable properties (e.g., type).
       console.log('DB.UPSERT[%s]', item.id, JSON.stringify(item));
       this._items.set(item.id, item);
 
       return item;
     });
+
+    this.handleMutation(context, modifiedItems);
+
+    return modifiedItems;
   }
 
   getItems(context, type, itemIds) {

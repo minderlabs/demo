@@ -4,19 +4,41 @@
 
 'use strict';
 
+import 'redis';
+
 import { Database } from './database';
+
+import { Key } from '../util/key';
 
 /**
  * Redis database.
+ *
+ * https://github.com/NodeRedis/node_redis
  */
 export class RedisDatabase extends Database {
 
+  // TODO(burdon): Promises
+  // https://github.com/NodeRedis/node_redis#promises
+
+  static DB = 10;
+
+  static ITEM_KEY = new Key('I:{{type}}:{{itemId}}');
+
   constructor() {
     super();
+
+    // https://github.com/NodeRedis/node_redis#rediscreateclient
+    this._client = redis.createClient({
+      db: RedisDatabase.DB
+    });
+
+    this._client.on('error', (err) => {
+      console.log('Error: ' + err);
+    });
   }
 
   upsertItems(context, items) {
-
+    this.handleMutation(context, items);
   }
 
   getItems(context, type, itemIds) {

@@ -30,6 +30,10 @@ export class Database {
     return this;
   }
 
+  handleMutation(context, items) {
+    this._onMutation && this._onMutation(context, items);
+  }
+
   /**
    *
    * @param context
