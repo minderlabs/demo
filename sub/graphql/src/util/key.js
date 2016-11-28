@@ -22,6 +22,8 @@ export class Key {
 
   constructor(pattern) {
     console.assert(pattern);
+
+    // Formatter pattern.
     this._pattern = pattern;
 
     // Create the parser.
@@ -52,11 +54,12 @@ export class Key {
   fromKey(key) {
     console.assert(key);
 
-    let i = 1;
-    let args = {};
+    // Parse the key.
     let parts = key.match(this._parser);
 
-    // Use replace to iterate arg names.
+    // Use replace to iterate arg keys.
+    let i = 1;
+    let args = {};
     this._pattern.replace(Key.REGEX, (match, group) => {
       args[group] = parts[i++];
     });
