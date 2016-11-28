@@ -11,7 +11,7 @@ import http from 'http';
 import express from 'express';
 import handlebars from 'express-handlebars';
 
-import { Database, Randomizer, graphqlRouter } from 'minder-graphql';
+import { MemoryDatabase, Randomizer, graphqlRouter } from 'minder-graphql';
 
 import { appRouter, hotRouter } from './app';
 import { loginRouter, requestContext } from './auth';
@@ -41,7 +41,7 @@ const socketManager = new SocketManager(server);
 
 const clientManager = new ClientManager(socketManager);
 
-const database = new Database().onMutation(() => {
+const database = new MemoryDatabase().onMutation(() => {
   clientManager.invalidateOthers();
 });
 
@@ -57,15 +57,17 @@ app.use('/', loggingRouter());
 // Database.
 //
 
+let context = {};
+
 _.each(require('./testing/test.json'), (items, type) => {
-  database.upsertItems(_.map(items, (item) => ({ type, ...item })));
+  database.upsertItems(context, _.map(items, (item) => ({ type, ...item })));
 });
 
 // TODO(burdon): Webhook.
 const testData = true;
 
 if (testData) {
-  new Randomizer(database)
+  new Randomizer(database, context)
     .generate('Contact', 20)
     .generate('Place', 10)
     .generate('Task', 30,
@@ -93,7 +95,7 @@ if (env === 'hot') {
 
 app.use(loginRouter({
   env,
-  users: database.queryItems({ type: 'User' })
+  users: database.queryItems({}, { type: 'User' })
 }));
 
 app.use(graphqlRouter(database, {

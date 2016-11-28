@@ -127,6 +127,7 @@ export class TextBox extends React.Component {
     return (
       <input ref="input"
              type="text"
+             spellCheck={ false }
              className={ className }
              autoFocus={ this.props.autoFocus ? 'autoFocus' : '' }
              value={ this.state.value }

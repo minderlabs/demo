@@ -6,40 +6,25 @@
 
 import _ from 'lodash';
 
-import { ID, IdGenerator, Matcher, TypeUtil } from 'minder-core';
+import { TypeUtil } from 'minder-core';
+
+import { Database } from './database';
 
 /**
  * In-memory database.
  */
-export class Database {
+export class MemoryDatabase extends Database {
 
-  // TODO(burdon): Execution context.
-  // TODO(burdon): Logger.
-
-  static IdGenerator = new IdGenerator(1000);
+  // TODO(burdon): Factor out logging.
 
   constructor() {
+    super();
+
     // Map items.
     this._items = new Map();
-
-    // Query matcher.
-    this._matcher = new Matcher();
-
-    // Callback.
-    this._onMutation = null;
   }
 
-  // TODO(burdon): Evolve into mutation dispatcher to query registry.
-  onMutation(callback) {
-    this._onMutation = callback;
-    return this;
-  }
-
-  /**
-   *
-   * @param items
-   */
-  upsertItems(items) {
+  upsertItems(context, items) {
     return _.map(items, (item) => {
       item = TypeUtil.clone(item);
 
@@ -56,28 +41,14 @@ export class Database {
     });
   }
 
-  /**
-   *
-   * @param type
-   * @param itemId
-   * @returns {*}
-   */
-  getItem(type, itemId) {
-    console.log('DB.GET[%s]', itemId);
-    console.assert(type && itemId);
+  getItems(context, type, itemIds) {
+    console.log('DB.GET[%s]', itemIds);
+    console.assert(type && itemIds);
 
-    let item = this._items.get(itemId);
-    return item && TypeUtil.clone(item);
+    return _.map(itemIds, itemId => TypeUtil.clone(this._items.get(itemId) || {}));
   }
 
-  /**
-   *
-   * @param filter
-   * @param offset
-   * @param count
-   * @returns {Array}
-   */
-  queryItems(filter={}, offset=0, count=10) {
+  queryItems(context, filter={}, offset=0, count=10) {
     let items = [];
     this._items.forEach((item) => {
       if (!this._matcher.match(filter, item)) {

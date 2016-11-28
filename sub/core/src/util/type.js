@@ -20,7 +20,8 @@ export class TypeUtil {
    * Clones simple JSON object.
    * @param obj
    */
-  static clone(obj={}) {
+  static clone(obj) {
+    console.assert(obj);
     return JSON.parse(JSON.stringify(obj));
   }
 

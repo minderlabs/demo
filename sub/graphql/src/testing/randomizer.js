@@ -41,8 +41,11 @@ export class Randomizer {
     }
   };
 
-  constructor(database, seed=1000) {
+  constructor(database, context, seed=1000) {
+    console.assert(database && context);
+
     this._database = database;
+    this._context = context;
     this._chance = new Chance(seed);
   }
 
@@ -62,9 +65,9 @@ export class Randomizer {
       // Generate fields.
       _.each(fields, (spec, field) => {
         if (this._chance.bool({ likelihood: spec.likelihood * 100 })) {
-          let values = this._database.queryItems({type: spec.type});
+          let values = this._database.queryItems(this._context, { type: spec.type });
           if (values.length) {
-            let index = this._chance.integer({min: 0, max: values.length - 1});
+            let index = this._chance.integer({ min: 0, max: values.length - 1 });
             let value = values[index];
             item[field] = value.id;
           }
@@ -74,7 +77,7 @@ export class Randomizer {
       return item;
     });
 
-    this._database.upsertItems(items);
+    this._database.upsertItems(this._context, items);
     return this;
   }
 }

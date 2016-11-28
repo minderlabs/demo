@@ -6,5 +6,6 @@
 
 export * from './util/logger';
 export * from './testing/randomizer';
-export * from './database';
+export * from './db/memory_database';
+export * from './db/redis_database';
 export * from './router';

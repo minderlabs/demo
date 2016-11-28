@@ -18,7 +18,7 @@ import { introspectionQuery, printSchema } from 'graphql/utilities';
 
 import { ID } from 'minder-core';
 
-import { Database } from './database';
+import { MemoryDatabase } from './db/memory_database';
 import { Resolvers } from './resolvers';
 
 import Schema from './schema.graphql';
@@ -69,7 +69,7 @@ const test = (result, done) => {
 // https://github.com/apollostack/graphql-tools
 //
 
-describe('GraphQL Mock Server', () => {
+describe('GraphQL Mock Server:', () => {
 
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
   let resolverMap = {
@@ -105,10 +105,11 @@ describe('GraphQL Mock Server', () => {
 // https://github.com/apollostack/frontpage-server/blob/master/data/schema.js
 //
 
-describe('GraphQL Executable Schema', () => {
+describe('GraphQL Executable Schema:', () => {
+  let context = {};
 
-  let database = new Database();
-  database.upsertItems([{ id: 'minder', type: 'User', title: 'Minder' }]);
+  let database = new MemoryDatabase();
+  database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }]);
 
   // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
   let schema = makeExecutableSchema({
@@ -120,7 +121,7 @@ describe('GraphQL Executable Schema', () => {
   });
 
   it('Query viewer', (done) => {
-    let item = database.getItem('User', 'minder');
+    let item = database.getItems(context, 'User', ['minder'])[0];
     expect(item.id).to.equal('minder');
 
     // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
@@ -136,10 +137,11 @@ describe('GraphQL Executable Schema', () => {
 // https://github.com/graphql/graphql-js
 //
 
-describe('GraphQL JS API', () => {
+describe('GraphQL JS API:', () => {
+  let context = {};
 
-  let database = new Database();
-  database.upsertItems([{ id: 'minder', type: 'User', title: 'Minder' }]);
+  let database = new MemoryDatabase();
+  database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }]);
 
   let schema = new GraphQLSchema({
     query: new GraphQLObjectType({
@@ -176,7 +178,7 @@ describe('GraphQL JS API', () => {
             let { type, id:userId } = ID.fromGlobalId(args.userId);
             return {
               id: userId,
-              user: database.getItem(type, userId)
+              user: database.getItems({}, type, [userId])[0]
             }
           }
         }

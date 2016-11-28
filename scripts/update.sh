@@ -19,3 +19,8 @@ for dir in $"${DIRS[@]}"; do
   npm outdated
   popd
 done
+
+pushd sub/graphql
+npm run update-schema
+popd
+

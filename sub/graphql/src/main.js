@@ -6,7 +6,7 @@
 
 import { TypeUtil } from 'minder-core';
 
-import { Database } from './database';
+import { Database } from './db/database';
 
 console.log(Database);
 

@@ -146,6 +146,7 @@ export class Picker extends React.Component {
       return (
         <input key={ item.id }
                readOnly="readOnly"
+               spellCheck={ false }
                defaultValue={ item.title }
                onKeyDown={ this.handleListKeyDown.bind(this) }
                onFocus={ this.handleItemFocusChange.bind(this, item, true) }
