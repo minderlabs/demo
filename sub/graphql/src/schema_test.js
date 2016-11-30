@@ -31,8 +31,8 @@ import Schema from './schema.graphql';
 //
 
 const query = `
-  query TestQuery($userId: ID!) { 
-    viewer(userId: $userId) {
+  query TestQuery() { 
+    viewer {
       id
       user {
         id
@@ -71,16 +71,21 @@ const test = (result, done) => {
 
 describe('GraphQL Mock Server:', () => {
 
+  // TODO(burdon): Pass in context?
+
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
   let resolverMap = {
     RootQuery: () => ({
-      viewer: (root, args) => {
-        let { type, id:userId } = ID.fromGlobalId(args.userId);
+      viewer: (root, args, context) => {
+        let user = { context };
+        let userId = { user };
+        console.assert(userId);
+
         return {
           id: userId,
           user: {
             id: userId,
-            type: type,
+            type: 'User',
             title: 'Minder'
           }
         }
@@ -92,8 +97,7 @@ describe('GraphQL Mock Server:', () => {
   let server = mockServer(Schema, resolverMap);
 
   it('Query viewer', (done) => {
-    let vars = { userId: ID.toGlobalId('User', 'minder') };
-    server.query(query, vars).then((result) => {
+    server.query(query).then((result) => {
       test(result, done);
     });
   });
@@ -125,8 +129,7 @@ describe('GraphQL Executable Schema:', () => {
     expect(item.id).to.equal('minder');
 
     // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
-    let vars = { userId: ID.toGlobalId('User', 'minder') };
-    graphql(schema, query, {}, {}, vars).then((result) => {
+    graphql(schema, query).then((result) => {
       test(result, done);
     });
   });
@@ -169,15 +172,15 @@ describe('GraphQL JS API:', () => {
               }
             },
           }),
-          args: {
-            userId: {
-              type: new GraphQLNonNull(GraphQLID)
-            }
-          },
-          resolve(node, args) {
-            let { type, id:userId } = ID.fromGlobalId(args.userId);
+          resolve(node, args, context) {
+            let user = { context };
+            let userId = { user };
+            console.assert(userId);
+
             return {
               id: userId,
+
+              // TODO(burdon): Don't get from database.
               user: database.getItems({}, type, [userId])[0]
             }
           }

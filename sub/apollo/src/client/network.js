@@ -45,7 +45,7 @@ export class AuthManager {
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
     firebase.auth().onAuthStateChanged(user => {
-      console.log('Auth changed: ', user);
+      console.log('Auth changed: %s', user ? user.email : 'Logout');
       if (user) {
         user.getToken().then(token => {
           // Update the network manager (sets header for graphql requests).
@@ -251,10 +251,12 @@ export class NetworkManager {
           // https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
           response.clone().json()
             .then(response => {
-              this._logger.logResponse(requestId, response);
-
-              // TODO(burdon): When can errors happen?
-              console.assert(!response.errors);
+              // Check GraphQL error.
+              if (response.errors) {
+                this._logger.logErrors(requestId, response.errors)
+              } else {
+                this._logger.logResponse(requestId, response);
+              }
             });
         } else {
           // GraphQL Error.
@@ -276,6 +278,14 @@ export class NetworkManager {
       .useAfter([
         logResponse
       ]);
+  }
+
+  /**
+   * Exposes the interface for the Apollo client.
+   * @returns {*}
+   */
+  get networkInterface() {
+    return this._networkInterface;
   }
 
   /**
@@ -319,7 +329,7 @@ class Logger {
       requestId, JSON.stringify(response.data, TypeUtil.JSON_REPLACER));
   }
 
-  logError(requestId, errors) {
+  logErrors(requestId, errors) {
     console.error('GraphQL Error [%s]:',
       requestId, errors.map(error => error.message));
   }

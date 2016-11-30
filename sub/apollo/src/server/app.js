@@ -46,25 +46,25 @@ export const appRouter = (clientManager, options) => {
   router.get(/^\/app\/?(.*)/, async function(req, res) {
     let userInfo = await getUserInfoFromCookie(req);
     if (!userInfo) {
-      res.redirect('/home');  // TODO(burdon): Const.
-    }
+      // TODO(burdon): Router object.
+      res.redirect('/');
+    } else {
+      // Create the client (and socket).
+      let client = clientManager.create(userInfo.userId);
 
-    // Create client (with socket ID).
-    // TODO(burdon): Cloud messaging.
-    let client = clientManager.create(userInfo.userId);
-
-    res.render('app', {
-      app: WEBPACK_BUNDLE[options.env],
-      config: {
-        root: 'app-root',
-        user: userInfo,
-        clientId: client.id,
-        graphql: options.graphql,
-        debug: {
-          env: options.env
+      res.render('app', {
+        app: WEBPACK_BUNDLE[options.env],
+        config: {
+          root: 'app-root',
+          user: userInfo,
+          clientId: client.id,
+          graphql: options.graphql,
+          debug: {
+            env: options.env
+          }
         }
-      }
-    });
+      });
+    }
   });
 
   return router;

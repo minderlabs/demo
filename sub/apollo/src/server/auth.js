@@ -25,22 +25,23 @@ admin.initializeApp({
  * @returns {*|Promise.<T>}
  */
 function getUserFromJWT(token) {
-  console.log('### TOKEN');
-
-  // Token set by apollo client's network interface middleware.
-  // https://jwt.io/introduction
-  return admin.auth().verifyIdToken(token)
-    .then(function(decodedToken) {
-      return {
-        token,
-        userId: decodedToken.uid,
-        name:   decodedToken.name,
-        email:  decodedToken.email
-      }
-    })
-    .catch(function(error) {
-      console.error('Invalid token', error);
-    });
+  return new Promise((resolve, reject) => {
+    if (!token) {
+      reject();
+    } else {
+      // Token set by apollo client's network interface middleware.
+      // https://jwt.io/introduction
+//    console.log('Validating token...');
+      admin.auth().verifyIdToken(token)
+        .then(decodedToken => {
+          let { uid:userId, name, email } = decodedToken;
+          console.log('Got token for: %s', email);
+          resolve({
+            token, userId, name, email
+          });
+        });
+    }
+  });
 }
 
 /**
@@ -58,11 +59,12 @@ function getUserFromJWT(token) {
 export function getUserInfoFromHeader(req) {
   console.assert(req);
 
+//console.log('Getting token from header...');
   let auth = req.headers && req.headers['authentication'];
   let match = auth && auth.match(/^Bearer (.+)$/);
   let token = match && match[1];
 
-  return token && getUserFromJWT(token);
+  return getUserFromJWT(token).catch(() => null);
 }
 
 /**
@@ -74,9 +76,10 @@ export function getUserInfoFromHeader(req) {
 export function getUserInfoFromCookie(req) {
   console.assert(req);
 
+//console.log('Getting token from cookie...');
   let token = req.cookies && req.cookies['minder_auth_token'];
 
-  return token && getUserFromJWT(token);
+  return getUserFromJWT(token).catch(() => null);
 }
 
 /**

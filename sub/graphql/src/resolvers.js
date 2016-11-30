@@ -124,15 +124,15 @@ export class Resolvers {
       RootQuery: {
 
         viewer: (root, args, context) => {
-          console.log('### CONTEXT: %s', JSON.stringify(context));
-
-          // TODO(burdon): Get from context. Remove ID from schema.
-          let { userId } = args;
-          let { type, id:localUserId } = ID.fromGlobalId(userId);
+          let user = { context };
+          let userId = { user };
 
           return {
-            id: localUserId,
-            user: database.getItems(context, 'User', [localUserId])[0]
+            id: userId,
+
+            // TODO(burdon): Call nested resolver below? Just return ID?
+//          user: database.getItems(context, 'User', [localUserId])[0]
+            user: { id:userId, user:'User', title: 'A USER' }
           }
         },
 
@@ -144,8 +144,14 @@ export class Resolvers {
           let { itemId } = args;
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
 
-          // TODO(burdon): Get users from user store. Fan-out here.
-          return database.getItems(context, type, [localItemId])[0];
+          // TODO(burdon): Get users from user store. Fan-out before database.
+          switch (type) {
+            case 'User':
+              return { id:localItemId, type, title: 'A USER' };
+
+            default:
+              return database.getItems(context, type, [localItemId])[0];
+          }
         },
 
         items: (root, args, context) => {

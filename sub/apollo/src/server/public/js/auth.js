@@ -41,6 +41,7 @@ window.minder = {
         let user = result.user;
         if (user) {
           firebase.auth().currentUser.getToken().then(token => {
+            console.log('SETTING COOKIE', user.email);
 
             // Se the auth cookie for server-side detection.
             // https://github.com/js-cookie/js-cookie
@@ -52,6 +53,7 @@ window.minder = {
             });
 
             // Redirect (to app).
+            console.log('REDIRECT', path);
             window.location.href = path;
           });
 

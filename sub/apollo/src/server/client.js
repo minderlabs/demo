@@ -40,10 +40,10 @@ export const clientRouter = (clientManager, options) => {
     let { clientId, socketId } = req.body;
 
     let userInfo = await getUserInfoFromHeader(req);
-    if (!userInfo) {
-      res.status(401);
-    } else {
+    if (userInfo) {
       clientManager.register(userInfo.userId, clientId, socketId);
+    } else {
+      res.status(401);
     }
 
     res.send({});

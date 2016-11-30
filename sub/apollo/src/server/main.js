@@ -137,10 +137,10 @@ app.use(cookieParser());
 
 app.get('/home', async function(req, res) {
   let userInfo = await getUserInfoFromCookie(req);
-  if (userInfo) {
-    res.redirect('/app');
-  } else {
+  if (!userInfo) {
     res.render('home');
+  } else {
+    res.redirect('/app');
   }
 });
 
@@ -154,7 +154,7 @@ app.use(graphqlRouter(database, {
   pretty: false,
 
   // Gets the user context from the request headers (async).
-  //context: request => getUserInfoFromHeader(request).then(user => ({ user }))
+  context: request => getUserInfoFromHeader(request).then(user => ({ user }))
 }));
 
 app.use(adminRouter(clientManager));
@@ -165,6 +165,10 @@ app.use(appRouter(clientManager, {
   env
 }));
 
+app.use('/', function(req, res) {
+  res.redirect('/home');
+});
+
 // Default redirect.
 app.use(function(req, res) {
   console.log('[404]: %s', req.path);
@@ -172,7 +176,6 @@ app.use(function(req, res) {
   // TODO(burdon): Don't redirect if resource request (e.g., robots.txt, favicon.ico, etc.)
 //res.redirect('/home');
   res.status = 404;
-  res.send({});
 });
 
 

@@ -139,9 +139,9 @@ class Layout extends React.Component {
 
 
 const LayoutQuery = gql`
-  query LayoutQuery($userId: ID!) { 
+  query LayoutQuery { 
 
-    viewer(userId: $userId) {
+    viewer {
       id
       user {
         title
@@ -213,13 +213,6 @@ export default compose(
   // Configure query (from redux state).
   // http://dev.apollodata.com/react/queries.html#graphql-options
   graphql(LayoutQuery, {
-    options: (props) => {
-      return {
-        variables: {
-          userId: ID.toGlobalId('User', props.user.userId)
-        }
-      };
-    },
     props: ({ ownProps, data }) => {
       return {
         data
