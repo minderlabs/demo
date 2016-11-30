@@ -82,6 +82,7 @@ input FilterInput {
   type: String
   labels: [String]
   text: String
+
   predicate: PredicateInput
 }
 

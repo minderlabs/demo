@@ -98,11 +98,12 @@ app.use(loginRouter({
   users: database.queryItems({}, { type: 'User' })
 }));
 
+
 app.use(graphqlRouter(database, {
   logging: true,
 
-  // Gets the user context from the request.
-  resolverContext: (req) => { return requestContext(req) },
+  // Gets the user context from the request (async).
+  context: requestContext
 }));
 
 app.use(adminRouter(clientManager));

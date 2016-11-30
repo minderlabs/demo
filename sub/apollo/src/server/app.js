@@ -48,7 +48,10 @@ export const appRouter = (clientManager, options) => {
   // Client.
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
   router.get(/^\/app\/?(.*)/, function(req, res) {
-    let { userId } = requestContext(req);
+
+
+    let { userId } = { userId: 'xxx' }; //requestContext(req);
+    console.log('!!!!!!!!!!!!!!!!!!!!!!', userId);
     if (!userId) {
       res.redirect('/login');
     } else {

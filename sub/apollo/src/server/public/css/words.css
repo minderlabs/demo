@@ -2,7 +2,7 @@
  * Copyright 2016 Minder Labs.
  */
 
-.title {
+.app-title {
   display: flex;
   flex-direction: row;
 
@@ -17,11 +17,11 @@
   transition-duration: 1000ms;
   margin-left: -70px;
 }
-.title.running {
+.app-title.app-running {
   margin-left: 0;
 }
 
-.title div:first-child {
+.app-title div:first-child {
   transition-duration: 1000ms;
 
   width: 400px;
@@ -29,7 +29,7 @@
   text-align: right;
   opacity: .4;
 }
-.title div:last-child {
+.app-title div:last-child {
   transition-duration: 1000ms;
 
   width: 400px;
@@ -38,16 +38,16 @@
   opacity: .4;
 }
 
-.title div.mind {
+.app-title div.app-mind {
   opacity: .8;
   color: whitesmoke;
   transition-duration: 500ms;
 }
-.title.bright div.mind {
+.app-title.app-bright div.app-mind {
   color: white;
   opacity: 1;
 }
 
-.title div.fade {
+.app-title div.app-fade {
   opacity: 0;
 }

@@ -17,7 +17,7 @@ module.exports = {
 
   context: __dirname,
 
-//target: 'node',
+  target: 'node',
 
   devtool: 'inline-source-map',
 

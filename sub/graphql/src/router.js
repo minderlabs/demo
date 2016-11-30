@@ -55,30 +55,30 @@ export const graphqlRouter = (database, options) => {
   // http://dev.apollodata.com/tools/graphql-server/setup.html#options-function
 
   // TODO(burdon): Simulate errors?
-  router.use(options.graphql, graphqlExpress(req => ({
+  router.use(options.graphql, graphqlExpress(async function(req) {
 
-    // Executable schema.
-    schema: schema,
-
-    // TODO(burdon): Cookies are blank.
-    // client and auth have different routers and GET/POST but OK; so issue with graphqlExpress?
-
-    // TODO(burdon): Client doesn't send cookies (set header instead).
-    // https://github.com/apollostack/apollo-client/issues/132
-
-    // Request context for resolvers (e.g., authenticated user).
+    // Request context (async) for resolvers (e.g., authenticated user).
     // http://dev.apollodata.com/tools/graphql-server/setup.html
     // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
-    context: options.resolverContext && options.resolverContext(req) || {},
 
-    pretty: true,
+    // TODO(burdon): Check for promise?
+    let context = options.context && await options.context(req) || {};
 
-    formatError: error => ({
-      message: error.message,
-      locations: error.locations,
-      stack: error.stack
-    })
-  })));
+    return {
+
+      schema: schema,
+
+      context: context,
+
+      pretty: true,
+
+      formatError: error => ({
+        message: error.message,
+        locations: error.locations,
+        stack: error.stack
+      })
+    };
+  }));
 
   // Bind debug UX.
   router.use(options.graphiql, graphiqlExpress({

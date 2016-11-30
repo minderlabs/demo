@@ -39,7 +39,7 @@ export const clientRouter = (clientManager, options) => {
   router.post('/client/register', function(req, res) {
     console.log('### REGISTER: %s', JSON.stringify(req.body));
     let { clientId, socketId } = req.body;
-    let { userId } = requestContext(req);
+    let { userId } = { userId: 'xxx' }; //requestContext(req);
     clientManager.register(userId, clientId, socketId);
     res.send({});
   });

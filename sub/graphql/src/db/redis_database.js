@@ -17,21 +17,28 @@ import { Key } from '../util/key';
  */
 export class RedisDatabase extends Database {
 
+  // https://github.com/NodeRedis/node_redis#rediscreateclient
+  static client(options) {
+    return redis.createClient({
+      db: options.db
+    });
+  }
+
   // TODO(burdon): Promises
   // https://github.com/NodeRedis/node_redis#promises
+
+  // TODO(burdon): Testing.
+  // https://github.com/hdachev/fakeredis
 
   static DB = 10;
 
   static ITEM_KEY = new Key('I:{{type}}:{{itemId}}');
 
-  constructor() {
+  constructor(client) {
     super();
+    console.assert(client);
 
-    // https://github.com/NodeRedis/node_redis#rediscreateclient
-    this._client = redis.createClient({
-      db: RedisDatabase.DB
-    });
-
+    this._client = client;
     this._client.on('error', (err) => {
       console.log('Error: ' + err);
     });

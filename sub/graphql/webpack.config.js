@@ -17,6 +17,7 @@ module.exports = _.merge(baseConfig, {
 
   entry: {
     main: [
+      // TODO(burdon): This is only a sanity test (move to actual mocha test?)
       path.resolve(baseConfig.context, 'src/main.js')
     ]
   },

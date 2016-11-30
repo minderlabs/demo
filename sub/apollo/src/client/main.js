@@ -13,6 +13,8 @@ import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
 
+import * as firebase from 'firebase';
+
 import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
 
 import { AppReducer } from './reducers';
@@ -38,6 +40,51 @@ let eventHandler = new EventHandler();
 let networkManager = new NetworkManager(eventHandler, config);
 
 let queryRegistry = new QueryRegistry();
+
+
+//
+// Firebase login
+// TODO(burdon): vs server OAuth? (server OAuth gives server chance to configure client). Requires pop-up.
+// 1). Get snippet from Firebase dashboard:
+// https://console.firebase.google.com/project/minder-beta/overview
+// 2). Configure Auth Providers (Google):
+// https://console.firebase.google.com/project/minder-beta/authentication/providers
+//
+
+// TODO(burdon): Factor out const.
+firebase.initializeApp({
+  apiKey: 'AIzaSyDwDsz7hJWdH2CijLItaQW6HmL7H9uDFcI',
+  authDomain: 'minder-beta.firebaseapp.com',
+  databaseURL: 'https://minder-beta.firebaseio.com',
+  storageBucket: 'minder-beta.appspot.com',
+  messagingSenderId: '189079594739'
+});
+
+let provider = new firebase.auth.GoogleAuthProvider();
+provider.addScope('https://www.googleapis.com/auth/plus.login');
+
+// TODO(burdon): Promise.all
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    let user = firebase.auth().currentUser;
+    console.log('LOGGED IN: %s', user.email);
+    user.getToken().then((token) => {
+      window.token = token;
+    });
+  } else {
+    // https://firebase.google.com/docs/auth/web/google-signin
+    firebase.auth().signInWithPopup(provider).then((result) => {
+      console.log('LOGIN SUCCEEDED: %s [%s]', result.user.email, result.credential.accessToken);
+    }).catch((error) => {
+      console.error('LOGIN FAILED: %d:%s', error.code, error.message);
+    });
+  }
+});
+
+// TODO(burdon): Sign out.
+// firebase.auth().signOut().then();
+
+// TODO(burdon): Cloud messaging.
 
 
 //

@@ -7,6 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/sub/core/node_modules" />
       <excludeFolder url="file://$MODULE_DIR$/sub/docker" />
       <excludeFolder url="file://$MODULE_DIR$/sub/graphene" />
+      <excludeFolder url="file://$MODULE_DIR$/sub/graphql/.tmp" />
       <excludeFolder url="file://$MODULE_DIR$/sub/graphql/dist" />
       <excludeFolder url="file://$MODULE_DIR$/sub/graphql/node_modules" />
       <excludeFolder url="file://$MODULE_DIR$/sub/relay" />

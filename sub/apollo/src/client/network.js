@@ -5,6 +5,7 @@
 'use strict';
 
 import moment from 'moment';
+import * as firebase from 'firebase';
 import io from 'socket.io-client';
 
 import { createNetworkInterface } from 'apollo-client';
@@ -120,11 +121,14 @@ export class NetworkManager {
     const addHeaders = {
       applyMiddleware: ({ request, options }, next) => {
 
-        // TODO(burdon): Cookies or header for auth?
+        console.log('=======================> TOKEN: %s', window.token);
+
+        // https://jwt.io/introduction
         // https://github.com/apollostack/apollo-client/issues/132
         // https://github.com/github/fetch/blob/7f71c9bdccedaf65cf91b450b74065f8bed26d36/README.md#sending-cookies
         options.headers = _.defaults(options.headers, {
-          [NetworkManager.HEADER_USER_ID]: config.userId
+          [NetworkManager.HEADER_USER_ID]: config.userId,
+          'authentication': 'Bearer ' + window.token
         });
 
         next();
