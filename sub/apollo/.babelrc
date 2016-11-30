@@ -16,6 +16,9 @@
     // NOTE: BABEL_DISABLE_CACHE=1 otherwise cached.
     "babel-plugin-inline-import",
 
+    // https://babeljs.io/docs/plugins/transform-async-to-generator
+    "transform-async-to-generator",
+
     // https://babeljs.io/docs/plugins/transform-decorators
     // https://github.com/babel/babel/issues/2645
     // https://medium.com/google-developers/exploring-es7-decorators-76ecb65fb841#.60y0ukiag

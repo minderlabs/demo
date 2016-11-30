@@ -5,11 +5,61 @@
 'use strict';
 
 import moment from 'moment';
+import * as firebase from 'firebase';
 import io from 'socket.io-client';
 
 import { createNetworkInterface } from 'apollo-client';
 
 import { TypeUtil } from 'minder-core';
+
+
+/**
+ * Manages user authentication.
+ * Uses Firebase (all authentication performed by client).
+ *
+ * https://console.firebase.google.com/project/minder-beta
+ * 1). Create project (minder-beta)
+ * 2). Configure Auth providers (e.g., Google)
+ */
+export class AuthManager {
+
+  constructor(config, networkManager) {
+    console.assert(config && networkManager);
+
+    this._networkManager = networkManager;
+
+    // TODO(burdon): Factor out const (common).
+    // https://console.firebase.google.com/project/minder-beta/overview
+    firebase.initializeApp({
+      apiKey: 'AIzaSyDwDsz7hJWdH2CijLItaQW6HmL7H9uDFcI',
+      authDomain: 'minder-beta.firebaseapp.com',
+      databaseURL: 'https://minder-beta.firebaseio.com',
+      storageBucket: 'minder-beta.appspot.com',
+      messagingSenderId: '189079594739'
+    });
+
+    // Google scopes.
+    this._provider = new firebase.auth.GoogleAuthProvider();
+    this._provider.addScope('https://www.googleapis.com/auth/plus.login');
+
+    // TODO(burdon): Handle errors.
+    // Check for auth changes (e.g., expired).
+    firebase.auth().onAuthStateChanged(user => {
+      console.log('Auth changed: ', user);
+      if (user) {
+        user.getToken().then(token => {
+          // Update the network manager (sets header for graphql requests).
+          this._networkManager.token = token;
+        });
+      } else {
+        this._networkManager.token = null;
+
+        // Prompt to login (triggers state change above).
+        firebase.auth().signInWithPopup(this._provider);
+      }
+    });
+  }
+}
 
 /**
  * Manages client connection.
@@ -25,22 +75,25 @@ export class ConnectionManager {
   // http://socket.io/docs
   //
 
-  // TODO(burdon): Injector.
-  constructor(queryRegistry, eventHandler) {
-    console.assert(queryRegistry && eventHandler);
+  constructor(config, networkManager, queryRegistry, eventHandler) {
+    console.assert(config && networkManager && queryRegistry && eventHandler);
 
+    this._networkManager = networkManager;
     this._queryRegistry = queryRegistry;
     this._eventHandler = eventHandler;
+
+    // TODO(burdon): Switch to Firebase Cloud Messaging (with auto-reconnect).
     this._socket = io();
   }
 
-  // TODO(burdon): Implement auto-reconnect.
 
   /**
    * Async connect
-   * @returns {ConnectionManager}
+   * @returns {Promise}
    */
   connect() {
+    console.log('Connecting...');
+
     return new Promise((resolve, reject) => {
       this._socket.on('connect', () => {
         let socketId = this._socket.io.engine.id;
@@ -53,6 +106,7 @@ export class ConnectionManager {
         $.ajax({
           url: url,
           type: 'POST',
+          headers: this._networkManager.headers,  // Includes JWT token.
           contentType: 'application/json; charset=utf-8',
           dataType: 'json',
           data: JSON.stringify({
@@ -61,7 +115,7 @@ export class ConnectionManager {
           }),
 
           success: (response) => {
-            console.log('Registered[%s]: %s', socketId, JSON.stringify(response));
+            console.log('Registered[%s]: %s', config.clientId, socketId);
 
             // Listen for invalidations.
             this._socket.on('invalidate', (data) => {
@@ -89,21 +143,22 @@ export class ConnectionManager {
  */
 export class NetworkManager {
 
-  // TODO(burdon): Move to external defs.
   // NOTE: must be lowercase.
-  static HEADER_REQUEST_ID  = 'mx-request-id';
-  static HEADER_USER_ID     = 'mx-user-id';
+  static HEADER_REQUEST_ID  = 'minder-request-id';
 
-  // TODO(burdon): Class or functor?
+  constructor(config, eventListener) {
+    console.assert(config && eventListener);
 
-  constructor(eventListener, config) {
+    // Set token from server provided config.
+    console.assert(config.user.token);
+    this._token = config.user.token;
 
     // Log and match request/reponses.
     this._requestCount = 0;
     this._requestMap = new Map();
 
     // TODO(burdon): Configure via options.
-    this._logger = new Logger();
+    this._logger = new Logger(config.logging);
 
     // TODO(burdon): Configure batching via options.
     // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
@@ -120,12 +175,8 @@ export class NetworkManager {
     const addHeaders = {
       applyMiddleware: ({ request, options }, next) => {
 
-        // TODO(burdon): Cookies or header for auth?
-        // https://github.com/apollostack/apollo-client/issues/132
-        // https://github.com/github/fetch/blob/7f71c9bdccedaf65cf91b450b74065f8bed26d36/README.md#sending-cookies
-        options.headers = _.defaults(options.headers, {
-          [NetworkManager.HEADER_USER_ID]: config.userId
-        });
+        // Set the JWT header.
+        options.headers = _.defaults(options.headers, this.headers);
 
         next();
       }
@@ -227,8 +278,23 @@ export class NetworkManager {
       ]);
   }
 
-  get networkInterface() {
-    return this._networkInterface;
+  /**
+   * Returns the JWT header token used by the server to create the execution context.
+   * @returns {{authentication: string}}
+   */
+  get headers() {
+    console.assert(this._token);
+    return {
+      'authentication': 'Bearer ' + this._token
+    }
+  }
+
+  /**
+   * Sets the JWT token (e.g., after authentication changes).
+   * @param token
+   */
+  set token(token) {
+    this._token = token;
   }
 }
 

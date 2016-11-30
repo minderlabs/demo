@@ -19,25 +19,27 @@ import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
 import { TypeRegistry } from './view/component/type_registry';
 
-import { ConnectionManager, NetworkManager } from './network';
+import { AuthManager, ConnectionManager, NetworkManager } from './network';
 import { Monitor } from './view/component/devtools';
 
 import Application from './app';
 
 // TODO(burdon): Move to index.web.js
 
-//
-// Server provided config.
-//
+// TODO(burdon): Promises for async deps.
 
 // TODO(burdon): Wrap.
 const config = window.config;
 
 let eventHandler = new EventHandler();
 
-let networkManager = new NetworkManager(eventHandler, config);
-
 let queryRegistry = new QueryRegistry();
+
+let networkManager = new NetworkManager(config, eventHandler);
+
+let authManager = new AuthManager(config, networkManager);
+
+let connectionManager = new ConnectionManager(config, networkManager, queryRegistry, eventHandler);
 
 
 //
@@ -89,6 +91,7 @@ const apolloClient = new ApolloClient({
 
   networkInterface: networkManager.networkInterface
 });
+
 
 //
 // Redux
@@ -172,10 +175,7 @@ if (module.hot && _.get(config, 'debug.env') === 'hot') {
 
 console.log('Config = %s', JSON.stringify(config));
 
-// TODO(burdon): Injector.
-new ConnectionManager(queryRegistry, eventHandler, config)
-  .connect().then(() => {
-    console.log('Connected');
-
-    renderApp(Application);
-  });
+// TODO(burdon): Injector pattern.
+connectionManager.connect().then(() => {
+  renderApp(Application);
+});

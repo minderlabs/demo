@@ -8,22 +8,76 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 
-const USER_COOKIE = 'minder_userid';
+
+// TODO(burdon): Change to import.
+// https://console.firebase.google.com/project/minder-beta/settings/serviceaccounts/adminsdk
+const admin = require('firebase-admin');
+
+// https://firebase.google.com/docs/admin/setup
+admin.initializeApp({
+  credential: admin.credential.cert('src/server/conf/minder-beta-firebase-adminsdk-n6arv.json'),
+  databaseURL: 'https://minder-beta.firebaseio.com'
+});
+
+/**
+ * Decodes the JWT token.
+ * @param token
+ * @returns {*|Promise.<T>}
+ */
+function getUserFromJWT(token) {
+  console.log('### TOKEN');
+
+  // Token set by apollo client's network interface middleware.
+  // https://jwt.io/introduction
+  return admin.auth().verifyIdToken(token)
+    .then(function(decodedToken) {
+      return {
+        token,
+        userId: decodedToken.uid,
+        name:   decodedToken.name,
+        email:  decodedToken.email
+      }
+    })
+    .catch(function(error) {
+      console.error('Invalid token', error);
+    });
+}
 
 /**
  * Gets the User ID from the request.
+ * With firebase, auth is done by the client.
+ * The Apollo client's middleware sets the authentication token with the encoded JWT token below.
+ * The same sign-up flow is used by mobile clients.
+ *
+ * TODO(burdon): Rethink this?
+ * For server-side auth the client also set's a cookie.
  *
  * @param req HTTP request object.
- * @returns {String} User ID (or undefined if not authenticated).
+ * @returns {Promise}
  */
-export const requestContext = (req) => {
-  console.assert(req && req.cookies);
+export function getUserInfoFromHeader(req) {
+  console.assert(req);
 
-  // TODO(burdon): Factor out consts (shared with client.network); standardize cookie/header.
-  return {
-    userId: req.headers['mx-user-id'] || req.cookies[USER_COOKIE]
-  }
-};
+  let auth = req.headers && req.headers['authentication'];
+  let match = auth && auth.match(/^Bearer (.+)$/);
+  let token = match && match[1];
+
+  return token && getUserFromJWT(token);
+}
+
+/**
+ * Gets the user from the JWT token in a cookie set by the login client.
+ *
+ * @param req HTTP request object.
+ * @returns {Promise}
+ */
+export function getUserInfoFromCookie(req) {
+  console.assert(req);
+
+  let token = req.cookies && req.cookies['minder_auth_token'];
+
+  return token && getUserFromJWT(token);
+}
 
 /**
  * Manage user authentication.
@@ -34,46 +88,22 @@ export const requestContext = (req) => {
 export const loginRouter = (options) => {
   let router = express.Router();
 
+  // Parse login cookie (set by client).
   router.use(cookieParser());
 
   // Encoded bodies (Form post).
   router.use(bodyParser.urlencoded({ extended: true }));
 
-  // Fake auth posted.
-  router.post('/auth', function(req, res) {
-    let userId = req.body.userId;
-
-    let auth = false;
-    if (userId) {
-      auth = options.users.some((user) => {
-        return user.id === userId;
-      });
-    }
-
-    if (!auth) {
-      res.redirect('/login');
-      return;
-    }
-
-    // Set user cookie.
-    // TODO(burdon): Cookie options?
-    // http://expressjs.com/en/api.html#res.cookie
-    res.cookie(USER_COOKIE, userId);
-
-    // Redirect to app.
-    // TODO(burdon): Const (share path with client).
-    res.redirect('/app');
-  });
-
   // Login page.
   router.use('/login', function(req, res) {
+    // Firebase JS login.
     res.render('login');
   });
 
-  // Logout redirect.
+  // Logout page (javascript).
   router.use('/logout', function(req, res) {
-    res.clearCookie(USER_COOKIE);
-    res.redirect('/login');
+    // Firebase JS login.
+    res.render('logout');
   });
 
   return router;

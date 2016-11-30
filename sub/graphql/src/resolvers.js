@@ -20,8 +20,6 @@ import Schema from './schema.graphql';
  */
 export class Resolvers {
 
-  // TODO(burdon): Context object (e.g., OAuth userId).
-
   static get typeDefs() {
     return Schema;
   }
@@ -60,8 +58,9 @@ export class Resolvers {
       //
 
       Item: {
-        __resolveType(root, context, info) {
+        __resolveType(root) {
           console.assert(root.type);
+
           // The type property maps onto the GraphQL schema type name.
           return root.type;
         }
@@ -124,8 +123,11 @@ export class Resolvers {
 
       RootQuery: {
 
-        viewer: (root, { userId }, context) => {
+        viewer: (root, args, context) => {
           console.log('### CONTEXT: %s', JSON.stringify(context));
+
+          // TODO(burdon): Get from context. Remove ID from schema.
+          let { userId } = args;
           let { type, id:localUserId } = ID.fromGlobalId(userId);
 
           return {
@@ -135,20 +137,19 @@ export class Resolvers {
         },
 
         folders: (root, args, context) => {
-          console.log('### CONTEXT: %s', JSON.stringify(context));
-
           return database.queryItems(context, { type: 'Folder' });
         },
 
-        item: (root, { itemId }, context) => {
-          console.log('### CONTEXT: %s', JSON.stringify(context));
+        item: (root, args, context) => {
+          let { itemId } = args;
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
 
+          // TODO(burdon): Get users from user store. Fan-out here.
           return database.getItems(context, type, [localItemId])[0];
         },
 
-        items: (root, { filter, offset, count }, context) => {
-          console.log('### CONTEXT: %s', JSON.stringify(context));
+        items: (root, args, context) => {
+          let { filter, offset, count } = args;
 
           return database.queryItems(context, filter, offset, count);
         }
@@ -161,7 +162,8 @@ export class Resolvers {
 
       RootMutation: {
 
-        updateItem: (root, { itemId, mutations }, context) => {
+        updateItem: (root, args, context) => {
+          let { itemId, mutations } = args;
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
           console.log('MUTATION.UPDATE[%s:%s]: %s', type, localItemId, JSON.stringify(mutations));
 

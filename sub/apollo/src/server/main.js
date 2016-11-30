@@ -10,13 +10,16 @@ import path from 'path';
 import http from 'http';
 import express from 'express';
 import handlebars from 'express-handlebars';
+import cookieParser from 'cookie-parser';
+import favicon from 'serve-favicon';
 
 import { MemoryDatabase, Randomizer, graphqlRouter } from 'minder-graphql';
 
 import { appRouter, hotRouter } from './app';
-import { loginRouter, requestContext } from './auth';
+import { loginRouter, getUserInfoFromCookie, getUserInfoFromHeader } from './auth';
 import { loggingRouter } from './logger';
 import { adminRouter, clientRouter, ClientManager, SocketManager } from './client';
+
 
 //
 // Env.
@@ -47,13 +50,6 @@ const database = new MemoryDatabase().onMutation(() => {
 
 
 //
-// Logging.
-//
-
-app.use('/', loggingRouter());
-
-
-//
 // Database.
 //
 
@@ -70,12 +66,10 @@ if (testData) {
   new Randomizer(database, context)
     .generate('Contact', 20)
     .generate('Place', 10)
-    .generate('Task', 30,
-      {
-        owner: { type: 'User', likelihood: 1.0 },
-        assignee: { type: 'User', likelihood: 0.5 }
-      }
-    );
+    .generate('Task', 30, {
+      owner: { type: 'User', likelihood: 1.0 },
+      assignee: { type: 'User', likelihood: 0.5 }
+    });
 }
 
 
@@ -90,43 +84,15 @@ if (env === 'hot') {
 
 
 //
-// Routers.
-//
-
-app.use(loginRouter({
-  env,
-  users: database.queryItems({}, { type: 'User' })
-}));
-
-app.use(graphqlRouter(database, {
-  logging: true,
-
-  // Gets the user context from the request.
-  resolverContext: (req) => { return requestContext(req) },
-}));
-
-app.use(adminRouter(clientManager));
-
-app.use(clientRouter(clientManager, server));
-
-app.use(appRouter(clientManager, {
-  env
-}));
-
-
-//
 // Handlebars views.
 // https://github.com/ericf/express-handlebars
 //
 
 app.engine('handlebars', handlebars({
-
   layoutsDir: path.join(__dirname, 'views/layouts'),
-
   defaultLayout: 'main',
 
   helpers: {
-
     // TODO(burdon): ???
     section: function(name, options) {
       if (!this.sections) { this.sections = {}; }
@@ -146,9 +112,69 @@ app.engine('handlebars', handlebars({
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(function(req, res) {
-  res.redirect('/login');
+
+//
+// Logging.
+//
+
+app.use('/', loggingRouter({}));
+
+
+//
+// Public assets.
+// https://expressjs.com/en/starter/static-files.html
+//
+
+app.use(favicon(path.join(__dirname, 'public/favicon.ico')));
+app.use(express.static(path.join(__dirname, 'public')));
+
+
+//
+// Routers.
+//
+
+app.use(cookieParser());
+
+app.get('/home', async function(req, res) {
+  let userInfo = await getUserInfoFromCookie(req);
+  if (userInfo) {
+    res.redirect('/app');
+  } else {
+    res.render('home');
+  }
 });
+
+app.use(loginRouter({
+  env,
+  users: database.queryItems({}, { type: 'User' })
+}));
+
+app.use(graphqlRouter(database, {
+  logging: true,
+  pretty: false,
+
+  // Gets the user context from the request headers (async).
+  //context: request => getUserInfoFromHeader(request).then(user => ({ user }))
+}));
+
+app.use(adminRouter(clientManager));
+
+app.use(clientRouter(clientManager, server));
+
+app.use(appRouter(clientManager, {
+  env
+}));
+
+// Default redirect.
+app.use(function(req, res) {
+  console.log('[404]: %s', req.path);
+
+  // TODO(burdon): Don't redirect if resource request (e.g., robots.txt, favicon.ico, etc.)
+//res.redirect('/home');
+  res.status = 404;
+  res.send({});
+});
+
 
 //
 // Start-up.

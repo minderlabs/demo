@@ -11,7 +11,7 @@ import moment from 'moment';
 
 import { IdGenerator } from 'minder-core';
 
-import { requestContext } from './auth';
+import { getUserInfoFromHeader } from './auth';
 
 /**
  * Admin endpoints.
@@ -36,11 +36,16 @@ export const clientRouter = (clientManager, options) => {
   let router = express.Router();
 
   // Registers the client.
-  router.post('/client/register', function(req, res) {
-    console.log('### REGISTER: %s', JSON.stringify(req.body));
+  router.post('/client/register', async function(req, res) {
     let { clientId, socketId } = req.body;
-    let { userId } = requestContext(req);
-    clientManager.register(userId, clientId, socketId);
+
+    let userInfo = await getUserInfoFromHeader(req);
+    if (!userInfo) {
+      res.status(401);
+    } else {
+      clientManager.register(userInfo.userId, clientId, socketId);
+    }
+
     res.send({});
   });
 
@@ -58,9 +63,9 @@ export const clientRouter = (clientManager, options) => {
  * Manages client connections.
  *
  * Web:
- * 1). Client rendered (new clientId in config).
- * 2). Client connected to socket (gets socketId).
- * 3). Client registers (binds clientId to socketId).
+ * 1). Client created (clientId set in config during app serving).
+ * 2). Socked connected (gets socketId)
+ * 3). Client registered (binds clientId to socketId).
  *
  * TODO(burdon): Native GCM sequence? (Get clientId and socketId in registration).
  */
@@ -101,7 +106,7 @@ export class ClientManager {
     };
 
     this._clients.set(client.id, client);
-    console.log('CLIENT.CREATE[%s]', client.id);
+    console.log('CLIENT.CREATED[%s:%s]', client.id, userId);
 
     return client;
   }
@@ -120,7 +125,7 @@ export class ClientManager {
       if (userId != client.userId) {
         console.error('Invalid user: %s', userId);
       } else {
-        console.log('CLIENT.REGISTER[%s] :%s', clientId, socketId);
+        console.log('CLIENT.REGISTERED[%s:%s]', clientId, userId);
         client.socketId = socketId;
         client.registered = moment();
       }
@@ -136,7 +141,7 @@ export class ClientManager {
       if (!socket) {
         console.warn('Client not connected: %s', clientId);
       } else {
-        console.log('Invalidating client: %s', clientId);
+        console.warn('Invalidating client: %s', clientId);
         socket.emit('invalidate', {
           ts: moment().valueOf()
         });
@@ -186,11 +191,11 @@ export class SocketManager {
     this._io = socketio(server);
 
     this._io.on('connection', (socket) => {
-      console.log('SOCKET.CONNECT[%s]', socket.id);
+      console.log('SOCKET.CONNECTED[%s]', socket.id);
       this._sockets.set(socket.id, socket);
 
       socket.on('disconnect', () => {
-        console.log('SOCKET.DISCONNECT[%s]', socket.id);
+        console.log('SOCKET.DISCONNECTED[%s]', socket.id);
         this._sockets.delete(socket.id);
         this._onDisconnect(socket.id);
       });

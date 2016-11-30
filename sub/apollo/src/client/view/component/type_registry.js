@@ -56,7 +56,7 @@ const registry = new TypeRegistry();
 
 registry._types.set('User', {
   fragment: UserFragments,
-  render: (item, userId) => <User  userId={ userId } item={ item }/>,
+  render: (item, userId) => <User userId={ userId } item={ item }/>,
   icon: 'accessibility'
 });
 
@@ -114,6 +114,6 @@ registry._types.set('Place', {
 
 registry._types.set('Task', {
   fragment: TaskFragments,
-  render: (item, userId) => <Task  userId={ userId } item={ item }/>,
+  render: (item, userId) => <Task userId={ userId } item={ item }/>,
   icon: 'assignment_turned_in'
 });

@@ -82,7 +82,7 @@ class DetailView extends React.Component {
 
     // Get detail component and add reference.
     let typeRegistry = this.props.injector.get(TypeRegistry);
-    let detail =  React.cloneElement(typeRegistry.render(item, this.props.userId), {
+    let detail =  React.cloneElement(typeRegistry.render(item, this.props.user.userId), {
       ref: DetailView.DETAIL_REF
     });
 
@@ -140,7 +140,7 @@ const mapStateToProps = (state, ownProps) => {
   return {
     // Provide for Mutator.graphql
     injector: minder.injector,
-    userId: minder.userId
+    user: minder.user
   }
 };
 

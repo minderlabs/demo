@@ -1,11 +1,19 @@
 {
-  "//": "https://github.com/remy/nodemon/blob/master/doc/sample-nodemon.md#sample-nodemonjson",
+  "//": [
+    "https://github.com/remy/nodemon/blob/master/doc/sample-nodemon.md#sample-nodemonjson",
+    "TODO(burdon): Ignore handlebars not working: https://github.com/JacksonGariety/gulp-nodemon/issues/24"
+  ],
 
   "verbose": true,
-  "ignore": ["*.test.js"],
+
   "watch": [
     "src/server",
     "../core/src",
     "../graphql/src"
+  ],
+
+  "ignore": [
+    "src/server/views/*",
+    "*.test.js"
   ]
 }

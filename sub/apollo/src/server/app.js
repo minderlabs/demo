@@ -9,7 +9,7 @@ import express from 'express';
 import moment from 'moment';
 import path from 'path';
 
-import { requestContext } from './auth';
+import { getUserInfoFromCookie } from './auth';
 
 //
 // Client bundles (map NODE_ENV to bundle).
@@ -38,33 +38,33 @@ export const appRouter = (clientManager, options) => {
     graphql: '/graphql'
   });
 
-  // Public assets.
-  // https://expressjs.com/en/starter/static-files.html
-  router.use(express.static(path.join(__dirname, 'public')));
-
   // Webpack assets.
   router.use('/assets', express.static(path.join(__dirname, '../../dist')));
 
   // Client.
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
-  router.get(/^\/app\/?(.*)/, function(req, res) {
-    let { userId } = requestContext(req);
-    if (!userId) {
-      res.redirect('/login');
-    } else {
-      res.render('app', {
-        app: WEBPACK_BUNDLE[options.env],
-        config: {
-          root: 'app-root',
-          userId: userId,
-          clientId: clientManager.create(userId).id,
-          graphql: options.graphql,
-          debug: {
-            env: options.env
-          }
-        }
-      });
+  router.get(/^\/app\/?(.*)/, async function(req, res) {
+    let userInfo = await getUserInfoFromCookie(req);
+    if (!userInfo) {
+      res.redirect('/home');  // TODO(burdon): Const.
     }
+
+    // Create client (with socket ID).
+    // TODO(burdon): Cloud messaging.
+    let client = clientManager.create(userInfo.userId);
+
+    res.render('app', {
+      app: WEBPACK_BUNDLE[options.env],
+      config: {
+        root: 'app-root',
+        user: userInfo,
+        clientId: client.id,
+        graphql: options.graphql,
+        debug: {
+          env: options.env
+        }
+      }
+    });
   });
 
   return router;

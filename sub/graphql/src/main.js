@@ -6,8 +6,5 @@
 
 import { TypeUtil } from 'minder-core';
 
-import { Database } from './db/database';
-
-console.log(Database);
-
+// TODO(burdon): Move to test.
 console.log(TypeUtil.JSON({ hello: 'minder' }));

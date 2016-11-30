@@ -12,30 +12,6 @@
     }
   ],
 
-  "User": [
-    {
-      "id": "tester",
-      "title": "Tester"
-    },
-
-    {
-      "id": "adam",
-      "title": "Adam Berenzweig"
-    },
-    {
-      "id": "matt",
-      "title": "Matt Sullivan"
-    },
-    {
-      "id": "rich",
-      "title": "Rich Burdon"
-    },
-    {
-      "id": "trey",
-      "title": "Trey Lawrence"
-    }
-  ],
-
   "Folder": [
     {
       "id": "inbox",

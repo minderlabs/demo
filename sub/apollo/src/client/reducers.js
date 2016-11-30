@@ -28,7 +28,7 @@ export const AppReducer = (config, injector) => {
   const initialSate = {
     minder: {
       injector: injector,
-      userId: config.userId,
+      user: config.user,
       search: {
         text: ''
       }

@@ -192,7 +192,7 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     queryRegistry: minder.injector.get(QueryRegistry),
-    userId: minder.userId
+    user: minder.user
   }
 };
 
@@ -216,7 +216,7 @@ export default compose(
     options: (props) => {
       return {
         variables: {
-          userId: ID.toGlobalId('User', props.userId)
+          userId: ID.toGlobalId('User', props.user.userId)
         }
       };
     },

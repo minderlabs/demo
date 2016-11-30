@@ -41,8 +41,8 @@ class Words {
   }
 
   constructor() {
-    this._lhs = $('.title > div:first-child');
-    this._rhs = $('.title > div:last-child');
+    this._lhs = $('.app-title > div:first-child');
+    this._rhs = $('.app-title > div:last-child');
   }
 
   start(delay=0, time=-1, delta=1) {
@@ -96,7 +96,7 @@ class Words {
     }
 
     setTimeout(function() {
-      $('.title').addClass('running');
+      $('.app-title').addClass('app-running');
 
       next(period);
     }, delay * 1000);
@@ -106,7 +106,7 @@ class Words {
 
   stop() {
     console.log('Stopping...');
-    $('.title').removeClass('running').addClass('bright');
+    $('.app-title').removeClass('app-running').addClass('app-bright');
     this.update([null, 'er']);
     return this;
   }
@@ -116,17 +116,17 @@ class Words {
     // this._rhs.text(word[1] || '');
 
     if (word[0]) {
-      this._lhs.removeClass('fade');
+      this._lhs.removeClass('app-fade');
       this._lhs.text(word[0]);
     } else {
-      this._lhs.addClass('fade');
+      this._lhs.addClass('app-fade');
     }
 
     if (word[1]) {
-      this._rhs.removeClass('fade');
+      this._rhs.removeClass('app-fade');
       this._rhs.text(word[1]);
     } else {
-      this._rhs.addClass('fade');
+      this._rhs.addClass('app-fade');
     }
   }
 }

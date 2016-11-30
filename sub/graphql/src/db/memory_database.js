@@ -25,6 +25,8 @@ export class MemoryDatabase extends Database {
   }
 
   upsertItems(context, items) {
+    console.assert(context && items);
+
     let modifiedItems = _.map(items, (item) => {
       item = TypeUtil.clone(item);
 
@@ -46,13 +48,15 @@ export class MemoryDatabase extends Database {
   }
 
   getItems(context, type, itemIds) {
+    console.assert(context && type && itemIds);
     console.log('DB.GET[%s]', itemIds);
-    console.assert(type && itemIds);
 
     return _.map(itemIds, itemId => TypeUtil.clone(this._items.get(itemId) || {}));
   }
 
   queryItems(context, filter={}, offset=0, count=10) {
+    console.assert(context && filter);
+
     let items = [];
     this._items.forEach((item) => {
       if (!this._matcher.match(filter, item)) {

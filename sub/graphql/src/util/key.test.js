@@ -4,6 +4,10 @@
 
 'use strict';
 
+import _ from 'lodash';
+
+const expect = require('chai').expect;
+
 import { Key } from './key';
 
 describe('Key:', () => {
