@@ -37,9 +37,6 @@ export class StatusBar extends React.Component {
   }
 
   error(state) {
-
-    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-
     this.setState({
       error: state
     });

@@ -20,16 +20,14 @@ export class RedisDatabase extends Database {
   // TODO(burdon): Promises
   // https://github.com/NodeRedis/node_redis#promises
 
-  static DB = 10;
-
   static ITEM_KEY = new Key('I:{{type}}:{{itemId}}');
 
-  constructor() {
+  constructor(options) {
     super();
 
     // https://github.com/NodeRedis/node_redis#rediscreateclient
     this._client = redis.createClient({
-      db: RedisDatabase.DB
+      db: options.db
     });
 
     this._client.on('error', (err) => {
@@ -38,6 +36,10 @@ export class RedisDatabase extends Database {
   }
 
   upsertItems(context, items) {
+
+
+
+
     this.handleMutation(context, items);
   }
 
