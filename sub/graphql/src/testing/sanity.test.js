@@ -4,6 +4,9 @@
 
 'use strict';
 
+// TODO(burdon): Not running karma/webpack.
+const expect = require('chai').expect;
+
 // TODO(burdon): ERROR
 // SyntaxError: Cannot declare a parameter named 'error' in strict mode
 
@@ -17,6 +20,6 @@ import { TypeUtil } from 'minder-core';
 describe('Sanity', () => {
 
   it('IS SANE', () => {
-    console.log('OK');
+    expect(true).to.be.ok;
   });
 });

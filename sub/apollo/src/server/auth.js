@@ -19,6 +19,15 @@ admin.initializeApp({
   databaseURL: 'https://minder-beta.firebaseio.com'
 });
 
+
+// https://firebase.google.com/docs/reference/admin/node/admin.database.Query
+var ref = admin.database().ref("dinosaurs");
+ref.orderByKey().endAt("pterodactyl").on("child_added", function(snapshot) {
+  console.log(snapshot.key);
+});
+
+
+
 /**
  * Decodes the JWT token.
  * @param token
@@ -50,7 +59,7 @@ function getUserFromJWT(token) {
  * The Apollo client's middleware sets the authentication token with the encoded JWT token below.
  * The same sign-up flow is used by mobile clients.
  *
- * TODO(burdon): Rethink this?
+ * TODO(burdon): Rethink this? (e.g., user Firebase REST database auth?)
  * For server-side auth the client also set's a cookie.
  *
  * @param req HTTP request object.

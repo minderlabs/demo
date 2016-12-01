@@ -4,6 +4,9 @@
 
 'use strict';
 
+// TODO(burdon): Not running karma/webpack.
+const expect = require('chai').expect;
+
 import {
   graphql,
   GraphQLID,
@@ -31,7 +34,7 @@ import Schema from './schema.graphql';
 //
 
 const query = `
-  query TestQuery() { 
+  query TestQuery { 
     viewer {
       id
       user {
@@ -70,16 +73,13 @@ const test = (result, done) => {
 //
 
 describe('GraphQL Mock Server:', () => {
-
-  // TODO(burdon): Pass in context?
+  let context = { user: { userId: 'minder', name: 'Minder' } };
 
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
   let resolverMap = {
     RootQuery: () => ({
-      viewer: (root, args, context) => {
-        let user = { context };
-        let userId = { user };
-        console.assert(userId);
+      viewer: (root, args) => {
+        let { user: { userId } } = context;
 
         return {
           id: userId,
@@ -96,6 +96,7 @@ describe('GraphQL Mock Server:', () => {
   // http://graphql.org/blog/mocking-with-graphql
   let server = mockServer(Schema, resolverMap);
 
+  // TODO(burdon): Pass in context?
   it('Query viewer', (done) => {
     server.query(query).then((result) => {
       test(result, done);
@@ -110,7 +111,7 @@ describe('GraphQL Mock Server:', () => {
 //
 
 describe('GraphQL Executable Schema:', () => {
-  let context = {};
+  let context = { user: { userId: 'minder', name: 'Minder' } };
 
   let database = new MemoryDatabase();
   database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }]);
@@ -129,7 +130,7 @@ describe('GraphQL Executable Schema:', () => {
     expect(item.id).to.equal('minder');
 
     // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
-    graphql(schema, query).then((result) => {
+    graphql(schema, query, null, context).then((result) => {
       test(result, done);
     });
   });
@@ -141,7 +142,7 @@ describe('GraphQL Executable Schema:', () => {
 //
 
 describe('GraphQL JS API:', () => {
-  let context = {};
+  let context = { user: { userId: 'minder', name: 'Minder' } };
 
   let database = new MemoryDatabase();
   database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }]);
@@ -173,15 +174,13 @@ describe('GraphQL JS API:', () => {
             },
           }),
           resolve(node, args, context) {
-            let user = { context };
-            let userId = { user };
+            let { user: { userId, name } } = context;
             console.assert(userId);
 
             return {
               id: userId,
 
-              // TODO(burdon): Don't get from database.
-              user: database.getItems({}, type, [userId])[0]
+              user: database.getItems(context, 'User', [userId])[0]
             }
           }
         }
@@ -198,8 +197,7 @@ describe('GraphQL JS API:', () => {
 
   it('Query viewer', (done) => {
     // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
-    let vars = { userId: ID.toGlobalId('User', 'minder') };
-    graphql(schema, query, {}, {}, vars).then((result) => {
+    graphql(schema, query, null, context).then((result) => {
       test(result, done);
     });
   });

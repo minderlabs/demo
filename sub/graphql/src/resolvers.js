@@ -123,16 +123,16 @@ export class Resolvers {
 
       RootQuery: {
 
+        // TODO(burdon): Type-based fan-out (read/write). Non in DB layer.
+
         viewer: (root, args, context) => {
-          let user = { context };
-          let userId = { user };
+          let { user: { userId, name } } = context;
 
           return {
             id: userId,
 
             // TODO(burdon): Call nested resolver below? Just return ID?
-//          user: database.getItems(context, 'User', [localUserId])[0]
-            user: { id:userId, user:'User', title: 'A USER' }
+            user: { id:userId, user:'User', title: name }
           }
         },
 
@@ -144,10 +144,15 @@ export class Resolvers {
           let { itemId } = args;
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
 
-          // TODO(burdon): Get users from user store. Fan-out before database.
+          // TODO(burdon): Type fan-out (e.g., user).
           switch (type) {
             case 'User':
-              return { id:localItemId, type, title: 'A USER' };
+              // TODO(burdon): Pass in database for each type? E.g., firebase.
+              // https://firebase.google.com/docs/reference/admin/node/admin.database.Query
+              // TODO(burdon): Create user store on registration (how? if not ACID?) Sent support request: 7-4297000014709
+              // http://stackoverflow.com/questions/38168973/how-to-get-the-list-of-registered-user-in-firebase
+              // https://stackoverflow.com/questions/14673708/how-do-i-return-a-list-of-users-if-i-use-the-firebase-simple-username-password
+              return { id:localItemId, type, title: 'UNKONWN USER' };
 
             default:
               return database.getItems(context, type, [localItemId])[0];
@@ -157,7 +162,13 @@ export class Resolvers {
         items: (root, args, context) => {
           let { filter, offset, count } = args;
 
-          return database.queryItems(context, filter, offset, count);
+          // TODO(burdon): Type fan-out (e.g., user).
+          switch (filter.type) {
+            case 'User':
+
+            default:
+              return database.queryItems(context, filter, offset, count);
+          }
         }
       },
 

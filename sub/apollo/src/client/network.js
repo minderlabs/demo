@@ -23,6 +23,9 @@ import { TypeUtil } from 'minder-core';
  */
 export class AuthManager {
 
+  // Force re-auth.
+  // https://firebase.google.com/docs/auth/web/manage-users#re-authenticate_a_user
+
   constructor(config, networkManager) {
     console.assert(config && networkManager);
 

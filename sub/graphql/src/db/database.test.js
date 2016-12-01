@@ -37,5 +37,5 @@ describe('MemoryDatabase:',
   () => tests(new MemoryDatabase()));
 
 // https://github.com/hdachev/fakeredis
-describe('RedisDatabase:',
-  () => tests(new RedisDatabase(fakeredis.createClient())));
+// describe('RedisDatabase:',
+//   () => tests(new RedisDatabase(fakeredis.createClient())));
