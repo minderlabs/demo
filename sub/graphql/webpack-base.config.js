@@ -40,6 +40,7 @@ module.exports = {
 
     loaders: [
 
+      // https://github.com/webpack/json-loader
       {
         test: /\.json$/,
         loader: 'json-loader'

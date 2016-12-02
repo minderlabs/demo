@@ -8,5 +8,5 @@ export * from './util/logger';
 export * from './testing/randomizer';
 export * from './db/database';
 export * from './db/memory_item_store';
-export * from './db/redis_item_store';
+// export * from './db/redis_item_store';     // TODO(burdon): Can't webpack.
 export * from './router';

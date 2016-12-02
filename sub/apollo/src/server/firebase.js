@@ -113,8 +113,9 @@ class FirebaseUserStore extends ItemStore {
 
       // TODO(burdon): Use FB to do filtering?
       // https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
-      return _.compact(_.map(data.val(), (user, uid) => {
-        return this._matcher.match(filter, item) && FirebaseUserStore.toItem(uid, user);
+      return _.compact(_.map(data.val(), (record, uid) => {
+        let user = FirebaseUserStore.toItem(uid, record);
+        return this._matcher.match(filter, user) && user;
       }));
     });
   }

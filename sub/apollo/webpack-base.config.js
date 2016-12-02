@@ -43,7 +43,17 @@ module.exports = {
       root: path.join(__dirname, 'node_modules')
     },
 
+    noParse: [
+      'ws'
+    ],
+
     loaders: [
+
+      // https://github.com/webpack/json-loader
+      {
+        test: /\.json$/,
+        loader: 'json-loader'
+      },
 
       // https://github.com/webpack/less-loader
       {

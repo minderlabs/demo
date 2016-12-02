@@ -1,7 +1,7 @@
 #
 # Copyright 2016 Minder Labs.
 #
-# Test Node Server Dockerfile
+# Apollo Demo Server Dockerfile
 # alienlaboratories/react-demos
 #
 
@@ -11,7 +11,7 @@
 # https://nodejs.org/en/docs/guides/nodejs-docker-webapp
 #
 
-FROM node:onbuild
+FROM node
 
 #
 # Environment.
@@ -21,6 +21,8 @@ ENV HOME=/home/nx
 
 # Used by nginx-proxy and configures node server.
 ENV VIRTUAL_PORT=3000
+
+ENV NODE_ENV=production
 
 #
 # Create the nx user and home directory.
@@ -37,43 +39,27 @@ RUN chown -R nx:nx $HOME
 #
 
 # TODO(burdon): Set-up for Jenkins local build.
+# TODO(burdon): Currently just add all unbuilt assets.
 
-ADD .babelrc                  $HOME/app/.babelrc
-ADD package.json              $HOME/app/package.json
-ADD package-dev.json          $HOME/app/package-dev.json
-ADD webpack-base.config.js    $HOME/app/webpack-base.config.js
-ADD webpack-server.config.js  $HOME/app/webpack-server.config.js
-ADD webpack.config.js         $HOME/app/webpack.config.js
+ADD dist                  $HOME/app/dist
+ADD dist/package.json     $HOME/app/package.json
 
-ADD scripts                   $HOME/app/scripts
-ADD tools                     $HOME/app/tools
+# TODO(burdon): Either bundle server or configure base directory.
 
-ADD index.web.js              $HOME/app/index.web.js
-ADD js                        $HOME/app/js
+ADD src/server            $HOME/app/src/server
+
+#ADD src/server/public     $HOME/app/dist/public
+#ADD src/server/testing    $HOME/app/dist/testing
+#ADD src/server/views      $HOME/app/dist/views
 
 #
-# Install deps.
-# https://github.com/nodejs/docker-node#verbosity
-# NOTE: logging set to info otherwise could miss errors.
+# Tools
 #
 
 WORKDIR $HOME/app
 
-RUN python scripts/create_package_file.py package.json
-
-RUN npm install -g babel-cli
-RUN npm install -g webpack
-
 RUN npm install
-
-#
-# Build client and server.
-#
-
-RUN BABEL_ENV=production babel-node ./tools/babel/update_schema.js
-RUN BABEL_ENV=production webpack
-
-RUN BABEL_ENV=server webpack --config webpack-server.config.js
+RUN npm install --save-dev babel-cli
 
 #
 # Exposed port for nginx-proxy (matches docker-compose.yml and docker cloud stackfile).
@@ -93,4 +79,5 @@ USER nx
 # https://docs.npmjs.com/misc/config#environment-variables
 #
 
-CMD [ "node", "dist/server.bundle.js" ]
+# TODO(burdon): Build webpack to avoid babel-node
+CMD [ "babel-node", "src/server/main.js" ]
