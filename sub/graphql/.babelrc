@@ -11,6 +11,9 @@
 
   "plugins": [
 
+    // https://babeljs.io/docs/plugins/transform-async-to-generator
+    "transform-async-to-generator",
+
     // https://www.npmjs.com/package/babel-plugin-inline-import
     // NOTE: BABEL_DISABLE_CACHE=1 otherwise cached.
     "babel-plugin-inline-import"

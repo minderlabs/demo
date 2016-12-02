@@ -105,14 +105,14 @@ export class Resolvers {
         owner: (root, args, context) => {
           let userId = root.owner;
           if (userId) {
-            return database.getItems(context, 'User', [userId])[0];
+            return database.getItem(context, 'User', userId);
           }
         },
 
         assignee: (root, args, context) => {
           let userId = root.assignee;
           if (userId) {
-            return database.getItems(context, 'User', [userId])[0];
+            return database.getItem(context, 'User', userId);
           }
         }
       },
@@ -123,17 +123,14 @@ export class Resolvers {
 
       RootQuery: {
 
-        // TODO(burdon): Type-based fan-out (read/write). Non in DB layer.
-
         viewer: (root, args, context) => {
-          let { user: { userId, name } } = context;
+          let { user: { userId, email, name } } = context;
 
-          return {
+          // TODO(burdon): Can the resolver resolve this for us?
+          return database.getItem(context, 'User', userId).then(user => ({
             id: userId,
-
-            // TODO(burdon): Call nested resolver below? Just return ID?
-            user: { id:userId, user:'User', title: name }
-          }
+            user
+          }));
         },
 
         folders: (root, args, context) => {
@@ -144,31 +141,13 @@ export class Resolvers {
           let { itemId } = args;
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
 
-          // TODO(burdon): Type fan-out (e.g., user).
-          switch (type) {
-            case 'User':
-              // TODO(burdon): Pass in database for each type? E.g., firebase.
-              // https://firebase.google.com/docs/reference/admin/node/admin.database.Query
-              // TODO(burdon): Create user store on registration (how? if not ACID?) Sent support request: 7-4297000014709
-              // http://stackoverflow.com/questions/38168973/how-to-get-the-list-of-registered-user-in-firebase
-              // https://stackoverflow.com/questions/14673708/how-do-i-return-a-list-of-users-if-i-use-the-firebase-simple-username-password
-              return { id:localItemId, type, title: 'UNKONWN USER' };
-
-            default:
-              return database.getItems(context, type, [localItemId])[0];
-          }
+          return database.getItem(context, type, localItemId);
         },
 
         items: (root, args, context) => {
           let { filter, offset, count } = args;
 
-          // TODO(burdon): Type fan-out (e.g., user).
-          switch (filter.type) {
-            case 'User':
-
-            default:
-              return database.queryItems(context, filter, offset, count);
-          }
+          return database.queryItems(context, filter, offset, count);
         }
       },
 
@@ -187,19 +166,22 @@ export class Resolvers {
           // TODO(burdon): Validate type.
 
           // Get existing item (or undefined).
-          let item = database.getItems(context, type, [localItemId])[0];
-          if (!item.id) {
-            item = {
-              id: itemId,
-              type: type,
-              title: ''
-            };
-          }
+          return database.getItem(context, type, localItemId).then(item => {
 
-          Transforms.applyObjectMutations(item, mutations);
+            // If not found (i.e., insert).
+            if (!item.id) {
+              item = {
+                id: itemId,
+                type: type,
+                title: ''
+              };
+            }
 
-          database.upsertItems(context, [item]);
-          return item;
+            // Apply mutation.
+            Transforms.applyObjectMutations(item, mutations);
+
+            return database.upsertItem(context, item);
+          });
         }
       }
     };

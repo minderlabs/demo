@@ -6,12 +6,11 @@
 
 import _ from 'lodash';
 import express from 'express';
+import bodyParser from 'body-parser';
 import socketio from 'socket.io';
 import moment from 'moment';
 
 import { IdGenerator } from 'minder-core';
-
-import { getUserInfoFromHeader } from './auth';
 
 /**
  * Admin endpoints.
@@ -32,14 +31,19 @@ export const adminRouter = (clientManager, options) => {
 /**
  * Client endpoints.
  */
-export const clientRouter = (clientManager, options) => {
+export const clientRouter = (authManager, clientManager, options) => {
+  console.assert(authManager && clientManager);
+
   let router = express.Router();
+
+  // JSON body.
+  router.use(bodyParser.json());
 
   // Registers the client.
   router.post('/client/register', async function(req, res) {
     let { clientId, socketId } = req.body;
 
-    let userInfo = await getUserInfoFromHeader(req);
+    let userInfo = await authManager.getUserInfoFromHeader(req);
     if (userInfo) {
       clientManager.register(userInfo.userId, clientId, socketId);
     } else {

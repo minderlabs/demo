@@ -6,16 +6,16 @@
 
 import 'redis';
 
-import { Database } from './database';
+import { ItemStore } from 'minder-core';
 
 import { Key } from '../util/key';
 
 /**
- * Redis database.
+ * Redis ItemStore.
  *
  * https://github.com/NodeRedis/node_redis
  */
-export class RedisDatabase extends Database {
+export class RedisItemStore extends ItemStore {
 
   // https://github.com/NodeRedis/node_redis#rediscreateclient
   static client(options) {
@@ -34,8 +34,8 @@ export class RedisDatabase extends Database {
 
   static ITEM_KEY = new Key('I:{{type}}:{{itemId}}');
 
-  constructor(client) {
-    super();
+  constructor(client, matcher) {
+    super(matcher);
     console.assert(client);
 
     this._client = client;
@@ -45,15 +45,11 @@ export class RedisDatabase extends Database {
   }
 
   upsertItems(context, items) {
-
-    this.handleMutation(context, items);
   }
 
   getItems(context, type, itemIds) {
-
   }
 
   queryItems(context, filter={}, offset=0, count=10) {
-
   }
 }

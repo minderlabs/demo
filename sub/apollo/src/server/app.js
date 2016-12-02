@@ -9,8 +9,6 @@ import express from 'express';
 import moment from 'moment';
 import path from 'path';
 
-import { getUserInfoFromCookie } from './auth';
-
 //
 // Client bundles (map NODE_ENV to bundle).
 // See webpack.config.js
@@ -26,11 +24,14 @@ const WEBPACK_BUNDLE = {
 /**
  * Sets-up serving the app (and related assets).
  *
+ * @param {AuthManager} authManager
  * @param {ClientManager} clientManager
  * @param options
  * @returns {core.Router|*}
  */
-export const appRouter = (clientManager, options) => {
+export const appRouter = (authManager, clientManager, options) => {
+  console.assert(authManager && clientManager);
+
   const router = express.Router();
 
   options = _.defaults(options, {
@@ -44,7 +45,7 @@ export const appRouter = (clientManager, options) => {
   // Client.
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
   router.get(/^\/app\/?(.*)/, async function(req, res) {
-    let userInfo = await getUserInfoFromCookie(req);
+    let userInfo = await authManager.getUserInfoFromCookie(req);
     if (!userInfo) {
       // TODO(burdon): Router object.
       res.redirect('/');

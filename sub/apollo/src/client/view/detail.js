@@ -82,7 +82,7 @@ class DetailView extends React.Component {
 
     // Get detail component and add reference.
     let typeRegistry = this.props.injector.get(TypeRegistry);
-    let detail =  React.cloneElement(typeRegistry.render(item, this.props.user.userId), {
+    let detail =  React.cloneElement(typeRegistry.render(item, this.props.user), {
       ref: DetailView.DETAIL_REF
     });
 

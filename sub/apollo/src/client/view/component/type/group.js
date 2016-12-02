@@ -12,6 +12,8 @@ import gql from 'graphql-tag';
 import { ID } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
+import { Path } from '../../../path';
+
 import './group.less';
 
 /**
@@ -47,7 +49,7 @@ export default class Group extends React.Component {
   };
 
   static propTypes = {
-    userId: React.PropTypes.string.isRequired,
+    user: React.PropTypes.object.isRequired,    // TODO(burdon): Add to all types.
     item: GroupFragments.item.propType
   };
 
@@ -141,11 +143,14 @@ export default class Group extends React.Component {
       <div className="app-column app-type-group">
 
         <div className="app-column app-expand">
+          {/*
+            * Team Member
+            */}
           {this.props.item.members.map(member => (
           <div key={ member.id }>
 
             <div className="app-banner app-row">
-              <Link to={ '/member/' + ID.toGlobalId('User', member.id) }>
+              <Link to={ Path.detail('member', ID.toGlobalId('User', member.id)) }>
                 <i className="material-icons">accessibility</i>
               </Link>
               <h3 className="app-expand">{ member.title }</h3>
@@ -153,10 +158,13 @@ export default class Group extends React.Component {
                  onClick={ this.handleTaskAdd.bind(this, member) }></i>
             </div>
 
+            {/*
+              * Task
+              */}
             <div className="app-section">
               {member.tasks.map(task => (
               <div key={ task.id } className="app-row app-data-row">
-                <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
+                <Link to={ Path.detail('task', ID.toGlobalId('Task', task.id)) }>
                   <i className="material-icons">assignment_turned_in</i>
                 </Link>
                 <div className="app-text app-expand">{ task.title }</div>
@@ -167,6 +175,9 @@ export default class Group extends React.Component {
 
               <div>{ this.state.inlineEdit && this.state.inlineEdit.id }</div>
 
+              {/*
+                * Edit
+                */}
               {this.state.inlineEdit === member.id &&
               <div className="app-row app-data-row">
                 <i className="material-icons">assignment_turned_in</i>

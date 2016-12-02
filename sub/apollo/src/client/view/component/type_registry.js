@@ -56,13 +56,13 @@ const registry = new TypeRegistry();
 
 registry._types.set('User', {
   fragment: UserFragments,
-  render: (item, userId) => <User userId={ userId } item={ item }/>,
+  render: (item, user) => <User user={ user } item={ item }/>,
   icon: 'accessibility'
 });
 
 registry._types.set('Group', {
   fragment: GroupFragments,
-  render: (item, userId) => <Group userId={ userId } item={ item }/>,
+  render: (item, user) => <Group user={ user } item={ item }/>,
   icon: 'group',
 
   path: (matcher, previousResult, item) => {
@@ -108,12 +108,12 @@ registry._types.set('Group', {
 
 registry._types.set('Place', {
   fragment: PlaceFragments,
-  render: (item, userId) => <Place userId={ userId } item={ item }/>,
+  render: (item, user) => <Place user={ user } item={ item }/>,
   icon: 'location_city'
 });
 
 registry._types.set('Task', {
   fragment: TaskFragments,
-  render: (item, userId) => <Task userId={ userId } item={ item }/>,
+  render: (item, user) => <Task user={ user } item={ item }/>,
   icon: 'assignment_turned_in'
 });

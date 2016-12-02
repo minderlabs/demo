@@ -2,13 +2,7 @@
   "Group": [
     {
       "id": "minderlabs",
-      "title": "Minder Labs",
-      "members": [
-        "adam",
-        "matt",
-        "rich",
-        "trey"
-      ]
+      "title": "Minder Labs"
     }
   ],
 

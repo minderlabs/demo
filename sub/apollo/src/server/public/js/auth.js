@@ -6,75 +6,129 @@
 
 // TODO(burdon): Build as bundle.
 
-// TODO(burdon): Factor out const.
-firebase.initializeApp({
-  apiKey: 'AIzaSyDwDsz7hJWdH2CijLItaQW6HmL7H9uDFcI',
-  authDomain: 'minder-beta.firebaseapp.com',
-  databaseURL: 'https://minder-beta.firebaseio.com',
-  storageBucket: 'minder-beta.appspot.com',
-  messagingSenderId: '189079594739'
-});
-
-// https://firebase.google.com/docs/auth/web/google-signin
-let provider = new firebase.auth.GoogleAuthProvider();
-
-provider.addScope('https://www.googleapis.com/auth/plus.login');
-
 const COOKIE = 'minder_auth_token';
 
-window.minder = {
+/**
+ * Auth module.
+ * NOTE: This could become the app loader.
+ */
+class Auth {
 
-  // TODO(burdon): Popup.
+  constructor() {
 
-  login: function(path) {
+    // TODO(burdon): Factor out const.
+    const config = {
+      apiKey: 'AIzaSyDwDsz7hJWdH2CijLItaQW6HmL7H9uDFcI',
+      authDomain: 'minder-beta.firebaseapp.com',
+      databaseURL: 'https://minder-beta.firebaseio.com',
+      storageBucket: 'minder-beta.appspot.com',
+      messagingSenderId: '189079594739'
+    };
+
+    firebase.initializeApp(config);
+
+    // https://firebase.google.com/docs/auth/web/google-signin
+    this._provider = new firebase.auth.GoogleAuthProvider();
+    this._provider.addScope('https://www.googleapis.com/auth/plus.login');
+  }
+
+  /**
+   * Login via Firebase.
+   * @param path
+   */
+  login(path) {
     console.log('LOGIN');
-    firebase.auth().getRedirectResult()
-      .then(function(result) {
 
-        // Google access token.
-        // TODO(burdon): Set cookie for server-side use.
-        if (result.credential) {
-          let token = result.credential.accessToken;
-        }
+    // NOTE: Always flows through here (first then after redirect).
+    firebase.auth().getRedirectResult()
+      .then((result) => {
 
         // The signed-in user info.
         let user = result.user;
         if (user) {
-          firebase.auth().currentUser.getToken().then(token => {
-            console.log('SETTING COOKIE', user.email);
+          user.getToken().then(token => {
+            this.registerUser(result).then(() => {
 
-            // Se the auth cookie for server-side detection.
-            // https://github.com/js-cookie/js-cookie
-            Cookies.set(COOKIE, token, {
-//            path: '/',
-              domain: window.location.hostname,
-              expires: 1,       // 1 day.
-//            secure: true      // If served over HTTPS.
+              // TODO(burdon): Do we need this?
+              // Se the auth cookie for server-side detection.
+              // https://github.com/js-cookie/js-cookie
+              Cookies.set(COOKIE, token, {
+//              path: '/',
+                domain: window.location.hostname,
+                expires: 1,       // 1 day.
+//              secure: true      // If served over HTTPS.
+              });
+
+              // Redirect.
+              window.location.href = path;
             });
-
-            // Redirect (to app).
-            console.log('REDIRECT', path);
-            window.location.href = path;
           });
-
         } else {
-          firebase.auth().signInWithRedirect(provider);
+          // Calls above.
+          firebase.auth().signInWithRedirect(this._provider);
         }
       })
-      .catch(function(error) {
+      .catch((error) => {
         console.log('ERROR', error);
       });
-  },
+  }
 
-  logout: function(path) {
+  /**
+   * Logout Firebase app.
+   * @param path
+   */
+  logout(path) {
     console.log('LOGOUT');
-    firebase.auth().signOut().then(function() {
-      // Remove the cookie.
-      Cookies.remove(COOKIE);
 
-      window.location.href = path;
-    }, function(error) {
-      console.log('ERROR', error);
+    // https://firebase.google.com/docs/auth/web/google-signin
+    firebase.auth().signOut().then(
+      function() {
+        // Remove the cookie.
+        Cookies.remove(COOKIE);
+
+        // Redirect.
+        window.location.href = path;
+      },
+      function(error) {
+        console.log('ERROR', error);
+      });
+  }
+
+  /**
+   * Upsers the logged in user to create a user record.
+   *
+   * @param result
+   * @returns {Promise}
+   */
+  registerUser(result) {
+    return new Promise((resolve, reject) => {
+      let { credential, user } = result;
+      let { accessToken, idToken, provider } = credential;
+      let { uid, email, displayName:name } = user;
+
+      $.ajax({
+        url: '/user/register',
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: JSON.stringify({
+          credential: {
+            accessToken, idToken, provider,
+          },
+          user: {
+            uid, email, name
+          }
+        }),
+
+        success: (response) => {
+          console.log('Registered user: [%s] %s', uid, email);
+          resolve()
+        },
+
+        error: (error) => {
+          console.log('ERROR', error);
+        }
+      });
     });
   }
-};
+}

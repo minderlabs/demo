@@ -1,6 +1,13 @@
 #!/bin/sh
 
 #
+# Misc tools.
+#
+
+npm install -g firebase-tools
+
+
+#
 # Workspace (manages npm link with transitive closure).
 # https://github.com/mariocasciaro/npm-workspace
 #

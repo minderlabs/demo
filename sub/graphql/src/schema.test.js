@@ -19,9 +19,10 @@ import {
 import { makeExecutableSchema, mockServer } from 'graphql-tools';
 import { introspectionQuery, printSchema } from 'graphql/utilities';
 
-import { ID } from 'minder-core';
+import { Matcher } from 'minder-core';
 
-import { MemoryDatabase } from './db/memory_database';
+import { Database } from './db/database';
+import { MemoryItemStore } from './db/memory_item_store';
 import { Resolvers } from './resolvers';
 
 import Schema from './schema.graphql';
@@ -58,6 +59,12 @@ const test = (result, done) => {
     done();
   }
 };
+
+const matcher = new Matcher();
+
+function createDatabase() {
+  return new Database(matcher).registerItemStore(Database.DEFAULT, new MemoryItemStore(matcher));
+}
 
 //
 // Debugging
@@ -113,7 +120,7 @@ describe('GraphQL Mock Server:', () => {
 describe('GraphQL Executable Schema:', () => {
   let context = { user: { userId: 'minder', name: 'Minder' } };
 
-  let database = new MemoryDatabase();
+  let database = createDatabase();
   database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }]);
 
   // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
@@ -126,12 +133,13 @@ describe('GraphQL Executable Schema:', () => {
   });
 
   it('Query viewer', (done) => {
-    let item = database.getItems(context, 'User', ['minder'])[0];
-    expect(item.id).to.equal('minder');
+    database.getItem(context, 'User', 'minder').then(item => {
+      expect(item.id).to.equal('minder');
 
-    // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
-    graphql(schema, query, null, context).then((result) => {
-      test(result, done);
+      // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
+      graphql(schema, query, null, context).then(result => {
+        test(result, done);
+      });
     });
   });
 });
@@ -144,7 +152,7 @@ describe('GraphQL Executable Schema:', () => {
 describe('GraphQL JS API:', () => {
   let context = { user: { userId: 'minder', name: 'Minder' } };
 
-  let database = new MemoryDatabase();
+  let database = createDatabase();
   database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }]);
 
   let schema = new GraphQLSchema({
@@ -177,11 +185,10 @@ describe('GraphQL JS API:', () => {
             let { user: { userId, name } } = context;
             console.assert(userId);
 
-            return {
+            return database.getItem(context, 'User', userId).then(user => ({
               id: userId,
-
-              user: database.getItems(context, 'User', [userId])[0]
-            }
+              user
+            }));
           }
         }
       }

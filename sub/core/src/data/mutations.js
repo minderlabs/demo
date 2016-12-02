@@ -200,6 +200,12 @@ export class Mutator {
     });
   }
 
+  /**
+   *
+   * @param mutate
+   * @param idGenerator
+   */
+  // TODO(burdon): Document.
   constructor(mutate, idGenerator) {
     console.assert(mutate && idGenerator);
 

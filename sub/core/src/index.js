@@ -14,4 +14,5 @@ export * from './data/matcher';
 export * from './data/mutations';
 export * from './data/parser';
 export * from './data/queries';
+export * from './data/store';
 export * from './data/transforms';

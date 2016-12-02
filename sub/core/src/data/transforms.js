@@ -61,6 +61,7 @@ export class Transforms {
     }
 
     // Scalars.
+    // TODO(burdon): Handle null.
     let scalar = Transforms.scalarValue(value);
     console.assert(scalar);
     object[field] = scalar;

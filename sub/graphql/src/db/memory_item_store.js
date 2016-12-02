@@ -6,19 +6,17 @@
 
 import _ from 'lodash';
 
-import { TypeUtil } from 'minder-core';
+import { ItemStore, TypeUtil } from 'minder-core';
 
 import { Database } from './database';
 
 /**
  * In-memory database.
  */
-export class MemoryDatabase extends Database {
+export class MemoryItemStore extends ItemStore {
 
-  // TODO(burdon): Factor out logging.
-
-  constructor() {
-    super();
+  constructor(matcher) {
+    super(matcher);
 
     // Map items.
     this._items = new Map();
@@ -27,7 +25,7 @@ export class MemoryDatabase extends Database {
   upsertItems(context, items) {
     console.assert(context && items);
 
-    let modifiedItems = _.map(items, (item) => {
+    return _.map(items, (item) => {
       item = TypeUtil.clone(item);
 
       console.assert(item.type);
@@ -36,20 +34,14 @@ export class MemoryDatabase extends Database {
       }
 
       // TODO(burdon): Enforce immutable properties (e.g., type).
-      console.log('DB.UPSERT[%s]', item.id, JSON.stringify(item));
       this._items.set(item.id, item);
 
       return item;
     });
-
-    this.handleMutation(context, modifiedItems);
-
-    return modifiedItems;
   }
 
   getItems(context, type, itemIds) {
     console.assert(context && type && itemIds);
-    console.log('DB.GET[%s]', itemIds);
 
     return _.map(itemIds, itemId => TypeUtil.clone(this._items.get(itemId) || {}));
   }
@@ -69,7 +61,6 @@ export class MemoryDatabase extends Database {
     items = _.sortBy(items, ['title']);
     items = _.slice(items, offset, offset + count);
 
-    console.log('DB.QUERY[%d:%d][%s]: %s', offset, count, JSON.stringify(filter), TypeUtil.JSON({ items: items }));
     return items;
   }
 }

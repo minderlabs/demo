@@ -13,12 +13,28 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { MemoryDatabase, Randomizer, graphqlRouter } from 'minder-graphql';
+import { Matcher } from 'minder-core';
+import { Database, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
 
 import { appRouter, hotRouter } from './app';
-import { loginRouter, getUserInfoFromCookie, getUserInfoFromHeader } from './auth';
+import { loginRouter, AuthManager } from './auth';
 import { loggingRouter } from './logger';
 import { adminRouter, clientRouter, ClientManager, SocketManager } from './client';
+import { FirebaseStore } from './firebase';
+
+
+//
+// Error handling.
+//
+
+function handleError(err) {
+  console.error((new Date).toUTCString() + ' uncaughtException:', err.message);
+  console.error(err.stack);
+//process.exit(1)
+}
+
+process.on('uncaughtException', handleError);
+process.on('unhandledRejection', handleError);
 
 
 //
@@ -40,35 +56,62 @@ const server = http.Server(app);
 
 // TODO(burdon): Use injector pattern (esp for async startup).
 
+const matcher = new Matcher();
+
+const firebaseStore = new FirebaseStore(matcher);
+
+const authManager = new AuthManager();
+
 const socketManager = new SocketManager(server);
 
 const clientManager = new ClientManager(socketManager);
 
-const database = new MemoryDatabase().onMutation(() => {
-  clientManager.invalidateOthers();
-});
+const database = new Database(matcher)
+
+  .registerItemStore('User', firebaseStore.userStore)
+  .registerItemStore(Database.DEFAULT, new MemoryItemStore(matcher))
+
+  .onMutation(() => {
+    // Notify clients of changes.
+    clientManager.invalidateOthers();
+  });
 
 
 //
 // Database.
+// TODO(burdon): Note all of this is asynchronous. Needs chaining/injector.
 //
 
 let context = {};
 
+// Load test data.
 _.each(require('./testing/test.json'), (items, type) => {
   database.upsertItems(context, _.map(items, (item) => ({ type, ...item })));
 });
 
-// TODO(burdon): Webhook.
-const testData = true;
+// Create team.
+firebaseStore.userStore.queryItems({}, { type: 'User' }).then(users => {
+  console.log('USERS', JSON.stringify(users));
 
+  database.getItem(context, 'Group', 'minderlabs').then(item => {
+    item.members = _.map(users, user => user.id);
+    database.upsertItem(context, item);
+  });
+});
+
+// TODO(burdon): Webhook?
+const testData = true;
 if (testData) {
   new Randomizer(database, context)
     .generate('Contact', 20)
     .generate('Place', 10)
-    .generate('Task', 30, {
-      owner: { type: 'User', likelihood: 1.0 },
-      assignee: { type: 'User', likelihood: 0.5 }
+    .generate('Task', 15, {
+      owner: {
+        type: 'User', likelihood: 1.0
+      },
+      assignee: {
+        type: 'User', likelihood: 0.5
+      }
     });
 }
 
@@ -136,7 +179,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 
 app.get('/home', async function(req, res) {
-  let userInfo = await getUserInfoFromCookie(req);
+  let userInfo = await authManager.getUserInfoFromCookie(req);
   if (!userInfo) {
     res.render('home');
   } else {
@@ -144,9 +187,8 @@ app.get('/home', async function(req, res) {
   }
 });
 
-app.use(loginRouter({
-  env,
-  users: database.queryItems({}, { type: 'User' })
+app.use(loginRouter(firebaseStore.userStore, {
+  env
 }));
 
 app.use(graphqlRouter(database, {
@@ -154,14 +196,14 @@ app.use(graphqlRouter(database, {
   pretty: false,
 
   // Gets the user context from the request headers (async).
-  context: request => getUserInfoFromHeader(request).then(user => ({ user }))
+  context: request => authManager.getUserInfoFromHeader(request).then(user => ({ user }))
 }));
 
 app.use(adminRouter(clientManager));
 
-app.use(clientRouter(clientManager, server));
+app.use(clientRouter(authManager, clientManager, server));
 
-app.use(appRouter(clientManager, {
+app.use(appRouter(authManager, clientManager, {
   env
 }));
 
@@ -187,4 +229,3 @@ server.listen(port, host, () => {
   let addr = server.address();
   console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
 });
-

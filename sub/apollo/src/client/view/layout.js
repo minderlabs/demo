@@ -82,14 +82,14 @@ class Layout extends React.Component {
             <div>
               <ul>
                 <li>{ viewer && viewer.user.title }</li>
-                <li><a href="/logout">Logout</a></li>
+                <li><a href="/user/logout">Logout</a></li>
               </ul>
             </div>
           </div>
 
-          {/* SIDEBAR */}
+          {/* Sidebar */}
           <Sidebar ref="sidebar" sidebar={ <Folders/> }>
-            {/* VIEW */}
+            {/* Content view. */}
             <div className="app-column">
               { children }
             </div>

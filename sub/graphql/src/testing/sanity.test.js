@@ -17,9 +17,35 @@ import { TypeUtil } from 'minder-core';
 
 // TODO(burdon): Create karma tests for core.
 
-describe('Sanity', () => {
+describe('Sanity:', () => {
 
-  it('IS SANE', () => {
+  it('Is sane.', () => {
     expect(true).to.be.ok;
   });
+
+  it('It waits for async functions.', (done) => {
+
+    async function test(promise, value) {
+      let result = await promise;
+
+      // This waits for the value.
+      expect(result).to.equal(value);
+      return result;
+    }
+
+    function doAsync(value) {
+      return new Promise((resolve, reject) => {
+        resolve(value);
+      });
+    }
+
+    let result = test(doAsync(100), 100);
+
+    // Still a promise here.
+    // NOTE: Just does fancy rewriting.
+    result.then((value) => {
+      expect(value).to.equal(100);
+      done();
+    });
+  })
 });

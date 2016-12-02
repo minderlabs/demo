@@ -52,6 +52,8 @@ export class Randomizer {
   generate(type, n, fields={}) {
     console.log('GENERATE[%s]: %d', type, n);
 
+    let promises = [];
+
     let items = _.times(n, (i) => {
 
       // Generate item.
@@ -65,19 +67,27 @@ export class Randomizer {
       // Generate fields.
       _.each(fields, (spec, field) => {
         if (this._chance.bool({ likelihood: spec.likelihood * 100 })) {
-          let values = this._database.queryItems(this._context, { type: spec.type });
-          if (values.length) {
-            let index = this._chance.integer({ min: 0, max: values.length - 1 });
-            let value = values[index];
-            item[field] = value.id;
-          }
+
+          // TODO(burdon): Cache queries.
+          promises.push(this._database.queryItems(this._context, { type: spec.type }).then(values => {
+            if (values.length) {
+              let index = this._chance.integer({ min: 0, max: values.length - 1 });
+              let value = values[index];
+              item[field] = value.id;
+            }
+          }));
         }
       });
 
       return item;
     });
 
-    this._database.upsertItems(this._context, items);
+    // TODO(burdon): Is there a better way to batch multiple queries?
+    // Wait for everything to complete.
+    Promise.all(promises).then(() => {
+      this._database.upsertItems(this._context, items);
+    });
+
     return this;
   }
 }

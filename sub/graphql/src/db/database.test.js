@@ -9,33 +9,46 @@ const expect = require('chai').expect;
 
 import * as fakeredis from 'fakeredis';
 
-import { MemoryDatabase } from './memory_database';
-import { RedisDatabase } from './redis_database';
+import { Matcher } from 'minder-core';
+
+import { Database } from './database';
+import { MemoryItemStore } from './memory_item_store';
+import { RedisItemStore } from './redis_item_store';
+
+const matcher = new Matcher();
 
 //
 // Database.
 // TODO(burdon): Test both databases.
 //
 
-const tests = (database) => {
+const tests = (itemStore) => {
 
-  it('Create and get items.', () => {
+  let database = new Database(matcher).registerItemStore(Database.DEFAULT, itemStore);
+
+  it('Create and get items.', (done) => {
     let context = {};
 
     // TODO(burdon): Test ID.
-    let items = database.upsertItems(context, [{ type: 'User', title: 'Minder' }]);
-    expect(items).to.exist;
-    expect(items.length).to.equal(1);
+    database.upsertItems(context, [{ type: 'User', title: 'Minder' }]).then(items => {
+      expect(items).to.exist;
+      expect(items.length).to.equal(1);
 
-    let result_items = database.getItems(context, 'User', [items[0].id]);
-    expect(result_items).to.exist;
-    expect(result_items[0].title).to.equal(items[0].title);
+      database.getItems(context, 'User', [items[0].id]).then(items => {
+        expect(items).to.exist;
+        expect(items[0].title).to.equal('Minder');
+
+        done();
+      });
+    });
   });
 };
 
 describe('MemoryDatabase:',
-  () => tests(new MemoryDatabase()));
+  () => tests(new MemoryItemStore(matcher)));
 
 // https://github.com/hdachev/fakeredis
-// describe('RedisDatabase:',
-//   () => tests(new RedisDatabase(fakeredis.createClient())));
+/*
+describe('RedisDatabase:',
+  () => tests(new RedisItemStore(fakeredis.createClient(), matcher)));
+*/
