@@ -20,7 +20,7 @@ import { appRouter, hotRouter } from './app';
 import { loginRouter, AuthManager } from './auth';
 import { loggingRouter } from './logger';
 import { adminRouter, clientRouter, ClientManager, SocketManager } from './client';
-import { FirebaseStore } from './firebase';
+import { FirebaseStore } from './db/firebase';
 
 
 //
@@ -48,17 +48,25 @@ const port = process.env['VIRTUAL_PORT'] || 3000;
 
 //
 // Express.
+// TODO(burdon): Use injector pattern (esp for async startup).
 //
 
 const app = express();
 
 const server = http.Server(app);
 
-// TODO(burdon): Use injector pattern (esp for async startup).
-
 const matcher = new Matcher();
 
-const firebaseStore = new FirebaseStore(matcher);
+// TODO(burdon): Factor out const.
+// https://firebase.google.com/docs/database/admin/start
+const firebaseStore = new FirebaseStore(matcher, {
+  databaseURL: 'https://minder-beta.firebaseio.com',
+
+  // Download JSON config.
+  // https://console.firebase.google.com/project/minder-beta/settings/serviceaccounts/adminsdk
+  // NOTE: Path must work for dev and prod (docker).
+  credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
+});
 
 const authManager = new AuthManager();
 
@@ -90,7 +98,7 @@ _.each(require('./testing/test.json'), (items, type) => {
 });
 
 // Create team.
-firebaseStore.userStore.queryItems({}, { type: 'User' }).then(users => {
+database.queryItems({}, { type: 'User' }).then(users => {
   console.log('USERS', JSON.stringify(users));
 
   database.getItem(context, 'Group', 'minderlabs').then(item => {
@@ -204,7 +212,10 @@ app.use(adminRouter(clientManager));
 app.use(clientRouter(authManager, clientManager, server));
 
 app.use(appRouter(authManager, clientManager, {
-  env
+  env,
+
+  // TODO(burdon): Clean this up with config.
+  assets: env === 'production' ? __dirname : path.join(__dirname, '../../dist')
 }));
 
 app.use('/', function(req, res) {

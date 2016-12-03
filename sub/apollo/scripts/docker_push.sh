@@ -15,6 +15,7 @@ set -v
 #
 
 webpack
+webpack --config webpack-server.config.js
 
 #
 # Create package.json for Dockerfile's npm install.

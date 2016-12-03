@@ -86,7 +86,7 @@ export class Resolvers {
         tasks: (root, args, context) => {
           let { filter } = args || {};
 
-          // TODO(burdon): Move into matcher.
+          // TODO(burdon): Move into matcher (with context).
           filter.type = 'Task';
           let predicate = _.get(filter, 'predicate', { field: 'assignee' });
           switch (predicate.field) {
