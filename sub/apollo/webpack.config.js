@@ -4,7 +4,7 @@
 
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
 
@@ -23,6 +23,11 @@ module.exports = _.merge(baseConfig, {
   devtool: '#eval-source-map',
 
   entry: {
+
+    website: [
+      path.resolve(baseConfig.context, 'src/website/site.js')
+    ],
+
     test: [
       path.resolve(baseConfig.context, 'src/client/test.js')
     ],

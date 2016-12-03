@@ -4,7 +4,10 @@
 
 'use strict';
 
-// TODO(burdon): Build as bundle.
+import Cookies from 'js-cookie';
+import * as firebase from 'firebase';
+
+import { FirebaseClientConfig } from '../common/defs';
 
 const COOKIE = 'minder_auth_token';
 
@@ -12,20 +15,10 @@ const COOKIE = 'minder_auth_token';
  * Auth module.
  * NOTE: This could become the app loader.
  */
-class Auth {
+export class Auth {
 
   constructor() {
-
-    // TODO(burdon): Factor out const.
-    const config = {
-      apiKey: 'AIzaSyDwDsz7hJWdH2CijLItaQW6HmL7H9uDFcI',
-      authDomain: 'minder-beta.firebaseapp.com',
-      databaseURL: 'https://minder-beta.firebaseio.com',
-      storageBucket: 'minder-beta.appspot.com',
-      messagingSenderId: '189079594739'
-    };
-
-    firebase.initializeApp(config);
+    firebase.initializeApp(FirebaseClientConfig);
 
     // https://firebase.google.com/docs/auth/web/google-signin
     this._provider = new firebase.auth.GoogleAuthProvider();
