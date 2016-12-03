@@ -29,7 +29,8 @@ describe('Matcher:', () => {
       {
         id: 'c',
         type: 'Task',
-        title: 'Test matchers.'
+        title: 'Test matchers.',
+        owner: 'b'
       },
       {
         id: 'd',
@@ -40,6 +41,8 @@ describe('Matcher:', () => {
       }
     ], item => item.id);
 
+    // TODO(burdon): console.assert is ignored by node (use node assert module?)
+
     expect(matcher.matchItem({ type: 'User' }, items.a)).to.be.ok;
     expect(matcher.matchItem({ type: 'Task' }, items.a)).to.be.false;
 
@@ -47,5 +50,7 @@ describe('Matcher:', () => {
     expect(matcher.matchItems(null, items)).to.have.length(0);
     expect(matcher.matchItems({ type: 'User' }, items)).to.have.length(2);
     expect(matcher.matchItems({ ids: ['a', 'b', 'z'], type: 'Task' }, items)).to.have.length(4);
+
+    expect(matcher.matchItems({ predicate: { field: 'owner', value: 'b'} }, items)).to.have.length(2);
   });
 });

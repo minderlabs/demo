@@ -21,6 +21,7 @@ export class Matcher {
    * @param item
    * @returns {boolean} True if the item matches the filter.
    */
+  // TODO(burdon): Pass context into matcher.
   matchItem(filter, item) {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item);
@@ -57,6 +58,7 @@ export class Matcher {
     // Predicate match.
     // TODO(burdon): Other operators.
     if (filter.predicate) {
+      console.assert(filter.predicate.field);
       if (item[filter.predicate.field] != filter.predicate.value) {
         return false;
       }
