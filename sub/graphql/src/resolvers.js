@@ -83,17 +83,16 @@ export class Resolvers {
 
       User: {
 
+        // TODO(burdon): Use this "hack" to filter inbox? (viewer.user.tasks).
+        // TODO(burdon): Generalize User "type filters" to items that reference the current user?
         tasks: (root, args, context) => {
           let { filter } = args || {};
 
-          // TODO(burdon): Move into matcher (with context).
-          filter.type = 'Task';
-          let predicate = _.get(filter, 'predicate', { field: 'assignee' });
-          switch (predicate.field) {
-            case 'owner':
-            case 'assignee':
-              predicate.value = root.id;
-              break;
+          // TODO(burdon): Instead of replacing ref here, pass root to database query's matcher?
+          // But don't pollute the global execution context.
+          let ref = _.get(filter, 'predicate.ref');
+          if (ref) {
+            filter.predicate.value = _.get(root, ref);
           }
 
           return database.queryItems(context, filter);
