@@ -107,7 +107,7 @@ export class Reducer {
           console.log('Update items: %s', TypeUtil.JSON(previousResult));
 
           // Determine if currently matches filter.
-          let match = matcher.match(filter, updatedItem);
+          let match = matcher.matchItem(filter, updatedItem);
 
           // If no match, is this new? (otherwise must be removed).
           let insert = match && _.findIndex(previousResult.items, item => item.id === updatedItem.id) === -1;

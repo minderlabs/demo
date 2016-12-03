@@ -7,15 +7,34 @@
 import _ from 'lodash';
 
 /**
- * Query matcher.
+ * Item matcher.
+ *
+ * The matcher is used by both client and server to determine if items match a given filter.
+ * Filters are used to screen collections of items, which may be leaf nodes (arrays) of a GraphQL query.
  */
 export class Matcher {
 
-  match(filter, item) {
+  /**
+   * Matches the item against the filter.
+   *
+   * @param filter
+   * @param item
+   * @returns {boolean} True if the item matches the filter.
+   */
+  matchItem(filter, item) {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
+    console.assert(item);
+    if (_.isEmpty(filter)) {
+      return false;
+    }
+
+    // Could match IDs.
+    if (filter.ids && _.indexOf(filter.ids, item.id) != -1) {
+      return true;
+    }
 
     // Must match something.
-    if (!(filter.type || filter.labels || filter.predicate || filter.text)) {
+    if (!(filter.type || filter.labels || filter.text || filter.predicate)) {
       return false;
     }
 
@@ -50,5 +69,16 @@ export class Matcher {
     }
 
     return true;
+  }
+
+  /**
+   * Matches the items against the filter.
+   *
+   * @param filter
+   * @param items
+   * @returns {[item]} Array of items that match.
+   */
+  matchItems(filter, items) {
+    return _.compact(_.map(items, item => this.matchItem(filter, item) ? item : false));
   }
 }

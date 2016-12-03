@@ -79,6 +79,10 @@ input PredicateInput {
 }
 
 input FilterInput {
+  # OR
+  ids: [ID]
+
+  # MUST
   type: String
   labels: [String]
   text: String

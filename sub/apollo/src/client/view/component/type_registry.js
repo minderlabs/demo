@@ -91,7 +91,7 @@ registry._types.set('Group', {
             if (task.id == item.id) {
               // TODO(burdon): Extract filter from query and use matcher to determine if remove.
               const filter = { predicate: { field: "assignee", value: { id: member.id } } };
-              if (matcher.match(filter, item)) {
+              if (matcher.matchItem(filter, item)) {
                 return item;
               }
             } else {

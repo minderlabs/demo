@@ -12,6 +12,6 @@ DIRS=(
 for dir in $"${DIRS[@]}"; do
   echo "\n### [$dir] ###"
   pushd $dir
-  karma start --single-run
+  npm test
   popd
 done
