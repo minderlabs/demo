@@ -107,6 +107,8 @@ class FirebaseUserStore extends ItemStore {
 
   queryItems(context, filter={}) {
 
+    // TODO(madadam): Iterate the matcher over a (synced) local object instead of making a FB request every time?
+
     // https://firebase.google.com/docs/database/web/read-and-write#read_data_once
     // https://firebase.google.com/docs/reference/js/firebase.database.Reference#once
     return this._db.ref('users').orderByKey().once('value').then((data) => {

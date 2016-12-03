@@ -81,13 +81,7 @@ export class Database extends ItemStore {
    */
   // TODO(burdon): Factor out (and explain).
   static promisify(value) {
-    if (value.then) {
-      return value;
-    } else {
-      return new Promise((resolve, reject) => {
-        resolve(value);
-      });
-    }
+    return Promise.resolve(value);
   }
 
   /**
