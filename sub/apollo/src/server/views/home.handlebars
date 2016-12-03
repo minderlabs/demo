@@ -1,18 +1,16 @@
 {{#section 'head'}}
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poiret+One:400">
-
-  <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/css/words.css">
+  <link rel="stylesheet" href="/assets/website.css">
 {{/section}}
 
-<div class="app-container">
-  <div class="app-column app-center">
+<div class="site-container">
+  <div class="site-column site-center">
 
-    <div class="app-window-container">
-      <div class="app-window">
-        <div class="app-header app-row" style="width: 400px">
-          <h1 class="app-expand">Welcome</h1>
-          <i class="app-logo material-icons">toll</i>
+    <div class="site-window-container">
+      <div class="site-window">
+        <div class="site-header site-row" style="width: 400px">
+          <h1 class="site-expand">Welcome</h1>
+          <i class="site-logo material-icons">toll</i>
         </div>
 
         <div>
@@ -23,15 +21,16 @@
       </div>
     </div>
 
-    <div class="app-title">
+    <div class="site-title">
       <div></div>
-      <div class="app-mind">mind</div>
+      <div class="site-mind">mind</div>
       <div>er</div>
     </div>
 
   </div>
 
-  <!-- TODO(burdon): Build via webpack. -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-  <script src="/js/words.js"></script>
+  <script src="/assets/website.bundle.js"></script>
+  <script>
+    new Words().start(3, 30);
+  </script>
 </div>

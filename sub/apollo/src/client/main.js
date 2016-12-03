@@ -37,9 +37,9 @@ let queryRegistry = new QueryRegistry();
 
 let networkManager = new NetworkManager(config, eventHandler);
 
-let authManager = new AuthManager(config, networkManager);
-
 let connectionManager = new ConnectionManager(config, networkManager, queryRegistry, eventHandler);
+
+let authManager = new AuthManager(config, networkManager, connectionManager);
 
 
 //
@@ -176,6 +176,7 @@ if (module.hot && _.get(config, 'debug.env') === 'hot') {
 console.log('Config = %s', JSON.stringify(config));
 
 // TODO(burdon): Injector pattern.
+// TODO(burdon): Don't attempt connection until authenticated.
 connectionManager.connect().then(() => {
   renderApp(Application);
 });

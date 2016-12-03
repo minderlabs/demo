@@ -5,6 +5,7 @@
 'use strict';
 
 import _ from 'lodash';
+import path from 'path';
 
 import admin from 'firebase-admin';
 
@@ -26,15 +27,12 @@ export class FirebaseStore {
     return key.replace('.', '_');
   }
 
-  constructor(matcher) {
+  constructor(matcher, config) {
     console.assert(matcher);
 
-    // TODO(burdon): Factor out const.
-    // https://firebase.google.com/docs/database/admin/start
-    const config = {
-      credential: admin.credential.cert('src/server/conf/minder-beta-firebase-adminsdk-n6arv.json'),
-      databaseURL: 'https://minder-beta.firebaseio.com'
-    };
+    _.assign(config, {
+      credential: admin.credential.cert(config.credentialPath)
+    });
 
     // https://firebase.google.com/docs/admin/setup
     admin.initializeApp(config);
@@ -66,6 +64,24 @@ class FirebaseUserStore extends ItemStore {
     super(matcher);
     console.assert(db);
     this._db = db;
+    this._cache = new Map();
+    this._initialized = false;
+  }
+
+  updateCache() {
+    // TODO(burdon): Use FB to do filtering?
+    // https://firebase.google.com/docs/database/web/read-and-write#read_data_once
+    // https://firebase.google.com/docs/reference/js/firebase.database.Reference#once
+    // https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
+    return this._db.ref('users').orderByKey().once('value').then(data => {
+      _.each(data.val(), (record, uid) => {
+        this._cache.set(uid, FirebaseUserStore.toItem(uid, record));
+      });
+    });
+  }
+
+  maybeUpdateCache() {
+    return Promise.all([this._initialized ? null : this.updateCache()]);
   }
 
   upsertUser(data) {
@@ -75,7 +91,7 @@ class FirebaseUserStore extends ItemStore {
     console.assert(uid);
 
     // https://firebase.google.com/docs/database/web/read-and-write
-    this._db.ref('users/' + uid).set({
+    let record = {
 
       profile: {
         email,
@@ -88,7 +104,10 @@ class FirebaseUserStore extends ItemStore {
           idToken
         }
       }
-    });
+    };
+
+    this._db.ref('users/' + uid).set(record);
+    this._cache.set(uid, FirebaseUserStore.toItem(uid, record));
   }
 
   //
@@ -96,29 +115,28 @@ class FirebaseUserStore extends ItemStore {
   //
 
   getItems(context, type, itemIds) {
-    return this._db.ref('users').orderByKey().once('value').then((data) => {
+    return this.maybeUpdateCache().then(() => {
+      let items = [];
+      this._cache.forEach(item => {
+        if (_.indexOf(itemIds, item.id) != -1) {
+          items.push(item);
+        }
+      });
 
-      // Match by ID.
-      return _.compact(_.map(data.val(), (user, uid) => {
-        return _.indexOf(itemIds, uid) != -1 && FirebaseUserStore.toItem(uid, user);
-      }));
+      return items;
     });
   }
 
   queryItems(context, filter={}) {
+    return this.maybeUpdateCache().then(() => {
+      let items = [];
+      this._cache.forEach(item => {
+        if (this._matcher.match(filter, item)) {
+          items.push(item);
+        }
+      });
 
-    // TODO(madadam): Iterate the matcher over a (synced) local object instead of making a FB request every time?
-
-    // https://firebase.google.com/docs/database/web/read-and-write#read_data_once
-    // https://firebase.google.com/docs/reference/js/firebase.database.Reference#once
-    return this._db.ref('users').orderByKey().once('value').then((data) => {
-
-      // TODO(burdon): Use FB to do filtering?
-      // https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
-      return _.compact(_.map(data.val(), (record, uid) => {
-        let user = FirebaseUserStore.toItem(uid, record);
-        return this._matcher.match(filter, user) && user;
-      }));
+      return items;
     });
   }
 }

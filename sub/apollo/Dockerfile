@@ -41,16 +41,13 @@ RUN chown -R nx:nx $HOME
 # TODO(burdon): Set-up for Jenkins local build.
 # TODO(burdon): Currently just add all unbuilt assets.
 
-ADD dist                  $HOME/app/dist
 ADD dist/package.json     $HOME/app/package.json
 
-# TODO(burdon): Either bundle server or configure base directory.
-
-ADD src/server            $HOME/app/src/server
-
-#ADD src/server/public     $HOME/app/dist/public
-#ADD src/server/testing    $HOME/app/dist/testing
-#ADD src/server/views      $HOME/app/dist/views
+ADD dist                  $HOME/app/dist
+ADD src/server/conf       $HOME/app/dist/conf
+ADD src/server/public     $HOME/app/dist/public
+ADD src/server/testing    $HOME/app/dist/testing
+ADD src/server/views      $HOME/app/dist/views
 
 #
 # Tools
@@ -59,7 +56,6 @@ ADD src/server            $HOME/app/src/server
 WORKDIR $HOME/app
 
 RUN npm install
-RUN npm install --save-dev babel-cli
 
 #
 # Exposed port for nginx-proxy (matches docker-compose.yml and docker cloud stackfile).
@@ -79,5 +75,4 @@ USER nx
 # https://docs.npmjs.com/misc/config#environment-variables
 #
 
-# TODO(burdon): Build webpack to avoid babel-node
-CMD [ "babel-node", "src/server/main.js" ]
+CMD [ "node", "dist/server.bundle.js" ]

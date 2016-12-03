@@ -4,7 +4,12 @@
 
 'use strict';
 
-class Words {
+import './words.less';
+
+/**
+ * Words animation.
+ */
+export class Words {
 
   // http://www.litscape.com/word_tools/contains_sequence.php
   static data() {
@@ -41,8 +46,8 @@ class Words {
   }
 
   constructor() {
-    this._lhs = $('.app-title > div:first-child');
-    this._rhs = $('.app-title > div:last-child');
+    this._lhs = $('.site-title > div:first-child');
+    this._rhs = $('.site-title > div:last-child');
   }
 
   start(delay=0, time=-1, delta=1) {
@@ -96,7 +101,7 @@ class Words {
     }
 
     setTimeout(function() {
-      $('.app-title').addClass('app-running');
+      $('.site-title').addClass('site-running');
 
       next(period);
     }, delay * 1000);
@@ -106,7 +111,7 @@ class Words {
 
   stop() {
     console.log('Stopping...');
-    $('.app-title').removeClass('app-running').addClass('app-bright');
+    $('.site-title').removeClass('site-running').addClass('site-bright');
     this.update([null, 'er']);
     return this;
   }
@@ -116,23 +121,17 @@ class Words {
     // this._rhs.text(word[1] || '');
 
     if (word[0]) {
-      this._lhs.removeClass('app-fade');
+      this._lhs.removeClass('site-fade');
       this._lhs.text(word[0]);
     } else {
-      this._lhs.addClass('app-fade');
+      this._lhs.addClass('site-fade');
     }
 
     if (word[1]) {
-      this._rhs.removeClass('app-fade');
+      this._rhs.removeClass('site-fade');
       this._rhs.text(word[1]);
     } else {
-      this._rhs.addClass('app-fade');
+      this._rhs.addClass('site-fade');
     }
   }
 }
-
-$(document).ready(function() {
-  let words = new Words();
-
-  words.start(3, 30);
-});

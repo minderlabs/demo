@@ -16,4 +16,4 @@ export const FirebaseClientConfig = {
 };
 
 
-// TODO(burdon): Add path defs.
+// TODO(burdon): Move path defs here.

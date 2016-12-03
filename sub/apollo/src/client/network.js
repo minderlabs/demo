@@ -12,6 +12,8 @@ import { createNetworkInterface } from 'apollo-client';
 
 import { TypeUtil } from 'minder-core';
 
+import { FirebaseClientConfig } from '../common/defs';
+
 
 /**
  * Manages user authentication.
@@ -26,20 +28,13 @@ export class AuthManager {
   // Force re-auth.
   // https://firebase.google.com/docs/auth/web/manage-users#re-authenticate_a_user
 
-  constructor(config, networkManager) {
-    console.assert(config && networkManager);
+  constructor(config, networkManager, connectionManager) {
+    console.assert(config && networkManager && connectionManager);
 
     this._networkManager = networkManager;
 
-    // TODO(burdon): Factor out const (common).
     // https://console.firebase.google.com/project/minder-beta/overview
-    firebase.initializeApp({
-      apiKey: 'AIzaSyDwDsz7hJWdH2CijLItaQW6HmL7H9uDFcI',
-      authDomain: 'minder-beta.firebaseapp.com',
-      databaseURL: 'https://minder-beta.firebaseio.com',
-      storageBucket: 'minder-beta.appspot.com',
-      messagingSenderId: '189079594739'
-    });
+    firebase.initializeApp(FirebaseClientConfig);
 
     // Google scopes.
     this._provider = new firebase.auth.GoogleAuthProvider();
@@ -53,6 +48,9 @@ export class AuthManager {
         user.getToken().then(token => {
           // Update the network manager (sets header for graphql requests).
           this._networkManager.token = token;
+
+          // Reconnect.
+          connectionManager.connect();
         });
       } else {
         this._networkManager.token = null;

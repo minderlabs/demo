@@ -20,12 +20,22 @@ module.exports = _.merge(baseConfig, {
 
   target: 'node',
 
+  // https://webpack.github.io/docs/configuration.html#node
+  node: {
+    // Otherwise __dirname == '/'
+    __dirname: false
+  },
+
   // Source map shows original source and line numbers (and works with hot loader).
   // https://webpack.github.io/docs/configuration.html#devtool
   devtool: '#eval-source-map',
 
   entry: {
     server: [
+      // This is automatically loaded when using babel-node, but required for runtime builds.
+      // https://babeljs.io/docs/usage/polyfill
+      'babel-polyfill',
+
       path.resolve(baseConfig.context, 'src/server/main.js')
     ]
   },
@@ -36,19 +46,10 @@ module.exports = _.merge(baseConfig, {
     publicPath: '/assets/' // Path for webpack-dev-server
   },
 
-  // TODO(burdon): Error (pulling in client dependency?) Need to separate client and server projects.
-  // TODO(burdon): Different babel config?
-  // Module not found: Error: Cannot resolve module 'socket.io-client/package' in /Users/burdon/projects/src/alienlaboratories/react-demos/sub/apollo/node_modules/socket.io/lib
-
-  // externals: [
-  //   'socket.io-client'
-  // ]
-
-  // externals: [nodeExternals({
-  //     whitelist: [
-  //       'minder-core',
-  //       'minder-graphql'
-  //     ]
-  //   }
-  // )]
+  externals: [nodeExternals({
+    whitelist: [
+      'minder-core',
+      'minder-graphql'
+    ]}
+  )]
 });

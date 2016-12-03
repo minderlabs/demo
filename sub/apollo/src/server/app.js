@@ -7,7 +7,6 @@
 import _ from 'lodash';
 import express from 'express';
 import moment from 'moment';
-import path from 'path';
 
 //
 // Client bundles (map NODE_ENV to bundle).
@@ -39,8 +38,10 @@ export const appRouter = (authManager, clientManager, options) => {
     graphql: '/graphql'
   });
 
+  console.log('App Options = %s', JSON.stringify(options));
+
   // Webpack assets.
-  router.use('/assets', express.static(path.join(__dirname, '../../dist')));
+  router.use('/assets', express.static(options.assets));
 
   // Client.
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
@@ -66,6 +67,13 @@ export const appRouter = (authManager, clientManager, options) => {
         }
       });
     }
+  });
+
+  // Status
+  router.get('/status', function(req, res) {
+    res.send({
+      version: '0.0.1'
+    });
   });
 
   return router;

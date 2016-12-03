@@ -34,7 +34,7 @@ export const graphqlLogger = (options={ pretty: false }) => {
       console.log(PRETTY_REQ, moment().format(TS), query, stringify(variables));
     } else {
       query = query.replace(/\s*\n\s*/g, ' ');
-      console.log('### REQ ### %s %s', query, stringify(variables));
+      console.log('### REQ ### %s %s', query, stringify(variables || {}));
     }
 
     // Monkey patch.
