@@ -42,11 +42,12 @@ export class ItemStore {
    * Query items based on the supplied filter against the store's matcher.
    *
    * @param context
+   * @param root
    * @param filter
    * @param offset
    * @param count
    */
-  queryItems(context, filter={}, offset=0, count=10) {
+  queryItems(context, root, filter={}, offset=0, count=10) {
     throw 'Not implemented';
   }
 }

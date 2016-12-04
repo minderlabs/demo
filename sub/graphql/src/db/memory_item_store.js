@@ -46,7 +46,7 @@ export class MemoryItemStore extends ItemStore {
     return _.map(itemIds, itemId => TypeUtil.clone(this._items.get(itemId) || {}));
   }
 
-  queryItems(context, filter={}, offset=0, count=10) {
+  queryItems(context, root, filter={}, offset=0, count=10) {
     console.assert(context && filter);
 
     let items = [];

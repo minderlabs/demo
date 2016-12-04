@@ -127,7 +127,7 @@ class FirebaseUserStore extends ItemStore {
     });
   }
 
-  queryItems(context, filter={}) {
+  queryItems(context, root, filter={}) {
     return this.maybeUpdateCache().then(() => {
       let items = [];
       this._cache.forEach(item => {

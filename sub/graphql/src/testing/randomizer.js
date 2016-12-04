@@ -69,7 +69,7 @@ export class Randomizer {
         if (this._chance.bool({ likelihood: spec.likelihood * 100 })) {
 
           // TODO(burdon): Cache queries.
-          promises.push(this._database.queryItems(this._context, { type: spec.type }).then(values => {
+          promises.push(this._database.queryItems(this._context, {}, { type: spec.type }).then(values => {
             if (values.length) {
               let index = this._chance.integer({ min: 0, max: values.length - 1 });
               let value = values[index];

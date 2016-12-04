@@ -126,10 +126,10 @@ export class Database extends ItemStore {
   /**
    * @returns {Promise}
    */
-  queryItems(context, filter={}, offset=0, count=10) {
+  queryItems(context, root, filter={}, offset=0, count=10) {
     console.log('DB.QUERY[%d:%d]: %s', offset, count, JSON.stringify(filter));
 
     let itemStore = this.getItemStore(filter.type);
-    return Database.promisify(itemStore.queryItems(context, filter, offset, count));
+    return Database.promisify(itemStore.queryItems(context, root, filter, offset, count));
   }
 }

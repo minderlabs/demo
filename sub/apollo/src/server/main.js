@@ -98,7 +98,7 @@ _.each(require('./testing/test.json'), (items, type) => {
 });
 
 // Create team.
-database.queryItems({}, { type: 'User' }).then(users => {
+database.queryItems({}, {}, { type: 'User' }).then(users => {
   console.log('USERS', JSON.stringify(users));
 
   database.getItem(context, 'Group', 'minderlabs').then(item => {

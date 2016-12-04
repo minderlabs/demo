@@ -96,7 +96,7 @@ export class Resolvers {
               break;
           }
 
-          return database.queryItems(context, filter);
+          return database.queryItems(context, root, filter);
         }
       },
 
@@ -134,7 +134,7 @@ export class Resolvers {
         },
 
         folders: (root, args, context) => {
-          return database.queryItems(context, { type: 'Folder' });
+          return database.queryItems(context, root, { type: 'Folder' });
         },
 
         item: (root, args, context) => {
@@ -147,7 +147,7 @@ export class Resolvers {
         items: (root, args, context) => {
           let { filter, offset, count } = args;
 
-          return database.queryItems(context, filter, offset, count);
+          return database.queryItems(context, root, filter, offset, count);
         }
       },
 
