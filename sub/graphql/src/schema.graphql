@@ -76,9 +76,14 @@ input ObjectMutationInput {
 input PredicateInput {
   field: String!
   value: ValueInput
+  ref: String
 }
 
 input FilterInput {
+  # OR
+  ids: [ID]
+
+  # MUST
   type: String
   labels: [String]
   text: String
@@ -103,6 +108,7 @@ type Value {
 type Predicate {
   field: String!
   value: Value
+  ref: String
 }
 
 type Filter {

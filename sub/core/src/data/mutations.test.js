@@ -6,9 +6,9 @@
 
 import { Mutator, Reducer } from './mutations';
 
-describe('Mutations', () => {
+describe('Mutations:', () => {
 
-  it('SANE.', () => {
+  it('Compiles OK.', () => {
     expect(true).to.equal(true);
   });
 });

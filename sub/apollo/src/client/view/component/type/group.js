@@ -28,7 +28,7 @@ export const GroupFragments = {
         type
         title
       
-        tasks(filter: { predicate: { field: "assignee" } }) {
+        tasks(filter: { predicate: { field: "assignee", ref: "id" } }) {
           id
           type
           title

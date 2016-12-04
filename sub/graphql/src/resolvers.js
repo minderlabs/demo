@@ -83,19 +83,9 @@ export class Resolvers {
 
       User: {
 
+        // TODO(burdon): Generalize for filtered items (like queryItems). Can reference context and root node.
         tasks: (root, args, context) => {
           let { filter } = args || {};
-
-          // TODO(burdon): Move into matcher (with context).
-          filter.type = 'Task';
-          let predicate = _.get(filter, 'predicate', { field: 'assignee' });
-          switch (predicate.field) {
-            case 'owner':
-            case 'assignee':
-              predicate.value = root.id;
-              break;
-          }
-
           return database.queryItems(context, root, filter);
         }
       },

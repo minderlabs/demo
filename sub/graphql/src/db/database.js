@@ -17,6 +17,7 @@ export class Database extends ItemStore {
 
   static DEFAULT = '*';
 
+  // TODO(burdon): Inject.
   static IdGenerator = new IdGenerator(1000);
 
   constructor(matcher) {
@@ -70,25 +71,8 @@ export class Database extends ItemStore {
   }
 
   //
-  // ItemStore API
+  // ItemStore API.
   //
-
-  /**
-   * Converts the value to a promise (if it isn't already).
-   * Helps to propagate async chain for eventual synchronous await.
-   * @param value
-   * @returns {*}
-   */
-  // TODO(burdon): Factor out (and explain).
-  static promisify(value) {
-    if (value.then) {
-      return value;
-    } else {
-      return new Promise((resolve, reject) => {
-        resolve(value);
-      });
-    }
-  }
 
   /**
    * @returns {Promise}
@@ -98,7 +82,7 @@ export class Database extends ItemStore {
 
     // TODO(burdon): Dispatch to store (check permissions).
     let itemStore = this.getItemStore(Database.DEFAULT);
-    return Database.promisify(itemStore.upsertItems(context, items)).then(modifiedItems => {
+    return Promise.resolve(itemStore.upsertItems(context, items)).then(modifiedItems => {
 
       // Invalidate clients.
       this.handleMutation(context, modifiedItems);
@@ -114,7 +98,7 @@ export class Database extends ItemStore {
     console.log('DB.GET[%s]: [%s]', type, itemIds);
 
     let itemStore = this.getItemStore(type);
-    return Database.promisify(itemStore.getItems(context, type, itemIds)).then(items => {
+    return Promise.resolve(itemStore.getItems(context, type, itemIds)).then(items => {
       if (!_.compact(items).length) {
         console.warn('Invalid result: %s' % items);
       }
@@ -130,6 +114,6 @@ export class Database extends ItemStore {
     console.log('DB.QUERY[%d:%d]: %s', offset, count, JSON.stringify(filter));
 
     let itemStore = this.getItemStore(filter.type);
-    return Database.promisify(itemStore.queryItems(context, root, filter, offset, count));
+    return Promise.resolve(itemStore.queryItems(context, root, filter, offset, count));
   }
 }

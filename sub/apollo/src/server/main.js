@@ -204,7 +204,11 @@ app.use(graphqlRouter(database, {
   pretty: false,
 
   // Gets the user context from the request headers (async).
-  context: request => authManager.getUserInfoFromHeader(request).then(user => ({ user }))
+  context: request => authManager.getUserInfoFromHeader(request)
+    .then(user => ({
+      matcher,
+      user
+    }))
 }));
 
 app.use(adminRouter(clientManager));

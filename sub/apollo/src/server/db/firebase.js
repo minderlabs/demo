@@ -116,27 +116,13 @@ class FirebaseUserStore extends ItemStore {
 
   getItems(context, type, itemIds) {
     return this.maybeUpdateCache().then(() => {
-      let items = [];
-      this._cache.forEach(item => {
-        if (_.indexOf(itemIds, item.id) != -1) {
-          items.push(item);
-        }
-      });
-
-      return items;
+      return this._matcher.matchItems({}, { ids: itemIds }, Array.from(this._cache.values()));
     });
   }
 
   queryItems(context, root, filter={}) {
     return this.maybeUpdateCache().then(() => {
-      let items = [];
-      this._cache.forEach(item => {
-        if (this._matcher.match(filter, item)) {
-          items.push(item);
-        }
-      });
-
-      return items;
+      return this._matcher.matchItems({}, filter, Array.from(this._cache.values()));
     });
   }
 }
