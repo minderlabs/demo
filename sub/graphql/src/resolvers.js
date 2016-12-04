@@ -88,8 +88,7 @@ export class Resolvers {
         tasks: (root, args, context) => {
           let { filter } = args || {};
 
-          // TODO(burdon): Instead of replacing ref here, pass root to database query's matcher?
-          // But don't pollute the global execution context.
+          // TODO(burdon): Instead of replacing ref here, pass root to database query's matcher? Via local context object.
           let ref = _.get(filter, 'predicate.ref');
           if (ref) {
             filter.predicate.value = _.get(root, ref);
