@@ -35,9 +35,7 @@ export class List extends React.Component {
 
     count: React.PropTypes.number,
 
-    data: React.PropTypes.shape({
-      items: React.PropTypes.array
-    })
+    items: React.PropTypes.array
   };
 
   // NOTE: React.defaultProps is called after Redux.
@@ -82,7 +80,7 @@ export class List extends React.Component {
   }
 
   render() {
-    let { items=[] } = this.props.data;
+    let items = this.props.items || [];
 
     let typeRegistry = this.props.injector.get(TypeRegistry);
 
@@ -111,25 +109,6 @@ export class List extends React.Component {
   }
 }
 
-//
-// Queries
-//
-
-// TODO(burdon): Factor out.
-
-const ItemsQuery = gql`
-  query ItemsQuery($filter: FilterInput, $offset: Int, $count: Int) { 
-
-    items(filter: $filter, offset: $offset, count: $count) {
-      __typename
-
-      id
-      
-      ...ItemFragment
-    }
-  }
-`;
-
 const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
 
@@ -139,62 +118,93 @@ const mapStateToProps = (state, ownProps) => {
   }
 };
 
-export default compose(
+export function composeListForQuery(gqlQuery, getItemsFromData) {
+  return compose(
 
-  connect(mapStateToProps),
+    connect(mapStateToProps),
 
-  graphql(ItemsQuery, {
+    graphql(gqlQuery, {
 
-    // Configure query variables.
-    // http://dev.apollodata.com/react/queries.html#graphql-options
-    options: (props) => {
-      let { filter, count } = List.defaults(props);
+      // Configure query variables.
+      // http://dev.apollodata.com/react/queries.html#graphql-options
+      options: (props) => {
+        let { filter, count } = List.defaults(props);
 
-      let matcher = props.injector.get(Matcher);
-      let typeRegistry = props.injector.get(TypeRegistry);
+        let matcher = props.injector.get(Matcher);
+        let typeRegistry = props.injector.get(TypeRegistry);
 
-      return {
-        // TODO(burdon): Can we pass variables to fragments?
-        fragments: Item.Fragments.item.fragments(),
+        return {
+          // TODO(burdon): Can we pass variables to fragments?
+          fragments: Item.Fragments.item.fragments(),
 
-        variables: {
-          filter, count, offset: 0
-        },
+          variables: {
+            filter, count, offset: 0
+          },
 
-        reducer: Reducer.reduce(matcher, typeRegistry, UpdateItemMutation, ItemsQuery, filter),
-      }
-    },
+          reducer: Reducer.reduce(matcher, typeRegistry, UpdateItemMutation, gqlQuery, filter),
+        }
+      },
 
-    // Configure props passed to component.
-    // http://dev.apollodata.com/react/queries.html#graphql-props
-    props: ({ ownProps, data }) => {
-      let { items } = data;
-      let { filter, count } = ownProps;
+      // Configure props passed to component.
+      // http://dev.apollodata.com/react/queries.html#graphql-props
+      props: ({ ownProps, data }) => {
+        let items = getItemsFromData(data);
+        let { filter, count } = ownProps;
 
-      return {
-        data,
+        return {
+          data,
+          items,
 
-        // Paging.
-        // http://dev.apollodata.com/react/pagination.html
-        // http://dev.apollodata.com/react/cache-updates.html#fetchMore
-        fetchMoreItems: () => {
-          return data.fetchMore({
-            variables: {
-              filter, count, offset: items.length
-            },
+          // Paging.
+          // http://dev.apollodata.com/react/pagination.html
+          // http://dev.apollodata.com/react/cache-updates.html#fetchMore
+          fetchMoreItems: () => {
+            return data.fetchMore({
+              variables: {
+                filter, count, offset: items.length
+              },
 
-            updateQuery: (previousResult, { fetchMoreResult }) => {
-              return _.assign({}, previousResult, {
-                items: [...previousResult.items, ...fetchMoreResult.data.items]
-              });
-            }
-          });
+              updateQuery: (previousResult, { fetchMoreResult }) => {
+                return _.assign({}, previousResult, {
+                  items: [...previousResult.items, ...fetchMoreResult.data.items]
+                });
+              }
+            });
+          }
         }
       }
+    }),
+
+    // Provides mutator property.
+    Mutator.graphql(UpdateItemMutation)
+
+  )(List);
+};
+
+//
+// Queries
+//
+
+/**
+ * A List component with items defined by root-level query for items(filter).
+ */
+
+const ItemsQuery = gql`
+    query ItemsQuery($filter: FilterInput, $offset: Int, $count: Int) {
+
+        items(filter: $filter, offset: $offset, count: $count) {
+            __typename
+
+            id
+
+            ...ItemFragment
+        }
     }
-  }),
+`;
 
-  // Provides mutator property.
-  Mutator.graphql(UpdateItemMutation)
+export default composeListForQuery(
+  ItemsQuery,
 
-)(List);
+  (data) => {
+    return data.items
+  });
