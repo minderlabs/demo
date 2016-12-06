@@ -63,8 +63,6 @@ class Layout extends React.Component {
     let { children } = this.props;
     let { viewer } = this.props.data;
 
-    console.log('** VIEWER ' + JSON.stringify(viewer)); // FIXME
-
     // TODO(burdon): Sidebar and query folders (available to views in redux state?)
     // TODO(burdon): Display errors in status bar.
     // TODO(burdon): Skip DevTools in prod.

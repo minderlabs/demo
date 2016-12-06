@@ -63,7 +63,6 @@ export class AuthManager {
     let auth = req.headers && req.headers['authentication'];
     let match = auth && auth.match(/^Bearer (.+)$/);
     let token = match && match[1];
-    console.log('** Getting token from header... ' + JSON.stringify(req.headers) + ': ' + token); // FIXME
 
     return this.getUserFromJWT(token).catch(() => null);
   }

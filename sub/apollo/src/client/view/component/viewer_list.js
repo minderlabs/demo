@@ -84,11 +84,9 @@ export class ViewerList extends React.Component {
   }
 
   render() {
-    // FIXME where to properly extract items from viewer.user.tasks into data if this component is generic?
-    // FIXME data not here?
+    // TODO(madadam): where to properly extract items from viewer.user.tasks into data if this component is generic?
     let items = (this.props.data.viewer && this.props.data.viewer.user && this.props.data.viewer.user.tasks) || [];
     //let { items=[] } = this.props.data;
-    console.log('** ViewerList.render items ' + JSON.stringify(items)); // FIXME
 
     let typeRegistry = this.props.injector.get(TypeRegistry);
 
@@ -184,8 +182,6 @@ export default compose(
     props: ({ ownProps, data }) => {
       let { viewer } = data;
       let { filter, count } = ownProps;
-
-      console.log('** ViewerList got data ' + JSON.stringify(data)); // FIXME
 
       return {
         data,

@@ -65,9 +65,12 @@ export default class Group extends React.Component {
     };
   }
 
+  /**
+   * @param member: User or string ('private')
+   */
   handleTaskAdd(member) {
     this.setState({
-      inlineEdit: member.id
+      inlineEdit: member.id || member
     });
   }
 
@@ -93,9 +96,7 @@ export default class Group extends React.Component {
     this.context.mutator.updateItem(item, mutations);
   }
 
-  handleTaskSave(member, save, text, event) {
-    console.assert(member && member.id);
-
+  handleTaskSave(assignee, save, text, event) {
     if (save !== false) {
       let text = this.refs.task_create.value;
       if (_.isEmpty(text)) {
@@ -111,18 +112,36 @@ export default class Group extends React.Component {
           }
         },
         {
-          field: 'assignee',
-          value: {
-            id: member.id
-          }
-        },
-        {
           field: 'owner',
           value: {
             id: this.props.user.userId
           }
         }
       ];
+
+      if (assignee && assignee.id) {
+        mutations.push(
+          {
+            field: 'assignee',
+              value: {
+                id: assignee.id
+              }
+          });
+      } else {
+        mutations.push(
+          {
+            field: 'labels',
+              value: {
+                array: {
+                  index: 0,
+                    value: {
+                    string: '_private'
+                  }
+                }
+              }
+          }
+        );
+      }
 
       this.context.mutator.createItem('Task', mutations);
 
@@ -140,21 +159,17 @@ export default class Group extends React.Component {
 
   handleItemSelect(item) {
     console.log('** ITEM SELECTED ' + JSON.stringify(item)); // FIXME
-    // FIXME
-    //this.props.navigateItem(item);
-  }
-
-  handleNoteAdd() {
-    console.log('** ADD NOTE'); // FIXME
+    // TODO(madadam): Pass dispatcher, or pass onSelect callback from parent?
+    // this.props.navigateItem(item);
   }
 
   render() {
 
-    // FIXME: Filter for type: "Note", predicate: {field: 'owner', ref: "id"} or whatev, owned by self.
-    // Not sure I can use ref because the items query has no parent. Should it be nested under viewer?
-    // If I build new query viewer { user { tasks(filter) } }, how can I pass the results to the List component?
-    // It just wants a filter and handles its own query.
+    // TODO(madadam): When ACLs and links are working, query for all Tasks/Notes linked from this item (Group)
+    // with private ACL.
     let privateNotesFilter = {
+      // TODO(madadam): Hack to workaround lack of predicate tree. Want to write AND { NOT { has_assignee}, OWNED_BY: me}
+      labels: ["_private"],
       predicate: { field: "owner", ref: "id"}
     };
 
@@ -223,11 +238,23 @@ export default class Group extends React.Component {
           <div className="app-banner app-row">
             <h3 className="app-expand">Private Notes</h3>
             <i className="app-icon app-icon-add material-icons"
-               onClick={ this.handleNoteAdd.bind(this) }></i>
+               onClick={ this.handleTaskAdd.bind(this, 'private') }></i>
           </div>
           <div className="app-section app-expand">
             <ViewerList filter={ privateNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
+          {this.state.inlineEdit === 'private' &&
+          <div className="app-row app-data-row">
+            <i className="material-icons">assignment_turned_in</i>
+            <TextBox ref="task_create"
+                     className="app-expand" autoFocus={ true }
+                     onEnter={ this.handleTaskSave.bind(this, null, true) }
+                     onCancel={ this.handleTaskSave.bind(this, null, false)} />
+            <i className="app-icon app-icon-save material-icons"
+               onClick={ this.handleTaskSave.bind(this, null) }>check</i>
+            <i className="app-icon app-icon-cancel material-icons"
+               onClick={ this.handleTaskSave.bind(this, null, false) }>cancel</i>
+          </div>}
 
         </div>
       </div>
