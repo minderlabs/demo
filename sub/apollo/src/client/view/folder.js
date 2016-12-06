@@ -6,16 +6,15 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-import { push } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ID, QueryParser, Mutator } from 'minder-core';
+import { QueryParser, Mutator } from 'minder-core';
 import { SearchBar, TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
-import { Path } from '../path';
+import { Navigator } from '../navigator';
 import { ACTION } from '../reducers';
 
 import List from './component/list';
@@ -37,7 +36,7 @@ class FolderView extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired,    // TODO(burdon): Add to all types.
     onSearch: React.PropTypes.func.isRequired,
-    navigateItem: React.PropTypes.func.isRequired,
+    navigator: React.PropTypes.object.isRequired,
 
     data: React.PropTypes.shape({
       folders: React.PropTypes.array.isRequired
@@ -49,7 +48,7 @@ class FolderView extends React.Component {
   }
 
   handleItemSelect(item) {
-    this.props.navigateItem(item);
+    this.props.navigator.toItem(item);
   }
 
   handleItemCreate() {
@@ -165,10 +164,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       dispatch({ type: ACTION.SEARCH, value });
     },
 
-    // Navigate to detail view.
-    navigateItem: (item) => {
-      dispatch(push(Path.detail(item.type, ID.toGlobalId(item.type, item.id))));
-    }
+    navigator: new Navigator(dispatch)
   }
 };
 

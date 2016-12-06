@@ -48,7 +48,8 @@ export const GroupFragments = {
 export default class Group extends React.Component {
 
   static contextTypes = {
-    mutator: React.PropTypes.object.isRequired
+    mutator: React.PropTypes.object.isRequired,
+    navigator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -158,9 +159,7 @@ export default class Group extends React.Component {
   }
 
   handleItemSelect(item) {
-    console.log('** ITEM SELECTED ' + JSON.stringify(item)); // FIXME
-    // TODO(madadam): Pass dispatcher, or pass onSelect callback from parent?
-    // this.props.navigateItem(item);
+    this.context.navigator.toItem(item);
   }
 
   render() {

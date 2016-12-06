@@ -6,13 +6,13 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-import { goBack } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { Matcher, Mutator, MutationUtil, Reducer, TypeUtil } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
+import { Navigator } from '../navigator'
 import { UpdateItemMutation } from '../data/mutations';
 
 import { TypeRegistry } from './component/type_registry';
@@ -31,12 +31,12 @@ class DetailView extends React.Component {
   // Pass down through component tree.
   static childContextTypes = {
     mutator: React.PropTypes.object,
+    navigator: React.PropTypes.object
   };
 
   static propTypes = {
     mutator: React.PropTypes.object.isRequired,
-
-    onClose: React.PropTypes.func.isRequired,
+    navigator: React.PropTypes.object.isRequired,
 
     data: React.PropTypes.shape({
       item: React.PropTypes.object
@@ -45,8 +45,13 @@ class DetailView extends React.Component {
 
   getChildContext() {
     return {
-      mutator: this.props.mutator
+      mutator: this.props.mutator,
+      navigator: this.props.navigator
     };
+  }
+
+  onClose(save) {
+    this.props.navigator.back();
   }
 
   handleSave(item) {
@@ -65,11 +70,11 @@ class DetailView extends React.Component {
       this.props.mutator.updateItem(item, mutations);
     }
 
-    this.props.onClose(true);
+    this.onClose(true);
   }
 
   handleCancel() {
-    this.props.onClose(false);
+    this.onClose(false);
   }
 
   render() {
@@ -146,9 +151,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
-    onClose: (save) => {
-      dispatch(goBack());
-    }
+    navigator: new Navigator(dispatch)
   }
 };
 
