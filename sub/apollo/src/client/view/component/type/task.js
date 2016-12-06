@@ -19,6 +19,11 @@ export const TaskFragments = {
 
   item: new Fragment(gql`
     fragment TaskFragment on Task {
+      acl {
+        id
+        title
+        members { id }
+      }
       owner {
         id
         title

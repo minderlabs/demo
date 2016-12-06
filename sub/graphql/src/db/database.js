@@ -8,6 +8,51 @@ import _ from 'lodash';
 
 import { IdGenerator, ItemStore, TypeUtil } from 'minder-core';
 
+// FIXME move to separate file
+export class AclManager {
+
+  _isIn(userId, acl) {
+    // TODO(madadam): When acl is an Acl, pass list [Group] and fan out.
+    /*
+    return _.reduce(
+      _.map(groups, group => { return _isInGroup(userId, group); }),
+      (trueSoFar, next) => {
+        return trueSoFar && next;
+      }
+    );
+    */
+    return _isInGroup(userId, acl);
+  }
+
+  _isInGroup(userId, group) {
+    return userId in _.map(group.members, 'id');
+  }
+
+  /**
+   *
+   * @param userId
+   * @param item
+   * @returns Item or null.
+   */
+  canRead(userId, item) {
+    console.log('** canRead ' + JSON.stringify(item)); // FIXME
+    if (!item.acl) {
+      // Permissive by default.
+      return item;
+    }
+    if (!userId) {
+      return null;
+    }
+    // TODO(madadam): When Acl.readers is a list of Groups, change this to
+    //return this._isIn(userId, acl.readers);
+    return this._isIn(userId, item.acl) ? item : null;
+  }
+}
+
+// FIXME singleton
+const aclManager = new AclManager();
+
+
 /**
  * Base database implementation.
  */
@@ -114,6 +159,22 @@ export class Database extends ItemStore {
     console.log('DB.QUERY[%d:%d]: %s', offset, count, JSON.stringify(filter));
 
     let itemStore = this.getItemStore(filter.type);
-    return Promise.resolve(itemStore.queryItems(context, filter, offset, count));
+
+    // This is annoying, should just let graph resolver system handle resolving Acl groups,
+    // but can't figure out how to filter after all resolution. Where would that go?
+    // Also, then the requester would have to add acl fragments... dicey for security.
+    // Might be secure if the default is reject for all Acl types, so if an Acl fragment isn't included
+    // the response will be empty.
+    //
+    // Instead, run a functional chain to resolve acl group membership, and then filter.
+    return Promise.resolve(itemStore.queryItems(context, filter, offset, count))
+      .then(items => {
+        return _.compact(_.map(items, item => {
+          let userId = context.user && context.user.userId;
+          // FIXME resolve item.acl from a string.
+          return item;
+          //return aclManager.canRead(userId, item.acl);
+        }));
+      });
   }
 }

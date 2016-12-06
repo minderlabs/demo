@@ -23,7 +23,7 @@ export const UserFragments = {
   item: new Fragment(gql`
     fragment UserFragment on User {
       title
-
+        
       ownerTasks: tasks(filter: { predicate: { field: "owner" } }) {
         id
         title

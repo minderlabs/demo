@@ -196,6 +196,12 @@ type Contact implements Item {
   email: String!
 }
 
+type Acl {
+  owners: [Group]
+  readers: [Group]
+  writers: [Group]
+}
+
 type Task implements Item {
   id: ID!
   type: String!
@@ -205,6 +211,10 @@ type Task implements Item {
 
   owner: User
   assignee: User
+
+  acl: Group
+  # TODO(madadam): Use Acl type.
+  #acl: Acl
 }
 
 type Event implements Item {

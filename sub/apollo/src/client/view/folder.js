@@ -77,6 +77,8 @@ class FolderView extends React.Component {
     // http://dev.apollodata.com/react/queries.html#default-result-props
     let { filter } = this.props;
 
+    console.log('** FOLDER.js FILTER: ' + JSON.stringify(filter)); // FIXME
+
     // TODO(burdon): Move statusbar (e.g., loading, network stats) to parent layout.
 
     return (
@@ -172,6 +174,8 @@ export default compose(
       // TODO(burdon): List should return zero items if no filter.
       // TODO(burdon): Solution is set the redux state in the layout? so can be used above in props?
       // TODO(burdon): Handler error/redirect if not found.
+
+      console.log('*** DO WE HAVE FOLDERS? ' + JSON.stringify(folders)); // FIXME
 
       // Create list filter (if not set by search above).
       if (QueryParser.isEmpty(filter)) {

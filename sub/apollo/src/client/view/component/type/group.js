@@ -12,6 +12,7 @@ import gql from 'graphql-tag';
 import { ID } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
+import ViewerList from '../viewer_list';
 import { Path } from '../../../path';
 
 import './group.less';
@@ -21,6 +22,8 @@ import './group.less';
  */
 export const GroupFragments = {
 
+  // TODO(madadam): How to pass a fragment in here to represent the Acl?
+  // ... on Acl { readers { id title members { id } } }
   item: new Fragment(gql`
     fragment GroupFragment on Group {
       members {
@@ -32,11 +35,11 @@ export const GroupFragments = {
           id
           type
           title
+          acl { id title members { id } }
         }
       }
     }
-  `)
-
+  `),
 };
 
 /**
@@ -135,7 +138,25 @@ export default class Group extends React.Component {
     });
   }
 
+  handleItemSelect(item) {
+    console.log('** ITEM SELECTED ' + JSON.stringify(item)); // FIXME
+    // FIXME
+    //this.props.navigateItem(item);
+  }
+
+  handleNoteAdd() {
+    console.log('** ADD NOTE'); // FIXME
+  }
+
   render() {
+
+    // FIXME: Filter for type: "Note", predicate: {field: 'owner', ref: "id"} or whatev, owned by self.
+    // Not sure I can use ref because the items query has no parent. Should it be nested under viewer?
+    // If I build new query viewer { user { tasks(filter) } }, how can I pass the results to the List component?
+    // It just wants a filter and handles its own query.
+    let privateNotesFilter = {
+      predicate: { field: "owner", ref: "id"}
+    };
 
     // TODO(burdon): Factor out item row (use in inbox).
 
@@ -194,6 +215,20 @@ export default class Group extends React.Component {
 
           </div>
           ))}
+
+          {/*
+            * Private Notes
+            */
+          }
+          <div className="app-banner app-row">
+            <h3 className="app-expand">Private Notes</h3>
+            <i className="app-icon app-icon-add material-icons"
+               onClick={ this.handleNoteAdd.bind(this) }></i>
+          </div>
+          <div className="app-section app-expand">
+            <ViewerList filter={ privateNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          </div>
+
         </div>
       </div>
     );

@@ -90,16 +90,45 @@ export class Resolvers {
 
           // TODO(burdon): Instead of replacing ref here, pass root to database query's matcher?
           // But don't pollute the global execution context.
+          console.log('** ROOT ' + JSON.stringify(root)); // FIXME
+          console.log('** FILTER ' + JSON.stringify(filter)); // FIXME
           let ref = _.get(filter, 'predicate.ref');
           if (ref) {
             filter.predicate.value = _.get(root, ref);
           }
 
-          return database.queryItems(context, filter);
+          return database.queryItems(context, filter)
+            .then(items => {
+              // FIXME: item.acl hasn't been resolved here yet, ie it's a string.
+              // How to wait until it's resolved and post-filter? Can it be done inside the resolvers?
+              // But if not, then item resolver doesn't see item with resolved ACL, anywhere? is that
+              // true of all nodes that they don't see their resolved children?
+
+              // Options:
+              // 1) Do ACL-based filtering in database.queryItems, resolving ACL groups behind the scenes.
+              // 2) Find a place after resolvers have all run to do ACL-based filtering.
+              // return _.compact(_.map(items, item => aclManager.canRead(context, item)));
+              console.log('*** ITEMS have ACLs? ' + JSON.stringify(items)); // FIXME
+              return items;
+            });
         }
       },
 
       Task: {
+
+        acl: (root, args, context) => {
+          let groupId = root.acl;
+          if (groupId) {
+            return database.getItem(context, 'Group', groupId)
+              .then(acl => {
+                console.log('** resolved Task.acl ' + JSON.stringify(acl)); // FIXME
+                console.log('** resolved Task? ' + JSON.stringify(root)); // FIXME
+                // FIXME COuld do something hacky here like set a field on root, and filter later on it. WHERE??
+                // root.filtered = aclManager.canRead(context.user.userId, acl);
+                return acl;
+              });
+          }
+        },
 
         owner: (root, args, context) => {
           let userId = root.owner;

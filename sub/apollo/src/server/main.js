@@ -119,6 +119,9 @@ if (testData) {
       },
       assignee: {
         type: 'User', likelihood: 0.5
+      },
+      acl: {
+        type: 'Group', likelihood: 0.5
       }
     });
 }
