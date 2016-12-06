@@ -165,7 +165,7 @@ export default class Group extends React.Component {
   render() {
 
     // TODO(madadam): When ACLs and links are working, query for all Tasks/Notes linked from this item (Group)
-    // with private ACL.
+    // with private ACL..
     let privateNotesFilter = {
       // TODO(madadam): Hack to workaround lack of predicate tree. Want to write AND { NOT { has_assignee}, OWNED_BY: me}
       labels: ["_private"],
