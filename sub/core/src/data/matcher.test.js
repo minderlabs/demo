@@ -28,9 +28,16 @@ describe('Matcher:', () => {
     {
       id: 'd',
       type: 'Task',
-      title: 'Implement predicate tree.',
+      title: 'Implement simple expressions.',
       owner: 'a',
       assignee: 'b'
+    },
+    {
+      id: 'e',
+      type: 'Task',
+      title: 'Implement boolean expressions.',
+      owner: 'b',
+      assignee: 'c'
     }
   ], item => item.id);
 
@@ -55,19 +62,44 @@ describe('Matcher:', () => {
     expect(matcher.matchItems(context, root, null, null)).to.have.length(0);
     expect(matcher.matchItems(context, root, null, items)).to.have.length(0);
     expect(matcher.matchItems(context, root, { type: 'User' }, items)).to.have.length(2);
-    expect(matcher.matchItems(context, root, { ids: ['a', 'b', 'z'], type: 'Task' }, items)).to.have.length(4);
+
+    // TODO(burdon): Different types!
+    expect(matcher.matchItems(context, root, { ids: ['a', 'b', 'z'], type: 'Task' }, items)).to.have.length(5);
   });
 
   /**
-   * Predicates.
+   * Simple expressions.
    */
-  it('Matches predicates.', () => {
+  it('Matches simple expressions.', () => {
     let matcher = new Matcher();
 
     let context = {};
     let root = {};
 
     expect(matcher.matchItems(context, root, { expr: { field: 'owner', value: 'a'} }, items)).to.have.length(2);
+  });
+
+  /**
+   * Boolean expressions.
+   */
+  it('Matches boolean expressions.', () => {
+    let matcher = new Matcher();
+
+    let context = {};
+    let root = {};
+
+    let filter = {
+      expr: {
+        op: 'OR',
+        expr: [
+          { field: 'owner',     ref: 'id' },
+          { field: 'assignee',  ref: 'id' }
+        ]
+      }
+    };
+
+    // TODO(burdon): Implement tree.
+    // expect(matcher.matchItems(context, root, filter, items)).to.have.length(2);
   });
 
   /**

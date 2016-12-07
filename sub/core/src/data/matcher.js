@@ -15,6 +15,19 @@ import _ from 'lodash';
 export class Matcher {
 
   /**
+   * Matches the items against the filter.
+   *
+   * @param context
+   * @param root
+   * @param filter
+   * @param items
+   * @returns {[item]} Array of items that match.
+   */
+  matchItems(context, root, filter, items) {
+    return _.compact(_.map(items, item => this.matchItem(context, root, filter, item) ? item : false));
+  }
+
+  /**
    * Matches the item against the filter.
    *
    * @param context
@@ -60,30 +73,7 @@ export class Matcher {
     // Expression match.
     // TODO(burdon): Handle AST.
     if (filter.expr) {
-      console.assert(filter.expr.field);
-
-      // TODO(burdon): Handle null.
-      let value = filter.expr.value;
-
-      // Substitute value for reference.
-      let ref = filter.expr.ref;
-      if (ref) {
-        // Resolve magic variables.
-        // TODO(burdon): These must be available and provided to the client matcher.
-        switch (ref) {
-          case '$USER_ID': {
-            value = context.user.id;
-            break;
-          }
-
-          default: {
-            value = _.get(root, ref);
-          }
-        }
-      }
-
-      // TODO(burdon): Other operators.
-      if (_.get(item, filter.expr.field) != value) {
+      if (!Matcher.matchExpression(context, root, filter.expr, item)) {
         return false;
       }
     }
@@ -98,15 +88,43 @@ export class Matcher {
   }
 
   /**
-   * Matches the items against the filter.
    *
    * @param context
    * @param root
-   * @param filter
-   * @param items
-   * @returns {[item]} Array of items that match.
+   * @param expr
+   * @param item
+   * @returns {boolean}
    */
-  matchItems(context, root, filter, items) {
-    return _.compact(_.map(items, item => this.matchItem(context, root, filter, item) ? item : false));
+  static matchExpression(context, root, expr, item) {
+
+    // TODO(burdon): Handle boolean expressions (recursively).
+    console.assert(expr.field);
+
+    // TODO(burdon): Handle null.
+    let value = expr.value;
+
+    // Substitute value for reference.
+    let ref = expr.ref;
+    if (ref) {
+      // Resolve magic variables.
+      // TODO(burdon): These must be available and provided to the client matcher.
+      switch (ref) {
+        case '$USER_ID': {
+          value = context.user.id;
+          break;
+        }
+
+        default: {
+          value = _.get(root, ref);
+        }
+      }
+    }
+
+    // TODO(burdon): Other operators.
+    if (_.get(item, expr.field) != value) {
+      return false;
+    }
+
+    return true;
   }
 }
