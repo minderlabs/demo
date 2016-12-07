@@ -134,7 +134,6 @@ const DetailQuery = gql`
   }
 `;
 
-
 // TODO(burdon): New Synax: http://dev.apollodata.com/react/fragments.html
 // ${CommentsPage.fragments.comment} instead of createFragment/query.fragments option below.
 

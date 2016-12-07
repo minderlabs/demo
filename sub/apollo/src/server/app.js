@@ -38,7 +38,7 @@ export const appRouter = (authManager, clientManager, options) => {
     graphql: '/graphql'
   });
 
-  console.log('App Options = %s', JSON.stringify(options));
+  console.log('Client Options = %s', JSON.stringify(options));
 
   // Webpack assets.
   router.use('/assets', express.static(options.assets));

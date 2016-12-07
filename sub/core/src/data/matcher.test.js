@@ -65,7 +65,7 @@ describe('Matcher:', () => {
 
     let root = {};
 
-    expect(matcher.matchItems(root, { predicate: { field: 'owner', value: 'b'} }, items)).to.have.length(2);
+    expect(matcher.matchItems(root, { expr: { field: 'owner', value: 'b'} }, items)).to.have.length(2);
   });
 
   /**
@@ -78,6 +78,6 @@ describe('Matcher:', () => {
       id: 'a'
     };
 
-    expect(matcher.matchItems(root, { predicate: { field: 'assignee', ref: 'id'} }, items)).to.have.length(1);
+    expect(matcher.matchItems(root, { expr: { field: 'assignee', ref: 'id'} }, items)).to.have.length(1);
   });
 });

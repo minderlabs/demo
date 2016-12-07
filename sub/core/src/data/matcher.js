@@ -36,7 +36,7 @@ export class Matcher {
     }
 
     // Must match something.
-    if (!(filter.type || filter.labels || filter.text || filter.predicate)) {
+    if (!(filter.type || filter.labels || filter.text || filter.expr)) {
       return false;
     }
 
@@ -56,21 +56,22 @@ export class Matcher {
       return false;
     }
 
-    // Predicate match.
-    if (filter.predicate) {
-      console.assert(filter.predicate.field);
+    // Expression match.
+    // TODO(burdon): Handle AST.
+    if (filter.expr) {
+      console.assert(filter.expr.field);
 
       // TODO(burdon): Handle null.
-      let value = filter.predicate.value;
+      let value = filter.expr.value;
 
       // Substitute value for reference.
-      let ref = filter.predicate.ref;
+      let ref = filter.expr.ref;
       if (ref) {
         value = _.get(root, ref);
       }
 
       // TODO(burdon): Other operators.
-      if (_.get(item, filter.predicate.field) != value) {
+      if (_.get(item, filter.expr.field) != value) {
         return false;
       }
     }

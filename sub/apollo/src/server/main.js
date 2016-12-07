@@ -89,20 +89,30 @@ const database = new Database(matcher)
 
 //
 // Database.
-// TODO(burdon): Note all of this is asynchronous. Needs chaining/injector.
 //
 
 let context = {};
 
 // Load test data.
 _.each(require('./testing/test.json'), (items, type) => {
-  database.upsertItems(context, _.map(items, (item) => ({ type, ...item })));
+  console.log('TYPE: %s', type);
+
+  // Iterate items per type.
+  database.upsertItems(context, _.map(items, (item) => {
+
+    // TODO(burdon): Reformat folders.
+    if (type == 'Folder') {
+      item.filter = JSON.stringify(item.filter);
+    }
+
+    return { type, ...item };
+  }));
 });
 
 // Create test data.
 promises.push(database.queryItems({}, {}, { type: 'User' })
   .then(users => {
-    console.log('USERS', JSON.stringify(users));
+    console.log('USERS: %s', JSON.stringify(users));
 
     // Create group.
     return database.getItem(context, 'Group', 'minderlabs')

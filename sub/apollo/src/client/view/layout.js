@@ -151,11 +151,7 @@ const LayoutQuery = gql`
     
     folders {
       id
-      filter {
-        type
-        labels
-        text
-      }
+      filter
     }
   }
 `;
