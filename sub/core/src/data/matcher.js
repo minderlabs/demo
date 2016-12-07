@@ -23,7 +23,7 @@ export class Matcher {
    */
   // TODO(burdon): Pass context into matcher.
   matchItem(filter, item) {
-//  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
+    // console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item);
     if (_.isEmpty(filter)) {
       return false;
@@ -51,7 +51,7 @@ export class Matcher {
     }
 
     // Label match.
-    if (!_.isEmpty(filter.labels) && _.intersection(filter.labels, item.labels).length == 0) {
+    if (!this.matchLabels(filter.labels, item)) {
       return false;
     }
 
@@ -59,7 +59,7 @@ export class Matcher {
     // TODO(burdon): Other operators.
     if (filter.predicate) {
       console.assert(filter.predicate.field);
-      if (item[filter.predicate.field] != filter.predicate.value) {
+      if (!this.matchValue(filter.predicate.value, item[filter.predicate.field])) {
         return false;
       }
     }
@@ -70,6 +70,41 @@ export class Matcher {
       return false;
     }
 
+    return true;
+  }
+
+  matchValue(value, scalarVal) {
+    // Hack: Use empty string to match undefined fields.
+    if (value.string === "" && scalarVal == undefined) {
+      return true;
+    }
+    if (value.string !== undefined) {
+      return value.string === scalarVal;
+    }
+    if (value.int !== undefined) {
+      return value.int == scalarVal;
+    }
+    if (value.float !== undefined) {
+      return value.float == scalarVal;
+    }
+    if (value.boolean !== undefined) {
+      return value.boolean == scalarVal;
+    }
+    return false;
+  }
+
+  matchLabels(labels, item) {
+    // TODO(madadam): Use predicate tree for negative matching instead of this hack.
+    const posLabels = _.filter(labels, (label) => { return !_.startsWith(label, '!') });
+    const negLabels = _.map(
+        _.filter(labels, (label) => { return _.startsWith(label, '!') }),
+        (label) => { return label.substring(1)});
+    if (!_.isEmpty(posLabels) && _.intersection(posLabels, item.labels).length == 0) {
+      return false;
+    }
+    if (!_.isEmpty(negLabels) && _.intersection(negLabels, item.labels).length > 0) {
+      return false;
+    }
     return true;
   }
 

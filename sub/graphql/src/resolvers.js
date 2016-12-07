@@ -92,7 +92,8 @@ export class Resolvers {
           // But don't pollute the global execution context.
           let ref = _.get(filter, 'predicate.ref');
           if (ref) {
-            filter.predicate.value = _.get(root, ref);
+            // TODO(madadam): Resolve other scalar types.
+            filter.predicate.value = {string: _.get(root, ref)};
           }
 
           return database.queryItems(context, filter)

@@ -12,6 +12,7 @@ import gql from 'graphql-tag';
 import { ID } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
+import List from '../list';
 import ViewerList from '../viewer_list';
 import { Path } from '../../../path';
 
@@ -35,6 +36,7 @@ export const GroupFragments = {
           id
           type
           title
+          labels
           acl { id title members { id } }
         }
       }
@@ -128,7 +130,7 @@ export default class Group extends React.Component {
                 id: assignee.id
               }
           });
-      } else {
+      } else if (this.state.inlineEdit == 'private') {
         mutations.push(
           {
             field: 'labels',
@@ -170,6 +172,13 @@ export default class Group extends React.Component {
       // TODO(madadam): Hack to workaround lack of predicate tree. Want to write AND { NOT { has_assignee}, OWNED_BY: me}
       labels: ["_private"],
       predicate: { field: "owner", ref: "id"}
+    };
+
+    // TODO(madadam): Need predicate tree to express unassigned? Current hack: empty string matches undefined fields.
+    let sharedNotesFilter = {
+      type: "Task",
+      predicate: { field: "assignee", value: {string: ""}},
+      labels: ['!_private']
     };
 
     // TODO(burdon): Factor out item row (use in inbox).
@@ -231,8 +240,33 @@ export default class Group extends React.Component {
           ))}
 
           {/*
+           * Shared Notes
+           */
+          }
+          <div className="app-banner app-row">
+            <h3 className="app-expand">Shared Notes</h3>
+            <i className="app-icon app-icon-add material-icons"
+               onClick={ this.handleTaskAdd.bind(this, 'shared') }></i>
+          </div>
+          <div className="app-section app-expand">
+            <List filter={ sharedNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          </div>
+          {this.state.inlineEdit === 'shared' &&
+          <div className="app-row app-data-row">
+            <i className="material-icons">assignment_turned_in</i>
+            <TextBox ref="task_create"
+                     className="app-expand" autoFocus={ true }
+                     onEnter={ this.handleTaskSave.bind(this, null, true) }
+                     onCancel={ this.handleTaskSave.bind(this, null, false)} />
+            <i className="app-icon app-icon-save material-icons"
+               onClick={ this.handleTaskSave.bind(this, null) }>check</i>
+            <i className="app-icon app-icon-cancel material-icons"
+               onClick={ this.handleTaskSave.bind(this, null, false) }>cancel</i>
+          </div>}
+
+          {/*
             * Private Notes
-            */
+           */
           }
           <div className="app-banner app-row">
             <h3 className="app-expand">Private Notes</h3>

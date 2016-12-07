@@ -38,7 +38,14 @@ describe('Matcher:', () => {
         title: 'Implement predicate tree.',
         owner: 'b',
         assignee: 'a'
+      },
+      {
+        id: 'e',
+        type: 'Task',
+        title: 'Label me able.',
+        labels: ['foo']
       }
+
     ], item => item.id);
 
     // TODO(burdon): console.assert is ignored by node (use node assert module?)
@@ -49,8 +56,12 @@ describe('Matcher:', () => {
     expect(matcher.matchItems(null, null)).to.have.length(0);
     expect(matcher.matchItems(null, items)).to.have.length(0);
     expect(matcher.matchItems({ type: 'User' }, items)).to.have.length(2);
-    expect(matcher.matchItems({ ids: ['a', 'b', 'z'], type: 'Task' }, items)).to.have.length(4);
+    expect(matcher.matchItems({ ids: ['a', 'b', 'z'], type: 'Task' }, items)).to.have.length(5);
 
-    expect(matcher.matchItems({ predicate: { field: 'owner', value: 'b'} }, items)).to.have.length(2);
+    expect(matcher.matchItems({ predicate: { field: 'owner', value: { string: 'b' } } }, items)).to.have.length(2);
+
+    expect(matcher.matchItem({ type: "Task", labels: ['foo'] }, items.e)).to.be.true;
+    expect(matcher.matchItem({ type: "Task", labels: ['!foo'] }, items.e)).to.be.false;
+    expect(matcher.matchItem({ type: "Task", labels: ['!foo'] }, items.d)).to.be.true;
   });
 });
