@@ -109,16 +109,25 @@ export class Resolvers {
 
       //
       // Queries
+      // NOTE: root is undefined for root-level queries.
       //
 
       RootQuery: {
 
         viewer: (root, args, context) => {
-          let { user: { userId, email, name } } = context;
+          let { user: { id, email, name } } = context;
+
+          // TODO(burdon): Local/global ID (need to document to memo this).
+          // let { type, id:localUserId } = ID.fromGlobalId(userId);
 
           // TODO(burdon): Can the resolver resolve this for us?
-          return database.getItem(context, 'User', userId).then(user => ({
-            id: userId,
+          // return {
+          //   id,
+          //   user: ID.toGlobalId('User', id)
+          // };
+
+          return database.getItem(context, 'User', id).then(user => ({
+            id,   // TODO(burdon): Global ID?
             user
           }));
         },

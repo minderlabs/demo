@@ -80,18 +80,18 @@ function createDatabase() {
 //
 
 describe('GraphQL Mock Server:', () => {
-  let context = { user: { userId: 'minder', name: 'Minder' } };
+  let context = { user: { id: 'minder', name: 'Minder' } };
 
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
   let resolverMap = {
     RootQuery: () => ({
       viewer: (root, args) => {
-        let { user: { userId } } = context;
+        let { user: { id } } = context;
 
         return {
-          id: userId,
+          id,
           user: {
-            id: userId,
+            id,
             type: 'User',
             title: 'Minder'
           }
@@ -118,7 +118,7 @@ describe('GraphQL Mock Server:', () => {
 //
 
 describe('GraphQL Executable Schema:', () => {
-  let context = { user: { userId: 'minder', name: 'Minder' } };
+  let context = { user: { id: 'minder', name: 'Minder' } };
 
   let database = createDatabase();
   database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }]);
@@ -150,7 +150,7 @@ describe('GraphQL Executable Schema:', () => {
 //
 
 describe('GraphQL JS API:', () => {
-  let context = { user: { userId: 'minder', name: 'Minder' } };
+  let context = { user: { id: 'minder', name: 'Minder' } };
 
   let database = createDatabase();
   database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }]);
@@ -182,11 +182,11 @@ describe('GraphQL JS API:', () => {
             },
           }),
           resolve(node, args, context) {
-            let { user: { userId, name } } = context;
-            console.assert(userId);
+            let { user: { id, name } } = context;
+            console.assert(id);
 
-            return database.getItem(context, 'User', userId).then(user => ({
-              id: userId,
+            return database.getItem(context, 'User', id).then(user => ({
+              id,
               user
             }));
           }

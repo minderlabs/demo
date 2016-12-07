@@ -21,6 +21,9 @@ import { ItemStore } from 'minder-core';
  */
 export class FirebaseStore {
 
+  // TODO(burdon): Namespace (prod, qa, dev-rich, dev-adam).
+  // TODO(burdon): Type-based namespace.
+
   // TODO(burdon): Move to sub/data.
 
   static sanitizeKey(key) {
@@ -116,13 +119,13 @@ class FirebaseUserStore extends ItemStore {
 
   getItems(context, type, itemIds) {
     return this.maybeUpdateCache().then(() => {
-      return this._matcher.matchItems({}, { ids: itemIds }, Array.from(this._cache.values()));
+      return this._matcher.matchItems(context, {}, { ids: itemIds }, Array.from(this._cache.values()));
     });
   }
 
   queryItems(context, root, filter={}) {
     return this.maybeUpdateCache().then(() => {
-      return this._matcher.matchItems({}, filter, Array.from(this._cache.values()));
+      return this._matcher.matchItems(context, {}, filter, Array.from(this._cache.values()));
     });
   }
 }

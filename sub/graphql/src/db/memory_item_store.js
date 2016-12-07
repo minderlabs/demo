@@ -51,7 +51,7 @@ export class MemoryItemStore extends ItemStore {
 
     let items = [];
     this._items.forEach((item) => {
-      if (!this._matcher.matchItem(root, filter, item)) {
+      if (!this._matcher.matchItem(context, root, filter, item)) {
         return;
       }
 

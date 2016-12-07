@@ -45,16 +45,23 @@ export const graphqlLogger = (options={ pretty: false }) => {
       // TODO(burdon): Not efficient intercepting write.
       let json = JSON.parse(data);
       switch (res.statusCode) {
-        case 200:
+        case 200: {
           if (options.pretty) {
             console.log(PRETTY_RES, moment().format(TS), stringify(json));
           } else {
             console.log('### RES ### %s', stringify(json));
           }
-          break;
 
-        default:
-          console.error('Network error: %d', res.statusCode);
+          break;
+        }
+
+        default: {
+          // TODO(burdon): Get error?
+          console.error('### ERR[%d] ###', res.statusCode);
+          _.each(json.errors, (err) => {
+            console.log('> %s', err.message);
+          });
+        }
       }
 
       return originalWrite.call(res, data);

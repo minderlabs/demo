@@ -45,22 +45,21 @@ export class TextBox extends React.Component {
     delay: 100
   };
 
-  static initialState(props) {
-    return {
-      value: props.value || ''
-    }
-  }
-
   constructor() {
     super(...arguments);
 
-    this.state = TextBox.initialState(this.props);
+    this.state = { value: this.props.value || '' };
 
     this._timeout = Async.timeout(this.props.delay);
   }
 
   componentWillReceiveProps(nextProps) {
-    this.state = TextBox.initialState(nextProps);
+
+    // Update state when parent is re-rendered (e.g., input is reused across different detail views).
+    // https://facebook.github.io/react/docs/react-component.html#componentwillreceiveprops
+    if (nextProps.value != this.props.value) {
+      this.setState({ value: nextProps.value || '' });
+    }
   }
 
   get value() {

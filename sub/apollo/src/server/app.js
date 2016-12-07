@@ -38,7 +38,7 @@ export const appRouter = (authManager, clientManager, options) => {
     graphql: '/graphql'
   });
 
-  console.log('App Options = %s', JSON.stringify(options));
+  console.log('Client Options = %s', JSON.stringify(options));
 
   // Webpack assets.
   router.use('/assets', express.static(options.assets));
@@ -52,7 +52,7 @@ export const appRouter = (authManager, clientManager, options) => {
       res.redirect('/');
     } else {
       // Create the client (and socket).
-      let client = clientManager.create(userInfo.userId);
+      let client = clientManager.create(userInfo.id);
 
       res.render('app', {
         app: WEBPACK_BUNDLE[options.env],

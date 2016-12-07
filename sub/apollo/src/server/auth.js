@@ -30,10 +30,10 @@ export class AuthManager {
         //    console.log('Validating token...');
         admin.auth().verifyIdToken(token)
           .then(decodedToken => {
-            let { uid:userId, name, email } = decodedToken;
+            let { uid:id, name, email } = decodedToken;
             console.log('Got token for: %s', email);
             resolve({
-              token, userId, name, email
+              id, name, email, token
             });
           })
           .catch(error => {
