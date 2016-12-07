@@ -48,8 +48,10 @@ const port = process.env['VIRTUAL_PORT'] || 3000;
 
 //
 // Express.
-// TODO(burdon): Use injector pattern (esp for async startup).
 //
+
+// TODO(burdon): Use injector pattern (esp for async startup).
+let promises = [];
 
 const app = express();
 
@@ -97,31 +99,40 @@ _.each(require('./testing/test.json'), (items, type) => {
   database.upsertItems(context, _.map(items, (item) => ({ type, ...item })));
 });
 
-// Create team.
-database.queryItems({}, {}, { type: 'User' }).then(users => {
-  console.log('USERS', JSON.stringify(users));
+// Create test data.
+promises.push(database.queryItems({}, {}, { type: 'User' })
+  .then(users => {
+    console.log('USERS', JSON.stringify(users));
 
-  database.getItem(context, 'Group', 'minderlabs').then(item => {
-    item.members = _.map(users, user => user.id);
-    database.upsertItem(context, item);
-  });
-});
+    // Create group.
+    return database.getItem(context, 'Group', 'minderlabs')
 
-// TODO(burdon): Webhook?
-const testData = true;
-if (testData) {
-  new Randomizer(database, context)
-    .generate('Contact', 20)
-    .generate('Place', 10)
-    .generate('Task', 15, {
-      owner: {
-        type: 'User', likelihood: 1.0
-      },
-      assignee: {
-        type: 'User', likelihood: 0.5
-      }
-    });
-}
+      .then(item => {
+        item.members = _.map(users, user => user.id);
+        database.upsertItem(context, item);
+      });
+  })
+
+  // TODO(burdon): Webhook to create random data?
+  .then(() => {
+    const testData = true;
+    if (testData) {
+      let randomizer = new Randomizer(database, context);
+
+      return Promise.all([
+        randomizer.generate('Contact', 20),
+        randomizer.generate('Place', 10),
+        randomizer.generate('Task', 15, {
+          owner: {
+            type: 'User', likelihood: 1.0
+          },
+          assignee: {
+            type: 'User', likelihood: 0.5
+          }
+        })
+      ]);
+    }
+  }));
 
 
 //
@@ -240,7 +251,11 @@ app.use(function(req, res) {
 // Start-up.
 //
 
-server.listen(port, host, () => {
-  let addr = server.address();
-  console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
+Promise.all(promises).then(() => {
+  console.log('STARTING...');
+
+  server.listen(port, host, () => {
+    let addr = server.address();
+    console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
+  });
 });

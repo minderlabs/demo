@@ -21,6 +21,9 @@ import { ItemStore } from 'minder-core';
  */
 export class FirebaseStore {
 
+  // TODO(burdon): Namespace (prod, qa, dev-rich, dev-adam).
+  // TODO(burdon): Type-based namespace.
+
   // TODO(burdon): Move to sub/data.
 
   static sanitizeKey(key) {
