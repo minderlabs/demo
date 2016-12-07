@@ -88,6 +88,7 @@ export class Matcher {
   }
 
   /**
+   * Recursively match the expression tree.
    *
    * @param context
    * @param root
@@ -96,8 +97,58 @@ export class Matcher {
    * @returns {boolean}
    */
   static matchExpression(context, root, expr, item) {
+    if (expr.op) {
+      return Matcher.matchBooleanExpression(context, root, expr, item);
+    }
 
-    // TODO(burdon): Handle boolean expressions (recursively).
+    if (expr.field) {
+      return Matcher.matchComparatorExpression(context, root, expr, item);
+    }
+
+    throw 'Invalid expression: ' + JSON.stringify(expr);
+  }
+
+  /**
+   * Recursively match boolean expressions.
+   *
+   * @param context
+   * @param root
+   * @param expr
+   * @param item
+   * @returns {boolean}
+   */
+  static matchBooleanExpression(context, root, expr, item) {
+    console.assert(expr.op);
+
+    let match = false;
+    switch (expr.op) {
+      case 'OR': {
+        _.forEach(expr.expr, (expr) => {
+          if (Matcher.matchExpression(context, root, expr, item)) {
+            match = true;
+            return false;
+          }
+        });
+
+        return match;
+      }
+
+      default: {
+        throw 'Invalid operator: ' + JSON.stringify(expr);
+      }
+    }
+  }
+
+  /**
+   * Match comparator expressions.
+   *
+   * @param context
+   * @param root
+   * @param expr
+   * @param item
+   * @returns {boolean}
+   */
+  static matchComparatorExpression(context, root, expr, item) {
     console.assert(expr.field);
 
     // TODO(burdon): Handle null.

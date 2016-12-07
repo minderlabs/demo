@@ -13,8 +13,11 @@
       "filter": {
         "type": "Task",
         "expr": {
-          "field": "assignee",
-          "ref": "$USER_ID"
+          "op": "OR",
+          "expr": [
+            { "field": "owner",     "ref": "$USER_ID" },
+            { "field": "assignee",  "ref": "$USER_ID" }
+          ]
         }
       }
     },

@@ -37,7 +37,7 @@ describe('Matcher:', () => {
       type: 'Task',
       title: 'Implement boolean expressions.',
       owner: 'b',
-      assignee: 'c'
+      assignee: 'a'
     }
   ], item => item.id);
 
@@ -85,21 +85,23 @@ describe('Matcher:', () => {
   it('Matches boolean expressions.', () => {
     let matcher = new Matcher();
 
-    let context = {};
+    let context = {
+      user: { id: 'a' }
+    };
     let root = {};
 
     let filter = {
       expr: {
         op: 'OR',
         expr: [
-          { field: 'owner',     ref: 'id' },
-          { field: 'assignee',  ref: 'id' }
+          { field: 'owner',     ref: '$USER_ID' },
+          { field: 'assignee',  ref: '$USER_ID' }
         ]
       }
     };
 
     // TODO(burdon): Implement tree.
-    // expect(matcher.matchItems(context, root, filter, items)).to.have.length(2);
+    expect(matcher.matchItems(context, root, filter, items)).to.have.length(3);
   });
 
   /**

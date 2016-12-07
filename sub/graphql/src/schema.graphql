@@ -101,7 +101,7 @@ input ExpressionInput {
   expr: [ExpressionInput]
 
   comp: Comparator          # TODO(burdon): Default to EQ?
-  field: String!
+  field: String
   value: ValueInput
   ref: String
 }
