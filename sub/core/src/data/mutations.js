@@ -106,6 +106,7 @@ export class Reducer {
         if (previousResult.items) {
           console.log('Update items: %s', TypeUtil.JSON(previousResult));
 
+          // TODO(burdon): Context.
           // Determine if currently matches filter.
           let match = matcher.matchItem({}, {}, filter, updatedItem);
 

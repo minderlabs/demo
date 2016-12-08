@@ -162,7 +162,10 @@ type User implements Item {
   title: String!
   labels: [String]
 
+  email: String
+
   contact: Contact
+
   tasks(filter: FilterInput): [Task]!
 }
 

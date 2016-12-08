@@ -161,6 +161,7 @@ export class Matcher {
       // TODO(burdon): These must be available and provided to the client matcher.
       switch (ref) {
         case '$USER_ID': {
+          console.assert(context.user);
           value = context.user.id;
           break;
         }

@@ -82,7 +82,7 @@ export class Database extends ItemStore {
 
     // TODO(burdon): Dispatch to store (check permissions).
     let itemStore = this.getItemStore(Database.DEFAULT);
-    return Promise.resolve(itemStore.upsertItems(context, items)).then(modifiedItems => {
+    return itemStore.upsertItems(context, items).then(modifiedItems => {
 
       // Invalidate clients.
       this.handleMutation(context, modifiedItems);
@@ -98,7 +98,7 @@ export class Database extends ItemStore {
     console.log('DB.GET[%s]: [%s]', type, itemIds);
 
     let itemStore = this.getItemStore(type);
-    return Promise.resolve(itemStore.getItems(context, type, itemIds)).then(items => {
+    return itemStore.getItems(context, type, itemIds).then(items => {
       if (!_.compact(items).length) {
         console.warn('Invalid result: %s' % items);
       }
@@ -114,6 +114,6 @@ export class Database extends ItemStore {
     console.log('DB.QUERY[%d:%d]: %s', offset, count, JSON.stringify(filter));
 
     let itemStore = this.getItemStore(filter.type);
-    return Promise.resolve(itemStore.queryItems(context, root, filter, offset, count));
+    return itemStore.queryItems(context, root, filter, offset, count);
   }
 }

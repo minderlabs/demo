@@ -89,6 +89,7 @@ registry._types.set('Group', {
         } else {
           return _.compact(_.map(tasks, (task) => {
             if (task.id == item.id) {
+              // TODO(burdon): Context.
               // TODO(burdon): Extract filter from query and use matcher to determine if remove.
               const filter = { expr: { field: "assignee", value: { id: member.id } } };
               if (matcher.matchItem({}, {}, filter, item)) {

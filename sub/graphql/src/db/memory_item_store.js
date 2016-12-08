@@ -25,7 +25,7 @@ export class MemoryItemStore extends ItemStore {
   upsertItems(context, items) {
     console.assert(context && items);
 
-    return _.map(items, (item) => {
+    return Promise.resolve(_.map(items, (item) => {
       item = TypeUtil.clone(item);
 
       console.assert(item.type);
@@ -37,13 +37,13 @@ export class MemoryItemStore extends ItemStore {
       this._items.set(item.id, item);
 
       return item;
-    });
+    }));
   }
 
   getItems(context, type, itemIds) {
     console.assert(context && type && itemIds);
 
-    return _.map(itemIds, itemId => TypeUtil.clone(this._items.get(itemId) || {}));
+    return Promise.resolve(_.map(itemIds, itemId => TypeUtil.clone(this._items.get(itemId) || {})));
   }
 
   queryItems(context, root, filter={}, offset=0, count=10) {
@@ -61,6 +61,6 @@ export class MemoryItemStore extends ItemStore {
     items = _.sortBy(items, ['title']);
     items = _.slice(items, offset, offset + count);
 
-    return items;
+    return Promise.resolve(items);
   }
 }

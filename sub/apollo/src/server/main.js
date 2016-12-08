@@ -14,13 +14,12 @@ import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
 import { Matcher } from 'minder-core';
-import { Database, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
+import { Database, Firebase, Randomizer, graphqlRouter } from 'minder-graphql';
 
 import { appRouter, hotRouter } from './app';
 import { loginRouter, AuthManager } from './auth';
 import { loggingRouter } from './logger';
 import { adminRouter, clientRouter, ClientManager, SocketManager } from './client';
-import { FirebaseStore } from './db/firebase';
 
 
 //
@@ -61,7 +60,7 @@ const matcher = new Matcher();
 
 // TODO(burdon): Factor out const.
 // https://firebase.google.com/docs/database/admin/start
-const firebaseStore = new FirebaseStore(matcher, {
+const firebase = new Firebase(matcher, {
   databaseURL: 'https://minder-beta.firebaseio.com',
 
   // Download JSON config.
@@ -70,7 +69,7 @@ const firebaseStore = new FirebaseStore(matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const authManager = new AuthManager();
+const authManager = new AuthManager(firebase.admin);
 
 const socketManager = new SocketManager(server);
 
@@ -78,8 +77,8 @@ const clientManager = new ClientManager(socketManager);
 
 const database = new Database(matcher)
 
-  .registerItemStore('User', firebaseStore.userStore)
-  .registerItemStore(Database.DEFAULT, new MemoryItemStore(matcher))
+  .registerItemStore('User', firebase.userStore)
+  .registerItemStore(Database.DEFAULT, firebase.itemStore)
 
   .onMutation(() => {
     // Notify clients of changes.
@@ -112,7 +111,7 @@ _.each(require('./testing/test.json'), (items, type) => {
 // Create test data.
 promises.push(database.queryItems({}, {}, { type: 'User' })
   .then(users => {
-    console.log('USERS: %s', JSON.stringify(users));
+    console.log('USERS: [%s]', _.map(users, user => user.email).join(', '));
 
     // Create group.
     return database.getItem(context, 'Group', 'minderlabs')
@@ -216,7 +215,7 @@ app.get('/home', async function(req, res) {
   }
 });
 
-app.use(loginRouter(firebaseStore.userStore, {
+app.use(loginRouter(firebase.userStore, {
   env
 }));
 
@@ -227,7 +226,7 @@ app.use(graphqlRouter(database, {
   // Gets the user context from the request headers (async).
   context: request => authManager.getUserInfoFromHeader(request)
     .then(user => ({
-      matcher,
+      matcher,              // TODO(burdon): Why matcher.
       user
     }))
 }));

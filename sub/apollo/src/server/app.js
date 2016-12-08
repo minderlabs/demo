@@ -46,6 +46,8 @@ export const appRouter = (authManager, clientManager, options) => {
   // Client.
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
   router.get(/^\/app\/?(.*)/, async function(req, res) {
+
+    // TODO(burdon): Deprecate cookies? Do redirect from app?
     let userInfo = await authManager.getUserInfoFromCookie(req);
     if (!userInfo) {
       // TODO(burdon): Router object.
