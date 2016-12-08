@@ -135,7 +135,10 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     // Provide for Mutator.graphql
-    injector: minder.injector
+    injector: minder.injector,
+    context: {
+      user: { id: minder.user.id }
+    },
   }
 };
 
@@ -161,7 +164,7 @@ export default compose(
           filter, count, offset: 0
         },
 
-        reducer: Reducer.reduce(matcher, typeRegistry, UpdateItemMutation, ItemsQuery, filter),
+        reducer: Reducer.reduce(props.context, matcher, typeRegistry, UpdateItemMutation, ItemsQuery, filter),
       }
     },
 

@@ -27,9 +27,9 @@ export class TypeRegistry {
     this._types = new Map();
   }
 
-  render(item, userId) {
+  render(item, user) {
     let spec = this._types.get(item.type);
-    return spec && spec.render(item, userId) || (<div>NO TYPE HANDLER FOR [{ item.type }]</div>);
+    return spec && spec.render(item, user) || (<div>NO TYPE HANDLER FOR [{ item.type }]</div>);
   }
 
   // TODO(burdon): Factor out mutator requirements (provide object).
@@ -65,7 +65,7 @@ registry._types.set('Group', {
   render: (item, user) => <Group user={ user } item={ item }/>,
   icon: 'group',
 
-  path: (matcher, previousResult, item) => {
+  path: (context, matcher, previousResult, item) => {
 
     // TODO(burdon): Move to MuationContextManager (manages map of fragments and paths).
     // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
@@ -92,7 +92,7 @@ registry._types.set('Group', {
               // TODO(burdon): Context.
               // TODO(burdon): Extract filter from query and use matcher to determine if remove.
               const filter = { expr: { field: "assignee", value: { id: member.id } } };
-              if (matcher.matchItem({}, {}, filter, item)) {
+              if (matcher.matchItem(context, {}, filter, item)) {
                 return item;
               }
             } else {

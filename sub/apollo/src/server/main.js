@@ -14,7 +14,7 @@ import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
 import { Matcher } from 'minder-core';
-import { Database, Firebase, Randomizer, graphqlRouter } from 'minder-graphql';
+import { Database, Firebase, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
 
 import { appRouter, hotRouter } from './app';
 import { loginRouter, AuthManager } from './auth';
@@ -78,7 +78,8 @@ const clientManager = new ClientManager(socketManager);
 const database = new Database(matcher)
 
   .registerItemStore('User', firebase.userStore)
-  .registerItemStore(Database.DEFAULT, firebase.itemStore)
+
+  .registerItemStore(Database.DEFAULT, (env === 'production') ? firebase.itemStore : new MemoryItemStore(matcher))
 
   .onMutation(() => {
     // Notify clients of changes.
@@ -122,10 +123,8 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
       });
   })
 
-  // TODO(burdon): Webhook to create random data?
   .then(() => {
-    const testData = true;
-    if (testData) {
+    if (env !== 'production') {
       let randomizer = new Randomizer(database, context);
 
       return Promise.all([
@@ -224,10 +223,12 @@ app.use(graphqlRouter(database, {
   pretty: false,
 
   // Gets the user context from the request headers (async).
+  // NOTE: The client must pass the same context shape to the matcher.
   context: request => authManager.getUserInfoFromHeader(request)
-    .then(user => ({
-      matcher,              // TODO(burdon): Why matcher.
-      user
+    .then(userInfo => ({
+      user: {
+        id: userInfo.id
+      }
     }))
 }));
 
