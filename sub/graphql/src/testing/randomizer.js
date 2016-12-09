@@ -21,7 +21,7 @@ export class Randomizer {
 
     'Task': (chance) => {
       return {
-        bucket: 'minderlabs', // FIXME
+        bucket: 'minderlabs', // TODO(madadam): chance.string('minderlabs', 0.5)
         title: chance.sentence({ words: 5 })
       }
     },

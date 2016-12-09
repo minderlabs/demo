@@ -134,7 +134,6 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
         randomizer.generate('Contact', 20),
         randomizer.generate('Place', 10),
         randomizer.generate('Task', 15, {
-          // FIXME: Add bucketId?
           owner: {
             type: 'User', likelihood: 1.0
           },

@@ -42,6 +42,7 @@ describe('Matcher:', () => {
     {
       id: 'f',
       type: 'Task',
+      bucket: 'a',
       title: 'Label me able.',
       labels: ['foo']
     }
@@ -143,6 +144,25 @@ describe('Matcher:', () => {
 
     expect(matcher.matchItems(
       context, root, { expr: { field: 'assignee', ref: 'id'} }, items)).to.have.length(1);
+  });
+
+  /**
+   * Bucket filter.
+   */
+  it('Matches bucket id.', () => {
+    let matcher = new Matcher();
+
+    let context = {
+      user: { id: 'a' }
+    };
+    let root = {};
+
+    let filter = {
+      bucket: 'a'
+    };
+
+    expect(matcher.matchItem(context, root, filter, items.f)).to.be.true;
+    expect(matcher.matchItems(context, root, filter, items)).to.have.length(1);
   });
 });
 

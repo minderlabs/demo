@@ -50,7 +50,7 @@ export class Matcher {
     }
 
     // Must match something.
-    if (!(filter.type || filter.labels || filter.text || filter.expr)) {
+    if (!(filter.type || filter.bucket || filter.labels || filter.text || filter.expr)) {
       return false;
     }
 
@@ -61,10 +61,7 @@ export class Matcher {
 
     // Bucket match
     // TODO(burdon): Buckets should be namespaces in the data store, not field to filter on.
-    if (filter.bucket) {
-      console.log('** FILTER.bucket ' + filter.bucket + ' item.bucket: ' + item.bucket); // FIXME
-    }
-    if (filter.bucket && filter.bucket != item.bucket) {
+    if (filter.bucket && filter.bucket !== item.bucket) {
       return false;
     }
 

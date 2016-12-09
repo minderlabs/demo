@@ -134,12 +134,20 @@ export default class Group extends React.Component {
           {
             field: 'bucket',
               value: {
-                string: this.props.user.userId
+                string: this.props.user.id
               }
           }
         );
+      } else if (this.state.inlineEdit == 'shared') {
+        mutations.push(
+          {
+            field: 'bucket',
+            value: {
+              string: this.props.item.id
+            }
+          }
+        );
       }
-      console.log('** MUTATIONS: ' + JSON.stringify(mutations)); // FIXME
 
       this.context.mutator.createItem('Task', mutations);
 
@@ -164,15 +172,13 @@ export default class Group extends React.Component {
     // TODO(madadam): When ACLs and links are working, query for all Tasks/Notes linked from this item (Group)
     // with private ACL.
     let privateNotesFilter = {
-      bucket: this.props.user.userId
+      bucket: this.props.user.id
     };
 
-    console.log('** bucket ' + this.props.user.userId); // FIXME
-
-    // TODO(madadam): Need predicate tree to express unassigned? Current hack: empty string matches undefined fields.
+    // TODO(madadam): Use predicate tree to express unassigned? Current hack: empty string matches undefined fields.
     let sharedNotesFilter = {
       type: "Task",
-      predicate: { field: "assignee", value: {string: ""}},
+      expr: { field: "assignee", value: {string: ""}},
       bucket: this.props.item.id
     };
 
