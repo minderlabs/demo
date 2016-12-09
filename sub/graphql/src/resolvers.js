@@ -83,20 +83,10 @@ export class Resolvers {
 
       User: {
 
-        // TODO(burdon): Use this "hack" to filter inbox? (viewer.user.tasks).
-        // TODO(burdon): Generalize User "type filters" to items that reference the current user?
+        // TODO(burdon): Generalize for filtered items (like queryItems). Can reference context and root node.
         tasks: (root, args, context) => {
           let { filter } = args || {};
-
-          // TODO(burdon): Instead of replacing ref here, pass root to database query's matcher?
-          // But don't pollute the global execution context.
-          let ref = _.get(filter, 'predicate.ref');
-          if (ref) {
-            // TODO(madadam): Resolve other scalar types.
-            filter.predicate.value = {string: _.get(root, ref)};
-          }
-
-          return database.queryItems(context, filter);
+          return database.queryItems(context, root, filter);
         }
       },
 
@@ -119,22 +109,31 @@ export class Resolvers {
 
       //
       // Queries
+      // NOTE: root is undefined for root-level queries.
       //
 
       RootQuery: {
 
         viewer: (root, args, context) => {
-          let { user: { userId, email, name } } = context;
+          let { user: { id, email, name } } = context;
+
+          // TODO(burdon): Local/global ID (need to document to memo this).
+          // let { type, id:localUserId } = ID.fromGlobalId(userId);
 
           // TODO(burdon): Can the resolver resolve this for us?
-          return database.getItem(context, 'User', userId).then(user => ({
-            id: userId,
+          // return {
+          //   id,
+          //   user: ID.toGlobalId('User', id)
+          // };
+
+          return database.getItem(context, 'User', id).then(user => ({
+            id,   // TODO(burdon): Global ID?
             user
           }));
         },
 
         folders: (root, args, context) => {
-          return database.queryItems(context, { type: 'Folder' });
+          return database.queryItems(context, root, { type: 'Folder' });
         },
 
         item: (root, args, context) => {
@@ -147,7 +146,7 @@ export class Resolvers {
         items: (root, args, context) => {
           let { filter, offset, count } = args;
 
-          return database.queryItems(context, filter, offset, count);
+          return database.queryItems(context, root, filter, offset, count);
         }
       },
 

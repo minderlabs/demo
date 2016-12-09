@@ -27,6 +27,22 @@ scalar Date
 # Input types.
 #
 
+# TODO(burdon): Why can't inputs be used for outputs?
+# > https://github.com/graphql/graphql-js/issues/599 [me: 11/15/16]
+# > https://github.com/graphql/graphql-js/issues/423 [me: 11/15/16]
+# > https://github.com/apollostack/graphql-tools/issues/179
+
+# TODO(burdon): Predicate operator.
+# TODO(burdon): Build AST for query syntax? Boolean logic.
+# TODO(burdon): Generalize other filter fields to predicates (except type).
+
+# http://docs.oracle.com/javadb/10.8.3.0/ref (WHERE boolean expression)
+# https://github.com/ghislainfourny/jsoniq-tutorial
+# http://www.jinqjs.com/Examples
+# https://jinqjs.readme.io/docs/where-filter
+
+# TODO(burdon): Serialize for stored queries (rather than duplicate types).
+
 input ValueInput {
   int:      Int
   float:    Float
@@ -52,7 +68,6 @@ input ArrayMutationInput {
 #
 # Object mutation.
 # E.g., { field: 'title', value: { string: 'Minder' } }
-# TODO(burdon): More compact would be { title: { string: 'Minder' }}
 #
 
 input ObjectMutationInput {
@@ -64,17 +79,29 @@ input ObjectMutationInput {
 # Query/Filter primitives.
 #
 
-# TODO(burdon): Why can't inputs be used for outputs?
-#   https://github.com/graphql/graphql-js/issues/599
-#   https://github.com/graphql/graphql-js/issues/423
-#   https://github.com/apollostack/graphql-tools/issues/179
+enum Operator {
+  AND,
+  OR,
+  NOT
+}
 
-# TODO(burdon): Predicate operator.
-# TODO(burdon): Build AST for query syntax? Boolean logic.
-# TODO(burdon): Generalize other filter fields to predicates (except type).
+enum Comparator {
+  EQ,
+  GT,
+  LT,
+  IN
+}
 
-input PredicateInput {
-  field: String!
+# TODO(burdon): Should be union (boolean, comparator) but union inputs are not supported.
+# union Expression = BooleanExpression | ComparatorExpression
+# { op: 'OR', expr: [{ field: 'owner', ref: 'id' }, { field: 'assignee', ref: 'id' }] }
+
+input ExpressionInput {
+  op: Operator
+  expr: [ExpressionInput]
+
+  comp: Comparator          # TODO(burdon): Default to EQ?
+  field: String
   value: ValueInput
   ref: String
 }
@@ -89,40 +116,12 @@ input FilterInput {
   labels: [String]
   text: String
 
-  predicate: PredicateInput
+  # Expression tree.
+  expr: ExpressionInput
 }
 
 #
-# Output types
-#
-
-type Value {
-  int:      Int
-  float:    Float
-  string:   String
-  boolean:  Boolean
-
-  id:       ID
-  date:     Date
-}
-
-type Predicate {
-  field: String!
-  value: Value
-  ref: String
-}
-
-type Filter {
-  strict: Boolean
-  type: String
-  bucket: String
-  labels: [String]
-  text: String
-  predicate: Predicate
-}
-
-#
-# Misc types.
+# Basic types.
 #
 
 type Geo {
@@ -164,7 +163,10 @@ type User implements Item {
   title: String!
   labels: [String]
 
+  email: String
+
   contact: Contact
+
   tasks(filter: FilterInput): [Task]!
 }
 
@@ -185,7 +187,8 @@ type Folder implements Item {
   title: String!
   labels: [String]
 
-  filter: Filter
+  # JSON serialized FilterInput.
+  filter: String!
 }
 
 type Contact implements Item {

@@ -104,6 +104,7 @@ class Layout extends React.Component {
 
           {/*
             * Debug sidebar.
+            * TODO(burdon): Redux vs custom panel.
             */}
           <div className="app-debug">
             <Monitor/>
@@ -150,11 +151,7 @@ const LayoutQuery = gql`
     
     folders {
       id
-      filter {
-        type
-        labels
-        text
-      }
+      filter
     }
   }
 `;

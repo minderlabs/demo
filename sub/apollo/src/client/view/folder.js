@@ -129,11 +129,7 @@ const FolderQuery = gql`
 
     folders {
       id
-      filter {
-        type
-        labels
-        text
-      }
+      filter
     }
   }
 `;
@@ -188,12 +184,12 @@ export default compose(
       // TODO(burdon): Solution is set the redux state in the layout? so can be used above in props?
       // TODO(burdon): Handler error/redirect if not found.
 
-      // Create list filter (if not set by search above).
+      // Create list filter (if not overridden by text search above).
       if (QueryParser.isEmpty(filter)) {
         _.each(folders, (folder) => {
           // TODO(burdon): Match folder's short name rather than ID.
           if (folder.id == ownProps.params.folder) {
-            filter = _.omit(folder.filter, '__typename');
+            filter = JSON.parse(folder.filter);
             return false;
           }
         });

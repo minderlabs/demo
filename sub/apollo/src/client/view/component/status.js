@@ -68,16 +68,25 @@ export class StatusBar extends React.Component {
   render() {
     function state(state) { return state ? ' app-icon-on' : '' }
 
+    // TODO(burdon): Move to config.
+    const github = 'https://github.com/alienlaboratories/react-demos/issues';
+
     return (
       <div className="app-toolbar app-status-toolbar">
         <div>
           <i className="app-icon app-icon-action material-icons" title="Debug info"
              onClick={ this.handleAction.bind(this, 'bug') }>bug_report</i>
+          <a href={ github } target="MINDER_GITHUB">
+            <i className="app-icon app-icon-action material-icons" title="Report Bug">report_problem</i>
+          </a>
           <a href="/graphiql" target="MINDER_GRAPHIQL" title="GraphiQL">
             <i className="app-icon app-icon-action material-icons" title="GraphiQL">language</i>
           </a>
-          <a href="/admin" target="MINDER_CLIENTS">
+          <a href="/admin" target="MINDER_ADMIN">
             <i className="app-icon app-icon-action material-icons" title="Admin">graphic_eq</i>
+          </a>
+          <a href="https://console.firebase.google.com/project/minder-beta/database/data" target="MINDER_FIREBASE">
+            <i className="app-icon app-icon-action material-icons" title="Database">cloud_circle</i>
           </a>
         </div>
         <div>

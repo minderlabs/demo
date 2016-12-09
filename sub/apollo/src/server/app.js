@@ -30,7 +30,6 @@ const WEBPACK_BUNDLE = {
  */
 export const appRouter = (authManager, clientManager, options) => {
   console.assert(authManager && clientManager);
-
   const router = express.Router();
 
   options = _.defaults(options, {
@@ -38,7 +37,7 @@ export const appRouter = (authManager, clientManager, options) => {
     graphql: '/graphql'
   });
 
-  console.log('App Options = %s', JSON.stringify(options));
+  console.log('Client Options = %s', JSON.stringify(options));
 
   // Webpack assets.
   router.use('/assets', express.static(options.assets));
@@ -46,13 +45,15 @@ export const appRouter = (authManager, clientManager, options) => {
   // Client.
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
   router.get(/^\/app\/?(.*)/, async function(req, res) {
+
+    // TODO(burdon): Deprecate cookies? Do redirect from app?
     let userInfo = await authManager.getUserInfoFromCookie(req);
     if (!userInfo) {
       // TODO(burdon): Router object.
       res.redirect('/');
     } else {
       // Create the client (and socket).
-      let client = clientManager.create(userInfo.userId);
+      let client = clientManager.create(userInfo.id);
 
       res.render('app', {
         app: WEBPACK_BUNDLE[options.env],

@@ -16,6 +16,8 @@ import { ID } from 'minder-core';
  */
 export const UserFragments = {
 
+  // TODO(burdon): Use ref in tasks filter.
+
   // TODO(burdon): Pass variables to fragments (e.g., filter tasks)?
   // https://github.com/apollostack/react-apollo/issues/140
   // https://github.com/apollostack/react-apollo/issues/122
@@ -23,13 +25,13 @@ export const UserFragments = {
   item: new Fragment(gql`
     fragment UserFragment on User {
       title
-        
-      ownerTasks: tasks(filter: { predicate: { field: "owner" } }) {
+
+      ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
         id
         title
       }
 
-      assigneeTasks: tasks(filter: { predicate: { field: "assignee" } }) {
+      assigneeTasks: tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
         id
         title
       }

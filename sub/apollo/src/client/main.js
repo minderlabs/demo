@@ -127,6 +127,7 @@ const enhancer = compose(
   Monitor.instrument()
 );
 
+// Create the Redux store.
 // https://github.com/reactjs/redux/blob/master/docs/api/createStore.md
 const store = createStore(reducers, {}, enhancer);
 
@@ -155,6 +156,7 @@ const renderApp = (App) => {
   );
 };
 
+
 //
 // React Hot Loader (3)
 // https://github.com/gaearon/react-hot-boilerplate/pull/61
@@ -168,6 +170,7 @@ if (module.hot && _.get(config, 'debug.env') === 'hot') {
     renderApp(require('./app').default);
   });
 }
+
 
 //
 // Start app.

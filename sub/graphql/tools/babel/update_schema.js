@@ -26,16 +26,20 @@ if (!fs.existsSync(dist)) {
 //
 
 (async () => {
+  console.log('Creating schema...');
+  try {
+    const schema = makeExecutableSchema({
+      typeDefs: Schema
+    });
 
-  const schema = makeExecutableSchema({
-    typeDefs: Schema
-  });
-
-  let result = await (graphql(schema, introspectionQuery));
-  if (result.errors) {
-    console.error('Schema Error', JSON.stringify(result.errors, null, 2));
-  } else {
-    fs.writeFileSync(filename, JSON.stringify(result, null, 2));
-    console.log('Created: %s', filename);
+    let result = await (graphql(schema, introspectionQuery));
+    if (result.errors) {
+      console.error('Schema Error', JSON.stringify(result.errors, null, 2));
+    } else {
+      fs.writeFileSync(filename, JSON.stringify(result, null, 2));
+      console.log('Created: %s', filename);
+    }
+  } catch(ex) {
+    console.log('ERROR', ex);
   }
 })();

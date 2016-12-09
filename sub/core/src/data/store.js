@@ -17,6 +17,18 @@ export class ItemStore {
     this._matcher = matcher
   }
 
+  //
+  // Helper methods.
+  //
+
+  getItem(context, type, itemId) {
+    return this.getItems(context, type, [itemId]).then(items => items[0]);
+  }
+
+  upsertItem(context, item) {
+    return this.upsertItems(context, [item]).then(items => items[0]);
+  }
+
   /**
    * Upsert the given items.
    *
@@ -42,11 +54,12 @@ export class ItemStore {
    * Query items based on the supplied filter against the store's matcher.
    *
    * @param context
+   * @param root
    * @param filter
    * @param offset
    * @param count
    */
-  queryItems(context, filter={}, offset=0, count=10) {
+  queryItems(context, root, filter={}, offset=0, count=10) {
     throw 'Not implemented';
   }
 }

@@ -50,6 +50,6 @@ export class RedisItemStore extends ItemStore {
   getItems(context, type, itemIds) {
   }
 
-  queryItems(context, filter={}, offset=0, count=10) {
+  queryItems(context, root, filter={}, offset=0, count=10) {
   }
 }

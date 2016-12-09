@@ -139,12 +139,18 @@ const DetailQuery = gql`
   }
 `;
 
+// TODO(burdon): New Synax: http://dev.apollodata.com/react/fragments.html
+// ${CommentsPage.fragments.comment} instead of createFragment/query.fragments option below.
+
 const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
 
   return {
     // Provide for Mutator.graphql
     injector: minder.injector,
+    context: {
+      user: { id: minder.user.id }
+    },
     user: minder.user
   }
 };
@@ -171,7 +177,7 @@ export default compose(
         },
 
         // TODO(burdon): Provide multiple sets (different fragments).
-        reducer: Reducer.reduce(matcher, typeRegistry, UpdateItemMutation, DetailQuery)
+        reducer: Reducer.reduce(props.context, matcher, typeRegistry, UpdateItemMutation, DetailQuery)
       };
     }
   }),

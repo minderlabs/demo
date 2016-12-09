@@ -15,15 +15,30 @@ import _ from 'lodash';
 export class Matcher {
 
   /**
+   * Matches the items against the filter.
+   *
+   * @param context
+   * @param root
+   * @param filter
+   * @param items
+   * @returns {[item]} Array of items that match.
+   */
+  matchItems(context, root, filter, items) {
+    return _.compact(_.map(items, item => this.matchItem(context, root, filter, item) ? item : false));
+  }
+
+  /**
    * Matches the item against the filter.
    *
+   * @param context
+   * @param root
    * @param filter
    * @param item
    * @returns {boolean} True if the item matches the filter.
    */
   // TODO(burdon): Pass context into matcher.
-  matchItem(filter, item) {
-    // console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
+  matchItem(context, root, filter, item) {
+//  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item);
     if (_.isEmpty(filter)) {
       return false;
@@ -35,7 +50,7 @@ export class Matcher {
     }
 
     // Must match something.
-    if (!(filter.type || filter.labels || filter.text || filter.predicate)) {
+    if (!(filter.type || filter.labels || filter.text || filter.expr)) {
       return false;
     }
 
@@ -64,11 +79,10 @@ export class Matcher {
       return false;
     }
 
-    // Predicate match.
-    // TODO(burdon): Other operators.
-    if (filter.predicate) {
-      console.assert(filter.predicate.field);
-      if (!this.matchValue(filter.predicate.value, item[filter.predicate.field])) {
+    // Expression match.
+    // TODO(burdon): Handle AST.
+    if (filter.expr) {
+      if (!Matcher.matchExpression(context, root, filter.expr, item)) {
         return false;
       }
     }
@@ -82,7 +96,120 @@ export class Matcher {
     return true;
   }
 
-  matchValue(value, scalarValue) {
+  matchLabels(labels, item) {
+    // TODO(madadam): Use predicate tree for negative matching instead of this way to negate labels?
+    const posLabels = _.filter(labels, (label) => { return !_.startsWith(label, '!') });
+    const negLabels = _.map(
+        _.filter(labels, (label) => { return _.startsWith(label, '!') }),
+        (label) => { return label.substring(1)});
+    if (!_.isEmpty(posLabels) && _.intersection(posLabels, item.labels).length == 0) {
+      return false;
+    }
+    if (!_.isEmpty(negLabels) && _.intersection(negLabels, item.labels).length > 0) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Recursively match the expression tree.
+   *
+   * @param context
+   * @param root
+   * @param expr
+   * @param item
+   * @returns {boolean}
+   */
+  static matchExpression(context, root, expr, item) {
+    if (expr.op) {
+      return Matcher.matchBooleanExpression(context, root, expr, item);
+    }
+
+    if (expr.field) {
+      return Matcher.matchComparatorExpression(context, root, expr, item);
+    }
+
+    throw 'Invalid expression: ' + JSON.stringify(expr);
+  }
+
+  /**
+   * Recursively match boolean expressions.
+   *
+   * @param context
+   * @param root
+   * @param expr
+   * @param item
+   * @returns {boolean}
+   */
+  static matchBooleanExpression(context, root, expr, item) {
+    console.assert(expr.op);
+
+    let match = false;
+    switch (expr.op) {
+      case 'OR': {
+        _.forEach(expr.expr, (expr) => {
+          if (Matcher.matchExpression(context, root, expr, item)) {
+            match = true;
+            return false;
+          }
+        });
+
+        return match;
+      }
+
+      default: {
+        throw 'Invalid operator: ' + JSON.stringify(expr);
+      }
+    }
+  }
+
+  /**
+   * Match comparator expressions.
+   *
+   * @param context
+   * @param root
+   * @param expr
+   * @param item
+   * @returns {boolean}
+   */
+  static matchComparatorExpression(context, root, expr, item) {
+    console.assert(expr.field);
+
+    // TODO(burdon): Handle null.
+    let value = expr.value;
+
+    // Substitute value for reference.
+    let ref = expr.ref;
+    if (ref) {
+      // Resolve magic variables.
+      // TODO(burdon): These must be available and provided to the client matcher.
+      switch (ref) {
+        case '$USER_ID': {
+          console.assert(context.user);
+          value = { string: context.user.id };
+          break;
+        }
+
+        default: {
+          value = _.get(root, ref);
+          if (ref) {
+            // TODO(madadam): Resolve other scalar types.
+            value = { string: _.get(root, ref) };
+          }
+        }
+      }
+    }
+
+    // TODO(burdon): Other operators.
+    if (!Matcher.matchScalarValue(value, _.get(item, expr.field))) {
+      return false;
+    }
+
+    return true;
+  }
+
+
+  static matchScalarValue(value, scalarValue) {
     // Hack: Use empty string to match undefined fields.
     if (value.string === "" && scalarValue == undefined) {
       return true;
@@ -102,29 +229,4 @@ export class Matcher {
     return false;
   }
 
-  matchLabels(labels, item) {
-    // TODO(madadam): Use predicate tree for negative matching instead of this hack.
-    const posLabels = _.filter(labels, (label) => { return !_.startsWith(label, '!') });
-    const negLabels = _.map(
-        _.filter(labels, (label) => { return _.startsWith(label, '!') }),
-        (label) => { return label.substring(1)});
-    if (!_.isEmpty(posLabels) && _.intersection(posLabels, item.labels).length == 0) {
-      return false;
-    }
-    if (!_.isEmpty(negLabels) && _.intersection(negLabels, item.labels).length > 0) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Matches the items against the filter.
-   *
-   * @param filter
-   * @param items
-   * @returns {[item]} Array of items that match.
-   */
-  matchItems(filter, items) {
-    return _.compact(_.map(items, item => this.matchItem(filter, item) ? item : false));
-  }
 }

@@ -31,7 +31,7 @@ export const GroupFragments = {
         type
         title
       
-        tasks(filter: { predicate: { field: "assignee", ref: "id" } }) {
+        tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
           id
           type
           bucket
@@ -116,7 +116,7 @@ export default class Group extends React.Component {
         {
           field: 'owner',
           value: {
-            id: this.props.user.userId
+            id: this.props.user.id
           }
         }
       ];

@@ -14,13 +14,13 @@ import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
 import { Matcher } from 'minder-core';
-import { Database, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
+import { Database, Firebase, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
 
+import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
 import { loginRouter, AuthManager } from './auth';
+import { clientRouter, ClientManager, SocketManager } from './client';
 import { loggingRouter } from './logger';
-import { adminRouter, clientRouter, ClientManager, SocketManager } from './client';
-import { FirebaseStore } from './db/firebase';
 
 
 //
@@ -45,11 +45,15 @@ const env = process.env['NODE_ENV'] || 'development';
 const host = (env === 'production') ? '0.0.0.0' : '127.0.0.1';
 const port = process.env['VIRTUAL_PORT'] || 3000;
 
+const testing = (env === 'development');
+
 
 //
 // Express.
-// TODO(burdon): Use injector pattern (esp for async startup).
 //
+
+// TODO(burdon): Use injector pattern (esp for async startup).
+let promises = [];
 
 const app = express();
 
@@ -59,7 +63,7 @@ const matcher = new Matcher();
 
 // TODO(burdon): Factor out const.
 // https://firebase.google.com/docs/database/admin/start
-const firebaseStore = new FirebaseStore(matcher, {
+const firebase = new Firebase(matcher, {
   databaseURL: 'https://minder-beta.firebaseio.com',
 
   // Download JSON config.
@@ -68,7 +72,7 @@ const firebaseStore = new FirebaseStore(matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const authManager = new AuthManager();
+const authManager = new AuthManager(firebase.admin);
 
 const socketManager = new SocketManager(server);
 
@@ -76,8 +80,9 @@ const clientManager = new ClientManager(socketManager);
 
 const database = new Database(matcher)
 
-  .registerItemStore('User', firebaseStore.userStore)
-  .registerItemStore(Database.DEFAULT, new MemoryItemStore(matcher))
+  .registerItemStore('User', firebase.userStore)
+
+  .registerItemStore(Database.DEFAULT, testing ? new MemoryItemStore(matcher) : firebase.itemStore)
 
   .onMutation(() => {
     // Notify clients of changes.
@@ -87,44 +92,59 @@ const database = new Database(matcher)
 
 //
 // Database.
-// TODO(burdon): Note all of this is asynchronous. Needs chaining/injector.
 //
 
 let context = {};
 
 // Load test data.
 _.each(require('./testing/test.json'), (items, type) => {
-  database.upsertItems(context, _.map(items, (item) => ({ type, ...item })));
+  console.log('TYPE: %s', type);
+
+  // Iterate items per type.
+  database.upsertItems(context, _.map(items, (item) => {
+
+    // TODO(burdon): Reformat folders.
+    if (type == 'Folder') {
+      item.filter = JSON.stringify(item.filter);
+    }
+
+    return { type, ...item };
+  }));
 });
 
-// Create team.
-database.queryItems({}, { type: 'User' }).then(users => {
-  console.log('USERS', JSON.stringify(users));
+// Create test data.
+promises.push(database.queryItems({}, {}, { type: 'User' })
+  .then(users => {
+    console.log('USERS: [%s]', _.map(users, user => user.email).join(', '));
 
-  database.getItem(context, 'Group', 'minderlabs').then(item => {
-    item.members = _.map(users, user => user.id);
-    database.upsertItem(context, item);
-  });
-});
+    // Create group.
+    return database.getItem(context, 'Group', 'minderlabs')
 
-// TODO(burdon): Webhook?
-const testData = true;
-if (testData) {
-  new Randomizer(database, context)
-    .generate('Contact', 20)
-    .generate('Place', 10)
-    .generate('Task', 15, {
-      owner: {
-        type: 'User', likelihood: 1.0
-      },
-      assignee: {
-        type: 'User', likelihood: 0.5
-      },
-      acl: {
-        type: 'Group', likelihood: 0.5
-      }
-    });
-}
+      .then(item => {
+        item.members = _.map(users, user => user.id);
+        database.upsertItem(context, item);
+      });
+  })
+
+  .then(() => {
+    if (testing) {
+      let randomizer = new Randomizer(database, context);
+
+      return Promise.all([
+        randomizer.generate('Contact', 20),
+        randomizer.generate('Place', 10),
+        randomizer.generate('Task', 15, {
+          // FIXME: Add bucketId?
+          owner: {
+            type: 'User', likelihood: 1.0
+          },
+          assignee: {
+            type: 'User', likelihood: 0.5
+          }
+        })
+      ]);
+    }
+  }));
 
 
 //
@@ -198,7 +218,7 @@ app.get('/home', async function(req, res) {
   }
 });
 
-app.use(loginRouter(firebaseStore.userStore, {
+app.use(loginRouter(firebase.userStore, {
   env
 }));
 
@@ -207,14 +227,16 @@ app.use(graphqlRouter(database, {
   pretty: false,
 
   // Gets the user context from the request headers (async).
+  // NOTE: The client must pass the same context shape to the matcher.
   context: request => authManager.getUserInfoFromHeader(request)
-    .then(user => ({
-      matcher,
-      user
+    .then(userInfo => ({
+      user: {
+        id: userInfo.id
+      }
     }))
 }));
 
-app.use(adminRouter(clientManager));
+app.use(adminRouter(clientManager, firebase));
 
 app.use(clientRouter(authManager, clientManager, server));
 
@@ -243,7 +265,11 @@ app.use(function(req, res) {
 // Start-up.
 //
 
-server.listen(port, host, () => {
-  let addr = server.address();
-  console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
+Promise.all(promises).then(() => {
+  console.log('STARTING...');
+
+  server.listen(port, host, () => {
+    let addr = server.address();
+    console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
+  });
 });
