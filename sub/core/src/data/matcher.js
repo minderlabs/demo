@@ -44,6 +44,15 @@ export class Matcher {
       return false;
     }
 
+    // Bucket match
+    // TODO(burdon): Buckets should be namespaces in the data store, not field to filter on.
+    if (filter.bucket) {
+      console.log('** FILTER.bucket ' + filter.bucket + ' item.bucket: ' + item.bucket); // FIXME
+    }
+    if (filter.bucket && filter.bucket != item.bucket) {
+      return false;
+    }
+
     // Deleted.
     if (_.indexOf(item.labels, '_deleted') != -1 &&
         _.indexOf(filter.labels, '_deleted') == -1) { // TODO(burdon): Const.
@@ -73,22 +82,22 @@ export class Matcher {
     return true;
   }
 
-  matchValue(value, scalarVal) {
+  matchValue(value, scalarValue) {
     // Hack: Use empty string to match undefined fields.
-    if (value.string === "" && scalarVal == undefined) {
+    if (value.string === "" && scalarValue == undefined) {
       return true;
     }
     if (value.string !== undefined) {
-      return value.string === scalarVal;
+      return value.string === scalarValue;
     }
     if (value.int !== undefined) {
-      return value.int == scalarVal;
+      return value.int == scalarValue;
     }
     if (value.float !== undefined) {
-      return value.float == scalarVal;
+      return value.float == scalarValue;
     }
     if (value.boolean !== undefined) {
-      return value.boolean == scalarVal;
+      return value.boolean == scalarValue;
     }
     return false;
   }

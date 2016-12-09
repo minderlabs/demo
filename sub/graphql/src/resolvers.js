@@ -96,30 +96,11 @@ export class Resolvers {
             filter.predicate.value = {string: _.get(root, ref)};
           }
 
-          return database.queryItems(context, filter)
-            .then(items => {
-              // TODO(madadam): item.acl hasn't been resolved here yet, ie it's a string.
-              // How to wait until it's resolved and post-filter? Can it be done inside the resolvers?
-              // But if not, then item resolver doesn't see item with resolved ACL, anywhere? is that
-              // true of all nodes that they don't see their resolved children?
-
-              // Options:
-              // 1) Do ACL-based filtering in database.queryItems, resolving ACL groups behind the scenes.
-              // 2) Find a place after resolvers have all run to do ACL-based filtering.
-              // return _.compact(_.map(items, item => aclManager.canRead(context, item)));
-              return items;
-            });
+          return database.queryItems(context, filter);
         }
       },
 
       Task: {
-
-        acl: (root, args, context) => {
-          let groupId = root.acl;
-          if (groupId) {
-            return database.getItem(context, 'Group', groupId);
-          }
-        },
 
         owner: (root, args, context) => {
           let userId = root.owner;

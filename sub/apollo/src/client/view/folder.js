@@ -14,7 +14,7 @@ import { SearchBar, TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
-import { Navigator } from '../navigator';
+import { Navigator } from '../path';
 import { ACTION } from '../reducers';
 
 import List from './component/list';
@@ -48,7 +48,7 @@ class FolderView extends React.Component {
   }
 
   handleItemSelect(item) {
-    this.props.navigator.toItem(item);
+    this.props.navigator.toDetail(item);
   }
 
   handleItemCreate() {

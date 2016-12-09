@@ -23,10 +23,9 @@ import './group.less';
  */
 export const GroupFragments = {
 
-  // TODO(madadam): How to pass a fragment in here to represent the Acl?
-  // ... on Acl { readers { id title members { id } } }
   item: new Fragment(gql`
     fragment GroupFragment on Group {
+      id 
       members {
         id
         type
@@ -35,9 +34,9 @@ export const GroupFragments = {
         tasks(filter: { predicate: { field: "assignee", ref: "id" } }) {
           id
           type
+          bucket
           title
           labels
-          acl { id title members { id } }
         }
       }
     }
@@ -133,18 +132,14 @@ export default class Group extends React.Component {
       } else if (this.state.inlineEdit == 'private') {
         mutations.push(
           {
-            field: 'labels',
+            field: 'bucket',
               value: {
-                array: {
-                  index: 0,
-                    value: {
-                    string: '_private'
-                  }
-                }
+                string: this.props.user.userId
               }
           }
         );
       }
+      console.log('** MUTATIONS: ' + JSON.stringify(mutations)); // FIXME
 
       this.context.mutator.createItem('Task', mutations);
 
@@ -161,7 +156,7 @@ export default class Group extends React.Component {
   }
 
   handleItemSelect(item) {
-    this.context.navigator.toItem(item);
+    this.context.navigator.toDetail(item);
   }
 
   render() {
@@ -169,16 +164,16 @@ export default class Group extends React.Component {
     // TODO(madadam): When ACLs and links are working, query for all Tasks/Notes linked from this item (Group)
     // with private ACL.
     let privateNotesFilter = {
-      // TODO(madadam): Hack to workaround lack of predicate tree. Want to write AND { NOT { has_assignee}, OWNED_BY: me}
-      labels: ["_private"],
-      predicate: { field: "owner", ref: "id"}
+      bucket: this.props.user.userId
     };
+
+    console.log('** bucket ' + this.props.user.userId); // FIXME
 
     // TODO(madadam): Need predicate tree to express unassigned? Current hack: empty string matches undefined fields.
     let sharedNotesFilter = {
       type: "Task",
       predicate: { field: "assignee", value: {string: ""}},
-      labels: ['!_private']
+      bucket: this.props.item.id
     };
 
     // TODO(burdon): Factor out item row (use in inbox).

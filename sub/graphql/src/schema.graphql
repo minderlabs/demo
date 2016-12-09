@@ -85,6 +85,7 @@ input FilterInput {
 
   # MUST
   type: String
+  bucket: String
   labels: [String]
   text: String
 
@@ -114,6 +115,7 @@ type Predicate {
 type Filter {
   strict: Boolean
   type: String
+  bucket: String
   labels: [String]
   text: String
   predicate: Predicate
@@ -196,25 +198,16 @@ type Contact implements Item {
   email: String!
 }
 
-type Acl {
-  owners: [Group]
-  readers: [Group]
-  writers: [Group]
-}
-
 type Task implements Item {
   id: ID!
   type: String!
   alias: String
   title: String!
   labels: [String]
+  bucket: String
 
   owner: User
   assignee: User
-
-  acl: Group
-  # TODO(madadam): Use Acl type.
-  #acl: Acl
 }
 
 type Event implements Item {

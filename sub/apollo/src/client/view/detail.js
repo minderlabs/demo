@@ -12,7 +12,7 @@ import gql from 'graphql-tag';
 import { Matcher, Mutator, MutationUtil, Reducer, TypeUtil } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
-import { Navigator } from '../navigator'
+import { Navigator } from '../path'
 import { UpdateItemMutation } from '../data/mutations';
 
 import { TypeRegistry } from './component/type_registry';
@@ -51,7 +51,7 @@ class DetailView extends React.Component {
   }
 
   onClose(save) {
-    this.props.navigator.back();
+    this.props.navigator.goBack();
   }
 
   handleSave(item) {

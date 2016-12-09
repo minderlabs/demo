@@ -82,6 +82,8 @@ export class List extends React.Component {
   render() {
     let items = this.props.items || [];
 
+    console.log('*** LIST items: ' + JSON.stringify(items)); // FIXME
+
     let typeRegistry = this.props.injector.get(TypeRegistry);
 
     // TODO(burdon): Track scroll position in redux so that it can be restored.

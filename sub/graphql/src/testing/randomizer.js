@@ -19,6 +19,7 @@ export class Randomizer {
 
     'Task': (chance) => {
       return {
+        bucket: 'minderlabs', // FIXME
         title: chance.sentence({ words: 5 })
       }
     },
