@@ -6,8 +6,9 @@
 
 /**
  * https://console.firebase.google.com/project/minder-beta/overview
+ * https://console.firebase.google.com/project/minder-beta/authentication/users
  */
-export const FirebaseClientConfig = {
+export const FirebaseConfig = {
   apiKey: 'AIzaSyDwDsz7hJWdH2CijLItaQW6HmL7H9uDFcI',
   authDomain: 'minder-beta.firebaseapp.com',
   databaseURL: 'https://minder-beta.firebaseio.com',
