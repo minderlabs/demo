@@ -38,6 +38,13 @@ describe('Matcher:', () => {
       title: 'Implement boolean expressions.',
       owner: 'b',
       assignee: 'a'
+    },
+    {
+      id: 'f',
+      type: 'Task',
+      bucket: 'a',
+      title: 'Label me able.',
+      labels: ['foo']
     }
   ], item => item.id);
 
@@ -64,7 +71,7 @@ describe('Matcher:', () => {
     expect(matcher.matchItems(context, root, { type: 'User' }, items)).to.have.length(2);
 
     // TODO(burdon): Different types!
-    expect(matcher.matchItems(context, root, { ids: ['a', 'b', 'z'], type: 'Task' }, items)).to.have.length(5);
+    expect(matcher.matchItems(context, root, { ids: ['a', 'b', 'z'], type: 'Task' }, items)).to.have.length(6);
   });
 
   /**
@@ -76,7 +83,22 @@ describe('Matcher:', () => {
     let context = {};
     let root = {};
 
-    expect(matcher.matchItems(context, root, { expr: { field: 'owner', value: 'a'} }, items)).to.have.length(2);
+    expect(matcher.matchItems(
+      context, root, { expr: { field: 'owner', value: { string: 'a' } } }, items)).to.have.length(2);
+  });
+
+  /**
+   * Labels and negated labels.
+   */
+  it('Matches labels and negated labels.', () => {
+    let matcher = new Matcher();
+
+    let context = {};
+    let root = {};
+
+    expect(matcher.matchItem(context, root, { type: "Task", labels: ['foo'] }, items.f)).to.be.true;
+    expect(matcher.matchItem(context, root, { type: "Task", labels: ['!foo'] }, items.f)).to.be.false;
+    expect(matcher.matchItem(context, root, { type: "Task", labels: ['!foo'] }, items.e)).to.be.true;
   });
 
   /**
@@ -123,4 +145,24 @@ describe('Matcher:', () => {
     expect(matcher.matchItems(
       context, root, { expr: { field: 'assignee', ref: 'id'} }, items)).to.have.length(1);
   });
+
+  /**
+   * Bucket filter.
+   */
+  it('Matches bucket id.', () => {
+    let matcher = new Matcher();
+
+    let context = {
+      user: { id: 'a' }
+    };
+    let root = {};
+
+    let filter = {
+      bucket: 'a'
+    };
+
+    expect(matcher.matchItem(context, root, filter, items.f)).to.be.true;
+    expect(matcher.matchItems(context, root, filter, items)).to.have.length(1);
+  });
 });
+

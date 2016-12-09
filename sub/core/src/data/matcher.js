@@ -50,12 +50,18 @@ export class Matcher {
     }
 
     // Must match something.
-    if (!(filter.type || filter.labels || filter.text || filter.expr)) {
+    if (!(filter.type || filter.bucket || filter.labels || filter.text || filter.expr)) {
       return false;
     }
 
     // Type match.
     if (filter.type && _.toLower(filter.type) != _.toLower(item.type)) {
+      return false;
+    }
+
+    // Bucket match
+    // TODO(burdon): Buckets should be namespaces in the data store, not field to filter on.
+    if (filter.bucket && filter.bucket !== item.bucket) {
       return false;
     }
 
@@ -66,7 +72,7 @@ export class Matcher {
     }
 
     // Label match.
-    if (!_.isEmpty(filter.labels) && _.intersection(filter.labels, item.labels).length == 0) {
+    if (!this.matchLabels(filter.labels, item)) {
       return false;
     }
 
@@ -84,6 +90,21 @@ export class Matcher {
       return false;
     }
 
+    return true;
+  }
+
+  matchLabels(labels, item) {
+    // TODO(madadam): Use predicate tree for negative matching instead of this way to negate labels?
+    const posLabels = _.filter(labels, (label) => { return !_.startsWith(label, '!') });
+    const negLabels = _.map(
+        _.filter(labels, (label) => { return _.startsWith(label, '!') }),
+        (label) => { return label.substring(1)});
+    if (!_.isEmpty(posLabels) && _.intersection(posLabels, item.labels).length == 0) {
+      return false;
+    }
+    if (!_.isEmpty(negLabels) && _.intersection(negLabels, item.labels).length > 0) {
+      return false;
+    }
     return true;
   }
 
@@ -162,21 +183,47 @@ export class Matcher {
       switch (ref) {
         case '$USER_ID': {
           console.assert(context.user);
-          value = context.user.id;
+          value = { string: context.user.id };
           break;
         }
 
         default: {
           value = _.get(root, ref);
+          if (ref) {
+            // TODO(madadam): Resolve other scalar types.
+            value = { string: _.get(root, ref) };
+          }
         }
       }
     }
 
     // TODO(burdon): Other operators.
-    if (_.get(item, expr.field) != value) {
+    if (!Matcher.matchScalarValue(value, _.get(item, expr.field))) {
       return false;
     }
 
     return true;
   }
+
+
+  static matchScalarValue(value, scalarValue) {
+    // Hack: Use empty string to match undefined fields.
+    if (value.string === "" && scalarValue == undefined) {
+      return true;
+    }
+    if (value.string !== undefined) {
+      return value.string === scalarValue;
+    }
+    if (value.int !== undefined) {
+      return value.int == scalarValue;
+    }
+    if (value.float !== undefined) {
+      return value.float == scalarValue;
+    }
+    if (value.boolean !== undefined) {
+      return value.boolean == scalarValue;
+    }
+    return false;
+  }
+
 }

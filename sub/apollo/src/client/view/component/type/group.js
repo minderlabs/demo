@@ -12,6 +12,8 @@ import gql from 'graphql-tag';
 import { ID } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
+import List from '../list';
+import ViewerList from '../viewer_list';
 import { Path } from '../../../path';
 
 import './group.less';
@@ -23,6 +25,7 @@ export const GroupFragments = {
 
   item: new Fragment(gql`
     fragment GroupFragment on Group {
+      id 
       members {
         id
         type
@@ -31,12 +34,13 @@ export const GroupFragments = {
         tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
           id
           type
+          bucket
           title
+          labels
         }
       }
     }
-  `)
-
+  `),
 };
 
 /**
@@ -45,7 +49,8 @@ export const GroupFragments = {
 export default class Group extends React.Component {
 
   static contextTypes = {
-    mutator: React.PropTypes.object.isRequired
+    mutator: React.PropTypes.object.isRequired,
+    navigator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -62,9 +67,12 @@ export default class Group extends React.Component {
     };
   }
 
+  /**
+   * @param member: User or string ('private')
+   */
   handleTaskAdd(member) {
     this.setState({
-      inlineEdit: member.id
+      inlineEdit: member.id || member
     });
   }
 
@@ -90,9 +98,7 @@ export default class Group extends React.Component {
     this.context.mutator.updateItem(item, mutations);
   }
 
-  handleTaskSave(member, save, text, event) {
-    console.assert(member && member.id);
-
+  handleTaskSave(assignee, save, text, event) {
     if (save !== false) {
       let text = this.refs.task_create.value;
       if (_.isEmpty(text)) {
@@ -108,18 +114,40 @@ export default class Group extends React.Component {
           }
         },
         {
-          field: 'assignee',
-          value: {
-            id: member.id
-          }
-        },
-        {
           field: 'owner',
           value: {
             id: this.props.user.id
           }
         }
       ];
+
+      if (assignee && assignee.id) {
+        mutations.push(
+          {
+            field: 'assignee',
+              value: {
+                id: assignee.id
+              }
+          });
+      } else if (this.state.inlineEdit == 'private') {
+        mutations.push(
+          {
+            field: 'bucket',
+              value: {
+                string: this.props.user.id
+              }
+          }
+        );
+      } else if (this.state.inlineEdit == 'shared') {
+        mutations.push(
+          {
+            field: 'bucket',
+            value: {
+              string: this.props.item.id
+            }
+          }
+        );
+      }
 
       this.context.mutator.createItem('Task', mutations);
 
@@ -135,7 +163,24 @@ export default class Group extends React.Component {
     });
   }
 
+  handleItemSelect(item) {
+    this.context.navigator.toDetail(item);
+  }
+
   render() {
+
+    // TODO(madadam): When ACLs and links are working, query for all Tasks/Notes linked from this item (Group)
+    // with private ACL.
+    let privateNotesFilter = {
+      bucket: this.props.user.id
+    };
+
+    // TODO(madadam): Use predicate tree to express unassigned? Current hack: empty string matches undefined fields.
+    let sharedNotesFilter = {
+      type: "Task",
+      expr: { field: "assignee", value: {string: ""}},
+      bucket: this.props.item.id
+    };
 
     // TODO(burdon): Factor out item row (use in inbox).
 
@@ -194,6 +239,57 @@ export default class Group extends React.Component {
 
           </div>
           ))}
+
+          {/*
+           * Shared Notes
+           */
+          }
+          <div className="app-banner app-row">
+            <h3 className="app-expand">Shared Notes</h3>
+            <i className="app-icon app-icon-add material-icons"
+               onClick={ this.handleTaskAdd.bind(this, 'shared') }></i>
+          </div>
+          <div className="app-section app-expand">
+            <List filter={ sharedNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          </div>
+          {this.state.inlineEdit === 'shared' &&
+          <div className="app-row app-data-row">
+            <i className="material-icons">assignment_turned_in</i>
+            <TextBox ref="task_create"
+                     className="app-expand" autoFocus={ true }
+                     onEnter={ this.handleTaskSave.bind(this, null, true) }
+                     onCancel={ this.handleTaskSave.bind(this, null, false)} />
+            <i className="app-icon app-icon-save material-icons"
+               onClick={ this.handleTaskSave.bind(this, null) }>check</i>
+            <i className="app-icon app-icon-cancel material-icons"
+               onClick={ this.handleTaskSave.bind(this, null, false) }>cancel</i>
+          </div>}
+
+          {/*
+            * Private Notes
+           */
+          }
+          <div className="app-banner app-row">
+            <h3 className="app-expand">Private Notes</h3>
+            <i className="app-icon app-icon-add material-icons"
+               onClick={ this.handleTaskAdd.bind(this, 'private') }></i>
+          </div>
+          <div className="app-section app-expand">
+            <ViewerList filter={ privateNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          </div>
+          {this.state.inlineEdit === 'private' &&
+          <div className="app-row app-data-row">
+            <i className="material-icons">assignment_turned_in</i>
+            <TextBox ref="task_create"
+                     className="app-expand" autoFocus={ true }
+                     onEnter={ this.handleTaskSave.bind(this, null, true) }
+                     onCancel={ this.handleTaskSave.bind(this, null, false)} />
+            <i className="app-icon app-icon-save material-icons"
+               onClick={ this.handleTaskSave.bind(this, null) }>check</i>
+            <i className="app-icon app-icon-cancel material-icons"
+               onClick={ this.handleTaskSave.bind(this, null, false) }>cancel</i>
+          </div>}
+
         </div>
       </div>
     );
