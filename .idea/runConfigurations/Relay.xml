@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Relay" type="js.build_tools.npm" factoryName="npm">
     <package-json value="$PROJECT_DIR$/sub/relay/package.json" />
-    <command value="run" />
+    <command value="run-script" />
     <scripts>
       <script value="webpack-dev-server" />
     </scripts>
@@ -12,7 +12,7 @@
     <method>
       <option name="NpmBeforeRunTask" enabled="true">
         <package-json value="$PROJECT_DIR$/sub/relay/package.json" />
-        <command value="run" />
+        <command value="run-script" />
         <scripts>
           <script value="update-schema" />
         </scripts>

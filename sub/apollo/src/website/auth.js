@@ -7,7 +7,7 @@
 import Cookies from 'js-cookie';
 import * as firebase from 'firebase';
 
-import { FirebaseClientConfig } from '../common/defs';
+import { FirebaseConfig } from '../common/defs';
 
 const COOKIE = 'minder_auth_token';
 
@@ -18,7 +18,7 @@ const COOKIE = 'minder_auth_token';
 export class Auth {
 
   constructor() {
-    firebase.initializeApp(FirebaseClientConfig);
+    firebase.initializeApp(FirebaseConfig);
 
     // https://firebase.google.com/docs/auth/web/google-signin
     this._provider = new firebase.auth.GoogleAuthProvider();

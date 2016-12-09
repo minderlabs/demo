@@ -12,7 +12,7 @@ import { createNetworkInterface } from 'apollo-client';
 
 import { TypeUtil } from 'minder-core';
 
-import { FirebaseClientConfig } from '../common/defs';
+import { FirebaseConfig } from '../common/defs';
 
 
 /**
@@ -34,7 +34,7 @@ export class AuthManager {
     this._networkManager = networkManager;
 
     // https://console.firebase.google.com/project/minder-beta/overview
-    firebase.initializeApp(FirebaseClientConfig);
+    firebase.initializeApp(FirebaseConfig);
 
     // Google scopes.
     this._provider = new firebase.auth.GoogleAuthProvider();

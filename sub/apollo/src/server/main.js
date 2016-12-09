@@ -16,6 +16,8 @@ import favicon from 'serve-favicon';
 import { Matcher } from 'minder-core';
 import { Database, Firebase, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
 
+import { FirebaseConfig } from '../common/defs';
+
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
 import { loginRouter, AuthManager } from './auth';
@@ -64,7 +66,7 @@ const matcher = new Matcher();
 // TODO(burdon): Factor out const.
 // https://firebase.google.com/docs/database/admin/start
 const firebase = new Firebase(matcher, {
-  databaseURL: 'https://minder-beta.firebaseio.com',
+  databaseURL: FirebaseConfig.databaseURL,
 
   // Download JSON config.
   // https://console.firebase.google.com/project/minder-beta/settings/serviceaccounts/adminsdk
