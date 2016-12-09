@@ -82,7 +82,7 @@ export class StatusBar extends React.Component {
           <a href="/graphiql" target="MINDER_GRAPHIQL" title="GraphiQL">
             <i className="app-icon app-icon-action material-icons" title="GraphiQL">language</i>
           </a>
-          <a href="/admin" target="MINDER_CLIENTS">
+          <a href="/admin" target="MINDER_ADMIN">
             <i className="app-icon app-icon-action material-icons" title="Admin">graphic_eq</i>
           </a>
           <a href="https://console.firebase.google.com/project/minder-beta/database/data" target="MINDER_FIREBASE">

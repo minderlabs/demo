@@ -16,10 +16,11 @@ import favicon from 'serve-favicon';
 import { Matcher } from 'minder-core';
 import { Database, Firebase, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
 
+import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
 import { loginRouter, AuthManager } from './auth';
+import { clientRouter, ClientManager, SocketManager } from './client';
 import { loggingRouter } from './logger';
-import { adminRouter, clientRouter, ClientManager, SocketManager } from './client';
 
 
 //
@@ -43,6 +44,8 @@ process.on('unhandledRejection', handleError);
 const env = process.env['NODE_ENV'] || 'development';
 const host = (env === 'production') ? '0.0.0.0' : '127.0.0.1';
 const port = process.env['VIRTUAL_PORT'] || 3000;
+
+const testing = (env === 'development');
 
 
 //
@@ -79,7 +82,7 @@ const database = new Database(matcher)
 
   .registerItemStore('User', firebase.userStore)
 
-  .registerItemStore(Database.DEFAULT, (env === 'production') ? firebase.itemStore : new MemoryItemStore(matcher))
+  .registerItemStore(Database.DEFAULT, testing ? new MemoryItemStore(matcher) : firebase.itemStore)
 
   .onMutation(() => {
     // Notify clients of changes.
@@ -124,7 +127,7 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
   })
 
   .then(() => {
-    if (env !== 'production') {
+    if (testing) {
       let randomizer = new Randomizer(database, context);
 
       return Promise.all([
@@ -232,7 +235,7 @@ app.use(graphqlRouter(database, {
     }))
 }));
 
-app.use(adminRouter(clientManager));
+app.use(adminRouter(clientManager, firebase));
 
 app.use(clientRouter(authManager, clientManager, server));
 

@@ -30,7 +30,6 @@ const WEBPACK_BUNDLE = {
  */
 export const appRouter = (authManager, clientManager, options) => {
   console.assert(authManager && clientManager);
-
   const router = express.Router();
 
   options = _.defaults(options, {

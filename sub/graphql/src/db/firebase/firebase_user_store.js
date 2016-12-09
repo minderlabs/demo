@@ -52,6 +52,10 @@ export class FirebaseUserStore extends ItemStore {
     this._cache = new Cache(this._db, FirebaseUserStore.ROOT, matcher, FirebaseUserStore.parseData);
   }
 
+  clearCache() {
+    return this._cache.getItemStore(true);
+  }
+
   upsertUser(data) {
     let { user, credential } = data;
     let { uid, email, name } = user;

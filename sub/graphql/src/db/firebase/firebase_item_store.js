@@ -51,6 +51,10 @@ export class FirebaseItemStore extends ItemStore {
     this._cache = new Cache(this._db, FirebaseItemStore.ROOT, matcher, FirebaseItemStore.parseData);
   }
 
+  clearCache() {
+    return this._cache.getItemStore(true);
+  }
+
   //
   // ItemStore API.
   //

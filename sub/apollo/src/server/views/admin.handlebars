@@ -7,37 +7,49 @@
 
     <div class="site-window-container">
       <div class="site-window">
-        <h1>Clients</h1>
+        <div class="site-section">
+          <h1>Database</h1>
+          <div>
+            <button onclick="reset()">Reset Cache</button>
+          </div>
+        </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>User ID</th>
-              <th>Client ID</th>
-              <th>Socket ID</th>
-              <th>Registered</th>
-            </tr>
-          </thead>
-          <tbody>
-          {{#each clients}}
-            <tr>
-              <td class="site-data">{{ userId }}</td>
-              <td class="site-data">{{ id }}</td>
-              <td class="site-data">{{ socketId }}</td>
-              <td class="site-data site-expand">{{ time registered }}</td>
-              <td>
-                <button onclick="ping('{{ id }}')">Ping</button>
-              </td>
-            </tr>
-          {{/each}}
-          </tbody>
-        </table>
+        <div class="site-section">
+          <h1>Clients</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Client ID</th>
+                <th>Socket ID</th>
+                <th>Registered</th>
+              </tr>
+            </thead>
+            <tbody>
+            {{#each clients}}
+              <tr>
+                <td class="site-data">{{ userId }}</td>
+                <td class="site-data">{{ id }}</td>
+                <td class="site-data">{{ socketId }}</td>
+                <td class="site-data site-expand">{{ time registered }}</td>
+                <td>
+                  <button onclick="ping('{{ id }}')">Ping</button>
+                </td>
+              </tr>
+            {{/each}}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
   <script src="/assets/website.bundle.js"></script>
   <script>
+    function reset() {
+      Site.post('/admin', { cmd: 'db.cache.reset' });
+    }
+
     function ping(clientId) {
       Site.post('/client/invalidate', { clientId: clientId });
     }

@@ -52,6 +52,6 @@ export class Cache {
    * @returns {Promise.<MemoryItemStore>}
    */
   getItemStore(forceUpdate=false) {
-    return Promise.resolve(forceUpdate || this._itemStore ? this._itemStore : this.updateCache());
+    return Promise.resolve(this._itemStore && !forceUpdate ? this._itemStore : this.updateCache());
   }
 }

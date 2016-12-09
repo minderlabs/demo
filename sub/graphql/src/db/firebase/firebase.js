@@ -41,6 +41,11 @@ export class Firebase {
     this._itemStore = new FirebaseItemStore(this._db, matcher);
   }
 
+  clearCache() {
+    this._userStore.clearCache();
+    this._itemStore.clearCache();
+  }
+
   /**
    * NOTE: This must be a shared instance since it is initialized here.
    */

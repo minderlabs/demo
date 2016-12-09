@@ -13,27 +13,10 @@ import moment from 'moment';
 import { IdGenerator } from 'minder-core';
 
 /**
- * Admin endpoints.
- * TODO(burdon): Injector from nx-util?
- */
-export const adminRouter = (clientManager, options) => {
-  let router = express.Router();
-
-  router.get('/admin', function(req, res) {
-    res.render('admin', {
-      clients: clientManager.clients
-    });
-  });
-
-  return router;
-};
-
-/**
  * Client endpoints.
  */
 export const clientRouter = (authManager, clientManager, options) => {
   console.assert(authManager && clientManager);
-
   let router = express.Router();
 
   // JSON body.
