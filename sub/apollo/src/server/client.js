@@ -45,7 +45,7 @@ export const clientRouter = (authManager, clientManager, options) => {
 
     let userInfo = await authManager.getUserInfoFromHeader(req);
     if (userInfo) {
-      clientManager.register(userInfo.userId, clientId, socketId);
+      clientManager.register(userInfo.id, clientId, socketId);
     } else {
       res.status(401);
     }

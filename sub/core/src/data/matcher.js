@@ -15,15 +15,29 @@ import _ from 'lodash';
 export class Matcher {
 
   /**
+   * Matches the items against the filter.
+   *
+   * @param context
+   * @param root
+   * @param filter
+   * @param items
+   * @returns {[item]} Array of items that match.
+   */
+  matchItems(context, root, filter, items) {
+    return _.compact(_.map(items, item => this.matchItem(context, root, filter, item) ? item : false));
+  }
+
+  /**
    * Matches the item against the filter.
    *
+   * @param context
    * @param root
    * @param filter
    * @param item
    * @returns {boolean} True if the item matches the filter.
    */
   // TODO(burdon): Pass context into matcher.
-  matchItem(root, filter, item) {
+  matchItem(context, root, filter, item) {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item);
     if (_.isEmpty(filter)) {
@@ -59,19 +73,7 @@ export class Matcher {
     // Expression match.
     // TODO(burdon): Handle AST.
     if (filter.expr) {
-      console.assert(filter.expr.field);
-
-      // TODO(burdon): Handle null.
-      let value = filter.expr.value;
-
-      // Substitute value for reference.
-      let ref = filter.expr.ref;
-      if (ref) {
-        value = _.get(root, ref);
-      }
-
-      // TODO(burdon): Other operators.
-      if (_.get(item, filter.expr.field) != value) {
+      if (!Matcher.matchExpression(context, root, filter.expr, item)) {
         return false;
       }
     }
@@ -86,14 +88,95 @@ export class Matcher {
   }
 
   /**
-   * Matches the items against the filter.
+   * Recursively match the expression tree.
    *
+   * @param context
    * @param root
-   * @param filter
-   * @param items
-   * @returns {[item]} Array of items that match.
+   * @param expr
+   * @param item
+   * @returns {boolean}
    */
-  matchItems(root, filter, items) {
-    return _.compact(_.map(items, item => this.matchItem(root, filter, item) ? item : false));
+  static matchExpression(context, root, expr, item) {
+    if (expr.op) {
+      return Matcher.matchBooleanExpression(context, root, expr, item);
+    }
+
+    if (expr.field) {
+      return Matcher.matchComparatorExpression(context, root, expr, item);
+    }
+
+    throw 'Invalid expression: ' + JSON.stringify(expr);
+  }
+
+  /**
+   * Recursively match boolean expressions.
+   *
+   * @param context
+   * @param root
+   * @param expr
+   * @param item
+   * @returns {boolean}
+   */
+  static matchBooleanExpression(context, root, expr, item) {
+    console.assert(expr.op);
+
+    let match = false;
+    switch (expr.op) {
+      case 'OR': {
+        _.forEach(expr.expr, (expr) => {
+          if (Matcher.matchExpression(context, root, expr, item)) {
+            match = true;
+            return false;
+          }
+        });
+
+        return match;
+      }
+
+      default: {
+        throw 'Invalid operator: ' + JSON.stringify(expr);
+      }
+    }
+  }
+
+  /**
+   * Match comparator expressions.
+   *
+   * @param context
+   * @param root
+   * @param expr
+   * @param item
+   * @returns {boolean}
+   */
+  static matchComparatorExpression(context, root, expr, item) {
+    console.assert(expr.field);
+
+    // TODO(burdon): Handle null.
+    let value = expr.value;
+
+    // Substitute value for reference.
+    let ref = expr.ref;
+    if (ref) {
+      // Resolve magic variables.
+      // TODO(burdon): These must be available and provided to the client matcher.
+      switch (ref) {
+        case '$USER_ID': {
+          console.assert(context.user);
+          value = context.user.id;
+          break;
+        }
+
+        default: {
+          value = _.get(root, ref);
+        }
+      }
+    }
+
+    // TODO(burdon): Other operators.
+    if (_.get(item, expr.field) != value) {
+      return false;
+    }
+
+    return true;
   }
 }

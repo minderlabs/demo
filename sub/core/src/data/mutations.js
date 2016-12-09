@@ -54,6 +54,7 @@ export class Reducer {
   /**
    * Updates the cache for an item mutation for the given filter.
    *
+   * @param context         Matcher context.
    * @param matcher
    * @param typeRegistry
    * @param mutation
@@ -62,7 +63,7 @@ export class Reducer {
    *
    * @returns {function(*, *)}
    */
-  static reduce(matcher, typeRegistry, mutation, query, filter={}) {
+  static reduce(context, matcher, typeRegistry, mutation, query, filter={}) {
     console.assert(matcher && typeRegistry && mutation && query);
 
     let mutationName = mutation.definitions[0].name.value;
@@ -96,7 +97,7 @@ export class Reducer {
           // TODO(burdon): Instead of this should have MutationContext that understands the Query "shape".
           //  E.g., "Task" may be updated in different contexts (Task List, Team page, etc.)
           let path = typeRegistry.path(previousResult.item.type);
-          transform = path && path(matcher, previousResult, updatedItem);
+          transform = path && path(context, matcher, previousResult, updatedItem);
         }
 
         //
@@ -106,8 +107,9 @@ export class Reducer {
         if (previousResult.items) {
           console.log('Update items: %s', TypeUtil.JSON(previousResult));
 
+          // TODO(burdon): Context.
           // Determine if currently matches filter.
-          let match = matcher.matchItem({}, filter, updatedItem);
+          let match = matcher.matchItem(context, {}, filter, updatedItem);
 
           // If no match, is this new? (otherwise must be removed).
           let insert = match && _.findIndex(previousResult.items, item => item.id === updatedItem.id) === -1;

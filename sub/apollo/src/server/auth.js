@@ -8,12 +8,18 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 
-import admin from 'firebase-admin';
-
 /**
  * Manage authentication.
  */
 export class AuthManager {
+
+  /**
+   * @param admin Firebase admin object.
+   */
+  constructor(admin) {
+    console.assert(admin);
+    this._admin = admin;
+  }
 
   /**
    * Decodes the JWT token.
@@ -28,12 +34,12 @@ export class AuthManager {
         // Token set by apollo client's network interface middleware.
         // https://jwt.io/introduction
         //    console.log('Validating token...');
-        admin.auth().verifyIdToken(token)
+        this._admin.auth().verifyIdToken(token)
           .then(decodedToken => {
-            let { uid:userId, name, email } = decodedToken;
+            let { uid:id, name, email } = decodedToken;
             console.log('Got token for: %s', email);
             resolve({
-              token, userId, name, email
+              id, name, email, token
             });
           })
           .catch(error => {
@@ -64,7 +70,10 @@ export class AuthManager {
     let match = auth && auth.match(/^Bearer (.+)$/);
     let token = match && match[1];
 
-    return this.getUserFromJWT(token).catch(() => null);
+    return this.getUserFromJWT(token).catch(ex => {
+      ex && console.error(ex);
+      return null
+    });
   }
 
   /**
@@ -79,7 +88,10 @@ export class AuthManager {
     //console.log('Getting token from cookie...');
     let token = req.cookies && req.cookies['minder_auth_token'];
 
-    return this.getUserFromJWT(token).catch(() => null);
+    return this.getUserFromJWT(token).catch(ex => {
+      ex && console.error(ex);
+      return null
+    });
   }
 }
 

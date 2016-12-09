@@ -11,7 +11,14 @@
       "id": "inbox",
       "title": "Inbox",
       "filter": {
-        "type": "Task"
+        "type": "Task",
+        "expr": {
+          "op": "OR",
+          "expr": [
+            { "field": "owner",     "ref": "$USER_ID" },
+            { "field": "assignee",  "ref": "$USER_ID" }
+          ]
+        }
       }
     },
     {

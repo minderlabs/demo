@@ -14,7 +14,7 @@ import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
 import { Matcher } from 'minder-core';
-import { Database, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
+import { Database, Firebase, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
 
 import { FirebaseConfig } from '../common/defs';
 
@@ -22,7 +22,6 @@ import { appRouter, hotRouter } from './app';
 import { loginRouter, AuthManager } from './auth';
 import { loggingRouter } from './logger';
 import { adminRouter, clientRouter, ClientManager, SocketManager } from './client';
-import { FirebaseStore } from './db/firebase';
 
 
 //
@@ -63,7 +62,7 @@ const matcher = new Matcher();
 
 // TODO(burdon): Factor out const.
 // https://firebase.google.com/docs/database/admin/start
-const firebaseStore = new FirebaseStore(matcher, {
+const firebase = new Firebase(matcher, {
   databaseURL: FirebaseConfig.databaseURL,
 
   // Download JSON config.
@@ -72,7 +71,7 @@ const firebaseStore = new FirebaseStore(matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const authManager = new AuthManager();
+const authManager = new AuthManager(firebase.admin);
 
 const socketManager = new SocketManager(server);
 
@@ -80,8 +79,9 @@ const clientManager = new ClientManager(socketManager);
 
 const database = new Database(matcher)
 
-  .registerItemStore('User', firebaseStore.userStore)
-  .registerItemStore(Database.DEFAULT, new MemoryItemStore(matcher))
+  .registerItemStore('User', firebase.userStore)
+
+  .registerItemStore(Database.DEFAULT, (env === 'production') ? firebase.itemStore : new MemoryItemStore(matcher))
 
   .onMutation(() => {
     // Notify clients of changes.
@@ -114,7 +114,7 @@ _.each(require('./testing/test.json'), (items, type) => {
 // Create test data.
 promises.push(database.queryItems({}, {}, { type: 'User' })
   .then(users => {
-    console.log('USERS: %s', JSON.stringify(users));
+    console.log('USERS: [%s]', _.map(users, user => user.email).join(', '));
 
     // Create group.
     return database.getItem(context, 'Group', 'minderlabs')
@@ -125,10 +125,8 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
       });
   })
 
-  // TODO(burdon): Webhook to create random data?
   .then(() => {
-    const testData = true;
-    if (testData) {
+    if (env !== 'production') {
       let randomizer = new Randomizer(database, context);
 
       return Promise.all([
@@ -218,7 +216,7 @@ app.get('/home', async function(req, res) {
   }
 });
 
-app.use(loginRouter(firebaseStore.userStore, {
+app.use(loginRouter(firebase.userStore, {
   env
 }));
 
@@ -227,10 +225,12 @@ app.use(graphqlRouter(database, {
   pretty: false,
 
   // Gets the user context from the request headers (async).
+  // NOTE: The client must pass the same context shape to the matcher.
   context: request => authManager.getUserInfoFromHeader(request)
-    .then(user => ({
-      matcher,
-      user
+    .then(userInfo => ({
+      user: {
+        id: userInfo.id
+      }
     }))
 }));
 

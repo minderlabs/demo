@@ -116,7 +116,7 @@ export default class Group extends React.Component {
         {
           field: 'owner',
           value: {
-            id: this.props.user.userId
+            id: this.props.user.id
           }
         }
       ];

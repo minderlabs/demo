@@ -101,7 +101,7 @@ input ExpressionInput {
   expr: [ExpressionInput]
 
   comp: Comparator          # TODO(burdon): Default to EQ?
-  field: String!
+  field: String
   value: ValueInput
   ref: String
 }
@@ -162,7 +162,10 @@ type User implements Item {
   title: String!
   labels: [String]
 
+  email: String
+
   contact: Contact
+
   tasks(filter: FilterInput): [Task]!
 }
 
