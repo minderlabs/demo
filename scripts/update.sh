@@ -23,4 +23,3 @@ done
 pushd sub/graphql
 npm run update-schema
 popd
-
