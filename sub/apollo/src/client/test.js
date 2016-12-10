@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 import { ID, TypeUtil } from 'minder-core';
 
 //

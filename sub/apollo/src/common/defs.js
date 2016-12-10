@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 /**
  * https://console.firebase.google.com/project/minder-beta/overview
  * https://console.firebase.google.com/project/minder-beta/authentication/users

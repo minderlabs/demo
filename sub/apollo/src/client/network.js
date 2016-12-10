@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 import moment from 'moment';
 import * as firebase from 'firebase';
 import io from 'socket.io-client';

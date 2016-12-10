@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 import Cookies from 'js-cookie';
 import * as firebase from 'firebase';
 

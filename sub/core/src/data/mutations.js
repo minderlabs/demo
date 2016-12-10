@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 import { graphql } from 'react-apollo';
 import update from 'immutability-helper';
 

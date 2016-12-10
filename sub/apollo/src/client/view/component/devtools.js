@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 import React from 'react';
 import { createDevTools } from 'redux-devtools';
 import 'redux-devtools-themes';

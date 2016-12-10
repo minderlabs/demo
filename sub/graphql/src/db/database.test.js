@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 // TODO(burdon): Not running karma/webpack.
 const expect = require('chai').expect;
 

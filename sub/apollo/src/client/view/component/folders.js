@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 import React from 'react';
 import { Link } from 'react-router'
 

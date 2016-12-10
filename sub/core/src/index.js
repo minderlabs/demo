@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 export * from './util/async';
 export * from './util/event';
 export * from './util/injector';

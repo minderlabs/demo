@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 import { ItemsQueryWrapper } from 'minder-core';
 
 import { Picker } from 'minder-ux';
