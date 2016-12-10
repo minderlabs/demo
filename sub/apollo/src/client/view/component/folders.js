@@ -11,8 +11,6 @@ import { ID } from 'minder-core';
 
 import { Path } from '../../path';
 
-import './folders.less';
-
 /**
  *
  */
@@ -22,12 +20,12 @@ export class Folders extends React.Component {
 
   render() {
     return (
-      <div className="app-folder-items app-column">
-        <Link to={ Path.folder('inbox') }>Inbox</Link>
-        <Link to={ Path.folder('favorites') }>Favorites</Link>
-        <Link to={ Path.folder('deleted') }>Deleted</Link>
+      <div className="ux-column ux-list ux-list-padded">
+        <Link className="ux-list-item" to={ Path.folder('inbox') }>Inbox</Link>
+        <Link className="ux-list-item" to={ Path.folder('favorites') }>Favorites</Link>
+        <Link className="ux-list-item" to={ Path.folder('deleted') }>Deleted</Link>
 
-        <Link to={ Path.detail('Team', ID.toGlobalId('Group', 'minderlabs')) }>Team</Link>
+        <Link className="ux-list-item" to={ Path.detail('Team', ID.toGlobalId('Group', 'minderlabs')) }>Team</Link>
       </div>
     );
   }

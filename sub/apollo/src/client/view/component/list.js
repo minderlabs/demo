@@ -14,8 +14,7 @@ import { Matcher, Mutator, Reducer } from 'minder-core';
 import { UpdateItemMutation } from '../../data/mutations';
 import { QueryRegistry } from '../../data/subscriptions';
 
-import { TypeRegistry } from './type_registry';
-
+import { TypeRegistry } from './type/registry';
 import { Item } from './item';
 
 import './list.less';
@@ -92,8 +91,8 @@ export class List extends React.Component {
     let showIcon = !this.props.filter.type;
 
     return (
-      <div className="app-column app-list">
-        <div ref="items" className="app-column app-scroll-container">
+      <div className="ux-column ux-list">
+        <div ref="items" className="ux-column ux-scroll-container">
           {items.map(item =>
           <Item key={ item.id }
                 item={ Item.Fragments.item.filter(item) }
@@ -103,8 +102,8 @@ export class List extends React.Component {
           )}
         </div>
 
-        <div className="app-row app-toolbar">
-          <button className="app-expand" onClick={ this.handleMore.bind(this) }>More</button>
+        <div className="ux-row ux-toolbar">
+          <button className="ux-expand" onClick={ this.handleMore.bind(this) }>More</button>
         </div>
       </div>
     );

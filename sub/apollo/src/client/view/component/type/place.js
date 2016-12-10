@@ -37,7 +37,7 @@ export default class Place extends React.Component {
 
   render() {
     return (
-      <div className="app-section">
+      <div className="app-type-place ux-column ux-section">
         <pre>
           { JSON.stringify(_.pick(this.props.item, ['geo']), 0, 2) }
         </pre>

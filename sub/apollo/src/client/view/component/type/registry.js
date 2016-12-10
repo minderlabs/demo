@@ -6,10 +6,10 @@
 
 import React from 'react';
 
-import User,  { UserFragments   } from './type/user';
-import Group, { GroupFragments  } from './type/group';
-import Place, { PlaceFragments  } from './type/place';
-import Task,  { TaskFragments   } from './type/task';
+import User,  { UserFragments   } from './user';
+import Group, { GroupFragments  } from './group';
+import Place, { PlaceFragments  } from './place';
+import Task,  { TaskFragments   } from './task';
 
 /**
  * Type registry.

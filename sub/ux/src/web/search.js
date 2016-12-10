@@ -28,12 +28,12 @@ export class SearchBar extends React.Component {
   }
 
   render() {
-    let className = _.join([this.props.className, 'app-search', 'app-row'], ' ');
+    let className = _.join([this.props.className, 'ux-search', 'ux-row'], ' ');
 
     return (
       <div className={ className }>
         <TextBox ref="text"
-                 className='app-expand'
+                 className='ux-expand'
                  autoFocus={ true }
                  placeholder='Search... [@type] [#label]'
                  value={ this.props.value}
@@ -41,7 +41,7 @@ export class SearchBar extends React.Component {
                  onChange={ this.handleSearch.bind(this) }
         />
 
-        <i className="app-icon material-icons" onClick={ this.handleSearch.bind(this) }>search</i>
+        <i className="ux-icon" onClick={ this.handleSearch.bind(this) }>search</i>
       </div>
     );
   }

@@ -1,0 +1,166 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+@import './theme.less';
+
+//
+// General Rules:
+// Containers should have not margins or padding.
+//
+
+.ux-fullscreen {
+  position: fixed;
+
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.ux-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+
+.ux-app-header {
+  background-color: @ux-header-background;
+  color: @ux-header-color;
+
+  a {
+    color: @ux-header-color;
+  }
+
+  i.ux-icon {
+    font-size: @ux-font-large;
+  }
+
+  h1 {
+    padding: 0 8px;
+  }
+
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+
+    li {
+      display: inline;
+      padding-left: 8px;
+    }
+  }
+}
+
+//
+// Column container.
+//
+
+.ux-column {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow-x: hidden;
+}
+
+//
+// Row container.
+//
+
+.ux-row {
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  align-items: center;
+  overflow-x: hidden;
+
+  > i:first-child,
+  > a i:first-child {
+    margin-right: 8px;
+  }
+
+  * {
+    display: flex;                  // Outer element like <a> should not add padding.
+  }
+}
+
+//
+// Scroll container.
+// https://css-tricks.com/almanac/properties/s/scrollbar/
+//
+
+.ux-scroll-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
+}
+.ux-scroll-panel {
+  overflow-y: scroll;
+  background-color: white;
+}
+.ux-scroll-panel::-webkit-scrollbar {
+  -webkit-appearance: inherit;
+  width: 4px;
+}
+.ux-scroll-panel::-webkit-scrollbar-track {
+  background-color: white;
+}
+.ux-scroll-panel::-webkit-scrollbar-thumb {
+  background-color: #666;
+}
+
+//
+// Content section.
+//
+
+.ux-section {
+  padding: @ux-section-padding;
+}
+.ux-section-header {
+  padding: @ux-section-padding;
+  background-color: @ux-section-header-background;
+  color: @ux-section-header-color;
+
+  i.ux-icon {
+    color: @ux-section-header-color;
+  }
+}
+
+//
+// Modifiers.
+//
+
+.ux-center {
+  justify-content: center;
+}
+
+.ux-expand {
+  display: flex;
+  flex-grow: 1;
+}
+
+//
+// Toolbar.
+//
+
+.ux-toolbar {
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  align-items: center;
+
+  font-size: 0;                               // Removes default text padding.
+
+  background-color: @ux-toolbar-background;
+  padding: @ux-toolbar-padding;
+
+  > input, button, select {
+    margin-left: @ux-toolbar-padding;
+  }
+
+  > input:first-child, button:first-child, select:first-child {
+    margin-left: 0;
+  }
+}

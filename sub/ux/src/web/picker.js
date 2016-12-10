@@ -155,7 +155,7 @@ export class Picker extends React.Component {
       );
     });
 
-    let className = _.join(['app-picker', this.props.className], ' ');
+    let className = _.join(['ux-picker', this.props.className], ' ');
 
     return (
       <div className={ className }>
@@ -167,7 +167,7 @@ export class Picker extends React.Component {
                  onKeyDown={ this.handleTextKeyDown.bind(this) }
                  onFocusChange={ this.handleTextFocusChange.bind(this) }/>
 
-        <div ref="items" className="app-picker-popup" style={ {'display': this.state.showPopup ? 'block' : 'none' } }>
+        <div ref="items" className="ux-picker-popup" style={ {'display': this.state.showPopup ? 'block' : 'none' } }>
           <div>
             { rows }
           </div>

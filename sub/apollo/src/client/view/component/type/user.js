@@ -51,36 +51,38 @@ export default class User extends React.Component {
 
   render() {
     return (
-      <div className="app-section">
-        <h2>Tasks</h2>
+      <div className="app-type-user ux-column">
+        <div className="ux-section">
+          <h2>Tasks</h2>
 
-        <div className="app-row">
-          <h3 className="app-expand">Owned</h3>
-          <i className="material-icons">add</i>
-        </div>
-        <div>
-          {this.props.item.ownerTasks.map(task => (
-            <div key={ task.id } className="app-row">
-              <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
-                <i className="material-icons">assignment_turned_in</i>
-              </Link>
-              <div className="app-expand">{ task.title }</div>
-            </div>
-          ))}
-        </div>
+          <div className="ux-row">
+            <h3 className="ux-expand">Owned</h3>
+            <i className="ux-icon">add</i>
+          </div>
+          <div>
+            {this.props.item.ownerTasks.map(task => (
+              <div key={ task.id } className="ux-row">
+                <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
+                  <i className="ux-icon">assignment_turned_in</i>
+                </Link>
+                <div className="ux-expand">{ task.title }</div>
+              </div>
+            ))}
+          </div>
 
-        <div className="app-row">
-          <h3 className="app-expand">Assigned</h3>
-        </div>
-        <div>
-          {this.props.item.assigneeTasks.map(task => (
-            <div key={ task.id } className="app-row">
-              <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
-                <i className="material-icons">assignment_turned_in</i>
-              </Link>
-              <div className="app-expand">{ task.title }</div>
-            </div>
-          ))}
+          <div className="ux-row">
+            <h3 className="ux-expand">Assigned</h3>
+          </div>
+          <div>
+            {this.props.item.assigneeTasks.map(task => (
+              <div key={ task.id } className="ux-row">
+                <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
+                  <i className="ux-icon">assignment_turned_in</i>
+                </Link>
+                <div className="ux-expand">{ task.title }</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

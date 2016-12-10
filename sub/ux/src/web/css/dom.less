@@ -1,0 +1,135 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+@import (reference) './mixin';
+
+@import './theme';
+
+//
+// Generic DOM elements.
+//
+
+body {
+  margin: 0;
+  overflow: hidden;                     // Prevent scrolling/bounce.
+  box-sizing: border-box;
+
+  background-color: @ux-body-background;
+  color: @ux-color-dark;
+  font-family: @ux-font-family;
+  font-size: @ux-font-medium;
+  font-weight: 100;
+}
+
+table {
+  table-layout: fixed;
+}
+
+//
+// Text
+//
+
+a {
+  color: @ux-color-dark;
+  text-decoration: none;
+  font-weight: 100;
+}
+
+h1, h2, h3 {
+  font-weight: 100;
+  margin: 0;
+}
+h1 {
+  font-size: @ux-font-large;
+}
+h2 {
+  font-size: @ux-font-large;
+}
+h3 {
+  font-size: @ux-font-medium;
+}
+
+pre {
+  white-space: pre-line;
+}
+
+//
+// Forms
+// TODO(burdon): Use <a> instead of <button> for press highlight.
+//
+
+//
+// Text
+//
+
+input[type=text], textarea {
+  background-color: transparent;
+}
+
+input[type=text] {
+  spellcheck: none;
+
+  // Keep same height as other controls (e.g., select).
+  border: 1px solid transparent;
+  border-bottom: 1px solid @ux-toolbar-control-border;
+}
+
+textarea {
+  resize: none;
+
+  border: 1px solid @ux-toolbar-control-border-light;
+}
+textarea::-webkit-scrollbar {
+  width: 4px;
+}
+textarea::-webkit-scrollbar-thumb {
+  background-color: #666;
+}
+
+//
+// Controls
+//
+
+button, input {
+  border: @ux-border;
+  font-size: @ux-font-medium;
+  margin: 0;
+  padding: 0;
+}
+
+input, textarea, button, select {
+  outline: none;
+
+  font-family: @ux-font-family;
+  font-size: @ux-font-medium;
+  font-weight: 100;
+
+  border: 1px solid @ux-toolbar-control-border;
+}
+
+button {
+  background-color: @ux-button-background;
+  justify-content: center;
+}
+button:hover {
+  background-color: @ux-button-background-hover;
+}
+
+button,
+select {
+  .ux-noselect;
+  color: @ux-toolbar-control-color;
+  background-color: @ux-toolbar-control-background;
+}
+
+button:hover,
+select:hover {
+  background-color: @ux-toolbar-control-background-hover;
+}
+
+select {
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+  outline: none;
+}

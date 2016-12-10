@@ -140,35 +140,35 @@ export default class Group extends React.Component {
     // TODO(burdon): Factor out item row (use in inbox).
 
     return (
-      <div className="app-column app-type-group">
+      <div className="app-type-group ux-column">
 
-        <div className="app-column app-expand">
+        <div className="ux-column ux-expand">
           {/*
             * Team Member
             */}
           {this.props.item.members.map(member => (
           <div key={ member.id }>
 
-            <div className="app-banner app-row">
+            <div className="ux-section-header ux-row">
               <Link to={ Path.detail('member', ID.toGlobalId('User', member.id)) }>
-                <i className="material-icons">accessibility</i>
+                <i className="ux-icon">accessibility</i>
               </Link>
-              <h3 className="app-expand">{ member.title }</h3>
-              <i className="app-icon app-icon-add material-icons"
+              <h3 className="ux-expand">{ member.title }</h3>
+              <i className="ux-icon ux-icon-add"
                  onClick={ this.handleTaskAdd.bind(this, member) }></i>
             </div>
 
             {/*
               * Task
               */}
-            <div className="app-section">
+            <div className="ux-section">
               {member.tasks.map(task => (
-              <div key={ task.id } className="app-row app-data-row">
+              <div key={ task.id } className="ux-row ux-data-row">
                 <Link to={ Path.detail('task', ID.toGlobalId('Task', task.id)) }>
-                  <i className="material-icons">assignment_turned_in</i>
+                  <i className="ux-icon">assignment_turned_in</i>
                 </Link>
-                <div className="app-text app-expand">{ task.title }</div>
-                <i className="app-icon app-icon-delete material-icons"
+                <div className="ux-text ux-expand">{ task.title }</div>
+                <i className="ux-icon ux-icon-delete"
                    onClick={ this.handleTaskDelete.bind(this, task) }>cancel</i>
               </div>
               ))}
@@ -179,15 +179,15 @@ export default class Group extends React.Component {
                 * Edit
                 */}
               {this.state.inlineEdit === member.id &&
-              <div className="app-row app-data-row">
-                <i className="material-icons">assignment_turned_in</i>
+              <div className="ux-row ux-data-row">
+                <i className="ux-icon">assignment_turned_in</i>
                 <TextBox ref="task_create"
-                         className="app-expand" autoFocus={ true }
+                         className="ux-expand" autoFocus={ true }
                          onEnter={ this.handleTaskSave.bind(this, member, true) }
                          onCancel={ this.handleTaskSave.bind(this, member, false)} />
-                <i className="app-icon app-icon-save material-icons"
+                <i className="ux-icon ux-icon-save"
                    onClick={ this.handleTaskSave.bind(this, member) }>check</i>
-                <i className="app-icon app-icon-cancel material-icons"
+                <i className="ux-icon ux-icon-cancel"
                    onClick={ this.handleTaskSave.bind(this, member, false) }>cancel</i>
               </div>}
             </div>

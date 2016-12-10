@@ -62,19 +62,17 @@ export class Item extends React.Component {
     // TODO(burdon): Const for labels.
 
     return (
-      <div className="app-list-item app-row app-data-row">
-        <i className="app-icon material-icons"
-           onClick={ this.handleToggleLabel.bind(this, '_favorite') }>
+      <div className="ux-row ux-list-item">
+        <i className="ux-icon" onClick={ this.handleToggleLabel.bind(this, '_favorite') }>
           { _.indexOf(item.labels, '_favorite') == -1 ? 'star_border' : 'star' }
         </i>
 
-        <div className="app-text app-expand"
-           onClick={ this.handleSelect.bind(this) }>{ item.title }
+        <div className="ux-text ux-expand" onClick={ this.handleSelect.bind(this) }>
+          { item.title }
         </div>
 
-        <i className="app-icon app-icon-type material-icons">{ icon }</i>
-        <i className="app-icon app-icon-delete material-icons"
-           onClick={ this.handleToggleLabel.bind(this, '_deleted') }>cancel</i>
+        <i className="ux-icon ux-icon-type">{ icon }</i>
+        <i className="ux-icon ux-icon-delete" onClick={ this.handleToggleLabel.bind(this, '_deleted') }>cancel</i>
       </div>
     );
   }

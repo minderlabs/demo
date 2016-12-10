@@ -2,127 +2,120 @@
 // Copyright 2016 Minder Labs.
 //
 
+@import (reference) './material';
 @import (reference) './mixin';
+
+@import './dom';
+@import './layout';
 @import './theme';
-
-// TODO(burdon): Name core/mixing/lib classes from specific app components (e.g., app- vs. nx-)
-
-//
-// Generic Elements.
-//
-
-body {
-  margin: 0;
-  overflow: hidden;
-}
-
-i.material-icons {
-  .app-noselect;
-  cursor: pointer;
-}
-
-table {
-  table-layout: fixed;
-}
-
-textarea {
-  resize: none;
-}
-
-//
-// Layout
-//
-
-.app-panel {
-  display: flex;
-  flex-direction: column;
-}
-
-.app-column {
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
-}
-.app-column::-webkit-scrollbar {
-  width: 4px;
-}
-.app-column::-webkit-scrollbar-thumb {
-  background-color: #666;
-}
-
-.app-row {
-  display: flex;
-  flex-direction: row;
-  flex-shrink: 0;
-  overflow-x: hidden;
-  align-items: center;
-}
-
-.app-expand {
-  flex-grow: 1;
-}
-
-//
-// Toolbar.
-//
-
-.app-toolbar {
-  display: flex;
-  flex-direction: row;
-  flex-shrink: 0;
-  align-items: center;
-
-  box-shadow: @app-panel-boxshaow;
-  background-color: @app-toolbar-background;
-  padding: @app-toolbar-padding;
-
-  > input, button, select {
-    margin-left: @app-toolbar-padding;
-  }
-
-  > input:first-child, button:first-child, select:first-child {
-    margin-left: 0;
-  }
-}
-
-//
-// Data table.
-//
-
-.app-data {
-  display: flex;
-  flex-direction: column;
-
-  .app-data-row {
-    display: flex;
-    flex-direction: row;
-  }
-}
-
-// TODO(burdon): ???
-.app-key {
-  color: @app-color-medium;
-  font-size: @app-font-small;
-}
-
-//
-// General
-//
-
-.app-hidden {
-  visibility: hidden;
-}
 
 //
 // Icons
+// <i class="ux-icon"></i>
+// TODO(burdon): Theme.
 //
 
-.app-icon {
+i.ux-icon {
+  .ux-noselect;
+  .material-icons;
+
+  font-size: 18px;
   cursor: pointer;
 }
-.app-icon-medium {
-  font-size: @app-icon-size-medium;
+
+.ux-icon-medium {
+  font-size: @ux-font-medium;
 }
-.app-icon-star {
-  color: @app-color-star;
+
+.ux-icon-star {
+  color: @ux-color-star;
+}
+
+i.ux-icon-action {
+  color: #CCC;
+}
+i.ux-icon-action:hover {
+  color: #999;
+}
+
+i.ux-icon-add:after {
+  color: #999;
+  content: 'add';
+}
+i.ux-icon-add:hover:after {
+  color: darkred;
+  content: 'add_circle';
+}
+
+i.ux-icon-error:after {
+  content: 'radio_button_unchecked';
+  color: lightgreen;
+}
+i.ux-icon-error.ux-icon-on:after {
+  content: 'error';
+  color: indianred;
+}
+
+//
+// Forms
+// TODO(burdon): Clean-up.
+//
+
+.ux-data {
+  display: flex;
+  flex-direction: column;
+
+  .ux-data-label {
+    font-size: @ux-font-small;
+    padding-right: 4px;
+  }
+
+  .ux-data-row {
+    display: flex;
+    flex-direction: row;
+
+    .ux-text {
+      margin: 1px;                    // Align with inline input (border).
+      padding: 2px 4px;
+    }
+
+    input[type=text] {
+      font-size: @ux-font-medium;
+      padding: 2px 4px;
+    }
+  }
+}
+
+//
+// Elements
+//
+
+.ux-tag {
+  margin-left: 4px;
+  padding: 3px 4px;
+  border-radius: 4px;
+  background-color: @ux-color-tag;
+  color: white;
+  cursor: pointer;
+}
+.ux-tag:first-child {
+  margin-left: 0;
+}
+
+.ux-debug {
+  word-wrap: break-word;
+  font-family: Monaco, monospace;
+  font-size: 10px;
+  color: @ux-color-debug;
+}
+
+.ux-error {
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  font-family: Monaco, monospace;
+  font-size: 14px;
+  color: @ux-color-error;
 }

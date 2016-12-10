@@ -6,6 +6,8 @@
 
 import React from 'react';
 
+import './list.less';
+
 /**
  * Item List.
  */
@@ -29,8 +31,8 @@ export class List extends React.Component {
     // TODO(burdon): Track scroll position in redux so that it can be restored.
 
     return (
-      <div className="app-column app-list">
-        <div ref="items" className="app-column app-scroll-container">
+      <div className="ux-column ux-list">
+        <div ref="items" className="ux-column ux-scroll-container">
           { items.map(item => this.props.itemRenderer(item)) }
         </div>
       </div>

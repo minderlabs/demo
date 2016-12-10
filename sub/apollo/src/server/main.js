@@ -47,7 +47,7 @@ const env = process.env['NODE_ENV'] || 'development';
 const host = (env === 'production') ? '0.0.0.0' : '127.0.0.1';
 const port = process.env['VIRTUAL_PORT'] || 3000;
 
-const testing = (env === 'development');
+const testing = (env !== 'production');
 
 
 //

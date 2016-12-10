@@ -15,7 +15,7 @@ import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
-import { TypeRegistry } from './component/type_registry';
+import { TypeRegistry } from './component/type/registry';
 
 import './detail.less';
 
@@ -49,27 +49,35 @@ class DetailView extends React.Component {
     };
   }
 
-  handleSave(item) {
+  componentWillReceiveProps(nextProps) {
+    // Auto-save.
+    let oldId = _.get(this.props, 'data.item.id');
+    if (oldId && oldId != nextProps.data.item.id) {
+      this.maybeSave();
+    }
+  }
+
+  componentWillUnmount() {
+    // Auto-save.
+    this.maybeSave();
+  }
+
+  /**
+   * Check for modified elements and submit mutation if necessary.
+   */
+  maybeSave() {
+    let { item } = this.props.data;
     let mutations = [];
 
     // Item values.
-    TypeUtil.maybeAppend(mutations,
-      MutationUtil.field('title', 'string', this.refs.title.value, item.title));
+    TypeUtil.maybeAppend(mutations, MutationUtil.field('title', 'string', this.refs.title.value, item.title));
 
     // Detail type values.
     TypeUtil.maybeAppend(mutations, this.refs[DetailView.DETAIL_REF].mutations);
 
-    console.log('Mutations: %s', JSON.stringify(mutations));
-
     if (mutations.length) {
       this.props.mutator.updateItem(item, mutations);
     }
-
-    this.props.onClose(true);
-  }
-
-  handleCancel() {
-    this.props.onClose(false);
   }
 
   render() {
@@ -87,18 +95,15 @@ class DetailView extends React.Component {
     });
 
     return (
-      <div className="app-item-detail app-column">
-        <div className="app-section app-row">
-          <TextBox ref="title" className="app-expand" value={ item.title }/>
+      <div className="app-detail ux-column">
+        <div className="ux-section ux-row">
+          <TextBox ref="title" className="ux-expand" value={ item.title }/>
         </div>
 
-        <div className="app-item-detail-content app-expand">
-          { detail }
-        </div>
-
-        <div className="app-toolbar app-center">
-          <button onClick={ this.handleSave.bind(this, item) }>Save</button>
-          <button onClick={ this.handleCancel.bind(this) }>Cancel</button>
+        <div className="ux-scroll-container">
+          <div className="ux-scroll-panel">
+            { detail }
+          </div>
         </div>
       </div>
     );
@@ -152,7 +157,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
-    onClose: (save) => {
+    onClose: () => {
       dispatch(goBack());
     }
   }

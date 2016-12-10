@@ -4,19 +4,19 @@
 
 @import './css/theme';
 
-@app-sidebar-width: 200px;
+@ux-sidebar-width: 200px;
 
-.app-sidebar {
+.ux-sidebar {
   position: relative;
   display: flex;
   flex-grow: 1;
   overflow: hidden;
 
-  .app-sidebar-drawer {
+  .ux-sidebar-drawer {
     box-sizing: border-box;
 
     position: absolute;
-    width: @app-sidebar-width;
+    width: @ux-sidebar-width;
     overflow: hidden;
     height: 100%;
 
@@ -25,7 +25,7 @@
     border-right: 1px solid transparent;
     box-shadow: none;
 
-    -webkit-transform: translateX(-@app-sidebar-width);
+    -webkit-transform: translateX(-@ux-sidebar-width);
     transition: all 0.3s ease;
 
     z-index: 1;
@@ -43,10 +43,10 @@
       }
     }
   }
-  .app-sidebar-drawer.app-open {
+  .ux-sidebar-drawer.ux-open {
     -webkit-transform: translateX(0);
 
     border-right: 1px solid gray;
-    box-shadow: @app-boxshadow;
+    box-shadow: @ux-boxshadow;
   }
 }

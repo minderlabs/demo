@@ -121,7 +121,7 @@ export class TextBox extends React.Component {
   }
 
   render() {
-    let className = _.join([this.props.className, 'app-textbox'], ' ');
+    let className = _.join([this.props.className, 'ux-textbox'], ' ');
 
     return (
       <input ref="input"

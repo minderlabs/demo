@@ -44,10 +44,10 @@ export class Sidebar extends React.Component {
   }
 
   render() {
-    let className = _.join(['app-sidebar-drawer', this.state.open ? 'app-open' : ''], ' ');
+    let className = _.join(['ux-sidebar-drawer', this.state.open ? 'ux-open' : ''], ' ');
 
     return (
-      <div className="app-sidebar">
+      <div className="ux-sidebar">
         <div className={ className }>
           <div>
             <input ref="hidden" onBlur={ this.close.bind(this) }/>
@@ -80,7 +80,7 @@ export class SidebarToggle extends React.Component {
 
   render() {
     return (
-      <i className="app-sidebar-toggle material-icons"
+      <i className="ux-icon ux-icon-sidebar-toggle"
          onMouseDown={ this.handleToggleSidebar.bind(this) }>menu</i>
     );
   }

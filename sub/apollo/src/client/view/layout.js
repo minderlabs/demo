@@ -16,7 +16,7 @@ import { QueryRegistry } from '../data/subscriptions';
 
 import { Monitor } from './component/devtools';
 import { Folders } from './component/folders';
-import { StatusBar } from './component/status';
+import { StatusBar } from './component/statusbar';
 
 import './layout.less';
 
@@ -68,14 +68,14 @@ class Layout extends React.Component {
     // TODO(burdon): Skip DevTools in prod.
 
     return (
-      <div className="app-main-container">
-        <div className="app-main-panel">
+      <div className="app-main-container ux-fullscreen">
+        <div className="app-main-panel ux-panel">
 
           {/*
             * Header.
             */}
-          <div className="app-section app-header app-row">
-            <div className="app-expand">
+          <div className="ux-app-header ux-section ux-row">
+            <div className="ux-expand">
               <SidebarToggle sidebar={ () => this.refs.sidebar }/>
               <h1>Minder</h1>
             </div>
@@ -90,7 +90,7 @@ class Layout extends React.Component {
           {/* Sidebar */}
           <Sidebar ref="sidebar" sidebar={ <Folders/> }>
             {/* Content view. */}
-            <div className="app-column">
+            <div className="ux-column">
               { children }
             </div>
           </Sidebar>
@@ -106,7 +106,7 @@ class Layout extends React.Component {
             * Debug sidebar.
             * TODO(burdon): Redux vs custom panel.
             */}
-          <div className="app-debug">
+          <div className="ux-debug">
             <Monitor/>
           </div>
         </div>

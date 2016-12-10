@@ -8,7 +8,7 @@ import React from 'react';
 
 import { Async } from 'minder-core';
 
-import './status.less';
+import './statusbar.less';
 
 /**
  * Status bar.
@@ -66,37 +66,37 @@ export class StatusBar extends React.Component {
   }
 
   render() {
-    function state(state) { return state ? ' app-icon-on' : '' }
+    function state(state) { return state ? ' ux-icon-on' : '' }
 
     // TODO(burdon): Move to config.
     const github = 'https://github.com/alienlaboratories/react-demos/issues';
 
     return (
-      <div className="app-toolbar app-status-toolbar">
+      <div className="ux-toolbar app-status-toolbar">
         <div>
-          <i className="app-icon app-icon-action material-icons" title="Debug info"
+          <i className="ux-icon ux-icon-action" title="Debug info"
              onClick={ this.handleAction.bind(this, 'bug') }>bug_report</i>
           <a href={ github } target="MINDER_GITHUB">
-            <i className="app-icon app-icon-action material-icons" title="Report Bug">report_problem</i>
+            <i className="ux-icon ux-icon-action" title="Report Bug">report_problem</i>
           </a>
           <a href="/graphiql" target="MINDER_GRAPHIQL" title="GraphiQL">
-            <i className="app-icon app-icon-action material-icons" title="GraphiQL">language</i>
+            <i className="ux-icon ux-icon-action" title="GraphiQL">language</i>
           </a>
           <a href="/admin" target="MINDER_ADMIN">
-            <i className="app-icon app-icon-action material-icons" title="Admin">graphic_eq</i>
+            <i className="ux-icon ux-icon-action" title="Admin">graphic_eq</i>
           </a>
           <a href="https://console.firebase.google.com/project/minder-beta/database/data" target="MINDER_FIREBASE">
-            <i className="app-icon app-icon-action material-icons" title="Database">cloud_circle</i>
+            <i className="ux-icon ux-icon-action" title="Database">cloud_circle</i>
           </a>
         </div>
         <div>
-          <i className="app-icon app-icon-action material-icons" title="Refresh queries"
+          <i className="ux-icon ux-icon-action" title="Refresh queries"
              onClick={ this.handleAction.bind(this, 'refresh') }>refresh</i>
 
-          <i className={ "app-icon app-icon-network-in material-icons" + state(this.state.networkIn) }></i>
-          <i className={ "app-icon app-icon-network-out material-icons" + state(this.state.networkOut) }></i>
+          <i className={ "ux-icon app-icon-network-in" + state(this.state.networkIn) }></i>
+          <i className={ "ux-icon app-icon-network-out" + state(this.state.networkOut) }></i>
 
-          <i className={ "app-icon app-icon-error material-icons" + state(this.state.error) }
+          <i className={ "ux-icon ux-icon-error" + state(this.state.error) }
              title={ this.state.error }
              onClick={ this.handleClickError.bind(this, 'error') }></i>
         </div>

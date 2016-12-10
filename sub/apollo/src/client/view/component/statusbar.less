@@ -13,22 +13,15 @@
     display: flex;
   }
 
-  i {
+  i.ux-icon {
     font-size: 18px;
-  }
-
-  i.app-icon-action {
-    color: #CCC;
-  }
-  i.app-icon-action:hover {
-    color: #999;
   }
 
   i.app-icon-network-in:after {
     content: 'call_received';
     color: #666;
   }
-  i.app-icon-network-in.app-icon-on:after {
+  i.app-icon-network-in.ux-icon-on:after {
     color: orange;
   }
 
@@ -36,17 +29,8 @@
     content: 'call_made';
     color: #666;
   }
-  i.app-icon-network-out.app-icon-on:after {
+  i.app-icon-network-out.ux-icon-on:after {
     color: lightgreen;
-  }
-
-  i.app-icon-error:after {
-    content: 'radio_button_unchecked';
-    color: lightgreen;
-  }
-  i.app-icon-error.app-icon-on:after {
-    content: 'error';
-    color: indianred;
   }
 }
 

@@ -20,6 +20,8 @@ import { ACTION } from '../reducers';
 
 import List from './component/list';
 
+import './folder.less';
+
 /**
  * Folder View.
  * http://dev.apollodata.com/react
@@ -80,21 +82,18 @@ class FolderView extends React.Component {
     // TODO(burdon): Move statusbar (e.g., loading, network stats) to parent layout.
 
     return (
-      <div className="app-column">
-        <div className="app-section">
-          <SearchBar value={ this.props.search.text }
-                     onSearch={ this.handleSearch.bind(this) }/>
+      <div className="app-folder ux-column">
+        <div className="ux-section">
+          <SearchBar value={ this.props.search.text } onSearch={ this.handleSearch.bind(this) }/>
         </div>
 
-        <div className="app-section app-expand">
+        <div className="ux-section ux-expand">
           <List filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
-        <div className="app-section app-row">
-          <TextBox ref="text" className="app-expand"
-                   onEnter={ this.handleItemCreate.bind(this) }/>
-          <i className="app-icon-add material-icons"
-             onClick={ this.handleItemCreate.bind(this) }/>
+        <div className="ux-section ux-row">
+          <TextBox ref="text" className="ux-expand" onEnter={ this.handleItemCreate.bind(this) }/>
+          <i className="ux-icon ux-icon-add" onClick={ this.handleItemCreate.bind(this) }/>
         </div>
       </div>
     );

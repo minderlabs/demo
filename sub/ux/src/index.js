@@ -8,6 +8,9 @@
 // https://github.com/markerikson/redux-ecosystem-links
 // https://github.com/vakhtang/react-search-bar
 
+import './web/css/core.less';
+import './web/css/mixin.less';
+
 export * from './web/list';
 export * from './web/picker';
 export * from './web/search';
