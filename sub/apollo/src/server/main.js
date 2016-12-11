@@ -133,7 +133,7 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
       return Promise.all([
         randomizer.generate('Contact', 20),
         randomizer.generate('Place', 10),
-        randomizer.generate('Task', 15, {
+        randomizer.generate('Task', 30, {
           owner: {
             type: 'User', likelihood: 1.0
           },

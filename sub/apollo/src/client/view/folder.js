@@ -63,7 +63,7 @@ class FolderView extends React.Component {
         {
           field: 'owner',
           value: {
-            id: this.props.user.userId
+            id: this.props.user.id
           }
         },
         {
@@ -88,7 +88,7 @@ class FolderView extends React.Component {
   }
 
   render() {
-//  console.log('Folder.render');
+//  console.log('Folderg.render');
 
     // http://dev.apollodata.com/react/queries.html#default-result-props
     let { filter } = this.props;
@@ -101,7 +101,7 @@ class FolderView extends React.Component {
           <SearchBar value={ this.props.search.text } onSearch={ this.handleSearch.bind(this) }/>
         </div>
 
-        <div className="ux-section ux-expand">
+        <div className="ux-expand">
           <List filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 

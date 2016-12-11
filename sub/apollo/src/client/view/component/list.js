@@ -86,6 +86,13 @@ export class List extends React.Component {
     // Only show icon if type isn't constrained.
     let showIcon = !this.props.filter.type;
 
+    // TODO(burdon): Conditionally show more button based on page size and server hint.
+    let more = items.length > 10 && (
+      <div className="ux-row ux-center">
+        <i className="ux-icon ux-icon-action" onClick={ this.handleMore.bind(this) }>expand_more</i>
+      </div>
+    );
+
     return (
       <div className="ux-column ux-list">
         <div ref="items" className="ux-column ux-scroll-container">
@@ -96,10 +103,8 @@ export class List extends React.Component {
                 onSelect={ this.handleItemSelect.bind(this, item) }
                 onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
           )}
-        </div>
 
-        <div className="ux-row ux-toolbar">
-          <button className="ux-expand" onClick={ this.handleMore.bind(this) }>More</button>
+          { more }
         </div>
       </div>
     );

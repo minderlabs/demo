@@ -50,38 +50,36 @@ export default class User extends React.Component {
   render() {
     return (
       <div className="app-type-user ux-column">
-        <div className="ux-section">
-          <h2>Tasks</h2>
 
-          <div className="ux-row">
-            <h3 className="ux-expand">Owned</h3>
-            <i className="ux-icon">add</i>
-          </div>
-          <div>
-            {this.props.item.ownerTasks.map(task => (
-              <div key={ task.id } className="ux-row">
-                <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
-                  <i className="ux-icon">assignment_turned_in</i>
-                </Link>
-                <div className="ux-expand">{ task.title }</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="ux-row">
-            <h3 className="ux-expand">Assigned</h3>
-          </div>
-          <div>
-            {this.props.item.assigneeTasks.map(task => (
-              <div key={ task.id } className="ux-row">
-                <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
-                  <i className="ux-icon">assignment_turned_in</i>
-                </Link>
-                <div className="ux-expand">{ task.title }</div>
-              </div>
-            ))}
-          </div>
+        <div className="ux-section-header ux-row">
+          <h3 className="ux-expand">Owned</h3>
+          <i className="ux-icon">add</i>
         </div>
+        <div className="ux-list">
+          {this.props.item.ownerTasks.map(task => (
+            <div key={ task.id } className="ux-list-item ux-row">
+              <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
+                <i className="ux-icon">assignment_turned_in</i>
+              </Link>
+              <div className="ux-expand">{ task.title }</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="ux-section-header ux-row">
+          <h3 className="ux-expand">Assigned</h3>
+        </div>
+        <div className="ux-list">
+          {this.props.item.assigneeTasks.map(task => (
+            <div key={ task.id } className="ux-list-item ux-row">
+              <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
+                <i className="ux-icon">assignment_turned_in</i>
+              </Link>
+              <div className="ux-expand">{ task.title }</div>
+            </div>
+          ))}
+        </div>
+
       </div>
     );
   }

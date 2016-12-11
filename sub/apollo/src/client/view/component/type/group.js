@@ -213,11 +213,12 @@ export default class Group extends React.Component {
             </div>
 
             {/*
-              * Task
+              * Tasks
+              * TODO(burdon): Create list abstraction for task list and inline edit.
               */}
-            <div className="ux-section">
+            <div className="ux-list">
               {member.tasks.map(task => (
-              <div key={ task.id } className="ux-row ux-data-row">
+              <div key={ task.id } className="ux-list-item ux-row ux-data-row">
                 <Link to={ Path.detail('task', ID.toGlobalId('Task', task.id)) }>
                   <i className="ux-icon">assignment_turned_in</i>
                 </Link>
@@ -227,13 +228,11 @@ export default class Group extends React.Component {
               </div>
               ))}
 
-              <div>{ this.state.inlineEdit && this.state.inlineEdit.id }</div>
-
               {/*
                 * Edit
                 */}
               {this.state.inlineEdit === member.id &&
-              <div className="ux-row ux-data-row">
+              <div className="ux-list-item ux-row ux-data-row">
                 <i className="ux-icon">assignment_turned_in</i>
                 <TextBox ref="task_create"
                          className="ux-expand" autoFocus={ true }
@@ -251,25 +250,29 @@ export default class Group extends React.Component {
 
           {/*
             * Shared Notes
+            * TODO(burdon): Move inline item creation into List.
             */}
           <div className="ux-section-header ux-row">
             <h3 className="ux-expand">Shared Notes</h3>
-            <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this, Group.NOTE_TYPE.SHARED) }></i>
+            <i className="ux-icon ux-icon-add"
+               onClick={ this.handleTaskAdd.bind(this, Group.NOTE_TYPE.SHARED) }></i>
           </div>
-          <div className="ux-section ux-expand">
+          <div className="ux-expand">
             <List filter={ sharedNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
           {this.state.inlineEdit === Group.NOTE_TYPE.SHARED &&
-          <div className="ux-section ux-row ux-data-row">
-            <i className="ux-icon">assignment_turned_in</i>
-            <TextBox ref="task_create"
-                     className="ux-expand" autoFocus={ true }
-                     onEnter={ this.handleTaskSave.bind(this, null, true) }
-                     onCancel={ this.handleTaskSave.bind(this, null, false)} />
-            <i className="ux-icon ux-icon-save"
-               onClick={ this.handleTaskSave.bind(this, null) }>check</i>
-            <i className="ux-icon ux-icon-cancel"
-               onClick={ this.handleTaskSave.bind(this, null, false) }>cancel</i>
+          <div className="ux-list">
+            <div className="ux-list-item ux-row ux-data-row">
+              <i className="ux-icon">assignment_turned_in</i>
+              <TextBox ref="task_create"
+                       className="ux-expand" autoFocus={ true }
+                       onEnter={ this.handleTaskSave.bind(this, null, true) }
+                       onCancel={ this.handleTaskSave.bind(this, null, false)} />
+              <i className="ux-icon ux-icon-save"
+                 onClick={ this.handleTaskSave.bind(this, null) }>check</i>
+              <i className="ux-icon ux-icon-cancel"
+                 onClick={ this.handleTaskSave.bind(this, null, false) }>cancel</i>
+            </div>
           </div>}
 
           {/*
@@ -277,22 +280,25 @@ export default class Group extends React.Component {
             */}
           <div className="ux-section-header ux-row">
             <h3 className="ux-expand">Private Notes</h3>
-            <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this, Group.NOTE_TYPE.PRIVATE) }></i>
+            <i className="ux-icon ux-icon-add"
+               onClick={ this.handleTaskAdd.bind(this, Group.NOTE_TYPE.PRIVATE) }></i>
           </div>
-          <div className="ux-section ux-expand">
+          <div className="ux-expand">
             <ViewerList filter={ privateNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
           {this.state.inlineEdit === Group.NOTE_TYPE.PRIVATE &&
-          <div className="ux-section ux-row ux-data-row">
-            <i className="ux-icon">assignment_turned_in</i>
-            <TextBox ref="task_create"
-                     className="ux-expand" autoFocus={ true }
-                     onEnter={ this.handleTaskSave.bind(this, null, true) }
-                     onCancel={ this.handleTaskSave.bind(this, null, false)} />
-            <i className="ux-icon ux-icon-save"
-               onClick={ this.handleTaskSave.bind(this, null) }>check</i>
-            <i className="ux-icon ux-icon-cancel"
-               onClick={ this.handleTaskSave.bind(this, null, false) }>cancel</i>
+          <div className="ux-list">
+            <div className="ux-list-item ux-row ux-data-row">
+              <i className="ux-icon">assignment_turned_in</i>
+              <TextBox ref="task_create"
+                       className="ux-expand" autoFocus={ true }
+                       onEnter={ this.handleTaskSave.bind(this, null, true) }
+                       onCancel={ this.handleTaskSave.bind(this, null, false)} />
+              <i className="ux-icon ux-icon-save"
+                 onClick={ this.handleTaskSave.bind(this, null) }>check</i>
+              <i className="ux-icon ux-icon-cancel"
+                 onClick={ this.handleTaskSave.bind(this, null, false) }>cancel</i>
+            </div>
           </div>}
 
         </div>

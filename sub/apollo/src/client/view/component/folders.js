@@ -18,7 +18,7 @@ export class Folders extends React.Component {
 
   render() {
     return (
-      <div className="ux-column ux-list ux-list-padded">
+      <div className="ux-column ux-list">
         <Link className="ux-list-item" to={ Path.folder('inbox') }>Inbox</Link>
         <Link className="ux-list-item" to={ Path.folder('favorites') }>Favorites</Link>
         <Link className="ux-list-item" to={ Path.folder('deleted') }>Deleted</Link>

@@ -69,9 +69,14 @@ registry._types.set('Group', {
     // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
     // TODO(burdon): First pass: factor out common parts with Reducer.
 
+    // TODO(burdon): FIX: Not part of main query (e.g., shared notes).
+    let assignee = _.get(item, 'assignee.id');
+    if (!assignee) {
+      return;
+    }
+
     // Find associated member.
     let members = _.get(previousResult, 'item.members');
-    let assignee = _.get(item, 'assignee.id');
     let idx = _.findIndex(members, (member) => member.id === assignee);
     console.assert(idx != -1, 'Invalid ID: %s', assignee);
 
