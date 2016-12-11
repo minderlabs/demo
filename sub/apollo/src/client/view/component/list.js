@@ -3,17 +3,10 @@
 //
 
 import React from 'react';
-import { connect } from 'react-redux';
-import { compose, graphql } from 'react-apollo';
-import gql from 'graphql-tag';
 
-import { Matcher, Mutator, Reducer } from 'minder-core';
-
-import { UpdateItemMutation } from '../../data/mutations';
 import { QueryRegistry } from '../../data/subscriptions';
-
 import { TypeRegistry } from './type/registry';
-import { Item } from './item';
+import { ListItem } from './list_item';
 
 import './list.less';
 
@@ -24,6 +17,11 @@ import './list.less';
  */
 export class List extends React.Component {
 
+  // TODO(burdon): Inline editor.
+  // TODO(burdon): Factor out generic component (no HOC deps) or TypeRegistry/QueryRegistry, etc.
+
+  static COUNT = 20;
+
   static propTypes = {
     injector: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired,
@@ -31,14 +29,13 @@ export class List extends React.Component {
     onItemSelect: React.PropTypes.func.isRequired,
 
     count: React.PropTypes.number,
-
     items: React.PropTypes.array
   };
 
   // NOTE: React.defaultProps is called after Redux.
   static defaults = (props) => {
     return _.defaults({}, props, {
-      count: 20
+      count: List.COUNT
     });
   };
 
@@ -79,29 +76,28 @@ export class List extends React.Component {
   render() {
     let items = this.props.items || [];
 
-    let typeRegistry = this.props.injector.get(TypeRegistry);
-
-    // TODO(burdon): Track scroll position in redux so that it can be restored.
-
     // Only show icon if type isn't constrained.
-    let showIcon = !this.props.filter.type;
+    let typeRegistry = this.props.injector.get(TypeRegistry);
+    let icon = (item) => !this.props.filter.type && typeRegistry.icon(item.type);
 
     // TODO(burdon): Conditionally show more button based on page size and server hint.
-    let more = items.length > 10 && (
+    let more = items.length > List.COUNT && (
       <div className="ux-row ux-center">
         <i className="ux-icon ux-icon-action" onClick={ this.handleMore.bind(this) }>expand_more</i>
       </div>
     );
 
+    // TODO(burdon): Track scroll position in redux so that it can be restored.
+
     return (
       <div className="ux-column ux-list">
         <div ref="items" className="ux-column ux-scroll-container">
           {items.map(item =>
-          <Item key={ item.id }
-                item={ Item.Fragments.item.filter(item) }
-                icon={ showIcon && typeRegistry.icon(item.type) }
-                onSelect={ this.handleItemSelect.bind(this, item) }
-                onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
+          <ListItem key={ item.id }
+                    item={ ListItem.Fragments.item.filter(item) }
+                    icon={ icon(item) }
+                    onSelect={ this.handleItemSelect.bind(this, item) }
+                    onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
           )}
 
           { more }
@@ -110,106 +106,3 @@ export class List extends React.Component {
     );
   }
 }
-
-const mapStateToProps = (state, ownProps) => {
-  let { minder } = state;
-
-  return {
-    // Provide for Mutator.graphql
-    injector: minder.injector,
-    context: {
-      user: { id: minder.user.id }
-    },
-  }
-};
-
-export function composeListForQuery(gqlQuery, getItemsFromData) {
-  return compose(
-
-    connect(mapStateToProps),
-
-    graphql(gqlQuery, {
-
-      // Configure query variables.
-      // http://dev.apollodata.com/react/queries.html#graphql-options
-      options: (props) => {
-        let { filter, count } = List.defaults(props);
-
-        let matcher = props.injector.get(Matcher);
-        let typeRegistry = props.injector.get(TypeRegistry);
-
-        return {
-          // TODO(burdon): Can we pass variables to fragments?
-          fragments: Item.Fragments.item.fragments(),
-
-          variables: {
-            filter, count, offset: 0
-          },
-
-          reducer: Reducer.reduce(props.context, matcher, typeRegistry, UpdateItemMutation, gqlQuery, filter),
-        }
-      },
-
-      // Configure props passed to component.
-      // http://dev.apollodata.com/react/queries.html#graphql-props
-      props: ({ ownProps, data }) => {
-        let items = getItemsFromData(data);
-        let { filter, count } = ownProps;
-
-        return {
-          data,
-          items,
-
-          // Paging.
-          // http://dev.apollodata.com/react/pagination.html
-          // http://dev.apollodata.com/react/cache-updates.html#fetchMore
-          fetchMoreItems: () => {
-            return data.fetchMore({
-              variables: {
-                filter, count, offset: items.length
-              },
-
-              updateQuery: (previousResult, { fetchMoreResult }) => {
-                return _.assign({}, previousResult, {
-                  items: [...previousResult.items, ...fetchMoreResult.data.items]
-                });
-              }
-            });
-          }
-        }
-      }
-    }),
-
-    // Provides mutator property.
-    Mutator.graphql(UpdateItemMutation)
-
-  )(List);
-}
-
-//
-// Queries
-//
-
-/**
- * A List component with items defined by root-level query for items(filter).
- */
-
-const ItemsQuery = gql`
-    query ItemsQuery($filter: FilterInput, $offset: Int, $count: Int) {
-
-        items(filter: $filter, offset: $offset, count: $count) {
-            __typename
-
-            id
-
-            ...ItemFragment
-        }
-    }
-`;
-
-export default composeListForQuery(
-  ItemsQuery,
-
-  (data) => {
-    return data.items
-  });

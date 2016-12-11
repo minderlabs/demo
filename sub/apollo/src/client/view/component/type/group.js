@@ -10,8 +10,7 @@ import gql from 'graphql-tag';
 import { ID } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
-import List from '../list';
-import ViewerList from '../viewer_list';
+import { ItemsList, UserTasksList } from '../list_factory';
 import { Path } from '../../../path';
 
 import './group.less';
@@ -258,7 +257,7 @@ export default class Group extends React.Component {
                onClick={ this.handleTaskAdd.bind(this, Group.NOTE_TYPE.SHARED) }></i>
           </div>
           <div className="ux-expand">
-            <List filter={ sharedNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+            <ItemsList filter={ sharedNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
           {this.state.inlineEdit === Group.NOTE_TYPE.SHARED &&
           <div className="ux-list">
@@ -284,7 +283,7 @@ export default class Group extends React.Component {
                onClick={ this.handleTaskAdd.bind(this, Group.NOTE_TYPE.PRIVATE) }></i>
           </div>
           <div className="ux-expand">
-            <ViewerList filter={ privateNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+            <UserTasksList filter={ privateNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
           {this.state.inlineEdit === Group.NOTE_TYPE.PRIVATE &&
           <div className="ux-list">

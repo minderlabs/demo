@@ -30,9 +30,9 @@ const Fragments = {
 };
 
 /**
- * Item.
+ * List Item.
  */
-export class Item extends React.Component {
+export class ListItem extends React.Component {
 
   /**
    * Fragments.
@@ -40,7 +40,7 @@ export class Item extends React.Component {
   static Fragments = Fragments;
 
   static propTypes = {
-    item: Fragments.item.propType,
+//  item: Fragments.item.propType,
     onSelect: React.PropTypes.func.isRequired,
     onLabelUpdate: React.PropTypes.func.isRequired
   };

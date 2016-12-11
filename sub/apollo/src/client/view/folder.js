@@ -14,7 +14,7 @@ import { UpdateItemMutation } from '../data/mutations';
 
 import { ACTION } from '../reducers';
 
-import List from './component/list';
+import { ItemsList } from './component/list_factory';
 
 import './folder.less';
 
@@ -102,7 +102,7 @@ class FolderView extends React.Component {
         </div>
 
         <div className="ux-expand">
-          <List filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <ItemsList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
         <div className="ux-section ux-row">
