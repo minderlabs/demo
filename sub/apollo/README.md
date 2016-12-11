@@ -11,7 +11,6 @@ https://github.com/facebook/graphql/issues/204 (ARGS IN FRAGMENTS)>>>>>> stubail
 https://github.com/apollostack/react-apollo/issues/140
 http://dev.apollodata.com/core/fragments.html
 http://graphql.org/learn/queries/#fragments
-createFragment vs new Fragment
 Try declaring vars in fragment (does it automatically get passed down?)
 
 TODO(burdon): Subscriptions.

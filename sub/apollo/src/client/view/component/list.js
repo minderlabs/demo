@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import { filter } from 'graphql-anywhere';
 
 import { QueryRegistry } from '../../data/subscriptions';
 import { TypeRegistry } from './type/registry';
@@ -38,6 +39,11 @@ export class List extends React.Component {
       count: List.COUNT
     });
   };
+
+  /**
+   * Must override to return item fragment.
+   */
+  getItemFragment() {}
 
   componentWillReceiveProps(nextProps) {
     this.props.injector.get(QueryRegistry).register(this, nextProps.data);
@@ -94,7 +100,7 @@ export class List extends React.Component {
         <div ref="items" className="ux-column ux-scroll-container">
           {items.map(item =>
           <ListItem key={ item.id }
-                    item={ ListItem.Fragments.item.filter(item) }
+                    item={ filter(this.getItemFragment(), item) }
                     icon={ icon(item) }
                     onSelect={ this.handleItemSelect.bind(this, item) }
                     onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>

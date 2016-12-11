@@ -5,6 +5,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
+import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
 
 import { Matcher, Mutator, Reducer } from 'minder-core';
@@ -13,10 +14,10 @@ import { UpdateItemMutation } from '../../data/mutations';
 
 import { TypeRegistry } from './type/registry';
 import { List } from './list';
-import { ListItem } from './list_item';
 
 /**
- * Redux
+ * Redux properties.
+ *
  * @param state
  * @param ownProps
  * @returns {{injector: *, context: {user: {id}}}}
@@ -34,13 +35,13 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 /**
- * TODO(burdon): Factor out.
+ * TODO(burdon): Document.
  *
  * @param query
  * @param getItemsFromData
  * @returns {*}
  */
-export function composeListForQuery(query, getItemsFromData) {
+function composeList(query, getItemsFromData) {
   return compose(
 
     connect(mapStateToProps),
@@ -49,21 +50,20 @@ export function composeListForQuery(query, getItemsFromData) {
 
       // Configure query variables.
       // http://dev.apollodata.com/react/queries.html#graphql-options
+      // http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient\.query
       options: (props) => {
         let { filter, count } = List.defaults(props);
 
         let matcher = props.injector.get(Matcher);
         let typeRegistry = props.injector.get(TypeRegistry);
 
+        // https://github.com/apollostack/apollo-client/blob/master/src/ApolloClient.ts
         return {
-          // TODO(burdon): Can we pass variables to fragments?
-          fragments: ListItem.Fragments.item.fragments(),
+          reducer: Reducer.reduce(props.context, matcher, typeRegistry, UpdateItemMutation, query, filter),
 
           variables: {
             filter, count, offset: 0
-          },
-
-          reducer: Reducer.reduce(props.context, matcher, typeRegistry, UpdateItemMutation, query, filter),
+          }
         }
       },
 
@@ -100,13 +100,72 @@ export function composeListForQuery(query, getItemsFromData) {
     // Provides mutator property.
     Mutator.graphql(UpdateItemMutation)
 
-  )(List);
+  )(WrappedList);
 }
 
 //
-// Queries
+// HOC Lists.
 //
 
+/**
+ * Wrapped HOC list.
+ */
+class WrappedList extends List {
+
+  /**
+   * Defines properties needed by Item.
+   * NOTE: External definition used by static propTypes.
+   *
+   * http://dev.apollodata.com/react/fragments.html#reusing-fragments
+   * http://dev.apollodata.com/core/fragments.html
+   * http://github.com/apollostack/graphql-fragments
+   */
+  static ListItemFragment = gql`
+    fragment ListItemFragment on Item {
+      __typename
+      id
+      type
+  
+      labels
+      title
+    }
+  `;
+
+  getItemFragment() {
+    return WrappedList.ListItemFragment;
+  }
+}
+
+// TODO(burdon): Test if this still fails (need to issue query).
+// TODO(burdon): Apollo Client enforces all fragment names across your application to be unique.
+// https://github.com/apollostack/apollo-client/blob/master/src/fragments.ts#L52
+const FRAG = gql`
+  fragment FRAG on Item {
+    __typename
+  }
+`;
+
+const Q1 = gql`
+  query Q1 {
+    item {
+      __typename
+    }
+    ${FRAG}
+  }
+`;
+
+const Q2 = gql`
+  query Q2 {
+    item {
+      __typename
+    }
+    ${FRAG}
+  }
+`;
+
+/**
+ * Generic list of items.
+ */
 const ItemsQuery = gql`
   query ItemsQuery($filter: FilterInput, $offset: Int, $count: Int) {
 
@@ -114,12 +173,14 @@ const ItemsQuery = gql`
       __typename
       id
 
-      ...ItemFragment
+      ...ListItemFragment
     }
   }
+
+  ${WrappedList.ListItemFragment}
 `;
 
-export const ItemsList = composeListForQuery(
+export const ItemsList = composeList(
   ItemsQuery,
 
   (data) => {
@@ -127,27 +188,34 @@ export const ItemsList = composeListForQuery(
   }
 );
 
-// TODO(burdon): Why isn't this a fragment?
-// TODO(madadam): Pagination (offset/count) for user.tasks.
+/**
+ * List of user items.
+ *
+ * TODO(burdon): Change tasks to filtered items.
+ * TODO(madadam): Pagination (offset/count) for user.tasks.
+ */
 const UserTasksQuery = gql`
   query UserTasksQuery($filter: FilterInput) {
 
-  viewer {
-    id
-    
-    user {
+    viewer {
       id
-      tasks(filter: $filter) {
-        __typename
+      
+      user {
         id
-        
-        ...ItemFragment
+        tasks(filter: $filter) {
+          __typename
+          id
+          
+          ...ListItemFragment
+        }
       }
     }
   }
-}`;
+    
+  ${WrappedList.ListItemFragment}
+`;
 
-export const UserTasksList = composeListForQuery(
+export const UserTasksList = composeList(
   UserTasksQuery,
 
   (data) => {

@@ -3,46 +3,19 @@
 //
 
 import React from 'react';
-import Fragment from 'graphql-fragments';
-import gql from 'graphql-tag';
-
-/**
- * Defines properties needed by Item.
- * NOTE: External definition used by static propTypes.
- *
- * @type {{item}}
- */
-const Fragments = {
-
-  // https://github.com/apollostack/graphql-fragments
-  // http://dev.apollodata.com/core/fragments.html
-  // http://dev.apollodata.com/react/fragments.html
-
-  item: new Fragment(gql`
-    fragment ItemFragment on Item {
-      id
-      type
-      labels
-      title
-    }
-  `)
-
-};
 
 /**
  * List Item.
  */
 export class ListItem extends React.Component {
 
-  /**
-   * Fragments.
-   */
-  static Fragments = Fragments;
-
   static propTypes = {
-//  item: Fragments.item.propType,
-    onSelect: React.PropTypes.func.isRequired,
-    onLabelUpdate: React.PropTypes.func.isRequired
+    // TODO(burdon): Constrain by fragment (graphql-anywhere): propType(VoteButtons.fragments.entry)
+    // http://dev.apollodata.com/react/fragments.html
+    item:           React.PropTypes.object.isRequired,
+
+    onSelect:       React.PropTypes.func.isRequired,
+    onLabelUpdate:  React.PropTypes.func.isRequired
   };
 
   handleSelect() {
@@ -58,6 +31,7 @@ export class ListItem extends React.Component {
     let { item, icon } = this.props;
 
     // TODO(burdon): Const for labels.
+    // TODO(burdon): Specialize for different list types.
 
     return (
       <div className="ux-row ux-list-item">
@@ -70,7 +44,8 @@ export class ListItem extends React.Component {
         </div>
 
         <i className="ux-icon ux-icon-type">{ icon }</i>
-        <i className="ux-icon ux-icon-delete" onClick={ this.handleToggleLabel.bind(this, '_deleted') }>cancel</i>
+        <i className="ux-icon ux-icon-delete"
+           onClick={ this.handleToggleLabel.bind(this, '_deleted') }>cancel</i>
       </div>
     );
   }
