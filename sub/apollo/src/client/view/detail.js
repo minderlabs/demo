@@ -12,7 +12,7 @@ import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
-import { TypeRegistry } from './component/type/registry';
+import { TypeRegistry } from '../component/type/registry';
 
 import './detail.less';
 

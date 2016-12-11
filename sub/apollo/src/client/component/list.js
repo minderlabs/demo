@@ -5,7 +5,7 @@
 import React from 'react';
 import { filter } from 'graphql-anywhere';
 
-import { QueryRegistry } from '../../data/subscriptions';
+import { QueryRegistry } from '../data/subscriptions';
 import { TypeRegistry } from './type/registry';
 import { ListItem } from './list_item';
 

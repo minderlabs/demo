@@ -15,10 +15,10 @@ import { QueryRegistry } from '../data/subscriptions';
 
 import { Navigator } from '../path'
 
-import { Monitor } from './component/devtools';
-import { Folders } from './component/folders';
-import { NavBar } from './component/navbar';
-import { StatusBar } from './component/statusbar';
+import { Monitor } from '../component/devtools';
+import { NavBar } from '../component/navbar';
+import { SidebarPanel } from '../component/sidebar';
+import { StatusBar } from '../component/statusbar';
 
 import './layout.less';
 
@@ -103,7 +103,7 @@ class Layout extends React.Component {
           <NavBar/>
 
           {/* Sidebar */}
-          <Sidebar ref="sidebar" sidebar={ <Folders/> }>
+          <Sidebar ref="sidebar" sidebar={ <SidebarPanel/> }>
             {/* Content view. */}
             <div className="ux-column">
               { children }

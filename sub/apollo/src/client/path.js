@@ -13,8 +13,9 @@ export class Path {
 
   // TODO(burdon): Share with server.
 
-  static ROOT = '/app';
-  static HOME = '/app/inbox';
+  static ROOT     = '/app';
+  static HOME     = '/app/inbox';
+  static TESTING  = '/app/testing';
 
   static folder(alias) {
     return `/app/${alias}`;

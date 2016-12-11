@@ -14,7 +14,7 @@ import { UpdateItemMutation } from '../data/mutations';
 
 import { ACTION } from '../reducers';
 
-import { ItemsList } from './component/list_factory';
+import { ItemsList } from '../component/list_factory';
 
 import './folder.less';
 

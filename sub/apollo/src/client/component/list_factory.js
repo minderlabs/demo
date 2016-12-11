@@ -5,12 +5,11 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
-import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
 
 import { Matcher, Mutator, Reducer } from 'minder-core';
 
-import { UpdateItemMutation } from '../../data/mutations';
+import { UpdateItemMutation } from '../data/mutations';
 
 import { TypeRegistry } from './type/registry';
 import { List } from './list';

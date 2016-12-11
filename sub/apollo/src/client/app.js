@@ -10,6 +10,7 @@ import { ApolloProvider } from 'react-apollo';
 import Layout from './view/layout';
 import DetailView from './view/detail';
 import FolderView from './view/folder';
+import TestView from './view/testing';
 
 import { Path } from './path';
 
@@ -53,6 +54,7 @@ export class Application extends React.Component {
 
             <IndexRedirect to={ Path.HOME }/>
 
+            <Route path={ Path.TESTING } component={ TestView }/>
             <Route path="app/:folder" component={ FolderView }/>
             <Route path="app/:itemView/:itemId" component={ DetailView }/>
 

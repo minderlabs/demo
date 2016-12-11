@@ -7,12 +7,12 @@ import { Link } from 'react-router'
 
 import { ID } from 'minder-core';
 
-import { Path } from '../../path';
+import { Path } from '../path';
 
 /**
- *
+ * Sidebar content.
  */
-export class Folders extends React.Component {
+export class SidebarPanel extends React.Component {
 
   // TODO(burdon): Folders query.
 
@@ -24,6 +24,8 @@ export class Folders extends React.Component {
         <Link className="ux-list-item" to={ Path.folder('deleted') }>Deleted</Link>
 
         <Link className="ux-list-item" to={ Path.detail('Team', ID.toGlobalId('Group', 'minderlabs')) }>Team</Link>
+
+        <Link className="ux-list-item" to={ Path.TESTING }>Test</Link>
       </div>
     );
   }

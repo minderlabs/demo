@@ -15,10 +15,10 @@ import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minde
 
 import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
-import { TypeRegistry } from './view/component/type/registry';
+import { TypeRegistry } from './component/type/registry';
 
 import { AuthManager, ConnectionManager, NetworkManager } from './network';
-import { Monitor } from './view/component/devtools';
+import { Monitor } from './component/devtools';
 
 import Application from './app';
 

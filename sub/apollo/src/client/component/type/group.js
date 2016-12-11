@@ -11,7 +11,7 @@ import { ID } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
 import { ItemsList, UserTasksList } from '../list_factory';
-import { Path } from '../../../path';
+import { Path } from '../../path';
 
 import './group.less';
 
