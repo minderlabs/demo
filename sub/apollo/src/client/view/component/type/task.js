@@ -17,6 +17,7 @@ export const TaskFragments = {
 
   item: new Fragment(gql`
     fragment TaskFragment on Task {
+      bucket  
       owner {
         id
         title

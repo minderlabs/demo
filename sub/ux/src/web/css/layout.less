@@ -119,7 +119,7 @@
   padding: @ux-section-padding;
 }
 .ux-section-header {
-  padding: @ux-section-padding;
+  padding: @ux-section-header-padding;
   background-color: @ux-section-header-background;
   color: @ux-section-header-color;
 
@@ -142,16 +142,29 @@
 }
 
 //
-// Toolbar.
+// Toolbars.
 //
 
-.ux-toolbar {
+.ux-bar {
   display: flex;
   flex-direction: row;
   flex-shrink: 0;
   align-items: center;
 
   font-size: 0;                               // Removes default text padding.
+}
+
+.ux-navbar {
+  .ux-bar;
+
+  justify-content: space-between;
+
+  background-color: @ux-background-light;
+  padding: 4px;
+}
+
+.ux-toolbar {
+  .ux-bar;
 
   background-color: @ux-toolbar-background;
   padding: @ux-toolbar-padding;

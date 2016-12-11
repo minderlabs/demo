@@ -82,6 +82,7 @@ export const graphqlRouter = (database, options) => {
     }
   })));
 
+  // TODO(madadam): Figure out how to inject context here too, for authentication headers.
   // Bind debug UX.
   router.use(options.graphiql, graphiqlExpress({
     endpointURL: options.graphql,

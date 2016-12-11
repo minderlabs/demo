@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+// TODO(burdon): Move path defs here.
+
 /**
  * https://console.firebase.google.com/project/minder-beta/overview
  * https://console.firebase.google.com/project/minder-beta/authentication/users
@@ -14,5 +16,9 @@ export const FirebaseConfig = {
   messagingSenderId: '189079594739'
 };
 
-
-// TODO(burdon): Move path defs here.
+/**
+ * App-wide constants.
+ */
+export const Const = {
+  APP_NAME: 'Minder'
+};

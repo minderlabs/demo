@@ -112,6 +112,7 @@ input FilterInput {
 
   # MUST
   type: String
+  bucket: String
   labels: [String]
   text: String
 
@@ -206,6 +207,7 @@ type Task implements Item {
   alias: String
   title: String!
   labels: [String]
+  bucket: String
 
   owner: User
   assignee: User

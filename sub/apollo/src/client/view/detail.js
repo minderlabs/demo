@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-import { goBack } from 'react-router-redux'
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
@@ -26,16 +25,16 @@ class DetailView extends React.Component {
 
   static DETAIL_REF = 'detail';
 
-  // Pass down through component tree.
   static childContextTypes = {
-    mutator: React.PropTypes.object,
+    // NOTE: Assumes all mutations are based from this HOC mutation type.
+    mutator: React.PropTypes.object
+  };
+
+  static contextTypes = {
+    navigator: React.PropTypes.object,
   };
 
   static propTypes = {
-    mutator: React.PropTypes.object.isRequired,
-
-    onClose: React.PropTypes.func.isRequired,
-
     data: React.PropTypes.shape({
       item: React.PropTypes.object
     })
@@ -43,6 +42,7 @@ class DetailView extends React.Component {
 
   getChildContext() {
     return {
+      // NOTE: Provided via Mutator.graphql()
       mutator: this.props.mutator
     };
   }
@@ -153,16 +153,8 @@ const mapStateToProps = (state, ownProps) => {
   }
 };
 
-const mapDispatchToProps = (dispatch, ownProps) => {
-  return {
-    onClose: () => {
-      dispatch(goBack());
-    }
-  }
-};
-
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps),
 
   graphql(DetailQuery, {
     options: (props) => {

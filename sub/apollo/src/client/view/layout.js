@@ -7,13 +7,17 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { EventHandler, ID } from 'minder-core';
+import { EventHandler } from 'minder-core';
 import { Sidebar, SidebarToggle } from 'minder-ux';
 
+import { Const } from '../../common/defs';
 import { QueryRegistry } from '../data/subscriptions';
+
+import { Navigator } from '../path'
 
 import { Monitor } from './component/devtools';
 import { Folders } from './component/folders';
+import { NavBar } from './component/navbar';
 import { StatusBar } from './component/statusbar';
 
 import './layout.less';
@@ -23,13 +27,19 @@ import './layout.less';
  */
 class Layout extends React.Component {
 
+  static childContextTypes = {
+    navigator: React.PropTypes.object
+  };
+
   static contextTypes = {
     injector: React.PropTypes.object,
   };
 
   static propTypes = {
-    // TODO(burdon): Get from injector?
+    // TODO(burdon): Get from injector.
     queryRegistry: React.PropTypes.object.isRequired,
+
+    navigator: React.PropTypes.object.isRequired,
 
     data: React.PropTypes.shape({
       viewer: React.PropTypes.object
@@ -44,6 +54,12 @@ class Layout extends React.Component {
       .listen('error',        event => { this.refs.status && this.refs.status.error(event.message); })
       .listen('network.in',   event => { this.refs.status && this.refs.status.networkIn();          })
       .listen('network.out',  event => { this.refs.status && this.refs.status.networkOut();         });
+  }
+
+  getChildContext() {
+    return {
+      navigator: this.props.navigator
+    };
   }
 
   handleToolbarClick(id) {
@@ -69,13 +85,11 @@ class Layout extends React.Component {
       <div className="app-main-container ux-fullscreen">
         <div className="app-main-panel ux-panel">
 
-          {/*
-            * Header.
-            */}
+          {/* Header */}
           <div className="ux-app-header ux-section ux-row">
             <div className="ux-expand">
               <SidebarToggle sidebar={ () => this.refs.sidebar }/>
-              <h1>Minder</h1>
+              <h1>{ Const.APP_NAME }</h1>
             </div>
             <div>
               <ul>
@@ -85,6 +99,9 @@ class Layout extends React.Component {
             </div>
           </div>
 
+          {/* Navbar */}
+          <NavBar/>
+
           {/* Sidebar */}
           <Sidebar ref="sidebar" sidebar={ <Folders/> }>
             {/* Content view. */}
@@ -93,17 +110,12 @@ class Layout extends React.Component {
             </div>
           </Sidebar>
 
-          {/*
-            * Footer.
-            */}
+          {/* Footer */}
           <div className="app-footer">
             <StatusBar ref="status" onClick={ this.handleToolbarClick.bind(this) }/>
           </div>
 
-          {/*
-            * Debug sidebar.
-            * TODO(burdon): Redux vs custom panel.
-            */}
+          {/* Debug sidebar */}
           <div className="ux-debug">
             <Monitor/>
           </div>
@@ -192,7 +204,9 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
-  return {}
+  return {
+    navigator: new Navigator(dispatch)
+  }
 };
 
 /**
