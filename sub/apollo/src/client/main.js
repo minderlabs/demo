@@ -10,8 +10,9 @@ import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-rou
 import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
+import Logger from 'js-logger';
 
-import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
+import { EventHandler, IdGenerator, Injector, Matcher, QueryParser, TypeUtil } from 'minder-core';
 
 import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
@@ -21,6 +22,22 @@ import { AuthManager, ConnectionManager, NetworkManager } from './network';
 import { Monitor } from './view/component/devtools';
 
 import Application from './app';
+
+//
+// Logging
+// https://github.com/jonnyreeves/js-logger
+//
+
+Logger.useDefaults({
+  defaultLevel: Logger.DEBUG,
+  formatter: TypeUtil.LOGGING_FORMATTER
+});
+
+const debugLogger = Logger.get('##### DEBUG #####');
+window.debug = function() { debugLogger.info.apply(debugLogger, arguments); };
+debug('Hello');
+
+const logger = Logger.get('test');
 
 // TODO(burdon): Move to index.web.js
 
@@ -133,14 +150,14 @@ const store = createStore(reducers, {}, enhancer);
 const history = syncHistoryWithStore(browserHistory, store);
 
 // TODO(burdon): Factor out logging.
-history.listen(location => { console.log('Router: %s', location.pathname); });
+history.listen(location => { logger.debug('Router: %s', location.pathname); });
 
 /**
  * Renders the application (used by hot loader).
  * @param App Root component.
  */
 const renderApp = (App) => {
-  console.log('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(config, 'debug.env'));
+  logger.debug('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(config, 'debug.env'));
 
   ReactDOM.render(
     <App
@@ -174,7 +191,7 @@ if (module.hot && _.get(config, 'debug.env') === 'hot') {
 // Start app.
 //
 
-console.log('Config = %s', JSON.stringify(config));
+logger.debug('Config = %s', JSON.stringify(config));
 
 // TODO(burdon): Injector pattern.
 // TODO(burdon): Don't attempt connection until authenticated.
