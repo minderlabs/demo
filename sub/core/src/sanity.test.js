@@ -4,7 +4,7 @@
 
 describe('Sanity', () => {
 
-  it('IS SANE', () => {
+  it('Is sane.', () => {
     console.log('OK');
   });
 });

@@ -2,6 +2,10 @@
 // Copyright 2016 Minder Labs.
 //
 
+import Logger from 'js-logger';
+
+const logger = Logger.get('net');
+
 /**
  * Manage queries.
  */
@@ -22,7 +26,7 @@ export class QueryRegistry {
    * Manually refetch registered queries.
    */
   invalidate() {
-    console.log('Refetch: %d', this._registered.size);
+    logger.debug('Refetch: %d', this._registered.size);
     this._registered.forEach((data, component) => {
       data.refetch();
     });

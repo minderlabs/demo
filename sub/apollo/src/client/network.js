@@ -5,12 +5,15 @@
 import moment from 'moment';
 import * as firebase from 'firebase';
 import io from 'socket.io-client';
+import Logger from 'js-logger';
 
 import { createNetworkInterface } from 'apollo-client';
 
 import { TypeUtil } from 'minder-core';
 
 import { FirebaseConfig } from '../common/defs';
+
+const logger = Logger.get('net');
 
 
 /**
@@ -41,7 +44,7 @@ export class AuthManager {
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
     firebase.auth().onAuthStateChanged(user => {
-      console.log('Auth changed: %s', user ? user.email : 'Logout');
+      logger.debug('Auth changed: %s', user ? user.email : 'Logout');
       if (user) {
         user.getToken().then(token => {
           // Update the network manager (sets header for graphql requests).
@@ -91,7 +94,7 @@ export class ConnectionManager {
    * @returns {Promise}
    */
   connect() {
-    console.log('Connecting...');
+    logger.debug('Connecting...');
 
     return new Promise((resolve, reject) => {
       this._socket.on('connect', () => {
@@ -114,11 +117,10 @@ export class ConnectionManager {
           }),
 
           success: (response) => {
-            console.log('Registered[%s]: %s', config.clientId, socketId);
+            logger.debug('Registered[%s]: %s', config.clientId, socketId);
 
             // Listen for invalidations.
             this._socket.on('invalidate', (data) => {
-              console.log('### INVALIDATE: %s', JSON.stringify(data));
               this._eventHandler.emit({ type: 'network.in' });
 
               // TODO(burdon): Invalidate specified queries.
@@ -157,7 +159,7 @@ export class NetworkManager {
     this._requestMap = new Map();
 
     // TODO(burdon): Configure via options.
-    this._logger = new Logger(config.logging);
+    this._logger = new NetworkLogger(config.logging);
 
     // TODO(burdon): Configure batching via options.
     // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
@@ -194,7 +196,7 @@ export class NetworkManager {
         request.query.definitions = _.filter(request.query.definitions, (definition) => {
           let name = definition.name.value;
           if (definitions[name]) {
-            console.warn('SKIPPING: %s', name);
+            logger.warn('SKIPPING: %s', name);
             return false;
           } else {
             definitions[name] = true;
@@ -311,7 +313,7 @@ export class NetworkManager {
  * Client request logger.
  * http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
  */
-class Logger {
+class NetworkLogger {
 
   static TIMESTAMP = 'hh:mm:ss.SSS';
 
@@ -319,17 +321,17 @@ class Logger {
   constructor(options) {}
 
   logRequest(requestId, request) {
-    console.log('[%s] ===>>> [%s]: %s', moment().format(Logger.TIMESTAMP),
+    logger.debug('[%s] ===>>> [%s]: %s', moment().format(NetworkLogger.TIMESTAMP),
       requestId, JSON.stringify(request.variables || {}, TypeUtil.JSON_REPLACER));
   }
 
   logResponse(requestId, response) {
-    console.log('[%s] <<<=== [%s]', moment().format(Logger.TIMESTAMP),
+    logger.debug('[%s] <<<=== [%s]', moment().format(NetworkLogger.TIMESTAMP),
       requestId, JSON.stringify(response.data, TypeUtil.JSON_REPLACER));
   }
 
   logErrors(requestId, errors) {
-    console.error('GraphQL Error [%s]:',
+    logger.error('GraphQL Error [%s]:',
       requestId, errors.map(error => error.message));
   }
 }

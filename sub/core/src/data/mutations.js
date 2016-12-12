@@ -4,9 +4,12 @@
 
 import { graphql } from 'react-apollo';
 import update from 'immutability-helper';
+import Logger from 'js-logger';
 
 import { ID, IdGenerator } from './id';
 import { TypeUtil } from '../util/type';
+
+const logger = Logger.get('net');
 
 // TODO(burdon): Unit tests.
 // TODO(burdon): Dependency on Apollo Client (move out of core)? (OK to have server depend on this?)
@@ -80,7 +83,7 @@ export class Reducer {
       if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === mutationName) {
         let updatedItem = action.result.data.updateItem;
         console.assert(updatedItem);
-        console.log('Reducer[%s:%s]: %s', queryName, action.operationName, JSON.stringify(updatedItem));
+        logger.debug('Reducer[%s:%s]: %s', queryName, action.operationName, JSON.stringify(updatedItem));
 
         let transform = null;
 
@@ -90,7 +93,7 @@ export class Reducer {
         //
 
         if (previousResult.item) {
-          console.log('Update item: %s', TypeUtil.JSON(previousResult));
+          logger.debug('Update item: %s', TypeUtil.stringify(previousResult));
 
           // TODO(burdon): Instead of this should have MutationContext that understands the Query "shape".
           //  E.g., "Task" may be updated in different contexts (Task List, Team page, etc.)
@@ -103,7 +106,7 @@ export class Reducer {
         //
 
         if (previousResult.items) {
-          console.log('Update items: %s', TypeUtil.JSON(previousResult));
+          logger.debug('Update items: %s', TypeUtil.stringify(previousResult));
 
           // TODO(burdon): Context.
           // Determine if currently matches filter.
@@ -117,11 +120,11 @@ export class Reducer {
           if (insert) {
             // Append item.
             // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
-            console.log('APPEND: %s', updatedItem.id);
+            logger.debug('APPEND: %s', updatedItem.id);
             op = { $push: [updatedItem] };
           } else if (!match) {
             // Remove item from list.
-            console.log('REMOVE: %s', updatedItem.id);
+            logger.debug('REMOVE: %s', updatedItem.id);
 
             // TODO(burdon): Use path.
             // TODO(burdon): Just use apply?
@@ -137,7 +140,7 @@ export class Reducer {
         }
 
         if (transform) {
-          console.log('Transform: %s', TypeUtil.JSON(previousResult), JSON.stringify(transform, 0, 2));
+          logger.debug('Transform: %s', TypeUtil.stringify(previousResult), JSON.stringify(transform, 0, 2));
           result = update(previousResult, transform);
         }
       }

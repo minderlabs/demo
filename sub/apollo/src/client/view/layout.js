@@ -72,8 +72,6 @@ class Layout extends React.Component {
   }
 
   render() {
-    console.log('Layout.render');
-
     let { children } = this.props;
     let { viewer } = this.props.data;
 

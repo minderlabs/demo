@@ -6,28 +6,7 @@ import { TypeUtil } from './type';
 
 describe('Types:', () => {
 
-  it ('zzz', (done) => {
-
-    function f(i) {
-      return new Promise((resolve, reject) => {
-        console.log('A', i);
-        resolve();
-      }).then(() => {
-        console.log('B', i);
-      });
-    }
-
-    Promise.all([f(1), f(2)])
-    .then(() => {
-      console.log('C');
-      done();
-    });
-
-  });
-
-
   it('Iterator of promises.', (done) => {
-
     let values = [];
 
     // Async function.
@@ -51,4 +30,9 @@ describe('Types:', () => {
       done();
     });
   });
+
+  it('Format string.', () => {
+    let str = TypeUtil.format('[%s][%d]:%o', '123', 123, { id: 2 });
+    expect(str).to.equal('[123][123]:{"id":2}');
+  })
 });

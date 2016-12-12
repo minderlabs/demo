@@ -9,10 +9,10 @@ import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-router-redux'
 import ApolloClient from 'apollo-client';
 
-import Logger from 'js-logger';
 import moment from 'moment';
+import Logger from 'js-logger';
 
-import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
+import { EventHandler, IdGenerator, Injector, Matcher, QueryParser, TypeUtil } from 'minder-core';
 
 import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
@@ -23,26 +23,32 @@ import { Monitor } from './component/devtools';
 
 import Application from './app';
 
-// TODO(burdon): Factor out.
-// TODO(burdon): Formatter: https://gist.github.com/tmpvar/1077544
+//
+// Logging
+// https://github.com/jonnyreeves/js-logger
+//
+
 Logger.useDefaults({
-  defaultLevel: Logger.INFO,
-  formatter: function(args, context) {
-    let messages = args.splice(0, args.length);
-    args.unshift('HI!!!!', ...messages);
-    // console.log(_.isArray(args));
-    // let message = context.name + ':::' + args.splice(0, 1)[0];
-    // console.log(message, ...args);
-  }
+  defaultLevel: Logger.DEBUG,
+  formatter: TypeUtil.LOGGING_FORMATTER
 });
+
+const debugLogger = Logger.get('##### DEBUG #####');
+window.debug = function() { debugLogger.info.apply(debugLogger, arguments); };
 
 const logger = Logger.get('main');
 
-// TODO(burdon): Move to index.web.js
 
+// TODO(burdon): Remove console.log line number!
+// http://stackoverflow.com/questions/13815640/a-proper-wrapper-for-console-log-with-correct-line-number
+console.log('????');
+
+
+
+
+// TODO(burdon): Move to index.web.js
 // TODO(burdon): Promises for async deps.
 
-// TODO(burdon): Wrap.
 const config = window.config;
 
 let eventHandler = new EventHandler();
@@ -149,14 +155,14 @@ const store = createStore(reducers, {}, enhancer);
 const history = syncHistoryWithStore(browserHistory, store);
 
 // TODO(burdon): Factor out logging.
-history.listen(location => { logger.info('Router: %s', location.pathname); });
+history.listen(location => { logger.debug('Router: %s', location.pathname); });
 
 /**
  * Renders the application (used by hot loader).
  * @param App Root component.
  */
 const renderApp = (App) => {
-  logger.info('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(config, 'debug.env'));
+  logger.debug('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(config, 'debug.env'));
 
   ReactDOM.render(
     <App
@@ -190,7 +196,7 @@ if (module.hot && _.get(config, 'debug.env') === 'hot') {
 // Start app.
 //
 
-logger.info('Config = %s', JSON.stringify(config));
+logger.debug('Config = %o', config);
 
 // TODO(burdon): Injector pattern.
 // TODO(burdon): Don't attempt connection until authenticated.

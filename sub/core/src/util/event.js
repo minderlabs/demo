@@ -2,6 +2,10 @@
 // Copyright 2016 Minder Labs.
 //
 
+import Logger from 'js-logger';
+
+const logger = Logger.get('event');
+
 /**
  * Injectable event handler.
  */
@@ -32,7 +36,7 @@ export class EventHandler {
    */
   emit(event) {
     console.assert(event.type);
-    console.log('Event:', JSON.stringify(event));
+    logger.debug('Emit: %o', event);
     _.each(this._callbacks, config => {
       if (config.type === '*' || config.type === event.type) {
         config.callback(event);

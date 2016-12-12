@@ -76,7 +76,7 @@ export class Database extends ItemStore {
    * @returns {Promise}
    */
   upsertItems(context, items) {
-    console.log('DB.UPSERT: %s', TypeUtil.JSON(items));
+    console.log('DB.UPSERT: %s', TypeUtil.stringify(items));
 
     // TODO(burdon): Dispatch to store (check permissions).
     let itemStore = this.getItemStore(Database.DEFAULT);
