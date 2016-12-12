@@ -26,7 +26,7 @@ export class Injector {
     _.each(modules, module => {
       console.assert(_.isObject(module));
       _.each(module, (value, key) => {
-        console.log('Key: %s', key);
+//      console.log('Key: %s', key);
         this._keys.set(key, value);
       });
     });

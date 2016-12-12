@@ -9,6 +9,7 @@ import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-router-redux'
 import ApolloClient from 'apollo-client';
 
+import Logger from 'js-logger';
 import moment from 'moment';
 
 import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
@@ -21,6 +22,21 @@ import { AuthManager, ConnectionManager, NetworkManager } from './network';
 import { Monitor } from './component/devtools';
 
 import Application from './app';
+
+// TODO(burdon): Factor out.
+// TODO(burdon): Formatter: https://gist.github.com/tmpvar/1077544
+Logger.useDefaults({
+  defaultLevel: Logger.INFO,
+  formatter: function(args, context) {
+    let messages = args.splice(0, args.length);
+    args.unshift('HI!!!!', ...messages);
+    // console.log(_.isArray(args));
+    // let message = context.name + ':::' + args.splice(0, 1)[0];
+    // console.log(message, ...args);
+  }
+});
+
+const logger = Logger.get('main');
 
 // TODO(burdon): Move to index.web.js
 
@@ -133,14 +149,14 @@ const store = createStore(reducers, {}, enhancer);
 const history = syncHistoryWithStore(browserHistory, store);
 
 // TODO(burdon): Factor out logging.
-history.listen(location => { console.log('Router: %s', location.pathname); });
+history.listen(location => { logger.info('Router: %s', location.pathname); });
 
 /**
  * Renders the application (used by hot loader).
  * @param App Root component.
  */
 const renderApp = (App) => {
-  console.log('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(config, 'debug.env'));
+  logger.info('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(config, 'debug.env'));
 
   ReactDOM.render(
     <App
@@ -174,7 +190,7 @@ if (module.hot && _.get(config, 'debug.env') === 'hot') {
 // Start app.
 //
 
-console.log('Config = %s', JSON.stringify(config));
+logger.info('Config = %s', JSON.stringify(config));
 
 // TODO(burdon): Injector pattern.
 // TODO(burdon): Don't attempt connection until authenticated.
