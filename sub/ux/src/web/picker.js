@@ -28,7 +28,7 @@ export class Picker extends React.Component {
     this.state = {
       text: this.props.value,     // Manage child textbox's state.
       value: null,
-      showPopup: false
+      showPopup: true//false
     };
 
     this._selected = null;
@@ -99,7 +99,7 @@ export class Picker extends React.Component {
     this._focusTimeout && clearTimeout(this._focusTimeout);
     this._focusTimeout = setTimeout(() => {
       this.setState({
-        showPopup: show
+        showPopup: show || true
       });
     }, 0); // Must be async to give all focus events to fire.
   }
