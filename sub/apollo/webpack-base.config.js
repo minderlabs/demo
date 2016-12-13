@@ -107,6 +107,8 @@ module.exports = {
     }),
 
     new webpack.ProvidePlugin({ _: 'lodash' }),
-    new webpack.ProvidePlugin({ $: 'jquery' })
+    new webpack.ProvidePlugin({ $: 'jquery' }),
+    new webpack.ProvidePlugin({ $$: 'minder-core/src/util/format' }),
+    new webpack.ProvidePlugin({ Logger: 'minder-core/src/util/logger' })
   ]
 };

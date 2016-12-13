@@ -20,7 +20,7 @@ import morgan from 'morgan';
 export const loggingRouter = (options) => {
   let router = express.Router();
 
-  router.use(morgan(':date[iso] [:status] :method :url'));
+  router.use(morgan(':status :method :url'));
 
   /*
   morgan.token('graphql-query', (req) => {

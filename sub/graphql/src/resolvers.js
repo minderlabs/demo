@@ -2,16 +2,17 @@
 // Copyright 2016 Minder Labs.
 //
 
-import _ from 'lodash';
-
 import { graphql }  from 'graphql';
 import { GraphQLSchema } from 'graphql';
 import { makeExecutableSchema } from 'graphql-tools';
 import { introspectionQuery } from 'graphql/utilities';
 
-import { ID, Transforms } from 'minder-core';
+import { $$, Logger, ID, Transforms } from 'minder-core';
 
 import Schema from './schema.graphql';
+
+const logger = Logger.get('resolver');
+
 
 /**
  * Resolver map.
@@ -158,7 +159,7 @@ export class Resolvers {
         updateItem: (root, args, context) => {
           let { itemId, mutations } = args;
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
-          console.log('MUTATION.UPDATE[%s:%s]: %s', type, localItemId, JSON.stringify(mutations));
+          logger.log($$('UPDATE[%s:%s]: %o', type, localItemId, mutations));
 
           // TODO(burdon): Validate type.
 

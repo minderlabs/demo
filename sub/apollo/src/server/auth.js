@@ -6,6 +6,10 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 
+import { Logger, IdGenerator } from 'minder-core';
+
+const logger = Logger.get('auth');
+
 /**
  * Manage authentication.
  */
@@ -31,17 +35,16 @@ export class AuthManager {
       } else {
         // Token set by apollo client's network interface middleware.
         // https://jwt.io/introduction
-        //    console.log('Validating token...');
         this._admin.auth().verifyIdToken(token)
           .then(decodedToken => {
             let { uid:id, name, email } = decodedToken;
-            console.log('Got token for: %s', email);
+            logger.log(`Got token for: ${email}`);
             resolve({
               id, name, email, token
             });
           })
           .catch(error => {
-            console.warn('Invalid JWT (may have expired).');
+            logger.warn('Invalid JWT (may have expired).');
             reject();
           });
       }
@@ -63,13 +66,12 @@ export class AuthManager {
   getUserInfoFromHeader(req) {
     console.assert(req);
 
-    //console.log('Getting token from header...');
     let auth = req.headers && req.headers['authentication'];
     let match = auth && auth.match(/^Bearer (.+)$/);
     let token = match && match[1];
 
     return this.getUserFromJWT(token).catch(ex => {
-      ex && console.error(ex);
+      ex && logger.error(ex);
       return null
     });
   }
@@ -83,11 +85,10 @@ export class AuthManager {
   getUserInfoFromCookie(req) {
     console.assert(req);
 
-    //console.log('Getting token from cookie...');
     let token = req.cookies && req.cookies['minder_auth_token'];
 
     return this.getUserFromJWT(token).catch(ex => {
-      ex && console.error(ex);
+      ex && logger.error(ex);
       return null
     });
   }

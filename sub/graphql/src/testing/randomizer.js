@@ -6,7 +6,9 @@ import _ from 'lodash';
 
 import { Chance } from 'chance';
 
-import { TypeUtil } from 'minder-core';
+import { Logger, TypeUtil } from 'minder-core';
+
+const logger = Logger.get('randomizer');
 
 /**
  * Randomizer
@@ -78,7 +80,7 @@ export class Randomizer {
    * @return Promise
    */
   generate(type, n, fields={}) {
-    console.log('GENERATE[%s]: %d', type, n);
+    logger.log(`GENERATE[${type}]:${n}`);
 
     let items = [];
 

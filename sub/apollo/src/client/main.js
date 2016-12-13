@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+import './config';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { browserHistory } from 'react-router'
@@ -10,9 +12,8 @@ import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-rou
 import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
-import Logger from 'js-logger';
 
-import { EventHandler, IdGenerator, Injector, Matcher, QueryParser, TypeUtil } from 'minder-core';
+import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
 
 import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
@@ -23,31 +24,11 @@ import { Monitor } from './component/devtools';
 
 import Application from './app';
 
-//
-// Logging
-// https://github.com/jonnyreeves/js-logger
-//
-
-Logger.useDefaults({
-  defaultLevel: Logger.DEBUG,
-  formatter: TypeUtil.LOGGING_FORMATTER
-});
-
-const debugLogger = Logger.get('##### DEBUG #####');
-window.debug = function() { debugLogger.info.apply(debugLogger, arguments); };
-
-const logger = Logger.get('main');
-
-
-// TODO(burdon): Remove console.log line number!
-// http://stackoverflow.com/questions/13815640/a-proper-wrapper-for-console-log-with-correct-line-number
-console.log('????');
-
-
-
 
 // TODO(burdon): Move to index.web.js
 // TODO(burdon): Promises for async deps.
+
+const logger = Logger.get('main');
 
 const config = window.config;
 
@@ -155,14 +136,14 @@ const store = createStore(reducers, {}, enhancer);
 const history = syncHistoryWithStore(browserHistory, store);
 
 // TODO(burdon): Factor out logging.
-history.listen(location => { logger.debug('Router: %s', location.pathname); });
+history.listen(location => { logger.log($$('Router: %s', location.pathname)); });
 
 /**
  * Renders the application (used by hot loader).
  * @param App Root component.
  */
 const renderApp = (App) => {
-  logger.debug('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(config, 'debug.env'));
+  logger.log($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(config, 'debug.env')));
 
   ReactDOM.render(
     <App
@@ -196,7 +177,7 @@ if (module.hot && _.get(config, 'debug.env') === 'hot') {
 // Start app.
 //
 
-logger.debug('Config = %o', config);
+logger.log($$('Config = %o', config));
 
 // TODO(burdon): Injector pattern.
 // TODO(burdon): Don't attempt connection until authenticated.

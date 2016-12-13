@@ -6,6 +6,10 @@ import _ from 'lodash';
 import express from 'express';
 import moment from 'moment';
 
+import { $$, Logger } from 'minder-core';
+
+const logger = Logger.get('app');
+
 //
 // Client bundles (map NODE_ENV to bundle).
 // See webpack.config.js
@@ -35,7 +39,7 @@ export const appRouter = (authManager, clientManager, options) => {
     graphql: '/graphql'
   });
 
-  console.log('Client Options = %s', JSON.stringify(options));
+  logger.log($$('Client options = %o', options));
 
   // Webpack assets.
   router.use('/assets', express.static(options.assets));

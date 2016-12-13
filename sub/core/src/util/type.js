@@ -9,24 +9,12 @@ import _ from 'lodash';
  */
 export class TypeUtil {
 
-  static JSON_REPLACER = (key, value) => { return _.isArray(value) ? value.length : value; };
-
   /**
-   * Conside stringify.
+   * Concise stringify (elide array contents).
    */
-  static stringify = (json) => JSON.stringify(json, TypeUtil.JSON_REPLACER);
-
-  /**
-   * Formats log messages.
-   * https://github.com/jonnyreeves/js-logger
-   *
-   * @param args
-   * @param context
-   */
-  static LOGGING_FORMATTER = (args, context) => {
-    let format = `[${context.name}] ` + args.splice(0, 1)[0];
-    args.splice(0, args.length, TypeUtil.format(format, ...args));
-  };
+  static stringify = (json, indent) => JSON.stringify(json, (key, value) => {
+    return _.isArray(value) ? value.length : value;
+  }, indent);
 
   /**
    * Clones simple JSON object.
@@ -91,26 +79,5 @@ export class TypeUtil {
 
     // Resolve after each item in the sequence resolves.
     return p;
-  }
-
-  /**
-   * Formats the string.
-   * https://developer.mozilla.org/en-US/docs/Web/API/Console#Using_string_substitutions
-   *
-   * @param f
-   * @return {string}
-   */
-  static format(f) {
-    let i = 1;
-    let args = arguments;
-    return String(f).replace(/%[sdo]/g, function(x) {
-      switch (x) {
-        case '%s': return String(args[i++]);
-        case '%d': return Number(args[i++]);
-        case '%o': return TypeUtil.stringify(args[i++]);
-        default:
-          return x;
-      }
-    });
   }
 }

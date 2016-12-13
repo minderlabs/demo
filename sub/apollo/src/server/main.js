@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+import './config';
+
 import _ from 'lodash';
 
 import path from 'path';
@@ -11,7 +13,7 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { Matcher } from 'minder-core';
+import { Logger, Matcher } from 'minder-core';
 import { Database, Firebase, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
 
 import { FirebaseConfig } from '../common/defs';
@@ -21,6 +23,8 @@ import { appRouter, hotRouter } from './app';
 import { loginRouter, AuthManager } from './auth';
 import { clientRouter, ClientManager, SocketManager } from './client';
 import { loggingRouter } from './logger';
+
+const logger = Logger.get('main');
 
 
 //
@@ -98,7 +102,6 @@ let context = {};
 
 // Load test data.
 _.each(require('./testing/test.json'), (items, type) => {
-  console.log('TYPE: %s', type);
 
   // Iterate items per type.
   database.upsertItems(context, _.map(items, (item) => {
@@ -115,7 +118,6 @@ _.each(require('./testing/test.json'), (items, type) => {
 // Create test data.
 promises.push(database.queryItems({}, {}, { type: 'User' })
   .then(users => {
-    console.log('USERS: [%s]', _.map(users, user => user.email).join(', '));
 
     // Create group.
     return database.getItem(context, 'Group', 'minderlabs')
@@ -190,7 +192,9 @@ app.set('views', path.join(__dirname, 'views'));
 // Logging.
 //
 
-app.use('/', loggingRouter({}));
+if (env === 'production') {
+  app.use('/', loggingRouter({}));
+}
 
 
 //
@@ -252,7 +256,7 @@ app.use('/', function(req, res) {
 
 // Default redirect.
 app.use(function(req, res) {
-  console.log('[404]: %s', req.path);
+  logger.log(`[404]: ${req.path}`);
 
   // TODO(burdon): Don't redirect if resource request (e.g., robots.txt, favicon.ico, etc.)
 //res.redirect('/home');
@@ -265,10 +269,10 @@ app.use(function(req, res) {
 //
 
 Promise.all(promises).then(() => {
-  console.log('STARTING...');
+  logger.log('STARTING...');
 
   server.listen(port, host, () => {
     let addr = server.address();
-    console.log(`### RUNNING[${env}] http://${addr.address}:${addr.port} ###`);
+    logger.log(`RUNNING[${env}] http://${addr.address}:${addr.port}`);
   });
 });

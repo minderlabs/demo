@@ -8,7 +8,9 @@ import bodyParser from 'body-parser';
 import socketio from 'socket.io';
 import moment from 'moment';
 
-import { IdGenerator } from 'minder-core';
+import { $$, Logger, IdGenerator } from 'minder-core';
+
+const logger = Logger.get('client');
 
 /**
  * Client endpoints.
@@ -67,7 +69,7 @@ export class ClientManager {
     this._socketManager.onDisconnect((socketId) => {
       let client = _.find(this._clients, client => client.socketId === socketId);
       if (!client) {
-        console.warn('Invalid client: %s', socketId);
+        logger.warn($$('Invalid client: %s', socketId));
       } else {
         client.socketId = null;
       }
@@ -91,7 +93,7 @@ export class ClientManager {
     };
 
     this._clients.set(client.id, client);
-    console.log('CLIENT.CREATED[%s:%s]', client.id, userId);
+    logger.log($$('CLIENT.CREATED[%s:%s]', client.id, userId));
 
     return client;
   }
@@ -105,12 +107,12 @@ export class ClientManager {
 
     let client = this._clients.get(clientId);
     if (!client) {
-      console.warn('Invalid client: %s', clientId);
+      logger.warn($$('Invalid client: %s', clientId));
     } else {
       if (userId != client.userId) {
-        console.error('Invalid user: %s', userId);
+        logger.error($$('Invalid user: %s', userId));
       } else {
-        console.log('CLIENT.REGISTERED[%s:%s]', clientId, userId);
+        logger.log($$('CLIENT.REGISTERED[%s:%s]', clientId, userId));
         client.socketId = socketId;
         client.registered = moment();
       }
@@ -120,13 +122,13 @@ export class ClientManager {
   invalidate(clientId) {
     let client = this._clients.get(clientId);
     if (!client) {
-      console.warn('Invalid client: %s', clientId);
+      logger.warn($$('Invalid client: %s', clientId));
     } else {
       let socket = this._socketManager.getSocket(client.socketId);
       if (!socket) {
-        console.warn('Client not connected: %s', clientId);
+        logger.warn($$('Client not connected: %s', clientId));
       } else {
-        console.warn('Invalidating client: %s', clientId);
+        logger.warn($$('Invalidating client: %s', clientId));
         socket.emit('invalidate', {
           ts: moment().valueOf()
         });
@@ -176,11 +178,11 @@ export class SocketManager {
     this._io = socketio(server);
 
     this._io.on('connection', (socket) => {
-      console.log('SOCKET.CONNECTED[%s]', socket.id);
+      logger.log($$('SOCKET.CONNECTED[%s]', socket.id));
       this._sockets.set(socket.id, socket);
 
       socket.on('disconnect', () => {
-        console.log('SOCKET.DISCONNECTED[%s]', socket.id);
+        logger.log($$('SOCKET.DISCONNECTED[%s]', socket.id));
         this._sockets.delete(socket.id);
         this._onDisconnect(socket.id);
       });

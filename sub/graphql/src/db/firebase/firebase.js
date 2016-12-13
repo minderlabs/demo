@@ -6,8 +6,12 @@ import _ from 'lodash';
 
 import admin from 'firebase-admin';
 
+import { Logger } from 'minder-core';
+
 import { FirebaseUserStore } from './firebase_user_store';
 import { FirebaseItemStore } from './firebase_item_store';
+
+const logger = Logger.get('firebase');
 
 /**
  * Firebase datastore.
@@ -31,7 +35,7 @@ export class Firebase {
     // https://firebase.google.com/docs/admin/setup
     // https://firebase.google.com/docs/reference/admin/node/admin
     let app = admin.initializeApp(config);
-    console.log('FB.INITIALIZED: %s', app.name);
+    logger.log(`INITIALIZED: ${app.name}`);
 
     this._db = admin.database();
 

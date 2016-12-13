@@ -14,3 +14,6 @@ export * from './data/parser';
 export * from './data/queries';
 export * from './data/store';
 export * from './data/transforms';
+
+export $$ from './util/format';
+export Logger from './util/logger';

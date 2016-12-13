@@ -9,8 +9,12 @@ import bodyParser from 'body-parser';
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 
+import { Logger } from 'minder-core';
+
 import { Resolvers } from './resolvers';
 import { graphqlLogger } from './util/logger';
+
+const logger = Logger.get('gql');
 
 /**
  * Express router for graphql server.
@@ -35,7 +39,7 @@ export const graphqlRouter = (database, options) => {
     typeDefs: Resolvers.typeDefs,
     resolvers: Resolvers.getResolvers(database),
     logger: {
-      log: (error) => console.log('Schema Error', error)
+      log: (error) => logger.error('Schema Error', error)
     }
   });
 

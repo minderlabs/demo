@@ -30,9 +30,4 @@ describe('Types:', () => {
       done();
     });
   });
-
-  it('Format string.', () => {
-    let str = TypeUtil.format('[%s][%d]:%o', '123', 123, { id: 2 });
-    expect(str).to.equal('[123][123]:{"id":2}');
-  })
 });

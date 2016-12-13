@@ -5,7 +5,6 @@
 import moment from 'moment';
 import * as firebase from 'firebase';
 import io from 'socket.io-client';
-import Logger from 'js-logger';
 
 import { createNetworkInterface } from 'apollo-client';
 
@@ -44,7 +43,7 @@ export class AuthManager {
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
     firebase.auth().onAuthStateChanged(user => {
-      logger.debug('Auth changed: %s', user ? user.email : 'Logout');
+      logger.log($$('Auth changed: %s', user ? user.email : 'Logout'));
       if (user) {
         user.getToken().then(token => {
           // Update the network manager (sets header for graphql requests).
@@ -94,7 +93,7 @@ export class ConnectionManager {
    * @returns {Promise}
    */
   connect() {
-    logger.debug('Connecting...');
+    logger.log('Connecting...');
 
     return new Promise((resolve, reject) => {
       this._socket.on('connect', () => {
@@ -117,7 +116,7 @@ export class ConnectionManager {
           }),
 
           success: (response) => {
-            logger.debug('Registered[%s]: %s', config.clientId, socketId);
+            logger.log('Registered[%s]: %s', config.clientId, socketId);
 
             // Listen for invalidations.
             this._socket.on('invalidate', (data) => {
@@ -321,13 +320,13 @@ class NetworkLogger {
   constructor(options) {}
 
   logRequest(requestId, request) {
-    logger.debug('[%s] ===>>> [%s]: %s', moment().format(NetworkLogger.TIMESTAMP),
-      requestId, JSON.stringify(request.variables || {}, TypeUtil.JSON_REPLACER));
+    logger.log('[%s] ===>>> [%s]: %s', moment().format(NetworkLogger.TIMESTAMP),
+      requestId, TypeUtil.stringify(request.variables || {}));
   }
 
   logResponse(requestId, response) {
-    logger.debug('[%s] <<<=== [%s]', moment().format(NetworkLogger.TIMESTAMP),
-      requestId, JSON.stringify(response.data, TypeUtil.JSON_REPLACER));
+    logger.log('[%s] <<<=== [%s]', moment().format(NetworkLogger.TIMESTAMP),
+      requestId, TypeUtil.stringify(response.data));
   }
 
   logErrors(requestId, errors) {

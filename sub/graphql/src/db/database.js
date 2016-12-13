@@ -4,7 +4,10 @@
 
 import _ from 'lodash';
 
-import { IdGenerator, ItemStore, TypeUtil } from 'minder-core';
+import { $$, Logger, IdGenerator, ItemStore, TypeUtil } from 'minder-core';
+
+const logger = Logger.get('db');
+
 
 /**
  * Base database implementation.
@@ -76,7 +79,7 @@ export class Database extends ItemStore {
    * @returns {Promise}
    */
   upsertItems(context, items) {
-    console.log('DB.UPSERT: %s', TypeUtil.stringify(items));
+    logger.log($$('UPSERT: %s', TypeUtil.stringify(items)));
 
     // TODO(burdon): Dispatch to store (check permissions).
     let itemStore = this.getItemStore(Database.DEFAULT);
@@ -93,7 +96,7 @@ export class Database extends ItemStore {
    * @returns {Promise}
    */
   getItems(context, type, itemIds) {
-    console.log('DB.GET[%s]: [%s]', type, itemIds);
+    logger.log($$('GET[%s]: [%s]', type, itemIds));
 
     let itemStore = this.getItemStore(type);
     return itemStore.getItems(context, type, itemIds).then(items => {
@@ -109,7 +112,7 @@ export class Database extends ItemStore {
    * @returns {Promise}
    */
   queryItems(context, root, filter={}, offset=0, count=10) {
-    console.log('DB.QUERY[%d:%d]: %s', offset, count, JSON.stringify(filter));
+    logger.log($$('QUERY[%s:%s]: %o', offset, count, filter));
 
     let itemStore = this.getItemStore(filter.type);
     return itemStore.queryItems(context, root, filter, offset, count);
