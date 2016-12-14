@@ -12,10 +12,10 @@
 .ux-fullscreen {
   position: fixed;
 
-  left: 0;
-  right: 0;
   top: 0;
   bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .ux-panel {
@@ -61,7 +61,6 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  overflow-x: hidden;
 }
 
 //
@@ -78,10 +77,6 @@
   > i:first-child,
   > a i:first-child {
     margin-right: 8px;
-  }
-
-  * {
-    display: flex;                  // Outer element like <a> should not add padding.
   }
 }
 

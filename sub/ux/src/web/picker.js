@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 import { TextBox } from './textbox';
 
@@ -28,7 +29,7 @@ export class Picker extends React.Component {
     this.state = {
       text: this.props.value,     // Manage child textbox's state.
       value: null,
-      showPopup: true//false
+      showPopup: false
     };
 
     this._selected = null;
@@ -85,7 +86,7 @@ export class Picker extends React.Component {
       // DOWN
       case 40: {
         // Focus first item.
-        $(this.refs.items).find('input:first').focus();
+        $(this.refs.popup).find('input:first').focus();
         break;
       }
     }
@@ -96,12 +97,16 @@ export class Picker extends React.Component {
    * @param show
    */
   showPopup(show) {
+    // Constrain pop-up.
+    let width = $(ReactDOM.findDOMNode(this)).width();
+    $(this.refs.popup).attr('width', `${width}px`);
+
     this._focusTimeout && clearTimeout(this._focusTimeout);
     this._focusTimeout = setTimeout(() => {
       this.setState({
-        showPopup: show || true
+        showPopup: show
       });
-    }, 0); // Must be async to give all focus events to fire.
+    }, 0); // Must be async to allow focus events to fire.
   }
 
   handleTextFocusChange(state) {
@@ -155,6 +160,9 @@ export class Picker extends React.Component {
 
     let className = _.join(['ux-picker', this.props.className], ' ');
 
+    // TODO(burdon): Pop-out of overflow: hidden (need javascript!)
+    // https://css-tricks.com/popping-hidden-overflow/
+
     return (
       <div className={ className }>
         <TextBox ref="textbox"
@@ -165,7 +173,7 @@ export class Picker extends React.Component {
                  onKeyDown={ this.handleTextKeyDown.bind(this) }
                  onFocusChange={ this.handleTextFocusChange.bind(this) }/>
 
-        <div ref="items" className="ux-picker-popup" style={ {'display': this.state.showPopup ? 'block' : 'none' } }>
+        <div ref="popup" className="ux-picker-popup" style={ {'display': this.state.showPopup ? 'block' : 'none' } }>
           <div>
             { rows }
           </div>

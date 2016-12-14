@@ -48,6 +48,8 @@ const GroupFragment = gql`
  */
 const GroupReducer = (context, matcher, previousResult, item) => {
 
+  // TODO(burdon): Could we simplify by implementing a group mutation? (so the response is the right shape?)
+
   // TODO(burdon): Factor out this comment and reference it.
   // The Reducer is called on mutation. When the generic UpdateItemMutation response is received we need
   // to tell Apollo how to stitch the result into the cached response. For item mutations, this is easy
@@ -290,10 +292,6 @@ class GroupLayout extends React.Component {
       expr: { field: 'assignee', value: { string: '' }},
       bucket: item.id
     };
-
-    // TODO(burdon): Factor out item row (use in inbox).
-
-    //return <div>{ JSON.stringify(user) }</div>;
 
     return (
       <div className="app-type-group ux-column">

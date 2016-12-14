@@ -6,8 +6,6 @@
 @import './css/theme';
 
 .ux-picker {
-  position: relative;
-
   background-color: white;
 
   > div {
@@ -21,12 +19,10 @@
   .ux-picker-popup {
     display: flex;
     position: absolute;
-    width: 100%;
-    z-index: 100;
 
     background-color: white;
 
-    > div:empty {
+    > div:empty {                 // TODO(burdon): Use class name.
       display: none;
     }
     > div {
@@ -34,15 +30,17 @@
       flex-direction: column;
       flex-grow: 1;
 
-      max-height: 120px;        // (20 + 4) x 5
+      max-height: 120px;          // (20 + 4) x 5
       overflow-y: auto;
       overflow-x: hidden;
 
-      border: 1px solid #AAA;   // TODO(burdon): Factor out defs.
+      border: 1px solid #AAA;     // TODO(burdon): Factor out defs.
       border-top: none;
 
       > input {
         .ux-noselect;
+
+        padding: 0 4px;           // TODO(burdon): Normalize with data row
 
         line-height: 20px;
 
