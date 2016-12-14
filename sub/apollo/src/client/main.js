@@ -17,7 +17,7 @@ import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minde
 
 import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
-import { TypeRegistry } from './component/type/registry';
+import { TypeFactory } from './component/type/registry';
 
 import { AuthManager, ConnectionManager, NetworkManager } from './network';
 import { Monitor } from './component/devtools';
@@ -65,7 +65,7 @@ const injector = new Injector([
   Injector.provider(new IdGenerator()),
   Injector.provider(new Matcher()),
   Injector.provider(new QueryParser()),
-  Injector.provider(TypeRegistry.singleton)
+  Injector.provider(TypeFactory.create())
 ]);
 
 

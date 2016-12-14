@@ -4,50 +4,79 @@
 
 import React from 'react';
 import { Link } from 'react-router';
-import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
+import { propType } from 'graphql-anywhere';
 
 import { ID } from 'minder-core';
 
+import { composeItem, CardContainer, ItemFragment } from '../item';
+
 /**
- * Fragments.
+ * Type-specific fragment.
  */
-export const UserFragments = {
+const UserFragment = gql`
+  fragment UserFragment on User {
+    title
 
-  // TODO(burdon): Use ref in tasks filter.
-
-  // TODO(burdon): Pass variables to fragments (e.g., filter tasks)?
-  // https://github.com/apollostack/react-apollo/issues/140
-  // https://github.com/apollostack/react-apollo/issues/122
-
-  item: new Fragment(gql`
-    fragment UserFragment on User {
+    ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
+      id
       title
-
-      ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
-        id
-        title
-      }
-
-      assigneeTasks: tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
-        id
-        title
-      }
     }
-  `)
 
-};
+    assigneeTasks: tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
+      id
+      title
+    }
+  }
+`;
 
 /**
- * User
+ * Type-specific query.
  */
-export default class User extends React.Component {
+const UserQuery = gql`
+  query UserQuery($itemId: ID!) { 
+    
+    item(itemId: $itemId) {
+      ...ItemFragment
+      ...UserFragment
+    }
+  }
+
+  ${ItemFragment}
+  ${UserFragment}  
+`;
+
+/**
+ * Type-specific card container.
+ */
+class UserCard extends React.Component {
 
   static propTypes = {
-    item: UserFragments.item.propType
+    user: React.PropTypes.object.isRequired,
+    item: propType(UserFragment)
   };
 
   render() {
+    let { item } = this.props;
+
+    return (
+      <CardContainer mutator={ this.props.mutator } item={ item }>
+        <UserLayout ref="item" item={ item }/>
+      </CardContainer>
+    );
+  }
+}
+
+/**
+ * Type-specific layout.
+ */
+class UserLayout extends React.Component {
+
+  render() {
+    let { item } = this.props;
+
+    // TODO(burdon): Use List controls.
+
     return (
       <div className="app-type-user ux-column">
 
@@ -56,7 +85,7 @@ export default class User extends React.Component {
           <i className="ux-icon">add</i>
         </div>
         <div className="ux-list">
-          {this.props.item.ownerTasks.map(task => (
+          {item.ownerTasks.map(task => (
             <div key={ task.id } className="ux-list-item ux-row">
               <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
                 <i className="ux-icon">assignment_turned_in</i>
@@ -70,7 +99,7 @@ export default class User extends React.Component {
           <h3 className="ux-expand">Assigned</h3>
         </div>
         <div className="ux-list">
-          {this.props.item.assigneeTasks.map(task => (
+          {item.assigneeTasks.map(task => (
             <div key={ task.id } className="ux-list-item ux-row">
               <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
                 <i className="ux-icon">assignment_turned_in</i>
@@ -84,3 +113,8 @@ export default class User extends React.Component {
     );
   }
 }
+
+/**
+ * HOC.
+ */
+export default composeItem(UserQuery)(UserCard);

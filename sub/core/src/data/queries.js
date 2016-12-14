@@ -40,6 +40,7 @@ export const ItemsQueryWrapper = graphql(ItemsQuery, {
     return {
       items: data.items,
 
+      // TODO(burdon): Rename expr (not filter).
       // Called when variables are updated.
       refetch: (filter) => {
         data.refetch({

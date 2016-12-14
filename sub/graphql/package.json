@@ -54,7 +54,6 @@
     "firebase": "^3.6.3",
     "firebase-admin": "^4.0.4",
     "graphql": "^0.7.0",
-    "graphql-fragments": "^0.1.0",
     "graphql-server-express": "^0.4.3",
     "graphql-subscriptions": "^0.2.1",
     "graphql-tag": "^1.0.0",

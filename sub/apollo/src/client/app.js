@@ -56,7 +56,7 @@ export class Application extends React.Component {
 
             <Route path={ Path.TESTING } component={ TestView }/>
             <Route path="app/:folder" component={ FolderView }/>
-            <Route path="app/:itemView/:itemId" component={ DetailView }/>
+            <Route path="app/:view/:itemId" component={ DetailView }/>
 
             <Redirect from='*' to={ Path.HOME }/>
 

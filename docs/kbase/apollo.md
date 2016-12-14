@@ -74,8 +74,7 @@ TODO(burdon): When is render triggered?
             // Map component properties to query variables (and handle response).
             // http://dev.apollodata.com/react/queries.html#graphql-options
             options: (props) => ({
-                fragments: {},
-                
+
                 variables: {},
                 
                 // Manually update cache after mutation action.
@@ -90,9 +89,10 @@ TODO(burdon): When is render triggered?
             
             // Map query results to properties (and provide data functions).
             // http://dev.apollodata.com/react/queries.html#graphql-props
-            props: ({ ownProps, data }) ({
+            props: ({ ownProps, data }) => ({
             
                 // Vars returned by the query.
+                // Best practice to map these onto props required by dumb component.
                 data,
                 
                 refetch: () => {

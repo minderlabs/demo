@@ -3,42 +3,85 @@
 //
 
 import React from 'react';
-import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
+import { propType } from 'graphql-anywhere';
 
 import { MutationUtil, TypeUtil } from 'minder-core';
+
+import { composeItem, CardContainer, ItemFragment } from '../item';
 
 import ItemsPicker from '../items_picker';
 
 /**
- * Fragments.
+ * Type-specific fragment.
  */
-export const TaskFragments = {
-
-  item: new Fragment(gql`
-    fragment TaskFragment on Task {
-      bucket  
-      owner {
-        id
-        title
-      }
-      assignee {
-        id
-        title
-      }
+const TaskFragment = gql`
+  fragment TaskFragment on Task {
+    bucket  
+    owner {
+      id
+      title
     }
-  `)
-
-};
+    assignee {
+      id
+      title
+    }
+  }
+`;
 
 /**
- * Task
+ * Type-specific query.
  */
-export default class Task extends React.Component {
+const TaskQuery = gql`
+  query TaskQuery($itemId: ID!) { 
+    
+    item(itemId: $itemId) {
+      ...ItemFragment
+      ...TaskFragment
+    }
+  }
+
+  ${ItemFragment}
+  ${TaskFragment}  
+`;
+
+/**
+ * Type-specific card container.
+ */
+class TaskCard extends React.Component {
 
   static propTypes = {
-    item: TaskFragments.item.propType
+    user: React.PropTypes.object.isRequired,
+    item: propType(TaskFragment)
   };
+
+  handleSave() {
+    let values = this.refs.item.values;
+    let { item } = this.props;
+
+    let mutations = [];
+
+    TypeUtil.maybeAppend(mutations,
+      MutationUtil.field('assignee', 'id', _.get(values, 'assignee'), _.get(item, 'assignee.id')));
+
+    return mutations;
+  }
+
+  render() {
+    let { item } = this.props;
+
+    return (
+      <CardContainer mutator={ this.props.mutator } item={ item } onSave={ this.handleSave.bind(this) }>
+        <TaskLayout ref="item" item={ item }/>
+      </CardContainer>
+    );
+  }
+}
+
+/**
+ * Type-specific layout.
+ */
+class TaskLayout extends React.Component {
 
   constructor() {
     super(...arguments);
@@ -46,16 +89,8 @@ export default class Task extends React.Component {
     this._values = {};
   }
 
-  // TODO(burdon): Base class for values.
-  get mutations() {
-    let { item } = this.props;
-
-    let mutations = [];
-
-    TypeUtil.maybeAppend(mutations,
-      MutationUtil.field('assignee', 'id', _.get(this._values, 'assignee'), _.get(item, 'assignee.id')));
-
-    return mutations;
+  get values() {
+    return this._values;
   }
 
   handleSelectPicker(property, item) {
@@ -77,7 +112,7 @@ export default class Task extends React.Component {
             <td className="ux-data-label">Owner</td>
             <td>
               <div className="ux-data-row">
-                <div className="ux-text">{ _.get(this.props.item, 'owner.title') }</div>
+                <div className="ux-text">{ _.get(item, 'owner.title') }</div>
               </div>
             </td>
           </tr>
@@ -97,3 +132,8 @@ export default class Task extends React.Component {
     );
   }
 }
+
+/**
+ * HOC.
+ */
+export default composeItem(TaskQuery)(TaskCard);

@@ -75,7 +75,9 @@ module.exports = {
         loader: 'babel-loader'
       },
 
+      // Allow direct imports of .graphql files.
       // http://dev.apollodata.com/react/webpack.html
+      // https://github.com/apollostack/graphql-tag#webpack-preprocessing
       {
         test: /\.(graphql|gql)$/,
         exclude: /node_modules/,

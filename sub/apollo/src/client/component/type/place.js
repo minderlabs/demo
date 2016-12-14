@@ -3,32 +3,68 @@
 //
 
 import React from 'react';
-import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
+import { propType } from 'graphql-anywhere';
+
+import { composeItem, CardContainer, ItemFragment } from '../item';
 
 /**
- * Fragments.
+ * Type-specific fragment.
  */
-export const PlaceFragments = {
-
-  item: new Fragment(gql`
-    fragment PlaceFragment on Place {
-      geo {
-        lat
-        lng
-      }
+const PlaceFragment = gql`
+  fragment PlaceFragment on Place {
+    geo {
+      lat
+      lng
     }
-  `)
-
-};
+  }
+`;
 
 /**
- * Place
+ * Type-specific query.
  */
-export default class Place extends React.Component {
+const PlaceQuery = gql`
+  query PlaceQuery($itemId: ID!) { 
+    
+    item(itemId: $itemId) {
+      ...ItemFragment
+      ...PlaceFragment
+    }
+  }
+
+  ${ItemFragment}
+  ${PlaceFragment}  
+`;
+
+/**
+ * Type-specific card container.
+ */
+class PlaceCard extends React.Component {
 
   static propTypes = {
-    item: PlaceFragments.item.propType
+    user: React.PropTypes.object.isRequired,
+    item: propType(PlaceFragment)
+  };
+
+  render() {
+    let { item } = this.props;
+
+    return (
+      <CardContainer mutator={ this.props.mutator } item={ item } onSave={ this.handleSave.bind(this) }>
+        <PlaceLayout ref="item" item={ item }/>
+      </CardContainer>
+    );
+  }
+}
+
+/**
+ * Type-specific layout.
+ */
+export class PlaceLayout extends React.Component {
+
+  static propTypes = {
+    user: React.PropTypes.object.isRequired,
+    item: propType(PlaceFragment)
   };
 
   // TODO(burdon): Google map.
@@ -43,3 +79,8 @@ export default class Place extends React.Component {
     );
   }
 }
+
+/**
+ * HOC.
+ */
+export default composeItem(PlaceQuery)(PlaceCard);

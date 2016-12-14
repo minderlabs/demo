@@ -4,60 +4,91 @@
 
 import React from 'react';
 import { Link } from 'react-router';
-import Fragment from 'graphql-fragments';
 import gql from 'graphql-tag';
+import { propType } from 'graphql-anywhere';
 
 import { ID } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
+import { composeItem, CardContainer, ItemFragment } from '../item';
 import { ItemsList, UserTasksList } from '../list_factory';
 import { Path } from '../../path';
 
 import './group.less';
 
 /**
- * Fragments.
+ * Type-specific fragment.
  */
-export const GroupFragments = {
-
-  item: new Fragment(gql`
-    fragment GroupFragment on Group {
-      id 
-      members {
+const GroupFragment = gql`
+  fragment GroupFragment on Group {
+    id 
+    members {
+      id
+      type
+      title
+    
+      tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
         id
         type
+        bucket
         title
-      
-        tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
-          id
-          type
-          bucket
-          title
-          labels
-        }
+        labels
       }
     }
-  `),
-};
+  }
+`;
 
 /**
- * Group
+ * Type-specific query.
  */
-export default class Group extends React.Component {
+const GroupQuery = gql`
+  query GroupQuery($itemId: ID!) { 
+    
+    item(itemId: $itemId) {
+      ...ItemFragment
+      ...GroupFragment
+    }
+  }
+
+  ${ItemFragment}
+  ${GroupFragment}  
+`;
+
+/**
+ * Type-specific card container.
+ */
+class GroupCard extends React.Component {
+
+  static propTypes = {
+    user: React.PropTypes.object.isRequired,
+    item: propType(GroupFragment)
+  };
+
+  render() {
+    let { user, item } = this.props;
+
+    return (
+      <CardContainer mutator={ this.props.mutator } item={ item }>
+        <GroupLayout ref="item" user={ user } item={ item }/>
+      </CardContainer>
+    );
+  }
+}
+
+/**
+ * Type-specific layout.
+ */
+class GroupLayout extends React.Component {
 
   static NOTE_TYPE = {
     PRIVATE:  '__private__',
     SHARED:   '__shared__'
   };
 
+  // TODO(burdon): Move to card.
   static contextTypes = {
-    mutator: React.PropTypes.object.isRequired,
-    navigator: React.PropTypes.object.isRequired
-  };
-
-  static propTypes = {
-    user: React.PropTypes.object.isRequired,    // TODO(burdon): Add to all types.
-    item: GroupFragments.item.propType
+    navigator: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired
   };
 
   constructor() {
@@ -66,6 +97,7 @@ export default class Group extends React.Component {
     this.state = {
 
       // User ID of inline task.
+      // TODO(burdon): Move functionality into List component.
       inlineEdit: null
     };
   }
@@ -79,10 +111,10 @@ export default class Group extends React.Component {
     });
   }
 
+  // TODO(burdon): Move to card.
+  // TODO(burdon): Don't pass item.
   handleTaskDelete(item) {
-    console.log('DELETE: ', JSON.stringify(item));
-
-    // TODO(burdon): Factor out (MutationUtil).
+    // TODO(burdon): Use MutationUtil.
     let mutations = [
       {
         field: 'labels',
@@ -102,6 +134,8 @@ export default class Group extends React.Component {
   }
 
   handleTaskSave(assignee, save, text, event) {
+    let { user, item } = this.props;
+
     if (save !== false) {
       let text = this.refs.task_create.value;
       if (_.isEmpty(text)) {
@@ -119,7 +153,7 @@ export default class Group extends React.Component {
         {
           field: 'owner',
           value: {
-            id: this.props.user.id
+            id: user.id
           }
         }
       ];
@@ -135,21 +169,21 @@ export default class Group extends React.Component {
         // TODO(burdon): Switch to using actual buckets.
         // TODO(burdon): Corruption of this.state.inlineEdit to use private/shared.
         switch (this.state.inlineEdit) {
-          case Group.NOTE_TYPE.PRIVATE: {
+          case GroupLayout.NOTE_TYPE.PRIVATE: {
             mutations.push({
               field: 'bucket',
               value: {
-                string: this.props.user.id
+                string: user.id
               }
             });
             break;
           }
 
-          case Group.NOTE_TYPE.SHARED: {
+          case GroupLayout.NOTE_TYPE.SHARED: {
             mutations.push({
               field: 'bucket',
               value: {
-                string: this.props.item.id
+                string: item.id
               }
             });
             break;
@@ -176,21 +210,27 @@ export default class Group extends React.Component {
   }
 
   render() {
+    let { user, item } = this.props;
+    if (!user || !item) {
+      return null;
+    }
 
     // TODO(madadam): When ACLs and links are working, query for all Tasks/Notes linked from this item (Group)
     // with private ACL.
     let privateNotesFilter = {
-      bucket: this.props.user.id
+      bucket: user.id
     };
 
     // TODO(madadam): Use predicate tree to express unassigned? Current hack: empty string matches undefined fields.
     let sharedNotesFilter = {
-      type: "Task",
-      expr: { field: "assignee", value: { string: '' }},
-      bucket: this.props.item.id
+      type: 'Task',
+      expr: { field: 'assignee', value: { string: '' }},
+      bucket: item.id
     };
 
     // TODO(burdon): Factor out item row (use in inbox).
+
+    //return <div>{ JSON.stringify(user) }</div>;
 
     return (
       <div className="app-type-group ux-column">
@@ -199,11 +239,11 @@ export default class Group extends React.Component {
           {/*
             * Team Member
             */}
-          {this.props.item.members.map(member => (
+          {item.members.map(member => (
           <div key={ member.id }>
 
             <div className="ux-section-header ux-row">
-              <Link to={ Path.detail('member', ID.toGlobalId('User', member.id)) }>
+              <Link to={ Path.detail('Member', ID.toGlobalId('User', member.id)) }>
                 <i className="ux-icon">accessibility</i>
               </Link>
               <h3 className="ux-expand">{ member.title }</h3>
@@ -249,17 +289,18 @@ export default class Group extends React.Component {
 
           {/*
             * Shared Notes
+            * TODO(burdon): Factor out.
             * TODO(burdon): Move inline item creation into List.
             */}
           <div className="ux-section-header ux-row">
             <h3 className="ux-expand">Shared Notes</h3>
             <i className="ux-icon ux-icon-add"
-               onClick={ this.handleTaskAdd.bind(this, Group.NOTE_TYPE.SHARED) }></i>
+               onClick={ this.handleTaskAdd.bind(this, GroupLayout.NOTE_TYPE.SHARED) }></i>
           </div>
           <div className="ux-expand">
             <ItemsList filter={ sharedNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
-          {this.state.inlineEdit === Group.NOTE_TYPE.SHARED &&
+          {this.state.inlineEdit === GroupLayout.NOTE_TYPE.SHARED &&
           <div className="ux-list">
             <div className="ux-list-item ux-row ux-data-row">
               <i className="ux-icon">assignment_turned_in</i>
@@ -280,12 +321,12 @@ export default class Group extends React.Component {
           <div className="ux-section-header ux-row">
             <h3 className="ux-expand">Private Notes</h3>
             <i className="ux-icon ux-icon-add"
-               onClick={ this.handleTaskAdd.bind(this, Group.NOTE_TYPE.PRIVATE) }></i>
+               onClick={ this.handleTaskAdd.bind(this, GroupLayout.NOTE_TYPE.PRIVATE) }></i>
           </div>
           <div className="ux-expand">
             <UserTasksList filter={ privateNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
-          {this.state.inlineEdit === Group.NOTE_TYPE.PRIVATE &&
+          {this.state.inlineEdit === GroupLayout.NOTE_TYPE.PRIVATE &&
           <div className="ux-list">
             <div className="ux-list-item ux-row ux-data-row">
               <i className="ux-icon">assignment_turned_in</i>
@@ -305,3 +346,8 @@ export default class Group extends React.Component {
     );
   }
 }
+
+/**
+ * HOC.
+ */
+export default composeItem(GroupQuery)(GroupCard);

@@ -4,30 +4,26 @@
 
 import React from 'react';
 
-import User,  { UserFragments   } from './user';
-import Group, { GroupFragments  } from './group';
-import Place, { PlaceFragments  } from './place';
-import Task,  { TaskFragments   } from './task';
+import UserCard from './user';
+import GroupCard from './group';
+import PlaceCard from './place';
+import TaskCard from './task';
 
 /**
  * Type registry.
  */
 export class TypeRegistry {
 
-  // TODO(burdon): Support different views per type.
-
-  // TODO(burdon): Remove (currently needed for static query defs).
-  static get singleton() {
-    return registry;
-  };
-
   constructor() {
+    // Map of type registrations by type name.
     this._types = new Map();
   }
 
-  render(item, user) {
-    let spec = this._types.get(item.type);
-    return spec && spec.render(item, user) || (<div>NO TYPE HANDLER FOR [{ item.type }]</div>);
+  // TODO(burdon): Support different views per type.
+  render(type, itemId) {
+    console.assert(type && itemId);
+    let spec = this._types.get(type);
+    return spec && spec.render(itemId) || <div>NO HANDLER FOR [{ type }]</div>;
   }
 
   // TODO(burdon): Factor out mutator requirements (provide object).
@@ -41,83 +37,87 @@ export class TypeRegistry {
     return spec && spec.icon || '';
   }
 
-  get names() {
-    return _.map(Array.from(this._types.values()), (spec) => spec.fragment.item.document.definitions[0].name.value);
-  }
-
-  get fragments() {
-    return _.map(Array.from(this._types.values()), (spec) => spec.fragment.item.fragments());
+  fragment(type) {
+    return this._types.get(type).fragment;
   }
 }
 
-const registry = new TypeRegistry();
+/**
+ * Utility to create the TypeRegistry singleton.
+ */
+export class TypeFactory {
 
-registry._types.set('User', {
-  fragment: UserFragments,
-  render: (item, user) => <User user={ user } item={ item }/>,
-  icon: 'accessibility'
-});
+  // TODO(burdon): Constants for type names.
 
-registry._types.set('Group', {
-  fragment: GroupFragments,
-  render: (item, user) => <Group user={ user } item={ item }/>,
-  icon: 'group',
+  static create() {
+    let registry = new TypeRegistry();
 
-  path: (context, matcher, previousResult, item) => {
+    registry._types.set('User', {
+      icon: 'accessibility',
+      render: (itemId) => <UserCard itemId={ itemId }/>
+    });
 
-    // TODO(burdon): Move to MuationContextManager (manages map of fragments and paths).
-    // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
-    // TODO(burdon): First pass: factor out common parts with Reducer.
+    registry._types.set('Group', {
+      icon: 'group',
+      render: (itemId) => <GroupCard itemId={ itemId }/>,
 
-    // TODO(burdon): FIX: Not part of main query (e.g., shared notes).
-    let assignee = _.get(item, 'assignee.id');
-    if (!assignee) {
-      return;
-    }
+      path: (context, matcher, previousResult, item) => {
 
-    // Find associated member.
-    let members = _.get(previousResult, 'item.members');
-    let idx = _.findIndex(members, (member) => member.id === assignee);
-    console.assert(idx != -1, 'Invalid ID: %s', assignee);
+        // TODO(burdon): Move to MuationContextManager (manages map of fragments and paths).
+        // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
+        // TODO(burdon): First pass: factor out common parts with Reducer.
 
-    // Add, update or remove.
-    let member = members[idx];
-    let tasks = member.tasks;
-    let taskIdx = _.findIndex(tasks, (task) => task.id == item.id);
-
-    let op = {
-      $apply: (tasks) => {
-        if (taskIdx == -1) {
-          return [...tasks, item];
-        } else {
-          return _.compact(_.map(tasks, (task) => {
-            if (task.id == item.id) {
-              // TODO(burdon): Context.
-              // TODO(burdon): Extract filter from query and use matcher to determine if remove.
-              const filter = { expr: { field: "assignee", value: { id: member.id } } };
-              if (matcher.matchItem(context, {}, filter, item)) {
-                return item;
-              }
-            } else {
-              return task;
-            }
-          }));
+        // TODO(burdon): FIX: Not part of main query (e.g., shared notes).
+        let assignee = _.get(item, 'assignee.id');
+        if (!assignee) {
+          return;
         }
+
+        // Find associated member.
+        let members = _.get(previousResult, 'item.members');
+        let idx = _.findIndex(members, (member) => member.id === assignee);
+        console.assert(idx != -1, 'Invalid ID: %s', assignee);
+
+        // Add, update or remove.
+        let member = members[idx];
+        let tasks = member.tasks;
+        let taskIdx = _.findIndex(tasks, (task) => task.id == item.id);
+
+        let op = {
+          $apply: (tasks) => {
+            if (taskIdx == -1) {
+              return [...tasks, item];
+            } else {
+              return _.compact(_.map(tasks, (task) => {
+                if (task.id == item.id) {
+                  // TODO(burdon): Context.
+                  // TODO(burdon): Extract filter from query and use matcher to determine if remove.
+                  const filter = { expr: { field: "assignee", value: { id: member.id } } };
+                  if (matcher.matchItem(context, {}, filter, item)) {
+                    return item;
+                  }
+                } else {
+                  return task;
+                }
+              }));
+            }
+          }
+        };
+
+        return { item: { members: { [idx]: { tasks: op } } } };
       }
-    };
+    });
 
-    return { item: { members: { [idx]: { tasks: op } } } };
+    registry._types.set('Place', {
+      icon: 'location_city',
+      render: (itemId) => <PlaceCard itemId={ itemId }/>
+    });
+
+    registry._types.set('Task', {
+      icon: 'assignment_turned_in',
+      render: (itemId) => <TaskCard itemId={ itemId }/>
+    });
+
+    return registry;
   }
-});
-
-registry._types.set('Place', {
-  fragment: PlaceFragments,
-  render: (item, user) => <Place user={ user } item={ item }/>,
-  icon: 'location_city'
-});
-
-registry._types.set('Task', {
-  fragment: TaskFragments,
-  render: (item, user) => <Task user={ user } item={ item }/>,
-  icon: 'assignment_turned_in'
-});
+}
