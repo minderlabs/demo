@@ -40,8 +40,6 @@ const logger = Logger.get('mutations');
 // We need to tell the reducer how to find the appropriate sub-collection (e.g., Member A's tasks).
 // NOTE: Mutations must also return all relevant fields for the type.
 //
-// TODO(burdon): Provide context to matcher to resolve "magic" variables.
-//  (E.g., assignee == PARENT; see User.tasks resolver).
 // TODO(burdon): ISSUE: Are all queries' reducers called for all mutations?
 //
 // NOTE: If we get this right, things should work offline.
@@ -98,9 +96,9 @@ export class Reducer {
           logger.log($$('Update item: %o', previousResult));
 
           // TODO(burdon): Instead of this should have MutationContext that understands the Query "shape".
-          //  E.g., "Task" may be updated in different contexts (Task List, Team page, etc.)
-          let path = typeRegistry.path(previousResult.item.type);
-          transform = path && path(context, matcher, previousResult, updatedItem);
+          // E.g., "Task" may be updated in different contexts (Task List, Team page, etc.)
+          let reducer = typeRegistry.reducer(previousResult.item.type);
+          transform = reducer && reducer(context, matcher, previousResult, updatedItem);
         }
 
         //

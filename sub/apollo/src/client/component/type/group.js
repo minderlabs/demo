@@ -39,6 +39,67 @@ const GroupFragment = gql`
 `;
 
 /**
+ * Type-specific reducer.
+ *
+ * @param context
+ * @param matcher
+ * @param previousResult
+ * @param item
+ */
+const GroupReducer = (context, matcher, previousResult, item) => {
+
+  // TODO(burdon): Factor out this comment and reference it.
+  // The Reducer is called on mutation. When the generic UpdateItemMutation response is received we need
+  // to tell Apollo how to stitch the result into the cached response. For item mutations, this is easy
+  // since the ID is used to change the existing item. For adds and deletes, Apollo has no way of knowing
+  // where the item should fit (e.g., for a flat list it depends on the sort order; for complex query shapes
+  // (like Group) it could be on one (or more) of the branches (e.g., Second member's tasks).
+
+  // TODO(burdon): First pass: factor out common parts with Reducer.
+  // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
+
+  // TODO(burdon): FIX: Not part of main query (e.g., shared notes).
+  let assignee = _.get(item, 'assignee.id');
+  if (!assignee) {
+    return;
+  }
+
+  // Find associated member.
+  let members = _.get(previousResult, 'item.members');
+  let idx = _.findIndex(members, (member) => member.id === assignee);
+  console.assert(idx != -1, 'Invalid ID: %s', assignee);
+
+  // Add, update or remove.
+  let member = members[idx];
+  let tasks = member.tasks;
+  let taskIdx = _.findIndex(tasks, (task) => task.id == item.id);
+
+  // Create the resolver operator.
+  let op = {
+    $apply: (tasks) => {
+      if (taskIdx == -1) {
+        return [...tasks, item];
+      } else {
+        return _.compact(_.map(tasks, (task) => {
+          if (task.id == item.id) {
+            // TODO(burdon): Context.
+            // TODO(burdon): Extract filter from query and use matcher to determine if remove.
+            const filter = { expr: { field: "assignee", value: { id: member.id } } };
+            if (matcher.matchItem(context, {}, filter, item)) {
+              return item;
+            }
+          } else {
+            return task;
+          }
+        }));
+      }
+    }
+  };
+
+  return { item: { members: { [idx]: { tasks: op } } } };
+};
+
+/**
  * Type-specific query.
  */
 const GroupQuery = gql`
@@ -58,6 +119,8 @@ const GroupQuery = gql`
  * Type-specific card container.
  */
 class GroupCard extends React.Component {
+
+  static reducer = GroupReducer;
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -290,6 +353,9 @@ class GroupLayout extends React.Component {
           {/*
             * Shared Notes
             * TODO(burdon): Factor out.
+            * TODO(burdon): Note: since notes are not part of the main query, mutations should be handled
+            *               internally to the associated ItemsList and UserTasksList controls.
+            *
             * TODO(burdon): Move inline item creation into List.
             */}
           <div className="ux-section-header ux-row">
