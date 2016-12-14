@@ -3,11 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <title>Tables</title>
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+
+      margin: 0;
+      overflow: hidden;                   /* Prevent bounce. */
+
+      background-color: #CCC;
+
+      font-family: Roboto, sans-serif;
+      font-size: 24px;
+    }
+
+    input[type=text] {
+      outline: none;
+      font-size: 24px;
+      border: 1px solid #333;
+      padding: 0 4px;
+    }
+
+    div.test-text {
+      padding: 0 4px;
+    }
+
+    h1 {
+      font-weight: 100;
+    }
+
+    .test-container {
+      width: 600px;
+
+      background-color: white;
+      padding: 8px;
+    }
+
+    .test-table {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+    }
+
+    .test-table-row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+    .test-table-row:nth-child(odd) {
+      background-color: #EEE;
+    }
+    .test-table-row:hover {
+      background-color: ghostwhite;
+    }
+
+    .test-table-row i.material-icons {
+      width: 24px;
+    }
+
+    .test-expand {
+      flex-grow: 1;
+    }
+
+    .test-popup-container {
+      position: relative;
+    }
+
+    .test-popup-panel {
+      position: absolute;
+      width: 100%;                      /* Expand to parent (box-sizing: border-box). */
+
+      background-color: red;
+      border: 1px solid #333;
+      border-top: none;
+
+      max-height: 60px;                 /* NOTE: Row height must at least 4 pixels more than the font size. */
+      overflow-y: scroll;
+    }
+    .test-popup-panel::-webkit-scrollbar {
+      width: 8px;
+    }
+    .test-popup-panel::-webkit-scrollbar-thumb {
+      background-color: #666;
+    }
+    .test-popup-panel > div > div {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      background-color: whitesmoke;
+      height: 30px;
+    }
+    .test-popup-panel > div > div:nth-child(odd) {
+      background-color: white;
+    }
+
+  </style>
 </head>
 <body>
 
-  <div>
+  <div class="test-container">
+    <h1>Tables</h1>
 
+    <div class="test-table">
+
+      <div class="test-table-row">
+        <i class="material-icons">star_border</i>
+        <div class="test-expand">Title 1</div>
+
+        <div class="test-popup-container">
+          <input type="text" value="A" style="width: 200px">
+          <div class="test-popup-panel">
+            <div>
+              <div class="test-text">A</div>
+              <div class="test-text">B</div>
+              <div class="test-text">C</div>
+              <div class="test-text">D</div>
+              <div class="test-text">E</div>
+            </div>
+          </div>
+        </div>
+
+        <i class="material-icons">done</i>
+      </div>
+
+      <div class="test-table-row">
+        <i class="material-icons"></i>
+        <div class="test-expand">Title 2</div>
+        <i class="material-icons">done</i>
+      </div>
+      <div class="test-table-row">
+        <i class="material-icons">star_border</i>
+        <div class="test-expand">Title 3</div>
+      </div>
+      <div class="test-table-row">
+        <i class="material-icons">star_border</i>
+        <div class="test-expand">Title 4</div>
+      </div>
+      <div class="test-table-row">
+        <i class="material-icons">star_border</i>
+        <div class="test-expand">Title 5</div>
+      </div>
+    </div>
   </div>
 
 </body>
