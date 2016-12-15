@@ -167,7 +167,7 @@ type User implements Item {
 
   contact: Contact
 
-  # TODO(burdon): Generalize to items.
+  # TODO(burdon): Generalize to items. Should not be required?
   tasks(filter: FilterInput): [Task]!
 }
 
@@ -261,9 +261,13 @@ type Place implements Item {
 #
 
 type RootQuery {
+
   viewer: Viewer!
+
   folders: [Folder]!
+
   item(itemId: ID!): Item!
+
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
 }
 

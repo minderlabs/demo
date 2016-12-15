@@ -221,23 +221,61 @@ app.get('/home', async function(req, res) {
   }
 });
 
-app.use(loginRouter(firebase.userStore, {
-  env
-}));
+//
+// GraphQL
+//
 
 app.use(graphqlRouter(database, {
   logging: true,
   pretty: false,
+  graphiql: false,    // Use custom below.
 
   // TODO(burdon): Check authenticated.
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
-  context: request => authManager.getUserInfoFromHeader(request)
-    .then(userInfo => ({
-      user: {
-        id: userInfo.id
+  context: req => authManager.getUserInfoFromHeader(req)
+    .then(userInfo => {
+      if (!userInfo) {
+        console.error('Not authenticated.');
       }
-    }))
+
+      return {
+        user: {
+          id: userInfo && userInfo.id
+        }
+      };
+    })
+}));
+
+//
+// Custom GraphiQL.
+//
+
+app.use('/node_modules', express.static(path.join(__dirname, '../../node_modules')));
+app.get('/graphiql', function(req, res) {
+  return authManager.getUserInfoFromCookie(req)
+    .then(userInfo => {
+      if (!userInfo) {
+        return res.redirect('/home');
+      }
+
+      res.render('graphiql', {
+        config: {
+          headers: [{
+            name: 'authentication',
+            value: `Bearer ${userInfo.token}`
+          }]
+        }
+      });
+  });
+});
+
+//
+// App.
+//
+
+app.use(loginRouter(firebase.userStore, {
+  env
 }));
 
 app.use(adminRouter(clientManager, firebase));

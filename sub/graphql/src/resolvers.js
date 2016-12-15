@@ -134,6 +134,8 @@ export class Resolvers {
           //   user: ID.toGlobalId('User', id)
           // };
 
+          console.log('::::::', context);
+
           return database.getItem(context, 'User', id).then(user => ({
             id,   // TODO(burdon): Global ID?
             user

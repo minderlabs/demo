@@ -32,14 +32,17 @@ const logger = Logger.get('gql');
  */
 export const graphqlRouter = (database, options) => {
   console.assert(database);
-  options = _.defaults(options, { graphql: '/graphql', graphiql: '/graphiql' });
+  options = _.defaults(options, {
+    graphql: '/graphql',
+    graphiql: '/graphiql'
+  });
 
   // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#makeExecutableSchema
   const schema = makeExecutableSchema({
     typeDefs: Resolvers.typeDefs,
     resolvers: Resolvers.getResolvers(database),
     logger: {
-      log: (error) => logger.error('Schema Error', error)
+      log: error => logger.error('Schema Error', error)
     }
   });
 
@@ -57,7 +60,7 @@ export const graphqlRouter = (database, options) => {
   // TODO(burdon): Simulate errors?
   // https://github.com/graphql/express-graphql
   // http://dev.apollodata.com/tools/graphql-server/setup.html#options-function
-  router.use(options.graphql, graphqlExpress((request) => new Promise((resolve, reject) => {
+  router.use(options.graphql, graphqlExpress(request => new Promise((resolve, reject) => {
 
     // http://dev.apollodata.com/tools/graphql-server/setup.html#graphqlOptions
     let graphqlOptions = {
@@ -70,13 +73,12 @@ export const graphqlRouter = (database, options) => {
       })
     };
 
-    // TODO(burdon): Provide root value?
     // TODO(burdon): Error handling.
-    // Request context for resolvers (e.g., authenticated user).
+    // Provide the request context for resolvers (e.g., authenticated user).
     // http://dev.apollodata.com/tools/graphql-server/setup.html
     // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
     if (options.context) {
-      options.context(request).then((context) => {
+      options.context(request).then(context => {
         console.assert(context);
         graphqlOptions.context = context;
         resolve(graphqlOptions);
@@ -86,11 +88,15 @@ export const graphqlRouter = (database, options) => {
     }
   })));
 
+  // http://dev.apollodata.com/tools/graphql-server/graphiql.html
   // TODO(madadam): Figure out how to inject context here too, for authentication headers.
+  // https://github.com/graphql/graphiql/blob/master/example/index.html
   // Bind debug UX.
-  router.use(options.graphiql, graphiqlExpress({
-    endpointURL: options.graphql,
-  }));
+  if (options.graphiql) {
+    router.use(options.graphiql, graphiqlExpress({
+      endpointURL: options.graphql,
+    }));
+  }
 
   return router;
 };

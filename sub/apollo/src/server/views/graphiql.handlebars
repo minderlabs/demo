@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        height: 100%;
+        margin: 0;
+        width: 100%;
+        overflow: hidden;
+      }
+      #graphiql {
+        height: 100vh;
+      }
+    </style>
+
+    <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
+    <script src="//cdn.jsdelivr.net/react/15.3.2/react.min.js"></script>
+    <script src="//cdn.jsdelivr.net/react/15.3.2/react-dom.min.js"></script>
+
+    <script src="/node_modules/graphiql/graphiql.js"></script>
+    <link rel="stylesheet" href="/node_modules/graphiql/graphiql.css" />
+
+  </head>
+  <body>
+    <div id="graphiql">Loading...</div>
+
+    <script>
+      window.config = {{{ toJSON config }}};
+    </script>
+
+    <script>
+      'use strict';
+
+      console.log('Config = %s', JSON.stringify(window.config) );
+
+      let headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      };
+
+      // Add auth header.
+      window.config.headers.forEach(function(header) {
+        headers[header.name] = header.value;
+      });
+
+      //
+      // Custom fetcher.
+      // https://github.com/graphql/graphiql#getting-started
+      //
+
+      function graphQLFetcher(graphQLParams) {
+        return fetch('/graphql', {
+          method: 'post',
+          headers: headers,
+          body: JSON.stringify(graphQLParams),
+          credentials: 'include',
+        }).then(function (response) {
+          return response.text();
+        }).then(function (responseBody) {
+          try {
+            return JSON.parse(responseBody);
+          } catch (error) {
+            return responseBody;
+          }
+        });
+      }
+
+      //
+      // See node_modules/graphiql/README
+      // https://raw.githubusercontent.com/graphql/graphiql/master/example/index.html
+      //
+
+      ReactDOM.render(
+        React.createElement(GraphiQL, {
+          fetcher: graphQLFetcher
+        }),
+        document.getElementById('graphiql')
+      );
+    </script>
+  </body>
+</html>

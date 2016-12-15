@@ -68,6 +68,7 @@
     "express-handlebars": "^3.0.0",
     "firebase": "^3.6.1",
     "firebase-admin": "^4.0.3",
+    "graphiql": "^0.8.0",
     "graphql": "^0.7.0",
     "graphql-anywhere": "^1.0.0",
     "graphql-server-express": "^0.4.3",
