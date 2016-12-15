@@ -29,6 +29,13 @@
       }
     },
     {
+      "id": "projects",
+      "title": "Projects",
+      "filter": {
+        "type": "Project"
+      }
+    },
+    {
       "id": "deleted",
       "title": "Deleted",
       "filter": {

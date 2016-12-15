@@ -7,6 +7,7 @@ import React from 'react';
 import UserCard from './user';
 import GroupCard from './group';
 import PlaceCard from './place';
+import ProjectCard from './project';
 import TaskCard from './task';
 
 /**
@@ -57,6 +58,11 @@ export class TypeFactory {
     registry._types.set('Place', {
       icon: 'location_city',
       render: (itemId) => <PlaceCard itemId={ itemId }/>
+    });
+
+    registry._types.set('Project', {
+      icon: 'assignment',
+      render: (itemId) => <ProjectCard itemId={ itemId }/>
     });
 
     registry._types.set('Task', {

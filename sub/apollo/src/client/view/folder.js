@@ -79,8 +79,10 @@ class FolderView extends React.Component {
         }
       ];
 
-      // TODO(burdon): Get type from picker.
-      this.props.mutator.createItem('Task', mutations);
+      // TODO(burdon): If no type then hide create button.
+      let { filter } = this.props;
+      let type = _.get(filter, 'type', 'Task');
+      this.props.mutator.createItem(type, mutations);
 
       this.refs.text.value = '';
       this.refs.text.focus();

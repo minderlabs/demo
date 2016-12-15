@@ -201,12 +201,25 @@ type Contact implements Item {
   email: String!
 }
 
+type Project implements Item {
+  id: ID!
+  type: String!
+  alias: String
+  title: String!
+  labels: [String]
+
+  # TODO(burdon): Implement as links.
+  tasks: [ID]
+}
+
 type Task implements Item {
   id: ID!
   type: String!
   alias: String
   title: String!
   labels: [String]
+
+  # TODO(burdon): Promote to shared meta data for all items.
   bucket: String
 
   owner: User

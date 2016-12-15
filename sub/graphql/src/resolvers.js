@@ -167,9 +167,10 @@ export class Resolvers {
           return database.getItem(context, type, localItemId).then(item => {
 
             // If not found (i.e., insert).
+            // TODO(burdon): Check this is an insert (not a miss due to a bug).
             if (!item.id) {
               item = {
-                id: itemId,
+                id: localItemId,
                 type: type,
                 title: ''
               };

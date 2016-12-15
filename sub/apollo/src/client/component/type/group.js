@@ -167,12 +167,93 @@ class GroupLayout extends React.Component {
     };
   }
 
+  handleItemSelect(item) {
+    this.context.navigator.pushDetail(item);
+  }
+
   /**
    * @param member: User ID or string ('private')
    */
   handleTaskAdd(member) {
     this.setState({
       inlineEdit: member.id || member
+    });
+  }
+
+  // TODO(burdon): Factor out into list control.
+  handleTaskSave(assignee, text, event) {
+    let { user, item } = this.props;
+
+    let title = this.refs.task_title.value;
+    if (_.isEmpty(title)) {
+      this.refs.task_title.focus();
+      return;
+    }
+
+    let mutations = [
+      {
+        field: 'title',
+        value: {
+          string: title
+        }
+      },
+      {
+        field: 'owner',
+        value: {
+          id: user.id
+        }
+      }
+    ];
+
+    if (assignee && assignee.id) {
+      mutations.push({
+        field: 'assignee',
+        value: {
+          id: assignee.id
+        }
+      });
+    } else {
+      // TODO(burdon): Switch to using actual buckets.
+      // TODO(burdon): Corruption of this.state.inlineEdit to use private/shared.
+      switch (this.state.inlineEdit) {
+        case GroupLayout.NOTE_TYPE.PRIVATE: {
+          mutations.push({
+            field: 'bucket',
+            value: {
+              string: user.id
+            }
+          });
+          break;
+        }
+
+        case GroupLayout.NOTE_TYPE.SHARED: {
+          mutations.push({
+            field: 'bucket',
+            value: {
+              string: item.id
+            }
+          });
+          break;
+        }
+      }
+    }
+
+    this.context.mutator.createItem('Task', mutations);
+
+    // Another.
+    // TODO(burdon): Wait until commit?
+    if (event && event.shiftKey) {
+      return;
+    }
+
+    this.setState({
+      inlineEdit: null
+    });
+  }
+
+  handleTaskCancel() {
+    this.setState({
+      inlineEdit: null
     });
   }
 
@@ -196,82 +277,6 @@ class GroupLayout extends React.Component {
 
     // TODO(burdon): Transform $push returned object.
     this.context.mutator.updateItem(item, mutations);
-  }
-
-  handleTaskSave(assignee, save, text, event) {
-    let { user, item } = this.props;
-
-    if (save !== false) {
-      let text = this.refs.task_create.value;
-      if (_.isEmpty(text)) {
-        this.refs.task_create.focus();
-        return;
-      }
-
-      let mutations = [
-        {
-          field: 'title',
-          value: {
-            string: text
-          }
-        },
-        {
-          field: 'owner',
-          value: {
-            id: user.id
-          }
-        }
-      ];
-
-      if (assignee && assignee.id) {
-        mutations.push({
-          field: 'assignee',
-          value: {
-            id: assignee.id
-          }
-        });
-      } else {
-        // TODO(burdon): Switch to using actual buckets.
-        // TODO(burdon): Corruption of this.state.inlineEdit to use private/shared.
-        switch (this.state.inlineEdit) {
-          case GroupLayout.NOTE_TYPE.PRIVATE: {
-            mutations.push({
-              field: 'bucket',
-              value: {
-                string: user.id
-              }
-            });
-            break;
-          }
-
-          case GroupLayout.NOTE_TYPE.SHARED: {
-            mutations.push({
-              field: 'bucket',
-              value: {
-                string: item.id
-              }
-            });
-            break;
-          }
-        }
-      }
-
-      this.context.mutator.createItem('Task', mutations);
-
-      // Another.
-      // TODO(burdon): Wait until commit?
-      if (event && event.shiftKey) {
-        return;
-      }
-    }
-
-    this.setState({
-      inlineEdit: null
-    });
-  }
-
-  handleItemSelect(item) {
-    this.context.navigator.pushDetail(item);
   }
 
   render() {
@@ -334,14 +339,14 @@ class GroupLayout extends React.Component {
               {this.state.inlineEdit === member.id &&
               <div className="ux-list-item ux-row ux-data-row">
                 <i className="ux-icon">assignment_turned_in</i>
-                <TextBox ref="task_create"
+                <TextBox ref="task_title"
                          className="ux-expand" autoFocus={ true }
-                         onEnter={ this.handleTaskSave.bind(this, member, true) }
-                         onCancel={ this.handleTaskSave.bind(this, member, false)} />
+                         onEnter={ this.handleTaskSave.bind(this, member) }
+                         onCancel={ this.handleTaskCancel.bind(this)} />
                 <i className="ux-icon ux-icon-save"
                    onClick={ this.handleTaskSave.bind(this, member) }>check</i>
                 <i className="ux-icon ux-icon-cancel"
-                   onClick={ this.handleTaskSave.bind(this, member, false) }>cancel</i>
+                   onClick={ this.handleTaskCancel.bind(this) }>cancel</i>
               </div>}
             </div>
 
@@ -368,14 +373,14 @@ class GroupLayout extends React.Component {
           <div className="ux-list">
             <div className="ux-list-item ux-row ux-data-row">
               <i className="ux-icon">assignment_turned_in</i>
-              <TextBox ref="task_create"
+              <TextBox ref="task_title"
                        className="ux-expand" autoFocus={ true }
-                       onEnter={ this.handleTaskSave.bind(this, null, true) }
-                       onCancel={ this.handleTaskSave.bind(this, null, false)} />
+                       onEnter={ this.handleTaskSave.bind(this) }
+                       onCancel={ this.handleTaskCancel.bind(this)} />
               <i className="ux-icon ux-icon-save"
-                 onClick={ this.handleTaskSave.bind(this, null) }>check</i>
+                 onClick={ this.handleTaskSave.bind(this) }>check</i>
               <i className="ux-icon ux-icon-cancel"
-                 onClick={ this.handleTaskSave.bind(this, null, false) }>cancel</i>
+                 onClick={ this.handleTaskCancel.bind(this) }>cancel</i>
             </div>
           </div>}
 
@@ -394,14 +399,14 @@ class GroupLayout extends React.Component {
           <div className="ux-list">
             <div className="ux-list-item ux-row ux-data-row">
               <i className="ux-icon">assignment_turned_in</i>
-              <TextBox ref="task_create"
+              <TextBox ref="task_title"
                        className="ux-expand" autoFocus={ true }
-                       onEnter={ this.handleTaskSave.bind(this, null, true) }
-                       onCancel={ this.handleTaskSave.bind(this, null, false)} />
+                       onEnter={ this.handleTaskSave.bind(this) }
+                       onCancel={ this.handleTaskCancel.bind(this)} />
               <i className="ux-icon ux-icon-save"
-                 onClick={ this.handleTaskSave.bind(this, null) }>check</i>
+                 onClick={ this.handleTaskSave.bind(this) }>check</i>
               <i className="ux-icon ux-icon-cancel"
-                 onClick={ this.handleTaskSave.bind(this, null, false) }>cancel</i>
+                 onClick={ this.handleTaskCancel.bind(this) }>cancel</i>
             </div>
           </div>}
 

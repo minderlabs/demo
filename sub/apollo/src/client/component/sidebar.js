@@ -21,6 +21,7 @@ export class SidebarPanel extends React.Component {
       <div className="ux-column ux-list">
         <Link className="ux-list-item" to={ Path.folder('inbox') }>Inbox</Link>
         <Link className="ux-list-item" to={ Path.folder('favorites') }>Favorites</Link>
+        <Link className="ux-list-item" to={ Path.folder('projects') }>Projects</Link>
         <Link className="ux-list-item" to={ Path.folder('deleted') }>Deleted</Link>
 
         <Link className="ux-list-item" to={ Path.detail('Team', ID.toGlobalId('Group', 'minderlabs')) }>Team</Link>
