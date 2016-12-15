@@ -229,6 +229,7 @@ app.use(graphqlRouter(database, {
   logging: true,
   pretty: false,
 
+  // TODO(burdon): Check authenticated.
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
   context: request => authManager.getUserInfoFromHeader(request)

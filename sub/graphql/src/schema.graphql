@@ -167,6 +167,7 @@ type User implements Item {
 
   contact: Contact
 
+  # TODO(burdon): Generalize to items.
   tasks(filter: FilterInput): [Task]!
 }
 
@@ -208,8 +209,10 @@ type Project implements Item {
   title: String!
   labels: [String]
 
-  # TODO(burdon): Implement as links.
-  tasks: [ID]
+  team: Group!
+
+  # TODO(burdon): Implement via links?
+  tasks: [Task]!
 }
 
 type Task implements Item {
@@ -222,6 +225,10 @@ type Task implements Item {
   # TODO(burdon): Promote to shared meta data for all items.
   bucket: String
 
+  # TODO(burdon): Implement via links?
+  project: Project
+
+  # TODO(burdon): Promote to shared meta data for all items.
   owner: User
   assignee: User
 }

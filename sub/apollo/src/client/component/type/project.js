@@ -3,31 +3,56 @@
 //
 
 import React from 'react';
+import { Link } from 'react-router';
 import gql from 'graphql-tag';
 import { propType } from 'graphql-anywhere';
 
-import { MutationUtil, TypeUtil } from 'minder-core';
+import { ID, MutationUtil, TypeUtil } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
+import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 import { ItemsList } from '../list_factory';
+
+// TODO(burdon): Change current GroupCard to ProjectCard.
+// TODO(burdon): New TeamCard should just show members (view of group).
+// TODO(burdon): Project card should scope tasks by project ID.
 
 /**
  * Type-specific fragment.
  */
 const ProjectFragment = gql`
   fragment ProjectFragment on Project {
-    tasks
+
+    tasks {
+      ...ItemFragment
+    }
   }
+
+  ${ItemFragment}
 `;
 
 /**
  * Type-specific query.
  */
 const ProjectQuery = gql`
-  query ProjectQuery($itemId: ID!) { 
-    
+  query ProjectQuery($itemId: ID!) {
+
     item(itemId: $itemId) {
+
+      ... on Project {
+        team {
+          title
+          members {
+            ...ItemFragment
+
+            tasks(filter: { expr: { field: "project", value: { id: $itemId } } }) {
+              ...ItemFragment
+            }
+          }
+        }
+      }
+
       ...ItemFragment
       ...ProjectFragment
     }
@@ -104,10 +129,16 @@ class ProjectLayout extends React.Component {
         value: {
           string: title
         }
+      },
+      {
+        field: 'project',
+        value: {
+          id: item.id
+        }
       }
     ];
 
-    let itemId = this.context.mutator.createItem('Task', mutations);
+    let taskId = this.context.mutator.createItem('Task', mutations);
 
     // Add to project.
     // TODO(burdon): Batch mutations atomically.
@@ -117,7 +148,7 @@ class ProjectLayout extends React.Component {
         value: {
           array: {
             value: {
-              id: itemId
+              id: taskId
             }
           }
         }
@@ -137,13 +168,33 @@ class ProjectLayout extends React.Component {
     });
   }
 
-  render() {
-    let { item } = this.props;
+  // TODO(burdon): Move to card.
+  // TODO(burdon): Don't pass item.
+  handleTaskDelete(item) {
+    // TODO(burdon): Use MutationUtil.
+    let mutations = [
+      {
+        field: 'labels',
+        value: {
+          array: {
+            index: 0,
+            value: {
+              string: '_deleted'
+            }
+          }
+        }
+      }
+    ];
 
-    // TODO(burdon): Filter by IDs.
-    let filter = {
-      ids: item.tasks || []
-    };
+    // TODO(burdon): Transform $push returned object.
+    this.context.mutator.updateItem(item, mutations);
+  }
+
+  render() {
+    let { item, tasks } = this.props;
+
+    // TODO(burdon): Alt query by Task.project.
+    // TODO(burdon): Sort tasks by member/assignee.
 
     return (
       <div className="app-type-project ux-column ux-section">
@@ -156,8 +207,17 @@ class ProjectLayout extends React.Component {
             <h3 className="ux-expand">Tasks</h3>
             <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
           </div>
-          <div className="ux-expand">
-            <ItemsList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <div className="ux-list">
+            {item.tasks.map(task => (
+            <div key={ task.id } className="ux-list-item ux-row ux-data-row">
+              <Link to={ Path.detail('task', ID.toGlobalId('Task', task.id)) }>
+                <i className="ux-icon">assignment_turned_in</i>
+              </Link>
+              <div className="ux-text ux-expand">{ task.title }</div>
+              <i className="ux-icon ux-icon-delete"
+                 onClick={ this.handleTaskDelete.bind(this, task) }>cancel</i>
+            </div>
+            ))}
           </div>
           {this.state.inlineEdit &&
           <div className="ux-list">

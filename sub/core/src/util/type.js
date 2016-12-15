@@ -26,6 +26,16 @@ export class TypeUtil {
   }
 
   /**
+   * Appends array of items to array.
+   * @param array
+   * @param items
+   */
+  static append(array, items) {
+    array.splice(array.length, 0, ...items);
+    return array;
+  }
+
+  /**
    * Multimap.
    * @param map
    * @param key

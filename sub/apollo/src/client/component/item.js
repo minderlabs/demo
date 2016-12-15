@@ -122,9 +122,6 @@ export class CardContainer extends React.Component {
       return null;
     }
 
-    console.log('>>>>>', item.id);
-//  let { type, id } = ID.fromGlobalId(item.id);
-
     return (
       <div className="app-detail ux-column">
         <div className="ux-section ux-row">

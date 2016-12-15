@@ -30,4 +30,10 @@ describe('Types:', () => {
       done();
     });
   });
+
+  it('Append to array.', () => {
+    let values = [1, 2, 3];
+    let result = TypeUtil.append(values, [4, 5]);
+    expect(result.length).to.equal(5);
+  });
 });

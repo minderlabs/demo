@@ -70,7 +70,7 @@ export class Resolvers {
       // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
       // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-result-format
       //
-      // fieldName: (root, args, context, info) => result
+      // field: (root, args, context, info) => result
       //
 
       Group: {
@@ -89,19 +89,28 @@ export class Resolvers {
         }
       },
 
+      Project: {
+
+        team: (root, args, context) => {
+          return database.getItem(context, 'Group', root.team);
+        },
+
+        tasks: (root, args, context) => {
+          return root.tasks && database.getItems(context, 'Task', root.tasks) || [];
+        }
+      },
+
       Task: {
 
         owner: (root, args, context) => {
-          let userId = root.owner;
-          if (userId) {
-            return database.getItem(context, 'User', userId);
+          if (root.owner) {
+            return database.getItem(context, 'User', root.owner);
           }
         },
 
         assignee: (root, args, context) => {
-          let userId = root.assignee;
-          if (userId) {
-            return database.getItem(context, 'User', userId);
+          if (root.assignee) {
+            return database.getItem(context, 'User', root.assignee);
           }
         }
       },

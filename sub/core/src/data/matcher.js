@@ -36,7 +36,7 @@ export class Matcher {
    */
   // TODO(burdon): Pass context into matcher.
   matchItem(context, root, filter, item) {
-    console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
+//  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item);
     if (_.isEmpty(filter)) {
       return false;

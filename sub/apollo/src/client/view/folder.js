@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { QueryParser, Mutator } from 'minder-core';
+import { QueryParser, Mutator, TypeUtil } from 'minder-core';
 import { SearchBar, TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
@@ -51,37 +51,62 @@ class FolderView extends React.Component {
   }
 
   handleItemCreate() {
+    let { user, filter } = this.props;
+
     let title = _.trim(this.refs.text.value);
     if (title) {
+
+      // TODO(burdon): If no type then hide create button.
+      let type = _.get(filter, 'type', 'Task');
+
+      // Basic mutation.
       let mutations = [
         {
           field: 'title',
           value: {
             string: title
           }
-        },
-        {
-          field: 'owner',
-          value: {
-            id: this.props.user.id
-          }
-        },
-        {
-          field: 'labels',
-          value: {
-            array: {
-              index: 0,
-              value: {
-                string: '_private'
-              }
-            }
-          }
         }
       ];
 
-      // TODO(burdon): If no type then hide create button.
-      let { filter } = this.props;
-      let type = _.get(filter, 'type', 'Task');
+      // TODO(burdon): Factor out type-specific fields.
+      switch (type) {
+        case 'Project': {
+          TypeUtil.append(mutations, [
+            {
+              field: 'team',
+              value: {
+                id: 'minderlabs'          // TODO(burdon): Hack. Get from config.
+              }
+            }
+          ]);
+          break;
+        }
+
+        case 'Task': {
+          TypeUtil.append(mutations, [
+            {
+              field: 'owner',             // TODO(burdon): Promote for all items?
+              value: {
+                id: user.id
+              }
+            },
+            {
+              field: 'labels',
+              value: {
+                array: {
+                  index: 0,
+                  value: {
+                    string: '_private'    // TODO(burdon): By default?
+                  }
+                }
+              }
+            }
+          ]);
+          break;
+        }
+      }
+
       this.props.mutator.createItem(type, mutations);
 
       this.refs.text.value = '';
