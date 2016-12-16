@@ -3,6 +3,7 @@
 //
 
 import _ from 'lodash';
+import moment from 'moment';
 
 import { ItemStore, TypeUtil } from 'minder-core';
 
@@ -29,7 +30,10 @@ export class MemoryItemStore extends ItemStore {
       console.assert(item.type);
       if (!item.id) {
         item.id = Database.IdGenerator.createId();
+        item.created = moment().unix();
       }
+
+      item.modified = moment().unix();
 
       // TODO(burdon): Enforce immutable properties (e.g., type).
       this._items.set(item.id, item);
@@ -60,7 +64,7 @@ export class MemoryItemStore extends ItemStore {
     let sort = filter.sort;
     if (sort) {
       console.assert(sort.field);
-      items = _.sortBy(items, [sort.field]);
+      items = _.orderBy(items, [sort.field], [sort.order === 'DESC' ? 'desc' : 'asc']);
     }
 
     // Page.

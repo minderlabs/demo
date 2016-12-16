@@ -36,6 +36,22 @@ export class TypeUtil {
   }
 
   /**
+   * Return true if value is effectively empty (i.e., undefined, null, [], or {} values).
+   * @param value
+   */
+  static isEmpty(value) {
+    return _.isNil(value) || (_.isObject(value) && _.isEmpty(TypeUtil.compact(value)));
+  }
+
+  /**
+   * Remove empty fields from object.
+   * @param value
+   */
+  static compact(value) {
+    return _.omitBy(value, v => _.isNil(v) || (_.isObject(v) && _.isEmpty(v)));
+  }
+
+  /**
    * Multimap.
    * @param map
    * @param key

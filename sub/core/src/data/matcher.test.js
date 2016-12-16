@@ -41,7 +41,7 @@ describe('Matcher:', () => {
       id: 'f',
       type: 'Task',
       bucket: 'a',
-      title: 'Label me able.',
+      title: 'Test matcher.',
       labels: ['foo']
     }
   ], item => item.id);
@@ -70,6 +70,19 @@ describe('Matcher:', () => {
 
     // TODO(burdon): Different types!
     expect(matcher.matchItems(context, root, { ids: ['a', 'b', 'z'], type: 'Task' }, items)).to.have.length(6);
+  });
+
+  /**
+   *
+   */
+  it('Matches nothing or everything.', () => {
+    let matcher = new Matcher();
+
+    let context = {};
+    let root = {};
+
+    expect(matcher.matchItems(context, root, {}, items).length).to.equal(0);
+    expect(matcher.matchItems(context, root, { matchAll: true }, items).length).to.equal(_.size(items));
   });
 
   /**
@@ -154,13 +167,12 @@ describe('Matcher:', () => {
       user: { id: 'a' }
     };
     let root = {};
-
     let filter = {
-      bucket: 'a'
+      bucket: 'a',
+      matchAll: true
     };
 
     expect(matcher.matchItem(context, root, filter, items.f)).to.be.true;
     expect(matcher.matchItems(context, root, filter, items)).to.have.length(1);
   });
 });
-

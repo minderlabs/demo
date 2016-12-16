@@ -4,6 +4,8 @@
 
 import _ from 'lodash';
 
+import { TypeUtil } from '../util/type';
+
 /**
  * Item matcher.
  *
@@ -36,13 +38,19 @@ export class Matcher {
    * @param item
    * @returns {boolean} True if the item matches the filter.
    */
-  // TODO(burdon): Pass context into matcher.
   matchItem(context, root, filter, item) {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item);
 
     // Must match something.
-    if (_.isEmpty(filter)) {
+    // TODO(burdon): Need to provide namespace (i.e., 'User' can't be used to fan-out to firebase).
+    if (!filter || !filter.matchAll && TypeUtil.isEmpty(_.pick(filter, ['type', 'labels', 'text', 'expr']))) {
+      return false;
+    }
+
+    // Bucket match
+    // TODO(burdon): Buckets should be namespaces in the data store, not field to filter on.
+    if (filter.bucket && filter.bucket !== item.bucket) {
       return false;
     }
 
@@ -51,19 +59,8 @@ export class Matcher {
       return true;
     }
 
-    // Must match something.
-    if (!(filter.type || filter.bucket || filter.labels || filter.text || filter.expr)) {
-      return false;
-    }
-
     // Type match.
     if (filter.type && _.toLower(filter.type) != _.toLower(item.type)) {
-      return false;
-    }
-
-    // Bucket match
-    // TODO(burdon): Buckets should be namespaces in the data store, not field to filter on.
-    if (filter.bucket && filter.bucket !== item.bucket) {
       return false;
     }
 

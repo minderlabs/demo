@@ -220,7 +220,7 @@ export default compose(
         error,
         refetch,
         folders,
-        filter: QueryParser.trim(filter)
+        filter
       }
     }
   }),
