@@ -61,10 +61,10 @@ export class MemoryItemStore extends ItemStore {
     });
 
     // Sort.
-    let sort = filter.sort;
-    if (sort) {
-      console.assert(sort.field);
-      items = _.orderBy(items, [sort.field], [sort.order === 'DESC' ? 'desc' : 'asc']);
+    let orderBy = filter.orderBy;
+    if (orderBy) {
+      console.assert(orderBy.field);
+      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
     }
 
     // Page.

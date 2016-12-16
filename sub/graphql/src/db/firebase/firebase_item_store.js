@@ -83,10 +83,10 @@ export class FirebaseItemStore extends ItemStore {
     let items = this._cache.getItemStore().then(itemStore => itemStore.queryItems(context, root, filter));
 
     // Sort.
-    let sort = filter.sort;
-    if (sort) {
-      console.assert(sort.field);
-      items = _.orderBy(items, [sort.field], [sort.order === 'DESC' ? 'desc' : 'asc']);
+    let orderBy = filter.orderBy;
+    if (orderBy) {
+      console.assert(orderBy.field);
+      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
     }
 
     return items;

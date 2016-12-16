@@ -22,7 +22,7 @@
       "title": "Inbox",
       "filter": {
         "matchAll": true,
-        "sort": {
+        "orderBy": {
           "field": "modified",
           "order": "DESC"
         }

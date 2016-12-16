@@ -100,8 +100,8 @@ enum Comparator {
   IN
 }
 
-enum SortOrder {
-  ASC,
+enum Order {
+  ASC,                      # Default
   DESC
 }
 
@@ -113,15 +113,15 @@ input ExpressionInput {
   op: Operator
   expr: [ExpressionInput]
 
-  comp: Comparator          # Defaults to EQ.
+  comp: Comparator          # Default: EQ
   field: String
   value: ValueInput
   ref: String
 }
 
-input SortInput {
+input OrderByInput {
   field: String
-  order: SortOrder          # Default ASC
+  order: Order              # Default: ASC
 }
 
 input FilterInput {
@@ -139,7 +139,7 @@ input FilterInput {
   expr: ExpressionInput
 
   # Sort order.
-  sort: SortInput
+  orderBy: OrderByInput
 
   # Match empty filter.
   matchAll: Boolean
