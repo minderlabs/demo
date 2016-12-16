@@ -176,7 +176,7 @@ const ItemsQuery = gql`
       __typename
       id
 
-      ... ListItemFragment
+      ...ListItemFragment
     }
   }
 
@@ -209,7 +209,7 @@ const UserTasksQuery = gql`
           __typename
           id
           
-          ... ListItemFragment
+          ...ListItemFragment
         }
       }
     }

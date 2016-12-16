@@ -12,6 +12,8 @@ import _ from 'lodash';
  */
 export class Matcher {
 
+  // TODO(burdon): Reorder args: context, root, item, ...
+
   /**
    * Matches the items against the filter.
    *
@@ -38,6 +40,8 @@ export class Matcher {
   matchItem(context, root, filter, item) {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item);
+
+    // Must match something.
     if (_.isEmpty(filter)) {
       return false;
     }
@@ -64,6 +68,7 @@ export class Matcher {
     }
 
     // Deleted.
+    // TODO(burdon): Intersection.
     if (_.indexOf(item.labels, '_deleted') != -1 &&
         _.indexOf(filter.labels, '_deleted') == -1) { // TODO(burdon): Const.
       return false;
@@ -92,17 +97,17 @@ export class Matcher {
   }
 
   matchLabels(labels, item) {
-    // TODO(madadam): Use predicate tree for negative matching instead of this way to negate labels?
-    const posLabels = _.filter(labels, (label) => { return !_.startsWith(label, '!') });
-    const negLabels = _.map(
-        _.filter(labels, (label) => { return _.startsWith(label, '!') }),
-        (label) => { return label.substring(1)});
+    let posLabels = _.filter(labels, label => !_.startsWith(label, '!'));
     if (!_.isEmpty(posLabels) && _.intersection(posLabels, item.labels).length == 0) {
       return false;
     }
+
+    // TODO(madadam): Use predicate tree for negative matching instead of this way to negate labels?
+    let negLabels = _.map(_.filter(labels, label => _.startsWith(label, '!')), label => label.substring(1));
     if (!_.isEmpty(negLabels) && _.intersection(negLabels, item.labels).length > 0) {
       return false;
     }
+
     return true;
   }
 

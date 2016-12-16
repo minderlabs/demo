@@ -42,8 +42,8 @@ const TeamQuery = gql`
   query TeamQuery($itemId: ID!) { 
     
     item(itemId: $itemId) {
-      ... ItemFragment
-      ... GroupFragment
+      ...ItemFragment
+      ...GroupFragment
     }
   }
 

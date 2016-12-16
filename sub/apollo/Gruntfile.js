@@ -16,7 +16,7 @@ module.exports = function(grunt) {
     clean: {
       all: [
         'dist'
-      ],
+      ]
     },
 
     run: {
@@ -47,6 +47,9 @@ module.exports = function(grunt) {
 
   // https://www.npmjs.com/package/grunt-run
   grunt.loadNpmTasks('grunt-run');
+
+  // https://www.npmjs.com/package/grunt-version
+  grunt.loadNpmTasks('grunt-version');
 
   // https://webpack.github.io/docs/usage-with-grunt.html
   grunt.loadNpmTasks("grunt-webpack");

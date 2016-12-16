@@ -30,13 +30,27 @@ export class Auth {
   login(path) {
     console.log('LOGIN');
 
+    // TODO(burdon): Document.
+    // Access Token: Determine authorization (short-lived).
+    // Refresh Token: Get new Access Token.
+
+    // TODO(burdon): Expiration? Getting JWT isn't complete?
+    // https://auth0.com/blog/refresh-tokens-what-are-they-and-when-to-use-them/
+
     // NOTE: Always flows through here (first then after redirect).
     firebase.auth().getRedirectResult()
-      .then((result) => {
+      .then(result => {
+
+        // TODO(burdon): Store Google Access Token.
+        if (result.credential) {
+          let token = result.credential.accessToken;
+          console.log('Access Token: %s', token);
+        }
 
         // The signed-in user info.
         let user = result.user;
         if (user) {
+          // https://firebase.google.com/docs/reference/js/firebase.User#getToken
           user.getToken().then(token => {
             this.registerUser(result).then(() => {
 

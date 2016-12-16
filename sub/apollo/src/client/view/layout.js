@@ -72,12 +72,9 @@ class Layout extends React.Component {
   }
 
   render() {
-    let { children, team } = this.props;
-    let { viewer } = this.props.data;
+    let { children, team, viewer, folders } = this.props;
 
-    // TODO(burdon): Sidebar and query folders (available to views in redux state?)
-    // TODO(burdon): Display errors in status bar.
-    // TODO(burdon): Skip DevTools in prod.
+    let sidebar = <SidebarPanel team={ team } folders={ folders }/>;
 
     return (
       <div className="app-main-container ux-fullscreen">
@@ -101,7 +98,8 @@ class Layout extends React.Component {
           <NavBar/>
 
           {/* Sidebar */}
-          <Sidebar ref="sidebar" sidebar={ <SidebarPanel team={ team }/> }>
+          <Sidebar ref="sidebar" sidebar={ sidebar }>
+
             {/* Content view. */}
             <div className="ux-column">
               { children }
@@ -146,7 +144,6 @@ class Layout extends React.Component {
 // 2). The additional benefit is enabling child containers to be "well-formed" i.e., only rendered once their data requirements are satisfied (i.e., passed in as props); also, the child's rendering function doesn't have to handle "null" data (making the code simpler and more robust).
 // 3). Furthermore, the react-relay-router can block until these queries are satisfied, so that on error a different router path can be displayed. This also prevents render "flickering" i.e., the child component making a default invalid query, and then re-rendering once the parent's query loads and then reconfigures the child.
 
-
 const LayoutQuery = gql`
   query LayoutQuery { 
 
@@ -156,10 +153,11 @@ const LayoutQuery = gql`
         title
       }
     }
-    
+
     folders {
       id
-      filter
+      alias
+      title
     }
   }
 `;
@@ -194,11 +192,12 @@ const LayoutQuery = gql`
  */
 const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
+  let { user, team } = minder;
 
   return {
     queryRegistry: minder.injector.get(QueryRegistry),
-    user: minder.user,
-    team: minder.team
+    user,
+    team
   }
 };
 
@@ -222,8 +221,10 @@ export default compose(
   // http://dev.apollodata.com/react/queries.html#graphql-options
   graphql(LayoutQuery, {
     props: ({ ownProps, data }) => {
+      let { viewer, folders } = data;
+
       return {
-        data
+        viewer, folders
       }
     }
   })

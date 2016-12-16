@@ -16,8 +16,20 @@
 
   "Folder": [
     {
-      "id": "inbox",
+      "id": "folder_inbox",
+      "alias": "inbox",
       "title": "Inbox",
+      "filter": {
+        "sort": {
+          "field": "modified",
+          "desc": true
+        }
+      }
+    },
+    {
+      "id": "folder_tasks",
+      "alias": "tasks",
+      "title": "Tasks",
       "filter": {
         "type": "Task",
         "expr": {
@@ -30,21 +42,24 @@
       }
     },
     {
-      "id": "favorites",
+      "id": "folder_favorites",
+      "alias": "favorites",
       "title": "Favorites",
       "filter": {
         "labels": ["_favorite"]
       }
     },
     {
-      "id": "projects",
+      "id": "folder_projects",
+      "alias": "projects",
       "title": "Projects",
       "filter": {
         "type": "Project"
       }
     },
     {
-      "id": "deleted",
+      "id": "folder_deleted",
+      "alias": "deleted",
       "title": "Deleted",
       "filter": {
         "labels": ["_deleted"]

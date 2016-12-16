@@ -15,7 +15,6 @@ import { FirebaseConfig } from '../common/defs';
 
 const logger = Logger.get('net');
 
-
 /**
  * Manages user authentication.
  * Uses Firebase (all authentication performed by client).
@@ -44,8 +43,9 @@ export class AuthManager {
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
     firebase.auth().onAuthStateChanged(user => {
-      logger.log($$('Auth changed: %s', user ? user.email : 'Logout'));
+      logger.log($$('Auth changed: %s', user ? user.email : 'Logged out'));
       if (user) {
+        // https://firebase.google.com/docs/reference/js/firebase.User#getToken
         user.getToken().then(token => {
           // Update the network manager (sets header for graphql requests).
           this._networkManager.token = token;

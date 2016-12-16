@@ -27,8 +27,8 @@ const PlaceQuery = gql`
   query PlaceQuery($itemId: ID!) { 
     
     item(itemId: $itemId) {
-      ... ItemFragment
-      ... PlaceFragment
+      ...ItemFragment
+      ...PlaceFragment
     }
   }
 

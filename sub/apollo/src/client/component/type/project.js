@@ -20,7 +20,7 @@ const ProjectQuery = gql`
   query ProjectQuery($itemId: ID!, $localItemId: ID!) {
 
     item(itemId: $itemId) {
-      ... ItemFragment
+      ...ItemFragment
 
       ... on Project {
         team {
@@ -39,7 +39,7 @@ const ProjectQuery = gql`
                 ]
               }
             }) {
-              ... ItemFragment
+              ...ItemFragment
               
               project {
                 id

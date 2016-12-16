@@ -88,7 +88,7 @@ enum Operator {
 }
 
 enum Comparator {
-  EQ,
+  EQ,                       # Default
   GT,
   LT,
   IN
@@ -102,10 +102,15 @@ input ExpressionInput {
   op: Operator
   expr: [ExpressionInput]
 
-  comp: Comparator          # TODO(burdon): Default to EQ?
+  comp: Comparator          # Defaults to EQ.
   field: String
   value: ValueInput
   ref: String
+}
+
+input SortInput {
+  field: String
+  desc: Boolean             # Default false (i.e., A->Z, 0->9, past->future).
 }
 
 input FilterInput {
@@ -120,6 +125,9 @@ input FilterInput {
 
   # Expression tree.
   expr: ExpressionInput
+
+  # Sort order.
+  sort: SortInput
 }
 
 #
@@ -169,7 +177,7 @@ type User implements Item {
 
   contact: Contact
 
-  # TODO(burdon): Generalize to items. Should not be required?
+  # TODO(burdon): Generalize to items. Move to item?
   tasks(filter: FilterInput): [Task]!
 }
 
@@ -225,7 +233,7 @@ type Task implements Item {
   title: String!
   labels: [String]
 
-  # TODO(burdon): Promote to shared meta data for all items.
+  # TODO(burdon): Promote to shared meta data for all items. Should be ID of User/Group.
   bucket: String
 
   # TODO(burdon): Implement via links?
@@ -265,12 +273,16 @@ type Place implements Item {
 
 type RootQuery {
 
+  # Current user.
   viewer: Viewer!
 
+  # Folders for current user.
   folders: [Folder]!
 
+  # Get specific.
   item(itemId: ID!): Item!
 
+  # Search.
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
 }
 
