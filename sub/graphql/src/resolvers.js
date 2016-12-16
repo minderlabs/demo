@@ -157,7 +157,7 @@ export class Resolvers {
         },
 
         folders: (root, args, context) => {
-          return database.queryItems(context, root, { type: 'Folder' });
+          return database.queryItems(context, root, { type: 'Folder', sort: { field: 'order' } });
         },
 
         item: (root, args, context) => {

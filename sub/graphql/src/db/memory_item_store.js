@@ -56,7 +56,14 @@ export class MemoryItemStore extends ItemStore {
       items.push(TypeUtil.clone(item));
     });
 
-    items = _.sortBy(items, ['title']);
+    // Sort.
+    let sort = filter.sort;
+    if (sort) {
+      console.assert(sort.field);
+      items = _.sortBy(items, [sort.field]);
+    }
+
+    // Page.
     items = _.slice(items, offset, offset + count);
 
     return Promise.resolve(items);

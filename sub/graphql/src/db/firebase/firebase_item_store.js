@@ -76,6 +76,15 @@ export class FirebaseItemStore extends ItemStore {
   }
 
   queryItems(context, root, filter={}) {
-    return this._cache.getItemStore().then(itemStore => itemStore.queryItems(context, root, filter));
+    let items = this._cache.getItemStore().then(itemStore => itemStore.queryItems(context, root, filter));
+
+    // Sort.
+    let sort = filter.sort;
+    if (sort) {
+      console.assert(sort.field);
+      items = _.sortBy(items, [sort.field]);
+    }
+
+    return items;
   }
 }

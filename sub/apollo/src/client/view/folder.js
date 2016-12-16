@@ -145,13 +145,12 @@ class FolderView extends React.Component {
 // Queries
 //
 
-// TODO(burdon): Factor out filter fragment (move to Layout).
-
-const FolderQuery = gql`
-  query FolderQuery { 
+const FoldersQuery = gql`
+  query FoldersQuery { 
 
     folders {
       id
+      alias
       filter
     }
   }
@@ -190,13 +189,12 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
 
   // Query.
-  graphql(FolderQuery, {
+  graphql(FoldersQuery, {
 
     // Configure props passed to component.
     // http://dev.apollodata.com/react/queries.html#graphql-props
     props: ({ ownProps, data }) => {
 //    console.log('Folder.props: ', JSON.stringify(Object.keys(data)));
-
       let { loading, error, refetch, folders } = data;
       let { filter } = ownProps;
 
@@ -208,9 +206,9 @@ export default compose(
 
       // Create list filter (if not overridden by text search above).
       if (QueryParser.isEmpty(filter)) {
-        _.each(folders, (folder) => {
-          // TODO(burdon): Match folder's short name rather than ID.
-          if (folder.id == ownProps.params.folder) {
+        _.each(folders, folder => {
+          // TODO(burdon): Match folder's alias.
+          if (folder.alias == ownProps.params.folder) {
             filter = JSON.parse(folder.filter);
             return false;
           }
