@@ -27,6 +27,7 @@ export const AppReducer = (config, injector) => {
     minder: {
       injector: injector,
       user: config.user,
+      team: config.team,      // TODO(burdon): Temp. Should be queried list.
       search: {
         text: ''
       }

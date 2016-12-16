@@ -141,10 +141,24 @@ export class Matcher {
 
     let match = false;
     switch (expr.op) {
+
       case 'OR': {
-        _.forEach(expr.expr, (expr) => {
+        _.forEach(expr.expr, expr => {
           if (Matcher.matchExpression(context, root, expr, item)) {
             match = true;
+            return false;
+          }
+        });
+
+        return match;
+      }
+
+      case 'AND': {
+        match = true;
+
+        _.forEach(expr.expr, expr => {
+          if (!Matcher.matchExpression(context, root, expr, item)) {
+            match = false;
             return false;
           }
         });
@@ -195,33 +209,43 @@ export class Matcher {
       }
     }
 
-    // TODO(burdon): Other operators.
-    if (!Matcher.matchScalarValue(value, _.get(item, expr.field))) {
-      return false;
+    let match = false;
+    switch (expr.comp) {
+      case 'EQ':
+      default:
+        match = Matcher.matchEqualsScalarValue(value, _.get(item, expr.field));
     }
 
-    return true;
+    return match;
   }
 
+  /**
+   * Match equals.
+   */
+  static matchEqualsScalarValue(value, scalarValue) {
 
-  static matchScalarValue(value, scalarValue) {
-    // Hack: Use empty string to match undefined fields.
-    if (value.string === "" && scalarValue == undefined) {
-      return true;
+    // Check null.
+    if (undefined !== value.null) {
+      // NOTE: Double equals matches null and undefined.
+      return scalarValue == null;
     }
-    if (value.string !== undefined) {
-      return value.string === scalarValue;
+
+    if (undefined !== value.id) {
+      return scalarValue === value.id;
     }
-    if (value.int !== undefined) {
-      return value.int == scalarValue;
+    if (undefined !== value.string) {
+      return scalarValue === value.string;
     }
-    if (value.float !== undefined) {
-      return value.float == scalarValue;
+    if (undefined !== value.int) {
+      return scalarValue === value.int;
     }
-    if (value.boolean !== undefined) {
-      return value.boolean == scalarValue;
+    if (undefined !== value.float) {
+      return scalarValue === value.float;
     }
+    if (undefined !== value.boolean) {
+      return scalarValue === value.boolean;
+    }
+
     return false;
   }
-
 }

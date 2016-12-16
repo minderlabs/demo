@@ -79,7 +79,7 @@ export class Database extends ItemStore {
    * @returns {Promise}
    */
   upsertItems(context, items) {
-    logger.log($$('UPSERT: %s', TypeUtil.stringify(items)));
+    logger.log($$('UPSERT: %s', items.length > 1 ? TypeUtil.stringify(items) : JSON.stringify(items)));
 
     // TODO(burdon): Dispatch to store (check permissions).
     let itemStore = this.getItemStore(Database.DEFAULT);
@@ -112,7 +112,7 @@ export class Database extends ItemStore {
    * @returns {Promise}
    */
   queryItems(context, root, filter={}, offset=0, count=10) {
-    logger.log($$('QUERY[%s:%s]: %o', offset, count, filter));
+    logger.log($$('QUERY[%s:%s]: %O', offset, count, filter));
 
     let itemStore = this.getItemStore(filter.type);
     return itemStore.queryItems(context, root, filter, offset, count);

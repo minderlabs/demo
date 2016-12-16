@@ -3,6 +3,7 @@
 //
 
 import moment from 'moment';
+import { print } from 'graphql-tag/printer';
 import * as firebase from 'firebase';
 import io from 'socket.io-client';
 
@@ -320,17 +321,22 @@ class NetworkLogger {
   constructor(options) {}
 
   logRequest(requestId, request) {
-    logger.log('[%s] ===>>> [%s]: %s', moment().format(NetworkLogger.TIMESTAMP),
-      requestId, TypeUtil.stringify(request.variables || {}));
+    // TODO(burdon): How to serialize request.
+    logger.log($$('[%s] ===>>> [%s]: %s', moment().format(NetworkLogger.TIMESTAMP),
+      requestId, TypeUtil.stringify(request.variables || {})));
+
+    // TODO(burdon): Optionally show graphiql link.
+    console.info('[' + requestId + ']: ' + document.location.origin + '/graphiql?' +
+      'query=' + encodeURIComponent(print(request.query)) +
+      (request.variables ? '&variables=' + encodeURIComponent(JSON.stringify(request.variables)) : ''));
   }
 
   logResponse(requestId, response) {
-    logger.log('[%s] <<<=== [%s]', moment().format(NetworkLogger.TIMESTAMP),
-      requestId, TypeUtil.stringify(response.data));
+    logger.log($$('[%s] <<<=== [%s]', moment().format(NetworkLogger.TIMESTAMP),
+      requestId, TypeUtil.stringify(response.data)));
   }
 
   logErrors(requestId, errors) {
-    logger.error('GraphQL Error [%s]:',
-      requestId, errors.map(error => error.message));
+    logger.error($$('GraphQL Error [%s]: %s', requestId, errors.map(error => error.message)));
   }
 }

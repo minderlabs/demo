@@ -18,7 +18,7 @@
     items: {
       type: ItemConnection,
       args: {
-        ...connectionArgs,
+        ... connectionArgs,
 
         type: {
           type: GraphQLString

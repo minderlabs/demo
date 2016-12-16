@@ -6,6 +6,14 @@
     }
   ],
 
+  "Project": [
+    {
+      "id": "demo",
+      "title": "Demo",
+      "team": "minderlabs"
+    }
+  ],
+
   "Folder": [
     {
       "id": "inbox",
@@ -15,8 +23,8 @@
         "expr": {
           "op": "OR",
           "expr": [
-            { "field": "owner",     "ref": "$USER_ID" },
-            { "field": "assignee",  "ref": "$USER_ID" }
+            { "field": "owner", "ref": "$USER_ID" },
+            { "field": "assignee", "ref": "$USER_ID" }
           ]
         }
       }

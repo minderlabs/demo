@@ -8,6 +8,7 @@
 
 Logger.setLevel({
 
-  'main' : Logger.Level.debug,
+  'main'  : Logger.Level.debug,
+  'net'   : Logger.Level.debug,
 
 }, Logger.Level.error);

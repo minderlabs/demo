@@ -13,7 +13,6 @@ import Schema from './schema.graphql';
 
 const logger = Logger.get('resolver');
 
-
 /**
  * Resolver map.
  */
@@ -77,6 +76,17 @@ export class Resolvers {
 
         members: (root, args, context) => {
           return database.getItems(context, 'User', root.members);
+        },
+
+        projects: (root, args, context) => {
+          let filter = {
+            type: 'Project',
+            filter: {
+              expr: { field: "team", ref: "id" }
+            }
+          };
+
+          return database.queryItems(context, root, filter);
         }
       },
 
@@ -101,6 +111,12 @@ export class Resolvers {
       },
 
       Task: {
+
+        project: (root, args, context) => {
+          if (root.project) {
+            return database.getItem(context, 'Project', root.project);
+          }
+        },
 
         owner: (root, args, context) => {
           if (root.owner) {
@@ -133,8 +149,6 @@ export class Resolvers {
           //   id,
           //   user: ID.toGlobalId('User', id)
           // };
-
-          console.log('::::::', context);
 
           return database.getItem(context, 'User', id).then(user => ({
             id,   // TODO(burdon): Global ID?

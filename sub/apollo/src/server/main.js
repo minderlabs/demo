@@ -16,7 +16,7 @@ import favicon from 'serve-favicon';
 import { Logger, Matcher } from 'minder-core';
 import { Database, Firebase, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
 
-import { FirebaseConfig } from '../common/defs';
+import { Const, FirebaseConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
@@ -106,7 +106,9 @@ _.each(require('./testing/test.json'), (items, type) => {
   // Iterate items per type.
   database.upsertItems(context, _.map(items, (item) => {
 
-    // TODO(burdon): Reformat folders.
+    // NOTE: The GraphQL schema defines filter as an input type.
+    // In order to "store" the filter within the Folder's filter property, we need
+    // to serialize it to a string (otherwise we need to create parallel output type defs).
     if (type == 'Folder') {
       item.filter = JSON.stringify(item.filter);
     }
@@ -115,13 +117,15 @@ _.each(require('./testing/test.json'), (items, type) => {
   }));
 });
 
+//
 // Create test data.
+//
+
 promises.push(database.queryItems({}, {}, { type: 'User' })
   .then(users => {
 
     // Create group.
-    return database.getItem(context, 'Group', 'minderlabs')
-
+    return database.getItem(context, 'Group', Const.DEF_TEAM)
       .then(item => {
         item.members = _.map(users, user => user.id);
         database.upsertItem(context, item);
@@ -284,6 +288,11 @@ app.use(clientRouter(authManager, clientManager, server));
 
 app.use(appRouter(authManager, clientManager, {
   env,
+
+  // Additional config params.
+  config: {
+    team: Const.DEF_TEAM,
+  },
 
   // TODO(burdon): Clean this up with config.
   assets: env === 'production' ? __dirname : path.join(__dirname, '../../dist')

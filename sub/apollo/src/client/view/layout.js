@@ -72,7 +72,7 @@ class Layout extends React.Component {
   }
 
   render() {
-    let { children } = this.props;
+    let { children, team } = this.props;
     let { viewer } = this.props.data;
 
     // TODO(burdon): Sidebar and query folders (available to views in redux state?)
@@ -101,7 +101,7 @@ class Layout extends React.Component {
           <NavBar/>
 
           {/* Sidebar */}
-          <Sidebar ref="sidebar" sidebar={ <SidebarPanel/> }>
+          <Sidebar ref="sidebar" sidebar={ <SidebarPanel team={ team }/> }>
             {/* Content view. */}
             <div className="ux-column">
               { children }
@@ -197,7 +197,8 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     queryRegistry: minder.injector.get(QueryRegistry),
-    user: minder.user
+    user: minder.user,
+    team: minder.team
   }
 };
 

@@ -44,6 +44,8 @@ scalar Date
 # TODO(burdon): Serialize for stored queries (rather than duplicate types).
 
 input ValueInput {
+  null:     Boolean
+
   int:      Int
   float:    Float
   string:   String
@@ -179,6 +181,7 @@ type Group implements Item {
   labels: [String]
 
   members: [User]!
+  projects: [Project]!
 }
 
 type Folder implements Item {

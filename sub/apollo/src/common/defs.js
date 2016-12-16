@@ -20,5 +20,8 @@ export const FirebaseConfig = {
  * App-wide constants.
  */
 export const Const = {
-  APP_NAME: 'Minder'
+
+  APP_NAME: 'Minder',
+
+  DEF_TEAM: 'minderlabs'
 };

@@ -188,9 +188,12 @@ export function composeItem(query) {
         let matcher = props.injector.get(Matcher);
         let typeRegistry = props.injector.get(TypeRegistry);
 
+        let { type, id:localItemId } = ID.fromGlobalId(props.itemId);
+
         return {
           variables: {
-            itemId: props.itemId
+            itemId: props.itemId,
+            localItemId: localItemId
           },
 
           // TODO(burdon): Provide multiple sets (different fragments).

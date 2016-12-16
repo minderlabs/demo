@@ -36,8 +36,8 @@ const TaskQuery = gql`
   query TaskQuery($itemId: ID!) { 
     
     item(itemId: $itemId) {
-      ...ItemFragment
-      ...TaskFragment
+      ... ItemFragment
+      ... TaskFragment
     }
   }
 

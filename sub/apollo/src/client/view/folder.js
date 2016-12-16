@@ -51,7 +51,7 @@ class FolderView extends React.Component {
   }
 
   handleItemCreate() {
-    let { user, filter } = this.props;
+    let { user, team, filter } = this.props;
 
     let title = _.trim(this.refs.text.value);
     if (title) {
@@ -76,7 +76,7 @@ class FolderView extends React.Component {
             {
               field: 'team',
               value: {
-                id: 'minderlabs'          // TODO(burdon): Hack. Get from config.
+                id: team
               }
             }
           ]);
@@ -160,7 +160,7 @@ const FolderQuery = gql`
 const mapStateToProps = (state, ownProps) => {
 //console.log('Folder.mapStateToProps: %s', JSON.stringify(Object.keys(ownProps)));
 
-  let { injector, search, user } = state.minder;
+  let { injector, search, user, team } = state.minder;
   let queryParser = injector.get(QueryParser);
   let filter = queryParser.parse(search.text);
 
@@ -169,7 +169,8 @@ const mapStateToProps = (state, ownProps) => {
     injector,
     filter,
     search,
-    user
+    user,
+    team
   }
 };
 

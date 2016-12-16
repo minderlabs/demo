@@ -17,6 +17,8 @@ export class SidebarPanel extends React.Component {
   // TODO(burdon): Folders query.
 
   render() {
+    let { team } = this.props;
+
     return (
       <div className="ux-column ux-list">
         <Link className="ux-list-item" to={ Path.folder('inbox') }>Inbox</Link>
@@ -24,7 +26,7 @@ export class SidebarPanel extends React.Component {
         <Link className="ux-list-item" to={ Path.folder('projects') }>Projects</Link>
         <Link className="ux-list-item" to={ Path.folder('deleted') }>Deleted</Link>
 
-        <Link className="ux-list-item" to={ Path.detail('Team', ID.toGlobalId('Group', 'minderlabs')) }>Team</Link>
+        <Link className="ux-list-item" to={ Path.detail('Team', ID.toGlobalId('Group', team)) }>Team</Link>
 
         <Link className="ux-list-item" to={ Path.TESTING }>Test</Link>
       </div>

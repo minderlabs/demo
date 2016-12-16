@@ -5,7 +5,7 @@
 import React from 'react';
 
 import UserCard from './user';
-import GroupCard from './group';
+import TeamCard from './team';
 import PlaceCard from './place';
 import ProjectCard from './project';
 import TaskCard from './task';
@@ -51,8 +51,7 @@ export class TypeFactory {
 
     registry._types.set('Group', {
       icon: 'group',
-      render: (itemId) => <GroupCard itemId={ itemId }/>,
-      reducer: GroupCard.reducer
+      render: (itemId) => <TeamCard itemId={ itemId }/>
     });
 
     registry._types.set('Place', {
@@ -62,7 +61,8 @@ export class TypeFactory {
 
     registry._types.set('Project', {
       icon: 'assignment',
-      render: (itemId) => <ProjectCard itemId={ itemId }/>
+      render: (itemId) => <ProjectCard itemId={ itemId }/>,
+      reducer: ProjectCard.reducer
     });
 
     registry._types.set('Task', {
