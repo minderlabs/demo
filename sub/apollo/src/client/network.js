@@ -108,7 +108,7 @@ export class ConnectionManager {
         $.ajax({
           url: url,
           type: 'POST',
-          headers: this._networkManager.headers,  // Includes JWT token.
+          headers: this._networkManager.headers,              // JWT authentication token.
           contentType: 'application/json; charset=utf-8',
           dataType: 'json',
           data: JSON.stringify({
@@ -166,12 +166,19 @@ export class NetworkManager {
 
     // Create the interface.
     // http://dev.apollodata.com/core/network.html
+    // http://dev.apollodata.com/core/apollo-client-api.html#createNetworkInterface
     this._networkInterface = createNetworkInterface({
       uri: config.graphql
     });
 
+    // TODO(burdon): Currently catching network errors as unhandled promises (see main.js)
+    // https://github.com/apollostack/apollo-client/issues/657 [Added comment]
+    // https://github.com/apollostack/apollo-client/issues/891
+    // https://github.com/apollostack/apollo-client/pull/950
+    // https://github.com/apollostack/react-apollo/issues/345
+
     /**
-     * Add headers for execution context.
+     * Add headers for execution context (e.g., JWT Authentication header).
      */
     const addHeaders = {
       applyMiddleware: ({ request, options }, next) => {
@@ -247,11 +254,13 @@ export class NetworkManager {
         console.assert(removed, 'Request not found: %s', requestId);
 
         if (response.ok) {
+
           // Clone the result to access body.
           // https://github.com/apollostack/core-docs/issues/224
           // https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
           response.clone().json()
             .then(response => {
+
               // Check GraphQL error.
               if (response.errors) {
                 this._logger.logErrors(requestId, response.errors)
