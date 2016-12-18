@@ -28,16 +28,19 @@ export class ListItem extends React.Component {
   }
 
   render() {
-    let { item, icon } = this.props;
+    let { item, favorite, icon } = this.props;
 
     // TODO(burdon): Const for labels.
-    // TODO(burdon): Specialize for different list types.
+    // TODO(burdon): Custom renderer for different list type.
+    let marginIcon = favorite && (
+      <i className="ux-icon" onClick={ this.handleToggleLabel.bind(this, '_favorite') }>
+        { _.indexOf(item.labels, '_favorite') == -1 ? 'star_border' : 'star' }
+      </i>
+    );
 
     return (
       <div className="ux-row ux-list-item">
-        <i className="ux-icon" onClick={ this.handleToggleLabel.bind(this, '_favorite') }>
-          { _.indexOf(item.labels, '_favorite') == -1 ? 'star_border' : 'star' }
-        </i>
+        { marginIcon }
 
         <div className="ux-text ux-expand" onClick={ this.handleSelect.bind(this) }>
           { item.title }

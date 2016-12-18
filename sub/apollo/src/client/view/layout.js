@@ -7,8 +7,8 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { EventHandler } from 'minder-core';
-import { Sidebar, SidebarToggle } from 'minder-ux';
+import { EventHandler, QueryParser } from 'minder-core';
+import { SearchBar, Sidebar, SidebarToggle } from 'minder-ux';
 
 import { Const } from '../../common/defs';
 import { QueryRegistry } from '../data/subscriptions';
@@ -16,9 +16,12 @@ import { QueryRegistry } from '../data/subscriptions';
 import { Navigator } from '../path'
 
 import { Monitor } from '../component/devtools';
+import { ItemsList } from '../component/list_factory';
 import { NavBar } from '../component/navbar';
 import { SidebarPanel } from '../component/sidebar';
 import { StatusBar } from '../component/statusbar';
+
+import { ACTION } from '../reducers';
 
 import './layout.less';
 
@@ -71,8 +74,17 @@ class Layout extends React.Component {
     }
   }
 
+  handleSearch(text) {
+    this.props.onSearch(text);
+  }
+
+  handleItemSelect(item) {
+    this.refs.search.reset();
+    this.props.navigator.pushDetail(item);
+  }
+
   render() {
-    let { children, team, viewer, folders } = this.props;
+    let { children, filter, team, viewer, folders } = this.props;
 
     let sidebar = <SidebarPanel team={ team } folders={ folders }/>;
 
@@ -94,7 +106,7 @@ class Layout extends React.Component {
             </div>
           </div>
 
-          {/* Navbar */}
+          {/* Nav bar */}
           <NavBar/>
 
           {/* Sidebar */}
@@ -102,6 +114,25 @@ class Layout extends React.Component {
 
             {/* Content view. */}
             <div className="ux-column">
+
+              {/* Search bar (and panel) */}
+              <div className="app-search-container">
+                <div className="ux-section ux-toolbar">
+                  <SearchBar ref="search" onSearch={ this.handleSearch.bind(this) }/>
+                </div>
+
+                {/*
+                  * TODO(burdon): Factor out slide panel.
+                  * TODO(burdon): Custom renderer (remove favorite property).
+                  * TODO(burdon): Limit results to 10 items (shorter than other panels.)
+                  */}
+                <div className='app-drop'>
+                  <div className="app-drop-panel">
+                    <ItemsList favorite={ false } filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+                  </div>
+                </div>
+              </div>
+
               { children }
             </div>
           </Sidebar>
@@ -191,11 +222,17 @@ const LayoutQuery = gql`
  * @returns {{active: string}}
  */
 const mapStateToProps = (state, ownProps) => {
-  let { minder } = state;
-  let { user, team } = minder;
+  let { injector, search, user, team } = state.minder;
+
+  // TODO(burdon): Hack: Should depend on whether child supports search filtering.
+  // https://github.com/reactjs/react-router-redux#how-do-i-access-router-state-in-a-container-component
+  // NOTE: Search state come from dispatch via SearchBar.
+  let queryParser = injector.get(QueryParser);
+  let filter = _.isEmpty(ownProps.params.view) ? {} : queryParser.parse(search.text);
 
   return {
-    queryRegistry: minder.injector.get(QueryRegistry),
+    queryRegistry: state.minder.injector.get(QueryRegistry),
+    filter,
     user,
     team
   }
@@ -203,7 +240,12 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
-    navigator: new Navigator(dispatch)
+    navigator: new Navigator(dispatch),
+
+    // Store search state (so can restore value when nav back).
+    onSearch: (value) => {
+      dispatch({ type: ACTION.SEARCH, value });
+    },
   }
 };
 

@@ -48,7 +48,9 @@ export class TypeUtil {
    * @param value
    */
   static compact(value) {
-    return _.omitBy(value, v => _.isNil(v) || (_.isObject(v) && _.isEmpty(v)));
+    return _.omitBy(value, v => _.isNil(v)    // Null/undefined scalar.
+      || (_.isString(v) && _.isEmpty(v))      // Empty string.
+      || (_.isObject(v) && _.isEmpty(v)));    // Empty array/object.
   }
 
   /**

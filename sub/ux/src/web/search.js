@@ -6,6 +6,8 @@ import React from 'react';
 
 import { TextBox } from './textbox';
 
+import './search.less';
+
 /**
  * Search bar.
  */
@@ -16,6 +18,14 @@ export class SearchBar extends React.Component {
     onSearch:   React.PropTypes.func.isRequired,
     value:      React.PropTypes.string
   };
+
+  reset() {
+    this.value = '';
+  }
+
+  set value(value) {
+    this.refs.text.value = value;
+  }
 
   handleSearch(event) {
     this.props.onSearch(this.refs.text.value);

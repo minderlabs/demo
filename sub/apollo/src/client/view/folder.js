@@ -8,11 +8,9 @@ import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { QueryParser, Mutator, TypeUtil } from 'minder-core';
-import { SearchBar, TextBox } from 'minder-ux';
+import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
-
-import { ACTION } from '../reducers';
 
 import { ItemsList } from '../component/list_factory';
 
@@ -35,16 +33,11 @@ class FolderView extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,    // TODO(burdon): Add to all types.
-    onSearch: React.PropTypes.func.isRequired,
 
     data: React.PropTypes.shape({
       folders: React.PropTypes.array.isRequired
     })
   };
-
-  handleSearch(text) {
-    this.props.onSearch(text);
-  }
 
   handleItemSelect(item) {
     this.context.navigator.pushDetail(item);
@@ -124,15 +117,11 @@ class FolderView extends React.Component {
 
     return (
       <div className="app-folder ux-column">
-        <div className="ux-section">
-          <SearchBar value={ this.props.search.text } onSearch={ this.handleSearch.bind(this) }/>
-        </div>
-
         <div className="ux-expand">
           <ItemsList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
-        <div className="ux-section ux-row">
+        <div className="ux-section ux-toolbar ux-row">
           <TextBox ref="text" className="ux-expand" onEnter={ this.handleItemCreate.bind(this) }/>
           <i className="ux-icon ux-icon-add" onClick={ this.handleItemCreate.bind(this) }/>
         </div>
@@ -159,6 +148,7 @@ const FoldersQuery = gql`
 const mapStateToProps = (state, ownProps) => {
 //console.log('Folder.mapStateToProps: %s', JSON.stringify(Object.keys(ownProps)));
 
+  // NOTE: Search state come from dispatch via SearchBar.
   let { injector, search, user, team } = state.minder;
   let queryParser = injector.get(QueryParser);
   let filter = queryParser.parse(search.text);
@@ -173,20 +163,10 @@ const mapStateToProps = (state, ownProps) => {
   }
 };
 
-const mapDispatchToProps = (dispatch, ownProps) => {
-  return {
-
-    // Store search state (so can restore value when nav back).
-    onSearch: (value) => {
-      dispatch({ type: ACTION.SEARCH, value });
-    }
-  }
-};
-
 export default compose(
 
   // Redux.
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps),
 
   // Query.
   graphql(FoldersQuery, {

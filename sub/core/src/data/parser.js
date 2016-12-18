@@ -4,6 +4,8 @@
 
 import _ from 'lodash';
 
+import { TypeUtil } from '../util/type';
+
 /**
  * Query parser.
  */
@@ -73,6 +75,6 @@ export class QueryParser {
       filter.text = words.join(' ');
     }
 
-    return filter;
+    return TypeUtil.compact(filter);
   }
 }
