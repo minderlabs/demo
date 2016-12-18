@@ -3,6 +3,7 @@
 //
 
 import _ from 'lodash';
+import moment from 'moment';
 
 import { TypeUtil } from '../util/type';
 
@@ -125,7 +126,8 @@ export class Matcher {
       return Matcher.matchBooleanExpression(context, root, expr, item);
     }
 
-    if (expr.field) {
+    // The comparator may be implicit (i.e., EQ).
+    if (expr.comp || expr.field) {
       return Matcher.matchComparatorExpression(context, root, expr, item);
     }
 
@@ -189,68 +191,121 @@ export class Matcher {
   static matchComparatorExpression(context, root, expr, item) {
     console.assert(expr.field);
 
-    // TODO(burdon): Handle null.
-    let value = expr.value;
+    let fieldValue = _.get(item, expr.field);
+    let inputValue = expr.value;
 
+    //
     // Substitute value for reference.
+    //
+
     let ref = expr.ref;
     if (ref) {
       // Resolve magic variables.
-      // TODO(burdon): These must be available and provided to the client matcher.
+      // TODO(burdon): These must provided to the client matcher (client and server).
       switch (ref) {
         case '$USER_ID': {
           console.assert(context.user);
-          value = { string: context.user.id };
+          inputValue = { string: context.user.id };
           break;
         }
 
         default: {
-          value = _.get(root, ref);
-          if (ref) {
+          if (_.get(root, ref)) {
             // TODO(madadam): Resolve other scalar types.
-            value = { string: _.get(root, ref) };
+            inputValue = { id: _.get(root, ref) };
           }
         }
       }
     }
 
-    let match = false;
+    //
+    // Special values.
+    //
+
+    // Relative timestamp.
+    if (inputValue.timestamp) {
+      if (inputValue.timestamp <= 0) {
+        inputValue.timestamp = moment().subtract(-inputValue.timestamp, 's').unix();
+      }
+    }
+
+    //
+    // Scalar values.
+    // TODO(burdon): Unit tests.
+    //
+
+    let eq = false;
+    let not = false;
+    //noinspection FallThroughInSwitchStatementJS
     switch (expr.comp) {
+
+      case 'GTE':
+        eq = true;
+      case 'GT':
+        return Matcher.isGreaterThan(fieldValue, inputValue, eq);
+
+      case 'LTE':
+        eq = true;
+      case 'LT':
+        return Matcher.isLessThan(fieldValue, inputValue, eq);
+
+      case 'NE':
+        not = true;
       case 'EQ':
       default:
-        match = Matcher.matchEqualsScalarValue(value, _.get(item, expr.field));
+        return Matcher.isEqualTo(fieldValue, inputValue, not);
     }
+  }
+
+  // NOTE: See ValueInput in schema.
+  static SCALARS = ['id', 'timestamp', 'date', 'int', 'float', 'string', 'boolean'];
+
+  static isEqualTo(fieldValue, inputValue, not) {
+
+    // Check null.
+    // NOTE: Double equals matches null and undefined.
+    if (inputValue.null === true) {
+      // TODO(burdon): Check how "null" is actually stored (unlike undefined).
+      return fieldValue == null;
+    }
+
+    let match = false;
+    _.each(Matcher.SCALARS, field => {
+      let value = inputValue[field];
+      if (value !== undefined) {
+        match = not ? (fieldValue !== value) : (fieldValue === value);
+        return false;
+      }
+    });
 
     return match;
   }
 
-  /**
-   * Match equals.
-   */
-  static matchEqualsScalarValue(value, scalarValue) {
+  static isGreaterThan(fieldValue, inputValue, eq) {
 
-    // Check null.
-    if (undefined !== value.null) {
-      // NOTE: Double equals matches null and undefined.
-      return scalarValue == null;
-    }
+    let match = false;
+    _.each(Matcher.SCALARS, field => {
+      let value = inputValue[field];
+      if (value !== undefined) {
+        match = eq ? (fieldValue >= value) : (fieldValue > value);
+        return false;
+      }
+    });
 
-    if (undefined !== value.id) {
-      return scalarValue === value.id;
-    }
-    if (undefined !== value.string) {
-      return scalarValue === value.string;
-    }
-    if (undefined !== value.int) {
-      return scalarValue === value.int;
-    }
-    if (undefined !== value.float) {
-      return scalarValue === value.float;
-    }
-    if (undefined !== value.boolean) {
-      return scalarValue === value.boolean;
-    }
+    return match;
+  }
 
-    return false;
+  static isLessThan(fieldValue, inputValue, eq) {
+
+    let match = false;
+    _.each(Matcher.SCALARS, field => {
+      let value = inputValue[field];
+      if (value !== undefined) {
+        match = eq ? (fieldValue <= value) : (fieldValue < value);
+        return false;
+      }
+    });
+
+    return match;
   }
 }

@@ -5,6 +5,7 @@
 import './config';
 
 import _ from 'lodash';
+import moment from 'moment';
 
 import path from 'path';
 import http from 'http';
@@ -135,6 +136,7 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
 
   .then(group => {
     // TODO(burdon): Is this needed in the GraphQL context below?
+    context.created = moment().subtract(10, 'days').unix();
     context.group = group;
 
     if (testing) {

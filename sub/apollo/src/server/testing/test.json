@@ -22,6 +22,13 @@
       "title": "Inbox",
       "filter": {
         "matchAll": true,
+        "expr": {
+          "comp": "GT",
+          "field": "modified",
+          "value": {
+            "timestamp": -100000
+          }
+        },
         "orderBy": {
           "field": "modified",
           "order": "DESC"

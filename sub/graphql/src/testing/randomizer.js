@@ -100,7 +100,6 @@ export class Randomizer {
       }
 
 //    console.log('Item: %s', JSON.stringify(item));
-
       items.push(item);
 
       // Iterate fields.
@@ -118,7 +117,18 @@ export class Randomizer {
     }).then(() => {
 
       // Insert vector of items.
-      return this._database.upsertItems(this._context, items);
+      return this._database.upsertItems(this._context, items).then(items => {
+
+        // Fake timestamps (so don't show up in inbox).
+        if (this._context.created) {
+          _.each(items, item => {
+            item.created = this._context.created;
+            item.modified = this._context.created;
+          });
+        }
+
+        return items;
+      });
     });
   }
 }

@@ -50,18 +50,20 @@ scalar Timestamp
 # TODO(burdon): Serialize for stored queries (rather than duplicate types).
 
 input ValueInput {
-  null:     Boolean
+  null:       Boolean
 
-  int:      Int
-  float:    Float
-  string:   String
-  boolean:  Boolean
+  int:        Int
+  float:      Float
+  string:     String
+  boolean:    Boolean
 
-  id:       ID
-  date:     Date
+  id:         ID
+  timestamp:  Timestamp
 
-  array:    ArrayMutationInput
-  object:   ObjectMutationInput
+  date:       Date
+
+  array:      ArrayMutationInput
+  object:     ObjectMutationInput
 }
 
 #
@@ -95,8 +97,11 @@ enum Operator {
 
 enum Comparator {
   EQ,                       # Default
+  NE,
   GT,
+  GTE,
   LT,
+  LTE,
   IN
 }
 

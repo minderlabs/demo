@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+import moment from 'moment';
+
 import { Matcher } from './matcher';
 
 describe('Matcher:', () => {
@@ -202,5 +204,32 @@ describe('Matcher:', () => {
 
     expect(matcher.matchItem(context, root, filter, items.f)).to.be.true;
     expect(matcher.matchItems(context, root, filter, items)).to.have.length(1);
+  });
+
+  /**
+   * Comparators
+   */
+  it('Matches comparators.', () => {
+    let matcher = new Matcher();
+
+    let context = {};
+    let root = {};
+
+    let now = moment().unix();
+    let anHourAgo = moment().subtract(1, 'hr').unix();
+
+    let item1 = {
+      modified: anHourAgo
+    };
+
+    expect(matcher.matchItem(context, root,
+      { expr: { comp: 'GTE', field: 'modified', value: { timestamp: anHourAgo } } }, item1)).to.be.true;
+    expect(matcher.matchItem(context, root,
+      { expr: { comp: 'GT', field: 'modified', value: { timestamp: anHourAgo } } }, item1)).to.be.false;
+
+    expect(matcher.matchItem(context, root,
+      { expr: { comp: 'GT', field: 'modified', value: { timestamp: now } } }, item1)).to.be.false;
+    expect(matcher.matchItem(context, root,
+      { expr: { comp: 'GT', field: 'modified', value: { timestamp: -3600 * 2 } } }, item1)).to.be.true;
   });
 });
