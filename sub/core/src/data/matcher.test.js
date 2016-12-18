@@ -39,8 +39,8 @@ describe('Matcher:', () => {
     },
     {
       id: 'f',
-      type: 'Task',
       bucket: 'a',
+      type: 'Task',
       title: 'Test matcher.',
       labels: ['foo']
     }
@@ -167,8 +167,7 @@ describe('Matcher:', () => {
       user: { id: 'a' }
     };
     let root = {};
-    let filter = {
-      bucket: 'a',
+    let filter = { bucket: 'a',
       matchAll: true
     };
 

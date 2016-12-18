@@ -5,9 +5,7 @@
 import Cookies from 'js-cookie';
 import * as firebase from 'firebase';
 
-import { FirebaseConfig } from '../common/defs';
-
-const COOKIE = 'minder_auth_token';
+import { Const, FirebaseConfig } from '../common/defs';
 
 /**
  * Auth module.
@@ -57,7 +55,7 @@ export class Auth {
               // TODO(burdon): Do we need this?
               // Se the auth cookie for server-side detection.
               // https://github.com/js-cookie/js-cookie
-              Cookies.set(COOKIE, token, {
+              Cookies.set(Const.AUTH_COOKIE, token, {
 //              path: '/',
                 domain: window.location.hostname,
                 expires: 1,       // 1 day.

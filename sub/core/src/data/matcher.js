@@ -49,8 +49,8 @@ export class Matcher {
     }
 
     // Bucket match
-    // TODO(burdon): Buckets should be namespaces in the data store, not field to filter on.
-    if (filter.bucket && filter.bucket !== item.bucket) {
+    // TODO(burdon): Filter should not include bucket (implicit in query).
+    if ((filter.bucket || item.bucket) && (filter.bucket !== item.bucket)) {
       return false;
     }
 

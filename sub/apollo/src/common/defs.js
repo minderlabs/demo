@@ -23,5 +23,7 @@ export const Const = {
 
   APP_NAME: 'Minder',
 
-  DEF_TEAM: 'minderlabs'
+  DEF_TEAM: 'minderlabs',
+
+  AUTH_COOKIE: 'minder_auth_token'
 };
