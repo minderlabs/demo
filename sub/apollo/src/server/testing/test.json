@@ -23,11 +23,23 @@
       "filter": {
         "matchAll": true,
         "expr": {
-          "comp": "GT",
-          "field": "modified",
-          "value": {
-            "timestamp": -100000
-          }
+          "op": "AND",
+          "expr": [
+            {
+              "comp": "NE",
+              "field": "type",
+              "value": {
+                "string": "Folder"
+              }
+            },
+            {
+              "comp": "GT",
+              "field": "modified",
+              "value": {
+                "timestamp": -100000
+              }
+            }
+          ]
         },
         "orderBy": {
           "field": "modified",
@@ -45,8 +57,8 @@
         "expr": {
           "op": "OR",
           "expr": [
-            { "field": "owner", "ref": "$USER_ID" },
-            { "field": "assignee", "ref": "$USER_ID" }
+            { "ref": "$USER_ID", "field": "owner" },
+            { "ref": "$USER_ID", "field": "assignee" }
           ]
         }
       }
