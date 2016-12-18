@@ -172,6 +172,13 @@ export class Resolvers {
           let { filter, offset, count } = args;
 
           return database.queryItems(context, root, filter, offset, count);
+        },
+
+        search: (root, args, context) => {
+          let { filter, offset, count } = args;
+
+          // TODO(burdon):
+          return database.search(context, root, filter, offset, count);
         }
       },
 

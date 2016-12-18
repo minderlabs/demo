@@ -195,8 +195,8 @@ interface Item {
 #
 
 type SearchRef {
-  snippet: String!
-  item: ID!
+  snippet: String
+  item: Item!
 }
 
 type SearchResult implements Item {
@@ -210,7 +210,7 @@ type SearchResult implements Item {
   labels: [String]
 
   # Optional ordered array of references to matching items.
-  refs: [SearchRef]
+  refs: [SearchRef]!
 }
 
 #
@@ -354,8 +354,11 @@ type RootQuery {
   # Get specific.
   item(itemId: ID!): Item!
 
-  # Search.
+  # Query.
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
+
+  # Search.
+  search(filter: FilterInput, offset: Int, count: Int): [SearchResult]!
 }
 
 #

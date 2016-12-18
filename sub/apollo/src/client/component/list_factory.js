@@ -37,10 +37,10 @@ const mapStateToProps = (state, ownProps) => {
  * TODO(burdon): Document.
  *
  * @param query
- * @param getItemsFromData
+ * @param itemsGetter
  * @returns {*}
  */
-function composeList(query, getItemsFromData) {
+function composeList(query, itemsGetter) {
   return compose(
 
     connect(mapStateToProps),
@@ -69,7 +69,7 @@ function composeList(query, getItemsFromData) {
       // Configure props passed to component.
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
-        let items = getItemsFromData(data);
+        let items = itemsGetter(data);
         let { filter, count } = ownProps;
 
         return {
@@ -141,32 +141,37 @@ class WrappedList extends List {
   }
 }
 
-// TODO(burdon): Test if this still fails (need to issue query).
-// TODO(burdon): Apollo Client enforces all fragment names across your application to be unique.
-// https://github.com/apollostack/apollo-client/blob/master/src/fragments.ts#L52
-const FRAG = gql`
-  fragment FRAG on Item {
-    __typename
+/**
+ * List of search results.
+ */
+const SearchQuery = gql`
+  query SearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
+
+    search(filter: $filter, offset: $offset, count: $count) {
+      __typename
+      id
+
+      ...ListItemFragment
+      
+      refs {
+        snippet
+        item {
+          ...ListItemFragment
+        }
+      }
+    }
   }
+
+  ${WrappedList.ListItemFragment}
 `;
 
-const Q1 = gql`
-  query Q1 {
-    item {
-      __typename
-    }
-    ${FRAG}
-  }
-`;
+export const SearchList = composeList(
+  SearchQuery,
 
-const Q2 = gql`
-  query Q2 {
-    item {
-      __typename
-    }
-    ${FRAG}
+  (data) => {
+    return data.search
   }
-`;
+);
 
 /**
  * Generic list of items.
@@ -185,7 +190,7 @@ const ItemsQuery = gql`
   ${WrappedList.ListItemFragment}
 `;
 
-export const ItemsList = composeList(
+export const ItemList = composeList(
   ItemsQuery,
 
   (data) => {
@@ -196,7 +201,7 @@ export const ItemsList = composeList(
 /**
  * List of user items.
  *
- * TODO(burdon): Change tasks to filtered items.
+ * TODO(burdon): Change tasks to filtered items (i.e., make generic -- see GraphQL).
  * TODO(madadam): Pagination (offset/count) for user.tasks.
  */
 const UserTasksQuery = gql`
@@ -220,7 +225,7 @@ const UserTasksQuery = gql`
   ${WrappedList.ListItemFragment}
 `;
 
-export const UserTasksList = composeList(
+export const UserTaskList = composeList(
   UserTasksQuery,
 
   (data) => {

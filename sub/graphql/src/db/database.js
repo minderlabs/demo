@@ -117,4 +117,77 @@ export class Database extends ItemStore {
     let itemStore = this.getItemStore(filter.type);
     return itemStore.queryItems(context, root, filter, offset, count);
   }
+
+  /**
+   * @return {Promise}
+   */
+  search(context, root, filter={}, offset=0, count=10) {
+    logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
+
+    let itemStore = this.getItemStore(filter.type);
+    return itemStore.queryItems(context, root, filter, offset, count).then(items => {
+      let parentResultMap = new Map();
+      let results = [];
+
+      _.each(items, item => {
+        let result = null;
+
+        // TODO(burdon): Look for parent (type-specific?)
+        switch (item.type) {
+          case 'Task': {
+            result = parentResultMap.get(item.project);
+
+            if (result) {
+              // Promote result to parent.
+              if (_.isEmpty(result.refs)) {
+                // Remove existing properties.
+                _.each(_.keys(result), key => {
+                  delete result[key];
+                });
+
+                // Set parent properties.
+                _.assign(result, {
+                  id: item.project,
+                  type: 'Project',
+                  title: 'Project ' + item.project,      // TODO(burdon): Lookup project to get title.
+                  refs: []
+                });
+              }
+
+              // Add result reference.
+              result.refs.push({
+                item
+              });
+            }
+            break;
+          }
+        }
+
+        // Create new result.
+        if (!result) {
+          // TODO(burdon): Create transient element.
+          result = {
+            id: item.id,
+            type: item.type,
+            title: item.title,
+            refs: []
+          };
+
+          // Memo the parent to aggregate more results.
+          switch (item.type) {
+            case 'Task': {
+              if (item.project) {
+                parentResultMap.set(item.project, result);
+              }
+              break;
+            }
+          }
+
+          results.push(result);
+        }
+      });
+
+      return results;
+    });
+  }
 }

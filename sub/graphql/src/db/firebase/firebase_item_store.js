@@ -79,7 +79,7 @@ export class FirebaseItemStore extends ItemStore {
     return this._cache.getItemStore().then(itemStore => itemStore.getItems(context, type, itemIds));
   }
 
-  queryItems(context, root, filter={}) {
+  queryItems(context, root, filter={}, offset=0, count=10) {
     let items = this._cache.getItemStore().then(itemStore => itemStore.queryItems(context, root, filter));
 
     // Sort.
@@ -88,6 +88,8 @@ export class FirebaseItemStore extends ItemStore {
       console.assert(orderBy.field);
       items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
     }
+
+    console.log(items.length + '::' + count);
 
     return items;
   }

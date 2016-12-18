@@ -12,7 +12,7 @@ import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
-import { ItemsList } from '../component/list_factory';
+import { ItemList } from '../component/list_factory';
 
 import './folder.less';
 
@@ -118,7 +118,7 @@ class FolderView extends React.Component {
     return (
       <div className="app-folder ux-column">
         <div className="ux-expand">
-          <ItemsList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <ItemList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
         <div className="ux-section ux-toolbar ux-row">

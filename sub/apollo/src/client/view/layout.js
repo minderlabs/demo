@@ -16,7 +16,7 @@ import { QueryRegistry } from '../data/subscriptions';
 import { Navigator } from '../path'
 
 import { Monitor } from '../component/devtools';
-import { ItemsList } from '../component/list_factory';
+import { SearchList } from '../component/list_factory';
 import { NavBar } from '../component/navbar';
 import { SidebarPanel } from '../component/sidebar';
 import { StatusBar } from '../component/statusbar';
@@ -128,7 +128,8 @@ class Layout extends React.Component {
                   */}
                 <div className='app-drop'>
                   <div className="app-drop-panel">
-                    <ItemsList favorite={ false } filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+                    <SearchList favorite={ false } filter={ filter }
+                                onItemSelect={ this.handleItemSelect.bind(this) }/>
                   </div>
                 </div>
               </div>

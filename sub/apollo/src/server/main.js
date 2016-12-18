@@ -143,16 +143,23 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
       let randomizer = new Randomizer(database, context);
 
       return Promise.all([
-        randomizer.generate('Contact', 20),
-        randomizer.generate('Place', 10),
         randomizer.generate('Task', 30, {
+          project: {
+            value: 'demo',
+            likelihood: 0.75
+          },
           owner: {
-            type: 'User', likelihood: 1.0
+            type: 'User',
+            likelihood: 1.0
           },
           assignee: {
-            type: 'User', likelihood: 0.5
+            type: 'User',
+            likelihood: 0.5
           }
-        })
+        }),
+
+        randomizer.generate('Contact', 5),
+        randomizer.generate('Place', 5)
       ]);
     }
   }));
