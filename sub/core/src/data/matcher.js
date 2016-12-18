@@ -50,7 +50,10 @@ export class Matcher {
 
     // Bucket match
     // TODO(burdon): Filter should not include bucket (implicit in query).
-    if ((filter.bucket || item.bucket) && (filter.bucket !== item.bucket)) {
+    if (item.bucket && item.bucket !== context.user.id) {
+      return false;
+    }
+    if (filter.bucket && item.bucket !== filter.bucket) {
       return false;
     }
 

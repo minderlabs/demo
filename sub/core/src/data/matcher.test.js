@@ -51,6 +51,19 @@ describe('Matcher:', () => {
   });
 
   /**
+   * Match buckets.
+   */
+  it('Matches bucket filters.', () => {
+    let matcher = new Matcher();
+
+    // TODO(burdon): console.assert is ignored by node (use node assert module?)
+
+    let root = {};
+    expect(matcher.matchItems({ user: { id: 'a' } }, root, { type: 'Task' }, items)).to.have.length(4);
+    expect(matcher.matchItems({ user: { id: 'b' } }, root, { type: 'Task' }, items)).to.have.length(3);
+  });
+
+  /**
    * Bsaic filters.
    */
   it('Matches basic filters.', () => {
@@ -58,7 +71,11 @@ describe('Matcher:', () => {
 
     // TODO(burdon): console.assert is ignored by node (use node assert module?)
 
-    let context = {};
+    let context = {
+      user: {
+        id: 'a'
+      }
+    };
     let root = {};
 
     expect(matcher.matchItem(context, root, { type: 'User' }, items.a)).to.be.ok;
@@ -73,12 +90,16 @@ describe('Matcher:', () => {
   });
 
   /**
-   *
+   * Empty filters match nothing by default.
    */
   it('Matches nothing or everything.', () => {
     let matcher = new Matcher();
 
-    let context = {};
+    let context = {
+      user: {
+        id: 'a'
+      }
+    };
     let root = {};
 
     expect(matcher.matchItems(context, root, {}, items).length).to.equal(0);
@@ -91,7 +112,11 @@ describe('Matcher:', () => {
   it('Matches simple expressions.', () => {
     let matcher = new Matcher();
 
-    let context = {};
+    let context = {
+      user: {
+        id: 'a'
+      }
+    };
     let root = {};
 
     expect(matcher.matchItems(
@@ -104,7 +129,11 @@ describe('Matcher:', () => {
   it('Matches labels and negated labels.', () => {
     let matcher = new Matcher();
 
-    let context = {};
+    let context = {
+      user: {
+        id: 'a'
+      }
+    };
     let root = {};
 
     expect(matcher.matchItem(context, root, { type: "Task", labels: ['foo'] }, items.f)).to.be.true;

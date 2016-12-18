@@ -128,7 +128,8 @@ input FilterInput {
 
   # TODO(burdon): Add namespace (e.g., system for User, etc.)
 
-  # TODO(burdon): ID! (User/Group ID).
+  # TODO(burdon): ID! (User/Group ID). Should be implicit in context? And validated in frontend Auth.
+  # TODO(burdon): Motivate case, where Client wants to specify a particular bucket.
   bucket: String
 
   # OR
@@ -175,7 +176,7 @@ type Viewer {
 
 interface Item {
   id: ID!
-  bucket: String
+  bucket: ID                # TODO(burdon): Change to ID.
   type: String!
   alias: String             # Short-name for URLs (unique, human-readable).
   created: Timestamp!
@@ -185,12 +186,35 @@ interface Item {
 }
 
 #
-# Item Types:
+# Transient Items.
+#
+
+type SearchRef {
+  snippet: String!
+  item: ID!
+}
+
+type SearchResult implements Item {
+  id: ID!
+  bucket: ID
+  type: String!
+  alias: String
+  created: Timestamp!
+  modified: Timestamp!
+  title: String!
+  labels: [String]
+
+  # Optional ordered array of references to matching items.
+  refs: [SearchRef]
+}
+
+#
+# Item Types.
 #
 
 type User implements Item {
   id: ID!
-  bucket: String
+  bucket: ID
   type: String!
   alias: String
   created: Timestamp!
@@ -202,13 +226,13 @@ type User implements Item {
 
   contact: Contact
 
-  # TODO(burdon): Generalize to items. Move to item?
+  # TODO(burdon): Remove (only query via project links).
   tasks(filter: FilterInput): [Task]!
 }
 
 type Group implements Item {
   id: ID!
-  bucket: String
+  bucket: ID
   type: String!
   alias: String
   created: Timestamp!
@@ -222,7 +246,7 @@ type Group implements Item {
 
 type Folder implements Item {
   id: ID!
-  bucket: String
+  bucket: ID
   type: String!
   alias: String
   created: Timestamp!
@@ -236,7 +260,7 @@ type Folder implements Item {
 
 type Contact implements Item {
   id: ID!
-  bucket: String
+  bucket: ID
   type: String!
   alias: String
   created: Timestamp!
@@ -249,7 +273,7 @@ type Contact implements Item {
 
 type Project implements Item {
   id: ID!
-  bucket: String
+  bucket: ID
   type: String!
   alias: String
   created: Timestamp!
@@ -265,7 +289,7 @@ type Project implements Item {
 
 type Task implements Item {
   id: ID!
-  bucket: String
+  bucket: ID
   type: String!
   alias: String
   created: Timestamp!
@@ -283,7 +307,7 @@ type Task implements Item {
 
 type Event implements Item {
   id: ID!
-  bucket: String
+  bucket: ID
   type: String!
   alias: String
   created: Timestamp!
@@ -297,7 +321,7 @@ type Event implements Item {
 
 type Place implements Item {
   id: ID!
-  bucket: String
+  bucket: ID
   type: String!
   alias: String
   created: Timestamp!
