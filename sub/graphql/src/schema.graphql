@@ -337,8 +337,11 @@ type Place implements Item {
 
 type Document implements Item {
   id: ID!
+  bucket: ID
   type: String!
   alias: String           # User short-name for links.
+  created: Timestamp!
+  modified: Timestamp!
   title: String!
   labels: [String]
 
