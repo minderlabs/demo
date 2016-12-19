@@ -191,8 +191,13 @@ export class Matcher {
   static matchComparatorExpression(context, root, expr, item) {
     console.assert(expr.field);
 
-    let fieldValue = _.get(item, expr.field);
+    // Value to match.
     let inputValue = expr.value;
+
+    // Value of field within item.
+    // TODO(burdon): This is different client and server!
+    // (e.g., on server "assignee" is an ID; on the client, it's an object).
+    let fieldValue = _.get(item, expr.field);
 
     //
     // Substitute value for reference.
@@ -205,7 +210,7 @@ export class Matcher {
       switch (ref) {
         case '$USER_ID': {
           console.assert(context.user);
-          inputValue = { string: context.user.id };
+          inputValue = { id: context.user.id };
           break;
         }
 
@@ -222,6 +227,7 @@ export class Matcher {
     // Special values.
     //
 
+    // TODO(burdon): This should not mutate the filter. Copy instead.
     // Relative timestamp.
     if (inputValue.timestamp) {
       if (inputValue.timestamp <= 0) {
@@ -273,6 +279,12 @@ export class Matcher {
     _.each(Matcher.SCALARS, field => {
       let value = inputValue[field];
       if (value !== undefined) {
+
+        // TODO(burdon): Hack (on client field is an item; on the server it's just an ID).
+        if (field === 'id' && _.isObject(fieldValue)) {
+          fieldValue = fieldValue.id;
+        }
+
         match = not ? (fieldValue !== value) : (fieldValue === value);
         return false;
       }

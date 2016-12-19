@@ -56,6 +56,7 @@ function composeList(query, itemsGetter) {
         let matcher = props.injector.get(Matcher);
         let typeRegistry = props.injector.get(TypeRegistry);
 
+        // TODO(burdon): Generates a new callback each time rendered. Create property for class.
         // https://github.com/apollostack/apollo-client/blob/master/src/ApolloClient.ts
         return {
           reducer: Reducer.reduce(props.context, matcher, typeRegistry, UpdateItemMutation, query, filter),

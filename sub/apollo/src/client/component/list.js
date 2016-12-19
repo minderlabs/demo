@@ -45,8 +45,9 @@ export class List extends React.Component {
    */
   getItemFragment() {}
 
+  // TODO(burdon): Unregister.
   componentWillReceiveProps(nextProps) {
-    this.props.injector.get(QueryRegistry).register(this, nextProps.data);
+//  this.props.injector.get(QueryRegistry).register(this, nextProps.data);
   }
 
   handleItemSelect(item) {
@@ -104,7 +105,7 @@ export class List extends React.Component {
             let containerClass = 'ux-list-item-container';
             let refs = null;
 
-            // Search item references.
+            // Grouped items.
             if (!_.isEmpty(item.refs)) {
               containerClass += ' ux-list-item-group';
               refs = (
@@ -119,11 +120,11 @@ export class List extends React.Component {
               );
             }
 
+            // Master item.
             return (
-              <div className={ containerClass }>
-                <ListItem key={ item.id }
+              <div key={ item.id }className={ containerClass }>
+                <ListItem item={ filter(this.getItemFragment(), item) }
                           favorite={ this.props.favorite !== false }
-                          item={ filter(this.getItemFragment(), item) }
                           icon={ icon(item) }
                           onSelect={ this.handleItemSelect.bind(this, item) }
                           onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>

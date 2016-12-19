@@ -15,7 +15,8 @@ import { QueryRegistry } from '../data/subscriptions';
 
 import { Navigator } from '../path'
 
-import { Monitor } from '../component/devtools';
+//import { Monitor } from '../component/devtools';
+
 import { SearchList } from '../component/list_factory';
 import { NavBar } from '../component/navbar';
 import { SidebarPanel } from '../component/sidebar';
@@ -144,9 +145,11 @@ class Layout extends React.Component {
           </div>
 
           {/* Debug sidebar */}
+          {/*
           <div className="ux-debug">
             <Monitor/>
           </div>
+          */}
         </div>
       </div>
     );

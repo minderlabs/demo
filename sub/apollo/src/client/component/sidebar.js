@@ -18,6 +18,7 @@ export class SidebarPanel extends React.Component {
 
   render() {
     let { team, folders } = this.props;
+
     return (
       <div className="ux-column ux-list">
         {_.map(folders, folder =>
