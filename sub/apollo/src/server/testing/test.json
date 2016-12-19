@@ -16,35 +16,75 @@
 
   "Folder": [
     {
-      "id": "inbox",
+      "id": "folder_inbox",
+      "order": 1,
+      "alias": "inbox",
       "title": "Inbox",
+      "filter": {
+        "matchAll": true,
+        "expr": {
+          "op": "AND",
+          "expr": [
+            {
+              "comp": "NE",
+              "field": "type",
+              "value": {
+                "string": "Folder"
+              }
+            },
+            {
+              "comp": "GT",
+              "field": "modified",
+              "value": {
+                "timestamp": -100000
+              }
+            }
+          ]
+        },
+        "orderBy": {
+          "field": "modified",
+          "order": "DESC"
+        }
+      }
+    },
+    {
+      "id": "folder_tasks",
+      "order": 2,
+      "alias": "tasks",
+      "title": "Tasks",
       "filter": {
         "type": "Task",
         "expr": {
           "op": "OR",
           "expr": [
-            { "field": "owner", "ref": "$USER_ID" },
-            { "field": "assignee", "ref": "$USER_ID" }
+            { "ref": "$USER_ID", "field": "owner" },
+            { "ref": "$USER_ID", "field": "assignee" }
           ]
         }
       }
     },
     {
-      "id": "favorites",
+      "id": "folder_favorites",
+      "order": 3,
+      "alias": "favorites",
       "title": "Favorites",
       "filter": {
         "labels": ["_favorite"]
       }
     },
     {
-      "id": "projects",
+      "id": "folder_projects",
+      "order": 4,
+      "alias": "projects",
       "title": "Projects",
       "filter": {
         "type": "Project"
       }
     },
     {
-      "id": "deleted",
+      "id": "folder_deleted",
+      "order": 5,
+      "alias": "deleted",
       "title": "Deleted",
       "filter": {
         "labels": ["_deleted"]

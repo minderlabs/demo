@@ -100,6 +100,7 @@ export class List extends React.Component {
         <div ref="items" className="ux-column ux-scroll-container">
           {items.map(item =>
           <ListItem key={ item.id }
+                    favorite={ this.props.favorite !== false }
                     item={ filter(this.getItemFragment(), item) }
                     icon={ icon(item) }
                     onSelect={ this.handleItemSelect.bind(this, item) }

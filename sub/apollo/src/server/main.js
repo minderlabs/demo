@@ -5,6 +5,7 @@
 import './config';
 
 import _ from 'lodash';
+import moment from 'moment';
 
 import path from 'path';
 import http from 'http';
@@ -128,6 +129,7 @@ _.each(require('./testing/test.json'), (items, type) => {
   }));
 });
 
+
 //
 // Create test data.
 //
@@ -135,15 +137,19 @@ _.each(require('./testing/test.json'), (items, type) => {
 promises.push(database.queryItems({}, {}, { type: 'User' })
   .then(users => {
 
-    // Create group.
+    // Get the group and add members.
     return database.getItem(context, 'Group', Const.DEF_TEAM)
-      .then(item => {
-        item.members = _.map(users, user => user.id);
-        database.upsertItem(context, item);
+      .then(group => {
+        group.members = _.map(users, user => user.id);
+        return database.upsertItem(context, group);
       });
   })
 
-  .then(() => {
+  .then(group => {
+    // TODO(burdon): Is this needed in the GraphQL context below?
+    context.created = moment().subtract(10, 'days').unix();
+    context.group = group;
+
     if (testing) {
       let randomizer = new Randomizer(database, context);
 
@@ -282,6 +288,7 @@ app.get('/graphiql', function(req, res) {
       });
   });
 });
+
 
 //
 // App.

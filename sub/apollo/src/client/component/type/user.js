@@ -37,8 +37,8 @@ const UserQuery = gql`
   query UserQuery($itemId: ID!) { 
     
     item(itemId: $itemId) {
-      ... ItemFragment
-      ... UserFragment
+      ...ItemFragment
+      ...UserFragment
     }
   }
 

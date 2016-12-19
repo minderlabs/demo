@@ -20,7 +20,7 @@ const ProjectQuery = gql`
   query ProjectQuery($itemId: ID!, $localItemId: ID!) {
 
     item(itemId: $itemId) {
-      ... ItemFragment
+      ...ItemFragment
 
       ... on Project {
         team {
@@ -39,7 +39,7 @@ const ProjectQuery = gql`
                 ]
               }
             }) {
-              ... ItemFragment
+              ...ItemFragment
               
               project {
                 id
@@ -216,8 +216,8 @@ class ProjectLayout extends React.Component {
         }
       });
     } else {
-      // TODO(burdon): Switch to using actual buckets.
-      // TODO(burdon): Corruption of this.state.inlineEdit to use private/shared.
+      // TODO(burdon): Set bucket in updateItem.
+      // TODO(burdon): Factor out inline edit.
       switch (this.state.inlineEdit) {
         case ProjectLayout.NOTE_TYPE.PRIVATE: {
           mutations.push({
@@ -345,8 +345,8 @@ class ProjectLayout extends React.Component {
     );
 
     let sharedNotesFilter = {
-      type: 'Task',
       bucket: item.id,
+      type: 'Task',
       expr: { field: 'assignee', value: { null: true }}
     };
 

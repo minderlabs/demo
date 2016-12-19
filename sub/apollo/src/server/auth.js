@@ -9,6 +9,8 @@ import cookieParser from 'cookie-parser';
 
 import { Logger, IdGenerator } from 'minder-core';
 
+import { Const } from '../common/defs';
+
 const logger = Logger.get('auth');
 
 /**
@@ -95,8 +97,7 @@ export class AuthManager {
   getUserInfoFromCookie(req) {
     console.assert(req);
 
-    let token = req.cookies && req.cookies['minder_auth_token'];
-
+    let token = req.cookies && req.cookies[Const.AUTH_COOKIE];
     return this.getUserFromJWT(token).catch(ex => {
       ex && logger.error(ex);
       return null

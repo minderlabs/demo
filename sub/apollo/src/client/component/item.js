@@ -129,7 +129,7 @@ export class CardContainer extends React.Component {
         </div>
 
         <div className="ux-section ux-debug">
-          { JSON.stringify(_.pick(item, 'type', 'id')) }
+          { JSON.stringify(_.pick(item, 'bucket', 'type', 'id')) }
         </div>
 
         <div className="ux-scroll-container">

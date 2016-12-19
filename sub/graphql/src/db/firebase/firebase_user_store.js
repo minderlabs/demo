@@ -3,6 +3,7 @@
 //
 
 import _ from 'lodash';
+import moment from 'moment';
 
 import { ItemStore } from 'minder-core';
 
@@ -15,6 +16,9 @@ export class FirebaseUserStore extends ItemStore {
 
   // Root database node.
   static ROOT = 'users';
+
+  // TODO(burdon): Factor out type.
+  static TYPE = 'User';
 
   /**
    * Parses the root node of the data set, inserting items into the item store.
@@ -36,12 +40,14 @@ export class FirebaseUserStore extends ItemStore {
   static recordToItem(key, record) {
     // TODO(madadam): Credentials isn't part of the schema; needs to be?
     return {
-      id:     key,
-      type:   'User',
-      title:  record.profile.name,
-      email:  record.profile.email,
-      credentials: record.credentials
-    }
+      id:           key,
+      type:         FirebaseUserStore.TYPE,
+      created:      record.created,
+      modified:     record.modified,
+      title:        record.profile.name,
+      email:        record.profile.email,
+      credentials:  record.credentials
+    };
   }
 
   constructor(db, matcher) {
@@ -64,6 +70,8 @@ export class FirebaseUserStore extends ItemStore {
 
     // https://firebase.google.com/docs/database/web/read-and-write
     let record = {
+      created: moment().unix(),
+      modified: moment().unix(),
 
       profile: {
         email,

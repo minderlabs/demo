@@ -27,8 +27,8 @@ const PlaceQuery = gql`
   query PlaceQuery($itemId: ID!) { 
     
     item(itemId: $itemId) {
-      ... ItemFragment
-      ... PlaceFragment
+      ...ItemFragment
+      ...PlaceFragment
     }
   }
 
@@ -42,7 +42,6 @@ const PlaceQuery = gql`
 class PlaceCard extends React.Component {
 
   static propTypes = {
-    user: React.PropTypes.object.isRequired,
     item: propType(PlaceFragment)
   };
 
@@ -50,7 +49,7 @@ class PlaceCard extends React.Component {
     let { item } = this.props;
 
     return (
-      <CardContainer mutator={ this.props.mutator } item={ item } onSave={ this.handleSave.bind(this) }>
+      <CardContainer mutator={ this.props.mutator } item={ item }>
         <PlaceLayout ref="item" item={ item }/>
       </CardContainer>
     );
@@ -63,7 +62,6 @@ class PlaceCard extends React.Component {
 export class PlaceLayout extends React.Component {
 
   static propTypes = {
-    user: React.PropTypes.object.isRequired,
     item: propType(PlaceFragment)
   };
 
@@ -71,7 +69,7 @@ export class PlaceLayout extends React.Component {
 
   render() {
     return (
-      <div className="app-type-place ux-column ux-section">
+      <div className="app-type-place ux-column ux-section ux-debug">
         <pre>
           { JSON.stringify(_.pick(this.props.item, ['geo']), 0, 2) }
         </pre>

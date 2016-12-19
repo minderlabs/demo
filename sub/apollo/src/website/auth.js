@@ -5,9 +5,7 @@
 import Cookies from 'js-cookie';
 import * as firebase from 'firebase';
 
-import { FirebaseConfig } from '../common/defs';
-
-const COOKIE = 'minder_auth_token';
+import { Const, FirebaseConfig } from '../common/defs';
 
 /**
  * Auth module.
@@ -34,20 +32,34 @@ export class Auth {
   login(path) {
     console.log('LOGIN');
 
+    // TODO(burdon): Document.
+    // Access Token: Determine authorization (short-lived).
+    // Refresh Token: Get new Access Token.
+
+    // TODO(burdon): Expiration? Getting JWT isn't complete?
+    // https://auth0.com/blog/refresh-tokens-what-are-they-and-when-to-use-them/
+
     // NOTE: Always flows through here (first then after redirect).
     firebase.auth().getRedirectResult()
-      .then((result) => {
+      .then(result => {
+
+        // TODO(burdon): Store Google Access Token.
+        if (result.credential) {
+          let token = result.credential.accessToken;
+          console.log('Access Token: %s', token);
+        }
 
         // The signed-in user info.
         let user = result.user;
         if (user) {
+          // https://firebase.google.com/docs/reference/js/firebase.User#getToken
           user.getToken().then(token => {
             this.registerUser(result).then(() => {
 
               // TODO(burdon): Do we need this?
               // Se the auth cookie for server-side detection.
               // https://github.com/js-cookie/js-cookie
-              Cookies.set(COOKIE, token, {
+              Cookies.set(Const.AUTH_COOKIE, token, {
 //              path: '/',
                 domain: window.location.hostname,
                 expires: 1,       // 1 day.

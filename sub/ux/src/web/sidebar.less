@@ -13,9 +13,8 @@
   overflow: hidden;
 
   .ux-sidebar-drawer {
-    box-sizing: border-box;
-
     position: absolute;
+    box-sizing: border-box;
     width: @ux-sidebar-width;
     overflow: hidden;
     height: 100%;
@@ -28,7 +27,7 @@
     -webkit-transform: translateX(-@ux-sidebar-width);
     transition: all 0.3s ease;
 
-    z-index: 1;
+    z-index: 999;
 
     > div {
       position: relative;

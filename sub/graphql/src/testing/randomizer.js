@@ -19,20 +19,19 @@ export class Randomizer {
 
   static generators = {
 
-    'Task': (chance) => {
+    'Task': chance => {
       return {
-        bucket: 'minderlabs', // TODO(madadam): chance.string('minderlabs', 0.5)
         title: chance.sentence({ words: 5 })
       }
     },
 
-    'Contact': (chance) => {
+    'Contact': chance => {
       return {
         title: chance.name()
       }
     },
 
-    'Place': (chance) => {
+    'Place': chance => {
       return {
         title: chance.city(),
 
@@ -85,7 +84,7 @@ export class Randomizer {
     let items = [];
 
     // Create values.
-    return TypeUtil.iterateWithPromises(_.times(n), (i) => {
+    return TypeUtil.iterateWithPromises(_.times(n), i => {
 
       // Generate item.
       let item = {
@@ -95,6 +94,12 @@ export class Randomizer {
         ...Randomizer.generators[type](this._chance)
       };
 
+      // Add user bucket.
+      if (this._chance.bool({ likelihood: 20 })) {
+        item.bucket = this._chance.pickone(this._context.group.members);
+      }
+
+//    console.log('Item: %s', JSON.stringify(item));
       items.push(item);
 
       // Iterate fields.
@@ -112,7 +117,18 @@ export class Randomizer {
     }).then(() => {
 
       // Insert vector of items.
-      return this._database.upsertItems(this._context, items);
+      return this._database.upsertItems(this._context, items).then(items => {
+
+        // Fake timestamps (so don't show up in inbox).
+        if (this._context.created) {
+          _.each(items, item => {
+            item.created = this._context.created;
+            item.modified = this._context.created;
+          });
+        }
+
+        return items;
+      });
     });
   }
 }

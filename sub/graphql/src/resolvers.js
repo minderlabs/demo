@@ -2,9 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { graphql }  from 'graphql';
-import { GraphQLSchema } from 'graphql';
-import { makeExecutableSchema } from 'graphql-tools';
+import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
 import { $$, Logger, ID, Transforms } from 'minder-core';
@@ -42,11 +40,14 @@ export class Resolvers {
       //
       // Custom types.
       // http://dev.apollodata.com/tools/graphql-tools/scalars.html
+      // http://graphql.org/graphql-js/type/#graphqlscalartype
       //
 
-      Date: {
-        __parseValue(value) {
-          return String(value);
+      Timestamp: {
+        __serialize: value => value,
+        __parseValue: value => value,
+        __parseLiteral: ast => {
+          return (ask.kind === Kind.FLOAT) ? parseFloat(ast.value) : null;
         }
       },
 
@@ -157,7 +158,7 @@ export class Resolvers {
         },
 
         folders: (root, args, context) => {
-          return database.queryItems(context, root, { type: 'Folder' });
+          return database.queryItems(context, root, { type: 'Folder', orderBy: { field: 'order' } });
         },
 
         item: (root, args, context) => {

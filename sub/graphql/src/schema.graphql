@@ -16,10 +16,16 @@
 # http://graphql.org/graphql-js/type
 #
 
-scalar Timestamp
 scalar Version
 
 scalar Date
+
+#
+# Unix timestamp.
+# http://momentjs.com/docs/#/parsing/unix-timestamp-milliseconds
+#
+
+scalar Timestamp
 
 # TODO(burdon): Directives.
 
@@ -44,18 +50,20 @@ scalar Date
 # TODO(burdon): Serialize for stored queries (rather than duplicate types).
 
 input ValueInput {
-  null:     Boolean
+  null:       Boolean
 
-  int:      Int
-  float:    Float
-  string:   String
-  boolean:  Boolean
+  int:        Int
+  float:      Float
+  string:     String
+  boolean:    Boolean
 
-  id:       ID
-  date:     Date
+  id:         ID
+  timestamp:  Timestamp
 
-  array:    ArrayMutationInput
-  object:   ObjectMutationInput
+  date:       Date
+
+  array:      ArrayMutationInput
+  object:     ObjectMutationInput
 }
 
 #
@@ -88,10 +96,18 @@ enum Operator {
 }
 
 enum Comparator {
-  EQ,
+  EQ,                       # Default
+  NE,
   GT,
+  GTE,
   LT,
+  LTE,
   IN
+}
+
+enum Order {
+  ASC,                      # Default
+  DESC
 }
 
 # TODO(burdon): Should be union (boolean, comparator) but union inputs are not supported.
@@ -102,22 +118,39 @@ input ExpressionInput {
   op: Operator
   expr: [ExpressionInput]
 
-  comp: Comparator          # TODO(burdon): Default to EQ?
+  comp: Comparator          # Default: EQ
   field: String
   value: ValueInput
   ref: String
 }
 
+input OrderByInput {
+  field: String
+  order: Order              # Default: ASC
+}
+
 input FilterInput {
+
+  # TODO(burdon): Add namespace (e.g., system for User, etc.)
+
+  # TODO(burdon): ID! (User/Group ID). Should be implicit in context? And validated in frontend Auth.
+  # TODO(burdon): Motivate case, where Client wants to specify a particular bucket.
+  bucket: String
+
   # OR
   ids: [ID]
 
   # MUST
   type: String
-  bucket: String
   labels: [String]
   text: String
   expr: ExpressionInput  # Expression tree.
+
+  # Sort order.
+  orderBy: OrderByInput
+
+  # Match empty filter.
+  matchAll: Boolean
 }
 
 #
@@ -146,20 +179,49 @@ type Viewer {
 
 interface Item {
   id: ID!
+  bucket: ID                # TODO(burdon): Change to ID.
   type: String!
-  alias: String           # User short-name for links.
+  alias: String             # Short-name for URLs (unique, human-readable).
+  created: Timestamp!
+  modified: Timestamp!
   title: String!
   labels: [String]
 }
 
 #
-# Item Types:
+# Transient Items.
+#
+
+type SearchRef {
+  snippet: String!
+  item: ID!
+}
+
+type SearchResult implements Item {
+  id: ID!
+  bucket: ID
+  type: String!
+  alias: String
+  created: Timestamp!
+  modified: Timestamp!
+  title: String!
+  labels: [String]
+
+  # Optional ordered array of references to matching items.
+  refs: [SearchRef]
+}
+
+#
+# Item Types.
 #
 
 type User implements Item {
   id: ID!
+  bucket: ID
   type: String!
   alias: String
+  created: Timestamp!
+  modified: Timestamp!
   title: String!
   labels: [String]
 
@@ -167,14 +229,17 @@ type User implements Item {
 
   contact: Contact
 
-  # TODO(burdon): Generalize to items. Should not be required?
+  # TODO(burdon): Remove (only query via project links).
   tasks(filter: FilterInput): [Task]!
 }
 
 type Group implements Item {
   id: ID!
+  bucket: ID
   type: String!
   alias: String
+  created: Timestamp!
+  modified: Timestamp!
   title: String!
   labels: [String]
 
@@ -184,8 +249,11 @@ type Group implements Item {
 
 type Folder implements Item {
   id: ID!
+  bucket: ID
   type: String!
   alias: String
+  created: Timestamp!
+  modified: Timestamp!
   title: String!
   labels: [String]
 
@@ -195,8 +263,11 @@ type Folder implements Item {
 
 type Contact implements Item {
   id: ID!
+  bucket: ID
   type: String!
   alias: String
+  created: Timestamp!
+  modified: Timestamp!
   title: String!
   labels: [String]
 
@@ -205,8 +276,11 @@ type Contact implements Item {
 
 type Project implements Item {
   id: ID!
+  bucket: ID
   type: String!
   alias: String
+  created: Timestamp!
+  modified: Timestamp!
   title: String!
   labels: [String]
 
@@ -218,13 +292,13 @@ type Project implements Item {
 
 type Task implements Item {
   id: ID!
+  bucket: ID
   type: String!
   alias: String
+  created: Timestamp!
+  modified: Timestamp!
   title: String!
   labels: [String]
-
-  # TODO(burdon): Promote to shared meta data for all items.
-  bucket: String
 
   # TODO(burdon): Implement via links?
   project: Project
@@ -236,8 +310,11 @@ type Task implements Item {
 
 type Event implements Item {
   id: ID!
+  bucket: ID
   type: String!
   alias: String
+  created: Timestamp!
+  modified: Timestamp!
   title: String!
   labels: [String]
 
@@ -247,8 +324,11 @@ type Event implements Item {
 
 type Place implements Item {
   id: ID!
+  bucket: ID
   type: String!
   alias: String
+  created: Timestamp!
+  modified: Timestamp!
   title: String!
   labels: [String]
 
@@ -284,12 +364,16 @@ type SearchResult {
 
 type RootQuery {
 
+  # Current user.
   viewer: Viewer!
 
+  # Folders for current user.
   folders: [Folder]!
 
+  # Get specific.
   item(itemId: ID!): Item!
 
+  # Search.
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
 
   # TODO(madadam): Do we need this? Or use SearchResult as the return type of items{}.

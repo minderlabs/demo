@@ -7,8 +7,8 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { EventHandler } from 'minder-core';
-import { Sidebar, SidebarToggle } from 'minder-ux';
+import { EventHandler, QueryParser } from 'minder-core';
+import { SearchBar, Sidebar, SidebarToggle } from 'minder-ux';
 
 import { Const } from '../../common/defs';
 import { QueryRegistry } from '../data/subscriptions';
@@ -16,9 +16,12 @@ import { QueryRegistry } from '../data/subscriptions';
 import { Navigator } from '../path'
 
 import { Monitor } from '../component/devtools';
+import { ItemsList } from '../component/list_factory';
 import { NavBar } from '../component/navbar';
 import { SidebarPanel } from '../component/sidebar';
 import { StatusBar } from '../component/statusbar';
+
+import { ACTION } from '../reducers';
 
 import './layout.less';
 
@@ -71,13 +74,19 @@ class Layout extends React.Component {
     }
   }
 
-  render() {
-    let { children, team } = this.props;
-    let { viewer } = this.props.data;
+  handleSearch(text) {
+    this.props.onSearch(text);
+  }
 
-    // TODO(burdon): Sidebar and query folders (available to views in redux state?)
-    // TODO(burdon): Display errors in status bar.
-    // TODO(burdon): Skip DevTools in prod.
+  handleItemSelect(item) {
+    this.refs.search.reset();
+    this.props.navigator.pushDetail(item);
+  }
+
+  render() {
+    let { children, filter, team, viewer, folders } = this.props;
+
+    let sidebar = <SidebarPanel team={ team } folders={ folders }/>;
 
     return (
       <div className="app-main-container ux-fullscreen">
@@ -97,13 +106,33 @@ class Layout extends React.Component {
             </div>
           </div>
 
-          {/* Navbar */}
+          {/* Nav bar */}
           <NavBar/>
 
           {/* Sidebar */}
-          <Sidebar ref="sidebar" sidebar={ <SidebarPanel team={ team }/> }>
+          <Sidebar ref="sidebar" sidebar={ sidebar }>
+
             {/* Content view. */}
             <div className="ux-column">
+
+              {/* Search bar (and panel) */}
+              <div className="app-search-container">
+                <div className="ux-section ux-toolbar">
+                  <SearchBar ref="search" onSearch={ this.handleSearch.bind(this) }/>
+                </div>
+
+                {/*
+                  * TODO(burdon): Factor out slide panel.
+                  * TODO(burdon): Custom renderer (remove favorite property).
+                  * TODO(burdon): Limit results to 10 items (shorter than other panels.)
+                  */}
+                <div className='app-drop'>
+                  <div className="app-drop-panel">
+                    <ItemsList favorite={ false } filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+                  </div>
+                </div>
+              </div>
+
               { children }
             </div>
           </Sidebar>
@@ -146,7 +175,6 @@ class Layout extends React.Component {
 // 2). The additional benefit is enabling child containers to be "well-formed" i.e., only rendered once their data requirements are satisfied (i.e., passed in as props); also, the child's rendering function doesn't have to handle "null" data (making the code simpler and more robust).
 // 3). Furthermore, the react-relay-router can block until these queries are satisfied, so that on error a different router path can be displayed. This also prevents render "flickering" i.e., the child component making a default invalid query, and then re-rendering once the parent's query loads and then reconfigures the child.
 
-
 const LayoutQuery = gql`
   query LayoutQuery { 
 
@@ -156,10 +184,11 @@ const LayoutQuery = gql`
         title
       }
     }
-    
+
     folders {
       id
-      filter
+      alias
+      title
     }
   }
 `;
@@ -193,18 +222,30 @@ const LayoutQuery = gql`
  * @returns {{active: string}}
  */
 const mapStateToProps = (state, ownProps) => {
-  let { minder } = state;
+  let { injector, search, user, team } = state.minder;
+
+  // TODO(burdon): Hack: Should depend on whether child supports search filtering.
+  // https://github.com/reactjs/react-router-redux#how-do-i-access-router-state-in-a-container-component
+  // NOTE: Search state come from dispatch via SearchBar.
+  let queryParser = injector.get(QueryParser);
+  let filter = _.isEmpty(ownProps.params.view) ? {} : queryParser.parse(search.text);
 
   return {
-    queryRegistry: minder.injector.get(QueryRegistry),
-    user: minder.user,
-    team: minder.team
+    queryRegistry: state.minder.injector.get(QueryRegistry),
+    filter,
+    user,
+    team
   }
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
-    navigator: new Navigator(dispatch)
+    navigator: new Navigator(dispatch),
+
+    // Store search state (so can restore value when nav back).
+    onSearch: (value) => {
+      dispatch({ type: ACTION.SEARCH, value });
+    },
   }
 };
 
@@ -222,8 +263,10 @@ export default compose(
   // http://dev.apollodata.com/react/queries.html#graphql-options
   graphql(LayoutQuery, {
     props: ({ ownProps, data }) => {
+      let { viewer, folders } = data;
+
       return {
-        data
+        viewer, folders
       }
     }
   })
