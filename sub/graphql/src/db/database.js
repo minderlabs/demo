@@ -28,6 +28,9 @@ export class Database extends ItemStore {
     // TODO(burdon): Should be by domain?
     this._stores = new Map();
 
+    // SearchProviders. Keyed by source name.
+    this._providers = new Map();
+
     // Callback.
     this._onMutation = null;
   }
@@ -48,6 +51,18 @@ export class Database extends ItemStore {
   getItemStore(type) {
     return this._stores.get(type) || this._stores.get(Database.DEFAULT);
   }
+
+  registerSearchProvider(source, provider) {
+    console.assert(source && provider);
+    this._providers.set(source, provider);
+    return this;
+  }
+
+  getSearchProviders(filter) {
+    // TODO(madadam): Allow filter to specify which sources to dispatch to. For now, fan out to all.
+    return Array.from(this._providers.values());
+  }
+
 
   // TODO(burdon): Evolve into mutation dispatcher to QueryRegistry.
   onMutation(callback) {
@@ -116,5 +131,28 @@ export class Database extends ItemStore {
 
     let itemStore = this.getItemStore(filter.type);
     return itemStore.queryItems(context, root, filter, offset, count);
+  }
+
+  /**
+   * @returns {Promise}
+   */
+  search(context, root, filter={}, offset=0, count=10) {
+    logger.log($$('QUERY[%s:%s]: %O', offset, count, filter));
+
+    // TODO(madadam): Wrap results in SearchResult schema object?
+
+    let searchProviders = this.getSearchProviders(filter);
+
+    let searchPromises = [];
+    for (let provider of searchProviders) {
+      // TODO(madadam): Pagination over the merged result set. Need to over-fetch from each provider.
+      searchPromises.push(provider.queryItems(context, root, filter, offset, count));
+    }
+    return Promise.all(searchPromises)
+      .then((results) => {
+        // TODO(madadam): better merging, scoring, etc.
+        let merged = [].concat.apply([], results);
+        return merged;
+      });
   }
 }

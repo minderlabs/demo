@@ -2,6 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
@@ -18,9 +19,11 @@ export class AuthManager {
   /**
    * @param admin Firebase admin object.
    */
-  constructor(admin) {
+  constructor(admin, userStore) {
     console.assert(admin);
+    console.assert(userStore);
     this._admin = admin;
+    this._userStore = userStore;
   }
 
   /**
@@ -38,10 +41,17 @@ export class AuthManager {
         this._admin.auth().verifyIdToken(token)
           .then(decodedToken => {
             let { uid:id, name, email } = decodedToken;
-            logger.log(`Got token for: ${email}`);
-            resolve({
-              id, name, email, token
-            });
+            // TODO(madadam): Empty context ok?
+            this._userStore.getItems({}, 'User', [id])
+              .then(users => {
+                let [ user ] = users;
+                logger.log(`Got token for: ${email}`);
+                _.assign(user, { token });
+                resolve(user);
+              })
+              .catch(error => {
+                logger.warn('Error getting user ${id}: ' + error);
+              });
           })
           .catch(error => {
             logger.warn('Invalid JWT (may have expired).');
@@ -52,7 +62,7 @@ export class AuthManager {
   }
 
   /**
-   * Gets the User ID from the request.
+   * Gets the User object for the current request context.
    * With firebase, auth is done by the client.
    * The Apollo client's middleware sets the authentication token with the encoded JWT token below.
    * The same sign-up flow is used by mobile clients.
@@ -124,7 +134,7 @@ export const loginRouter = (userStore, options) => {
     res.render('logout');
   });
 
-  // Regiser user.
+  // Register user.
   router.post('/user/register', function(req, res) {
     userStore.upsertUser(req.body);
     res.send({});

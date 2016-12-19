@@ -41,6 +41,11 @@ export class AuthManager {
     this._provider = new firebase.auth.GoogleAuthProvider();
     this._provider.addScope('https://www.googleapis.com/auth/plus.login');
 
+    // TODO(madadam): When is this used? The auth scopes that matter are in website/auth.js.
+
+    // For Google Drive universal search provider:
+    this._provider.addScope('https://www.googleapis.com/auth/drive.readonly');
+
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
     firebase.auth().onAuthStateChanged(user => {

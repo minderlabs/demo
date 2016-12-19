@@ -117,9 +117,7 @@ input FilterInput {
   bucket: String
   labels: [String]
   text: String
-
-  # Expression tree.
-  expr: ExpressionInput
+  expr: ExpressionInput  # Expression tree.
 }
 
 #
@@ -257,11 +255,32 @@ type Place implements Item {
   geo: Geo
 }
 
+type Document implements Item {
+  id: ID!
+  type: String!
+  alias: String           # User short-name for links.
+  title: String!
+  labels: [String]
+
+  url: String
+  source: String
+  iconUrl: String
+  thumbnailUrl: String
+}
+
 #
 # Queries.
 # NOTE: Must only have Input types (since regular types might be recursive and therefore not serializable).
 # https://github.com/graphql/graphql-js/issues/312
 #
+
+type SearchResult {
+  # Wrapped item.
+  item: Item!
+
+  snippet: String
+  score: Float
+}
 
 type RootQuery {
 
@@ -272,6 +291,9 @@ type RootQuery {
   item(itemId: ID!): Item!
 
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
+
+  # TODO(madadam): Do we need this? Or use SearchResult as the return type of items{}.
+  # search(filter: FilterInput, offset: Int, count: Int): [SearchResult]!
 }
 
 #

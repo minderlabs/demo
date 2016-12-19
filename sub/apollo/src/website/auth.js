@@ -21,6 +21,10 @@ export class Auth {
     // https://firebase.google.com/docs/auth/web/google-signin
     this._provider = new firebase.auth.GoogleAuthProvider();
     this._provider.addScope('https://www.googleapis.com/auth/plus.login');
+
+    // For Google Drive universal search provider.
+    // TODO(madadam): Auth'ing to specific services should happen when the user adds bots/services, not here.
+    this._provider.addScope('https://www.googleapis.com/auth/drive.readonly');
   }
 
   /**

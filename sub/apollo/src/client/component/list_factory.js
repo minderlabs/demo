@@ -34,11 +34,11 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 /**
- * TODO(burdon): Document.
+ * List factory, compose a List component from a query.
  *
- * @param query
- * @param getItemsFromData
- * @returns {*}
+ * @param query Gql object that defines the query to fetch items for this list.
+ * @param getItemsFromData function(data) => items, converts query response to list items.
+ * @returns {*} React component.
  */
 function composeList(query, getItemsFromData) {
   return compose(
