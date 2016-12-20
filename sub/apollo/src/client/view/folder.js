@@ -12,7 +12,7 @@ import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
-import { ItemsList } from '../component/list_factory';
+import { ItemList } from '../component/list_factory';
 
 import './folder.less';
 
@@ -20,7 +20,7 @@ import './folder.less';
  * Folder View.
  * http://dev.apollodata.com/react
  *
- * NOTES
+ * NOTES:
  * @graphql creates a "Higher Order Component" (i.e., a smart container that wraps the "dumb" React component).
  * http://dev.apollodata.com/react/higher-order-components.html
  */
@@ -32,7 +32,7 @@ class FolderView extends React.Component {
   };
 
   static propTypes = {
-    user: React.PropTypes.object.isRequired,    // TODO(burdon): Add to all types.
+    user: React.PropTypes.object.isRequired,          // TODO(burdon): Add to all types.
 
     data: React.PropTypes.shape({
       folders: React.PropTypes.array.isRequired
@@ -79,7 +79,7 @@ class FolderView extends React.Component {
         case 'Task': {
           TypeUtil.append(mutations, [
             {
-              field: 'owner',             // TODO(burdon): Promote for all items?
+              field: 'owner',                         // TODO(burdon): Promote for all items?
               value: {
                 id: user.id
               }
@@ -118,7 +118,7 @@ class FolderView extends React.Component {
     return (
       <div className="app-folder ux-column">
         <div className="ux-expand">
-          <ItemsList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <ItemList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
         <div className="ux-section ux-toolbar ux-row">
@@ -131,7 +131,7 @@ class FolderView extends React.Component {
 }
 
 //
-// Queries
+// Queries.
 //
 
 const FoldersQuery = gql`

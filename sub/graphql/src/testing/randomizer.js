@@ -72,6 +72,8 @@ export class Randomizer {
   }
 
   /**
+   * Asynchronously generate items of the given type.
+   * Optionally provide field plugins that can either directly set values or query for them.
    *
    * @param type
    * @param n
@@ -105,14 +107,21 @@ export class Randomizer {
       // Iterate fields.
       return TypeUtil.iterateWithPromises(fields, (spec, field) => {
 
-        // Get items for generator's filter.
-        return this.queryCache({ type: spec.type }).then(values => {
-          if (values.length) {
-            let index = this._chance.integer({ min: 0, max: values.length - 1 });
-            let value = values[index];
-            item[field] = value.id;
+        // Set literal value.
+        if (spec.likelihood === undefined || this._chance.bool({ likelihood: spec.likelihood * 100 })) {
+          // Direct value.
+          if (spec.value) {
+            item[field] = spec.value;
+          } else {
+            // Get items for generator's type.
+            return this.queryCache({ type: spec.type }).then(values => {
+              if (values.length) {
+                let value = this._chance.pickone(values);
+                item[field] = value.id;
+              }
+            });
           }
-        });
+        }
       });
     }).then(() => {
 

@@ -11,7 +11,7 @@ import { TextBox } from 'minder-ux';
 
 import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
-import { ItemsList, UserTasksList } from '../list_factory';
+import { ItemList, UserTaskList } from '../list_factory';
 
 /**
  * Type-specific query.
@@ -339,7 +339,7 @@ class ProjectLayout extends React.Component {
           <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this, type) }></i>
         </div>
         <div className="ux-expand">
-          <ItemsList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <ItemList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
       </div>
     );
@@ -376,13 +376,13 @@ class ProjectLayout extends React.Component {
 
           <div>
             { sectionHeader('Shared Notes', ProjectLayout.NOTE_TYPE.SHARED) }
-            <ItemsList filter={ sharedNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+            <ItemList filter={ sharedNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
             { this.state.inlineEdit === ProjectLayout.NOTE_TYPE.SHARED && itemEditor() }
           </div>
 
           <div>
             { sectionHeader('Private Notes', ProjectLayout.NOTE_TYPE.PRIVATE) }
-            <UserTasksList filter={ privateNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+            <UserTaskList filter={ privateNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
             { this.state.inlineEdit === ProjectLayout.NOTE_TYPE.PRIVATE && itemEditor() }
           </div>
         </div>

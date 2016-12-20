@@ -137,9 +137,7 @@ export class Database extends ItemStore {
    * @returns {Promise}
    */
   search(context, root, filter={}, offset=0, count=10) {
-    logger.log($$('QUERY[%s:%s]: %O', offset, count, filter));
-
-    // TODO(madadam): Wrap results in SearchResult schema object?
+    logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
     let searchProviders = this.getSearchProviders(filter);
 
@@ -152,7 +150,86 @@ export class Database extends ItemStore {
       .then((results) => {
         // TODO(madadam): better merging, scoring, etc.
         let merged = [].concat.apply([], results);
-        return merged;
+        return this._aggregateSearchResults(merged);
       });
+  }
+
+  // TODO(madadam): TypeUtil or TypeRegistry.
+  static aggregationKey(item) {
+    let key = null;
+    switch (item.type) {
+      case 'Task': {
+        key = item.project;
+        break;
+      }
+      // TODO(burdon): Aggregegation keys for other types.
+    }
+    return key;
+  }
+
+  // FIXME: How does SearchResult, and aggregation, fit in with Document type?
+
+  /**
+   * Wrap results in SearchResult schema object.
+   * @param items
+   * @returns {Array}
+   * @private
+   */
+  _aggregateSearchResults(items) {
+    let parentResultMap = new Map();
+    let results = [];
+
+    // Aggregate items by project.
+    _.each(items, item => {
+      let result = null;
+
+      const aggregationKey = Database.aggregationKey(item);
+
+      if (aggregationKey) {
+        result = parentResultMap.get(aggregationKey);
+        if (result) {
+          // Promote result to parent.
+          if (_.isEmpty(result.refs)) {
+            // Remove existing properties.
+            _.each(_.keys(result), key => {
+              delete result[key];
+            });
+
+            // Set parent properties.
+            _.assign(result, {
+              id: item.project,
+              type: 'Project',
+              title: 'Project ' + item.project,      // TODO(burdon): Lookup project to get title.
+              refs: []
+            });
+          }
+
+          // Add result reference.
+          result.refs.push({
+            item
+          });
+        }
+      }
+
+      // Create new result.
+      if (!result) {
+        // TODO(burdon): Create transient element.
+        result = {
+          id: item.id,
+          type: item.type,
+          title: item.title,
+          refs: []
+        };
+
+        // Memo the parent to aggregate more results.
+        if (aggregationKey) {
+          parentResultMap.set(aggregationKey, result);
+        }
+
+        results.push(result);
+      }
+    });
+
+    return results;
   }
 }

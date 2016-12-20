@@ -6,9 +6,13 @@
 # TODO(burdon): Configure script for Jenkins.
 #
 
-NAMESPACE=minderlabs
-REPO=demo
-TAG=demo
+#NAMESPACE=minderlabs
+#REPO=demo
+#TAG=demo
+
+NAMESPACE=alienlaboratories
+REPO=node-apollo
+TAG=node-apollo
 
 set -e
 set -v

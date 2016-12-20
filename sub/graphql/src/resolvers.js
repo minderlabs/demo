@@ -171,8 +171,12 @@ export class Resolvers {
         items: (root, args, context) => {
           let { filter, offset, count } = args;
 
-          // TODO(madadam): Separate search operation for fan-out search vs. items (just querying item store)?
-          // return database.queryItems(context, root, filter, offset, count);
+          return database.queryItems(context, root, filter, offset, count);
+        },
+
+        search: (root, args, context) => {
+          let { filter, offset, count } = args;
+
           return database.search(context, root, filter, offset, count);
         }
       },
