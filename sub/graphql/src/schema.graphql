@@ -189,30 +189,6 @@ interface Item {
 }
 
 #
-# Transient Items.
-#
-
-type SearchRef {
-  snippet: String
-  score: Float
-  item: Item!
-}
-
-type SearchResult implements Item {
-  id: ID!
-  bucket: ID
-  type: String!
-  alias: String
-  created: Timestamp!
-  modified: Timestamp!
-  title: String!
-  labels: [String]
-
-  # Optional ordered array of references to matching items.
-  refs: [SearchRef]!
-}
-
-#
 # Item Types.
 #
 
@@ -289,6 +265,10 @@ type Project implements Item {
 
   # TODO(burdon): Implement via links?
   tasks: [Task]!
+
+  # Sub-items.
+  # TODO(madadam): Rename -> items.
+  refs: [Item]
 }
 
 type Task implements Item {
@@ -373,7 +353,7 @@ type RootQuery {
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
 
   # Search.
-  search(filter: FilterInput, offset: Int, count: Int, shouldAggregate: Boolean): [SearchResult]!
+  search(filter: FilterInput, offset: Int, count: Int, shouldAggregate: Boolean): [Item]!
 }
 
 #

@@ -6,30 +6,18 @@ import React from 'react';
 import gql from 'graphql-tag';
 import { propType } from 'graphql-anywhere';
 
-import { MutationUtil, TypeUtil } from 'minder-core';
-
 import { composeItem, CardContainer, ItemFragment } from '../item';
-
-import ItemsPicker from '../items_picker';
 
 /**
  * Type-specific fragment.
  */
-const DocumentFragment = gql`
+export const DocumentFragment = gql`
     fragment DocumentFragment on Document {
         url
         iconUrl
         source
     }
 `;
-
-// FIXME Can't be an items() query, this item doesn't exist, hasn't been reified.
-// 1. Repeat search
-// 2. cache temporary item data locally
-// 3. write the item on detail click (ugh no)
-// Otherwise, what happens on detail click? That argues for it linking external, but that's confusing UX.
-// maybe (3) does make sense - is it that different from clicking star? in that case, we'd promote it to real item,
-// write to store, right?
 
 /**
  * Type-specific query.
@@ -88,8 +76,6 @@ class DocumentLayout extends React.Component {
   render() {
     let { item } = this.props;
 
-    // FIXME
-
     return (
       <div className="app-type-task ux-column ux-section">
         <div className="ux-data">
@@ -103,8 +89,6 @@ class DocumentLayout extends React.Component {
   }
 }
 
-// FIXME TypeRegistry.renderListItem(item), default is ListItem, can be specialized as in here.
-
 /**
  * List Item.
  */
@@ -114,21 +98,15 @@ export class DocumentListItem extends React.Component {
     // TODO(burdon): Constrain by fragment (graphql-anywhere): propType(VoteButtons.fragments.entry)
     // http://dev.apollodata.com/react/fragments.html
     item:           React.PropTypes.object.isRequired,
-
-    onSelect:       React.PropTypes.func.isRequired,
   };
 
-  handleSelect() {
-    this.props.onSelect(this.props.item);
-  }
-
   render() {
-    let { item, favorite, icon } = this.props;
+    let { item } = this.props;
 
-    // FIXME UI. Favorite? second row for snippet and source? What links to external URL, what links to detail?
+    // TODO(madadam): Snippet, thumbnail image, etc.
 
     let marginIcon = item.iconUrl && (
-      <img class="ux-icon" src={ item.iconUrl} />
+      <img className="ux-icon" src={ item.iconUrl} />
     );
 
     return (
@@ -137,11 +115,10 @@ export class DocumentListItem extends React.Component {
 
         <div className="ux-text ux-expand" >
           <a href={ item.url }>
-            { item.source }
-          </a>
+            { item.title }
+          </a> [{item.source}]
         </div>
 
-        <i className="ux-icon ux-icon-type">{ icon }</i>
       </div>
     );
   }

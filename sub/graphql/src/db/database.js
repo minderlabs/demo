@@ -177,17 +177,17 @@ export class Database extends ItemStore {
   }
 
   /**
-   * Wrap results in SearchResult schema object.
+   * Aggregate search results where appropriate, e.g. by Project.
    * @param items
    * @param shouldAggregate
-   * @returns {Array} of SearchResult
+   * @returns {Array} of Item
    * @private
    */
   _aggregateSearchResults(items, shouldAggregate) {
     let parentResultMap = new Map();
     let results = [];
 
-    // Aggregate items by project.
+    // Aggregate items.
     _.each(items, item => {
       let result = null;
 
@@ -196,7 +196,7 @@ export class Database extends ItemStore {
       if (aggregationKey) {
         result = parentResultMap.get(aggregationKey);
         if (result) {
-          // Promote result to parent.
+          // Promote result to Project parent.
           if (_.isEmpty(result.refs)) {
             // Remove existing properties.
             _.each(_.keys(result), key => {
@@ -206,28 +206,20 @@ export class Database extends ItemStore {
             // Set parent properties.
             _.assign(result, {
               id: item.project,
-              type: 'Project',
+              type: 'Project',                       // TODO(madadam): Generalize aggregation type.
               title: 'Project ' + item.project,      // TODO(burdon): Lookup project to get title.
               refs: []
             });
           }
 
           // Add result reference.
-          result.refs.push({
-            item
-          });
+          result.refs.push(item);
         }
       }
 
       // Create new result.
       if (!result) {
-        // TODO(burdon): Create transient element.
-        result = {
-          id: item.id,
-          type: item.type,
-          title: item.title,
-          refs: [ { item } ]
-        };
+        result = item;
 
         // Memo the parent to aggregate more results.
         if (aggregationKey) {
