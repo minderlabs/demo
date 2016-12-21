@@ -226,7 +226,7 @@ export class Database extends ItemStore {
           id: item.id,
           type: item.type,
           title: item.title,
-          refs: []
+          refs: [ { item } ]
         };
 
         // Memo the parent to aggregate more results.

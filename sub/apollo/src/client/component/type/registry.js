@@ -9,6 +9,7 @@ import TeamCard from './team';
 import PlaceCard from './place';
 import ProjectCard from './project';
 import TaskCard from './task';
+import DocumentCard from './document';
 
 /**
  * Type registry.
@@ -48,6 +49,11 @@ export class TypeFactory {
 
   static create() {
     let registry = new TypeRegistry();
+
+    registry._types.set('Document', {
+      icon: 'insert_drive_file', // FIXME
+      render: (itemId) => <DocumentCard itemId={ itemId }/>
+    });
 
     registry._types.set('Group', {
       icon: 'group',

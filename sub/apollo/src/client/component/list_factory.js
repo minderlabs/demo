@@ -134,6 +134,12 @@ class WrappedList extends List {
   
       labels
       title
+        
+      ... on Document {
+        url
+        iconUrl
+        source
+      }
     }
   `;
 

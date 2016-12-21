@@ -4,6 +4,8 @@
 
 import React from 'react';
 
+import { DocumentListItem } from './type/document';
+
 /**
  * List Item.
  */
@@ -37,6 +39,13 @@ export class ListItem extends React.Component {
         { _.indexOf(item.labels, '_favorite') == -1 ? 'star_border' : 'star' }
       </i>
     );
+
+    // FIXME HACK, use TypeRegistry.
+    if (item.url) {
+      return (
+        <DocumentListItem item={ item } onSelect={ this.handleSelect.bind(this) } />
+      );
+    }
 
     return (
       <div className="ux-row ux-list-item">
