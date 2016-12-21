@@ -111,6 +111,8 @@ function composeList(query, getItemsFromData) {
  */
 class WrappedList extends List {
 
+  // TODO(burdon): Use composition instead of inheritance.
+
   // TODO(burdon): Warning: fragment with name ListItemFragment already exists.
   // May be spurious (see http://dev.apollodata.com/react/fragments.html)
   // https://github.com/apollostack/graphql-tag/pull/22 [12/1/16] => 0.6
