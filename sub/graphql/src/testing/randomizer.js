@@ -19,20 +19,19 @@ export class Randomizer {
 
   static generators = {
 
-    'Task': (chance) => {
+    'Task': chance => {
       return {
-        bucket: 'minderlabs', // TODO(madadam): chance.string('minderlabs', 0.5)
         title: chance.sentence({ words: 5 })
       }
     },
 
-    'Contact': (chance) => {
+    'Contact': chance => {
       return {
         title: chance.name()
       }
     },
 
-    'Place': (chance) => {
+    'Place': chance => {
       return {
         title: chance.city(),
 
@@ -73,6 +72,8 @@ export class Randomizer {
   }
 
   /**
+   * Asynchronously generate items of the given type.
+   * Optionally provide field plugins that can either directly set values or query for them.
    *
    * @param type
    * @param n
@@ -85,7 +86,7 @@ export class Randomizer {
     let items = [];
 
     // Create values.
-    return TypeUtil.iterateWithPromises(_.times(n), (i) => {
+    return TypeUtil.iterateWithPromises(_.times(n), i => {
 
       // Generate item.
       let item = {
@@ -95,24 +96,48 @@ export class Randomizer {
         ...Randomizer.generators[type](this._chance)
       };
 
+      // Add user bucket.
+      if (this._chance.bool({ likelihood: 20 })) {
+        item.bucket = this._chance.pickone(this._context.group.members);
+      }
+
+//    console.log('Item: %s', JSON.stringify(item));
       items.push(item);
 
       // Iterate fields.
       return TypeUtil.iterateWithPromises(fields, (spec, field) => {
 
-        // Get items for generator's filter.
-        return this.queryCache({ type: spec.type }).then(values => {
-          if (values.length) {
-            let index = this._chance.integer({ min: 0, max: values.length - 1 });
-            let value = values[index];
-            item[field] = value.id;
+        // Set literal value.
+        if (spec.likelihood === undefined || this._chance.bool({ likelihood: spec.likelihood * 100 })) {
+          // Direct value.
+          if (spec.value) {
+            item[field] = spec.value;
+          } else {
+            // Get items for generator's type.
+            return this.queryCache({ type: spec.type }).then(values => {
+              if (values.length) {
+                let value = this._chance.pickone(values);
+                item[field] = value.id;
+              }
+            });
           }
-        });
+        }
       });
     }).then(() => {
 
       // Insert vector of items.
-      return this._database.upsertItems(this._context, items);
+      return this._database.upsertItems(this._context, items).then(items => {
+
+        // Fake timestamps (so don't show up in inbox).
+        if (this._context.created) {
+          _.each(items, item => {
+            item.created = this._context.created;
+            item.modified = this._context.created;
+          });
+        }
+
+        return items;
+      });
     });
   }
 }

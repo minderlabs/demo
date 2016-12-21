@@ -59,7 +59,7 @@ export const appRouter = (authManager, clientManager, options) => {
 
       res.render('app', {
         app: WEBPACK_BUNDLE[options.env],
-        config: {
+        config: _.defaults({
           root: 'app-root',
           user: userInfo,
           clientId: client.id,
@@ -67,7 +67,7 @@ export const appRouter = (authManager, clientManager, options) => {
           debug: {
             env: options.env
           }
-        }
+        }, options.config)
       });
     }
   });

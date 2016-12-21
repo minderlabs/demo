@@ -7,7 +7,7 @@ import gql from 'graphql-tag';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 
-import { Matcher, Mutator, MutationUtil, Reducer, TypeUtil } from 'minder-core';
+import { ID, Matcher, Mutator, MutationUtil, Reducer, TypeUtil } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
@@ -118,7 +118,6 @@ export class CardContainer extends React.Component {
    */
   render() {
     let { children, item } = this.props;
-
     if (!item) {
       return null;
     }
@@ -127,6 +126,10 @@ export class CardContainer extends React.Component {
       <div className="app-detail ux-column">
         <div className="ux-section ux-row">
           <TextBox ref="title" className="ux-expand" value={ item.title }/>
+        </div>
+
+        <div className="ux-section ux-debug">
+          { JSON.stringify(_.pick(item, 'bucket', 'type', 'id')) }
         </div>
 
         <div className="ux-scroll-container">
@@ -185,9 +188,12 @@ export function composeItem(query) {
         let matcher = props.injector.get(Matcher);
         let typeRegistry = props.injector.get(TypeRegistry);
 
+        let { type, id:localItemId } = ID.fromGlobalId(props.itemId);
+
         return {
           variables: {
-            itemId: props.itemId
+            itemId: props.itemId,
+            localItemId: localItemId
           },
 
           // TODO(burdon): Provide multiple sets (different fragments).

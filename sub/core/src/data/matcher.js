@@ -3,6 +3,9 @@
 //
 
 import _ from 'lodash';
+import moment from 'moment';
+
+import { TypeUtil } from '../util/type';
 
 /**
  * Item matcher.
@@ -11,6 +14,8 @@ import _ from 'lodash';
  * Filters are used to screen collections of items, which may be leaf nodes (arrays) of a GraphQL query.
  */
 export class Matcher {
+
+  // TODO(burdon): Reorder args: context, root, item, ...
 
   /**
    * Matches the items against the filter.
@@ -34,11 +39,22 @@ export class Matcher {
    * @param item
    * @returns {boolean} True if the item matches the filter.
    */
-  // TODO(burdon): Pass context into matcher.
   matchItem(context, root, filter, item) {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item);
-    if (_.isEmpty(filter)) {
+
+    // Must match something.
+    // TODO(burdon): Need to provide namespace (i.e., 'User' can't be used to fan-out to firebase).
+    if (!filter || !filter.matchAll && TypeUtil.isEmpty(_.pick(filter, ['type', 'labels', 'text', 'expr']))) {
+      return false;
+    }
+
+    // Bucket match
+    // TODO(burdon): Filter should not include bucket (implicit in query).
+    if (item.bucket && item.bucket !== context.user.id) {
+      return false;
+    }
+    if (filter.bucket && item.bucket !== filter.bucket) {
       return false;
     }
 
@@ -47,23 +63,13 @@ export class Matcher {
       return true;
     }
 
-    // Must match something.
-    if (!(filter.type || filter.bucket || filter.labels || filter.text || filter.expr)) {
-      return false;
-    }
-
     // Type match.
     if (filter.type && _.toLower(filter.type) != _.toLower(item.type)) {
       return false;
     }
 
-    // Bucket match
-    // TODO(burdon): Buckets should be namespaces in the data store, not field to filter on.
-    if (filter.bucket && filter.bucket !== item.bucket) {
-      return false;
-    }
-
     // Deleted.
+    // TODO(burdon): Intersection.
     if (_.indexOf(item.labels, '_deleted') != -1 &&
         _.indexOf(filter.labels, '_deleted') == -1) { // TODO(burdon): Const.
       return false;
@@ -92,17 +98,17 @@ export class Matcher {
   }
 
   matchLabels(labels, item) {
-    // TODO(madadam): Use predicate tree for negative matching instead of this way to negate labels?
-    const posLabels = _.filter(labels, (label) => { return !_.startsWith(label, '!') });
-    const negLabels = _.map(
-        _.filter(labels, (label) => { return _.startsWith(label, '!') }),
-        (label) => { return label.substring(1)});
+    let posLabels = _.filter(labels, label => !_.startsWith(label, '!'));
     if (!_.isEmpty(posLabels) && _.intersection(posLabels, item.labels).length == 0) {
       return false;
     }
+
+    // TODO(madadam): Use predicate tree for negative matching instead of this way to negate labels?
+    let negLabels = _.map(_.filter(labels, label => _.startsWith(label, '!')), label => label.substring(1));
     if (!_.isEmpty(negLabels) && _.intersection(negLabels, item.labels).length > 0) {
       return false;
     }
+
     return true;
   }
 
@@ -120,7 +126,8 @@ export class Matcher {
       return Matcher.matchBooleanExpression(context, root, expr, item);
     }
 
-    if (expr.field) {
+    // The comparator may be implicit (i.e., EQ).
+    if (expr.comp || expr.field) {
       return Matcher.matchComparatorExpression(context, root, expr, item);
     }
 
@@ -141,10 +148,24 @@ export class Matcher {
 
     let match = false;
     switch (expr.op) {
+
       case 'OR': {
-        _.forEach(expr.expr, (expr) => {
+        _.forEach(expr.expr, expr => {
           if (Matcher.matchExpression(context, root, expr, item)) {
             match = true;
+            return false;
+          }
+        });
+
+        return match;
+      }
+
+      case 'AND': {
+        match = true;
+
+        _.forEach(expr.expr, expr => {
+          if (!Matcher.matchExpression(context, root, expr, item)) {
+            match = false;
             return false;
           }
         });
@@ -170,58 +191,133 @@ export class Matcher {
   static matchComparatorExpression(context, root, expr, item) {
     console.assert(expr.field);
 
-    // TODO(burdon): Handle null.
-    let value = expr.value;
+    // Value to match.
+    let inputValue = expr.value;
 
+    // Value of field within item.
+    // TODO(burdon): This is different client and server!
+    // (e.g., on server "assignee" is an ID; on the client, it's an object).
+    let fieldValue = _.get(item, expr.field);
+
+    //
     // Substitute value for reference.
+    //
+
     let ref = expr.ref;
     if (ref) {
       // Resolve magic variables.
-      // TODO(burdon): These must be available and provided to the client matcher.
+      // TODO(burdon): These must provided to the client matcher (client and server).
       switch (ref) {
         case '$USER_ID': {
           console.assert(context.user);
-          value = { string: context.user.id };
+          inputValue = { id: context.user.id };
           break;
         }
 
         default: {
-          value = _.get(root, ref);
-          if (ref) {
+          if (_.get(root, ref)) {
             // TODO(madadam): Resolve other scalar types.
-            value = { string: _.get(root, ref) };
+            inputValue = { id: _.get(root, ref) };
           }
         }
       }
     }
 
-    // TODO(burdon): Other operators.
-    if (!Matcher.matchScalarValue(value, _.get(item, expr.field))) {
-      return false;
+    //
+    // Special values.
+    //
+
+    // TODO(burdon): This should not mutate the filter. Copy instead.
+    // Relative timestamp.
+    if (inputValue.timestamp) {
+      if (inputValue.timestamp <= 0) {
+        inputValue.timestamp = moment().subtract(-inputValue.timestamp, 's').unix();
+      }
     }
 
-    return true;
+    //
+    // Scalar values.
+    // TODO(burdon): Unit tests.
+    //
+
+    let eq = false;
+    let not = false;
+    //noinspection FallThroughInSwitchStatementJS
+    switch (expr.comp) {
+
+      case 'GTE':
+        eq = true;
+      case 'GT':
+        return Matcher.isGreaterThan(fieldValue, inputValue, eq);
+
+      case 'LTE':
+        eq = true;
+      case 'LT':
+        return Matcher.isLessThan(fieldValue, inputValue, eq);
+
+      case 'NE':
+        not = true;
+      case 'EQ':
+      default:
+        return Matcher.isEqualTo(fieldValue, inputValue, not);
+    }
   }
 
+  // NOTE: See ValueInput in schema.
+  static SCALARS = ['id', 'timestamp', 'date', 'int', 'float', 'string', 'boolean'];
 
-  static matchScalarValue(value, scalarValue) {
-    // Hack: Use empty string to match undefined fields.
-    if (value.string === "" && scalarValue == undefined) {
-      return true;
+  static isEqualTo(fieldValue, inputValue, not) {
+
+    // Check null.
+    // NOTE: Double equals matches null and undefined.
+    if (inputValue.null === true) {
+      // TODO(burdon): Check how "null" is actually stored (unlike undefined).
+      return fieldValue == null;
     }
-    if (value.string !== undefined) {
-      return value.string === scalarValue;
-    }
-    if (value.int !== undefined) {
-      return value.int == scalarValue;
-    }
-    if (value.float !== undefined) {
-      return value.float == scalarValue;
-    }
-    if (value.boolean !== undefined) {
-      return value.boolean == scalarValue;
-    }
-    return false;
+
+    let match = false;
+    _.each(Matcher.SCALARS, field => {
+      let value = inputValue[field];
+      if (value !== undefined) {
+
+        // TODO(burdon): Hack (on client field is an item; on the server it's just an ID).
+        if (field === 'id' && _.isObject(fieldValue)) {
+          fieldValue = fieldValue.id;
+        }
+
+        match = not ? (fieldValue !== value) : (fieldValue === value);
+        return false;
+      }
+    });
+
+    return match;
   }
 
+  static isGreaterThan(fieldValue, inputValue, eq) {
+
+    let match = false;
+    _.each(Matcher.SCALARS, field => {
+      let value = inputValue[field];
+      if (value !== undefined) {
+        match = eq ? (fieldValue >= value) : (fieldValue > value);
+        return false;
+      }
+    });
+
+    return match;
+  }
+
+  static isLessThan(fieldValue, inputValue, eq) {
+
+    let match = false;
+    _.each(Matcher.SCALARS, field => {
+      let value = inputValue[field];
+      if (value !== undefined) {
+        match = eq ? (fieldValue <= value) : (fieldValue < value);
+        return false;
+      }
+    });
+
+    return match;
+  }
 }

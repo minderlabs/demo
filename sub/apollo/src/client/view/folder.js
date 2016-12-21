@@ -7,14 +7,12 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { QueryParser, Mutator } from 'minder-core';
-import { SearchBar, TextBox } from 'minder-ux';
+import { QueryParser, Mutator, TypeUtil } from 'minder-core';
+import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
-import { ACTION } from '../reducers';
-
-import { ItemsList } from '../component/list_factory';
+import { ItemList } from '../component/list_factory';
 
 import './folder.less';
 
@@ -22,7 +20,7 @@ import './folder.less';
  * Folder View.
  * http://dev.apollodata.com/react
  *
- * NOTES
+ * NOTES:
  * @graphql creates a "Higher Order Component" (i.e., a smart container that wraps the "dumb" React component).
  * http://dev.apollodata.com/react/higher-order-components.html
  */
@@ -34,53 +32,75 @@ class FolderView extends React.Component {
   };
 
   static propTypes = {
-    user: React.PropTypes.object.isRequired,    // TODO(burdon): Add to all types.
-    onSearch: React.PropTypes.func.isRequired,
+    user: React.PropTypes.object.isRequired,          // TODO(burdon): Add to all types.
 
     data: React.PropTypes.shape({
       folders: React.PropTypes.array.isRequired
     })
   };
 
-  handleSearch(text) {
-    this.props.onSearch(text);
-  }
-
   handleItemSelect(item) {
     this.context.navigator.pushDetail(item);
   }
 
   handleItemCreate() {
+    let { user, team, filter } = this.props;
+
     let title = _.trim(this.refs.text.value);
     if (title) {
+
+      // TODO(burdon): If no type then hide create button.
+      let type = _.get(filter, 'type', 'Task');
+
+      // Basic mutation.
       let mutations = [
         {
           field: 'title',
           value: {
             string: title
           }
-        },
-        {
-          field: 'owner',
-          value: {
-            id: this.props.user.id
-          }
-        },
-        {
-          field: 'labels',
-          value: {
-            array: {
-              index: 0,
-              value: {
-                string: '_private'
-              }
-            }
-          }
         }
       ];
 
-      // TODO(burdon): Get type from picker.
-      this.props.mutator.createItem('Task', mutations);
+      // TODO(burdon): Factor out type-specific fields.
+      switch (type) {
+        case 'Project': {
+          TypeUtil.append(mutations, [
+            {
+              field: 'team',
+              value: {
+                id: team
+              }
+            }
+          ]);
+          break;
+        }
+
+        case 'Task': {
+          TypeUtil.append(mutations, [
+            {
+              field: 'owner',                         // TODO(burdon): Promote for all items?
+              value: {
+                id: user.id
+              }
+            },
+            {
+              field: 'labels',
+              value: {
+                array: {
+                  index: 0,
+                  value: {
+                    string: '_private'    // TODO(burdon): By default?
+                  }
+                }
+              }
+            }
+          ]);
+          break;
+        }
+      }
+
+      this.props.mutator.createItem(type, mutations);
 
       this.refs.text.value = '';
       this.refs.text.focus();
@@ -97,15 +117,11 @@ class FolderView extends React.Component {
 
     return (
       <div className="app-folder ux-column">
-        <div className="ux-section">
-          <SearchBar value={ this.props.search.text } onSearch={ this.handleSearch.bind(this) }/>
-        </div>
-
         <div className="ux-expand">
-          <ItemsList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <ItemList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
-        <div className="ux-section ux-row">
+        <div className="ux-section ux-toolbar ux-row">
           <TextBox ref="text" className="ux-expand" onEnter={ this.handleItemCreate.bind(this) }/>
           <i className="ux-icon ux-icon-add" onClick={ this.handleItemCreate.bind(this) }/>
         </div>
@@ -115,16 +131,15 @@ class FolderView extends React.Component {
 }
 
 //
-// Queries
+// Queries.
 //
 
-// TODO(burdon): Factor out filter fragment (move to Layout).
-
-const FolderQuery = gql`
-  query FolderQuery { 
+const FoldersQuery = gql`
+  query FoldersQuery { 
 
     folders {
       id
+      alias
       filter
     }
   }
@@ -133,7 +148,8 @@ const FolderQuery = gql`
 const mapStateToProps = (state, ownProps) => {
 //console.log('Folder.mapStateToProps: %s', JSON.stringify(Object.keys(ownProps)));
 
-  let { injector, search, user } = state.minder;
+  // NOTE: Search state come from dispatch via SearchBar.
+  let { injector, search, user, team } = state.minder;
   let queryParser = injector.get(QueryParser);
   let filter = queryParser.parse(search.text);
 
@@ -142,33 +158,23 @@ const mapStateToProps = (state, ownProps) => {
     injector,
     filter,
     search,
-    user
-  }
-};
-
-const mapDispatchToProps = (dispatch, ownProps) => {
-  return {
-
-    // Store search state (so can restore value when nav back).
-    onSearch: (value) => {
-      dispatch({ type: ACTION.SEARCH, value });
-    }
+    user,
+    team
   }
 };
 
 export default compose(
 
   // Redux.
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps),
 
   // Query.
-  graphql(FolderQuery, {
+  graphql(FoldersQuery, {
 
     // Configure props passed to component.
     // http://dev.apollodata.com/react/queries.html#graphql-props
     props: ({ ownProps, data }) => {
 //    console.log('Folder.props: ', JSON.stringify(Object.keys(data)));
-
       let { loading, error, refetch, folders } = data;
       let { filter } = ownProps;
 
@@ -180,9 +186,9 @@ export default compose(
 
       // Create list filter (if not overridden by text search above).
       if (QueryParser.isEmpty(filter)) {
-        _.each(folders, (folder) => {
-          // TODO(burdon): Match folder's short name rather than ID.
-          if (folder.id == ownProps.params.folder) {
+        _.each(folders, folder => {
+          // TODO(burdon): Match folder's alias.
+          if (folder.alias == ownProps.params.folder) {
             filter = JSON.parse(folder.filter);
             return false;
           }
@@ -194,7 +200,7 @@ export default compose(
         error,
         refetch,
         folders,
-        filter: QueryParser.trim(filter)
+        filter
       }
     }
   }),

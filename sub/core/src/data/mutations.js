@@ -77,6 +77,7 @@ export class Reducer {
     // https://github.com/apollostack/apollo-client/issues/903
     // http://dev.apollodata.com/react/cache-updates.html#resultReducers
 
+    // TODO(burdon): Called for all apollo actions (incl. queries).
     return (previousResult, action) => {
       let result = previousResult;
 
@@ -112,17 +113,25 @@ export class Reducer {
           // Determine if currently matches filter.
           let match = matcher.matchItem(context, {}, filter, updatedItem);
 
+          /*
+          console.log('>>> Context:', JSON.stringify(context));
+          console.log('>>> Filter:', match, JSON.stringify(filter));
+          console.log('>>> Item', JSON.stringify(updatedItem, 0, 2));
+          */
+
           // If no match, is this new? (otherwise must be removed).
           let insert = match && _.findIndex(previousResult.items, item => item.id === updatedItem.id) === -1;
 
           // NOTE: DO NOTHING IF JUST CHANGE ITEM.
           let op = null;
           if (insert) {
+
             // Append item.
             // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
             logger.log(`APPEND: ${updatedItem.id}`);
             op = { $push: [updatedItem] };
           } else if (!match) {
+
             // Remove item from list.
             logger.log(`REMOVE: ${updatedItem.id}`);
 
@@ -140,7 +149,7 @@ export class Reducer {
         }
 
         if (transform) {
-          logger.log('Transform: %s', TypeUtil.stringify(previousResult), JSON.stringify(transform, 0, 2));
+          logger.log($$('Transform: %o: %s', previousResult, JSON.stringify(transform, 0, 2)));
           result = update(previousResult, transform);
         }
       }
@@ -221,14 +230,18 @@ export class Mutator {
    *
    * @param type
    * @param mutations
+   * @return {string} Newly created item's ID.
    */
   createItem(type, mutations) {
+    let itemId = this._idGenerator.createId(type);
     this._mutate({
       variables: {
-        itemId: ID.toGlobalId(type, this._idGenerator.createId(type)),
+        itemId: ID.toGlobalId(type, itemId),
         mutations
       }
     });
+
+    return itemId;
   }
 
   /**

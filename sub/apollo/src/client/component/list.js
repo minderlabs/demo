@@ -21,7 +21,7 @@ export class List extends React.Component {
   // TODO(burdon): Inline editor.
   // TODO(burdon): Factor out generic component (e.g., used by group tasks no HOC deps) or TypeRegistry/QueryRegistry, etc.
 
-  static COUNT = 20;
+  static COUNT = 10;
 
   static propTypes = {
     injector: React.PropTypes.object.isRequired,
@@ -45,8 +45,9 @@ export class List extends React.Component {
    */
   getItemFragment() {}
 
+  // TODO(burdon): Unregister.
   componentWillReceiveProps(nextProps) {
-    this.props.injector.get(QueryRegistry).register(this, nextProps.data);
+//  this.props.injector.get(QueryRegistry).register(this, nextProps.data);
   }
 
   handleItemSelect(item) {
@@ -86,6 +87,7 @@ export class List extends React.Component {
     let typeRegistry = this.props.injector.get(TypeRegistry);
     let icon = (item) => !this.props.filter.type && typeRegistry.icon(item.type);
 
+    // Paging control.
     // TODO(burdon): Conditionally show more button based on page size and server hint.
     let more = items.length > List.COUNT && (
       <div className="ux-row ux-center">
@@ -98,13 +100,39 @@ export class List extends React.Component {
     return (
       <div className="ux-column ux-list">
         <div ref="items" className="ux-column ux-scroll-container">
-          {items.map(item =>
-          <ListItem key={ item.id }
-                    item={ filter(this.getItemFragment(), item) }
-                    icon={ icon(item) }
-                    onSelect={ this.handleItemSelect.bind(this, item) }
-                    onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
-          )}
+          {items.map(item => {
+            // TODO(burdon): Factor out search list.
+            let containerClass = 'ux-list-item-container';
+            let refs = null;
+
+            // Grouped items.
+            if (!_.isEmpty(item.refs)) {
+              containerClass += ' ux-list-item-group';
+              refs = (
+                <div className="ux-list-item-refs">
+                  {item.refs.map(ref => (
+                    <ListItem key={ ref.item.id }
+                              item={ ref.item }
+                              icon={ icon(ref.item) }
+                              onSelect={ this.handleItemSelect.bind(this, ref.item) }/>
+                  ))}
+                </div>
+              );
+            }
+
+            // Master item.
+            return (
+              <div key={ item.id }className={ containerClass }>
+                <ListItem item={ filter(this.getItemFragment(), item) }
+                          favorite={ this.props.favorite !== false }
+                          icon={ icon(item) }
+                          onSelect={ this.handleItemSelect.bind(this, item) }
+                          onLabelUpdate={ this.handleLabelUpdate.bind(this) }/>
+
+                { refs }
+              </div>
+            );
+          })}
 
           { more }
         </div>

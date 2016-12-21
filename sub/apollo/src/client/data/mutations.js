@@ -16,7 +16,9 @@ export const UpdateItemMutation = gql`
       labels
       title
 
-      ... TaskMutationFragment
+      # TODO(burdon): Add all mutation fragments.
+
+      ...TaskMutationFragment
     }
   }
   
@@ -28,9 +30,8 @@ export const UpdateItemMutation = gql`
     assignee {
       id
     }
+    project {
+      id
+    }
   }
 `;
-
-// TODO(burdon): Get all mutation fragments.
-// __typename
-// ${_.map(TypeRegistry.names, (name) => '...' + name).join('\n')}

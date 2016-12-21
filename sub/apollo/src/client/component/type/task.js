@@ -106,28 +106,18 @@ class TaskLayout extends React.Component {
 
     return (
       <div className="app-type-task ux-column ux-section">
-        <table className="ux-data">
-          <tbody>
-          <tr>
-            <td className="ux-data-label">Owner</td>
-            <td>
-              <div className="ux-data-row">
-                <div className="ux-text">{ _.get(item, 'owner.title') }</div>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td className="ux-data-label">Assignee</td>
-            <td>
-              <div className="ux-data-row">
-                <ItemsPicker filter={ filter }
-                             value={ _.get(item, 'assignee.title') }
-                             onSelect={ this.handleSelectPicker.bind(this, 'assignee') }/>
-              </div>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+        <div className="ux-data">
+          <div className="ux-data-row">
+            <div className="ux-data-label">Owner</div>
+            <div className="ux-text">{ _.get(item, 'owner.title') }</div>
+          </div>
+          <div className="ux-data-row">
+            <div className="ux-data-label">Assignee</div>
+            <ItemsPicker filter={ filter }
+                         value={ _.get(item, 'assignee.title') }
+                         onSelect={ this.handleSelectPicker.bind(this, 'assignee') }/>
+          </div>
+        </div>
       </div>
     );
   }

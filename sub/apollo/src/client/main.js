@@ -54,6 +54,16 @@ window.addEventListener('error', (error) => {
   });
 });
 
+// https://developer.mozilla.org/en-US/docs/Web/Events/unhandledrejection
+window.addEventListener('unhandledrejection', (event) => {
+  let message = event.reason ? String(event.reason) : 'Uncaught promise';
+  logger.error(message);
+  eventHandler.emit({
+    type: 'error',
+    message
+  });
+});
+
 
 //
 // Dependency injection (accessible to component props via Redux store).

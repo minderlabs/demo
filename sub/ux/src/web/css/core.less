@@ -58,21 +58,23 @@ i.ux-icon-error.ux-icon-on:after {
 
 //
 // Forms
-// TODO(burdon): Clean-up.
+// TODO(burdon): Clean-up. Move to layou.
 //
 
 .ux-data {
   display: flex;
   flex-direction: column;
 
-  .ux-data-label {
-    font-size: @ux-font-small;
-    padding-right: 4px;
-  }
-
   .ux-data-row {
     display: flex;
     flex-direction: row;
+    align-items: center;
+
+    .ux-data-label {
+      font-size: @ux-font-small;
+      padding-right: 4px;
+      min-width: 100px;
+    }
 
     .ux-text {
       margin: 1px;                    // Align with inline input (border).

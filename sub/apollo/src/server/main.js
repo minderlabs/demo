@@ -5,6 +5,7 @@
 import './config';
 
 import _ from 'lodash';
+import moment from 'moment';
 
 import path from 'path';
 import http from 'http';
@@ -16,7 +17,7 @@ import favicon from 'serve-favicon';
 import { Logger, Matcher } from 'minder-core';
 import { Database, Firebase, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
 
-import { FirebaseConfig } from '../common/defs';
+import { Const, FirebaseConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
@@ -106,7 +107,9 @@ _.each(require('./testing/test.json'), (items, type) => {
   // Iterate items per type.
   database.upsertItems(context, _.map(items, (item) => {
 
-    // TODO(burdon): Reformat folders.
+    // NOTE: The GraphQL schema defines filter as an input type.
+    // In order to "store" the filter within the Folder's filter property, we need
+    // to serialize it to a string (otherwise we need to create parallel output type defs).
     if (type == 'Folder') {
       item.filter = JSON.stringify(item.filter);
     }
@@ -115,34 +118,48 @@ _.each(require('./testing/test.json'), (items, type) => {
   }));
 });
 
+
+//
 // Create test data.
+//
+
 promises.push(database.queryItems({}, {}, { type: 'User' })
   .then(users => {
 
-    // Create group.
-    return database.getItem(context, 'Group', 'minderlabs')
-
-      .then(item => {
-        item.members = _.map(users, user => user.id);
-        database.upsertItem(context, item);
+    // Get the group and add members.
+    return database.getItem(context, 'Group', Const.DEF_TEAM)
+      .then(group => {
+        group.members = _.map(users, user => user.id);
+        return database.upsertItem(context, group);
       });
   })
 
-  .then(() => {
+  .then(group => {
+    // TODO(burdon): Is this needed in the GraphQL context below?
+    context.created = moment().subtract(10, 'days').unix();
+    context.group = group;
+
     if (testing) {
       let randomizer = new Randomizer(database, context);
 
       return Promise.all([
-        randomizer.generate('Contact', 20),
-        randomizer.generate('Place', 10),
         randomizer.generate('Task', 30, {
+          project: {
+            value: 'demo',
+            likelihood: 0.75
+          },
           owner: {
-            type: 'User', likelihood: 1.0
+            type: 'User',
+            likelihood: 1.0
           },
           assignee: {
-            type: 'User', likelihood: 0.5
+            type: 'User',
+            likelihood: 0.5
           }
-        })
+        }),
+
+        randomizer.generate('Contact', 5),
+        randomizer.generate('Place', 5)
       ]);
     }
   }));
@@ -221,22 +238,62 @@ app.get('/home', async function(req, res) {
   }
 });
 
-app.use(loginRouter(firebase.userStore, {
-  env
-}));
+//
+// GraphQL
+//
 
 app.use(graphqlRouter(database, {
   logging: true,
   pretty: false,
+  graphiql: false,    // Use custom below.
 
+  // TODO(burdon): Check authenticated.
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
-  context: request => authManager.getUserInfoFromHeader(request)
-    .then(userInfo => ({
-      user: {
-        id: userInfo.id
+  context: req => authManager.getUserInfoFromHeader(req)
+    .then(userInfo => {
+      if (!userInfo) {
+        console.error('Not authenticated.');
       }
-    }))
+
+      return {
+        user: {
+          id: userInfo && userInfo.id
+        }
+      };
+    })
+}));
+
+//
+// Custom GraphiQL.
+//
+
+app.use('/node_modules', express.static(path.join(__dirname, '../../node_modules')));
+app.get('/graphiql', function(req, res) {
+  return authManager.getUserInfoFromCookie(req)
+    .then(userInfo => {
+      if (!userInfo) {
+        return res.redirect('/home');
+      }
+
+      res.render('graphiql', {
+        config: {
+          headers: [{
+            name: 'authentication',
+            value: `Bearer ${userInfo.token}`
+          }]
+        }
+      });
+  });
+});
+
+
+//
+// App.
+//
+
+app.use(loginRouter(firebase.userStore, {
+  env
 }));
 
 app.use(adminRouter(clientManager, firebase));
@@ -245,6 +302,11 @@ app.use(clientRouter(authManager, clientManager, server));
 
 app.use(appRouter(authManager, clientManager, {
   env,
+
+  // Additional config params.
+  config: {
+    team: Const.DEF_TEAM,
+  },
 
   // TODO(burdon): Clean this up with config.
   assets: env === 'production' ? __dirname : path.join(__dirname, '../../dist')

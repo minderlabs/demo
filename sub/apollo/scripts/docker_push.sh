@@ -6,8 +6,18 @@
 # TODO(burdon): Configure script for Jenkins.
 #
 
+NAMESPACE=minderlabs
+REPO=demo
+TAG=demo
+
 set -e
 set -v
+
+#
+# Connect.
+#
+
+eval "$(docker-machine env ${DOCKER_MACHINE})"
 
 #
 # Build client.
@@ -27,17 +37,18 @@ webpack --config webpack-server.config.js
 # Build docker image.
 #
 
-docker build -t node-apollo .
+docker build -t ${TAG} .
 
 #
 # Tag image.
 #
 
-docker tag node-apollo alienlaboratories/node-apollo:latest
+docker tag ${TAG} ${NAMESPACE}/${REPO}:latest
 
 #
 # Push to Docker Hub.
 # Triggers docker push redeploy.
 #
 
-docker push alienlaboratories/node-apollo
+docker push ${NAMESPACE}/${REPO}
+

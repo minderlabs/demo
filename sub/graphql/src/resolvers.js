@@ -2,9 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { graphql }  from 'graphql';
-import { GraphQLSchema } from 'graphql';
-import { makeExecutableSchema } from 'graphql-tools';
+import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
 import { $$, Logger, ID, Transforms } from 'minder-core';
@@ -12,7 +10,6 @@ import { $$, Logger, ID, Transforms } from 'minder-core';
 import Schema from './schema.graphql';
 
 const logger = Logger.get('resolver');
-
 
 /**
  * Resolver map.
@@ -43,11 +40,14 @@ export class Resolvers {
       //
       // Custom types.
       // http://dev.apollodata.com/tools/graphql-tools/scalars.html
+      // http://graphql.org/graphql-js/type/#graphqlscalartype
       //
 
-      Date: {
-        __parseValue(value) {
-          return String(value);
+      Timestamp: {
+        __serialize: value => value,
+        __parseValue: value => value,
+        __parseLiteral: ast => {
+          return (ask.kind === Kind.FLOAT) ? parseFloat(ast.value) : null;
         }
       },
 
@@ -70,13 +70,24 @@ export class Resolvers {
       // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
       // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-result-format
       //
-      // fieldName: (root, args, context, info) => result
+      // field: (root, args, context, info) => result
       //
 
       Group: {
 
         members: (root, args, context) => {
           return database.getItems(context, 'User', root.members);
+        },
+
+        projects: (root, args, context) => {
+          let filter = {
+            type: 'Project',
+            filter: {
+              expr: { field: "team", ref: "id" }
+            }
+          };
+
+          return database.queryItems(context, root, filter);
         }
       },
 
@@ -89,19 +100,34 @@ export class Resolvers {
         }
       },
 
+      Project: {
+
+        team: (root, args, context) => {
+          return database.getItem(context, 'Group', root.team);
+        },
+
+        tasks: (root, args, context) => {
+          return root.tasks && database.getItems(context, 'Task', root.tasks) || [];
+        }
+      },
+
       Task: {
 
+        project: (root, args, context) => {
+          if (root.project) {
+            return database.getItem(context, 'Project', root.project);
+          }
+        },
+
         owner: (root, args, context) => {
-          let userId = root.owner;
-          if (userId) {
-            return database.getItem(context, 'User', userId);
+          if (root.owner) {
+            return database.getItem(context, 'User', root.owner);
           }
         },
 
         assignee: (root, args, context) => {
-          let userId = root.assignee;
-          if (userId) {
-            return database.getItem(context, 'User', userId);
+          if (root.assignee) {
+            return database.getItem(context, 'User', root.assignee);
           }
         }
       },
@@ -132,7 +158,7 @@ export class Resolvers {
         },
 
         folders: (root, args, context) => {
-          return database.queryItems(context, root, { type: 'Folder' });
+          return database.queryItems(context, root, { type: 'Folder', orderBy: { field: 'order' } });
         },
 
         item: (root, args, context) => {
@@ -146,6 +172,13 @@ export class Resolvers {
           let { filter, offset, count } = args;
 
           return database.queryItems(context, root, filter, offset, count);
+        },
+
+        search: (root, args, context) => {
+          let { filter, offset, count } = args;
+
+          // TODO(burdon):
+          return database.search(context, root, filter, offset, count);
         }
       },
 
@@ -167,9 +200,10 @@ export class Resolvers {
           return database.getItem(context, type, localItemId).then(item => {
 
             // If not found (i.e., insert).
+            // TODO(burdon): Check this is an insert (not a miss due to a bug).
             if (!item.id) {
               item = {
-                id: itemId,
+                id: localItemId,
                 type: type,
                 title: ''
               };

@@ -14,17 +14,18 @@ import { Path } from '../path';
  */
 export class SidebarPanel extends React.Component {
 
-  // TODO(burdon): Folders query.
+  // TODO(burdon): Show icon.
 
   render() {
+    let { team, folders } = this.props;
+
     return (
       <div className="ux-column ux-list">
-        <Link className="ux-list-item" to={ Path.folder('inbox') }>Inbox</Link>
-        <Link className="ux-list-item" to={ Path.folder('favorites') }>Favorites</Link>
-        <Link className="ux-list-item" to={ Path.folder('deleted') }>Deleted</Link>
+        {_.map(folders, folder =>
+          <Link key={ folder.id } className="ux-list-item" to={ Path.folder(folder.alias) }>{ folder.title }</Link>
+        )}
 
-        <Link className="ux-list-item" to={ Path.detail('Team', ID.toGlobalId('Group', 'minderlabs')) }>Team</Link>
-
+        <Link className="ux-list-item" to={ Path.detail('Team', ID.toGlobalId('Group', team)) }>Team</Link>
         <Link className="ux-list-item" to={ Path.TESTING }>Test</Link>
       </div>
     );

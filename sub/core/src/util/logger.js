@@ -40,7 +40,7 @@ function singleton() {
  */
 class Logger {
 
-  static singleton = new Logger('root');
+  static root = new Logger('root');
 
   static noop() {}
 
@@ -55,11 +55,12 @@ class Logger {
   static format(f) {
     let i = 1;
     let args = arguments;
-    return String(f).replace(/%[sdot]/g, function(x) {
+    return String(f).replace(/%[sdoOt]/g, function(x) {
       switch (x) {
         case '%s': return String(args[i++]);
         case '%d': return Number(args[i++]);
         case '%o': return TypeUtil.stringify(args[i++]);
+        case '%O': return JSON.stringify(args[i++]);
         case '%t': return new Date().getTime();               // TODO(burdon): moment.
         default:
           return x;

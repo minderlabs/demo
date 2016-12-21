@@ -3,6 +3,7 @@
 //
 
 import _ from 'lodash';
+import moment from 'moment';
 
 import { ItemStore } from 'minder-core';
 
@@ -63,7 +64,10 @@ export class FirebaseItemStore extends ItemStore {
       console.assert(item.type);
       if (!item.id) {
         item.id = Database.IdGenerator.createId();
+        item.created = moment().unix();
       }
+
+      item.modified = moment().unix();
 
       this._db.ref(FirebaseItemStore.ROOT + '/' + item.type + '/' + item.id).set(item);
     });
@@ -75,7 +79,18 @@ export class FirebaseItemStore extends ItemStore {
     return this._cache.getItemStore().then(itemStore => itemStore.getItems(context, type, itemIds));
   }
 
-  queryItems(context, root, filter={}) {
-    return this._cache.getItemStore().then(itemStore => itemStore.queryItems(context, root, filter));
+  queryItems(context, root, filter={}, offset=0, count=10) {
+    let items = this._cache.getItemStore().then(itemStore => itemStore.queryItems(context, root, filter));
+
+    // Sort.
+    let orderBy = filter.orderBy;
+    if (orderBy) {
+      console.assert(orderBy.field);
+      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
+    }
+
+    console.log(items.length + '::' + count);
+
+    return items;
   }
 }
