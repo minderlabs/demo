@@ -373,7 +373,7 @@ type RootQuery {
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
 
   # Search.
-  search(filter: FilterInput, offset: Int, count: Int): [SearchResult]!
+  search(filter: FilterInput, offset: Int, count: Int, shouldAggregate: Boolean): [SearchResult]!
 }
 
 #

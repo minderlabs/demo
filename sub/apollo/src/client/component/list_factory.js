@@ -51,7 +51,7 @@ function composeList(query, itemsGetter) {
       // http://dev.apollodata.com/react/queries.html#graphql-options
       // http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient\.query
       options: (props) => {
-        let { filter, count } = List.defaults(props);
+        let { filter, count, shouldAggregate } = List.defaults(props);
 
         let matcher = props.injector.get(Matcher);
         let typeRegistry = props.injector.get(TypeRegistry);
@@ -62,7 +62,7 @@ function composeList(query, itemsGetter) {
           reducer: Reducer.reduce(props.context, matcher, typeRegistry, UpdateItemMutation, query, filter),
 
           variables: {
-            filter, count, offset: 0
+            filter, count, offset: 0, shouldAggregate
           }
         }
       },
@@ -146,9 +146,9 @@ class WrappedList extends List {
  * List of search results.
  */
 const SearchQuery = gql`
-  query SearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
+  query SearchQuery($filter: FilterInput, $offset: Int, $count: Int, $shouldAggregate: Boolean) {
 
-    search(filter: $filter, offset: $offset, count: $count) {
+    search(filter: $filter, offset: $offset, count: $count, shouldAggregate: $shouldAggregate) {
       __typename
       id
 

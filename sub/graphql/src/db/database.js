@@ -133,10 +133,19 @@ export class Database extends ItemStore {
     return itemStore.queryItems(context, root, filter, offset, count);
   }
 
+  search(context, root, filter={}, offset=0, count=10, shouldAggregate=true) {
+    logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
+
+    return this._searchAll(context, root, filter, offset, count)
+      .then(items => {
+        return this._aggregateSearchResults(items, shouldAggregate);
+      });
+  }
+
   /**
    * @returns {Promise}
    */
-  search(context, root, filter={}, offset=0, count=10) {
+  _searchAll(context, root, filter={}, offset=0, count=10) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
     let searchProviders = this.getSearchProviders(filter);
@@ -150,7 +159,7 @@ export class Database extends ItemStore {
       .then((results) => {
         // TODO(madadam): better merging, scoring, etc.
         let merged = [].concat.apply([], results);
-        return this._aggregateSearchResults(merged);
+        return merged;
       });
   }
 
@@ -167,15 +176,14 @@ export class Database extends ItemStore {
     return key;
   }
 
-  // FIXME: How does SearchResult, and aggregation, fit in with Document type?
-
   /**
    * Wrap results in SearchResult schema object.
    * @param items
-   * @returns {Array}
+   * @param shouldAggregate
+   * @returns {Array} of SearchResult
    * @private
    */
-  _aggregateSearchResults(items) {
+  _aggregateSearchResults(items, shouldAggregate) {
     let parentResultMap = new Map();
     let results = [];
 
@@ -183,7 +191,7 @@ export class Database extends ItemStore {
     _.each(items, item => {
       let result = null;
 
-      const aggregationKey = Database.aggregationKey(item);
+      const aggregationKey = shouldAggregate && Database.aggregationKey(item);
 
       if (aggregationKey) {
         result = parentResultMap.get(aggregationKey);

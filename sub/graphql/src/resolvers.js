@@ -175,9 +175,9 @@ export class Resolvers {
         },
 
         search: (root, args, context) => {
-          let { filter, offset, count } = args;
+          let { filter, offset, count, shouldAggregate } = args;
 
-          return database.search(context, root, filter, offset, count);
+          return database.search(context, root, filter, offset, count, shouldAggregate);
         }
       },
 
