@@ -7,8 +7,6 @@ import google from 'googleapis';
 
 import { ItemStore, Logger } from 'minder-core';
 
-import { Database } from './database';
-
 const logger = Logger.get('db');
 
 /**
@@ -43,30 +41,31 @@ class GoogleDriveClient {
       onSuccess();
       return;
     }
-    this._drive.files.list(
-      {
-        auth: client,
-        q: driveQuery,
-        fields: 'nextPageToken, files(id, name, webViewLink, iconLink)',
-        spaces: 'drive',
-        pageToken: pageToken
-      },
-      (err, response) => {
-        if (err) {
-          logger.error('GoogleDriveClient: ' + err);
-          onError && onError(err);
-        } else {
-          //console.log('** GOOGLE DRIVE results: ' + JSON.stringify(response.files)); // FIXME
-          _.each(response.files, processResult);
 
-          if (response.nextPageToken) {
-            this._fetchPage(
-              client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, done);
-          } else {
-            onSuccess();
-          }
+    let query = {
+      auth: client,
+      q: driveQuery,
+      fields: 'nextPageToken, files(id, name, webViewLink, iconLink)',
+      spaces: 'drive',
+      pageToken: pageToken
+    };
+
+    this._drive.files.list(query, (err, response) => {
+      if (err) {
+        logger.error('GoogleDriveClient: ' + err);
+        onError && onError(err);
+      } else {
+//      console.log('** GOOGLE DRIVE results: ' + JSON.stringify(response.files)); // FIXME
+        _.each(response.files, processResult);
+
+        if (response.nextPageToken) {
+          this._fetchPage(
+            client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, done);
+        } else {
+          onSuccess();
         }
-      });
+      }
+    });
   }
 
   search(context, driveQuery, maxResults, processResult, onSucces, onError) {
