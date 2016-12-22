@@ -15,9 +15,9 @@ import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
 import { Logger, Matcher } from 'minder-core';
-import { Database, Firebase, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
+import { Database, Firebase, GoogleDriveItemStore, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
 
-import { Const, FirebaseConfig } from '../common/defs';
+import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
@@ -77,17 +77,27 @@ const firebase = new Firebase(matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const authManager = new AuthManager(firebase.admin);
+const authManager = new AuthManager(firebase.admin, firebase.userStore);
 
 const socketManager = new SocketManager(server);
 
 const clientManager = new ClientManager(socketManager);
 
+const defaultItemStore = testing ? new MemoryItemStore(matcher) : firebase.itemStore;
+const googleDriveItemStore = new GoogleDriveItemStore(matcher, GoogleApiConfig);
+
 const database = new Database(matcher)
 
   .registerItemStore('User', firebase.userStore)
 
-  .registerItemStore(Database.DEFAULT, testing ? new MemoryItemStore(matcher) : firebase.itemStore)
+  .registerItemStore(Database.DEFAULT, defaultItemStore)
+
+  // TODO(madadam): Keep this? Convenient for testing: e.g. "@Document foo".
+  .registerItemStore('Document', googleDriveItemStore)
+
+  // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
+  .registerSearchProvider(Database.DEFAULT, defaultItemStore)
+  .registerSearchProvider('google_drive', googleDriveItemStore)
 
   .onMutation(() => {
     // Notify clients of changes.
@@ -257,9 +267,7 @@ app.use(graphqlRouter(database, {
       }
 
       return {
-        user: {
-          id: userInfo && userInfo.id
-        }
+        user: userInfo
       };
     })
 }));

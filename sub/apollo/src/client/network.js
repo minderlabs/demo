@@ -2,6 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import moment from 'moment';
 import { print } from 'graphql-tag/printer';
 import * as firebase from 'firebase';
@@ -11,7 +12,7 @@ import { createNetworkInterface } from 'apollo-client';
 
 import { TypeUtil } from 'minder-core';
 
-import { FirebaseConfig } from '../common/defs';
+import { FirebaseConfig, GoogleApiConfig } from '../common/defs';
 
 const logger = Logger.get('net');
 
@@ -38,7 +39,7 @@ export class AuthManager {
 
     // Google scopes.
     this._provider = new firebase.auth.GoogleAuthProvider();
-    this._provider.addScope('https://www.googleapis.com/auth/plus.login');
+    _.each(GoogleApiConfig.authScopes, scope => { this._provider.addScope(scope); });
 
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).

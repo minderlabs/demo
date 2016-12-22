@@ -28,6 +28,9 @@ export class Database extends ItemStore {
     // TODO(burdon): Should be by domain?
     this._stores = new Map();
 
+    // SearchProviders. Keyed by source name.
+    this._searchProviders = new Map();
+
     // Callback.
     this._onMutation = null;
   }
@@ -47,6 +50,17 @@ export class Database extends ItemStore {
 
   getItemStore(type) {
     return this._stores.get(type) || this._stores.get(Database.DEFAULT);
+  }
+
+  registerSearchProvider(source, provider) {
+    console.assert(source && provider);
+    this._searchProviders.set(source, provider);
+    return this;
+  }
+
+  getSearchProviders(filter) {
+    // TODO(madadam): Allow filter to specify which sources to dispatch to. For now, fan out to all.
+    return Array.from(this._searchProviders.values());
   }
 
   // TODO(burdon): Evolve into mutation dispatcher to QueryRegistry.
@@ -118,76 +132,104 @@ export class Database extends ItemStore {
     return itemStore.queryItems(context, root, filter, offset, count);
   }
 
-  /**
-   * @return {Promise}
-   */
   search(context, root, filter={}, offset=0, count=10) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
-    let itemStore = this.getItemStore(filter.type);
-    return itemStore.queryItems(context, root, filter, offset, count).then(items => {
-      let parentResultMap = new Map();
-      let results = [];
-
-      _.each(items, item => {
-        let result = null;
-
-        // TODO(burdon): Look for parent (type-specific?)
-        switch (item.type) {
-          case 'Task': {
-            result = parentResultMap.get(item.project);
-
-            if (result) {
-              // Promote result to parent.
-              if (_.isEmpty(result.refs)) {
-                // Remove existing properties.
-                _.each(_.keys(result), key => {
-                  delete result[key];
-                });
-
-                // Set parent properties.
-                _.assign(result, {
-                  id: item.project,
-                  type: 'Project',
-                  title: 'Project ' + item.project,      // TODO(burdon): Lookup project to get title.
-                  refs: []
-                });
-              }
-
-              // Add result reference.
-              result.refs.push({
-                item
-              });
-            }
-            break;
-          }
-        }
-
-        // Create new result.
-        if (!result) {
-          // TODO(burdon): Create transient element.
-          result = {
-            id: item.id,
-            type: item.type,
-            title: item.title,
-            refs: []
-          };
-
-          // Memo the parent to aggregate more results.
-          switch (item.type) {
-            case 'Task': {
-              if (item.project) {
-                parentResultMap.set(item.project, result);
-              }
-              break;
-            }
-          }
-
-          results.push(result);
-        }
+    return this._searchAll(context, root, filter, offset, count)
+      .then(items => {
+        return this._aggregateSearchResults(items, filter.shouldAggregate);
       });
+  }
 
-      return results;
+  /**
+   * @returns {Promise}
+   */
+  _searchAll(context, root, filter={}, offset=0, count=10) {
+    logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
+
+    let searchProviders = this.getSearchProviders(filter);
+
+    let searchPromises = [];
+    for (let provider of searchProviders) {
+      // TODO(madadam): Pagination over the merged result set. Need to over-fetch from each provider.
+      searchPromises.push(provider.queryItems(context, root, filter, offset, count));
+    }
+    return Promise.all(searchPromises)
+      .then((results) => {
+        // TODO(madadam): better merging, scoring, etc.
+        //let merged = _.flatten(results);
+        let merged = [].concat.apply([], results);
+        return merged;
+      });
+  }
+
+  // TODO(madadam): TypeUtil or TypeRegistry.
+  static aggregationKey(item) {
+    let key = null;
+    switch (item.type) {
+      case 'Task': {
+        key = item.project;
+        break;
+      }
+      // TODO(burdon): Aggregegation keys for other types.
+    }
+    return key;
+  }
+
+  /**
+   * Aggregate search results where appropriate, e.g. by Project.
+   * @param items
+   * @param shouldAggregate
+   * @returns {Array} of Item
+   * @private
+   */
+  _aggregateSearchResults(items, shouldAggregate) {
+    let parentResultMap = new Map();
+    let results = [];
+
+    // Aggregate items.
+    _.each(items, item => {
+      let result = null;
+
+      let aggregationKey = shouldAggregate && Database.aggregationKey(item);
+
+      if (aggregationKey) {
+        result = parentResultMap.get(aggregationKey);
+        if (result) {
+          // Promote result to Project parent.
+          if (_.isEmpty(result.refs)) {
+            // Remove existing properties.
+            _.each(_.keys(result), key => {
+              delete result[key];
+            });
+
+            // Set parent properties.
+            _.assign(result, {
+              id: item.project,
+              type: 'Project',                       // TODO(madadam): Generalize aggregation type.
+              title: 'Project ' + item.project,      // TODO(burdon): Lookup project to get title.
+              refs: []
+            });
+          }
+
+          // Add result reference.
+          result.refs.push(item);
+        }
+      }
+
+      // Create new result.
+      if (!result) {
+        result = item;
+
+        // Memo the parent to aggregate more results.
+        if (aggregationKey) {
+          parentResultMap.set(aggregationKey, result);
+        }
+
+        results.push(result);
+      }
     });
+
+    return results;
   }
 }

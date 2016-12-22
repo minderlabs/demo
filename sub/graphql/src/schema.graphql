@@ -144,15 +144,17 @@ input FilterInput {
   type: String
   labels: [String]
   text: String
-
-  # Expression tree.
-  expr: ExpressionInput
+  expr: ExpressionInput  # Expression tree.
 
   # Sort order.
   orderBy: OrderByInput
 
   # Match empty filter.
   matchAll: Boolean
+
+  # Aggregate results.
+  # TODO(madadam): Specify aggregation key here?
+  shouldAggregate: Boolean
 }
 
 #
@@ -188,29 +190,6 @@ interface Item {
   modified: Timestamp!
   title: String!
   labels: [String]
-}
-
-#
-# Transient Items.
-#
-
-type SearchRef {
-  snippet: String
-  item: Item!
-}
-
-type SearchResult implements Item {
-  id: ID!
-  bucket: ID
-  type: String!
-  alias: String
-  created: Timestamp!
-  modified: Timestamp!
-  title: String!
-  labels: [String]
-
-  # Optional ordered array of references to matching items.
-  refs: [SearchRef]!
 }
 
 #
@@ -290,6 +269,10 @@ type Project implements Item {
 
   # TODO(burdon): Implement via links?
   tasks: [Task]!
+
+  # Sub-items.
+  # TODO(madadam): Rename -> items.
+  refs: [Item]
 }
 
 type Task implements Item {
@@ -337,6 +320,22 @@ type Place implements Item {
   geo: Geo
 }
 
+type Document implements Item {
+  id: ID!
+  bucket: ID
+  type: String!
+  alias: String           # User short-name for links.
+  created: Timestamp!
+  modified: Timestamp!
+  title: String!
+  labels: [String]
+
+  url: String
+  source: String
+  iconUrl: String
+  thumbnailUrl: String
+}
+
 #
 # Queries.
 # NOTE: Must only have Input types (since regular types might be recursive and therefore not serializable).
@@ -358,7 +357,7 @@ type RootQuery {
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
 
   # Search.
-  search(filter: FilterInput, offset: Int, count: Int): [SearchResult]!
+  search(filter: FilterInput, offset: Int, count: Int): [Item]!
 }
 
 #

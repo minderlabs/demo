@@ -38,13 +38,15 @@ export class FirebaseUserStore extends ItemStore {
    * Converts firebase User records to items.
    */
   static recordToItem(key, record) {
+    // TODO(madadam): Credentials isn't part of the schema; needs to be?
     return {
-      id:       key,
-      type:     FirebaseUserStore.TYPE,
-      created:  record.created,
-      modified: record.modified,
-      title:    record.profile.name,
-      email:    record.profile.email
+      id:           key,
+      type:         FirebaseUserStore.TYPE,
+      created:      record.created,
+      modified:     record.modified,
+      title:        record.profile.name,
+      email:        record.profile.email,
+      credentials:  record.credentials
     };
   }
 

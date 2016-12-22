@@ -53,6 +53,7 @@
     "express": "^4.14.0",
     "firebase": "^3.6.3",
     "firebase-admin": "^4.0.4",
+    "googleapis": "^15.0.0",
     "graphql": "^0.7.0",
     "graphql-server-express": "^0.4.3",
     "graphql-subscriptions": "^0.2.1",
