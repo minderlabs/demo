@@ -14,8 +14,8 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { Logger, Matcher } from 'minder-core';
-import { Database, Firebase, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
+import { IdGenerator, Matcher, MemoryItemStore, Logger, Randomizer } from 'minder-core';
+import { Database, Firebase, graphqlRouter } from 'minder-graphql';
 
 import { Const, FirebaseConfig } from '../common/defs';
 
@@ -60,15 +60,21 @@ const testing = (env !== 'production');
 // TODO(burdon): Use injector pattern (esp for async startup).
 let promises = [];
 
+const idGenerator = new IdGenerator(1000);
+
+const matcher = new Matcher();
+
 const app = express();
 
 const server = http.Server(app);
 
-const matcher = new Matcher();
+const socketManager = new SocketManager(server);
+
+const clientManager = new ClientManager(socketManager);
 
 // TODO(burdon): Factor out const.
 // https://firebase.google.com/docs/database/admin/start
-const firebase = new Firebase(matcher, {
+const firebase = new Firebase(idGenerator, matcher, {
   databaseURL: FirebaseConfig.databaseURL,
 
   // Download JSON config.
@@ -77,22 +83,21 @@ const firebase = new Firebase(matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const authManager = new AuthManager(firebase.admin);
-
-const socketManager = new SocketManager(server);
-
-const clientManager = new ClientManager(socketManager);
+const defaultItemStore = testing ? new MemoryItemStore(idGenerator, matcher) : firebase.itemStore;
 
 const database = new Database(matcher)
 
   .registerItemStore('User', firebase.userStore)
 
-  .registerItemStore(Database.DEFAULT, testing ? new MemoryItemStore(matcher) : firebase.itemStore)
+  .registerItemStore(Database.DEFAULT, defaultItemStore)
 
   .onMutation(() => {
     // Notify clients of changes.
+    // TODO(burdon): Create notifier abstraction.
     clientManager.invalidateOthers();
   });
+
+const authManager = new AuthManager(firebase.admin);
 
 
 //
@@ -139,7 +144,7 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
     context.group = group;
 
     if (testing) {
-      let randomizer = new Randomizer(database, _.defaults(context, {
+      let randomizer = new Randomizer(defaultItemStore, _.defaults(context, {
         created: moment().subtract(10, 'days').unix()
       }));
 

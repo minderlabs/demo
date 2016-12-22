@@ -42,12 +42,12 @@ export class FirebaseItemStore extends ItemStore {
     itemStore.upsertItems({}, items);
   }
 
-  constructor(db, matcher) {
-    super(matcher);
+  constructor(db, idGenerator, matcher) {
+    super(idGenerator, matcher);
     console.assert(db);
 
     this._db = db;
-    this._cache = new Cache(this._db, FirebaseItemStore.ROOT, matcher, FirebaseItemStore.parseData);
+    this._cache = new Cache(this._db, FirebaseItemStore.ROOT, idGenerator, matcher, FirebaseItemStore.parseData);
   }
 
   clearCache() {
@@ -63,7 +63,7 @@ export class FirebaseItemStore extends ItemStore {
     _.each(items, item => {
       console.assert(item.type);
       if (!item.id) {
-        item.id = Database.IdGenerator.createId();
+        item.id = this._idGenerator.createId();
         item.created = moment().unix();
       }
 

@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { MemoryItemStore } from '../memory_item_store';
+import { MemoryItemStore } from 'minder-core';
 
 /**
  * Caches the entire Firebase dataset into a memory item store.
@@ -15,12 +15,13 @@ export class Cache {
     return key.replace('.', '_');
   }
 
-  constructor(db, root, matcher, parseData) {
-    console.assert(db && root && matcher && parseData);
+  constructor(db, root, idGenerator, matcher, parseData) {
+    console.assert(db && root && idGenerator && matcher && parseData);
 
     this._db = db;
     this._root = root;
     this._matcher = matcher;
+    this._idGenerator = idGenerator;
     this._parseData = parseData;
 
     // Cache.
@@ -32,7 +33,7 @@ export class Cache {
    */
   updateCache() {
     // Reset.
-    this._itemStore = new MemoryItemStore(this._matcher);
+    this._itemStore = new MemoryItemStore(this._idGenerator, this._matcher);
 
     // https://firebase.google.com/docs/database/web/read-and-write#read_data_once
     // https://firebase.google.com/docs/reference/js/firebase.database.Reference#once

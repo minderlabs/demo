@@ -48,12 +48,12 @@ export class FirebaseUserStore extends ItemStore {
     };
   }
 
-  constructor(db, matcher) {
+  constructor(db, idGenerator, matcher) {
     super(matcher);
     console.assert(db);
 
     this._db = db;
-    this._cache = new Cache(this._db, FirebaseUserStore.ROOT, matcher, FirebaseUserStore.parseData);
+    this._cache = new Cache(this._db, FirebaseUserStore.ROOT, idGenerator, matcher, FirebaseUserStore.parseData);
   }
 
   clearCache() {

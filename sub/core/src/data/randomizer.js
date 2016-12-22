@@ -6,7 +6,8 @@ import _ from 'lodash';
 
 import { Chance } from 'chance';
 
-import { Logger, TypeUtil } from 'minder-core';
+import Logger from '../util/logger';
+import { TypeUtil } from '../util/type';
 
 const logger = Logger.get('randomizer');
 
@@ -43,17 +44,24 @@ export class Randomizer {
     }
   };
 
-  constructor(database, context, seed=1000) {
-    console.assert(database && context);
+  /**
+   *
+   * @param itemStore
+   * @param context
+   * @param seed        A fixed seed guarantees consistent results for unit tests, etc.
+   */
+  constructor(itemStore, context={}, seed=1000) {
+    console.assert(itemStore);
 
-    this._database = database;
+    this._itemStore = itemStore;
     this._context = context;
+
     this._chance = new Chance(seed);
     this._cache = new Map();
   }
 
   /**
-   * Query the database or return a cached value.
+   * Query the itemStore or return a cached value.
    * @param filter
    * @return {Promise}
    */
@@ -63,8 +71,7 @@ export class Randomizer {
     if (result) {
       return Promise.resolve(result);
     } else {
-      // TODO(burdon): Generalize for more general database use?
-      return this._database.queryItems(this._context, {}, filter).then(values => {
+      return this._itemStore.queryItems(this._context, {}, filter).then(values => {
         this._cache.set(key, values);
         return values;
       });
@@ -85,7 +92,7 @@ export class Randomizer {
 
     let items = [];
 
-    // Create values.
+    // Each item is generates asynchronously (since it may look-up other items) so we gather the promises.
     return TypeUtil.iterateWithPromises(_.times(n), i => {
 
       // Generate item.
@@ -97,7 +104,7 @@ export class Randomizer {
       };
 
       // Add user bucket.
-      if (this._chance.bool({ likelihood: 20 })) {
+      if (this._context.group && this._chance.bool({ likelihood: 20 })) {
         item.bucket = this._chance.pickone(this._context.group.members);
       }
 
@@ -125,8 +132,8 @@ export class Randomizer {
       });
     }).then(() => {
 
-      // Insert vector of items.
-      return this._database.upsertItems(this._context, items).then(items => {
+      // Insert array of items.
+      return this._itemStore.upsertItems(this._context, items).then(items => {
 
         // Fake timestamps (so don't show up in inbox).
         if (this._context.created) {

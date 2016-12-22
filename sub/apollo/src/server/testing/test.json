@@ -20,6 +20,7 @@
       "order": 1,
       "alias": "inbox",
       "title": "Inbox",
+      "icon": "inbox",
       "filter": {
         "matchAll": true,
         "expr": {
@@ -52,6 +53,7 @@
       "order": 2,
       "alias": "tasks",
       "title": "Tasks",
+      "icon": "assignment_turned_in",
       "filter": {
         "type": "Task",
         "expr": {
@@ -68,6 +70,7 @@
       "order": 3,
       "alias": "favorites",
       "title": "Favorites",
+      "icon": "star",
       "filter": {
         "labels": ["_favorite"]
       }
@@ -77,6 +80,7 @@
       "order": 4,
       "alias": "projects",
       "title": "Projects",
+      "icon": "assignment",
       "filter": {
         "type": "Project"
       }
@@ -86,6 +90,7 @@
       "order": 5,
       "alias": "deleted",
       "title": "Deleted",
+      "icon": "delete",
       "filter": {
         "labels": ["_deleted"]
       }

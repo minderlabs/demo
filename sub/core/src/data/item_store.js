@@ -10,8 +10,10 @@ export class ItemStore {
   // TODO(burdon): Dispatch by domain not type.
   // TODO(burdon): ID should contain type.
 
-  constructor(matcher) {
-    console.assert(matcher);
+  constructor(idGenerator, matcher) {
+    console.assert(idGenerator, matcher);
+
+    this._idGenerator = idGenerator;
     this._matcher = matcher
   }
 

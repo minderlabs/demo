@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import './list';
+import './list.less';
 
 /**
  * Simple list component.
@@ -17,6 +17,12 @@ export class List extends React.Component {
   // TODO(burdon): Optional chrome (e.g., create button).
   // TODO(burdon): Optional more button.
 
+  static defaultItemRenderer = (item) => {
+    return (
+      <div>{ item.title }</div>
+    );
+  };
+
   static renderItem = (item) => (
     <div>{ item.title }</div>
   );
@@ -26,9 +32,13 @@ export class List extends React.Component {
   );
 
   static propTypes = {
-    renderItem: React.PropTypes.func.isRequired,
-    renderEditor: React.PropTypes.func.isRequired,
+    renderItem: React.PropTypes.func,
+    renderEditor: React.PropTypes.func,
     items: React.PropTypes.arrayOf(React.PropTypes.object)
+  };
+
+  static defaultProps = {
+    renderItem: List.defaultItemRenderer
   };
 
   constructor() {
@@ -50,7 +60,7 @@ export class List extends React.Component {
 
     let rows = items.map(item => {
       return (
-        <div className="ux-list-item">
+        <div key={ item.id } className="ux-list-item">
           { this.props.renderItem(item) }
         </div>
       );

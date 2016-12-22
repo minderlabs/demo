@@ -117,7 +117,7 @@ export class ConnectionManager {
           }),
 
           success: (response) => {
-            logger.log('Registered[%s]: %s', config.clientId, socketId);
+            logger.log($$('Registered[%s]: %s', config.clientId, socketId));
 
             // Listen for invalidations.
             this._socket.on('invalidate', (data) => {

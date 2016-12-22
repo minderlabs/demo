@@ -17,10 +17,9 @@ import {
 import { makeExecutableSchema, mockServer } from 'graphql-tools';
 import { introspectionQuery, printSchema } from 'graphql/utilities';
 
-import { Matcher } from 'minder-core';
+import { Matcher, MemoryItemStore } from 'minder-core';
 
 import { Database } from './db/database';
-import { MemoryItemStore } from './db/memory_item_store';
 import { Resolvers } from './resolvers';
 
 import Schema from './schema.graphql';

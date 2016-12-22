@@ -196,6 +196,7 @@ const LayoutQuery = gql`
       id
       alias
       title
+      icon
     }
   }
 `;
@@ -274,7 +275,7 @@ export default compose(
 
       return {
         viewer, folders
-      }
+      };
     }
   })
 

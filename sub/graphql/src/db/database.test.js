@@ -7,10 +7,9 @@ const expect = require('chai').expect;
 
 import * as fakeredis from 'fakeredis';
 
-import { Matcher } from 'minder-core';
+import { IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
 
 import { Database } from './database';
-import { MemoryItemStore } from './memory_item_store';
 import { RedisItemStore } from './redis_item_store';
 
 const matcher = new Matcher();
@@ -42,8 +41,10 @@ const tests = (itemStore) => {
   });
 };
 
+const idGenerator = new IdGenerator(1000);
+
 describe('MemoryDatabase:',
-  () => tests(new MemoryItemStore(matcher)));
+  () => tests(new MemoryItemStore(idGenerator, matcher)));
 
 // https://github.com/hdachev/fakeredis
 /*
