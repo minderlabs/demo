@@ -267,7 +267,7 @@ app.use(graphqlRouter(database, {
       }
 
       return {
-        userInfo
+        user: userInfo
       };
     })
 }));
