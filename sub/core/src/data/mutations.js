@@ -77,6 +77,7 @@ export class Reducer {
     // https://github.com/apollostack/apollo-client/issues/903
     // http://dev.apollodata.com/react/cache-updates.html#resultReducers
 
+    // TODO(burdon): Create tests.
     // TODO(burdon): Called for all apollo actions (incl. queries).
     return (previousResult, action) => {
       let result = previousResult;
@@ -106,7 +107,13 @@ export class Reducer {
         // Update list (e.g., favorites).
         //
 
-        if (previousResult.items) {
+        // TODO(burdon): Change function to class and configure by query.
+        // TODO(burdon): Must match query. Dispatch early to typeRegistry.reducer. Could be "search".
+        let field = null;
+        field = previousResult.items && 'items';
+        field = previousResult.search && 'search';
+        if (field) {
+          let items = previousResult[field];
           logger.log($$('Update items: %o', previousResult));
 
           // TODO(burdon): Context.
@@ -120,7 +127,7 @@ export class Reducer {
           */
 
           // If no match, is this new? (otherwise must be removed).
-          let insert = match && _.findIndex(previousResult.items, item => item.id === updatedItem.id) === -1;
+          let insert = match && _.findIndex(items, item => item.id === updatedItem.id) === -1;
 
           // NOTE: DO NOTHING IF JUST CHANGE ITEM.
           let op = null;
@@ -144,13 +151,15 @@ export class Reducer {
           }
 
           if (op) {
-            transform = { items: op };
+            transform = { [field]: op };
           }
         }
 
         if (transform) {
           logger.log($$('Transform: %o: %s', previousResult, JSON.stringify(transform, 0, 2)));
           result = update(previousResult, transform);
+        } else {
+          logger.warn('No transform', previousResult);
         }
       }
 

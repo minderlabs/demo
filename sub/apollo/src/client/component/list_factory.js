@@ -142,6 +142,7 @@ class WrappedList extends List {
         
       ...DocumentFragment
     }
+
     ${DocumentFragment}
   `;
 
