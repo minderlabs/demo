@@ -5,7 +5,7 @@
 import Cookies from 'js-cookie';
 import * as firebase from 'firebase';
 
-import { Const, FirebaseConfig } from '../common/defs';
+import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
 
 /**
  * Auth module.
@@ -18,11 +18,7 @@ export class Auth {
 
     // https://firebase.google.com/docs/auth/web/google-signin
     this._provider = new firebase.auth.GoogleAuthProvider();
-    this._provider.addScope('https://www.googleapis.com/auth/plus.login');
-
-    // For Google Drive universal search provider.
-    // TODO(madadam): Auth'ing to specific services should happen when the user adds bots/services, not here.
-    this._provider.addScope('https://www.googleapis.com/auth/drive.readonly');
+    _.each(GoogleApiConfig.authScopes, scope => { this._provider.addScope(scope); });
   }
 
   /**
@@ -91,7 +87,7 @@ export class Auth {
     firebase.auth().signOut().then(
       function() {
         // Remove the cookie.
-        Cookies.remove(COOKIE);
+        Cookies.remove(Const.AUTH_COOKIE);
 
         // Redirect.
         window.location.href = path;

@@ -3,12 +3,11 @@
 //
 
 import _ from 'lodash';
+import google from 'googleapis';
 
 import { ItemStore, Logger } from 'minder-core';
 
 import { Database } from './database';
-
-import google from 'googleapis';
 
 const logger = Logger.get('db');
 
@@ -33,7 +32,6 @@ class GoogleDriveClient {
   _getAccessToken(context) {
     return _.get(context, 'user.credentials.google_com.accessToken');
   }
-
 
   search(context, driveQuery, maxResults, processResult, callback, errback) {
     const oauth2Client = this._getOAuthClient(context);
@@ -74,11 +72,6 @@ class GoogleDriveClient {
 
 export class GoogleDriveItemStore extends ItemStore {
 
-  constructor(matcher, config) {
-    super(matcher);
-    this._driveClient = new GoogleDriveClient(config);
-  }
-
   static makeDriveQuery(queryString) {
     // https://developers.google.com/drive/v3/web/search-parameters
     return `fullText contains \'${queryString}\'`;
@@ -109,6 +102,11 @@ export class GoogleDriveItemStore extends ItemStore {
     }
 
     return document;
+  }
+
+  constructor(matcher, config) {
+    super(matcher);
+    this._driveClient = new GoogleDriveClient(config);
   }
 
   //

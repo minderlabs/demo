@@ -151,6 +151,10 @@ input FilterInput {
 
   # Match empty filter.
   matchAll: Boolean
+
+  # Aggregate results.
+  # TODO(madadam): Specify aggregation key here?
+  shouldAggregate: Boolean
 }
 
 #
@@ -353,7 +357,7 @@ type RootQuery {
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
 
   # Search.
-  search(filter: FilterInput, offset: Int, count: Int, shouldAggregate: Boolean): [Item]!
+  search(filter: FilterInput, offset: Int, count: Int): [Item]!
 }
 
 #

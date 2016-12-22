@@ -9,8 +9,7 @@ import TeamCard from './team';
 import PlaceCard from './place';
 import ProjectCard from './project';
 import TaskCard from './task';
-import DocumentCard from './document';
-import { DocumentListItem } from './document';
+import { DocumentCard, DocumentListItem } from './document';
 
 /**
  * Type registry.

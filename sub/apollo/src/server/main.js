@@ -77,8 +77,6 @@ const firebase = new Firebase(matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const googleDriveItemStore = new GoogleDriveItemStore(matcher, GoogleApiConfig);
-
 const authManager = new AuthManager(firebase.admin, firebase.userStore);
 
 const socketManager = new SocketManager(server);
@@ -86,6 +84,7 @@ const socketManager = new SocketManager(server);
 const clientManager = new ClientManager(socketManager);
 
 const defaultItemStore = testing ? new MemoryItemStore(matcher) : firebase.itemStore;
+const googleDriveItemStore = new GoogleDriveItemStore(matcher, GoogleApiConfig);
 
 const database = new Database(matcher)
 
@@ -262,13 +261,13 @@ app.use(graphqlRouter(database, {
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
   context: req => authManager.getUserInfoFromHeader(req)
-    .then(user => {
-      if (!user) {
+    .then(userInfo => {
+      if (!userInfo) {
         console.error('Not authenticated.');
       }
 
       return {
-        user
+        userInfo
       };
     })
 }));

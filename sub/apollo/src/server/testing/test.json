@@ -44,7 +44,8 @@
         "orderBy": {
           "field": "modified",
           "order": "DESC"
-        }
+        },
+        "shouldAggregate": false
       }
     },
     {
@@ -60,7 +61,8 @@
             { "ref": "$USER_ID", "field": "owner" },
             { "ref": "$USER_ID", "field": "assignee" }
           ]
-        }
+        },
+        "shouldAggregate": false
       }
     },
     {
@@ -69,7 +71,8 @@
       "alias": "favorites",
       "title": "Favorites",
       "filter": {
-        "labels": ["_favorite"]
+        "labels": ["_favorite"],
+        "shouldAggregate": false
       }
     },
     {
@@ -78,7 +81,8 @@
       "alias": "projects",
       "title": "Projects",
       "filter": {
-        "type": "Project"
+        "type": "Project",
+        "shouldAggregate": false
       }
     },
     {
@@ -87,7 +91,8 @@
       "alias": "deleted",
       "title": "Deleted",
       "filter": {
-        "labels": ["_deleted"]
+        "labels": ["_deleted"],
+        "shouldAggregate": false
       }
     }
   ]

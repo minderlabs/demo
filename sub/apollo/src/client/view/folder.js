@@ -118,7 +118,7 @@ class FolderView extends React.Component {
     return (
       <div className="app-folder ux-column">
         <div className="ux-expand">
-          <SearchList filter={ filter } shouldAggregate={ false } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <SearchList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
         <div className="ux-section ux-toolbar ux-row">

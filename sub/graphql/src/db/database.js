@@ -29,7 +29,7 @@ export class Database extends ItemStore {
     this._stores = new Map();
 
     // SearchProviders. Keyed by source name.
-    this._providers = new Map();
+    this._searchProviders = new Map();
 
     // Callback.
     this._onMutation = null;
@@ -54,15 +54,14 @@ export class Database extends ItemStore {
 
   registerSearchProvider(source, provider) {
     console.assert(source && provider);
-    this._providers.set(source, provider);
+    this._searchProviders.set(source, provider);
     return this;
   }
 
   getSearchProviders(filter) {
     // TODO(madadam): Allow filter to specify which sources to dispatch to. For now, fan out to all.
-    return Array.from(this._providers.values());
+    return Array.from(this._searchProviders.values());
   }
-
 
   // TODO(burdon): Evolve into mutation dispatcher to QueryRegistry.
   onMutation(callback) {
@@ -133,12 +132,12 @@ export class Database extends ItemStore {
     return itemStore.queryItems(context, root, filter, offset, count);
   }
 
-  search(context, root, filter={}, offset=0, count=10, shouldAggregate=true) {
+  search(context, root, filter={}, offset=0, count=10) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
     return this._searchAll(context, root, filter, offset, count)
       .then(items => {
-        return this._aggregateSearchResults(items, shouldAggregate);
+        return this._aggregateSearchResults(items, filter.shouldAggregate);
       });
   }
 
@@ -158,6 +157,7 @@ export class Database extends ItemStore {
     return Promise.all(searchPromises)
       .then((results) => {
         // TODO(madadam): better merging, scoring, etc.
+        //let merged = _.flatten(results);
         let merged = [].concat.apply([], results);
         return merged;
       });
@@ -191,7 +191,7 @@ export class Database extends ItemStore {
     _.each(items, item => {
       let result = null;
 
-      const aggregationKey = shouldAggregate && Database.aggregationKey(item);
+      let aggregationKey = shouldAggregate && Database.aggregationKey(item);
 
       if (aggregationKey) {
         result = parentResultMap.get(aggregationKey);

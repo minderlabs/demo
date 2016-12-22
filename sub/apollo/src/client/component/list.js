@@ -30,15 +30,13 @@ export class List extends React.Component {
     onItemSelect: React.PropTypes.func.isRequired,
 
     count: React.PropTypes.number,
-    items: React.PropTypes.array,
-    shouldAggregate: React.PropTypes.bool
+    items: React.PropTypes.array
   };
 
   // NOTE: React.defaultProps is called after Redux.
   static defaults = (props) => {
     return _.defaults({}, props, {
-      count: List.COUNT,
-      shouldAggregate: true
+      count: List.COUNT
     });
   };
 
