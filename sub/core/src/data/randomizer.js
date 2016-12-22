@@ -53,6 +53,7 @@ export class Randomizer {
   constructor(itemStore, context={}, seed=1000) {
     console.assert(itemStore);
 
+    // TODO(burdon): Need to fan out to User, etc.
     this._itemStore = itemStore;
     this._context = context;
 
@@ -108,7 +109,6 @@ export class Randomizer {
         item.bucket = this._chance.pickone(this._context.group.members);
       }
 
-//    console.log('Item: %s', JSON.stringify(item));
       items.push(item);
 
       // Iterate fields.
@@ -122,6 +122,7 @@ export class Randomizer {
           } else {
             // Get items for generator's type.
             return this.queryCache({ type: spec.type }).then(values => {
+//            console.log('GET[%s]: %d', spec.type, values.length);
               if (values.length) {
                 let value = this._chance.pickone(values);
                 item[field] = value.id;
@@ -135,6 +136,7 @@ export class Randomizer {
       // Insert array of items.
       return this._itemStore.upsertItems(this._context, items).then(items => {
 
+        // TODO(burdon): Should happen before upsert.
         // Fake timestamps (so don't show up in inbox).
         if (this._context.created) {
           _.each(items, item => {

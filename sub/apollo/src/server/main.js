@@ -72,6 +72,7 @@ const matcher = new Matcher();
 // TODO(burdon): Factor out const.
 // https://firebase.google.com/docs/database/admin/start
 const firebase = new Firebase(idGenerator, matcher, {
+
   databaseURL: FirebaseConfig.databaseURL,
 
   // Download JSON config.
@@ -81,18 +82,20 @@ const firebase = new Firebase(idGenerator, matcher, {
 });
 
 const defaultItemStore = testing ? new MemoryItemStore(idGenerator, matcher) : firebase.itemStore;
-const googleDriveItemStore = new GoogleDriveItemStore(idGenerator, matcher, GoogleApiConfig);
+//const googleDriveItemStore = new GoogleDriveItemStore(idGenerator, matcher, GoogleApiConfig);
+
+//const googleDriveItemStore = new GoogleDriveItemStore(matcher, GoogleApiConfig);
 
 const database = new Database(matcher)
 
   .registerItemStore('User', firebase.userStore)
   .registerItemStore(Database.DEFAULT, defaultItemStore)
   // TODO(madadam): Keep this? Convenient for testing: e.g. "@Document foo".
-  .registerItemStore('Document', googleDriveItemStore)
+//  .registerItemStore('Document', googleDriveItemStore)
 
   // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
   .registerSearchProvider(Database.DEFAULT, defaultItemStore)
-  .registerSearchProvider('google_drive', googleDriveItemStore)
+//  .registerSearchProvider('google_drive', googleDriveItemStore)
 
   .onMutation(() => {
     // Notify clients of changes.
@@ -150,14 +153,15 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
     context.group = group;
 
     if (testing) {
-      let randomizer = new Randomizer(defaultItemStore, _.defaults(context, {
+      // TODO(burdon): Pass query registry into Randomizer.
+      let randomizer = new Randomizer(database, _.defaults(context, {
         created: moment().subtract(10, 'days').unix()
       }));
 
       return Promise.all([
         randomizer.generate('Task', 30, {
           project: {
-            value: 'demo',
+            type: 'Project',
             likelihood: 0.75
           },
           owner: {

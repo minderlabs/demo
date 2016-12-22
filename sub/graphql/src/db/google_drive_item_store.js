@@ -36,6 +36,7 @@ class GoogleDriveClient {
     return _.get(context, 'user.credentials.google_com.accessToken');
   }
 
+  // TODO(burdon): Reimplement callbacks with promises.
   _fetchPage(client, pageToken, driveQuery, numResults, processResult, onSuccess, onError=null) {
     if (numResults <= 0) {
       onSuccess();
@@ -60,30 +61,31 @@ class GoogleDriveClient {
 
         if (response.nextPageToken) {
           this._fetchPage(
-            client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, done);
+            client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, callback);
         } else {
-          onSuccess();
+          callback();
         }
       }
     });
   }
 
+  // TODO(burdon): Reimplement callbacks with promises.
   search(context, driveQuery, maxResults, processResult, onSucces, onError) {
-    const oauth2Client = this._getOAuthClient(context);
+    let oauth2Client = this._getOAuthClient(context);
     this._fetchPage(oauth2Client, null, driveQuery, maxResults, processResult, onSucces, onError);
   }
 }
 
 /**
- *
+ * Google Drive.
  */
 export class GoogleDriveItemStore extends ItemStore {
 
-  // TODO(burdon): Generalize.
+  // TODO(burdon): Generalize GoogleItemStore.
 
   static makeDriveQuery(queryString) {
     // https://developers.google.com/drive/v3/web/search-parameters
-    return `fullText contains \'${queryString}\'`;
+    return _.isEmpty(queryString) ? null : `fullText contains \'${queryString}\'`;
   }
 
   /**
@@ -123,16 +125,14 @@ export class GoogleDriveItemStore extends ItemStore {
   // ItemStore API.
   //
 
+  // TODO(burdon): QueryProcessor interface.
+
   upsertItems(context, items) {
-    // FIXME: Create a separate SearchProvider interface that only support search (queryItems), vs. ItemStore
-    // that supports writing.
-    console.log('GoogleDriveItemStore does not support upsert.');
-    return Promise.resolve(items);
+    throw 'Not Supported';
   }
 
   getItems(context, type, itemIds) {
-    console.log('GoogleDriveItemStore does not support getItems.');
-    return Promise.resolve([]);
+    throw 'Not Supported';
   }
 
   queryItems(context, root, filter={}) {
@@ -141,12 +141,24 @@ export class GoogleDriveItemStore extends ItemStore {
 
     return new Promise((resolve, reject) => {
       let items = [];
+
+      // TODO(burdon): Reimplement callbacks with promises.
       let driveQuery = GoogleDriveItemStore.makeDriveQuery(filter.text);
-      this._driveClient.search(context, driveQuery, maxResults,
-        (result) => { items.push(GoogleDriveItemStore.resultToItem(this._idGenerator, result)); },
-        () => { resolve(items); },
-        (err) => { reject(err); }
-      );
+      if (!driveQuery) {
+        resolve(items);
+      } else {
+        this._driveClient.search(context, driveQuery, maxResults,
+          (result) => {
+            items.push(GoogleDriveItemStore.resultToItem(result));
+          },
+          () => {
+            resolve(items);
+          },
+          (err) => {
+            reject(err);
+          }
+        );
+      }
     });
   }
 }

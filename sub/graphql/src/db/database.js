@@ -126,6 +126,9 @@ export class Database extends ItemStore {
     return itemStore.queryItems(context, root, filter, offset, count);
   }
 
+  /**
+   * @returns {Promise}
+   */
   search(context, root, filter={}, offset=0, count=10) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 

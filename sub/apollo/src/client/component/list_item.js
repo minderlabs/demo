@@ -4,7 +4,6 @@
 
 import React from 'react';
 
-import { DocumentListItem } from './type/document';
 import { TypeRegistry } from './type/registry';
 
 /**
@@ -18,7 +17,7 @@ export class ListItem extends React.Component {
     item:           React.PropTypes.object.isRequired,
 
     onSelect:       React.PropTypes.func.isRequired,
-    onLabelUpdate:  React.PropTypes.func.isRequired
+    onLabelUpdate:  React.PropTypes.func
   };
 
   static contextTypes = {
@@ -31,7 +30,7 @@ export class ListItem extends React.Component {
 
   handleToggleLabel(label) {
     let { item } = this.props;
-    this.props.onLabelUpdate(item, label, _.indexOf(item.labels, label) == -1);
+    this.props.onLabelUpdate && this.props.onLabelUpdate(item, label, _.indexOf(item.labels, label) == -1);
   }
 
   render() {

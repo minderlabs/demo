@@ -17,7 +17,11 @@ import ItemsPicker from '../items_picker';
  */
 const TaskFragment = gql`
   fragment TaskFragment on Task {
-    bucket  
+    bucket 
+    project {
+      id
+      title
+    }
     owner {
       id
       title
@@ -107,6 +111,10 @@ class TaskLayout extends React.Component {
     return (
       <div className="app-type-task ux-column ux-section">
         <div className="ux-data">
+          <div className="ux-data-row">
+            <div className="ux-data-label">Project</div>
+            <div className="ux-text">{ _.get(item, 'project.title') }</div>
+          </div>
           <div className="ux-data-row">
             <div className="ux-data-label">Owner</div>
             <div className="ux-text">{ _.get(item, 'owner.title') }</div>
