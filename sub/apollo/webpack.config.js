@@ -24,12 +24,16 @@ module.exports = _.merge(baseConfig, {
 
   entry: {
 
+    test: [
+      path.resolve(baseConfig.context, 'src/client/test.js')
+    ],
+
     website: [
       path.resolve(baseConfig.context, 'src/website/site.js')
     ],
 
-    test: [
-      path.resolve(baseConfig.context, 'src/client/test.js')
+    graphiql: [
+      path.resolve(baseConfig.context, 'src/graphiql/graphiql.js')
     ],
 
     main: [

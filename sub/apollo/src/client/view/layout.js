@@ -17,8 +17,8 @@ import { Navigator } from '../path'
 
 //import { Monitor } from '../component/devtools';
 
-import { SearchList } from '../component/list_factory';
 import { NavBar } from '../component/navbar';
+import { SearchList } from '../component/list_factory';
 import { SidebarPanel } from '../component/sidebar';
 import { StatusBar } from '../component/statusbar';
 
@@ -150,6 +150,9 @@ class Layout extends React.Component {
             <Monitor/>
           </div>
           */}
+
+          {/* Meta */}
+          <div className="app-meta">{ config.app.version }</div>
         </div>
       </div>
     );

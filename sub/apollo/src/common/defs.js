@@ -22,6 +22,7 @@ export const FirebaseConfig = {
 export const Const = {
 
   APP_NAME: 'Minder',
+  APP_VERSION: "0.0.2",
 
   DEF_TEAM: 'minderlabs',
 

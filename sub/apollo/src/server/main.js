@@ -136,11 +136,12 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
 
   .then(group => {
     // TODO(burdon): Is this needed in the GraphQL context below?
-    context.created = moment().subtract(10, 'days').unix();
     context.group = group;
 
     if (testing) {
-      let randomizer = new Randomizer(database, context);
+      let randomizer = new Randomizer(database, _.defaults(context, {
+        created: moment().subtract(10, 'days').unix()
+      }));
 
       return Promise.all([
         randomizer.generate('Task', 30, {
@@ -158,8 +159,8 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
           }
         }),
 
-        randomizer.generate('Contact', 5),
-        randomizer.generate('Place', 5)
+        randomizer.generate('Contact', 10),
+        randomizer.generate('Place', 10)
       ]);
     }
   }));
@@ -305,6 +306,11 @@ app.use(appRouter(authManager, clientManager, {
 
   // Additional config params.
   config: {
+    app: {
+      name: Const.APP_NAME,
+      version: Const.APP_VERSION,
+    },
+
     team: Const.DEF_TEAM,
   },
 

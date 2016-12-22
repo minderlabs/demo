@@ -6,9 +6,13 @@
 # TODO(burdon): Configure script for Jenkins.
 #
 
-NAMESPACE=minderlabs
-REPO=demo
-TAG=demo
+#NAMESPACE=minderlabs
+#REPO=demo
+#TAG=demo
+
+NAMESPACE=alienlaboratories
+REPO=node-apollo
+TAG=prod
 
 set -e
 set -v
@@ -34,6 +38,12 @@ webpack --config webpack-server.config.js
 ./scripts/create_package_file.py dist/package.json
 
 #
+# Bump version.
+#
+
+grunt version
+
+#
 # Build docker image.
 #
 
@@ -51,4 +61,3 @@ docker tag ${TAG} ${NAMESPACE}/${REPO}:latest
 #
 
 docker push ${NAMESPACE}/${REPO}
-
