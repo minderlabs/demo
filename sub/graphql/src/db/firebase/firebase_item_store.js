@@ -72,25 +72,32 @@ export class FirebaseItemStore extends ItemStore {
       this._db.ref(FirebaseItemStore.ROOT + '/' + item.type + '/' + item.id).set(item);
     });
 
-    return this._cache.getItemStore().then(itemStore => itemStore.upsertItems(context, items));
+    return this._cache.getItemStore()
+      .then(itemStore => itemStore.upsertItems(context, items));
   }
 
   getItems(context, type, itemIds) {
-    return this._cache.getItemStore().then(itemStore => itemStore.getItems(context, type, itemIds));
+    return this._cache.getItemStore()
+      .then(itemStore => itemStore.getItems(context, type, itemIds));
   }
 
   queryItems(context, root, filter={}, offset=0, count=10) {
-    let items = this._cache.getItemStore().then(itemStore => itemStore.queryItems(context, root, filter));
+    return this._cache.getItemStore()
+      .then(itemStore => itemStore.queryItems(context, root, filter))
+      .then(items => {
+        // Sort.
+        let orderBy = filter.orderBy;
+        if (orderBy) {
+          console.assert(orderBy.field);
+          items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
+        }
 
-    // Sort.
-    let orderBy = filter.orderBy;
-    if (orderBy) {
-      console.assert(orderBy.field);
-      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
-    }
+        console.log(items.length + '::' + count);
 
-    console.log(items.length + '::' + count);
+        // Page.
+        items = _.slice(items, offset, offset + count);
 
-    return items;
+        return items;
+      });
   }
 }
