@@ -215,6 +215,7 @@ export class Matcher {
         }
 
         default: {
+          // TODO(burdon): Note we could use the resolver's info attribute to enable to ref to reference ancestor nodes.
           if (_.get(root, ref)) {
             // TODO(madadam): Resolve other scalar types.
             inputValue = { id: _.get(root, ref) };

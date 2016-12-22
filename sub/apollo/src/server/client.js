@@ -86,7 +86,7 @@ export class ClientManager {
     console.assert(userId);
 
     let client = {
-      id: ClientManager.idGenerator.createId(),
+      id: ClientManager.idGenerator.createId(),   // TODO(burdon): Pass into constructor.
       userId: userId,
       socketId: null,
       registered: null

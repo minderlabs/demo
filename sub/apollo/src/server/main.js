@@ -15,9 +15,9 @@ import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
 import { IdGenerator, Matcher, MemoryItemStore, Logger, Randomizer } from 'minder-core';
-import { Database, Firebase, graphqlRouter } from 'minder-graphql';
+import { Database, Firebase, GoogleDriveItemStore, graphqlRouter } from 'minder-graphql';
 
-import { Const, FirebaseConfig } from '../common/defs';
+import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
@@ -57,13 +57,6 @@ const testing = (env !== 'production');
 // Express.
 //
 
-// TODO(burdon): Use injector pattern (esp for async startup).
-let promises = [];
-
-const idGenerator = new IdGenerator(1000);
-
-const matcher = new Matcher();
-
 const app = express();
 
 const server = http.Server(app);
@@ -71,6 +64,10 @@ const server = http.Server(app);
 const socketManager = new SocketManager(server);
 
 const clientManager = new ClientManager(socketManager);
+
+const idGenerator = new IdGenerator(1000);
+
+const matcher = new Matcher();
 
 // TODO(burdon): Factor out const.
 // https://firebase.google.com/docs/database/admin/start
@@ -84,12 +81,18 @@ const firebase = new Firebase(idGenerator, matcher, {
 });
 
 const defaultItemStore = testing ? new MemoryItemStore(idGenerator, matcher) : firebase.itemStore;
+const googleDriveItemStore = new GoogleDriveItemStore(idGenerator, matcher, GoogleApiConfig);
 
 const database = new Database(matcher)
 
   .registerItemStore('User', firebase.userStore)
-
   .registerItemStore(Database.DEFAULT, defaultItemStore)
+  // TODO(madadam): Keep this? Convenient for testing: e.g. "@Document foo".
+  .registerItemStore('Document', googleDriveItemStore)
+
+  // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
+  .registerSearchProvider(Database.DEFAULT, defaultItemStore)
+  .registerSearchProvider('google_drive', googleDriveItemStore)
 
   .onMutation(() => {
     // Notify clients of changes.
@@ -97,7 +100,7 @@ const database = new Database(matcher)
     clientManager.invalidateOthers();
   });
 
-const authManager = new AuthManager(firebase.admin);
+const authManager = new AuthManager(firebase.admin, firebase.userStore);
 
 
 //
@@ -127,6 +130,9 @@ _.each(require('./testing/test.json'), (items, type) => {
 //
 // Create test data.
 //
+
+// TODO(burdon): Use injector pattern (esp for async startup).
+let promises = [];
 
 promises.push(database.queryItems({}, {}, { type: 'User' })
   .then(users => {
@@ -263,9 +269,7 @@ app.use(graphqlRouter(database, {
       }
 
       return {
-        user: {
-          id: userInfo && userInfo.id
-        }
+        user: userInfo
       };
     })
 }));

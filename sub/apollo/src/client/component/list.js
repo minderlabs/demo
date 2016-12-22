@@ -111,10 +111,10 @@ export class List extends React.Component {
               refs = (
                 <div className="ux-list-item-refs">
                   {item.refs.map(ref => (
-                    <ListItem key={ ref.item.id }
-                              item={ ref.item }
-                              icon={ icon(ref.item) }
-                              onSelect={ this.handleItemSelect.bind(this, ref.item) }/>
+                    <ListItem key={ ref.id }
+                              item={ ref }
+                              icon={ icon(ref) }
+                              onSelect={ this.handleItemSelect.bind(this, ref) }/>
                   ))}
                 </div>
               );

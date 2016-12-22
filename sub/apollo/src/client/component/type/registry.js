@@ -9,6 +9,7 @@ import TeamCard from './team';
 import PlaceCard from './place';
 import ProjectCard from './project';
 import TaskCard from './task';
+import { DocumentCard, DocumentListItem } from './document';
 
 /**
  * Type registry.
@@ -25,6 +26,19 @@ export class TypeRegistry {
     console.assert(type && itemId);
     let spec = this._types.get(type);
     return spec && spec.render(itemId) || <div>NO HANDLER FOR [{ type }]</div>;
+  }
+
+  /**
+   * Optionally render a customized ListItem component.
+   * @param type
+   * @param item
+   * @param onClick
+   * @returns {V|*|null} rendered component, or null if the type doesn't provide a customized ListItem.
+   */
+  renderToListItem(type, item, onClick) {
+    console.assert(type && item);
+    let spec = this._types.get(type);
+    return spec && spec.renderToListItem && spec.renderToListItem(item, onClick) || null;
   }
 
   // TODO(burdon): Factor out mutator requirements (provide object).
@@ -48,6 +62,12 @@ export class TypeFactory {
 
   static create() {
     let registry = new TypeRegistry();
+
+    registry._types.set('Document', {
+      icon: 'insert_drive_file', // FIXME
+      render: (itemId) => <DocumentCard itemId={ itemId }/>,
+      renderToListItem: (item, onClick) => <DocumentListItem item={ item } />
+    });
 
     registry._types.set('Group', {
       icon: 'group',

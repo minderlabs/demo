@@ -45,7 +45,8 @@
         "orderBy": {
           "field": "modified",
           "order": "DESC"
-        }
+        },
+        "shouldAggregate": false
       }
     },
     {
@@ -62,7 +63,8 @@
             { "ref": "$USER_ID", "field": "owner" },
             { "ref": "$USER_ID", "field": "assignee" }
           ]
-        }
+        },
+        "shouldAggregate": false
       }
     },
     {
@@ -72,7 +74,8 @@
       "title": "Favorites",
       "icon": "star",
       "filter": {
-        "labels": ["_favorite"]
+        "labels": ["_favorite"],
+        "shouldAggregate": false
       }
     },
     {
@@ -82,7 +85,8 @@
       "title": "Projects",
       "icon": "assignment",
       "filter": {
-        "type": "Project"
+        "type": "Project",
+        "shouldAggregate": false
       }
     },
     {
@@ -92,7 +96,8 @@
       "title": "Deleted",
       "icon": "delete",
       "filter": {
-        "labels": ["_deleted"]
+        "labels": ["_deleted"],
+        "shouldAggregate": false
       }
     }
   ]

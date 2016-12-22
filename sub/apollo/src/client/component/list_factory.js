@@ -12,6 +12,7 @@ import { Matcher, Mutator, Reducer } from 'minder-core';
 import { UpdateItemMutation } from '../data/mutations';
 
 import { TypeRegistry } from './type/registry';
+import { DocumentFragment } from './type/document';
 import { List } from './list';
 
 /**
@@ -34,11 +35,11 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 /**
- * TODO(burdon): Document.
+ * List factory, compose a List component from a query.
  *
- * @param query
- * @param itemsGetter
- * @returns {*}
+ * @param query Gql object that defines the query to fetch items for this list.
+ * @param itemsGetter function(data) => items, converts query response to list items.
+ * @returns {*} React component.
  */
 function composeList(query, itemsGetter) {
   return compose(
@@ -118,6 +119,10 @@ class WrappedList extends List {
   // May be spurious (see http://dev.apollodata.com/react/fragments.html)
   // https://github.com/apollostack/graphql-tag/pull/22 [12/1/16] => 0.6
 
+  // TODO(madadam). Each type-specific ListItem type needs to define its own fragment. Currently hard-coded
+  // here (e.g. DocumentFragment). Instead, getItemFragment should iterate over the TypeRegistry to get
+  // type-specific fragments to include.
+
   /**
    * Defines properties needed by Item.
    * NOTE: External definition used by static propTypes.
@@ -134,7 +139,10 @@ class WrappedList extends List {
   
       labels
       title
+        
+      ...DocumentFragment
     }
+    ${DocumentFragment}
   `;
 
   getItemFragment() {
@@ -154,11 +162,10 @@ const SearchQuery = gql`
 
       ...ListItemFragment
       
-      refs {
-        snippet
-        item {
-          ...ListItemFragment
-        }
+      ...on Project {
+          refs {
+              ...ListItemFragment
+          }
       }
     }
   }

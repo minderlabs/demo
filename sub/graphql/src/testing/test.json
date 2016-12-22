@@ -40,7 +40,8 @@
       "id": "favorites",
       "title": "Favorites",
       "filter": {
-        "labels": ["_favorite"]
+        "labels": ["_favorite"],
+        "shouldAggregate": false
       }
     }
   ]

@@ -94,8 +94,8 @@ class Layout extends React.Component {
         <div className="app-main-panel ux-panel">
 
           {/* Header */}
-          <div className="ux-app-header ux-section ux-row">
-            <div className="ux-expand">
+          <div className="ux-app-header ux-row">
+            <div className="ux-row ux-expand">
               <SidebarToggle sidebar={ () => this.refs.sidebar }/>
               <h1>{ Const.APP_NAME }</h1>
             </div>

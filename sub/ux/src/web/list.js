@@ -12,7 +12,6 @@ import './list.less';
 export class List extends React.Component {
 
   // TODO(burdon): Inline create.
-  // TODO(burdon): Default renderers
   // TODO(burdon): Renderers as components (with callbacks: e.g., select, save, etc.)
   // TODO(burdon): Optional chrome (e.g., create button).
   // TODO(burdon): Optional more button.
@@ -32,9 +31,9 @@ export class List extends React.Component {
   );
 
   static propTypes = {
+    items: React.PropTypes.arrayOf(React.PropTypes.object),
     renderItem: React.PropTypes.func,
-    renderEditor: React.PropTypes.func,
-    items: React.PropTypes.arrayOf(React.PropTypes.object)
+    renderEditor: React.PropTypes.func
   };
 
   static defaultProps = {

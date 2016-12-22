@@ -12,7 +12,7 @@
 
 NAMESPACE=alienlaboratories
 REPO=node-apollo
-TAG=prod
+TAG=node-apollo
 
 set -e
 set -v
@@ -41,7 +41,7 @@ webpack --config webpack-server.config.js
 # Bump version.
 #
 
-grunt version
+grunt version:client:patch
 
 #
 # Build docker image.
