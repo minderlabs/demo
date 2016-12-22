@@ -34,7 +34,7 @@ class GoogleDriveClient {
   }
 
   search(context, driveQuery, maxResults, processResult, callback, errback) {
-    const oauth2Client = this._getOAuthClient(context);
+    let oauth2Client = this._getOAuthClient(context);
     this._fetchPage(oauth2Client, null, driveQuery, maxResults, processResult, callback, errback);
   }
 
@@ -61,7 +61,7 @@ class GoogleDriveClient {
 
           if (response.nextPageToken) {
             this._fetchPage(
-              client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, done);
+              client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, callback);
           } else {
             callback();
           }
@@ -74,7 +74,7 @@ export class GoogleDriveItemStore extends ItemStore {
 
   static makeDriveQuery(queryString) {
     // https://developers.google.com/drive/v3/web/search-parameters
-    return `fullText contains \'${queryString}\'`;
+    return _.isEmpty(queryString) ? null : `fullText contains \'${queryString}\'`;
   }
 
   /**
@@ -132,11 +132,21 @@ export class GoogleDriveItemStore extends ItemStore {
     return new Promise((resolve, reject) => {
       let items = [];
       const driveQuery = GoogleDriveItemStore.makeDriveQuery(filter.text);
-      this._driveClient.search(context, driveQuery, maxResults,
-        (result) => { items.push(GoogleDriveItemStore.resultToItem(result)); },
-        () => { resolve(items)},
-        (err) => { reject(err) }
-      );
+      if (!driveQuery) {
+        resolve(items);
+      } else {
+        this._driveClient.search(context, driveQuery, maxResults,
+          (result) => {
+            items.push(GoogleDriveItemStore.resultToItem(result));
+          },
+          () => {
+            resolve(items);
+          },
+          (err) => {
+            reject(err);
+          }
+        );
+      }
     });
   }
 }

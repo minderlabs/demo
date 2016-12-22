@@ -84,7 +84,8 @@ const socketManager = new SocketManager(server);
 const clientManager = new ClientManager(socketManager);
 
 const defaultItemStore = testing ? new MemoryItemStore(matcher) : firebase.itemStore;
-const googleDriveItemStore = new GoogleDriveItemStore(matcher, GoogleApiConfig);
+
+//const googleDriveItemStore = new GoogleDriveItemStore(matcher, GoogleApiConfig);
 
 const database = new Database(matcher)
 
@@ -93,11 +94,11 @@ const database = new Database(matcher)
   .registerItemStore(Database.DEFAULT, defaultItemStore)
 
   // TODO(madadam): Keep this? Convenient for testing: e.g. "@Document foo".
-  .registerItemStore('Document', googleDriveItemStore)
+//  .registerItemStore('Document', googleDriveItemStore)
 
   // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
   .registerSearchProvider(Database.DEFAULT, defaultItemStore)
-  .registerSearchProvider('google_drive', googleDriveItemStore)
+//  .registerSearchProvider('google_drive', googleDriveItemStore)
 
   .onMutation(() => {
     // Notify clients of changes.
