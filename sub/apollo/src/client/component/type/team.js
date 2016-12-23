@@ -4,12 +4,14 @@
 
 import React from 'react';
 import { Link } from 'react-router';
-import gql from 'graphql-tag';
 import { propType } from 'graphql-anywhere';
+import gql from 'graphql-tag';
 
-import { ID } from 'minder-core';
+import { ID, ItemReducer } from 'minder-core';
+
 import { TextBox } from 'minder-ux';
 
+import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 
@@ -199,4 +201,6 @@ class TeamLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(TeamQuery)(TeamCard);
+export default composeItem(
+  new ItemReducer(UpdateItemMutation, TeamQuery)
+)(TeamCard);

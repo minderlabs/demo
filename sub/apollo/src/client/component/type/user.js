@@ -4,11 +4,12 @@
 
 import React from 'react';
 import { Link } from 'react-router';
-import gql from 'graphql-tag';
 import { propType } from 'graphql-anywhere';
+import gql from 'graphql-tag';
 
-import { ID } from 'minder-core';
+import { ID, ItemReducer } from 'minder-core';
 
+import { UpdateItemMutation } from '../../data/mutations';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 
 /**
@@ -117,4 +118,6 @@ class UserLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(UserQuery)(UserCard);
+export default composeItem(
+  new ItemReducer(UpdateItemMutation, UserQuery)
+)(UserCard);

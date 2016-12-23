@@ -19,7 +19,7 @@ export class Cache {
     console.assert(db && root && idGenerator && matcher && parseData);
 
     this._db = db;
-    this._root = root;
+    this._path = root;
     this._matcher = matcher;
     this._idGenerator = idGenerator;
     this._parseData = parseData;
@@ -38,7 +38,7 @@ export class Cache {
     // https://firebase.google.com/docs/database/web/read-and-write#read_data_once
     // https://firebase.google.com/docs/reference/js/firebase.database.Reference#once
     // https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
-    return this._db.ref(this._root).orderByKey().once('value').then(data => {
+    return this._db.ref(this._path).orderByKey().once('value').then(data => {
       this._parseData(this._itemStore, data);
 
       return this._itemStore;

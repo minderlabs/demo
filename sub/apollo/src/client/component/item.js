@@ -7,12 +7,8 @@ import gql from 'graphql-tag';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 
-import { ID, Matcher, Mutator, MutationUtil, Reducer, TypeUtil } from 'minder-core';
+import { ID, Matcher, Mutator, MutationUtil, ItemReducer, TypeUtil } from 'minder-core';
 import { TextBox } from 'minder-ux';
-
-import { UpdateItemMutation } from '../data/mutations';
-
-import { TypeRegistry } from './type/registry';
 
 /**
  * Basic item fragment (common fields).
@@ -161,32 +157,27 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 /**
- *
- * TODO(burdon): Similar to List factory's composeList (generalize)
- *
  * The wrapper provides the following properties:
  * {
  *   user     (from the Redux state)
  *   mutator  (from the Redux injector)
  * }
  *
- * @param query
- * @return {*}
+ * @param reducer
+ * @returns {React.Component} Item control.
  */
-export function composeItem(query) {
+export function composeItem(reducer) {
   return compose(
 
     // Map Redux state to properties.
     connect(mapStateToProps),
 
-    graphql(query, {
+    graphql(reducer.query, {
 
       // Map mproperties to query.
       // http://dev.apollodata.com/react/queries.html#graphql-options
       options: (props) => {
-        // TODO(burdon): Get from mapStateToProps.
         let matcher = props.injector.get(Matcher);
-        let typeRegistry = props.injector.get(TypeRegistry);
 
         let { type, id:localItemId } = ID.fromGlobalId(props.itemId);
 
@@ -196,22 +187,22 @@ export function composeItem(query) {
             localItemId: localItemId
           },
 
-          // TODO(burdon): Provide multiple sets (different fragments).
-          reducer: Reducer.reduce(props.context, matcher, typeRegistry, UpdateItemMutation, query)
+          reducer: (previousResult, action) => {
+            return reducer.reduceItem(props.context, matcher, previousResult, action);
+          }
         };
       },
 
       // Map query result to component properties.
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
-
         return {
-          item: data.item
+          item: reducer.getItem(data)
         };
       }
     }),
 
     // TODO(burdon): Provides props.mutator (too obscure)! Move here?
-    Mutator.graphql(UpdateItemMutation)
+    Mutator.graphql(reducer.mutation)
   );
 }

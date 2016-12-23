@@ -18,7 +18,7 @@ import './sidebar.less';
 export class SidebarPanel extends React.Component {
 
   static renderListItem = (item) => (
-    <Link key={ item.id } to={ Path.folder(item.alias) }>
+    <Link key={ item.id } to={ item.link || Path.folder(item.alias) }>
       <i className="ux-icon">{ item.icon }</i>
       { item.title }
     </Link>
@@ -27,31 +27,32 @@ export class SidebarPanel extends React.Component {
   render() {
     let { team, folders } = this.props;
 
+    // TODO(burdon): Configure folder items to allow item nav.
+    const items = [
+      {
+        id: 'group',
+        title: 'Team',
+        icon: 'group',
+        link: Path.detail('Team', ID.toGlobalId('Group', team))
+      }
+    ];
+
+    const debugItems = [
+      {
+        id: 'testing',
+        title: 'Testing',
+        icon: 'bug_report',
+        link: Path.TESTING
+      },
+    ];
+
     return (
       <div className="app-sidebar ux-column">
         <List items={ folders } renderItem={ SidebarPanel.renderListItem }/>
-
         <div className="app-divider"/>
-
-        <div className="ux-list">
-          <div className="ux-list-item">
-            <Link to={ Path.detail('Team', ID.toGlobalId('Group', team)) }>
-              <i className="ux-icon">group</i>
-              Team
-            </Link>
-          </div>
-        </div>
-
+        <List items={ items } renderItem={ SidebarPanel.renderListItem }/>
         <div className="app-divider"/>
-
-        <div className="ux-list">
-          <div className="ux-list-item">
-            <Link to={ Path.TESTING }>
-              <i className="ux-icon">bug_report</i>
-              Test
-            </Link>
-          </div>
-        </div>
+        <List items={ debugItems } renderItem={ SidebarPanel.renderListItem }/>
       </div>
     );
   }

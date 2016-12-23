@@ -7,11 +7,9 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { Matcher, Mutator, Reducer } from 'minder-core';
+import { Matcher, Mutator, ListReducer } from 'minder-core';
 
 import { UpdateItemMutation } from '../data/mutations';
-
-import { TypeRegistry } from './type/registry';
 import { DocumentFragment } from './type/document';
 import { List } from './list';
 
@@ -37,16 +35,15 @@ const mapStateToProps = (state, ownProps) => {
 /**
  * List factory, compose a List component from a query.
  *
- * @param query Gql object that defines the query to fetch items for this list.
- * @param itemsGetter function(data) => items, converts query response to list items.
- * @returns {*} React component.
+ * @param reducer Mutation reducer object.
+ * @returns {React.Component} List control.
  */
-function composeList(query, itemsGetter) {
+function composeList(reducer) {
   return compose(
 
     connect(mapStateToProps),
 
-    graphql(query, {
+    graphql(reducer.query, {
 
       // Configure query variables.
       // http://dev.apollodata.com/react/queries.html#graphql-options
@@ -55,15 +52,16 @@ function composeList(query, itemsGetter) {
         let { filter, count } = List.defaults(props);
 
         let matcher = props.injector.get(Matcher);
-        let typeRegistry = props.injector.get(TypeRegistry);
 
         // TODO(burdon): Generates a new callback each time rendered. Create property for class.
         // https://github.com/apollostack/apollo-client/blob/master/src/ApolloClient.ts
         return {
-          reducer: Reducer.reduce(props.context, matcher, typeRegistry, UpdateItemMutation, query, filter),
-
           variables: {
             filter, count, offset: 0
+          },
+
+          reducer: (previousResult, action) => {
+            return reducer.reduceItems(props.context, matcher, filter, previousResult, action);
           }
         }
       },
@@ -71,7 +69,7 @@ function composeList(query, itemsGetter) {
       // Configure props passed to component.
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
-        let items = itemsGetter(data);
+        let items = reducer.getItems(data);
         let { filter, count } = ownProps;
 
         return {
@@ -99,7 +97,7 @@ function composeList(query, itemsGetter) {
     }),
 
     // Provides mutator property.
-    Mutator.graphql(UpdateItemMutation)
+    Mutator.graphql(reducer.mutation)
 
   )(WrappedList);
 }
@@ -175,11 +173,7 @@ const SearchQuery = gql`
 `;
 
 export const SearchList = composeList(
-  SearchQuery,
-
-  (data) => {
-    return data.search
-  }
+  new ListReducer(UpdateItemMutation, SearchQuery, 'search')
 );
 
 /**
@@ -200,18 +194,12 @@ const ItemsQuery = gql`
 `;
 
 export const ItemList = composeList(
-  ItemsQuery,
-
-  (data) => {
-    return data.items
-  }
+  new ListReducer(UpdateItemMutation, ItemsQuery, 'items')
 );
 
 /**
  * List of user items.
- *
- * TODO(burdon): Change tasks to filtered items (i.e., make generic -- see GraphQL).
- * TODO(madadam): Pagination (offset/count) for user.tasks.
+ * TODO(madadam): Pagination (offset/count) for tasks.
  */
 const UserTasksQuery = gql`
   query UserTasksQuery($filter: FilterInput) {
@@ -235,9 +223,5 @@ const UserTasksQuery = gql`
 `;
 
 export const UserTaskList = composeList(
-  UserTasksQuery,
-
-  (data) => {
-    return (data.viewer && data.viewer.user && data.viewer.user.tasks) || [];
-  }
+  new ListReducer(UpdateItemMutation, UserTasksQuery, 'viewer.user.tasks')
 );

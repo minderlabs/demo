@@ -6,9 +6,10 @@ import React from 'react';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { ID } from 'minder-core';
+import { ID, ItemReducer } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
+import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 import { ItemList, UserTaskList } from '../list_factory';
@@ -64,7 +65,7 @@ const ProjectQuery = gql`
  */
 const ProjectReducer = (context, matcher, previousResult, item) => {
 
-  // TODO(burdon): Could we simplify by implementing a group mutation? (so the response is the right shape?)
+  // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
 
   // TODO(burdon): Factor out this comment and reference it.
   // The Reducer is called on mutation. When the generic UpdateItemMutation response is received we need
@@ -72,9 +73,6 @@ const ProjectReducer = (context, matcher, previousResult, item) => {
   // since the ID is used to change the existing item. For adds and deletes, Apollo has no way of knowing
   // where the item should fit (e.g., for a flat list it depends on the sort order; for complex query shapes
   // (like Group) it could be on one (or more) of the branches (e.g., Second member's tasks).
-
-  // TODO(burdon): First pass: factor out common parts with Reducer.
-  // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
 
   // TODO(burdon): FIX: Not part of main query (e.g., shared notes).
   let assignee = _.get(item, 'assignee.id');
@@ -114,6 +112,7 @@ const ProjectReducer = (context, matcher, previousResult, item) => {
     }
   };
 
+  // Return the operation.
   return { item: { team: { members: { [idx]: { tasks: op } } } } };
 };
 
@@ -121,8 +120,6 @@ const ProjectReducer = (context, matcher, previousResult, item) => {
  * Type-specific card container.
  */
 class ProjectCard extends React.Component {
-
-  static reducer = ProjectReducer;
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -394,4 +391,6 @@ class ProjectLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(ProjectQuery)(ProjectCard);
+export default composeItem(
+  new ItemReducer(UpdateItemMutation, ProjectQuery, ProjectReducer)
+)(ProjectCard);

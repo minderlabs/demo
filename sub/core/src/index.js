@@ -15,6 +15,7 @@ export * from './data/mutations';
 export * from './data/parser';
 export * from './data/queries';
 export * from './data/randomizer';
+export * from './data/reducer';
 export * from './data/transforms';
 
 export $$ from './util/format';

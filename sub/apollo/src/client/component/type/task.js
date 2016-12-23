@@ -3,11 +3,12 @@
 //
 
 import React from 'react';
-import gql from 'graphql-tag';
 import { propType } from 'graphql-anywhere';
+import gql from 'graphql-tag';
 
-import { MutationUtil, TypeUtil } from 'minder-core';
+import { MutationUtil, TypeUtil, ItemReducer } from 'minder-core';
 
+import { UpdateItemMutation } from '../../data/mutations';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 
 import ItemsPicker from '../items_picker';
@@ -134,4 +135,6 @@ class TaskLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(TaskQuery)(TaskCard);
+export default composeItem(
+  new ItemReducer(UpdateItemMutation, TaskQuery)
+)(TaskCard);
