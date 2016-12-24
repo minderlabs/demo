@@ -61,7 +61,7 @@ function composeList(reducer) {
           },
 
           reducer: (previousResult, action) => {
-            return reducer.reduceItems(props.context, matcher, filter, previousResult, action);
+            return reducer.reduceItems(matcher, props.context, filter, previousResult, action);
           }
         }
       },
@@ -173,7 +173,16 @@ const SearchQuery = gql`
 `;
 
 export const SearchList = composeList(
-  new ListReducer(UpdateItemMutation, SearchQuery, 'search')
+  new ListReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: SearchQuery,
+      path: 'search'
+    }
+  })
 );
 
 /**
@@ -194,7 +203,16 @@ const ItemsQuery = gql`
 `;
 
 export const ItemList = composeList(
-  new ListReducer(UpdateItemMutation, ItemsQuery, 'items')
+  new ListReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: ItemsQuery,
+      path: 'items'
+    }
+  })
 );
 
 /**
@@ -223,5 +241,14 @@ const UserTasksQuery = gql`
 `;
 
 export const UserTaskList = composeList(
-  new ListReducer(UpdateItemMutation, UserTasksQuery, 'viewer.user.tasks')
+  new ListReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: UserTasksQuery,
+      path: 'viewer.user.tasks'
+    }
+  })
 );

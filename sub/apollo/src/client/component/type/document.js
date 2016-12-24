@@ -15,27 +15,26 @@ import { composeItem, CardContainer, ItemFragment } from '../item';
  * Type-specific fragment.
  */
 export const DocumentFragment = gql`
-    fragment DocumentFragment on Document {
-        url
-        iconUrl
-        source
-    }
+  fragment DocumentFragment on Document {
+    url
+    iconUrl
+    source
+  }
 `;
 
 /**
  * Type-specific query.
  */
 const DocumentQuery = gql`
-    query DocumentQuery($itemId: ID!) {
-
-        item(itemId: $itemId) {
-            ...ItemFragment
-            ...DocumentFragment
-        }
+  query DocumentQuery($itemId: ID!) {
+    item(itemId: $itemId) {
+      ...ItemFragment
+      ...DocumentFragment
     }
+  }
 
-    ${ItemFragment}
-    ${DocumentFragment}
+  ${ItemFragment}
+  ${DocumentFragment}
 `;
 
 /**
@@ -133,5 +132,14 @@ export class DocumentListItem extends React.Component {
  * HOC.
  */
 export default composeItem(
-  new ItemReducer(UpdateItemMutation, DocumentQuery)
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: DocumentQuery,
+      path: 'item'
+    }
+  })
 )(DocumentCard);

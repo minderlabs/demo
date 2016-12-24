@@ -188,7 +188,7 @@ export function composeItem(reducer) {
           },
 
           reducer: (previousResult, action) => {
-            return reducer.reduceItem(props.context, matcher, previousResult, action);
+            return reducer.reduceItem(matcher, props.context, previousResult, action);
           }
         };
       },

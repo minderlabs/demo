@@ -202,5 +202,14 @@ class TeamLayout extends React.Component {
  * HOC.
  */
 export default composeItem(
-  new ItemReducer(UpdateItemMutation, TeamQuery)
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: TeamQuery,
+      path: 'item'
+    }
+  })
 )(TeamCard);

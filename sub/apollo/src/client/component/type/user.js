@@ -119,5 +119,14 @@ class UserLayout extends React.Component {
  * HOC.
  */
 export default composeItem(
-  new ItemReducer(UpdateItemMutation, UserQuery)
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: UserQuery,
+      path: 'item'
+    }
+  })
 )(UserCard);

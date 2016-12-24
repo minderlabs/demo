@@ -58,12 +58,12 @@ const ProjectQuery = gql`
 /**
  * Type-specific reducer.
  *
- * @param context
  * @param matcher
+ * @param context
  * @param previousResult
  * @param item
  */
-const ProjectReducer = (context, matcher, previousResult, item) => {
+const ProjectReducer = (matcher, context, previousResult, item) => {
 
   // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
 
@@ -88,7 +88,7 @@ const ProjectReducer = (context, matcher, previousResult, item) => {
   // Add, update or remove.
   let member = members[idx];
   let tasks = member.tasks;
-  let taskIdx = _.findIndex(tasks, (task) => task.id == item.id);
+  let taskIdx = _.findIndex(tasks, task => task.id == item.id);
 
   // Create the resolver operator.
   let op = {
@@ -96,7 +96,7 @@ const ProjectReducer = (context, matcher, previousResult, item) => {
       if (taskIdx == -1) {
         return [...tasks, item];
       } else {
-        return _.compact(_.map(tasks, (task) => {
+        return _.compact(_.map(tasks, task => {
           if (task.id == item.id) {
             // TODO(burdon): Context.
             // TODO(burdon): Extract filter from query and use matcher to determine if remove.
@@ -392,5 +392,15 @@ class ProjectLayout extends React.Component {
  * HOC.
  */
 export default composeItem(
-  new ItemReducer(UpdateItemMutation, ProjectQuery, ProjectReducer)
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: ProjectQuery,
+      path: 'item'
+    }
+  }),
+  ProjectReducer
 )(ProjectCard);

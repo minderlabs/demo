@@ -61,22 +61,36 @@ update.extend('$remove', (updatedItem, items) => {
  */
 class Reducer {
 
-  constructor(mutation, query, path) {
-    console.assert(mutation && query && path);
-    console.assert(_.isString(path));
+  /**
+   * @param spec Object of the form below:
+   *
+   * {
+   *   mutation {
+   *     type: MutationType,
+   *     path: "mutation_action_data_path"
+   *   },
+   *   query: {
+   *     type: QueryType
+   *     path: "query_result_path"
+   *   }
+   * }
+   */
+  constructor(spec) {
+    console.assert(spec);
 
-    // NOTE: The current implementation assumes a common mutation (i.e., UpdateItemMutation).
-    this._mutation = mutation;
-    this._query = query;
-    this._path = path;
+    this._spec = spec;
   }
 
   get mutation() {
-    return this._mutation;
+    return this._spec.mutation.type;
   }
 
   get query() {
-    return this._query;
+    return this._spec.query.type;
+  }
+
+  getResult(data) {
+    return _.get(data, this._spec.query.path);
   }
 
   /**
@@ -85,10 +99,10 @@ class Reducer {
    * @returns {Item}
    */
   getMutatedItem(action) {
-    let mutationName = this._mutation.definitions[0].name.value;
+    let mutationName = this.mutation.definitions[0].name.value;
     if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === mutationName) {
       // TODO(burdon): Must match mutation (make customizable).
-      return action.result.data.updateItem;
+      return _.get(action.result.data, this._spec.mutation.path);
     }
   }
 
@@ -104,34 +118,36 @@ class Reducer {
  */
 export class ListReducer extends Reducer {
 
-  constructor(mutation, query, path) {
-    super(mutation, query, path);
+  constructor(spec) {
+    super(spec);
   }
 
   getItems(data) {
-    return _.get(data, this._path, []);
+    return this.getResult(data);
   }
+
+  // TODO(burdon): First arg should be matcher.
 
   /**
    * Execute the reducer.
    *
-   * @param context
    * @param matcher
+   * @param context
    * @param filter
    * @param previousResult
    * @param action
    *
    * @returns {*} Updated cache result.
    */
-  reduceItems(context, matcher, filter, previousResult, action) {
+  reduceItems(matcher, context, filter, previousResult, action) {
     let result = previousResult;
 
     let updatedItem = this.getMutatedItem(action);
     if (updatedItem) {
-      let queryName = this._query.definitions[0].name.value;
+      let queryName = this.query.definitions[0].name.value;
       logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
 
-      let transform = this.getTransform(context, matcher, filter, previousResult, updatedItem);
+      let transform = this.getTransform(matcher, context, filter, previousResult, updatedItem);
       if (transform) {
         result = this.doTransform(previousResult, transform);
       }
@@ -143,14 +159,14 @@ export class ListReducer extends Reducer {
   /**
    * Get the default list transformation.
    *
-   * @param context
    * @param matcher
+   * @param context
    * @param filter
    * @param previousResult
    * @param updatedItem
    * @returns {object} Transform function.
    */
-  getTransform(context, matcher, filter, previousResult, updatedItem) {
+  getTransform(matcher, context, filter, previousResult, updatedItem) {
     logger.log($$('Update items: %o', previousResult));
 
     // TODO(burdon): Is the root item needed?
@@ -159,13 +175,14 @@ export class ListReducer extends Reducer {
 
     // Determine if the item matches and is new, otherwise remove it.
     // NOTE: do nothing if it's just an update.
-    let items = _.get(previousResult, this._path);
+    let path = this._spec.query.path;
+    let items = _.get(previousResult, path);
     let insert = match && _.findIndex(items, item => item.id === updatedItem.id) === -1;
     if (insert) {
       // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
-      return { [this._path]: { $push: [ updatedItem ] } };
+      return { [path]: { $push: [ updatedItem ] } };
     } else if (!match) {
-      return { [this._path]: { $remove: updatedItem } };
+      return { [path]: { $remove: updatedItem } };
     }
   }
 }
@@ -175,36 +192,36 @@ export class ListReducer extends Reducer {
  */
 export class ItemReducer extends Reducer {
 
-  constructor(mutation, query, reducer=null, path='item') {
-    super(mutation, query, path);
+  constructor(spec, customReducer=null) {
+    super(spec);
 
     // TODO(burdon): Extend or inject?
-    this._reducer = reducer;
+    this._customReducer = customReducer;
   }
 
   getItem(data) {
-    return _.get(data, this._path);
+    return this.getResult(data);
   }
 
   /**
    * Execute the reducer.
    *
-   * @param context
    * @param matcher
+   * @param context
    * @param previousResult
    * @param action
    *
    * @returns {*} Updated cache result.
    */
-  reduceItem(context, matcher, previousResult, action) {
+  reduceItem(matcher, context, previousResult, action) {
     let result = previousResult;
 
     let updatedItem = this.getMutatedItem(action);
     if (updatedItem) {
-      let queryName = this._query.definitions[0].name.value;
+      let queryName = this.query.definitions[0].name.value;
       logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
 
-      let transform = this.getTransform(context, matcher, previousResult, updatedItem);
+      let transform = this.getTransform(matcher, context, previousResult, updatedItem);
       if (transform) {
         result = this.doTransform(previousResult, transform);
       }
@@ -216,13 +233,13 @@ export class ItemReducer extends Reducer {
   /**
    * Get the custom item transformation.
    *
-   * @param context
    * @param matcher
+   * @param context
    * @param previousResult
    * @param updatedItem
    * @returns {*}
    */
-  getTransform(context, matcher, previousResult, updatedItem) {
-    return this._reducer && this._reducer(context, matcher, previousResult, updatedItem);
+  getTransform(matcher, context, previousResult, updatedItem) {
+    return this._customReducer && this._customReducer(matcher, context, previousResult, updatedItem);
   }
 }

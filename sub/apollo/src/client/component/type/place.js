@@ -85,5 +85,14 @@ export class PlaceLayout extends React.Component {
  * HOC.
  */
 export default composeItem(
-  new ItemReducer(UpdateItemMutation, PlaceQuery)
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: PlaceQuery,
+      path: 'item'
+    }
+  })
 )(PlaceCard);

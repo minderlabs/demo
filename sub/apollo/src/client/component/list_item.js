@@ -11,6 +11,8 @@ import { TypeRegistry } from './type/registry';
  */
 export class ListItem extends React.Component {
 
+  // TODO(burdon): Create factory for different types (folder, search, cards, etc.)
+
   static propTypes = {
     // TODO(burdon): Constrain by fragment (graphql-anywhere): propType(VoteButtons.fragments.entry)
     // http://dev.apollodata.com/react/fragments.html

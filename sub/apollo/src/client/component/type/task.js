@@ -136,5 +136,14 @@ class TaskLayout extends React.Component {
  * HOC.
  */
 export default composeItem(
-  new ItemReducer(UpdateItemMutation, TaskQuery)
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: TaskQuery,
+      path: 'item'
+    }
+  })
 )(TaskCard);
