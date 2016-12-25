@@ -57,11 +57,6 @@ const ProjectQuery = gql`
 
 /**
  * Type-specific reducer.
- *
- * @param matcher
- * @param context
- * @param previousResult
- * @param updatedItem
  */
 const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
 
