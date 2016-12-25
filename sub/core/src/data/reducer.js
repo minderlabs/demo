@@ -16,8 +16,11 @@ const logger = Logger.get('reducer');
 // https://facebook.github.io/react/docs/update.html#available-commands
 //
 
-update.extend('$remove', (updatedItem, items) => {
-  return _.filter(items, item => item.id !== updatedItem.id);
+/**
+ * { items: $remove: item }
+ */
+update.extend('$remove', (item, items) => {
+  return _.filter(items, i => i.id !== item.id);
 });
 
 
@@ -47,10 +50,11 @@ update.extend('$remove', (updatedItem, items) => {
 // NOTE: If we get this right, things should work offline.
 //
 
-// TODO(burdon): Unit tests.
-// TODO(burdon): ISSUE: Are all queries' reducers called for all mutations?
+// TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
 
-// TODO(burdon): Resolve:
+// TODO(burdon): Called multiple times (on each query?) Figure out when/why and document.
+
+// TODO(burdon): Resolve issue:
 // https://github.com/apollostack/apollo-client/issues/903
 // http://dev.apollodata.com/react/cache-updates.html#resultReducers
 
@@ -60,6 +64,40 @@ update.extend('$remove', (updatedItem, items) => {
  * The reducer updates the cache after a mutation occurs (both optimistic results and results from the server).
  */
 class Reducer {
+
+  /**
+   * Creates a reducer function that returns a list with the updated item either
+   * appended or removed from the list based on the filter.
+   *
+   * @param matcher
+   * @param context
+   * @param filter
+   * @param updatedItem
+   * @returns {function([Item])}
+   */
+  // TODO(burdon): Use push/remove instead?
+  // TODO(burdon): Factor out with ListReducer class below.
+  static listApplicator(matcher, context, filter, updatedItem) {
+    return (items) => {
+      let taskIdx = _.findIndex(items, item => item.id == updatedItem.id);
+      if (taskIdx == -1) {
+        // Append.
+        return [...items, updatedItem];
+      } else {
+        return _.compact(_.map(items, item => {
+          if (item.id == updatedItem.id) {
+            // Remove if doesn't match filter.
+            if (matcher.matchItem(context, {}, filter, updatedItem)) {
+              return updatedItem;
+            }
+          } else {
+            // Keep others.
+            return item;
+          }
+        }));
+      }
+    };
+  }
 
   /**
    * @param spec Object of the form below:
@@ -108,7 +146,7 @@ class Reducer {
 
   doTransform(previousResult, transform) {
     console.assert(previousResult && transform);
-//  logger.log($$('Transform: %o: %s', previousResult, JSON.stringify(transform, 0, 2)));
+    logger.log($$('Transform: %o: %s', previousResult, JSON.stringify(transform, 0, 2)));
     return update(previousResult, transform);
   }
 }
@@ -125,8 +163,6 @@ export class ListReducer extends Reducer {
   getItems(data) {
     return this.getResult(data);
   }
-
-  // TODO(burdon): First arg should be matcher.
 
   /**
    * Execute the reducer.
@@ -167,7 +203,6 @@ export class ListReducer extends Reducer {
    * @returns {object} Transform function.
    */
   getTransform(matcher, context, filter, previousResult, updatedItem) {
-    logger.log($$('Update items: %o', previousResult));
 
     // TODO(burdon): Is the root item needed?
     // Determine if the mutated item matches the filter.
@@ -189,6 +224,12 @@ export class ListReducer extends Reducer {
 
 /**
  * The item Reducer updates the cached item (which may have a complex shape).
+ *
+ * The Reducer is called on mutation. When the generic UpdateItemMutation response is received we need
+ * to tell Apollo how to stitch the result into the cached response. For item mutations, this is easy
+ * since the ID is used to change the existing item. For adds and deletes, Apollo has no way of knowing
+ * where the item should fit (e.g., for a flat list it depends on the sort order; for complex query shapes
+ * (like Group) it could be on one (or more) of the branches (e.g., Second member's tasks).
  */
 export class ItemReducer extends Reducer {
 
