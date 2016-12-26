@@ -10,10 +10,16 @@ import _ from 'lodash';
 export class TypeUtil {
 
   /**
-   * Concise stringify (elide array contents).
+   * Concise stringify.
    */
   static stringify = (json, indent) => JSON.stringify(json, (key, value) => {
-    return _.isArray(value) ? `len(${value.length})` : value;
+    if (_.isArray(value)) {
+      return `len(${value.length})`;
+    }
+    if (_.isString(value) && value.length > 32) {
+      return value.substring(0, 32) + '...';
+    }
+    return value;
   }, indent);
 
   /**

@@ -4,6 +4,8 @@
 
 import React from 'react';
 
+import { TextBox } from './textbox';
+
 import './list.less';
 
 /**
@@ -11,24 +13,23 @@ import './list.less';
  */
 export class List extends React.Component {
 
-  // TODO(burdon): Inline create.
-  // TODO(burdon): Renderers as components (with callbacks: e.g., select, save, etc.)
+  // TODO(burdon): Events.
   // TODO(burdon): Optional chrome (e.g., create button).
   // TODO(burdon): Optional more button.
 
-  static defaultItemRenderer = (item) => {
+  static defaultItemRenderer = (list, item) => {
     return (
       <div>{ item.title }</div>
     );
   };
 
-  static renderItem = (item) => (
-    <div>{ item.title }</div>
-  );
-
-  static renderEditor = () => (
-    <input type="text"/>
-  );
+  // TODO(burdon): onCreate event.
+  // TODO(burdon): Inline editor.
+  static defaultEditor = (list) => {
+    return (
+      <TextBox/>
+    );
+  };
 
   static propTypes = {
     items: React.PropTypes.arrayOf(React.PropTypes.object),
@@ -37,7 +38,8 @@ export class List extends React.Component {
   };
 
   static defaultProps = {
-    renderItem: List.defaultItemRenderer
+    renderItem: List.defaultItemRenderer,
+    renderEditor: List.defaultEditor
   };
 
   constructor() {
@@ -57,16 +59,17 @@ export class List extends React.Component {
   render() {
     let { items=[] } = this.props;
 
+    // Rows.
     let rows = items.map(item => {
       return (
         <div key={ item.id } className="ux-list-item">
-          { this.props.renderItem(item) }
+          { this.props.renderItem(this, item) }
         </div>
       );
     });
 
     // TODO(burdon): By default at the bottom.
-    let editor = this.state.edit && this.props.renderEditor();
+    let editor = this.state.edit && this.props.renderEditor(this);
 
     return (
       <div className="ux-list">

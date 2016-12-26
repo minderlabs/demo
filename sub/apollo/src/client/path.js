@@ -2,20 +2,31 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { goBack, goForward, push } from 'react-router-redux'
+import { goBack, goForward, push } from 'react-router-redux';
 
 import { ID } from 'minder-core';
+
+// TODO(burdon): Share with server.
+const ROOT = '/app';
 
 /**
  * Router paths.
  */
 export class Path {
 
-  // TODO(burdon): Share with server.
+  static ROOT     = ROOT;
+  static HOME     = ROOT + '/inbox';
+  static BOARD    = ROOT + '/board';
+  static TESTING  = ROOT + '/testing';
 
-  static ROOT     = '/app';
-  static HOME     = '/app/inbox';
-  static TESTING  = '/app/testing';
+  /**
+   * Route path
+   * @param args Ordered array of args to be resolved.
+   * @returns {string}
+   */
+  static route(args) {
+    return Path.ROOT + '/' + _.map(args, arg => ':' + arg).join('/');
+  }
 
   /**
    * Creates a URL for the given folder.
@@ -37,6 +48,11 @@ export class Path {
   static detail(view, itemId) {
     return `${Path.ROOT}/${view}/${itemId}`;
   }
+
+  // TODO(burdon): Board layout.
+  static board(itemId) {
+    return `${Path.ROOT}/board/${itemId}`;
+  }
 }
 
 /**
@@ -55,6 +71,10 @@ export class Navigator {
 
   goForward() {
     this.dispatch(goForward());
+  }
+
+  push(path) {
+    this.dispatch(push(path));
   }
 
   pushDetail(item) {

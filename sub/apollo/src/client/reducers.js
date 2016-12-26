@@ -25,6 +25,7 @@ export const AppReducer = (config, injector) => {
 
   const initialSate = {
     minder: {
+      config: config,
       injector: injector,
       user: config.user,
       team: config.team,      // TODO(burdon): Temp. Should be queried list.

@@ -17,12 +17,28 @@ import './sidebar.less';
  */
 export class SidebarPanel extends React.Component {
 
-  static renderListItem = (item) => (
-    <Link key={ item.id } to={ item.link || Path.folder(item.alias) }>
-      <i className="ux-icon">{ item.icon }</i>
-      { item.title }
-    </Link>
-  );
+  static contextTypes = {
+    navigator: React.PropTypes.object
+  };
+
+  onSelect(path) {
+    this.context.navigator.push(path);
+  }
+
+  /**
+   * Renders the folder.
+   * NOTE: We can't use <Link> here since the sidebar's onBlur event is triggered before the Link's onClick.
+   * So we manually listen for onMouseDown which happens first.
+   */
+  renderListItem(list, item) {
+    return (
+      <div className="ux-row" key={ item.id }
+           onMouseDown={ this.onSelect.bind(this, item.link || Path.folder(item.alias)) }>
+        <i className="ux-icon">{ item.icon }</i>
+        { item.title }
+      </div>
+    );
+  }
 
   render() {
     let { team, folders } = this.props;
@@ -39,20 +55,29 @@ export class SidebarPanel extends React.Component {
 
     const debugItems = [
       {
+        id: 'board',
+        title: 'Board',
+        icon: 'view_column',
+        link: Path.BOARD
+      },
+      {
         id: 'testing',
         title: 'Testing',
         icon: 'bug_report',
         link: Path.TESTING
-      },
+      }
     ];
 
     return (
       <div className="app-sidebar ux-column">
-        <List items={ folders } renderItem={ SidebarPanel.renderListItem }/>
+        <List items={ folders }
+              renderItem={ this.renderListItem.bind(this) }/>
         <div className="app-divider"/>
-        <List items={ items } renderItem={ SidebarPanel.renderListItem }/>
+        <List items={ items }
+              renderItem={ this.renderListItem.bind(this) }/>
         <div className="app-divider"/>
-        <List items={ debugItems } renderItem={ SidebarPanel.renderListItem }/>
+        <List items={ debugItems } r
+              renderItem={ this.renderListItem.bind(this) }/>
       </div>
     );
   }

@@ -2,17 +2,14 @@
 // Copyright 2016 Minder Labs.
 //
 
-// TODO(burdon): Separate CSS for mobile, column, etc.
+.app-column-layout {
+  flex-grow: 0;
+  width: 500px;               // TODO(burdon): Testing column mode.
 
-.app-main-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-
-  background-color: #CCC;
-
-  .app-main-panel {
-    width: 500px;
+  .app-main-layout {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 
     .app-search-container {
       margin-bottom: 8px;
@@ -38,15 +35,5 @@
         box-shadow: 0 4px 8px -4px #CCC
       }
     }
-  }
-
-  .app-meta {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    padding: 2px 4px;
-    font-size: 10px;
-    color: whitesmoke;
-    background-color: #333;
   }
 }

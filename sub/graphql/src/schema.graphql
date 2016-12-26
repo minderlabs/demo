@@ -193,7 +193,7 @@ interface Item {
 }
 
 #
-# Item Types.
+# User Item Types.
 #
 
 type User implements Item {
@@ -226,6 +226,23 @@ type Group implements Item {
 
   members: [User]!
   projects: [Project]!
+}
+
+#
+# Item Types.
+#
+
+type Board implements Item {
+  id: ID!
+  bucket: ID
+  type: String!
+  alias: String
+  created: Timestamp!
+  modified: Timestamp!
+  title: String!
+  labels: [String]
+
+  # TODO(burdon): Layout meta data (ID => column, order, etc.)
 }
 
 type Folder implements Item {

@@ -10,6 +10,8 @@ TODO(burdon): When are queries triggered?
 TODO(burdon): When is reduce triggered (any mutation?)
 TODO(burdon): When is render triggered?
 
+Ths top-level component is naive (doesn't know about Redux or Apollo).
+
 ~~~~
     class Foo extends React.Component {
 
@@ -34,8 +36,33 @@ TODO(burdon): When is render triggered?
             let { items } = props.data;
         }
     }
+~~~~
 
-    // Map Redux state to component's properties.
+The Higher Order Component (HOC) add properties, dispatchers and configures queryies:
+
+https://github.com/minderlabs/demo/docs/kbase/apollo_sequence.png
+
+1). Redux.connect(mapStateToProps(state)) => component.props
+2). => graphql.options(props) => query {variables}
+3). => graphql.props(oldProps, data) =>
+
+1). Redux connect(mapStateToProps(state)) maps the app state to the components props.
+2). Apollo graphql(options(props)) maps component props to query variables.
+3). Apollo graphql(props(oldProps, data)) replaces the component's data property with custom
+    properties (e.g., adding dispatcher).
+
+~~~~
+
+    /**
+     * Map Redux state onto component properties.
+     * Called whenever the state is updated via a reducer.
+     * The component is rerendered if DIRECT objects that are accessed are updated.
+     *
+     * http://stackoverflow.com/questions/36815210/react-rerender-in-redux
+     * http://redux.js.org/docs/FAQ.html#react-rendering-too-often
+     * https://github.com/markerikson/redux-ecosystem-links/blob/master/devtools.md#component-update-monitoring
+     */
+
     mapStateToProps = (state, ownProps) => {
     }
 
@@ -63,7 +90,14 @@ TODO(burdon): When is render triggered?
         }
     `;
 
-    compose(
+    /**
+     * Connect creates the Redux Higher Order Object.
+     * NOTE: This keeps the Component dry (it defines the properties that it needs).
+     *
+     * http://redux.js.org/docs/basics/UsageWithReact.html
+     * http://redux.js.org/docs/basics/ExampleTodoList.html
+     */
+    export default compose(
     
         // Redux callbacks.
         connect(mapStateToProps, mapStateToDispatch),
@@ -136,6 +170,12 @@ TODO(burdon): When is render triggered?
         })
     )
 ~~~~
+
+
+# Issues
+- Passing vars to fragment not supported:
+    - // https://github.com/apollostack/react-apollo/issues/262
+
 
 
 # Troubleshooting

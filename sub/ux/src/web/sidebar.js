@@ -31,14 +31,11 @@ export class Sidebar extends React.Component {
   }
 
   close() {
-    // NOTE: Race condition with <Link> if not done asynchronously.
-    // Works if listen for mousedown instead.
+    // NOTE: Race condition with <Link> so use manual onMouseDown to trigger navigation events.
     // http://stackoverflow.com/questions/10652852/jquery-fire-click-before-blur-event
-    setTimeout(() => {
-      this.setState({
-        open: false
-      });
-    }, 100);
+    this.setState({
+      open: false
+    });
   }
 
   toggle(event) {

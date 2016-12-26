@@ -19,8 +19,12 @@ class TestView extends React.Component {
 
     return (
       <div>
-        <div className="ux-section-header">
+        <div className="ux-toolbar">
           <h2>Test</h2>
+          <div>
+            <i className="ux-icon ux-icon-action">view_list</i>
+            <i className="ux-icon ux-icon-action">view_module</i>
+          </div>
         </div>
 
         <List items={ items }/>
@@ -30,9 +34,9 @@ class TestView extends React.Component {
 }
 
 const TestQuery = gql`
-  query TestQuery { 
+  query TestQuery($filter: FilterInput) { 
 
-    folders {
+    items(filter: $filter) {
       id
       title
     }
@@ -47,11 +51,18 @@ export default compose(
   connect(mapStateToProps),
 
   graphql(TestQuery, {
-    props: ({ ownProps, data }) => {
-      let { folders } = data;
-
+    options: (props) => {
       return {
-        items: folders
+        variables: {
+          filter: { type: 'Task' }
+        }
+      };
+    },
+
+    props: ({ ownProps, data }) => {
+      let { items } = data;
+      return {
+        items
       };
     }
   })

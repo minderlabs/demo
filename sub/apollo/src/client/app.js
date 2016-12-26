@@ -7,7 +7,9 @@ import { IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { connect } from 'react-redux'
 import { ApolloProvider } from 'react-apollo';
 
-import Layout from './view/layout';
+import BoardLayout from './layout/board';
+import ColumnLayout from './layout/column';
+
 import DetailView from './view/detail';
 import FolderView from './view/folder';
 import TestView from './view/testing';
@@ -43,24 +45,24 @@ export class Application extends React.Component {
     // https://github.com/reactjs/react-router-redux
     //
 
-    // TODO(burdon): Move Layout to view.
-
     return (
       <ApolloProvider client={ this.props.client } store={ this.props.store }>
 
         <Router history={ this.props.history }>
 
-          <Route pattern={ Path.ROOT } component={ Layout }>
+          <Route path={ Path.BOARD } component={ BoardLayout }/>
 
+          <Route path={ Path.ROOT } component={ ColumnLayout }>
             <IndexRedirect to={ Path.HOME }/>
 
             <Route path={ Path.TESTING } component={ TestView }/>
-            <Route path="app/:folder" component={ FolderView }/>
-            <Route path="app/:view/:itemId" component={ DetailView }/>
+
+            <Route path={ Path.route(['folder']) } component={ FolderView }/>
+            <Route path={ Path.route(['view', 'itemId']) } component={ DetailView }/>
 
             <Redirect from='*' to={ Path.HOME }/>
-
           </Route>
+
         </Router>
 
       </ApolloProvider>

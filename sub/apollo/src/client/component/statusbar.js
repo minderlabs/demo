@@ -16,6 +16,7 @@ export class StatusBar extends React.Component {
   // TODO(burdon): Pass in model?
 
   static propTypes = {
+    config: React.PropTypes.object.isRequired,
     onClick: React.PropTypes.func
   };
 
@@ -64,13 +65,15 @@ export class StatusBar extends React.Component {
   }
 
   render() {
+    let { config } = this.props;
+
     function state(state) { return state ? ' ux-icon-on' : '' }
 
     // TODO(burdon): Move to config.
     const github = 'https://github.com/alienlaboratories/react-demos/issues';
 
     return (
-      <div className="ux-toolbar app-status-toolbar">
+      <div className="app-status-toolbar ux-toolbar">
         <div>
           <i className="ux-icon ux-icon-action" title="Debug info"
              onClick={ this.handleAction.bind(this, 'bug') }>bug_report</i>
@@ -87,6 +90,9 @@ export class StatusBar extends React.Component {
             <i className="ux-icon ux-icon-action" title="Database">cloud_circle</i>
           </a>
         </div>
+
+        <div className="app-status-info">{ config.app.version }</div>
+
         <div>
           <i className="ux-icon ux-icon-action" title="Refresh queries"
              onClick={ this.handleAction.bind(this, 'refresh') }>refresh</i>
