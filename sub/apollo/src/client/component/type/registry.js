@@ -4,12 +4,13 @@
 
 import React from 'react';
 
-import UserCard from './user';
-import TeamCard from './team';
-import PlaceCard from './place';
-import ProjectCard from './project';
-import TaskCard from './task';
-import DocumentCard, { DocumentListItem } from './document';
+import { BoardCard } from './board';
+import { UserCard } from './user';
+import { TeamCard } from './team';
+import { PlaceCard } from './place';
+import { ProjectCard } from './project';
+import { TaskCard } from './task';
+import { DocumentCard, DocumentListItem } from './document';
 
 /**
  * Type registry.
@@ -35,7 +36,19 @@ export class TypeRegistry {
   renderCard(type, itemId) {
     console.assert(type && itemId);
     let spec = this._types.get(type);
-    return spec && spec.renderCard(itemId) || <div>NO HANDLER FOR [{ type }]</div>;
+    return spec && spec.renderCard(itemId) || <div>Invalid Card: { type }</div>;
+  }
+
+  /**
+   *
+   * @param type
+   * @param itemId
+   * @returns {XML}
+   */
+  renderCanvas(type, itemId) {
+    console.assert(type && itemId);
+    let spec = this._types.get(type);
+    return spec && spec.renderCanvas(itemId) || <div>Invalid Canvas: { type }</div>;
   }
 
   /**
@@ -59,6 +72,11 @@ export class TypeRegistry {
  * Class utility to create the TypeRegistry singleton.
  */
 export const TypeRegistryDefs = new TypeRegistry([
+
+  ['Board', {
+    icon: 'view_column',
+    renderCanvas: (itemId) => <BoardCard itemId={ itemId }/>
+  }],
 
   ['Document', {
     icon: 'insert_drive_file',

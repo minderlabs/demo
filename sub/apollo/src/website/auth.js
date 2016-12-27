@@ -13,6 +13,8 @@ import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
  */
 export class Auth {
 
+  // TODO(burdon): Enable offline.
+
   constructor() {
     firebase.initializeApp(FirebaseConfig);
 

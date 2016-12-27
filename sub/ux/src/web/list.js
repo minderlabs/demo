@@ -13,46 +13,83 @@ import './list.less';
  */
 export class List extends React.Component {
 
-  // TODO(burdon): Events.
-  // TODO(burdon): Optional chrome (e.g., create button).
-  // TODO(burdon): Optional more button.
+  // Integration:
+  // TODO(burdon): Replace Project card lists.
+  // TODO(burdon): Replace Folder view lists.
 
-  static defaultItemRenderer = (list, item) => {
-    return (
-      <div>{ item.title }</div>
-    );
-  };
-
-  // TODO(burdon): onCreate event.
   // TODO(burdon): Inline editor.
-  static defaultEditor = (list) => {
+  // TODO(burdon): Auto more (and button).
+
+  static DefaultItemRenderer = (list, item) => {
     return (
-      <TextBox/>
+      <div className="ux-row ux-data-row">
+        <div className="ux-text">{ item.title }</div>
+      </div>
     );
   };
+
+  // TODO(burdon): Add save/cancel buttons.
+  static DefaultEditor = React.createClass({
+
+    onSave() {
+      let title = this.refs.title.value;
+      this.props.onSave && this.props.onSave({ title });
+    },
+
+    render() {
+      // TODO(burdon): Value doesn't change.
+      let { item } = this.props;
+      let title = item && item.title;
+
+      return (
+        <div className="ux-row ux-data-row">
+          <TextBox ref="title" className="ux-expand" value={ title } onEnter={ this.onSave }/>
+          <i className="ux-icon ux-icon-action" onClick={ this.onSave }>add</i>
+        </div>
+      );
+    }
+  });
 
   static propTypes = {
+    className: React.PropTypes.string,
     items: React.PropTypes.arrayOf(React.PropTypes.object),
-    renderItem: React.PropTypes.func,
-    renderEditor: React.PropTypes.func
+    itemRenderer: React.PropTypes.func,
+    itemEditor: React.PropTypes.func,
+    onItemSave: React.PropTypes.func,
+    addItem: React.PropTypes.bool
   };
 
   static defaultProps = {
-    renderItem: List.defaultItemRenderer,
-    renderEditor: List.defaultEditor
+    itemRenderer: List.DefaultItemRenderer,
+    itemEditor: List.DefaultEditor
   };
 
   constructor() {
     super(...arguments);
 
     this.state = {
-      edit: false
+      itemRenderer: this.props.itemRenderer,
+      itemEditor: this.props.itemEditor,
+      editedItem: null
     }
   }
 
-  create(edit) {
+  set itemRenderer(itemRenderer) {
     this.setState({
-      edit: edit
+      itemRenderer: itemRenderer || List.DefaultItemRenderer
+    });
+  }
+
+  set itemEditor(itemEditor) {
+    this.setState({
+      itemEditor: itemEditor || List.DefaultItemRenderer
+    });
+  }
+
+  onItemSave(item) {
+    this.props.onItemSave && this.props.onItemSave(item);
+    this.setState({
+      editedItem: null
     });
   }
 
@@ -63,20 +100,28 @@ export class List extends React.Component {
     let rows = items.map(item => {
       return (
         <div key={ item.id } className="ux-list-item">
-          { this.props.renderItem(this, item) }
+          { this.state.itemRenderer(this, item) }
         </div>
       );
     });
 
+    // Editor.
     // TODO(burdon): By default at the bottom.
-    let editor = this.state.edit && this.props.renderEditor(this);
+    let editor = null;
+    if (this.props.addItem) {
+      const Editor = List.DefaultEditor;
+      editor = (
+        <div className="ux-list-item ux-list-editor">
+          <Editor item={ this.state.editedItem } onSave={ this.onItemSave.bind(this) }/>
+        </div>
+      );
+    }
+
+    let className = 'ux-list ' + this.props.className || '';
 
     return (
-      <div className="ux-list">
-        <div>
-          { rows }
-        </div>
-
+      <div className={ className }>
+        { rows }
         { editor }
       </div>
     );

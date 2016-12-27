@@ -58,7 +58,7 @@ const TeamQuery = gql`
  *
  * NOTE: Team is a card view for the Group item type.
  */
-class TeamCard extends React.Component {
+class TeamCardComponent extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -201,7 +201,7 @@ class TeamLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(
+export const TeamCard = composeItem(
   new ItemReducer({
     mutation: {
       type: UpdateItemMutation,
@@ -212,4 +212,4 @@ export default composeItem(
       path: 'item'
     }
   })
-)(TeamCard);
+)(TeamCardComponent);

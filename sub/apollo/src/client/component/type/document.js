@@ -40,7 +40,7 @@ const DocumentQuery = gql`
 /**
  * Type-specific card container.
  */
-class DocumentCard extends React.Component {
+class DocumentCardComponent extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -131,7 +131,7 @@ export class DocumentListItem extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(
+export const DocumentCard = composeItem(
   new ItemReducer({
     mutation: {
       type: UpdateItemMutation,
@@ -142,4 +142,4 @@ export default composeItem(
       path: 'item'
     }
   })
-)(DocumentCard);
+)(DocumentCardComponent);

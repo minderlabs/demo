@@ -42,7 +42,7 @@ const PlaceQuery = gql`
 /**
  * Type-specific card container.
  */
-class PlaceCard extends React.Component {
+class PlaceCardComponent extends React.Component {
 
   static propTypes = {
     item: propType(PlaceFragment)
@@ -84,7 +84,7 @@ export class PlaceLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(
+export const PlaceCard = composeItem(
   new ItemReducer({
     mutation: {
       type: UpdateItemMutation,
@@ -95,4 +95,4 @@ export default composeItem(
       path: 'item'
     }
   })
-)(PlaceCard);
+)(PlaceCardComponent);

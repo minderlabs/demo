@@ -3,19 +3,18 @@
 //
 
 import React from 'react';
-import { Link } from 'react-router'
 
 import { ID } from 'minder-core';
 import { List } from 'minder-ux';
 
 import { Path } from '../path';
 
-import './sidebar.less';
+import './sidepanel.less';
 
 /**
  * Sidebar content.
  */
-export class SidebarPanel extends React.Component {
+export class SidePanel extends React.Component {
 
   static contextTypes = {
     navigator: React.PropTypes.object
@@ -30,7 +29,7 @@ export class SidebarPanel extends React.Component {
    * NOTE: We can't use <Link> here since the sidebar's onBlur event is triggered before the Link's onClick.
    * So we manually listen for onMouseDown which happens first.
    */
-  renderListItem(list, item) {
+  itemRenderer(list, item) {
     return (
       <div className="ux-row" key={ item.id }
            onMouseDown={ this.onSelect.bind(this, item.link || Path.folder(item.alias)) }>
@@ -75,15 +74,15 @@ export class SidebarPanel extends React.Component {
     ];
 
     return (
-      <div className="app-sidebar ux-column">
+      <div className="app-sidepanel">
         <List items={ folders }
-              renderItem={ this.renderListItem.bind(this) }/>
+              itemRenderer={ this.itemRenderer.bind(this) }/>
         <div className="app-divider"/>
         <List items={ items }
-              renderItem={ this.renderListItem.bind(this) }/>
+              itemRenderer={ this.itemRenderer.bind(this) }/>
         <div className="app-divider"/>
         <List items={ debugItems } r
-              renderItem={ this.renderListItem.bind(this) }/>
+              itemRenderer={ this.itemRenderer.bind(this) }/>
       </div>
     );
   }

@@ -14,6 +14,24 @@ import { List } from 'minder-ux';
  */
 class TestView extends React.Component {
 
+  // TODO(burdon): Test toggle.
+  static customItemRenderer = (list, item) => {
+    return (
+      <div className="ux-row ux-data-row">
+        <i className="ux-icon">favorite_border</i>
+        <div className="ux-text">{ item.title }</div>
+      </div>
+    );
+  };
+
+  onChangeView(type) {
+    this.refs.list.itemRenderer = (type === 'card') && TestView.customItemRenderer;
+  }
+
+  onItemSave(item) {
+    console.log('Save: %s', JSON.stringify(item));
+  }
+
   render() {
     let { items } = this.props;
 
@@ -22,12 +40,14 @@ class TestView extends React.Component {
         <div className="ux-toolbar">
           <h2>Test</h2>
           <div>
-            <i className="ux-icon ux-icon-action">view_list</i>
-            <i className="ux-icon ux-icon-action">view_module</i>
+            <i className="ux-icon ux-icon-action"
+               onClick={ this.onChangeView.bind(this, 'list') }>view_list</i>
+            <i className="ux-icon ux-icon-action"
+               onClick={ this.onChangeView.bind(this, 'card') }>view_module</i>
           </div>
         </div>
 
-        <List items={ items }/>
+        <List ref="list" items={ items } addItem={ true } onItemSave={ this.onItemSave.bind(this) }/>
       </div>
     );
   }

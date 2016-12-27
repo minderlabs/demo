@@ -91,7 +91,7 @@ const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
 /**
  * Type-specific card container.
  */
-class ProjectCard extends React.Component {
+class ProjectCardComponent extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -363,7 +363,7 @@ class ProjectLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(
+export const ProjectCard = composeItem(
   new ItemReducer({
     mutation: {
       type: UpdateItemMutation,
@@ -375,4 +375,4 @@ export default composeItem(
     }
   },
   ProjectReducer)
-)(ProjectCard);
+)(ProjectCardComponent);

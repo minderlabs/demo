@@ -20,10 +20,10 @@ export class AuthManager {
 
   /**
    * @param admin Firebase admin object.
+   * @param userStore Firebase user store.
    */
   constructor(admin, userStore) {
-    console.assert(admin);
-    console.assert(userStore);
+    console.assert(admin && userStore);
     this._admin = admin;
     this._userStore = userStore;
   }

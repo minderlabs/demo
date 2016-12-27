@@ -50,7 +50,7 @@ const UserQuery = gql`
 /**
  * Type-specific card container.
  */
-class UserCard extends React.Component {
+class UserCardComponent extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -118,7 +118,7 @@ class UserLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(
+export const UserCard = composeItem(
   new ItemReducer({
     mutation: {
       type: UpdateItemMutation,
@@ -129,4 +129,4 @@ export default composeItem(
       path: 'item'
     }
   })
-)(UserCard);
+)(UserCardComponent);

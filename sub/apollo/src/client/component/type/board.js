@@ -39,7 +39,7 @@ const BoardQuery = gql`
 /**
  * Type-specific card container.
  */
-class BoardCard extends React.Component {
+class BoardCardComponent extends React.Component {
 
   static propTypes = {
     item: propType(BoardFragment)
@@ -59,7 +59,7 @@ class BoardCard extends React.Component {
 /**
  * Type-specific layout.
  */
-export class BoardLayout extends React.Component {
+class BoardLayout extends React.Component {
 
   static propTypes = {
     item: propType(BoardFragment)
@@ -79,7 +79,7 @@ export class BoardLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(
+export const BoardCard = composeItem(
   new ItemReducer({
     mutation: {
       type: UpdateItemMutation,
@@ -90,4 +90,4 @@ export default composeItem(
       path: 'item'
     }
   })
-)(BoardCard);
+)(BoardCardComponent);

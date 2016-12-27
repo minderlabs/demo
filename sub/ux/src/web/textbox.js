@@ -51,11 +51,12 @@ export class TextBox extends React.Component {
     this._timeout = Async.timeout(this.props.delay);
   }
 
+  /**
+   * Update state when parent is re-rendered (e.g., input is reused across different detail views).
+   * https://facebook.github.io/react/docs/react-component.html#componentwillreceiveprops
+   */
   componentWillReceiveProps(nextProps) {
-
-    // Update state when parent is re-rendered (e.g., input is reused across different detail views).
-    // https://facebook.github.io/react/docs/react-component.html#componentwillreceiveprops
-    if (nextProps.value != this.props.value) {
+    if (nextProps.value != this.state.value) {
       this.setState({ value: nextProps.value || '' });
     }
   }

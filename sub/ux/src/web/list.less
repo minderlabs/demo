@@ -12,5 +12,18 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+
+    padding: 0 8px;
+
+    .ux-row {
+      flex-grow: 1;
+    }
+  }
+
+  .ux-list-item:hover {
+    background-color: lightblue;
+  }
+  .ux-list-editor { // Undo hover.
+    background-color: transparent !important;
   }
 }

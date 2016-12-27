@@ -53,7 +53,7 @@ const TaskQuery = gql`
 /**
  * Type-specific card container.
  */
-class TaskCard extends React.Component {
+class TaskCardComponent extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -135,7 +135,7 @@ class TaskLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(
+export const TaskCard = composeItem(
   new ItemReducer({
     mutation: {
       type: UpdateItemMutation,
@@ -146,4 +146,4 @@ export default composeItem(
       path: 'item'
     }
   })
-)(TaskCard);
+)(TaskCardComponent);

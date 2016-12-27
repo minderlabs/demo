@@ -16,7 +16,7 @@ import { Const } from '../../common/defs';
 import { QueryRegistry } from '../data/subscriptions';
 
 import { NavBar } from '../component/navbar';
-import { SidebarPanel } from '../component/sidebar';
+import { SidePanel } from '../component/sidepanel';
 import { StatusBar } from '../component/statusbar';
 
 import { ACTION } from '../reducers';
@@ -82,7 +82,7 @@ export class BaseLayout extends React.Component {
 
     let baseClassName = 'app-base-layout ' + (className || '');
 
-    let sidebar = <SidebarPanel team={ team } folders={ folders }/>;
+    let sidePanel = <SidePanel team={ team } folders={ folders }/>;
 
     return (
       <div className="ux-fullscreen">
@@ -106,7 +106,7 @@ export class BaseLayout extends React.Component {
           <NavBar/>
 
           {/* Sidebar */}
-          <Sidebar ref="sidebar" sidebar={ sidebar }>
+          <Sidebar ref="sidebar" sidebar={ sidePanel }>
 
             {/* Content view. */}
             <div className="ux-column">
