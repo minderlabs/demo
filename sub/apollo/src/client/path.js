@@ -14,9 +14,13 @@ const ROOT = '/app';
  */
 export class Path {
 
+  // TODO(burdon): Rename detail and page (formerly board).
+  // List, Card, Full screen (aka board).
+  // Board can be rendered as a list item, card, or full screen. Fix TypeRegistry to understand.
+
   static ROOT     = ROOT;
   static HOME     = ROOT + '/inbox';
-  static BOARD    = ROOT + '/board';
+  static PAGE     = ROOT + '/page';
   static TESTING  = ROOT + '/testing';
 
   /**
@@ -41,17 +45,22 @@ export class Path {
   /**
    * Creates a URL for the given item.
    *
-   * @param view    Card view type.
    * @param itemId  Global ID.
    * @return {string}
    */
-  static detail(view, itemId) {
-    return `${Path.ROOT}/${view}/${itemId}`;
+  // TODO(burdon): Support item view type (items can have multiple views).
+  static detail(itemId) {
+    return `${Path.ROOT}/item/${itemId}`;
   }
 
-  // TODO(burdon): Board layout.
-  static board(itemId) {
-    return `${Path.ROOT}/board/${itemId}`;
+  /**
+   * Create a URL for the given board.
+   *
+   * @param itemId
+   * @returns {string}
+   */
+  static page(itemId) {
+    return `${Path.ROOT}/page/${itemId}`;
   }
 }
 
@@ -78,6 +87,6 @@ export class Navigator {
   }
 
   pushDetail(item) {
-    this.dispatch(push(Path.detail(item.type, ID.toGlobalId(item.type, item.id))));
+    this.dispatch(push(Path.detail(ID.toGlobalId(item.type, item.id))));
   }
 }

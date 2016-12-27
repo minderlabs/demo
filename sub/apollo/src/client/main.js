@@ -17,7 +17,7 @@ import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minde
 
 import { AppReducer } from './reducers';
 import { QueryRegistry } from './data/subscriptions';
-import { TypeFactory } from './component/type/registry';
+import { TypeRegistryDefs } from './component/type/registry';
 
 import { AuthManager, ConnectionManager, NetworkManager } from './network';
 import { Monitor } from './component/devtools';
@@ -47,6 +47,14 @@ let authManager = new AuthManager(config, networkManager, connectionManager);
 // Events
 //
 
+// TODO(burdon): Configure webpack so this isn't needed.
+console.assert = (value) => {
+  if (!value) {
+    console.error(new Error().stack);
+    throw 'Invalid arg.';
+  }
+};
+
 window.addEventListener('error', (error) => {
   eventHandler.emit({
     type: 'error',
@@ -75,7 +83,7 @@ const injector = new Injector([
   Injector.provider(new IdGenerator()),
   Injector.provider(new Matcher()),
   Injector.provider(new QueryParser()),
-  Injector.provider(TypeFactory.create())
+  Injector.provider(TypeRegistryDefs)
 ]);
 
 

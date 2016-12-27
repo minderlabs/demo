@@ -7,7 +7,7 @@ import { IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { connect } from 'react-redux'
 import { ApolloProvider } from 'react-apollo';
 
-import BoardLayout from './layout/board';
+import PageLayout from './layout/page';
 import ColumnLayout from './layout/column';
 
 import DetailView from './view/detail';
@@ -50,7 +50,7 @@ export class Application extends React.Component {
 
         <Router history={ this.props.history }>
 
-          <Route path={ Path.BOARD } component={ BoardLayout }/>
+          <Route path={ Path.PAGE + '/:itemId' } component={ PageLayout }/>
 
           <Route path={ Path.ROOT } component={ ColumnLayout }>
             <IndexRedirect to={ Path.HOME }/>

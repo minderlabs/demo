@@ -16,6 +16,8 @@ import './detail.less';
  */
 export default class DetailView extends React.Component {
 
+  // TODO(burdon): Rename CardView.
+
   /**
    * Properties set by the router.
    */
@@ -36,6 +38,6 @@ export default class DetailView extends React.Component {
 
     console.log('Detail[%s:%s]: %s', type, view, itemId);
     let typeRegistry = this.context.injector.get(TypeRegistry);
-    return typeRegistry.render(type, itemId);
+    return typeRegistry.renderCard(type, itemId);
   }
 }

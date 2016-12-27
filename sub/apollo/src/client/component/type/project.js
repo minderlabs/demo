@@ -268,7 +268,7 @@ class ProjectLayout extends React.Component {
 
     const memberItem = (member) => (
       <div className="ux-section-header ux-row">
-        <Link to={ Path.detail('Member', ID.toGlobalId('User', member.id)) }>
+        <Link to={ Path.detail(ID.toGlobalId('User', member.id)) }>
           <i className="ux-icon">accessibility</i>
         </Link>
         <h3 className="ux-expand">{ member.title }</h3>
@@ -280,7 +280,7 @@ class ProjectLayout extends React.Component {
     const taskList = (member) => {
       return member.tasks.map(task => (
         <div key={ task.id } className="ux-list-item ux-row ux-data-row">
-          <Link to={ Path.detail('Task', ID.toGlobalId('Task', task.id)) }>
+          <Link to={ Path.detail(ID.toGlobalId('Task', task.id)) }>
             <i className="ux-icon">assignment_turned_in</i>
           </Link>
           <div className="ux-text ux-expand">{ task.title }</div>

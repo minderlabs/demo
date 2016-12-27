@@ -242,6 +242,8 @@ type Board implements Item {
   title: String!
   labels: [String]
 
+  project: Project!
+
   # TODO(burdon): Layout meta data (ID => column, order, etc.)
 }
 

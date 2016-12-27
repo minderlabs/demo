@@ -43,23 +43,29 @@ export class SidebarPanel extends React.Component {
   render() {
     let { team, folders } = this.props;
 
-    // TODO(burdon): Configure folder items to allow item nav.
+    // TODO(burdon): Query for these by label?
     const items = [
       {
         id: 'group',
         title: 'Team',
         icon: 'group',
-        link: Path.detail('Team', ID.toGlobalId('Group', team))
-      }
+        link: Path.detail(ID.toGlobalId('Group', team))
+      },
+      {
+        id: 'demo',
+        title: 'Demo',
+        icon: 'assignment',
+        link: Path.detail(ID.toGlobalId('Project', 'demo'))
+      },
+      {
+        id: 'planning',
+        title: 'Planning',
+        icon: 'view_column',
+        link: Path.page(ID.toGlobalId('Board', 'planning'))
+      },
     ];
 
     const debugItems = [
-      {
-        id: 'board',
-        title: 'Board',
-        icon: 'view_column',
-        link: Path.BOARD
-      },
       {
         id: 'testing',
         title: 'Testing',

@@ -14,6 +14,14 @@
     }
   ],
 
+  "Board": [
+    {
+      "id": "planning",
+      "title": "Planning",
+      "project": "demo"
+    }
+  ],
+
   "Folder": [
     {
       "id": "folder_inbox",

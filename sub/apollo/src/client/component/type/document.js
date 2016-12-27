@@ -96,12 +96,10 @@ class DocumentLayout extends React.Component {
  */
 export class DocumentListItem extends React.Component {
 
-  // TODO(burdon): Remove with custom list renderer.
+  // TODO(burdon): Replace with custom list item renderer.
 
   static propTypes = {
-    // TODO(burdon): Constrain by fragment (graphql-anywhere): propType(VoteButtons.fragments.entry)
-    // http://dev.apollodata.com/react/fragments.html
-    item:           React.PropTypes.object.isRequired,
+    item: React.PropTypes.object.isRequired,
   };
 
   render() {
@@ -110,7 +108,7 @@ export class DocumentListItem extends React.Component {
     // TODO(madadam): Snippet, thumbnail image, etc.
 
     let marginIcon = item.iconUrl && (
-      <img className="ux-icon" src={ item.iconUrl} />
+      <img className="ux-icon" src={ item.iconUrl } />
     );
 
     return (
@@ -120,7 +118,9 @@ export class DocumentListItem extends React.Component {
         <div className="ux-text ux-expand" >
           <a href={ item.url }>
             { item.title }
-          </a> [{item.source}]
+          </a>
+
+          <div>{ item.source }</div>
         </div>
 
       </div>
