@@ -125,9 +125,7 @@ export class GoogleDriveItemStore extends ItemStore {
     return Promise.resolve([]);
   }
 
-  queryItems(context, root, filter={}) {
-    // TODO(madadam): Param from client.
-    const maxResults = 10;
+  queryItems(context, root, filter={}, offset=0, count=10) {
 
     return new Promise((resolve, reject) => {
       let items = [];
@@ -135,7 +133,7 @@ export class GoogleDriveItemStore extends ItemStore {
       if (!driveQuery) {
         resolve(items);
       } else {
-        this._driveClient.search(context, driveQuery, maxResults,
+        this._driveClient.search(context, driveQuery, count,
           (result) => {
             items.push(GoogleDriveItemStore.resultToItem(result));
           },
