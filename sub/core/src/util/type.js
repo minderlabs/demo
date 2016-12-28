@@ -9,6 +9,8 @@ import _ from 'lodash';
  */
 export class TypeUtil {
 
+  // TODO(burdon): Tests.
+
   /**
    * Concise stringify.
    */
@@ -23,30 +25,20 @@ export class TypeUtil {
   }, indent);
 
   /**
+   * Return true if value is effectively empty (i.e., undefined, null, [], or {} values).
+   * @param value
+   */
+  static isEmpty(value) {
+    return _.isNil(value) || (_.isObject(value) && _.isEmpty(TypeUtil.compact(value)));
+  }
+
+  /**
    * Clones simple JSON object.
    * @param obj
    */
   static clone(obj) {
     console.assert(obj);
     return JSON.parse(JSON.stringify(obj));
-  }
-
-  /**
-   * Appends array of items to array.
-   * @param array
-   * @param items
-   */
-  static append(array, items) {
-    array.splice(array.length, 0, ...items);
-    return array;
-  }
-
-  /**
-   * Return true if value is effectively empty (i.e., undefined, null, [], or {} values).
-   * @param value
-   */
-  static isEmpty(value) {
-    return _.isNil(value) || (_.isObject(value) && _.isEmpty(TypeUtil.compact(value)));
   }
 
   /**
@@ -77,6 +69,16 @@ export class TypeUtil {
   }
 
   /**
+   * Appends array of items to array.
+   * @param array
+   * @param items
+   */
+  static append(array, items) {
+    array.splice(array.length, 0, ...items);
+    return array;
+  }
+
+  /**
    * Appends non-null values to array.
    * @param array
    * @param value Value or array of values.
@@ -101,7 +103,6 @@ export class TypeUtil {
    * @return {Promise}
    */
   static iterateWithPromises(collection, func) {
-
     let p = Promise.resolve();
 
     _.each(collection, (...args) => {

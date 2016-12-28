@@ -6,7 +6,33 @@ import { TypeUtil } from './type';
 
 describe('Types:', () => {
 
-  it('Iterator of promises.', (done) => {
+  it('TypeUtil.defaultMap', () => {
+    let map = new Map();
+    TypeUtil.defaultMap(map, 'a', Array).push('x');
+    TypeUtil.defaultMap(map, 'a', Array).push('y');
+    expect(map.get('a')).to.have.lengthOf(2);
+  });
+
+  it('TypeUtil.append', () => {
+    let values = [1, 2, 3];
+    let result = TypeUtil.append(values, [4, 5]);
+    expect(result.length).to.equal(5);
+  });
+
+  it('TypeUtil.isEmpty', () => {
+    expect(TypeUtil.isEmpty()).to.be.true;
+    expect(TypeUtil.isEmpty({})).to.be.true;
+    expect(TypeUtil.isEmpty([])).to.be.true;
+    expect(TypeUtil.isEmpty(null)).to.be.true;
+    expect(TypeUtil.isEmpty({ foo: undefined })).to.be.true;
+    expect(TypeUtil.isEmpty({ foo: [] })).to.be.true;
+    expect(TypeUtil.isEmpty({ foo: {} })).to.be.true;
+
+    expect(TypeUtil.isEmpty([1])).to.be.false;
+    expect(TypeUtil.isEmpty({ foo: 1 })).to.be.false;
+  });
+
+  it('TypeUtil.iterateWithPromises', (done) => {
     let values = [];
 
     // Async function.
@@ -29,24 +55,5 @@ describe('Types:', () => {
 
       done();
     });
-  });
-
-  it('Append to array.', () => {
-    let values = [1, 2, 3];
-    let result = TypeUtil.append(values, [4, 5]);
-    expect(result.length).to.equal(5);
-  });
-
-  it('Determines if empty.', () => {
-    expect(TypeUtil.isEmpty()).to.be.true;
-    expect(TypeUtil.isEmpty({})).to.be.true;
-    expect(TypeUtil.isEmpty([])).to.be.true;
-    expect(TypeUtil.isEmpty(null)).to.be.true;
-    expect(TypeUtil.isEmpty({ foo: undefined })).to.be.true;
-    expect(TypeUtil.isEmpty({ foo: [] })).to.be.true;
-    expect(TypeUtil.isEmpty({ foo: {} })).to.be.true;
-
-    expect(TypeUtil.isEmpty([1])).to.be.false;
-    expect(TypeUtil.isEmpty({ foo: 1 })).to.be.false;
   });
 });
