@@ -171,7 +171,6 @@ export class Database extends ItemStore {
    */
   _groupBy(items) {
 
-    // TODO(burdon): Create unit test for this!
     // TODO(burdon): Reimplement using search items.
 
     let itemsById = new Map();
