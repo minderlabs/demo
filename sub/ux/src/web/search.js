@@ -36,6 +36,8 @@ export class SearchBar extends React.Component {
   }
 
   render() {
+    let { value } = this.props;
+
     let className = _.join([this.props.className, 'ux-search', 'ux-row'], ' ');
 
     return (
@@ -44,7 +46,7 @@ export class SearchBar extends React.Component {
                  className='ux-expand'
                  autoFocus={ true }
                  placeholder='Search... [@type] [#label]'
-                 value={ this.props.value}
+                 value={ value }
                  onCancel={ this.handleCancel.bind(this) }
                  onChange={ this.handleSearch.bind(this) }
         />

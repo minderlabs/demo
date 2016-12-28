@@ -146,15 +146,15 @@ input FilterInput {
   text: String
   expr: ExpressionInput  # Expression tree.
 
-  # Sort order.
-  orderBy: OrderByInput
-
   # Match empty filter.
   matchAll: Boolean
 
-  # Aggregate results.
+  # Sort order.
+  orderBy: OrderByInput
+
+  # Group results.
   # TODO(madadam): Specify aggregation key here?
-  shouldAggregate: Boolean
+  groupBy: Boolean
 }
 
 #
@@ -288,11 +288,12 @@ type Project implements Item {
 
   team: Group!
 
-  # TODO(burdon): Implement via links?
+  # TODO(burdon): Directives for links.
   tasks: [Task]!
 
   # Sub-items.
   # TODO(madadam): Rename -> items.
+  # TODO(burdon): Broken -- reimplement using SearchResult.
   refs: [Item]
 }
 

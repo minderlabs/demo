@@ -41,7 +41,7 @@
       "title": "Favorites",
       "filter": {
         "labels": ["_favorite"],
-        "shouldAggregate": false
+        "groupBy": false
       }
     }
   ]

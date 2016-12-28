@@ -27,12 +27,12 @@ class ColumnLayout extends React.Component {
   }
 
   handleItemSelect(item) {
-    this.refs.search.reset();
+    this.refs.search.reset(); // TODO(burdon): dispatch Redux state instead (and remove reference).
     this.props.navigator.pushDetail(item);
   }
 
   render() {
-    let { children, filter } = this.props;
+    let { children, filter, search } = this.props;
 
     return (
       <BaseLayout className="app-column-layout">
@@ -40,7 +40,9 @@ class ColumnLayout extends React.Component {
         {/* Search bar (and panel) */}
         <div className="app-search-container">
           <div className="ux-section ux-toolbar">
-            <SearchBar ref="search" onSearch={ this.handleSearch.bind(this) }/>
+            <SearchBar ref="search"
+                       value={ search.text }
+                       onSearch={ this.handleSearch.bind(this) }/>
           </div>
 
           {/*
@@ -74,7 +76,8 @@ const mapStateToProps = (state, ownProps) => {
   let filter = _.isEmpty(ownProps.params.view) ? {} : queryParser.parse(search.text);
 
   return {
-    filter
+    filter,
+    search
   }
 };
 

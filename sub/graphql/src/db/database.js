@@ -134,9 +134,11 @@ export class Database extends ItemStore {
 
     return this._searchAll(context, root, filter, offset, count)
       .then(items => {
-        return this._aggregateSearchResults(items, filter.shouldAggregate);
+        return filter.groupBy ? this._groupBy(items) : items;
       });
   }
+
+  // TODO(burdon): Move this out of database.
 
   /**
    * @returns {Promise}
@@ -153,80 +155,99 @@ export class Database extends ItemStore {
     }
     return Promise.all(searchPromises)
       .then((results) => {
+        // TODO(burdon): Why?
         // TODO(madadam): better merging, scoring, etc.
         //let merged = _.flatten(results);
-        let merged = [].concat.apply([], results);
-        return merged;
+        return [].concat.apply([], results);
       });
   }
 
-  // TODO(madadam): TypeUtil or TypeRegistry.
-  static aggregationKey(item) {
-    let key = null;
-    switch (item.type) {
-      case 'Task': {
-        key = item.project;
-        break;
-      }
-      // TODO(burdon): Aggregegation keys for other types.
-    }
-    return key;
-  }
-
   /**
-   * Aggregate search results where appropriate, e.g. by Project.
+   * Groups search results by common parents.
+   *
    * @param items
-   * @param shouldAggregate
-   * @returns {Array} of Item
+   * @returns {[Item]} ordered item results.
    * @private
    */
-  _aggregateSearchResults(items, shouldAggregate) {
-    let parentResultMap = new Map();
-    let results = [];
+  _groupBy(items) {
 
-    // Aggregate items.
+    // TODO(burdon): Create unit test for this!
+    // TODO(burdon): Reimplement using search items.
+
+    let itemsById = new Map();
+
+    //
+    // Create a map of items arrays indexed by common group item ID.
+    //
+
+    let groupedItems = new Map();
     _.each(items, item => {
-      let result = null;
-
-      let aggregationKey = shouldAggregate && Database.aggregationKey(item);
-
-      if (aggregationKey) {
-        result = parentResultMap.get(aggregationKey);
-        if (result) {
-          // Promote result to Project parent.
-          if (_.isEmpty(result.refs)) {
-            // Remove existing properties.
-            _.each(_.keys(result), key => {
-              delete result[key];
-            });
-
-            // Set parent properties.
-            _.assign(result, {
-              id: item.project,
-              type: 'Project',                       // TODO(madadam): Generalize aggregation type.
-              title: 'Project ' + item.project,      // TODO(burdon): Lookup project to get title.
-              refs: []
-            });
-          }
-
-          // Add result reference.
-          result.refs.push(item);
-        }
+      itemsById.set(item.id, item);
+      let groupItemId = Database.groupItemId(item);
+      if (groupItemId) {
+        TypeUtil.defaultMap(groupedItems, groupItemId, Array).push(item);
       }
+    });
 
-      // Create new result.
-      if (!result) {
-        result = item;
+    //
+    // Create groups.
+    //
 
-        // Memo the parent to aggregate more results.
-        if (aggregationKey) {
-          parentResultMap.set(aggregationKey, result);
+    let itemGroups = new Map();
+    groupedItems.forEach((items, groupItemId) => {
+      if (items.length > 1) {
+        // Check if grouped parent is actually part of the results.
+        let groupItem = itemsById.get(groupItemId);
+        if (!groupItem) {
+          // TODO(burdon): Look-up the item.
+          // TODO(burdon): Generalize for other types.
+          groupItem = {
+            id: groupItemId,
+            type: 'Project',
+            title: 'Project ' + groupItemId
+          };
         }
 
-        results.push(result);
+        groupItem.refs = items;
+        itemGroups.set(groupItemId, groupItem);
+      }
+    });
+
+    //
+    // Create the ordered results.
+    //
+
+    let results = [];
+    _.each(items, item => {
+      // Check if the item has already been listed (e.g., as part of a group).
+      if (itemsById.get(item.id)) {
+        // Get the group (either current item or parent of current item).
+        let group = itemGroups.get(item.id) || itemGroups.get(Database.groupItemId(item));
+        if (group) {
+          // Add group.
+          results.push(group);
+
+          // Remove each grouped item.
+          _.each(group.refs, item => { itemsById.delete(item.id); });
+        } else {
+          // Add plain item.
+          results.push(item);
+        }
+
+        // Don't use again.
+        itemsById.delete(item.id);
       }
     });
 
     return results;
+  }
+
+  // TODO(madadam): TypeUtil or TypeRegistry.
+  static groupItemId(item) {
+    switch (item.type) {
+      case 'Task': {
+        return item.project;
+      }
+    }
   }
 }

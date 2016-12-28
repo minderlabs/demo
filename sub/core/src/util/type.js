@@ -72,6 +72,7 @@ export class TypeUtil {
       value = new def();
       map.set(key, value);
     }
+
     return value;
   }
 

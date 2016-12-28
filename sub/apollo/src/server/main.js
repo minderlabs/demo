@@ -82,26 +82,31 @@ const firebase = new Firebase(idGenerator, matcher, {
 });
 
 const defaultItemStore = testing ? new MemoryItemStore(idGenerator, matcher) : firebase.itemStore;
-//const googleDriveItemStore = new GoogleDriveItemStore(idGenerator, matcher, GoogleApiConfig);
-
-//const googleDriveItemStore = new GoogleDriveItemStore(matcher, GoogleApiConfig);
 
 const database = new Database(matcher)
 
   .registerItemStore('User', firebase.userStore)
   .registerItemStore(Database.DEFAULT, defaultItemStore)
-  // TODO(madadam): Keep this? Convenient for testing: e.g. "@Document foo".
-//  .registerItemStore('Document', googleDriveItemStore)
 
-  // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
   .registerSearchProvider(Database.DEFAULT, defaultItemStore)
-//  .registerSearchProvider('google_drive', googleDriveItemStore)
 
   .onMutation(() => {
     // Notify clients of changes.
     // TODO(burdon): Create notifier abstraction.
     clientManager.invalidateOthers();
   });
+
+// TODO(burdon): Broken in prod.
+if (false) {
+  const googleDriveItemStore = new GoogleDriveItemStore(idGenerator, matcher, GoogleApiConfig);
+
+  database
+    // TODO(madadam): Keep this? Convenient for testing: e.g. "@Document foo".
+    .registerItemStore('Document', googleDriveItemStore)
+
+    // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
+    .registerSearchProvider('google_drive', googleDriveItemStore)
+}
 
 const authManager = new AuthManager(firebase.admin, firebase.userStore);
 

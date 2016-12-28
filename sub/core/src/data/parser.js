@@ -75,7 +75,7 @@ export class QueryParser {
       filter.text = words.join(' ');
     }
 
-    filter.shouldAggregate = true;
+    filter.groupBy = true;
 
     return TypeUtil.compact(filter);
   }

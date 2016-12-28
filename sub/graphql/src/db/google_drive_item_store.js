@@ -148,13 +148,13 @@ export class GoogleDriveItemStore extends ItemStore {
         resolve(items);
       } else {
         this._driveClient.search(context, driveQuery, maxResults,
-          (result) => {
-            items.push(GoogleDriveItemStore.resultToItem(result));
+          result => {
+            items.push(GoogleDriveItemStore.resultToItem(this._idGenerator, result));
           },
           () => {
             resolve(items);
           },
-          (err) => {
+          err => {
             reject(err);
           }
         );

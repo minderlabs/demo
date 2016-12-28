@@ -18,7 +18,7 @@ import './list.less';
  */
 export class List extends React.Component {
 
-  // TODO(burdon): Inline editor.
+  // TODO(burdon): Replace with ux list.
 
   static COUNT = 10;
 
@@ -54,6 +54,7 @@ export class List extends React.Component {
   }
 
   handleLabelUpdate(item, label, add=true) {
+    // TODO(burdon): Factor out.
     let mutations = [
       {
         field: 'labels',
