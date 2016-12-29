@@ -10,12 +10,29 @@
 #REPO=demo
 #TAG=demo
 
-NAMESPACE=alienlaboratories
+#NAMESPACE=alienlaboratories
 REPO=node-apollo
 TAG=node-apollo
+VERSION=latest
+
 
 set -e
 set -v
+
+DOCKER_REPO=${1:-docker}
+
+case "$DOCKER_REPO" in
+  docker)
+    NAMESPACE=alienlaboratories
+    ;;
+  ecr)
+    # AWS ECR
+    # https://console.aws.amazon.com/ecs/home?region=us-east-1#/repositories
+    NAMESPACE=240980109537.dkr.ecr.us-east-1.amazonaws.com
+    ;;
+  *)
+    echo Unknown docker repo $DOCKER_REPO
+esac
 
 #
 # Connect.
@@ -41,18 +58,18 @@ webpack --config webpack-server.config.js
 # Build docker image.
 #
 
-docker build -t ${TAG} .
+docker build -t ${TAG}:${VERSION} .
 
 #
 # Tag image.
 #
 
-docker tag ${TAG} ${NAMESPACE}/${REPO}:latest
+docker tag ${TAG}:${VERSION} ${NAMESPACE}/${REPO}:${VERSION}
 
 #
 # Push to Docker Hub.
 # Triggers docker push redeploy.
 #
 
-docker push ${NAMESPACE}/${REPO}
+docker push ${NAMESPACE}/${REPO}:${VERSION}
 
