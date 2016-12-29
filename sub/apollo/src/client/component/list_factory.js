@@ -99,55 +99,47 @@ function composeList(reducer) {
     // Provides mutator property.
     Mutator.graphql(reducer.mutation)
 
-  )(WrappedList);
+  )(List);
 }
 
 //
 // HOC Lists.
 //
 
+// TODO(burdon): Filter items.
+// import { filter } from 'graphql-anywhere';
+// <ListItem item={ filter(this.getItemFragment(), item) }
+
+// TODO(burdon): Warning: fragment with name ListItemFragment already exists.
+// May be spurious (see http://dev.apollodata.com/react/fragments.html)
+// https://github.com/apollostack/graphql-tag/pull/22 [12/1/16] => 0.6
+
+// TODO(madadam). Each type-specific ListItem type needs to define its own fragment. Currently hard-coded
+// here (e.g. DocumentFragment). Instead, getItemFragment should iterate over the TypeRegistry to get
+// type-specific fragments to include.
+
 /**
- * Wrapped HOC list.
+ * Defines properties needed by Item.
+ * NOTE: External definition used by static propTypes.
+ *
+ * http://dev.apollodata.com/react/fragments.html#reusing-fragments
+ * http://dev.apollodata.com/core/fragments.html
+ * http://github.com/apollostack/graphql-fragments
  */
-class WrappedList extends List {
+const ListItemFragment = gql`
+  fragment ListItemFragment on Item {
+    __typename
+    id
+    type
 
-  // TODO(burdon): Use composition instead of inheritance.
-
-  // TODO(burdon): Warning: fragment with name ListItemFragment already exists.
-  // May be spurious (see http://dev.apollodata.com/react/fragments.html)
-  // https://github.com/apollostack/graphql-tag/pull/22 [12/1/16] => 0.6
-
-  // TODO(madadam). Each type-specific ListItem type needs to define its own fragment. Currently hard-coded
-  // here (e.g. DocumentFragment). Instead, getItemFragment should iterate over the TypeRegistry to get
-  // type-specific fragments to include.
-
-  /**
-   * Defines properties needed by Item.
-   * NOTE: External definition used by static propTypes.
-   *
-   * http://dev.apollodata.com/react/fragments.html#reusing-fragments
-   * http://dev.apollodata.com/core/fragments.html
-   * http://github.com/apollostack/graphql-fragments
-   */
-  static ListItemFragment = gql`
-    fragment ListItemFragment on Item {
-      __typename
-      id
-      type
-  
-      labels
-      title
-        
-      ...DocumentFragment
-    }
-
-    ${DocumentFragment}
-  `;
-
-  getItemFragment() {
-    return WrappedList.ListItemFragment;
+    labels
+    title
+      
+    ...DocumentFragment
   }
-}
+
+  ${DocumentFragment}
+`;
 
 /**
  * List of search results.
@@ -162,14 +154,14 @@ const SearchQuery = gql`
       ...ListItemFragment
       
       ...on Project {
-          refs {
-              ...ListItemFragment
-          }
+        refs {
+          ...ListItemFragment
+        }
       }
     }
   }
 
-  ${WrappedList.ListItemFragment}
+  ${ListItemFragment}
 `;
 
 export const SearchList = composeList(
@@ -199,7 +191,7 @@ const ItemsQuery = gql`
     }
   }
 
-  ${WrappedList.ListItemFragment}
+  ${ListItemFragment}
 `;
 
 export const ItemList = composeList(
@@ -237,7 +229,7 @@ const UserTasksQuery = gql`
     }
   }
     
-  ${WrappedList.ListItemFragment}
+  ${ListItemFragment}
 `;
 
 export const UserTaskList = composeList(
