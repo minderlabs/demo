@@ -12,6 +12,36 @@ import { ID, IdGenerator } from './id';
 export class MutationUtil {
 
   /**
+   * Creates a mutation to add or remove a label.
+   * @param label
+   * @param add
+   * @returns {*[]}
+   */
+  static createLabelUpdate(label, add=true) {
+    return [
+      {
+        field: 'labels',
+        value: {
+          array: {
+            index: add ? 0 : -1,
+            value: {
+              string: label
+            }
+          }
+        }
+      }
+    ];
+  }
+
+  /**
+   * Adds the delete label.
+   * @returns {*[]}
+   */
+  static createDeleteMutation() {
+    return MutationUtil.createLabelUpdate('_deleted');
+  }
+
+  /**
    *
    * @param field
    * @param type

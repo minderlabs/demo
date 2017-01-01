@@ -13,16 +13,8 @@ import './list.less';
  */
 export class List extends React.Component {
 
-  // Integration:
-  // TODO(burdon): Replace list_factory.
-  // TODO(burdon): Replace Project card lists.
-
-  // TODO(burdon): Inline editor.
-  // TODO(burdon): Auto more (and button).
-
-  // TODO(burdon): By default render icon (callout).
-
   /**
+   * Default item renderer.
    *
    * @param list
    * @param item
@@ -38,7 +30,7 @@ export class List extends React.Component {
   };
 
   /**
-   *
+   * Inline editor.
    */
   static DefaultEditor = React.createClass({
 
@@ -66,8 +58,8 @@ export class List extends React.Component {
                    onCancel={ this.handleCancel }/>
 
           <div>
-            <i className="ux-icon ux-icon-actio ux-icon-save" onClick={ this.handleSave }>check</i>
-            <i className="ux-icon ux-icon-actio ux-icon-cancel" onClick={ this.handleCancel }>cancel</i>
+            <i className="ux-icon ux-icon-action ux-icon-save" onClick={ this.handleSave }>check</i>
+            <i className="ux-icon ux-icon-action ux-icon-cancel" onClick={ this.handleCancel }>cancel</i>
           </div>
         </div>
       );
@@ -165,7 +157,7 @@ export class List extends React.Component {
       );
     }
 
-    let className = 'ux-list ' + this.props.className || '';
+    let className = 'ux-list ' + (this.props.className || '');
 
     return (
       <div className={ className }>

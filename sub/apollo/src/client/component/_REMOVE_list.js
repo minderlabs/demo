@@ -7,7 +7,7 @@ import React from 'react';
 // TODO(burdon): Needed for icon.
 import { TypeRegistry } from './type/registry';
 
-import './list.less';
+//import './list.less';
 
 /**
  * Item List.
@@ -16,9 +16,10 @@ import './list.less';
  */
 export class List extends React.Component {
 
-  // TODO(burdon): Replace with ux list.
-  // TODO(burdon): Move mutation logic to item renderer.
   // TODO(burdon): Grouping.
+  // TODO(burdon): Custom renderer.
+  // TODO(burdon): Custom list (e.g., for documents).
+  // TODO(burdon): More...
   // TODO(burdon): Move subscriptions (QueryRegistry) to list_factory.
 
   static COUNT = 10;

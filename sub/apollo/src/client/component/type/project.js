@@ -6,13 +6,13 @@ import React from 'react';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { ID, ItemReducer, TypeUtil } from 'minder-core';
+import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
 import { List } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
-import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
+import { ItemList, UserTasksList, itemRenderer, getWrappedList } from '../list_factory';
 
 /**
  * Type-specific query.
@@ -153,28 +153,19 @@ class ProjectLayout extends React.Component {
     ];
   }
 
-  // TODO(burdon): Factor out.
-  static createDeleteMutation() {
-    return [
-      {
-        field: 'labels',
-        value: {
-          array: {
-            index: 0,
-            value: {
-              string: '_deleted'
-            }
-          }
-        }
-      }
-    ];
-  }
-
   // TODO(burdon): Move to card.
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired
   };
+
+  constructor() {
+    super(...arguments);
+
+    this._taskItemRenderer = itemRenderer({
+      handleItemDelete: this.handleTaskDelete.bind(this)
+    });
+  }
 
   // TODO(burdon): Also item select (e.g., nav to team member).
   handleTaskSelect(item) {
@@ -275,25 +266,11 @@ class ProjectLayout extends React.Component {
 
   handleTaskDelete(item) {
     // TODO(burdon): Remove from project tasks.
-    this.context.mutator.updateItem(item, ProjectLayout.createDeleteMutation());
+    this.context.mutator.updateItem(item, MutationUtil.createDeleteMutation());
   }
 
   render() {
     let { user, item:project } = this.props;
-
-    // TODO(burdon): Standardize or move to factory.
-    const taskItemRenderer = (list, item) => {
-      return (
-        <div className="ux-row ux-data-row">
-          <Link to={ Path.detail(ID.toGlobalId('Task', item.id)) }>
-            <i className="ux-icon">assignment_turned_in</i>
-          </Link>
-          <div className="ux-text ux-expand">{ item.title }</div>
-          <i className="ux-icon ux-icon-delete"
-             onClick={ this.handleTaskDelete.bind(this, item) }>cancel</i>
-        </div>
-      );
-    };
 
     const handleTaskAdd = (listId) => this.handleTaskAdd(getWrappedList(this.refs[listId]));
     const sectionHeader = (title, listId) => (
@@ -330,7 +307,7 @@ class ProjectLayout extends React.Component {
               */}
             <List ref={ 'list-' + member.id }
                   items={ member.tasks }
-                  itemRenderer={ taskItemRenderer }
+                  itemRenderer={ this._taskItemRenderer }
                   onItemSelect={ this.handleTaskSelect.bind(this) }
                   onItemSave={ this.handleMemberTaskSave.bind(this, member) }/>
           </div>
@@ -345,7 +322,7 @@ class ProjectLayout extends React.Component {
 
           <ItemList ref="list-shared"
                     filter={ ProjectLayout.sharedTasksFilter(project) }
-                    itemRenderer={ taskItemRenderer }
+                    itemRenderer={ this._taskItemRenderer }
                     onItemSelect={ this.handleTaskSelect.bind(this) }
                     onItemSave={ this.handleSharedTaskSave.bind(this) }/>
         </div>
@@ -358,7 +335,7 @@ class ProjectLayout extends React.Component {
 
           <UserTasksList ref="list-private"
                          filter={ ProjectLayout.privateTasksFilter(user) }
-                         itemRenderer={ taskItemRenderer }
+                         itemRenderer={ this._taskItemRenderer }
                          onItemSelect={ this.handleTaskSelect.bind(this) }
                          onItemSave={ this.handlePrivateTaskSave.bind(this) }/>
         </div>

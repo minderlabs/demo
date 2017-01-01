@@ -3,14 +3,15 @@
 //
 
 import React from 'react';
+import { Link } from 'react-router';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { Getter, Matcher, Mutator, ItemReducer, ListReducer } from 'minder-core';
-
+import { ID, Getter, Matcher, Mutator, ItemReducer, ListReducer } from 'minder-core';
 import { List } from 'minder-ux';
 
+import { Path } from '../path';
 import { UpdateItemMutation } from '../data/mutations';
 import { DocumentFragment } from './type/document';
 
@@ -280,3 +281,19 @@ export const UserTasksList = composeList(
   },
   UserTasksReducer)
 );
+
+// TODO(burdon): Move UX to separate file.
+// TODO(burdon): Favorites list, etc.
+// TODO(burdon): Generalize icon/link, etc.
+export const itemRenderer = (options) => (list, item) => {
+  return (
+    <div className="ux-row ux-data-row">
+      <Link to={ Path.detail(ID.toGlobalId(item.type, item.id)) }>
+        <i className="ux-icon">assignment_turned_in</i>
+      </Link>
+      <div className="ux-text ux-expand">{ item.title }</div>
+      <i className="ux-icon ux-icon-delete"
+         onClick={ options.handleItemDelete.bind(this, item) }>cancel</i>
+    </div>
+  );
+};
