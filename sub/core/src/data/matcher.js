@@ -49,7 +49,7 @@ export class Matcher {
       return false;
     }
 
-    // Bucket match
+    // Bucket match.
     // TODO(burdon): Filter should not include bucket (implicit in query).
     if (item.bucket && item.bucket !== context.user.id) {
       return false;

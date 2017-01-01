@@ -7,10 +7,9 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { Getter, Matcher, Mutator, ListReducer } from 'minder-core';
+import { Getter, Matcher, Mutator, ItemReducer, ListReducer } from 'minder-core';
 
 import { List } from 'minder-ux';
-//import { List } from './list';
 
 import { UpdateItemMutation } from '../data/mutations';
 import { DocumentFragment } from './type/document';
@@ -79,7 +78,6 @@ function composeList(reducer) {
         let { filter, count } = ownProps;
 
         return {
-          data,       // TODO(burdon): Remove.
           items,
 
           // Paging.
@@ -113,9 +111,10 @@ function composeList(reducer) {
  * This cascades down through the connect() chain, so depending on how deeply nested the components are,
  * getWrappedInstance() needs to be called multiple times.
  *
- * @param hoc
+ * @param hoc Higher-Order Component (Redux container).
  */
 export const getWrappedList = function(hoc) {
+
   // https://github.com/apollostack/react-apollo/issues/118
   // http://dev.apollodata.com/react/higher-order-components.html#with-ref
   // https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options
@@ -253,7 +252,22 @@ const UserTasksQuery = gql`
   ${ListItemFragment}
 `;
 
-export const UserTaskList = composeList(
+const UserTasksReducer = (matcher, context, filter, previousResult, updatedItem) => {
+  // TODO(burdon): Handle delete.
+  if (matcher.matchItem(context, {}, filter, updatedItem)) {
+    return {
+      viewer: {
+        user: {
+          tasks: {
+            $push: [ updatedItem ]
+          }
+        }
+      }
+    };
+  }
+};
+
+export const UserTasksList = composeList(
   new ListReducer({
     mutation: {
       type: UpdateItemMutation,
@@ -263,5 +277,6 @@ export const UserTaskList = composeList(
       type: UserTasksQuery,
       path: 'viewer.user.tasks'
     }
-  })
+  },
+  UserTasksReducer)
 );

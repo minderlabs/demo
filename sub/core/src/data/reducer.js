@@ -100,7 +100,8 @@ class Reducer {
   }
 
   /**
-   * @param spec Object of the form below:
+   * @param spec Object of the form below.
+   * @param customReducer Custom reducer function.
    *
    * {
    *   mutation {
@@ -113,12 +114,15 @@ class Reducer {
    *   }
    * }
    */
-  constructor(spec) {
-    console.assert(spec);
+  constructor(spec, customReducer) {
+    console.assert(spec, customReducer);
 
     this._spec = spec;
 
-    // TODO(burdon): Check when created and called.
+    // TODO(burdon): Extend or inject?
+    this._customReducer = customReducer;
+
+    // TODO(burdon): Check when created and called. And when instantiated.
     let queryName = this.query.definitions[0].name.value;
     console.log('###### REDUCER [%s] ######', queryName);
   }
@@ -160,8 +164,8 @@ class Reducer {
  */
 export class ListReducer extends Reducer {
 
-  constructor(spec) {
-    super(spec);
+  constructor(spec, customReducer=null) {
+    super(spec, customReducer);
   }
 
   getItems(data) {
@@ -208,6 +212,11 @@ export class ListReducer extends Reducer {
    */
   getTransform(matcher, context, filter, previousResult, updatedItem) {
 
+    // Custom reducers are required when the list is not at the root of the result.
+    if (this._customReducer) {
+      return this._customReducer(matcher, context, filter, previousResult, updatedItem);
+    }
+
     // TODO(burdon): Is the root item needed?
     // Determine if the mutated item matches the filter.
     let match = matcher.matchItem(context, {}, filter, updatedItem);
@@ -238,10 +247,7 @@ export class ListReducer extends Reducer {
 export class ItemReducer extends Reducer {
 
   constructor(spec, customReducer=null) {
-    super(spec);
-
-    // TODO(burdon): Extend or inject?
-    this._customReducer = customReducer;
+    super(spec, customReducer);
   }
 
   getItem(data) {

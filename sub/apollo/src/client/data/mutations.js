@@ -11,6 +11,7 @@ export const UpdateItemMutation = gql`
   mutation UpdateItemMutation($itemId: ID!, $mutations: [ObjectMutationInput]!) {
     
     updateItem(itemId: $itemId, mutations: $mutations) {
+      bucket
       id
       type,
       labels

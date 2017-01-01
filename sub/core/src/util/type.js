@@ -67,13 +67,13 @@ export class TypeUtil {
   }
 
   /**
-   * Appends array of items to array.
+   * Merges the array into the current array.
+   * @param current
    * @param array
-   * @param items
    */
-  static append(array, items) {
-    array.splice(array.length, 0, ...items);
-    return array;
+  static merge(current, array) {
+    current.splice(current.length, 0, ...array);
+    return current;
   }
 
   /**

@@ -65,7 +65,7 @@ class FolderView extends React.Component {
       // TODO(burdon): Factor out type-specific fields.
       switch (type) {
         case 'Project': {
-          TypeUtil.append(mutations, [
+          TypeUtil.merge(mutations, [
             {
               field: 'team',
               value: {
@@ -77,7 +77,7 @@ class FolderView extends React.Component {
         }
 
         case 'Task': {
-          TypeUtil.append(mutations, [
+          TypeUtil.merge(mutations, [
             {
               field: 'owner',                         // TODO(burdon): Promote for all items?
               value: {

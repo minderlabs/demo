@@ -6,13 +6,13 @@ import React from 'react';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { ID, ItemReducer } from 'minder-core';
-import { List, TextBox } from 'minder-ux';
+import { ID, ItemReducer, TypeUtil } from 'minder-core';
+import { List } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
-import { ItemList, UserTaskList, getWrappedList } from '../list_factory';
+import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
 
 /**
  * Type-specific query.
@@ -114,35 +114,9 @@ class ProjectCardComponent extends React.Component {
  */
 class ProjectLayout extends React.Component {
 
-  // TODO(burdon): Move to card.
-  static contextTypes = {
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
-  };
-
-  handleItemSelect(item) {
-    this.context.navigator.pushDetail(item);
-  }
-
-  handleTaskAdd(list) {
-    list.addItem();
-  }
-
-  // TODO(burdon): Make static and/or factor out (mutation logic) into list factory.
-  handleTaskSave(user, item, member, task) {
-    let title = task.title;
-
-    // TODO(burdon): Generalize.
-    let assignee = member;
-
-    // Create task.
-    let mutations = [
-      {
-        field: 'title',
-        value: {
-          string: title
-        }
-      },
+  // TODO(burdon): Factor out.
+  static createTaskMutation(user, project, title) {
+    return [
       {
         field: 'owner',
         value: {
@@ -150,56 +124,22 @@ class ProjectLayout extends React.Component {
         }
       },
       {
+        field: 'title',
+        value: {
+          string: title
+        }
+      },
+      {
         field: 'project',
         value: {
-          id: item.id
+          id: project.id
         }
       }
     ];
+  }
 
-    // Handle notes.
-    if (assignee && assignee.id) {    // TODO(burdon): Different logic from other task add.
-      mutations.push({
-        field: 'assignee',
-        value: {
-          id: assignee.id
-        }
-      });
-    } else {
-      console.log('SPECIAL');
-
-      // TODO(burdon): Set bucket in updateItem.
-      // TODO(burdon): Factor out inline edit.
-      /*
-      switch (this.state.inlineEdit) {
-        case ProjectLayout.NOTE_TYPE.PRIVATE: {
-          mutations.push({
-            field: 'bucket',
-            value: {
-              string: user.id
-            }
-          });
-          break;
-        }
-
-        case ProjectLayout.NOTE_TYPE.SHARED: {
-          mutations.push({
-            field: 'bucket',
-            value: {
-              string: item.id
-            }
-          });
-          break;
-        }
-      }
-      */
-    }
-
-    let taskId = this.context.mutator.createItem('Task', mutations);
-
-    // Add to project.
-    // TODO(burdon): Batch mutations atomically.
-    mutations = [
+  static createProjectMutation(taskId) {
+    return [
       {
         field: 'tasks',
         value: {
@@ -211,14 +151,11 @@ class ProjectLayout extends React.Component {
         }
       }
     ];
-
-    this.context.mutator.updateItem(item, mutations);
   }
 
-  // TODO(burdon): Move to card.
-  handleTaskDelete(item) {
-    // TODO(burdon): Use MutationUtil.
-    let mutations = [
+  // TODO(burdon): Factor out.
+  static createDeleteMutation() {
+    return [
       {
         field: 'labels',
         value: {
@@ -231,13 +168,118 @@ class ProjectLayout extends React.Component {
         }
       }
     ];
+  }
 
-    // TODO(burdon): Transform $push returned object.
-    this.context.mutator.updateItem(item, mutations);
+  // TODO(burdon): Move to card.
+  static contextTypes = {
+    navigator: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired
+  };
+
+  // TODO(burdon): Also item select (e.g., nav to team member).
+  handleTaskSelect(item) {
+    this.context.navigator.pushDetail(item);
+  }
+
+  handleTaskAdd(list) {
+    list.addItem();
+  }
+
+  /**
+   * Submits the task mutation, then updates the project's tasks field.
+   */
+  updateTask(mutations) {
+    let { item } = this.props;
+
+    // TODO(burdon): Upsert.
+    // TODO(burdon): Implement bi-directional links.
+    let taskId = this.context.mutator.createItem('Task', mutations);
+    this.context.mutator.updateItem(item, ProjectLayout.createProjectMutation(taskId));
+  }
+
+  handleMemberTaskSave(assignee, task) {
+    console.assert(assignee && task);
+    let { user, item:project } = this.props;
+
+    this.updateTask(TypeUtil.merge(ProjectLayout.createTaskMutation(user, project, task.title),
+      [
+        {
+          field: 'assignee',
+          value: {
+            id: assignee.id
+          }
+        }
+      ]
+    ));
+  }
+
+  // TODO(burdon): HACK: Implement links (bucket is a quick-fix).
+  static sharedTasksFilter = (project) => ({
+    type: 'Task',
+    expr: {
+      op: 'AND',
+      expr: [
+        {
+          field: 'project',
+          value: {
+            id: project.id
+          }
+        },
+        {
+          field: 'assignee',
+          value: {
+            null: true
+          }
+        }
+      ]
+    }
+  });
+
+  handleSharedTaskSave(task) {
+    console.assert(task);
+    let { user, item:project } = this.props;
+
+    this.updateTask(TypeUtil.merge(ProjectLayout.createTaskMutation(user, project, task.title),
+      [
+        {
+          field: 'project',
+          value: {
+            id: project.id
+          }
+        }
+      ]
+    ));
+  }
+
+  // TODO(burdon): Implement ACLs.
+  static privateTasksFilter = (user) => ({
+    bucket: user.id,
+    type: 'Task'
+  });
+
+  handlePrivateTaskSave(task) {
+    console.assert(task);
+    let { user, item:project } = this.props;
+
+    this.updateTask(TypeUtil.merge(ProjectLayout.createTaskMutation(user, project, task.title),
+      [
+        {
+          field: 'bucket',
+          value: {
+            id: user.id
+          }
+        }
+      ]
+    ));
+  }
+
+  handleTaskDelete(item) {
+    // TODO(burdon): Remove from project tasks.
+    this.context.mutator.updateItem(item, ProjectLayout.createDeleteMutation());
   }
 
   render() {
-    let { user, item } = this.props;
+    let { user, item:project } = this.props;
 
     // TODO(burdon): Standardize or move to factory.
     const taskItemRenderer = (list, item) => {
@@ -254,7 +296,6 @@ class ProjectLayout extends React.Component {
     };
 
     const handleTaskAdd = (listId) => this.handleTaskAdd(getWrappedList(this.refs[listId]));
-
     const sectionHeader = (title, listId) => (
       <div className="ux-section-header ux-row">
         <h3 className="ux-expand">{ title }</h3>
@@ -263,18 +304,6 @@ class ProjectLayout extends React.Component {
       </div>
     );
 
-    const sharedNotesFilter = {
-      bucket: item.id,
-      type: 'Task',
-      expr: { field: 'assignee', value: { null: true } }
-    };
-
-    // TODO(madadam): When ACLs and links are working, query for all Tasks/Notes linked from this item (Group) with private ACL.
-    const privateNotesFilter = {
-      bucket: user.id,
-      type: 'Task'
-    };
-
     return (
       <div className="app-type-project ux-column">
 
@@ -282,7 +311,7 @@ class ProjectLayout extends React.Component {
           * Team tasks.
           */}
         <div>
-          {item.team.members.map(member => (
+          {project.team.members.map(member => (
           <div key={ member.id }>
             {/*
               * Member header.
@@ -298,13 +327,12 @@ class ProjectLayout extends React.Component {
 
             {/*
               * Member tasks.
-              * TODO(burdon): Select.
+              */}
             <List ref={ 'list-' + member.id }
                   items={ member.tasks }
                   itemRenderer={ taskItemRenderer }
-                  onItemSelect={ this.handleItemSelect.bind(this) }
-                  onItemSave={ this.handleTaskSave.bind(this, user, item, member) }/>
-              */}
+                  onItemSelect={ this.handleTaskSelect.bind(this) }
+                  onItemSave={ this.handleMemberTaskSave.bind(this, member) }/>
           </div>
           ))}
         </div>
@@ -316,8 +344,10 @@ class ProjectLayout extends React.Component {
           { sectionHeader('Shared Notes', 'list-shared') }
 
           <ItemList ref="list-shared"
-                    filter={ sharedNotesFilter }
-                    onItemSelect={ this.handleItemSelect.bind(this) }/>
+                    filter={ ProjectLayout.sharedTasksFilter(project) }
+                    itemRenderer={ taskItemRenderer }
+                    onItemSelect={ this.handleTaskSelect.bind(this) }
+                    onItemSave={ this.handleSharedTaskSave.bind(this) }/>
         </div>
 
         {/*
@@ -326,9 +356,11 @@ class ProjectLayout extends React.Component {
         <div>
           { sectionHeader('Private Notes', 'list-private') }
 
-          <UserTaskList ref="list-private"
-                        filter={ privateNotesFilter }
-                        onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <UserTasksList ref="list-private"
+                         filter={ ProjectLayout.privateTasksFilter(user) }
+                         itemRenderer={ taskItemRenderer }
+                         onItemSelect={ this.handleTaskSelect.bind(this) }
+                         onItemSave={ this.handlePrivateTaskSave.bind(this) }/>
         </div>
       </div>
     );

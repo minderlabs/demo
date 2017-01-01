@@ -13,9 +13,9 @@ describe('Types:', () => {
     expect(map.get('a')).to.have.lengthOf(2);
   });
 
-  it('TypeUtil.append', () => {
+  it('TypeUtil.merge', () => {
     let values = [1, 2, 3];
-    let result = TypeUtil.append(values, [4, 5]);
+    let result = TypeUtil.merge(values, [4, 5]);
     expect(result.length).to.equal(5);
   });
 
