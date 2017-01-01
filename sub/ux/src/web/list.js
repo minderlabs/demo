@@ -14,12 +14,21 @@ import './list.less';
 export class List extends React.Component {
 
   // Integration:
+  // TODO(burdon): Replace list_factory.
   // TODO(burdon): Replace Project card lists.
-  // TODO(burdon): Replace Folder view lists.
 
   // TODO(burdon): Inline editor.
   // TODO(burdon): Auto more (and button).
 
+  // TODO(burdon): By default render icon (callout).
+
+  /**
+   *
+   * @param list
+   * @param item
+   * @returns {XML}
+   * @constructor
+   */
   static DefaultItemRenderer = (list, item) => {
     return (
       <div className="ux-row ux-data-row">
@@ -28,23 +37,38 @@ export class List extends React.Component {
     );
   };
 
-  // TODO(burdon): Add save/cancel buttons.
+  /**
+   *
+   */
   static DefaultEditor = React.createClass({
 
-    onSave() {
+    // TODO(burdon): How to generalize extend?
+
+    handleSave() {
       let title = this.refs.title.value;
       this.props.onSave && this.props.onSave({ title });
     },
 
+    handleCancel() {
+      this.props.onCancel && this.props.onCancel();
+    },
+
     render() {
-      // TODO(burdon): Value doesn't change.
       let { item } = this.props;
       let title = item && item.title;
 
       return (
         <div className="ux-row ux-data-row">
-          <TextBox ref="title" className="ux-expand" value={ title } onEnter={ this.onSave }/>
-          <i className="ux-icon ux-icon-action" onClick={ this.onSave }>add</i>
+          <TextBox ref="title" className="ux-expand"
+                   value={ title }
+                   autoFocus={ true }
+                   onEnter={ this.handleSave }
+                   onCancel={ this.handleCancel }/>
+
+          <div>
+            <i className="ux-icon ux-icon-actio ux-icon-save" onClick={ this.handleSave }>check</i>
+            <i className="ux-icon ux-icon-actio ux-icon-cancel" onClick={ this.handleCancel }>cancel</i>
+          </div>
         </div>
       );
     }
@@ -55,8 +79,9 @@ export class List extends React.Component {
     items: React.PropTypes.arrayOf(React.PropTypes.object),
     itemRenderer: React.PropTypes.func,
     itemEditor: React.PropTypes.func,
+    showAdd: React.PropTypes.bool,
     onItemSave: React.PropTypes.func,
-    addItem: React.PropTypes.bool
+    onItemSelect: React.PropTypes.func
   };
 
   static defaultProps = {
@@ -70,6 +95,7 @@ export class List extends React.Component {
     this.state = {
       itemRenderer: this.props.itemRenderer,
       itemEditor: this.props.itemEditor,
+      showAdd: this.props.showAdd,
       editedItem: null
     }
   }
@@ -86,9 +112,28 @@ export class List extends React.Component {
     });
   }
 
-  onItemSave(item) {
+  addItem(item) {
+    this.setState({
+      showAdd: true
+    });
+  }
+
+  // TODO(burdon): Standardize selection for items.
+  handleItemSelect(item) {
+    this.props.onItemSelect && this.props.onItemSelect(item);
+  }
+
+  handleItemSave(item) {
     this.props.onItemSave && this.props.onItemSave(item);
     this.setState({
+      showAdd: false,
+      editedItem: null
+    });
+  }
+
+  handleItemCancel() {
+    this.setState({
+      showAdd: false,
       editedItem: null
     });
   }
@@ -108,11 +153,14 @@ export class List extends React.Component {
     // Editor.
     // TODO(burdon): By default at the bottom.
     let editor = null;
-    if (this.props.addItem) {
+    if (this.state.showAdd) {
       const Editor = List.DefaultEditor;
       editor = (
         <div className="ux-list-item ux-list-editor">
-          <Editor item={ this.state.editedItem } onSave={ this.onItemSave.bind(this) }/>
+          <Editor item={ this.state.editedItem }
+                  onSave={ this.handleItemSave.bind(this) }
+                  onCancel={ this.handleItemCancel.bind(this) }
+          />
         </div>
       );
     }

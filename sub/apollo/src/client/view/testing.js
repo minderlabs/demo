@@ -24,6 +24,10 @@ class TestView extends React.Component {
     );
   };
 
+  onAddItem() {
+    this.refs.list.addItem();
+  }
+
   onChangeView(type) {
     this.refs.list.itemRenderer = (type === 'card') && TestView.customItemRenderer;
   }
@@ -35,10 +39,15 @@ class TestView extends React.Component {
   render() {
     let { items } = this.props;
 
+    // TODO(burdon): Select.
+
     return (
       <div>
         <div className="ux-toolbar">
-          <h2>Test</h2>
+          <div>
+            <i className="ux-icon ux-icon-action"
+               onClick={ this.onAddItem.bind(this, 'list') }>add</i>
+          </div>
           <div>
             <i className="ux-icon ux-icon-action"
                onClick={ this.onChangeView.bind(this, 'list') }>view_list</i>
@@ -47,7 +56,7 @@ class TestView extends React.Component {
           </div>
         </div>
 
-        <List ref="list" items={ items } addItem={ true } onItemSave={ this.onItemSave.bind(this) }/>
+        <List ref="list" items={ items } onItemSave={ this.onItemSave.bind(this) }/>
       </div>
     );
   }

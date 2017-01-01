@@ -7,12 +7,12 @@ import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer } from 'minder-core';
-import { TextBox } from 'minder-ux';
+import { List, TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
-import { ItemList, UserTaskList } from '../list_factory';
+import { ItemList, UserTaskList, getWrappedList } from '../list_factory';
 
 /**
  * Type-specific query.
@@ -114,45 +114,26 @@ class ProjectCardComponent extends React.Component {
  */
 class ProjectLayout extends React.Component {
 
-  static NOTE_TYPE = {
-    SHARED:   '__shared__',
-    PRIVATE:  '__private__'
-  };
-
   // TODO(burdon): Move to card.
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired
   };
 
-  constructor() {
-    super(...arguments);
-
-    this.state = {
-      // Member ID or NOTE_TYPE.
-      inlineEdit: false
-    };
-  }
-
   handleItemSelect(item) {
     this.context.navigator.pushDetail(item);
   }
 
-  handleTaskAdd(memberId) {
-    this.setState({
-      inlineEdit: memberId
-    });
+  handleTaskAdd(list) {
+    list.addItem();
   }
 
-  // TODO(burdon): Factor out into list control.
-  handleTaskSave(assignee, text, event) {
-    let { user, item } = this.props;
+  // TODO(burdon): Make static and/or factor out (mutation logic) into list factory.
+  handleTaskSave(user, item, member, task) {
+    let title = task.title;
 
-    let title = this.refs.title.value;
-    if (_.isEmpty(title)) {
-      this.refs.title.focus();
-      return;
-    }
+    // TODO(burdon): Generalize.
+    let assignee = member;
 
     // Create task.
     let mutations = [
@@ -177,7 +158,7 @@ class ProjectLayout extends React.Component {
     ];
 
     // Handle notes.
-    if (assignee && assignee.id) {
+    if (assignee && assignee.id) {    // TODO(burdon): Different logic from other task add.
       mutations.push({
         field: 'assignee',
         value: {
@@ -185,8 +166,11 @@ class ProjectLayout extends React.Component {
         }
       });
     } else {
+      console.log('SPECIAL');
+
       // TODO(burdon): Set bucket in updateItem.
       // TODO(burdon): Factor out inline edit.
+      /*
       switch (this.state.inlineEdit) {
         case ProjectLayout.NOTE_TYPE.PRIVATE: {
           mutations.push({
@@ -208,6 +192,7 @@ class ProjectLayout extends React.Component {
           break;
         }
       }
+      */
     }
 
     let taskId = this.context.mutator.createItem('Task', mutations);
@@ -228,16 +213,6 @@ class ProjectLayout extends React.Component {
     ];
 
     this.context.mutator.updateItem(item, mutations);
-
-    this.setState({
-      inlineEdit: null
-    });
-  }
-
-  handleTaskCancel() {
-    this.setState({
-      inlineEdit: null
-    });
   }
 
   // TODO(burdon): Move to card.
@@ -264,96 +239,96 @@ class ProjectLayout extends React.Component {
   render() {
     let { user, item } = this.props;
 
-    // TODO(burdon): Factor out list generators.
-
-    const memberItem = (member) => (
-      <div className="ux-section-header ux-row">
-        <Link to={ Path.detail(ID.toGlobalId('User', member.id)) }>
-          <i className="ux-icon">accessibility</i>
-        </Link>
-        <h3 className="ux-expand">{ member.title }</h3>
-        <i className="ux-icon ux-icon-add"
-           onClick={ this.handleTaskAdd.bind(this, member.id) }></i>
-      </div>
-    );
-
-    const taskList = (member) => {
-      return member.tasks.map(task => (
-        <div key={ task.id } className="ux-list-item ux-row ux-data-row">
-          <Link to={ Path.detail(ID.toGlobalId('Task', task.id)) }>
+    // TODO(burdon): Standardize or move to factory.
+    const taskItemRenderer = (list, item) => {
+      return (
+        <div className="ux-row ux-data-row">
+          <Link to={ Path.detail(ID.toGlobalId('Task', item.id)) }>
             <i className="ux-icon">assignment_turned_in</i>
           </Link>
-          <div className="ux-text ux-expand">{ task.title }</div>
-          <i className="ux-icon ux-icon-delete" onClick={ this.handleTaskDelete.bind(this, task) }>cancel</i>
+          <div className="ux-text ux-expand">{ item.title }</div>
+          <i className="ux-icon ux-icon-delete"
+             onClick={ this.handleTaskDelete.bind(this, item) }>cancel</i>
         </div>
-      ));
+      );
     };
 
-    const itemEditor = (member, icon) => (
-      <div className="ux-section ux-list-item ux-row ux-data-row">
-        <i className="ux-icon">assignment_turned_in</i>
-        <TextBox ref="title"
-                 className="ux-expand" autoFocus={ true }
-                 onEnter={ this.handleTaskSave.bind(this, member) }
-                 onCancel={ this.handleTaskCancel.bind(this)} />
-        <i className="ux-icon ux-icon-save" onClick={ this.handleTaskSave.bind(this, member) }>check</i>
-        <i className="ux-icon ux-icon-cancel" onClick={ this.handleTaskCancel.bind(this) }>cancel</i>
+    const handleTaskAdd = (listId) => this.handleTaskAdd(getWrappedList(this.refs[listId]));
+
+    const sectionHeader = (title, listId) => (
+      <div className="ux-section-header ux-row">
+        <h3 className="ux-expand">{ title }</h3>
+        <i className="ux-icon ux-icon-add"
+           onClick={ handleTaskAdd.bind(this, listId) }></i>
       </div>
     );
 
-    const sectionHeader = (title, type, filter) => (
-      <div>
-        <div className="ux-section-header ux-row">
-          <h3 className="ux-expand">{ title }</h3>
-          <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this, type) }></i>
-        </div>
-        <div className="ux-expand">
-          <ItemList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
-        </div>
-      </div>
-    );
-
-    let sharedNotesFilter = {
+    const sharedNotesFilter = {
       bucket: item.id,
       type: 'Task',
-      expr: { field: 'assignee', value: { null: true }}
+      expr: { field: 'assignee', value: { null: true } }
     };
 
     // TODO(madadam): When ACLs and links are working, query for all Tasks/Notes linked from this item (Group) with private ACL.
-    let privateNotesFilter = {
-      type: 'Task',
-      bucket: user.id
+    const privateNotesFilter = {
+      bucket: user.id,
+      type: 'Task'
     };
 
     return (
       <div className="app-type-project ux-column">
-        <div className="ux-data">
 
-          <div className="ux-list">
-            {item.team.members.map(member => (
-
-            <div key={ member.id }>
-              { memberItem(member) }
-
-              <div className="ux-list">
-                { taskList(member) }
-                { this.state.inlineEdit === member.id && itemEditor(member) }
-              </div>
+        {/*
+          * Team tasks.
+          */}
+        <div>
+          {item.team.members.map(member => (
+          <div key={ member.id }>
+            {/*
+              * Member header.
+              */}
+            <div className="ux-section-header ux-row">
+              <Link to={ Path.detail(ID.toGlobalId('User', member.id)) }>
+                <i className="ux-icon">accessibility</i>
+              </Link>
+              <h3 className="ux-expand">{ member.title }</h3>
+              <i className="ux-icon ux-icon-add"
+                 onClick={ this.handleTaskAdd.bind(this, this.refs['list-' + member.id]) }></i>
             </div>
-            ))}
-          </div>
 
-          <div>
-            { sectionHeader('Shared Notes', ProjectLayout.NOTE_TYPE.SHARED) }
-            <ItemList filter={ sharedNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
-            { this.state.inlineEdit === ProjectLayout.NOTE_TYPE.SHARED && itemEditor() }
+            {/*
+              * Member tasks.
+              * TODO(burdon): Select.
+            <List ref={ 'list-' + member.id }
+                  items={ member.tasks }
+                  itemRenderer={ taskItemRenderer }
+                  onItemSelect={ this.handleItemSelect.bind(this) }
+                  onItemSave={ this.handleTaskSave.bind(this, user, item, member) }/>
+              */}
           </div>
+          ))}
+        </div>
 
-          <div>
-            { sectionHeader('Private Notes', ProjectLayout.NOTE_TYPE.PRIVATE) }
-            <UserTaskList filter={ privateNotesFilter } onItemSelect={ this.handleItemSelect.bind(this) }/>
-            { this.state.inlineEdit === ProjectLayout.NOTE_TYPE.PRIVATE && itemEditor() }
-          </div>
+        {/*
+          * Shared notes.
+          */}
+        <div>
+          { sectionHeader('Shared Notes', 'list-shared') }
+
+          <ItemList ref="list-shared"
+                    filter={ sharedNotesFilter }
+                    onItemSelect={ this.handleItemSelect.bind(this) }/>
+        </div>
+
+        {/*
+          * Private tasks.
+          */}
+        <div>
+          { sectionHeader('Private Notes', 'list-private') }
+
+          <UserTaskList ref="list-private"
+                        filter={ privateNotesFilter }
+                        onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
       </div>
     );

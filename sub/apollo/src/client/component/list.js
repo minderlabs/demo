@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import { QueryRegistry } from '../data/subscriptions';
+// TODO(burdon): Needed for icon.
 import { TypeRegistry } from './type/registry';
 
 import './list.less';
@@ -17,6 +17,9 @@ import './list.less';
 export class List extends React.Component {
 
   // TODO(burdon): Replace with ux list.
+  // TODO(burdon): Move mutation logic to item renderer.
+  // TODO(burdon): Grouping.
+  // TODO(burdon): Move subscriptions (QueryRegistry) to list_factory.
 
   static COUNT = 10;
 
@@ -46,6 +49,7 @@ export class List extends React.Component {
     this.props.onItemSelect(item);
   }
 
+  // TODO(burdon): Move
   handleLabelUpdate(item, label, add=true) {
     // TODO(burdon): Factor out.
     let mutations = [

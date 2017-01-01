@@ -9,8 +9,6 @@ import _ from 'lodash';
  */
 export class TypeUtil {
 
-  // TODO(burdon): Tests.
-
   /**
    * Concise stringify.
    */

@@ -7,18 +7,20 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { Matcher, Mutator, ListReducer } from 'minder-core';
+import { Getter, Matcher, Mutator, ListReducer } from 'minder-core';
+
+import { List } from 'minder-ux';
+//import { List } from './list';
 
 import { UpdateItemMutation } from '../data/mutations';
 import { DocumentFragment } from './type/document';
-import { List } from './list';
 
 /**
  * Redux properties.
  *
  * @param state
  * @param ownProps
- * @returns {{injector: *, context: {user: {id}}}}
+ * @returns {{injector, context: {user: {id}}}}
  */
 const mapStateToProps = (state, ownProps) => {
   let { minder } = state;
@@ -41,15 +43,19 @@ const mapStateToProps = (state, ownProps) => {
 function composeList(reducer) {
   return compose(
 
-    connect(mapStateToProps),
+    // Access component via getWrappedInstance()
+    // http://dev.apollodata.com/react/higher-order-components.html#with-ref
+    // https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options
+    connect(mapStateToProps, null, null, { withRef: true }),
 
     graphql(reducer.query, {
+      withRef: 'true',
 
       // Configure query variables.
       // http://dev.apollodata.com/react/queries.html#graphql-options
       // http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient\.query
       options: (props) => {
-        let { filter, count } = List.defaults(props);
+        let { filter, count } = props; //List.defaults(props);
 
         let matcher = props.injector.get(Matcher);
 
@@ -73,7 +79,7 @@ function composeList(reducer) {
         let { filter, count } = ownProps;
 
         return {
-          data,
+          data,       // TODO(burdon): Remove.
           items,
 
           // Paging.
@@ -101,6 +107,21 @@ function composeList(reducer) {
 
   )(List);
 }
+
+/**
+ * Redux and Apollo provide a withRef option to enable access to the contained component.
+ * This cascades down through the connect() chain, so depending on how deeply nested the components are,
+ * getWrappedInstance() needs to be called multiple times.
+ *
+ * @param hoc
+ */
+export const getWrappedList = function(hoc) {
+  // https://github.com/apollostack/react-apollo/issues/118
+  // http://dev.apollodata.com/react/higher-order-components.html#with-ref
+  // https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options
+  return hoc.getWrappedInstance().getWrappedInstance().getWrappedInstance();
+};
+
 
 //
 // HOC Lists.

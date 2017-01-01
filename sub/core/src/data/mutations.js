@@ -46,6 +46,8 @@ export class Mutator {
     console.assert(mutation);
 
     return graphql(mutation, {
+      withRef: true,
+
       props: ({ ownProps, mutate }) => ({
 
         // TODO(burdon): Wrap Redux's mapStateToProps to grab injector.
