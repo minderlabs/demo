@@ -2,7 +2,7 @@
 
 #
 # NOTE: Redeploy nx-lite frontend.yml for stack configuration.
-# nx-lite/scripes/prod_redeploy_stack.sh
+# nx-lite/scripts/prod_redeploy_stack.sh
 # TODO(burdon): Configure script for Jenkins.
 #
 

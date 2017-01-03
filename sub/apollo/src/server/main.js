@@ -277,7 +277,9 @@ app.use(graphqlRouter(database, {
 // Custom GraphiQL.
 //
 
-app.use('/node_modules', express.static(path.join(__dirname, '../../node_modules')));
+let staticPath = (env === 'production' ?
+    path.join(__dirname, '../node_modules') : path.join(__dirname, '../../node_modules'));
+app.use('/node_modules', express.static(staticPath));
 app.get('/graphiql', function(req, res) {
   return authManager.getUserInfoFromCookie(req)
     .then(userInfo => {
