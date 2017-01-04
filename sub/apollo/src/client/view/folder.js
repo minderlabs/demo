@@ -8,7 +8,7 @@ import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { QueryParser, Mutator, MutationUtil, TypeUtil } from 'minder-core';
-import { ListItem, TextBox } from 'minder-ux';
+import { List, ListItem, TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
@@ -48,6 +48,8 @@ class FolderView extends React.Component {
         <ListItem.Title select={ true }/>
       </ListItem>
     );
+
+//  this._itemRenderer = List.DebugItemRenderer(['id', 'refs']);
   }
 
   handleItemSelect(item) {
@@ -132,6 +134,7 @@ class FolderView extends React.Component {
       <div className="app-folder ux-column">
         <div className="ux-expand">
           <SearchList filter={ filter }
+                      groupBy={ true }
                       itemRenderer={ this._itemRenderer }
                       onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>

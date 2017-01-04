@@ -22,7 +22,14 @@ export class List extends React.Component {
     return (
       <ListItem item={ item }>
         <ListItem.Title/>
-        <ListItem.Debug/>
+      </ListItem>
+    );
+  };
+
+  static DebugItemRenderer = (fields) => (item) => {
+    return (
+      <ListItem item={ item }>
+        <ListItem.Debug fields={ fields }/>
       </ListItem>
     );
   };
@@ -139,15 +146,37 @@ export class List extends React.Component {
   }
 
   render() {
-    let { items=[] } = this.props;
+    let { items=[], groupBy } = this.props;
 
     // Rows.
     let rows = items.map(item => {
-      return (
-        <div key={ item.id } className="ux-list-item">
+
+      // Primary item.
+      let listItem = (
+        <div key={ item.id } className='ux-list-item'>
           { this.state.itemRenderer(item) }
         </div>
       );
+
+      // Grouped items.
+      if (groupBy && !_.isEmpty(item.refs)) {
+        let refs = item.refs.map(ref => (
+          <div key={ ref.id } className="ux-list-item">
+            { this.state.itemRenderer(ref) }
+          </div>
+        ));
+
+        return (
+          <div key={ item.id } className="ux-list-item-group">
+            { listItem }
+            <div className="ux-list-item-refs">
+              { refs }
+            </div>
+          </div>
+        )
+      } else {
+        return listItem;
+      }
     });
 
     // Editor.
@@ -196,8 +225,10 @@ export class ListItem extends React.Component {
 
   static Debug = (props, context) => {
     let { item } = context;
+    let { fields } = props;
+    let obj = fields ? _.pick(item, fields) : item;
     return (
-      <div className="ux-debug">{ TypeUtil.stringify(item) }</div>
+      <div className="ux-debug">{ JSON.stringify(obj, null, 1) }</div>
     );
   };
 
