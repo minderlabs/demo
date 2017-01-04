@@ -281,19 +281,3 @@ export const UserTasksList = composeList(
   },
   UserTasksReducer)
 );
-
-// TODO(burdon): Move UX to separate file.
-// TODO(burdon): Favorites list, etc.
-// TODO(burdon): Generalize icon/link, etc.
-export const itemRenderer = (options) => (list, item) => {
-  return (
-    <div className="ux-row ux-data-row">
-      <Link to={ Path.detail(ID.toGlobalId(item.type, item.id)) }>
-        <i className="ux-icon">assignment_turned_in</i>
-      </Link>
-      <div className="ux-text ux-expand">{ item.title }</div>
-      <i className="ux-icon ux-icon-delete"
-         onClick={ options.handleItemDelete.bind(this, item) }>cancel</i>
-    </div>
-  );
-};

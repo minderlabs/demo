@@ -66,6 +66,10 @@ export class List extends React.Component {
     }
   });
 
+  static childContextTypes = {
+    onItemSelect: React.PropTypes.func
+  };
+
   static propTypes = {
     className: React.PropTypes.string,
     items: React.PropTypes.arrayOf(React.PropTypes.object),
@@ -89,6 +93,12 @@ export class List extends React.Component {
       itemEditor: this.props.itemEditor,
       showAdd: this.props.showAdd,
       editedItem: null
+    }
+  }
+
+  getChildContext() {
+    return {
+      onItemSelect: this.handleItemSelect.bind(this)
     }
   }
 
@@ -137,7 +147,7 @@ export class List extends React.Component {
     let rows = items.map(item => {
       return (
         <div key={ item.id } className="ux-list-item">
-          { this.state.itemRenderer(this, item) }
+          { this.state.itemRenderer(item) }
         </div>
       );
     });
@@ -167,3 +177,96 @@ export class List extends React.Component {
     );
   }
 }
+
+/**
+ * List item component (and sub-components).
+ *
+ * const itemRenderer = (item) => (
+ *   <ListItem item={ item }>
+ *     <ListItem.Title/>
+ *   </ListItem>
+ * )
+ */
+export class ListItem extends React.Component {
+
+  // TODO(burdon): Grouping.
+  // TODO(burdon): Custom columns (by type).
+
+  //
+  // List Item Components.
+  //
+
+  static Icon = (props, context) => {
+    let { item } = context;
+    let { typeRegistry } = context.typeRegistry;
+    return (
+      <i className="ux-icon">{ typeRegistry.icon(item.type) }</i>
+    );
+  };
+
+  static Favorite = (props, context) => {
+    let { item } = context;
+    let { onSetLabel } = props;
+
+    let set = _.indexOf(item.labels, '_favorite') != -1;
+    return (
+      <i className="ux-icon"
+         onClick={ onSetLabel.bind(null, item, '_favorite', !set) }>
+        { set ? 'star' : 'star_border' }
+      </i>
+    );
+  };
+
+  static Title = (props, context) => {
+    let { item, onItemSelect } = context;
+    let { select=true } = props;
+
+    return (
+      <div className="ux-expand ux-text ux-select"
+           onClick={ select && onItemSelect.bind(null, item) }>
+        { item.title }
+      </div>
+    );
+  };
+
+  static Delete = (props, context) => {
+    let { item } = context;
+    let { onDelete } = props;
+
+    return (
+      <i className="ux-icon ux-icon-delete"
+         onClick={ onDelete.bind(null, item) }>cancel</i>
+    );
+  };
+
+  // From parent <List/> control.
+  static contextTypes = {
+    onItemSelect: React.PropTypes.func,
+  };
+
+  // To child <ListItem/> components.
+  static childContextTypes = {
+    onItemSelect: React.PropTypes.func,
+    item:         React.PropTypes.object
+  };
+
+  getChildContext() {
+    return {
+      item: this.props.item
+    }
+  }
+
+  // TODO(burdon): CSS (make ux-list-item? ux-data-row?)
+  render() {
+    return (
+      <div className="ux-row ux-data-row">
+        { this.props.children }
+      </div>
+    );
+  }
+}
+
+ListItem.Icon.contextTypes      = ListItem.childContextTypes;
+ListItem.Favorite.contextTypes  = ListItem.childContextTypes;
+ListItem.Title.contextTypes     = ListItem.childContextTypes;
+ListItem.Delete.contextTypes    = ListItem.childContextTypes;

@@ -7,12 +7,12 @@ import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
-import { List } from 'minder-ux';
+import { List, ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
-import { ItemList, UserTasksList, itemRenderer, getWrappedList } from '../list_factory';
+import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
 
 /**
  * Type-specific query.
@@ -162,9 +162,12 @@ class ProjectLayout extends React.Component {
   constructor() {
     super(...arguments);
 
-    this._taskItemRenderer = itemRenderer({
-      handleItemDelete: this.handleTaskDelete.bind(this)
-    });
+    this._taskItemRenderer = (item) => (
+      <ListItem item={ item }>
+        <ListItem.Title/>
+        <ListItem.Delete onDelete={ this.handleTaskDelete.bind(this) }/>
+      </ListItem>
+    );
   }
 
   // TODO(burdon): Also item select (e.g., nav to team member).

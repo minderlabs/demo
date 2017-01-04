@@ -7,8 +7,8 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { QueryParser, Mutator, TypeUtil } from 'minder-core';
-import { TextBox } from 'minder-ux';
+import { QueryParser, Mutator, MutationUtil, TypeUtil } from 'minder-core';
+import { ListItem, TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
 
@@ -38,6 +38,17 @@ class FolderView extends React.Component {
       folders: React.PropTypes.array.isRequired
     })
   };
+
+  constructor() {
+    super(...arguments);
+
+    this._itemRenderer = (item) => (
+      <ListItem item={ item }>
+        <ListItem.Favorite onSetLabel={ this.handleSetLabel.bind(this) }/>
+        <ListItem.Title select={ true }/>
+      </ListItem>
+    );
+  }
 
   handleItemSelect(item) {
     this.context.navigator.pushDetail(item);
@@ -107,18 +118,22 @@ class FolderView extends React.Component {
     }
   }
 
+  handleSetLabel(item, label, set) {
+    this.props.mutator.updateItem(item, MutationUtil.createLabelUpdate(label, set));
+  }
+
   render() {
 //  console.log('Folderg.render');
 
     // http://dev.apollodata.com/react/queries.html#default-result-props
     let { filter } = this.props;
 
-    // TODO(burdon): Move statusbar (e.g., loading, network stats) to parent layout.
-
     return (
       <div className="app-folder ux-column">
         <div className="ux-expand">
-          <SearchList filter={ filter } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <SearchList filter={ filter }
+                      itemRenderer={ this._itemRenderer }
+                      onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
         <div className="ux-section ux-toolbar ux-row">

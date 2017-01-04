@@ -14,16 +14,16 @@ export class MutationUtil {
   /**
    * Creates a mutation to add or remove a label.
    * @param label
-   * @param add
+   * @param set
    * @returns {*[]}
    */
-  static createLabelUpdate(label, add=true) {
+  static createLabelUpdate(label, set=true) {
     return [
       {
         field: 'labels',
         value: {
           array: {
-            index: add ? 0 : -1,
+            index: set ? 0 : -1,
             value: {
               string: label
             }

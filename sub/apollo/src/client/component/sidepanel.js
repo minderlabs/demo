@@ -29,12 +29,13 @@ export class SidePanel extends React.Component {
    * NOTE: We can't use <Link> here since the sidebar's onBlur event is triggered before the Link's onClick.
    * So we manually listen for onMouseDown which happens first.
    */
-  itemRenderer(list, item) {
+  // TODO(burdon): Make static.
+  itemRenderer(item) {
     return (
       <div className="ux-row" key={ item.id }
            onMouseDown={ this.onSelect.bind(this, item.link || Path.folder(item.alias)) }>
         <i className="ux-icon">{ item.icon }</i>
-        { item.title }
+        <div className="ux-select">{ item.title }</div>
       </div>
     );
   }

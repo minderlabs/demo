@@ -179,6 +179,7 @@ class ListItem extends React.Component {
       </i>
     );
 
+    // TODO(burdon): Custom list item (=> column).
     const typeRegistry = this.context.injector.get(TypeRegistry);
     let customListItem = typeRegistry.renderToListItem(item.type, item, this.handleSelect.bind(this));
 
