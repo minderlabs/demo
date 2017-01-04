@@ -39,7 +39,7 @@ export class List extends React.Component {
    */
   static DefaultEditor = React.createClass({
 
-    // TODO(burdon): How to generalize extend?
+    // TODO(burdon): Modularize to extend (list ListItem).
 
     handleSave() {
       let title = this.refs.title.value;
@@ -216,7 +216,6 @@ export class List extends React.Component {
  */
 export class ListItem extends React.Component {
 
-  // TODO(burdon): Grouping.
   // TODO(burdon): Custom columns (by type).
 
   //
@@ -235,6 +234,7 @@ export class ListItem extends React.Component {
   static Icon = (props, context) => {
     let { item } = context;
     let { typeRegistry } = context.typeRegistry;
+
     return (
       <i className="ux-icon">{ typeRegistry.icon(item.type) }</i>
     );

@@ -55,7 +55,7 @@ export class TypeRegistry {
    * Optionally render a customized ListItem component.
    * @returns {React.Component}
    */
-  // TODO(burdon): Remove.
+  // TODO(burdon): Replace with custom column or row.
   renderToListItem(type, item, onClick) {
     console.assert(type && item);
     let spec = this._types.get(type);

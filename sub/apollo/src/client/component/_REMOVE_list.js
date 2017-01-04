@@ -16,8 +16,6 @@ import { TypeRegistry } from './type/registry';
  */
 export class List extends React.Component {
 
-  // TODO(burdon): Grouping.
-  // TODO(burdon): Custom renderer.
   // TODO(burdon): Custom list (e.g., for documents).
   // TODO(burdon): More...
   // TODO(burdon): Move subscriptions (QueryRegistry) to list_factory.

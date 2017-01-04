@@ -96,7 +96,7 @@ class DocumentLayout extends React.Component {
  */
 export class DocumentListItem extends React.Component {
 
-  // TODO(burdon): Replace with custom list item renderer.
+  // TODO(burdon): Replace with custom list column.
 
   static propTypes = {
     item: React.PropTypes.object.isRequired,
@@ -106,23 +106,21 @@ export class DocumentListItem extends React.Component {
     let { item } = this.props;
 
     // TODO(madadam): Snippet, thumbnail image, etc.
-
     let marginIcon = item.iconUrl && (
-      <img className="ux-icon" src={ item.iconUrl } />
+      <img className="ux-icon" src={ item.iconUrl }/>
     );
 
     return (
       <div className="ux-row ux-list-item">
         { marginIcon }
 
-        <div className="ux-text ux-expand" >
+        <div className="ux-text ux-expand">
           <a href={ item.url }>
             { item.title }
           </a>
 
           <div>{ item.source }</div>
         </div>
-
       </div>
     );
   }
