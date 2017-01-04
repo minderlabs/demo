@@ -4,6 +4,8 @@
 
 import React from 'react';
 
+import { TypeUtil } from 'minder-core';
+
 import { TextBox } from './textbox';
 
 import './list.less';
@@ -15,17 +17,13 @@ export class List extends React.Component {
 
   /**
    * Default item renderer.
-   *
-   * @param list
-   * @param item
-   * @returns {XML}
-   * @constructor
    */
-  static DefaultItemRenderer = (list, item) => {
+  static DefaultItemRenderer = (item) => {
     return (
-      <div className="ux-row ux-data-row">
-        <div className="ux-text">{ item.title }</div>
-      </div>
+      <ListItem item={ item }>
+        <ListItem.Title/>
+        <ListItem.Debug/>
+      </ListItem>
     );
   };
 
@@ -196,6 +194,13 @@ export class ListItem extends React.Component {
   // List Item Components.
   //
 
+  static Debug = (props, context) => {
+    let { item } = context;
+    return (
+      <div className="ux-debug">{ TypeUtil.stringify(item) }</div>
+    );
+  };
+
   static Icon = (props, context) => {
     let { item } = context;
     let { typeRegistry } = context.typeRegistry;
@@ -266,6 +271,7 @@ export class ListItem extends React.Component {
   }
 }
 
+ListItem.Debug.contextTypes     = ListItem.childContextTypes;
 ListItem.Icon.contextTypes      = ListItem.childContextTypes;
 ListItem.Favorite.contextTypes  = ListItem.childContextTypes;
 ListItem.Title.contextTypes     = ListItem.childContextTypes;
