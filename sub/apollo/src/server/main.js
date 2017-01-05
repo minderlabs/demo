@@ -115,7 +115,11 @@ const authManager = new AuthManager(firebase.admin, firebase.userStore);
 // Database.
 //
 
-let context = {};
+let context = {
+  user: {
+    id: null
+  }
+};
 
 // Load test data.
 _.each(require('./testing/test.json'), (items, type) => {
@@ -142,7 +146,7 @@ _.each(require('./testing/test.json'), (items, type) => {
 // TODO(burdon): Use injector pattern (esp for async startup).
 let promises = [];
 
-promises.push(database.queryItems({}, {}, { type: 'User' })
+promises.push(database.queryItems(context, {}, { type: 'User' })
   .then(users => {
 
     // Get the group and add members.

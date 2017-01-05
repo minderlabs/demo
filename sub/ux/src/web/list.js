@@ -145,6 +145,17 @@ export class List extends React.Component {
     });
   }
 
+  /*
+  handleMore() {
+    this.props.fetchMoreItems().then(() => {
+      // Glue to bottom.
+      // TODO(burdon): Scroll-container.
+      let el = $(this.refs.items);
+      el[0].scrollTop = el[0].scrollHeight;
+    });
+  }
+  */
+
   render() {
     let { items=[], groupBy } = this.props;
 
@@ -195,7 +206,6 @@ export class List extends React.Component {
     }
 
     let className = 'ux-list ' + (this.props.className || '');
-
     return (
       <div className={ className }>
         { rows }
@@ -283,7 +293,7 @@ export class ListItem extends React.Component {
   // To child <ListItem/> components.
   static childContextTypes = {
     onItemSelect: React.PropTypes.func,
-    item:         React.PropTypes.object
+    item: React.PropTypes.object
   };
 
   getChildContext() {
@@ -292,7 +302,7 @@ export class ListItem extends React.Component {
     }
   }
 
-  // TODO(burdon): CSS (make ux-list-item? ux-data-row?)
+  // TODO(burdon): CSS (make ux-list-item? Document ux-data-row)
   render() {
     return (
       <div className="ux-row ux-data-row">

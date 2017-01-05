@@ -53,7 +53,7 @@ export class MemoryItemStore extends ItemStore {
     console.assert(context && filter);
 
     let items = [];
-    this._items.forEach((item) => {
+    this._items.forEach(item => {
       if (!this._matcher.matchItem(context, root, filter, item)) {
         return;
       }

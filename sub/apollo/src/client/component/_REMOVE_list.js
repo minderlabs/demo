@@ -7,8 +7,6 @@ import React from 'react';
 // TODO(burdon): Needed for icon.
 import { TypeRegistry } from './type/registry';
 
-//import './list.less';
-
 /**
  * Item List.
  *

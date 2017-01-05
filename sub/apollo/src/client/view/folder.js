@@ -32,7 +32,7 @@ class FolderView extends React.Component {
   };
 
   static propTypes = {
-    user: React.PropTypes.object.isRequired,          // TODO(burdon): Add to all types.
+    user: React.PropTypes.object.isRequired,
 
     data: React.PropTypes.shape({
       folders: React.PropTypes.array.isRequired
@@ -42,10 +42,12 @@ class FolderView extends React.Component {
   constructor() {
     super(...arguments);
 
+    // TODO(burdon): Delete icon.
     this._itemRenderer = (item) => (
       <ListItem item={ item }>
         <ListItem.Favorite onSetLabel={ this.handleSetLabel.bind(this) }/>
         <ListItem.Title select={ true }/>
+        <ListItem.Delete onDelete={ this.handleItemDelete.bind(this) }/>
       </ListItem>
     );
 
@@ -118,6 +120,10 @@ class FolderView extends React.Component {
       this.refs.text.value = '';
       this.refs.text.focus();
     }
+  }
+
+  handleItemDelete(item) {
+    this.props.mutator.updateItem(item, MutationUtil.createDeleteMutation());
   }
 
   handleSetLabel(item, label, set) {

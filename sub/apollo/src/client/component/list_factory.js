@@ -82,6 +82,7 @@ function composeList(reducer) {
           items,
 
           // Paging.
+          // TODO(burdon): Hook-up to UX.
           // http://dev.apollodata.com/react/pagination.html
           // http://dev.apollodata.com/react/cache-updates.html#fetchMore
           fetchMoreItems: () => {
