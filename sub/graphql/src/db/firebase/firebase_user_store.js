@@ -51,7 +51,7 @@ export class FirebaseUserStore extends ItemStore {
   }
 
   constructor(db, idGenerator, matcher) {
-    super(matcher);
+    super(idGenerator, matcher);
     console.assert(db);
 
     this._db = db;

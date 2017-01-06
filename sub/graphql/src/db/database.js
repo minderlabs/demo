@@ -15,8 +15,8 @@ export class Database extends ItemStore {
 
   static DEFAULT = '*';
 
-  constructor(matcher) {
-    super(matcher);
+  constructor(idGenerator, matcher) {
+    super(idGenerator, matcher);
 
     // ItemStores keyed by type.
     // TODO(burdon): Should be by domain?
