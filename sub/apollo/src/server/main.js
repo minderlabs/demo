@@ -69,6 +69,7 @@ const idGenerator = new IdGenerator(1000);
 
 const matcher = new Matcher();
 
+
 // TODO(burdon): Factor out const.
 // https://firebase.google.com/docs/database/admin/start
 const firebase = new Firebase(idGenerator, matcher, {
@@ -81,9 +82,16 @@ const firebase = new Firebase(idGenerator, matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
+const authManager = new AuthManager(firebase.admin, firebase.userStore);
+
+
+//
+// Database.
+//
+
 const defaultItemStore = testing ? new MemoryItemStore(idGenerator, matcher) : firebase.itemStore;
 
-const database = new Database(matcher)
+const database = new Database(idGenerator, matcher)
 
   .registerItemStore('User', firebase.userStore)
   .registerItemStore(Database.DEFAULT, defaultItemStore)
@@ -96,23 +104,23 @@ const database = new Database(matcher)
     clientManager.invalidateOthers();
   });
 
-// TODO(burdon): Broken in prod.
-if (false) {
-  const googleDriveItemStore = new GoogleDriveItemStore(idGenerator, matcher, GoogleApiConfig);
 
-  database
-    // TODO(madadam): Keep this? Convenient for testing: e.g. "@Document foo".
-    .registerItemStore('Document', googleDriveItemStore)
+//
+// Google
+//
 
-    // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
-    .registerSearchProvider('google_drive', googleDriveItemStore)
-}
+const googleDriveItemStore = new GoogleDriveItemStore(idGenerator, matcher, GoogleApiConfig);
 
-const authManager = new AuthManager(firebase.admin, firebase.userStore);
+database
+  // TODO(madadam): Keep this? Convenient for testing: e.g. "@Document foo".
+  .registerItemStore('Document', googleDriveItemStore)
+
+  // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
+  .registerSearchProvider('google_drive', googleDriveItemStore);
 
 
 //
-// Database.
+// Testing.
 //
 
 let context = {
@@ -291,7 +299,9 @@ app.use(graphqlRouter(database, {
 // Custom GraphiQL.
 //
 
-app.use('/node_modules', express.static(path.join(__dirname, '../../node_modules')));
+let staticPath = (env === 'production' ?
+    path.join(__dirname, '../node_modules') : path.join(__dirname, '../../node_modules'));
+app.use('/node_modules', express.static(staticPath));
 app.get('/graphiql', function(req, res) {
   return authManager.getUserInfoFromCookie(req)
     .then(userInfo => {

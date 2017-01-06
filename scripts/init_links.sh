@@ -1,8 +1,9 @@
 #!/bin/sh
 
-# Doesn't seem to work.
+pushd sub/apollo
 npm-workspace clean
 npm-workspace install
+popd
 
 #
 # Workspace (manages npm link with transitive closure).
@@ -21,17 +22,3 @@ npm-workspace install
 # https://facebook.github.io/react/warnings/refs-must-have-owner.html#multiple-copies-of-react
 #
 
-DIRS=(
-  'sub/core'
-  'sub/ux'
-  'sub/graphql'
-  'sub/apollo'
-)
-
-for dir in $"${DIRS[@]}"; do
-  echo "\n### [$dir] ###"
-  pushd $dir
-  rm -f node_modules/minder-*
-  npm-workspace install
-  popd
-done

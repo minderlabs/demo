@@ -61,9 +61,9 @@ class GoogleDriveClient {
 
         if (response.nextPageToken) {
           this._fetchPage(
-            client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, callback);
+            client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, onSuccess);
         } else {
-          callback();
+          onSuccess();
         }
       }
     });
@@ -90,6 +90,8 @@ export class GoogleDriveItemStore extends ItemStore {
 
   /**
    * Convert Drive result to a schema object Item.
+   *
+   * @param idGenerator
    * @param file Google Drive file result.
    * @returns Item
    * @private
@@ -135,10 +137,7 @@ export class GoogleDriveItemStore extends ItemStore {
     throw 'Not Supported';
   }
 
-  queryItems(context, root, filter={}) {
-    // TODO(madadam): Param from client.
-    const maxResults = 10;
-
+  queryItems(context, root, filter={}, offset=0, count=10) {
     return new Promise((resolve, reject) => {
       let items = [];
 
@@ -147,7 +146,7 @@ export class GoogleDriveItemStore extends ItemStore {
       if (!driveQuery) {
         resolve(items);
       } else {
-        this._driveClient.search(context, driveQuery, maxResults,
+        this._driveClient.search(context, driveQuery, count,
           result => {
             items.push(GoogleDriveItemStore.resultToItem(this._idGenerator, result));
           },
