@@ -30,8 +30,7 @@ module.exports = {
     // https://facebook.github.io/react/warnings/refs-must-have-owner.html#multiple-copies-of-react
     // http://stackoverflow.com/questions/31169760/how-to-avoid-react-loading-twice-with-webpack-when-developing
     alias: {
-      graphql:  path.resolve('./node_modules/graphql'),
-      react:    path.resolve('./node_modules/react'),
+      react: path.resolve('./node_modules/react'),
     }
   },
 
@@ -74,27 +73,16 @@ module.exports = {
         exclude: [/node_modules/],  // Don't transpile deps.
         include: [
           path.resolve(__dirname, 'src'),
-          path.resolve(__dirname, '../core/src'),
-          path.resolve(__dirname, '../graphql/src'),
-          path.resolve(__dirname, '../ux/src')
+          path.resolve(__dirname, '../core/src')
         ],
         loader: 'babel-loader'
-      },
-
-      // Allow direct imports of .graphql files.
-      // http://dev.apollodata.com/react/webpack.html
-      // https://github.com/apollostack/graphql-tag#webpack-preprocessing
-      {
-        test: /\.(graphql|gql)$/,
-        exclude: /node_modules/,
-        loader: 'graphql-tag/loader'
       }
     ]
   },
 
   // https://www.npmjs.com/package/webpack-link
   // Comma separated list (or --link=minder-core)
-  link: 'minder-core,minder-graphql',
+  link: 'minder-core',
 
   // https://github.com/webpack/docs/wiki/list-of-plugins
   plugins: [
@@ -109,9 +97,7 @@ module.exports = {
     // NOTE: Dependent project must have appropriate deps installed.
     // https://www.npmjs.com/package/webpack-link
     new webpackLinkPlugin({
-      'minder-core':    path.resolve(__dirname, '../core'),
-      'minder-graphql': path.resolve(__dirname, '../graphql'),
-      'minder-ux':      path.resolve(__dirname, '../ux')
+      'minder-core': path.resolve(__dirname, '../core')
     }),
 
     new webpack.ProvidePlugin({ _: 'lodash' }),

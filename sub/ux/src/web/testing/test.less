@@ -1,0 +1,36 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+@import '../css/layout.less';
+
+body {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+
+  .ux-fullscreen;
+}
+
+#test-container {
+  display: flex;
+
+  width: 400px;
+  background-color: white;
+}
+
+.test-view {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  background-color: whitesmoke;
+
+  // TODO(burdon): Prevent collapse.
+  .test-panel {
+    padding: 4px;
+  }
+  .test-panel::after {
+    content: '\7C\a0';
+  }
+}

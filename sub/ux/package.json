@@ -44,6 +44,9 @@
     "sinon-chai": "^2.8.0",
     "style-loader": "^0.13.1",
     "webpack": "^1.13.2",
+    "webpack-dev-middleware": "^1.8.4",
+    "webpack-dev-server": "^1.16.2",
+    "webpack-hot-middleware": "^2.13.2",
     "webpack-link": "^0.2.0"
   },
   "dependencies": {
@@ -54,5 +57,7 @@
     "react-addons-update": "^15.3.2",
     "react-dom": "^15.3.2"
   },
-  "scripts": {}
+  "scripts": {
+    "start": "webpack-dev-server"
+  }
 }

@@ -2,6 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
+// NOTE: Must come first.
 import './config';
 
 import React from 'react';
