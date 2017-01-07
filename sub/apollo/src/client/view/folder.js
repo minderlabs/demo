@@ -13,6 +13,7 @@ import { List, ListItem, TextBox } from 'minder-ux';
 import { UpdateItemMutation } from '../data/mutations';
 
 import { SearchList } from '../component/list_factory';
+import { TypeRegistry } from '../component/type/registry';
 
 import './folder.less';
 
@@ -32,24 +33,30 @@ class FolderView extends React.Component {
   };
 
   static propTypes = {
-    user: React.PropTypes.object.isRequired,
-
-    data: React.PropTypes.shape({
-      folders: React.PropTypes.array.isRequired
-    })
+    user: React.PropTypes.object.isRequired
   };
 
   constructor() {
     super(...arguments);
 
     // TODO(burdon): Delete icon.
-    this._itemRenderer = (item) => (
-      <ListItem item={ item }>
-        <ListItem.Favorite onSetLabel={ this.handleSetLabel.bind(this) }/>
-        <ListItem.Title select={ true }/>
-        <ListItem.Delete onDelete={ this.handleItemDelete.bind(this) }/>
-      </ListItem>
-    );
+    this._itemRenderer = (item) => {
+      let icon = item.iconUrl || this.props.typeRegistry.icon(item);
+      let column = this.props.typeRegistry.column(item);
+      let custom = column && (<div className="ux-noshrink">{ column }</div>);
+
+      return (
+        <ListItem item={ item }>
+          <ListItem.Favorite onSetLabel={ this.handleSetLabel.bind(this) }/>
+          <ListItem.Title select={ true }/>
+          { custom }
+          <div className="ux-icons ux-noshrink">
+            <ListItem.Icon icon={ icon }/>
+            <ListItem.Delete onDelete={ this.handleItemDelete.bind(this) }/>
+          </div>
+        </ListItem>
+      );
+    };
 
 //  this._itemRenderer = List.DebugItemRenderer(['id', 'refs']);
   }
@@ -138,14 +145,16 @@ class FolderView extends React.Component {
 
     return (
       <div className="app-folder ux-column">
-        <div className="ux-expand">
-          <SearchList filter={ filter }
-                      groupBy={ true }
-                      itemRenderer={ this._itemRenderer }
-                      onItemSelect={ this.handleItemSelect.bind(this) }/>
+        <div className="ux-scroll-container">
+          <div className="ux-scroll-panel">
+            <SearchList filter={ filter }
+                        groupBy={ true }
+                        itemRenderer={ this._itemRenderer }
+                        onItemSelect={ this.handleItemSelect.bind(this) }/>
+          </div>
         </div>
 
-        <div className="ux-section ux-toolbar ux-row">
+        <div className="ux-section ux-toolbar">
           <TextBox ref="text" className="ux-expand" onEnter={ this.handleItemCreate.bind(this) }/>
           <i className="ux-icon ux-icon-add" onClick={ this.handleItemCreate.bind(this) }/>
         </div>
@@ -174,12 +183,15 @@ const mapStateToProps = (state, ownProps) => {
 
   // NOTE: Search state come from dispatch via SearchBar.
   let { injector, search, user, team } = state.minder;
+  let typeRegistry = injector.get(TypeRegistry);
   let queryParser = injector.get(QueryParser);
   let filter = queryParser.parse(search.text);
 
   return {
     // Provide for Mutator.graphql
-    injector,
+    injector,                             // TODO(burdon): Wrap.
+
+    typeRegistry,
     filter,
     search,
     user,

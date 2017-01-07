@@ -52,8 +52,7 @@ class ColumnLayout extends React.Component {
             */}
           <div className='app-drop'>
             <div className="app-drop-panel">
-              <SearchList favorite={ false }
-                          filter={ filter }
+              <SearchList filter={ filter }
                           onItemSelect={ this.handleItemSelect.bind(this) }/>
             </div>
           </div>

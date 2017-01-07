@@ -235,6 +235,7 @@ export class ListItem extends React.Component {
   static Debug = (props, context) => {
     let { item } = context;
     let { fields } = props;
+
     let obj = fields ? _.pick(item, fields) : item;
     return (
       <div className="ux-debug">{ JSON.stringify(obj, null, 1) }</div>
@@ -243,11 +244,19 @@ export class ListItem extends React.Component {
 
   static Icon = (props, context) => {
     let { item } = context;
-    let { typeRegistry } = context;
 
-    return (
-      <i className="ux-icon">{ props.icon || typeRegistry.icon(item.type) }</i>
-    );
+    let icon = props.icon;
+    if (icon.startsWith('http')) {
+      return (
+        <i className="ux-icon ux-icon-img">
+          <img src={ icon }/>
+        </i>
+      )
+    } else {
+      return (
+        <i className="ux-icon">{ props.icon }</i>
+      );
+    }
   };
 
   static Favorite = (props, context) => {

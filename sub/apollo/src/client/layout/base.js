@@ -89,13 +89,13 @@ export class BaseLayout extends React.Component {
         <div className={ baseClassName }>
 
           {/* Header */}
-          <div className="ux-app-header ux-row">
+          <div className="app-header ux-row">
             <div className="ux-row ux-expand">
               <SidebarToggle sidebar={ () => this.refs.sidebar }/>
               <h1>{ Const.APP_NAME }</h1>
             </div>
             <div>
-              <ul>
+              <ul className="ux-inline">
                 <li>{ viewer && viewer.user.title }</li>
                 <li><a href="/user/logout">Logout</a></li>
               </ul>

@@ -92,39 +92,17 @@ class DocumentLayout extends React.Component {
 }
 
 /**
- * List Item.
+ * Custom list column.
  */
-export class DocumentListItem extends React.Component {
-
-  // TODO(burdon): Replace with custom list column.
-
-  static propTypes = {
-    item: React.PropTypes.object.isRequired,
-  };
-
-  render() {
-    let { item } = this.props;
-
-    // TODO(madadam): Snippet, thumbnail image, etc.
-    let marginIcon = item.iconUrl && (
-      <img className="ux-icon" src={ item.iconUrl }/>
-    );
-
-    return (
-      <div className="ux-row ux-list-item">
-        { marginIcon }
-
-        <div className="ux-text ux-expand">
-          <a href={ item.url }>
-            { item.title }
-          </a>
-
-          <div>{ item.source }</div>
-        </div>
-      </div>
-    );
-  }
-}
+export const DocumentColumn = (props, context) => {
+  return (
+    <div className="ux-font-xsmall ux-link">
+      <a target="MINDER_OPEN" href={ props.item.url }>
+        { props.item.source }
+      </a>
+    </div>
+  );
+};
 
 /**
  * HOC.

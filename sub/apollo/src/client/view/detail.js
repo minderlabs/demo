@@ -38,6 +38,6 @@ export default class DetailView extends React.Component {
 
     console.log('Detail[%s:%s]: %s', type, view, itemId);
     let typeRegistry = this.context.injector.get(TypeRegistry);
-    return typeRegistry.renderCard(type, itemId);
+    return typeRegistry.card(type, itemId);
   }
 }

@@ -10,6 +10,20 @@
 @import './theme';
 
 //
+// Theme.
+//
+
+.ux-font-xsmall   { font-size: @ux-font-xsmall; }
+.ux-font-small    { font-size: @ux-font-small;  }
+.ux-font-medium   { font-size: @ux-font-medium; }
+.ux-font-large    { font-size: @ux-font-large;  }
+
+.ux-link {
+  color: #185588;
+  cursor: pointer;
+}
+
+//
 // Icons
 // <i class="ux-icon"></i>
 // TODO(burdon): Use :after pseudo to insert all material-icon types (and remove from React).
@@ -19,8 +33,15 @@ i.ux-icon {
   .ux-text-noselect;
   .material-icons;
 
-  font-size: 18px;
   cursor: pointer;
+
+  font-size: 18px;
+}
+
+i.ux-icon-img {
+  width: 18px;
+  display: flex;
+  justify-content: center;
 }
 
 .ux-icon-medium {
@@ -54,6 +75,20 @@ i.ux-icon-error:after {
 i.ux-icon-error.ux-icon-on:after {
   content: 'error';
   color: indianred;
+}
+
+ul.ux-inline {
+  list-style-type: none;
+
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+
+  li {
+    display: inline;
+    padding-left: 8px;
+    font-size: @ux-font-small;
+  }
 }
 
 .ux-selector {

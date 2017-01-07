@@ -44,11 +44,11 @@ export default class PageLayout extends React.Component {
     let { type } = ID.fromGlobalId(itemId);
 
     let typeRegistry = this.context.injector.get(TypeRegistry);
-    let detail = typeRegistry.renderCanvas(type, itemId);
+    let canvas = typeRegistry.canvas(type, itemId);
 
     return (
       <BaseLayout className="app-page-layout">
-        { detail }
+        { canvas }
       </BaseLayout>
     );
   }

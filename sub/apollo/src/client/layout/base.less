@@ -2,10 +2,32 @@
 // Copyright 2016 Minder Labs.
 //
 
+@import './theme.less';
+
 .app-base-layout {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 
   background-color: white;
+
+  .app-header {
+    color: @app-header-color;
+    background-color: @app-header-background;
+
+    padding: 4px 8px;
+
+    a {
+      color: @app-header-color;
+    }
+
+    i.ux-icon {
+      font-size: 24px;
+    }
+
+    h1 {
+      margin-left: 8px;
+      font-family: Poiret One, sans-serif;
+    }
+  }
 }
