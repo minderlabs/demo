@@ -243,10 +243,10 @@ export class ListItem extends React.Component {
 
   static Icon = (props, context) => {
     let { item } = context;
-    let { typeRegistry } = context.typeRegistry;
+    let { typeRegistry } = context;
 
     return (
-      <i className="ux-icon">{ typeRegistry.icon(item.type) }</i>
+      <i className="ux-icon">{ props.icon || typeRegistry.icon(item.type) }</i>
     );
   };
 
@@ -268,7 +268,7 @@ export class ListItem extends React.Component {
     let { select=true } = props;
 
     return (
-      <div className="ux-expand ux-text ux-select"
+      <div className="ux-expand ux-text ux-selector"
            onClick={ select && onItemSelect.bind(null, item) }>
         { item.title }
       </div>

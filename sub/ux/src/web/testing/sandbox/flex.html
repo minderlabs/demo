@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <title>CSS Sandbox</title>
+  <script src="../../../../node_modules/jquery/dist/jquery.min.js">
+
+  </script>
+  <style>
+
+    /*
+     * https://css-tricks.com/snippets/css/a-guide-to-flexbox
+     * https://scotch.io/tutorials/a-visual-guide-to-css3-flexbox-properties
+     */
+
+    body {
+      box-sizing: border-box;
+
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      overflow: hidden;
+
+      margin: 0;
+
+      background-color: #999;
+      font-size: 24px;
+      font-family: Verdana, sans-serif;
+    }
+
+    h1, h2 {
+      margin: 0;
+    }
+
+    .container {
+      display: flex;
+      width: 400px;
+      background-color: whitesmoke;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .expand {
+      flex-grow: 1;
+      overflow: hidden;
+    }
+
+    .scroll-container {
+      overflow-y: scroll;
+    }
+    .scroll-container::-webkit-scrollbar {
+      width: 4px;
+    }
+    .scroll-container::-webkit-scrollbar-track {
+      background-color: white;
+    }
+    .scroll-container::-webkit-scrollbar-thumb {
+      background-color: #666;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-direction: row;
+      flex-shrink: 0;
+      justify-content: space-between;
+      background-color: aquamarine;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="column">
+      <div class="toolbar">
+        <h1 class="expand">Header</h1>
+      </div>
+
+      <div class="expand scroll-container">
+        <div class="list"></div>
+      </div>
+
+      <div class="toolbar">
+        <h2 class="expand">Footer</h2>
+        <button onclick="add()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+    let count = 0;
+
+    function add(n=10) {
+      let list = $('.list');
+      for (let i = 0; i < n; i++) {
+        list.append($('<div>').text('Item ' + ++count));
+      }
+    }
+
+    $(document).ready(() => {
+      add(30);
+    });
+
+  </script>
+
+</body>
+</html>

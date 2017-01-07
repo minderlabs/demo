@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import { List, TextBox } from '../../index';
+import { List, ListItem, TextBox } from '../../index';
 
 /**
  * Test view.
@@ -24,12 +24,24 @@ export class TestView extends React.Component {
       item: null
     };
 
-    for (let i = 0; i < 50; i++) {
+    TestView.Items.push({
+      id: 'I-0',
+      title: 'A very very very very very very very long title.'
+    });
+    for (let i = 1; i < 50; i++) {
       TestView.Items.push({
         id: 'I-' + i,
         title: 'Item ' + i
       });
     }
+
+    this.itemRenderer = (item) => (
+      <ListItem item={ item }>
+        <ListItem.Icon icon="person_outline"/>
+        <ListItem.Title/>
+        <ListItem.Icon icon="edit"/>
+      </ListItem>
+    );
   }
 
   handleChange(value) {
@@ -48,23 +60,33 @@ export class TestView extends React.Component {
 
   render() {
     return (
-      <div className="test-view">
-        <h1>Test View</h1>
+      <div className="ux-column">
+        <div className="ux-bar">
+          <h1 className="ux-expand">Test View</h1>
+        </div>
 
-        <TextBox value={ this.state.value }
-                 autoFocus={ true }
-                 onChange={ this.handleChange.bind(this) }/>
+        <div className="ux-row ux-data-row">
+          <TextBox className="ux-expand"
+                   value={ this.state.value }
+                   autoFocus={ true }
+                   onChange={ this.handleChange.bind(this) }/>
+        </div>
 
-        <div className="test-panel">{ this.state.value }</div>
+        <div className="ux-row ux-data-row">
+          <div className="ux-text ux-text-nocollapse">{ this.state.value }</div>
+        </div>
 
         <div className="ux-scroll-container">
           <div className="ux-scroll-panel">
             <List items={ TestView.Items }
-                onItemSelect={ this.handleSelect.bind(this) }/>
+                  itemRenderer={ this.itemRenderer }
+                  onItemSelect={ this.handleSelect.bind(this) }/>
           </div>
         </div>
 
-        <div className="test-panel">{ JSON.stringify(this.state.item) }</div>
+        <div className="ux-bar">
+          <div className="ux-text-nocollapse ux-text-nowrap">{ this.state.item && JSON.stringify(this.state.item) }</div>
+        </div>
       </div>
     );
   }

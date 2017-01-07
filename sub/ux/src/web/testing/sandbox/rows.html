@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <title>CSS Sandbox</title>
+
+  <style>
+
+    body {
+      margin: 0;
+      box-sizing: border-box;
+
+      background-color: #999;
+      font-size: 24px;
+      font-family: Verdana, sans-serif;
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    i {
+      color: darkblue;
+      padding: 0 8px;
+    }
+    i:first-child {
+      padding-left: 0;
+    }
+    i:last-child {
+      padding-right: 0;
+    }
+
+    /* Container */
+    .container {
+      width: 300px;
+    }
+
+    /* List */
+    .list {
+      display: flex;
+      flex-direction: column;
+      background-color: #FFF;
+    }
+    .list .row {
+      display: flex;
+      flex-grow: 1;
+
+      align-items: center;
+      padding: 2px 8px;
+      cursor: pointer;
+    }
+    .list .row > div {
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* Stripes */
+    .list .row:nth-child(even) {
+      background-color: #CCC;
+    }
+    /* Highlight */
+    .list .row:hover {
+      background-color: lightblue;
+    }
+
+    /* Content */
+    .list .row .title {
+      flex-grow: 1;
+
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Rows</h1>
+
+    <div class="list">
+      <div class="row">
+        <div>
+          <i class="material-icons">person</i>
+          <div class="title">A</div>
+          <i class="material-icons">edit</i>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <i class="material-icons">person</i>
+          <div class="title">A long long long long title.</div>
+          <i class="material-icons">edit</i>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <i class="material-icons">person</i>
+          <div class="title">C</div>
+          <i class="material-icons">edit</i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

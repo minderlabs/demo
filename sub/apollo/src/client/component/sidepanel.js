@@ -35,7 +35,7 @@ export class SidePanel extends React.Component {
       <div className="ux-row" key={ item.id }
            onMouseDown={ this.onSelect.bind(this, item.link || Path.folder(item.alias)) }>
         <i className="ux-icon">{ item.icon }</i>
-        <div className="ux-select">{ item.title }</div>
+        <div className="ux-selector">{ item.title }</div>
       </div>
     );
   }

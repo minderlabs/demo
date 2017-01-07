@@ -16,7 +16,7 @@
 //
 
 i.ux-icon {
-  .ux-noselect;
+  .ux-text-noselect;
   .material-icons;
 
   font-size: 18px;
@@ -56,6 +56,10 @@ i.ux-icon-error.ux-icon-on:after {
   color: indianred;
 }
 
+.ux-selector {
+  cursor: pointer;
+}
+
 //
 // Forms
 // TODO(burdon): Clean-up. Move to layout.
@@ -67,7 +71,7 @@ i.ux-icon-error.ux-icon-on:after {
   flex-direction: column;
 }
 
-// TODO(burdon): ux-control-row
+// TODO(burdon): Rename ux-control-row
 .ux-data-row {
   display: flex;
   flex-direction: row;
@@ -80,6 +84,8 @@ i.ux-icon-error.ux-icon-on:after {
   }
 
   .ux-text {
+    .ux-text-nowrap;
+
     margin: 1px;                    // Align with inline input (border).
     padding: 2px 4px;
   }
