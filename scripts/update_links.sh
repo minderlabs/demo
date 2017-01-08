@@ -33,5 +33,6 @@ for dir in $"${DIRS[@]}"; do
   pushd $dir
   rm -f node_modules/minder-*
   npm-workspace install
+  npm link
   popd
 done
