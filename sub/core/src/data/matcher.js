@@ -43,13 +43,7 @@ export class Matcher {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item);
 
-    // Must match something.
-    // TODO(burdon): Need to provide namespace (i.e., 'User' can't be used to fan-out to firebase).
-    if (!filter || !filter.matchAll && TypeUtil.isEmpty(_.pick(filter, ['type', 'labels', 'text', 'expr']))) {
-      return false;
-    }
-
-    // Bucket match.
+    // Bucket match (ACL filtering).
     // TODO(burdon): Filter should not include bucket (implicit in query).
     console.assert(context.user);
     if (item.bucket && item.bucket !== context.user.id) {
@@ -62,6 +56,13 @@ export class Matcher {
     // Could match IDs.
     if (filter.ids && _.indexOf(filter.ids, item.id) != -1) {
       return true;
+    }
+
+    // Must match something.
+    // TODO(burdon): Need to provide namespace (i.e., 'User' can't be used to fan-out to firebase).
+    if (!filter || !filter.matchAll && TypeUtil.isEmpty(
+      _.pick(filter, ['type', 'labels', 'text', 'expr']))) {
+      return false;
     }
 
     // Type match.

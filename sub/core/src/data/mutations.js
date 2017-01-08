@@ -42,17 +42,19 @@ export class MutationUtil {
   }
 
   /**
+   * Creates a mutation field if the old and new values are different.
    *
    * @param field
    * @param type
    * @param oldValue
    * @param newValue
-   * @returns {{field: *, value: {}}}
+   * @returns {}
    */
   static field(field, type, newValue, oldValue=undefined) {
 
     // TODO(burdon): If newValue is undefined then remove? Different semantics from "only if set").
-    if (!_.isEmpty(newValue) && newValue !== oldValue) {
+    if (!_.isUndefined(newValue) && newValue !== oldValue) {
+      console.log('BANANAS');
       return {
         field: field,
         value: {

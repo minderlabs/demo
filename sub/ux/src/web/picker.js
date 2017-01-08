@@ -36,6 +36,12 @@ export class Picker extends React.Component {
     this._focusTimeout = null;
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      text: nextProps.value
+    });
+  }
+
   get value() {
     return this.state.value;
   }

@@ -216,6 +216,7 @@ export class Resolvers {
             // Apply mutation.
             Transforms.applyObjectMutations(item, mutations);
 
+            // Upsert database.
             return database.upsertItem(context, item);
           });
         }

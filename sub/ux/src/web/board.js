@@ -43,13 +43,8 @@ export class Board extends React.Component {
       );
     });
 
-    // TODO(burdon): Title in Breadcrumbs.
     return (
       <div className="ux-board">
-        <div className="ux-board-header">
-          <div>{ item.title }</div>
-        </div>
-
         <div className="ux-board-columns ux-scroll-x-container">
           { columnsDivs }
         </div>

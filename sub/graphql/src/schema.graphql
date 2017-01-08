@@ -228,25 +228,6 @@ type Group implements Item {
   projects: [Project]!
 }
 
-#
-# Item Types.
-#
-
-type Board implements Item {
-  id: ID!
-  bucket: ID
-  type: String!
-  alias: String
-  created: Timestamp!
-  modified: Timestamp!
-  title: String!
-  labels: [String]
-
-  project: Project!
-
-  # TODO(burdon): Layout meta data (ID => column, order, etc.)
-}
-
 type Folder implements Item {
   id: ID!
   bucket: ID

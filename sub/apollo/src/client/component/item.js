@@ -7,8 +7,14 @@ import gql from 'graphql-tag';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 
-import { ID, Matcher, Mutator, MutationUtil, ItemReducer, TypeUtil } from 'minder-core';
+import { ID, Matcher, Mutator, MutationUtil, TypeUtil } from 'minder-core';
 import { TextBox } from 'minder-ux';
+
+import { TypeRegistry } from './type/registry';
+
+import './item.less';
+
+// TODO(burdon): Generalize to canvas.
 
 /**
  * Basic item fragment (common fields).
@@ -113,7 +119,7 @@ export class CardContainer extends React.Component {
    * Renders the outer card, with content from type-specific item.
    */
   render() {
-    let { children, debug, item={}, nav } = this.props;
+    let { children, debug, item={}, typeRegistry, onToggleCanvas } = this.props;
 
     let debugSection = debug && (
       <div className="ux-section ux-debug">
@@ -122,10 +128,16 @@ export class CardContainer extends React.Component {
     );
 
     return (
-      <div className="app-detail ux-column">
+      <div className="ux-column">
         <div className="ux-section ux-row">
+          <i className="ux-icon"
+             onClick={ onToggleCanvas }>{ typeRegistry.icon(item) }</i>
+
           <TextBox ref="title" className="ux-expand" value={ item.title }/>
-          { nav }
+
+          <div>
+            <i className="ux-icon ux-icon-action ux-icon-save" onClick={ this.maybeSave.bind(this) }>save</i>
+          </div>
         </div>
 
         { debugSection }
@@ -140,21 +152,25 @@ export class CardContainer extends React.Component {
   }
 }
 
-
+/**
+ * NOTE: This is applied to the child container (e.g., TaskCardComponent).
+ */
 const mapStateToProps = (state, ownProps) => {
-  let { minder } = state;
+  let { injector, user } = state.minder;
 
   return {
     // TODO(burdon): Bind needed objects instead (e.g., Matcher, TypeRegistry).
     // Provide for Mutator.graphql
-    injector: minder.injector,
+    injector,
+
+    typeRegistry: injector.get(TypeRegistry),
 
     // Matcher's context (same as server).
     context: {
-      user: { id: minder.user.id }
+      user: { id: user.id }
     },
 
-    user: minder.user
+    user
   }
 };
 

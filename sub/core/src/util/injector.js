@@ -32,6 +32,8 @@ export class Injector {
   }
 
   get(key) {
+    console.assert(key);
+
     if (_.isObject(key)) {
       let value = this._keys.get(key.name);
       console.assert(value, 'Missing key: %s', key);

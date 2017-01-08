@@ -62,10 +62,16 @@ class TaskCardComponent extends React.Component {
   };
 
   handleSave() {
-    let values = this.refs.item.values;
     let { item } = this.props;
+    let values = this.refs.item.values;
+
+    // TODO(burdon): Cache isn't updated on mutation.
+    // TODO(burdon): Utils to connect with state.values below?
 
     let mutations = [];
+
+    TypeUtil.maybeAppend(mutations,
+      MutationUtil.field('status', 'int', _.get(values, 'status'), _.get(item, 'status')));
 
     TypeUtil.maybeAppend(mutations,
       MutationUtil.field('assignee', 'id', _.get(values, 'assignee'), _.get(item, 'assignee.id')));
@@ -74,10 +80,11 @@ class TaskCardComponent extends React.Component {
   }
 
   render() {
-    let { item, mutator } = this.props;
+    let { item, mutator, typeRegistry } = this.props;
 
     return (
-      <CardContainer mutator={ mutator } item={ item } onSave={ this.handleSave.bind(this) }>
+      <CardContainer mutator={ mutator } typeRegistry={ typeRegistry} item={ item }
+                     onSave={ this.handleSave.bind(this) }>
         <TaskLayout ref="item" item={ item }/>
       </CardContainer>
     );
@@ -92,21 +99,58 @@ class TaskLayout extends React.Component {
   constructor() {
     super(...arguments);
 
-    this._values = {};
+    this.state = {
+      itemId: null,
+      values: {},
+      items: {}
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+
+    // TODO(burdon): mapStateToProps called every time Redux store is changed.
+    // TODO(burdon): Understand and generalize this pattern.
+    // TODO(burdon): handleSelectPicker, TaskCardComponent re-renders (why?) and this would overwrite the values
+    //               with the old values in the item.
+
+    let { item } = nextProps;
+    if (_.get(item, 'id') != this.state.itemId) {
+      this.setState({
+        itemId: _.get(item, 'id'),
+        items: {
+          assignee: _.get(item, 'assignee')
+        },
+        values: {
+          assignee: _.get(item, 'assignee.id'),
+          status: _.get(item, 'status', 0)
+        }
+      });
+    }
   }
 
   get values() {
-    return this._values;
+    return this.state.values;
   }
 
   handleSelectPicker(property, item) {
-    _.set(this._values, property, item.id);
+    this.setState({
+      items: _.set(this.state.items, property, item),
+      values: _.set(this.state.values, property, item.id)
+    });
+  }
+
+  handleSelectStatus(event) {
+    this.setState({
+      values: _.set(this.state.values, 'status', event.target.value)
+    });
   }
 
   render() {
-    let { item={} } = this.props;
+    let { item } = this.props;
+    let { items, values } = this.state;
+    let { status } = values;
 
-    let filter = {
+    const userFilter = {
       type: 'User'
     };
 
@@ -126,18 +170,18 @@ class TaskLayout extends React.Component {
 
           <div className="ux-data-row">
             <div className="ux-data-label">Assignee</div>
-            <ItemsPicker filter={ filter }
-                         value={ _.get(item, 'assignee.title') }
+            <ItemsPicker filter={ userFilter }
+                         value={ _.get(items, 'assignee.title') }
                          onSelect={ this.handleSelectPicker.bind(this, 'assignee') }/>
           </div>
 
           <div className="ux-data-row">
             <div className="ux-data-label">Status</div>
-            <select value={ item.status }>
-              <option id="0">Unstarted</option>
-              <option id="1">Assigned</option>
-              <option id="2">Active</option>
-              <option id="3">Complete</option>
+            <select value={ status } onChange={ this.handleSelectStatus.bind(this) }>
+              <option value="0">Unstarted</option>
+              <option value="1">Assigned</option>
+              <option value="2">Active</option>
+              <option value="3">Complete</option>
             </select>
           </div>
 
