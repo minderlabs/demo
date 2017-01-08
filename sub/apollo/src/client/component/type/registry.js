@@ -4,7 +4,6 @@
 
 import React from 'react';
 
-import { BoardCard } from './board';
 import { UserCard } from './user';
 import { TeamCard } from './team';
 import { PlaceCard } from './place';

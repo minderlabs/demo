@@ -56,13 +56,7 @@ export class SidePanel extends React.Component {
         title: 'Demo',
         icon: 'assignment',
         link: Path.detail(ID.toGlobalId('Project', 'demo'))
-      },
-      {
-        id: 'planning',
-        title: 'Planning',
-        icon: 'view_column',
-        link: Path.page(ID.toGlobalId('Board', 'planning'))
-      },
+      }
     ];
 
     const debugItems = [
