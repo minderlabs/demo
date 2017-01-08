@@ -19,9 +19,12 @@ const matcher = new Matcher();
 // TODO(burdon): Test both databases.
 //
 
+const idGenerator = new IdGenerator(1000);
+
 const tests = (itemStore) => {
 
-  let database = new Database(matcher).registerItemStore(Database.DEFAULT, itemStore);
+  let database = new Database(idGenerator, matcher)
+    .registerItemStore(Database.DEFAULT, itemStore);
 
   it('Create and get items.', (done) => {
     let context = {};
@@ -97,8 +100,6 @@ const tests = (itemStore) => {
     expect(groupedItems[0].refs).to.have.lengthOf(2);
   });
 };
-
-const idGenerator = new IdGenerator(1000);
 
 describe('MemoryDatabase:',
   () => tests(new MemoryItemStore(idGenerator, matcher)));

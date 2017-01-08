@@ -77,7 +77,7 @@ const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
             members: {
               [memberIdx]: {
                 tasks: {
-                  $apply: ItemReducer.listApplicator(matcher, context, filter, updatedItem)
+                  $apply: Reducer.listApplicator(matcher, context, filter, updatedItem)
                 }
               }
             }

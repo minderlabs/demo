@@ -75,7 +75,7 @@ export const appRouter = (authManager, clientManager, options) => {
   // Status
   router.get('/status', function(req, res) {
     res.send({
-      version: '0.0.1'
+      version: '0.1.0'
     });
   });
 
