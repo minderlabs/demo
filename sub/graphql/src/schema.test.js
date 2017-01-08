@@ -17,7 +17,7 @@ import {
 import { makeExecutableSchema, mockServer } from 'graphql-tools';
 import { introspectionQuery, printSchema } from 'graphql/utilities';
 
-import { Matcher, MemoryItemStore } from 'minder-core';
+import { IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
 
 import { Database } from './db/database';
 import { Resolvers } from './resolvers';
@@ -57,10 +57,13 @@ const test = (result, done) => {
   }
 };
 
+const idGenerator = new IdGenerator(1000);
+
 const matcher = new Matcher();
 
 function createDatabase() {
-  return new Database(matcher).registerItemStore(Database.DEFAULT, new MemoryItemStore(matcher));
+  return new Database(idGenerator, matcher)
+    .registerItemStore(Database.DEFAULT, new MemoryItemStore(idGenerator, matcher));
 }
 
 //
