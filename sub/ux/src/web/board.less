@@ -1,0 +1,49 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+.ux-board {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  > .ux-board-header {
+    background-color: lightblue;
+  }
+
+  .ux-board-columns {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    justify-content: space-between;
+    overflow-x: scroll;
+
+    padding: 8px;
+
+    .ux-board-column {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      min-width: 300px;
+
+      border-radius: 8px;
+      background-color: #DDDDDD;
+      margin: 8px;
+      padding: 8px;
+
+      > .ux-board-header {
+        margin-bottom: 8px;
+      }
+
+      .ux-board-list {
+        .ux-list {
+          .ux-list-item {
+            margin: 4px;
+            background-color: white;
+            border-radius: 4px;
+          }
+        }
+      }
+    }
+  }
+}

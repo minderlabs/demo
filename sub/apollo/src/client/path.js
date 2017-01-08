@@ -11,6 +11,10 @@ const ROOT = '/app';
 
 /**
  * Router paths.
+ *
+ * LAYOUT: E.g., Column (mobile, crx), Master-Detail (web)
+ * CANVAS: E.g., List, Card, Board
+ * ITEM: ID
  */
 export class Path {
 
@@ -18,9 +22,17 @@ export class Path {
   // List, Card, Full screen (aka board).
   // Board can be rendered as a list item, card, or full screen. Fix TypeRegistry to understand.
 
+  // app/inbox          Inbox
+  // app/favorites      Favorites with Item xxx selected (e.g., if WebLayout).
+  // app/card/xxx       Card canvas Item xxx
+  // app/board/xxx      Board canvas
+
+  // [BaseLayout]:SurfaceLayout => CanvasView
+
+  // TODO(burdon): Canvases support different form-factors.
+
   static ROOT     = ROOT;
   static HOME     = ROOT + '/inbox';
-  static PAGE     = ROOT + '/page';
   static TESTING  = ROOT + '/testing';
 
   /**
@@ -43,24 +55,15 @@ export class Path {
   }
 
   /**
-   * Creates a URL for the given item.
+   * Creates a URL for the given canvas.
    *
    * @param itemId  Global ID.
+   * @param canvas
    * @return {string}
    */
-  // TODO(burdon): Support item view type (items can have multiple views).
-  static detail(itemId) {
-    return `${Path.ROOT}/item/${itemId}`;
-  }
-
-  /**
-   * Create a URL for the given board.
-   *
-   * @param itemId
-   * @returns {string}
-   */
-  static page(itemId) {
-    return `${Path.ROOT}/page/${itemId}`;
+  // TODO(burdon): Preserve current layout.
+  static canvas(itemId, canvas='card') {
+    return `${Path.ROOT}/${canvas}/${itemId}`;
   }
 }
 
@@ -87,6 +90,6 @@ export class Navigator {
   }
 
   pushDetail(item) {
-    this.dispatch(push(Path.detail(ID.toGlobalId(item.type, item.id))));
+    this.dispatch(push(Path.canvas(ID.toGlobalId(item.type, item.id))));
   }
 }

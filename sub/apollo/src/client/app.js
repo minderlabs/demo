@@ -7,12 +7,9 @@ import { IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { connect } from 'react-redux'
 import { ApolloProvider } from 'react-apollo';
 
-import PageLayout from './layout/page';
-import ColumnLayout from './layout/column';
-
-import DetailView from './view/detail';
-import FolderView from './view/folder';
-import TestView from './view/testing';
+import CanvasActivity from './activity/canvas';
+import FinderActivity from './activity/finder';
+import TestingActivity from './activity/testing';
 
 import { Path } from './path';
 
@@ -43,6 +40,13 @@ export class Application extends React.Component {
     //
     // Redux Router.
     // https://github.com/reactjs/react-router-redux
+    // TODO(burdon): Distinguish form factor (e.g., column) from canvas (e.g., board).
+    //
+    // [App]==(Route)==>[Activity]o--[Layout]o--[View]
+    //
+    // App's route determines the activity.
+    // The form-factor (e.g., mobile, web, CRX) determines the layout.
+    // The acitivity creates (multiple) views (analogous to Android fragments) for the given layout.
     //
 
     return (
@@ -50,15 +54,16 @@ export class Application extends React.Component {
 
         <Router history={ this.props.history }>
 
-          <Route path={ Path.PAGE + '/:itemId' } component={ PageLayout }/>
-
-          <Route path={ Path.ROOT } component={ ColumnLayout }>
+          <Route path={ Path.ROOT }>
             <IndexRedirect to={ Path.HOME }/>
 
-            <Route path={ Path.TESTING } component={ TestView }/>
+            <Route path={ Path.TESTING } component={ TestingActivity }/>
 
-            <Route path={ Path.route(['folder']) } component={ FolderView }/>
-            <Route path={ Path.route(['view', 'itemId']) } component={ DetailView }/>
+            {/* E.g., /app/inbox, /app/favorites?selected=xxx */}
+            <Route path={ Path.route(['folder']) } component={ FinderActivity }/>
+
+            {/* E.g., /app/card/xxx, /app/board/xxx */}
+            <Route path={ Path.route(['canvas', 'itemId']) } component={ CanvasActivity }/>
 
             <Redirect from='*' to={ Path.HOME }/>
           </Route>

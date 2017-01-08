@@ -58,10 +58,10 @@ class UserCardComponent extends React.Component {
   };
 
   render() {
-    let { item } = this.props;
+    let { item, mutator } = this.props;
 
     return (
-      <CardContainer mutator={ this.props.mutator } item={ item }>
+      <CardContainer mutator={ mutator } item={ item }>
         <UserLayout ref="item" item={ item }/>
       </CardContainer>
     );

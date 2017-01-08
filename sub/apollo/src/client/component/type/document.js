@@ -50,10 +50,10 @@ class DocumentCardComponent extends React.Component {
   handleSave() {}
 
   render() {
-    let { item } = this.props;
+    let { item, mutator } = this.props;
 
     return (
-      <CardContainer mutator={ this.props.mutator } item={ item } onSave={ this.handleSave.bind(this) }>
+      <CardContainer mutator={ mutator } item={ item } onSave={ this.handleSave.bind(this) }>
         <DocumentLayout ref="item" item={ item }/>
       </CardContainer>
     );

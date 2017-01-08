@@ -19,8 +19,6 @@ import { NavBar } from '../component/navbar';
 import { SidePanel } from '../component/sidepanel';
 import { StatusBar } from '../component/statusbar';
 
-import { ACTION } from '../reducers';
-
 import './base.less';
 
 // TODO(burdon): Card decks (list).
@@ -28,10 +26,17 @@ import './base.less';
 // TODO(burdon): Inline create/edit.
 // TODO(burdon): Client-side filtering (e.g., by column, sort order, etc.)
 
+// Fragments
+// https://developer.android.com/guide/practices/tablets-and-handsets.html
+
 /**
  * Board layout.
  */
 export class BaseLayout extends React.Component {
+
+  static isMobile() {
+    return !!navigator.userAgent.match(/(Android|iPhone|iPod)/);
+  }
 
   static childContextTypes = {
     navigator: React.PropTypes.object
@@ -42,14 +47,9 @@ export class BaseLayout extends React.Component {
   };
 
   static propTypes = {
-    // TODO(burdon): Get from injector.
-    queryRegistry: React.PropTypes.object.isRequired,
-
-    navigator: React.PropTypes.object.isRequired,
-
-    data: React.PropTypes.shape({
-      viewer: React.PropTypes.object
-    })
+    // Provided by redux.
+    navigator: React.PropTypes.object,
+    queryRegistry: React.PropTypes.object
   };
 
   constructor() {
@@ -79,6 +79,11 @@ export class BaseLayout extends React.Component {
 
   render() {
     let { children, className, config, team, viewer, folders } = this.props;
+
+    if (!config) {
+      console.log('############## NULL ################');
+      return null;
+    }
 
     let baseClassName = 'app-base-layout ' + (className || '');
 
@@ -110,18 +115,13 @@ export class BaseLayout extends React.Component {
 
             {/* Content view. */}
             <div className="ux-column">
-
-              {/* Main layout */}
-              <div className="app-main-layout">
-                { children }
-              </div>
-
+              { children }
             </div>
           </Sidebar>
 
           {/* Footer */}
           <div className="app-footer">
-            <StatusBar ref="status" config={ config }onClick={ this.handleToolbarClick.bind(this) }/>
+            <StatusBar ref="status" config={ config } onClick={ this.handleToolbarClick.bind(this) }/>
           </div>
 
           {/* Debug sidebar */}
@@ -171,7 +171,10 @@ const mapStateToProps = (state, ownProps) => {
   let queryRegistry = injector.get(QueryRegistry);
 
   return {
-    config, queryRegistry, user, team
+    config,
+    queryRegistry,
+    user,
+    team
   }
 };
 

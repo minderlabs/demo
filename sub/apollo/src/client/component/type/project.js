@@ -7,7 +7,7 @@ import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
-import { List, ListItem } from 'minder-ux';
+import { Board, List, ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
@@ -99,10 +99,18 @@ class ProjectCardComponent extends React.Component {
   };
 
   render() {
-    let { user, item } = this.props;
+    let { user, item, mutator } = this.props;
+
+    let nav = null && item && (
+      <div>
+        <Link to={ Path.canvas(ID.toGlobalId('Project', item.id), 'board') }>
+          <i className="ux-icon">view_column</i>
+        </Link>
+      </div>
+    );
 
     return (
-      <CardContainer mutator={ this.props.mutator } item={ item }>
+      <CardContainer mutator={ mutator } item={ item } nav={ nav }>
         <ProjectLayout ref="item" user={ user } item={ item }/>
       </CardContainer>
     );
@@ -274,6 +282,9 @@ class ProjectLayout extends React.Component {
 
   render() {
     let { user, item:project } = this.props;
+    if (!project) {
+      return <div/>;
+    }
 
     const handleTaskAdd = (listId) => this.handleTaskAdd(getWrappedList(this.refs[listId]));
     const sectionHeader = (title, listId) => (
@@ -297,7 +308,7 @@ class ProjectLayout extends React.Component {
               * Member header.
               */}
             <div className="ux-section-header ux-row">
-              <Link to={ Path.detail(ID.toGlobalId('User', member.id)) }>
+              <Link to={ Path.canvas(ID.toGlobalId('User', member.id)) }>
                 <i className="ux-icon">accessibility</i>
               </Link>
               <h3 className="ux-expand">{ member.title }</h3>
@@ -348,6 +359,53 @@ class ProjectLayout extends React.Component {
 }
 
 /**
+ * Type-specific card container.
+ */
+class ProjectBoardComponent extends React.Component {
+
+  // TODO(burdon): Generalize Board component (not just for projects).
+
+  static propTypes = {
+    user: React.PropTypes.object.isRequired,
+    item: React.PropTypes.object,
+  };
+
+  render() {
+    let { user, item } = this.props;
+
+    // TODO(burdon): Function to map items to board.
+    const columns = [
+      { id: 'c1', status: 0, title: 'Icebox'    },
+      { id: 'c2', status: 1, title: 'Assigned'  },
+      { id: 'c3', status: 2, title: 'Active'    },
+      { id: 'c4', status: 3, title: 'Complete'  }
+    ];
+
+    // TODO(burdon): Use real data.
+    // TODO(burdon): Add status to task.
+    let items = [
+      { id: 't1', status: 0, title: 'Task 1' },
+      { id: 't2', status: 0, title: 'Task 2' },
+      { id: 't3', status: 0, title: 'Task 3' },
+      { id: 't4', status: 1, title: 'Task 4' },
+      { id: 't5', status: 2, title: 'Task 5' }
+    ];
+
+    let columnMapper = (columns, item) => {
+      let idx = _.findIndex(columns, column => {
+        return (column.status == item.status);
+      });
+
+      return columns[idx];
+    };
+
+    return (
+      <Board item={ item } columns={ columns } items={ items } columnMapper={ columnMapper }/>
+    );
+  }
+}
+
+/**
  * HOC.
  */
 export const ProjectCard = composeItem(
@@ -363,3 +421,20 @@ export const ProjectCard = composeItem(
   },
   ProjectReducer)
 )(ProjectCardComponent);
+
+/**
+ * HOC.
+ */
+export const ProjectBoard = composeItem(
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: ProjectQuery,
+      path: 'item'
+    }
+  },
+  ProjectReducer)
+)(ProjectBoardComponent);

@@ -7,7 +7,7 @@ import React from 'react';
 import { UserCard } from './user';
 import { TeamCard } from './team';
 import { PlaceCard } from './place';
-import { ProjectCard } from './project';
+import { ProjectCard, ProjectBoard } from './project';
 import { TaskCard } from './task';
 import { DocumentCard, DocumentColumn } from './document';
 
@@ -24,32 +24,24 @@ export class TypeRegistry {
     this._types = new Map(types);
   }
 
-  // TODO(burdon): Support different views per type. renderCard (level of detail), renderView, etc.
-
   /**
    * Canvas component for page view.
    *
    * @param type
    * @param itemId
+   * @param canvas
    * @returns {XML}
    */
-  canvas(type, itemId) {
+  canvas(type, itemId, canvas='card') {
     console.assert(type && itemId);
     let spec = this._types.get(type);
-    return spec && spec.canvas(itemId) || <div>Invalid Canvas: { type }</div>;
-  }
-
-  /**
-   * Item card for detail view.
-   *
-   * @param type
-   * @param itemId
-   * @returns {React.Component}
-   */
-  card(type, itemId) {
-    console.assert(type && itemId);
-    let spec = this._types.get(type);
-    return spec && spec.card(itemId) || <div>Invalid Card: { type }</div>;
+    if (spec) {
+      let gen = _.get(spec.canvas, canvas);
+      if (gen) {
+        return gen(itemId);
+      }
+    }
+    return <div>Invalid Canvas: { canvas + ':' + type }</div>;
   }
 
   /**
@@ -81,40 +73,48 @@ export class TypeRegistry {
  */
 export const TypeRegistryDefs = new TypeRegistry([
 
-  ['Board', {
-    icon: 'view_column',
-    card: (itemId) => <BoardCard itemId={ itemId }/>
-  }],
-
   ['Document', {
-    icon: (item) => 'insert_drive_file',
-    card: (itemId) => <DocumentCard itemId={ itemId }/>,
+    icon: 'insert_drive_file',
+    canvas: {
+      card: (itemId) => <DocumentCard itemId={ itemId }/>
+    },
     column: (item) => <DocumentColumn item={ item }/>
   }],
 
   ['Group', {
     icon: 'group',
-    card: (itemId) => <TeamCard itemId={ itemId }/>
+    canvas: {
+      card: (itemId) => <TeamCard itemId={ itemId }/>
+    }
   }],
 
   ['Place', {
     icon: 'location_city',
-    card: (itemId) => <PlaceCard itemId={ itemId }/>
+    canvas: {
+      card: (itemId) => <PlaceCard itemId={ itemId }/>
+    }
   }],
 
   ['Project', {
     icon: 'assignment',
-    card: (itemId) => <ProjectCard itemId={ itemId }/>
+    canvas: {
+      card: (itemId) => <ProjectCard itemId={ itemId }/>,
+      board: (itemId) => <ProjectBoard itemId={ itemId } expand={ true }/>
+    }
   }],
 
   ['Task', {
     icon: 'assignment_turned_in',
-    card: (itemId) => <TaskCard itemId={ itemId }/>
+    canvas: {
+      card: (itemId) => <TaskCard itemId={ itemId }/>
+    }
   }],
 
   ['User', {
     icon: 'accessibility',
-    card: (itemId) => <UserCard itemId={ itemId }/>
+    canvas: {
+      card: (itemId) => <UserCard itemId={ itemId }/>
+    }
   }]
 
 ]);
