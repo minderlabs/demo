@@ -16,17 +16,17 @@ export class Board extends React.Component {
   static propTypes = {
     item: React.PropTypes.object,
     items: React.PropTypes.array,
-    boards: React.PropTypes.array,
-    boardMapper: React.PropTypes.func
+    columns: React.PropTypes.array,
+    columnMapper: React.PropTypes.func
   };
 
   render() {
-    let { item={}, items, boards, boardMapper } = this.props;
+    let { item={}, items, columns, columnMapper } = this.props;
 
-    let columns = boards.map(board => {
+    let columnsDivs = columns.map(board => {
       let columnItems = [];
       _.each(items, item => {
-        if (board == boardMapper(boards, item)) {
+        if (board == columnMapper(columns, item)) {
           columnItems.push(item);
         }
       });
@@ -51,7 +51,7 @@ export class Board extends React.Component {
         </div>
 
         <div className="ux-board-columns ux-scroll-x-container">
-          { columns }
+          { columnsDivs }
         </div>
       </div>
     );

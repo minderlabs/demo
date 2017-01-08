@@ -66,10 +66,10 @@ class TeamCardComponent extends React.Component {
   };
 
   render() {
-    let { user, item } = this.props;
+    let { user, item, mutator } = this.props;
 
     return (
-      <CardContainer mutator={ this.props.mutator } item={ item }>
+      <CardContainer mutator={ mutator } item={ item }>
         <TeamLayout ref="item" user={ user } item={ item }/>
       </CardContainer>
     );

@@ -113,20 +113,22 @@ export class CardContainer extends React.Component {
    * Renders the outer card, with content from type-specific item.
    */
   render() {
-    let { children, item } = this.props;
-    if (!item) {
-      return null;
-    }
+    let { children, debug, item={}, nav } = this.props;
+
+    let debugSection = debug && (
+      <div className="ux-section ux-debug">
+        { JSON.stringify(_.pick(item, 'bucket', 'type', 'id')) }
+      </div>
+    );
 
     return (
       <div className="app-detail ux-column">
         <div className="ux-section ux-row">
           <TextBox ref="title" className="ux-expand" value={ item.title }/>
+          { nav }
         </div>
 
-        <div className="ux-section ux-debug">
-          { JSON.stringify(_.pick(item, 'bucket', 'type', 'id')) }
-        </div>
+        { debugSection }
 
         <div className="ux-scroll-container">
           <div className="ux-scroll-panel">
