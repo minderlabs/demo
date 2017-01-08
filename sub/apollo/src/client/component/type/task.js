@@ -19,6 +19,7 @@ import ItemsPicker from '../items_picker';
 const TaskFragment = gql`
   fragment TaskFragment on Task {
     bucket 
+    status
     project {
       id
       title
@@ -103,7 +104,7 @@ class TaskLayout extends React.Component {
   }
 
   render() {
-    let { item } = this.props;
+    let { item={} } = this.props;
 
     let filter = {
       type: 'User'
@@ -112,20 +113,34 @@ class TaskLayout extends React.Component {
     return (
       <div className="app-type-task ux-column ux-section">
         <div className="ux-data">
+
           <div className="ux-data-row">
             <div className="ux-data-label">Project</div>
             <div className="ux-text">{ _.get(item, 'project.title') }</div>
           </div>
+
           <div className="ux-data-row">
             <div className="ux-data-label">Owner</div>
             <div className="ux-text">{ _.get(item, 'owner.title') }</div>
           </div>
+
           <div className="ux-data-row">
             <div className="ux-data-label">Assignee</div>
             <ItemsPicker filter={ filter }
                          value={ _.get(item, 'assignee.title') }
                          onSelect={ this.handleSelectPicker.bind(this, 'assignee') }/>
           </div>
+
+          <div className="ux-data-row">
+            <div className="ux-data-label">Status</div>
+            <select value={ item.status }>
+              <option id="0">Unstarted</option>
+              <option id="1">Assigned</option>
+              <option id="2">Active</option>
+              <option id="3">Complete</option>
+            </select>
+          </div>
+
         </div>
       </div>
     );

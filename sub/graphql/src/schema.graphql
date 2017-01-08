@@ -310,6 +310,8 @@ type Task implements Item {
   # TODO(burdon): Implement via links?
   project: Project
 
+  status: Int!
+
   # TODO(burdon): Promote to shared meta data for all items.
   owner: User
   assignee: User

@@ -113,6 +113,11 @@ export class Resolvers {
 
       Task: {
 
+        // TODO(burdon): Better way to deal with defaults?
+        status: (root, args, context) => {
+          return root.status || 0
+        },
+
         project: (root, args, context) => {
           if (root.project) {
             return database.getItem(context, 'Project', root.project);
