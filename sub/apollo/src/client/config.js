@@ -10,6 +10,6 @@ Logger.setLevel({
 
   'main':       Logger.Level.debug,
   'net':        Logger.Level.debug,
-  'mutations':  Logger.Level.debug
+  'reducer':    Logger.Level.debug
 
 }, Logger.Level.error);

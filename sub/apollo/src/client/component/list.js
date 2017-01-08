@@ -19,7 +19,7 @@ import './list.less';
 export class List extends React.Component {
 
   // TODO(burdon): Inline editor.
-  // TODO(burdon): Factor out generic component (no HOC deps) or TypeRegistry/QueryRegistry, etc.
+  // TODO(burdon): Factor out generic component (e.g., used by group tasks no HOC deps) or TypeRegistry/QueryRegistry, etc.
 
   static COUNT = 10;
 

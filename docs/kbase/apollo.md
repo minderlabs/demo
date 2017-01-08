@@ -136,3 +136,12 @@ TODO(burdon): When is render triggered?
         })
     )
 ~~~~
+
+
+# Troubleshooting
+
+- QueryManager.js?2cbe:150 Error in observer.error 
+- Error: Network error: Store error: the application attempted to write an object with no provided id but the store already contains an id of Project/demo for this object.
+    - Make sure id is being queried for nested items.
+    - https://github.com/apollostack/react-apollo/issues/385
+    

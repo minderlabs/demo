@@ -17,8 +17,8 @@ import { Navigator } from '../path'
 
 //import { Monitor } from '../component/devtools';
 
-import { SearchList } from '../component/list_factory';
 import { NavBar } from '../component/navbar';
+import { SearchList } from '../component/list_factory';
 import { SidebarPanel } from '../component/sidebar';
 import { StatusBar } from '../component/statusbar';
 
@@ -94,8 +94,8 @@ class Layout extends React.Component {
         <div className="app-main-panel ux-panel">
 
           {/* Header */}
-          <div className="ux-app-header ux-section ux-row">
-            <div className="ux-expand">
+          <div className="ux-app-header ux-row">
+            <div className="ux-row ux-expand">
               <SidebarToggle sidebar={ () => this.refs.sidebar }/>
               <h1>{ Const.APP_NAME }</h1>
             </div>
@@ -150,6 +150,9 @@ class Layout extends React.Component {
             <Monitor/>
           </div>
           */}
+
+          {/* Meta */}
+          <div className="app-meta">{ config.app.version }</div>
         </div>
       </div>
     );
@@ -193,6 +196,7 @@ const LayoutQuery = gql`
       id
       alias
       title
+      icon
     }
   }
 `;
@@ -271,7 +275,7 @@ export default compose(
 
       return {
         viewer, folders
-      }
+      };
     }
   })
 

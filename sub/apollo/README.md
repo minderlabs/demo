@@ -36,7 +36,6 @@ Benefits over Relay:
  - Relay 2.0 looks sketchy (and moving towards Apollo)
 
 
-
 ## Troubleshoorting:
 
 - ERROR: [index.js Uncaught SyntaxError: Unexpected token export]

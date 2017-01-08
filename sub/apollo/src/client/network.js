@@ -3,7 +3,6 @@
 //
 
 import _ from 'lodash';
-import moment from 'moment';
 import { print } from 'graphql-tag/printer';
 import * as firebase from 'firebase';
 import io from 'socket.io-client';
@@ -81,6 +80,7 @@ export class ConnectionManager {
   constructor(config, networkManager, queryRegistry, eventHandler) {
     console.assert(config && networkManager && queryRegistry && eventHandler);
 
+    this._config = config;
     this._networkManager = networkManager;
     this._queryRegistry = queryRegistry;
     this._eventHandler = eventHandler;
@@ -88,7 +88,6 @@ export class ConnectionManager {
     // TODO(burdon): Switch to Firebase Cloud Messaging (with auto-reconnect).
     this._socket = io();
   }
-
 
   /**
    * Async connect
@@ -113,12 +112,12 @@ export class ConnectionManager {
           contentType: 'application/json; charset=utf-8',
           dataType: 'json',
           data: JSON.stringify({
-            clientId: config.clientId,
+            clientId: this._config.clientId,
             socketId: socketId
           }),
 
           success: (response) => {
-            logger.log('Registered[%s]: %s', config.clientId, socketId);
+            logger.log($$('Registered[%s]: %s', this._config.clientId, socketId));
 
             // Listen for invalidations.
             this._socket.on('invalidate', (data) => {
@@ -225,7 +224,7 @@ export class NetworkManager {
 
         // Track request ID.
         // https://github.com/apollostack/apollo-client/issues/657
-        const requestId = `${request.operationName}:${++this._requestCount}`;
+        const requestId = `${request.operationName}-${++this._requestCount}`;
         this._requestMap.set(requestId, request);
 
         // Add header to track response.
@@ -332,8 +331,7 @@ class NetworkLogger {
 
   logRequest(requestId, request) {
     // TODO(burdon): How to serialize request.
-    logger.log($$('[%s] ===>>> [%s]: %s', moment().format(NetworkLogger.TIMESTAMP),
-      requestId, TypeUtil.stringify(request.variables || {})));
+    logger.log($$('[_TS_] ===>>> [%s] %o', requestId, request.variables || {}));
 
     // TODO(burdon): Optionally show graphiql link.
     console.info('[' + requestId + ']: ' + document.location.origin + '/graphiql?' +
@@ -342,8 +340,7 @@ class NetworkLogger {
   }
 
   logResponse(requestId, response) {
-    logger.log($$('[%s] <<<=== [%s]', moment().format(NetworkLogger.TIMESTAMP),
-      requestId, TypeUtil.stringify(response.data)));
+    logger.log($$('[_TS_] <<<=== [%s] %o', requestId, response.data));
   }
 
   logErrors(requestId, errors) {

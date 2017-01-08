@@ -3,42 +3,44 @@
 //
 
 import React from 'react';
-import gql from 'graphql-tag';
 import { propType } from 'graphql-anywhere';
+import gql from 'graphql-tag';
 
+import { ItemReducer } from 'minder-core';
+
+import { UpdateItemMutation } from '../../data/mutations';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 
 /**
  * Type-specific fragment.
  */
 export const DocumentFragment = gql`
-    fragment DocumentFragment on Document {
-        url
-        iconUrl
-        source
-    }
+  fragment DocumentFragment on Document {
+    url
+    iconUrl
+    source
+  }
 `;
 
 /**
  * Type-specific query.
  */
 const DocumentQuery = gql`
-    query DocumentQuery($itemId: ID!) {
-
-        item(itemId: $itemId) {
-            ...ItemFragment
-            ...DocumentFragment
-        }
+  query DocumentQuery($itemId: ID!) {
+    item(itemId: $itemId) {
+      ...ItemFragment
+      ...DocumentFragment
     }
+  }
 
-    ${ItemFragment}
-    ${DocumentFragment}
+  ${ItemFragment}
+  ${DocumentFragment}
 `;
 
 /**
  * Type-specific card container.
  */
-class DocumentCardContainer extends React.Component {
+class DocumentCard extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -94,6 +96,8 @@ class DocumentLayout extends React.Component {
  */
 export class DocumentListItem extends React.Component {
 
+  // TODO(burdon): Remove with custom list renderer.
+
   static propTypes = {
     // TODO(burdon): Constrain by fragment (graphql-anywhere): propType(VoteButtons.fragments.entry)
     // http://dev.apollodata.com/react/fragments.html
@@ -127,5 +131,15 @@ export class DocumentListItem extends React.Component {
 /**
  * HOC.
  */
-let DocumentCard = composeItem(DocumentQuery)(DocumentCardContainer);
-export { DocumentCard };
+export default composeItem(
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: DocumentQuery,
+      path: 'item'
+    }
+  })
+)(DocumentCard);

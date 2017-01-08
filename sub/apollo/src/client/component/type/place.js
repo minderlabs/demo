@@ -3,9 +3,12 @@
 //
 
 import React from 'react';
-import gql from 'graphql-tag';
 import { propType } from 'graphql-anywhere';
+import gql from 'graphql-tag';
 
+import { ItemReducer } from 'minder-core';
+
+import { UpdateItemMutation } from '../../data/mutations';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 
 /**
@@ -81,4 +84,15 @@ export class PlaceLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(PlaceQuery)(PlaceCard);
+export default composeItem(
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: PlaceQuery,
+      path: 'item'
+    }
+  })
+)(PlaceCard);

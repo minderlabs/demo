@@ -22,3 +22,18 @@ popd
 # https://facebook.github.io/react/warnings/refs-must-have-owner.html#multiple-copies-of-react
 #
 
+DIRS=(
+  'sub/core'
+  'sub/ux'
+  'sub/graphql'
+  'sub/apollo'
+)
+
+for dir in $"${DIRS[@]}"; do
+  echo "\n### [$dir] ###"
+  pushd $dir
+  rm -f node_modules/minder-*
+  npm-workspace install
+  npm link
+  popd
+done

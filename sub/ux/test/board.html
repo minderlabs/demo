@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dragging</title>
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: row;
+
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+
+      margin: 0;
+      overflow: hidden;                   /* Prevent bounce. */
+
+      background-color: #CCC;
+
+      font-family: Roboto, sans-serif;
+      font-size: 24px;
+    }
+
+    .test-container {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .test-board {
+      display: flex;
+      flex-direction: row;
+      flex-grow: 1;
+      padding: 16px;
+      background-color: cornflowerblue;
+    }
+
+    .test-column {
+      display: flex;
+      flex-direction: column;
+      width: 300px;
+      margin-right: 16px;
+      background-color: whitesmoke;
+    }
+
+    .test-item {
+      display: flex;
+      background-color: white;
+      height: 60px;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="test-container">
+    <h1>Board</h1>
+
+    <div class="test-board">
+      <div class="test-column">
+        <div class="test-item">A</div>
+      </div>
+
+      <div class="test-column">
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

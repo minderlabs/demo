@@ -2,7 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { Mutator, Reducer } from './mutations';
+import { Mutator } from './mutations';
 
 describe('Mutations:', () => {
 

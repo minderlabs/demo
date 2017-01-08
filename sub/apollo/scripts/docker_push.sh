@@ -55,6 +55,12 @@ webpack --config webpack-server.config.js
 ./scripts/create_package_file.py dist/package.json
 
 #
+# Bump version.
+#
+
+grunt version:client:patch
+
+#
 # Build docker image.
 #
 
@@ -72,4 +78,3 @@ docker tag ${TAG}:${VERSION} ${NAMESPACE}/${REPO}:${VERSION}
 #
 
 docker push ${NAMESPACE}/${REPO}:${VERSION}
-

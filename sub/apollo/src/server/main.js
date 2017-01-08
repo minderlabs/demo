@@ -14,8 +14,8 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { Logger, Matcher } from 'minder-core';
-import { Database, Firebase, GoogleDriveItemStore, MemoryItemStore, Randomizer, graphqlRouter } from 'minder-graphql';
+import { IdGenerator, Matcher, MemoryItemStore, Logger, Randomizer } from 'minder-core';
+import { Database, Firebase, GoogleDriveItemStore, graphqlRouter } from 'minder-graphql';
 
 import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
 
@@ -57,18 +57,22 @@ const testing = (env !== 'production');
 // Express.
 //
 
-// TODO(burdon): Use injector pattern (esp for async startup).
-let promises = [];
-
 const app = express();
 
 const server = http.Server(app);
+
+const socketManager = new SocketManager(server);
+
+const clientManager = new ClientManager(socketManager);
+
+const idGenerator = new IdGenerator(1000);
 
 const matcher = new Matcher();
 
 // TODO(burdon): Factor out const.
 // https://firebase.google.com/docs/database/admin/start
-const firebase = new Firebase(matcher, {
+const firebase = new Firebase(idGenerator, matcher, {
+
   databaseURL: FirebaseConfig.databaseURL,
 
   // Download JSON config.
@@ -77,22 +81,15 @@ const firebase = new Firebase(matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const authManager = new AuthManager(firebase.admin, firebase.userStore);
-
-const socketManager = new SocketManager(server);
-
-const clientManager = new ClientManager(socketManager);
-
-const defaultItemStore = testing ? new MemoryItemStore(matcher) : firebase.itemStore;
+const defaultItemStore = testing ? new MemoryItemStore(idGenerator, matcher) : firebase.itemStore;
+//const googleDriveItemStore = new GoogleDriveItemStore(idGenerator, matcher, GoogleApiConfig);
 
 const googleDriveItemStore = new GoogleDriveItemStore(matcher, GoogleApiConfig);
 
 const database = new Database(matcher)
 
   .registerItemStore('User', firebase.userStore)
-
   .registerItemStore(Database.DEFAULT, defaultItemStore)
-
   // TODO(madadam): Keep this? Convenient for testing: e.g. "@Document foo".
   .registerItemStore('Document', googleDriveItemStore)
 
@@ -102,8 +99,11 @@ const database = new Database(matcher)
 
   .onMutation(() => {
     // Notify clients of changes.
+    // TODO(burdon): Create notifier abstraction.
     clientManager.invalidateOthers();
   });
+
+const authManager = new AuthManager(firebase.admin, firebase.userStore);
 
 
 //
@@ -134,6 +134,9 @@ _.each(require('./testing/test.json'), (items, type) => {
 // Create test data.
 //
 
+// TODO(burdon): Use injector pattern (esp for async startup).
+let promises = [];
+
 promises.push(database.queryItems({}, {}, { type: 'User' })
   .then(users => {
 
@@ -147,16 +150,18 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
 
   .then(group => {
     // TODO(burdon): Is this needed in the GraphQL context below?
-    context.created = moment().subtract(10, 'days').unix();
     context.group = group;
 
     if (testing) {
-      let randomizer = new Randomizer(database, context);
+      // TODO(burdon): Pass query registry into Randomizer.
+      let randomizer = new Randomizer(database, _.defaults(context, {
+        created: moment().subtract(10, 'days').unix()
+      }));
 
       return Promise.all([
         randomizer.generate('Task', 30, {
           project: {
-            value: 'demo',
+            type: 'Project',
             likelihood: 0.75
           },
           owner: {
@@ -169,8 +174,8 @@ promises.push(database.queryItems({}, {}, { type: 'User' })
           }
         }),
 
-        randomizer.generate('Contact', 5),
-        randomizer.generate('Place', 5)
+        randomizer.generate('Contact', 10),
+        randomizer.generate('Place', 10)
       ]);
     }
   }));
@@ -316,6 +321,11 @@ app.use(appRouter(authManager, clientManager, {
 
   // Additional config params.
   config: {
+    app: {
+      name: Const.APP_NAME,
+      version: Const.APP_VERSION,
+    },
+
     team: Const.DEF_TEAM,
   },
 

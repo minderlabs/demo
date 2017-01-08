@@ -55,6 +55,12 @@ module.exports = {
         loader: 'json-loader'
       },
 
+      // https://github.com/webpack/css-loader
+      {
+        test: /\.css$/,
+        loader: ExtractTextPlugin.extract('style-loader', 'css-loader')
+      },
+
       // https://github.com/webpack/less-loader
       {
         test: /\.less$/,

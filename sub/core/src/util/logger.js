@@ -3,6 +3,7 @@
 //
 
 import _ from 'lodash';
+import moment from 'moment';
 
 import { TypeUtil } from './type';
 
@@ -40,6 +41,8 @@ function singleton() {
  */
 class Logger {
 
+  static TIMESTAMP = 'hh:mm:ss.SSS';
+
   static root = new Logger('root');
 
   static noop() {}
@@ -55,13 +58,18 @@ class Logger {
   static format(f) {
     let i = 1;
     let args = arguments;
-    return String(f).replace(/%[sdoOt]/g, function(x) {
+    return String(f).replace(/(%[sdoO]|_TS_)/g, function(x) {
       switch (x) {
+
+        // Replacers.
         case '%s': return String(args[i++]);
         case '%d': return Number(args[i++]);
         case '%o': return TypeUtil.stringify(args[i++]);
         case '%O': return JSON.stringify(args[i++]);
-        case '%t': return new Date().getTime();               // TODO(burdon): moment.
+
+        // Timestamp.
+        case '_TS_': return moment().format(Logger.TIMESTAMP);
+
         default:
           return x;
       }

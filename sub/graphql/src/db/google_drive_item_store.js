@@ -7,11 +7,14 @@ import google from 'googleapis';
 
 import { ItemStore, Logger } from 'minder-core';
 
-import { Database } from './database';
-
 const logger = Logger.get('db');
 
+/**
+ * Google API client.
+ */
 class GoogleDriveClient {
+
+  // TODO(burdon): Generalize client.
 
   constructor(config) {
     this._config = config;
@@ -33,44 +36,52 @@ class GoogleDriveClient {
     return _.get(context, 'user.credentials.google_com.accessToken');
   }
 
-  search(context, driveQuery, maxResults, processResult, callback, errback) {
-    let oauth2Client = this._getOAuthClient(context);
-    this._fetchPage(oauth2Client, null, driveQuery, maxResults, processResult, callback, errback);
-  }
-
-  _fetchPage(client, pageToken, driveQuery, numResults, processResult, callback, errback=null) {
+  // TODO(burdon): Reimplement callbacks with promises.
+  _fetchPage(client, pageToken, driveQuery, numResults, processResult, onSuccess, onError=null) {
     if (numResults <= 0) {
-      callback();
+      onSuccess();
       return;
     }
-    this._drive.files.list(
-      {
-        auth: client,
-        q: driveQuery,
-        fields: 'nextPageToken, files(id, name, webViewLink, iconLink)',
-        spaces: 'drive',
-        pageToken: pageToken
-      },
-      (err, response) => {
-        if (err) {
-          logger.error('GoogleDriveClient: ' + err);
-          errback && errback(err);
-        } else {
-          //console.log('** GOOGLE DRIVE results: ' + JSON.stringify(response.files)); // FIXME
-          _.each(response.files, processResult);
 
-          if (response.nextPageToken) {
-            this._fetchPage(
-              client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, callback);
-          } else {
-            callback();
-          }
+    let query = {
+      auth: client,
+      q: driveQuery,
+      fields: 'nextPageToken, files(id, name, webViewLink, iconLink)',
+      spaces: 'drive',
+      pageToken: pageToken
+    };
+
+    this._drive.files.list(query, (err, response) => {
+      if (err) {
+        logger.error('GoogleDriveClient: ' + err);
+        onError && onError(err);
+      } else {
+//      console.log('** GOOGLE DRIVE results: ' + JSON.stringify(response.files)); // FIXME
+        _.each(response.files, processResult);
+
+        if (response.nextPageToken) {
+          this._fetchPage(
+            client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, callback);
+        } else {
+          callback();
         }
-      });
+      }
+    });
+  }
+
+  // TODO(burdon): Reimplement callbacks with promises.
+  search(context, driveQuery, maxResults, processResult, onSucces, onError) {
+    let oauth2Client = this._getOAuthClient(context);
+    this._fetchPage(oauth2Client, null, driveQuery, maxResults, processResult, onSucces, onError);
   }
 }
 
+/**
+ * Google Drive.
+ */
 export class GoogleDriveItemStore extends ItemStore {
+
+  // TODO(burdon): Generalize GoogleItemStore.
 
   static makeDriveQuery(queryString) {
     // https://developers.google.com/drive/v3/web/search-parameters
@@ -83,12 +94,12 @@ export class GoogleDriveItemStore extends ItemStore {
    * @returns Item
    * @private
    */
-  static resultToItem(file) {
+  static resultToItem(idGenerator, file) {
     // TODO(madadam): This makes a transient Item that isn't written into the item store; it's an Item wrapper
     // around foreign data.
 
     let document = {
-      id: Database.IdGenerator.createId(), // TODO(madadam): keep file.id (Google Drive ID) as a foreign key.
+      id: idGenerator.createId(), // TODO(madadam): keep file.id (Google Drive ID) as a foreign key.
       title: file.name,
       source: 'Google Drive',
       type: 'Document',
@@ -104,8 +115,9 @@ export class GoogleDriveItemStore extends ItemStore {
     return document;
   }
 
-  constructor(matcher, config) {
-    super(matcher);
+  constructor(idGenerator, matcher, config) {
+    super(idGenerator, matcher);
+
     this._driveClient = new GoogleDriveClient(config);
   }
 
@@ -113,23 +125,23 @@ export class GoogleDriveItemStore extends ItemStore {
   // ItemStore API.
   //
 
+  // TODO(burdon): QueryProcessor interface.
+
   upsertItems(context, items) {
-    // FIXME: Create a separate SearchProvider interface that only support search (queryItems), vs. ItemStore
-    // that supports writing.
-    console.log('GoogleDriveItemStore does not support upsert.');
-    return Promise.resolve(items);
+    throw 'Not Supported';
   }
 
   getItems(context, type, itemIds) {
-    console.log('GoogleDriveItemStore does not support getItems.');
-    return Promise.resolve([]);
+    throw 'Not Supported';
   }
 
   queryItems(context, root, filter={}, offset=0, count=10) {
 
     return new Promise((resolve, reject) => {
       let items = [];
-      const driveQuery = GoogleDriveItemStore.makeDriveQuery(filter.text);
+
+      // TODO(burdon): Reimplement callbacks with promises.
+      let driveQuery = GoogleDriveItemStore.makeDriveQuery(filter.text);
       if (!driveQuery) {
         resolve(items);
       } else {

@@ -29,6 +29,22 @@ module.exports = function(grunt) {
       }
     },
 
+    // Version: "grunt version:client:patch" (to inc version).
+    version: {
+      options: {
+        // Match both ["version": "0.0.1"] and [__version__ = '0.0.1']
+        prefix: '[^\\-]((version)|(VERSION))[\'"]?[_\\s]*[:=]\\s*[\'"]'
+      },
+      client: {
+        options: {
+          release: 'patch'
+        },
+        src: [
+          'src/common/defs.js'
+        ]
+      }
+    },
+
     // Webpack
     // NOTE: Use webpack --watch to automatically update all config entries.
     // https://webpack.github.io/docs/usage-with-grunt.html

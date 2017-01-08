@@ -25,8 +25,8 @@ export class Firebase {
 
   // TODO(burdon): Namespace (prod, qa, dev-rich, dev-adam).
 
-  constructor(matcher, config) {
-    console.assert(matcher);
+  constructor(idGenerator, matcher, config) {
+    console.assert(idGenerator && matcher);
 
     _.assign(config, {
       credential: admin.credential.cert(config.credentialPath)
@@ -39,8 +39,8 @@ export class Firebase {
 
     this._db = admin.database();
 
-    this._userStore = new FirebaseUserStore(this._db, matcher);
-    this._itemStore = new FirebaseItemStore(this._db, matcher);
+    this._userStore = new FirebaseUserStore(this._db, idGenerator, matcher);
+    this._itemStore = new FirebaseItemStore(this._db, idGenerator, matcher);
   }
 
   clearCache() {

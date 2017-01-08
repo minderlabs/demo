@@ -32,7 +32,8 @@ export const GoogleApiConfig = {
  */
 export const Const = {
 
-  APP_NAME: 'Minder',
+  APP_NAME: 'minder',
+  APP_VERSION: "0.1.0",
 
   DEF_TEAM: 'minderlabs',
 

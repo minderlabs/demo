@@ -6,9 +6,10 @@ import React from 'react';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { ID } from 'minder-core';
+import { ID, ItemReducer } from 'minder-core';
 import { TextBox } from 'minder-ux';
 
+import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 import { ItemList, UserTaskList } from '../list_factory';
@@ -56,73 +57,41 @@ const ProjectQuery = gql`
 
 /**
  * Type-specific reducer.
- *
- * @param context
- * @param matcher
- * @param previousResult
- * @param item
  */
-const ProjectReducer = (context, matcher, previousResult, item) => {
+const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
 
-  // TODO(burdon): Could we simplify by implementing a group mutation? (so the response is the right shape?)
+  // Filter appropriate mutations.
+  let assignee = _.get(updatedItem, 'assignee.id');
+  if (assignee) {
 
-  // TODO(burdon): Factor out this comment and reference it.
-  // The Reducer is called on mutation. When the generic UpdateItemMutation response is received we need
-  // to tell Apollo how to stitch the result into the cached response. For item mutations, this is easy
-  // since the ID is used to change the existing item. For adds and deletes, Apollo has no way of knowing
-  // where the item should fit (e.g., for a flat list it depends on the sort order; for complex query shapes
-  // (like Group) it could be on one (or more) of the branches (e.g., Second member's tasks).
+    // Find the associated member.
+    let members = _.get(previousResult, 'item.team.members');
+    let memberIdx = _.findIndex(members, member => member.id === assignee);
+    if (memberIdx != -1) {
+      let member = members[memberIdx];
+      let filter = { expr: { field: "assignee", value: { id: member.id } } };
 
-  // TODO(burdon): First pass: factor out common parts with Reducer.
-  // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
-
-  // TODO(burdon): FIX: Not part of main query (e.g., shared notes).
-  let assignee = _.get(item, 'assignee.id');
-  if (!assignee) {
-    return;
-  }
-
-  // Find associated member.
-  let members = _.get(previousResult, 'item.team.members');
-  let idx = _.findIndex(members, (member) => member.id === assignee);
-  console.assert(idx != -1, 'Invalid ID: %s', assignee);
-
-  // Add, update or remove.
-  let member = members[idx];
-  let tasks = member.tasks;
-  let taskIdx = _.findIndex(tasks, (task) => task.id == item.id);
-
-  // Create the resolver operator.
-  let op = {
-    $apply: (tasks) => {
-      if (taskIdx == -1) {
-        return [...tasks, item];
-      } else {
-        return _.compact(_.map(tasks, (task) => {
-          if (task.id == item.id) {
-            // TODO(burdon): Context.
-            // TODO(burdon): Extract filter from query and use matcher to determine if remove.
-            const filter = { expr: { field: "assignee", value: { id: member.id } } };
-            if (matcher.matchItem(context, {}, filter, item)) {
-              return item;
+      return {
+        item: {
+          team: {
+            members: {
+              [memberIdx]: {
+                tasks: {
+                  $apply: Reducer.listApplicator(matcher, context, filter, updatedItem)
+                }
+              }
             }
-          } else {
-            return task;
           }
-        }));
-      }
+        }
+      };
     }
-  };
-
-  return { item: { team: { members: { [idx]: { tasks: op } } } } };
+  }
 };
 
 /**
  * Type-specific card container.
  */
 class ProjectCard extends React.Component {
-
-  static reducer = ProjectReducer;
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -394,4 +363,16 @@ class ProjectLayout extends React.Component {
 /**
  * HOC.
  */
-export default composeItem(ProjectQuery)(ProjectCard);
+export default composeItem(
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: ProjectQuery,
+      path: 'item'
+    }
+  },
+  ProjectReducer)
+)(ProjectCard);

@@ -42,12 +42,12 @@ export class FirebaseItemStore extends ItemStore {
     itemStore.upsertItems({}, items);
   }
 
-  constructor(db, matcher) {
-    super(matcher);
+  constructor(db, idGenerator, matcher) {
+    super(idGenerator, matcher);
     console.assert(db);
 
     this._db = db;
-    this._cache = new Cache(this._db, FirebaseItemStore.ROOT, matcher, FirebaseItemStore.parseData);
+    this._cache = new Cache(this._db, FirebaseItemStore.ROOT, idGenerator, matcher, FirebaseItemStore.parseData);
   }
 
   clearCache() {
@@ -63,7 +63,7 @@ export class FirebaseItemStore extends ItemStore {
     _.each(items, item => {
       console.assert(item.type);
       if (!item.id) {
-        item.id = Database.IdGenerator.createId();
+        item.id = this._idGenerator.createId();
         item.created = moment().unix();
       }
 
@@ -72,25 +72,32 @@ export class FirebaseItemStore extends ItemStore {
       this._db.ref(FirebaseItemStore.ROOT + '/' + item.type + '/' + item.id).set(item);
     });
 
-    return this._cache.getItemStore().then(itemStore => itemStore.upsertItems(context, items));
+    return this._cache.getItemStore()
+      .then(itemStore => itemStore.upsertItems(context, items));
   }
 
   getItems(context, type, itemIds) {
-    return this._cache.getItemStore().then(itemStore => itemStore.getItems(context, type, itemIds));
+    return this._cache.getItemStore()
+      .then(itemStore => itemStore.getItems(context, type, itemIds));
   }
 
   queryItems(context, root, filter={}, offset=0, count=10) {
-    let items = this._cache.getItemStore().then(itemStore => itemStore.queryItems(context, root, filter));
+    return this._cache.getItemStore()
+      .then(itemStore => itemStore.queryItems(context, root, filter))
+      .then(items => {
+        // Sort.
+        let orderBy = filter.orderBy;
+        if (orderBy) {
+          console.assert(orderBy.field);
+          items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
+        }
 
-    // Sort.
-    let orderBy = filter.orderBy;
-    if (orderBy) {
-      console.assert(orderBy.field);
-      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
-    }
+        console.log(items.length + '::' + count);
 
-    console.log(items.length + '::' + count);
+        // Page.
+        items = _.slice(items, offset, offset + count);
 
-    return items;
+        return items;
+      });
   }
 }

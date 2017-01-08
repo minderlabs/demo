@@ -5,19 +5,18 @@
 import _ from 'lodash';
 import moment from 'moment';
 
-import { ItemStore, TypeUtil } from 'minder-core';
-
-import { Database } from './database';
+import { TypeUtil } from '../util/type';
+import { ItemStore } from './item_store';
 
 /**
  * In-memory database.
  */
 export class MemoryItemStore extends ItemStore {
 
-  constructor(matcher) {
-    super(matcher);
+  constructor(idGenerator, matcher) {
+    super(idGenerator, matcher);
 
-    // Map items.
+    // Items by ID.
     this._items = new Map();
   }
 
@@ -28,8 +27,10 @@ export class MemoryItemStore extends ItemStore {
       item = TypeUtil.clone(item);
 
       console.assert(item.type);
+
+      // TODO(burdon): Factor out to MutationProcessor (then remove idGenerator requirement).
       if (!item.id) {
-        item.id = Database.IdGenerator.createId();
+        item.id = this._idGenerator.createId();
         item.created = moment().unix();
       }
 

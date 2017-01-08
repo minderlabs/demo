@@ -13,7 +13,7 @@ export class TypeUtil {
    * Concise stringify (elide array contents).
    */
   static stringify = (json, indent) => JSON.stringify(json, (key, value) => {
-    return _.isArray(value) ? value.length : value;
+    return _.isArray(value) ? `len(${value.length})` : value;
   }, indent);
 
   /**
@@ -98,9 +98,7 @@ export class TypeUtil {
     let p = Promise.resolve();
 
     _.each(collection, (...args) => {
-
       p = p.then(() => {
-
         return Promise.resolve(func.apply(null, args));
       });
     });

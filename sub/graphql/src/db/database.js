@@ -4,31 +4,25 @@
 
 import _ from 'lodash';
 
-import { $$, Logger, IdGenerator, ItemStore, TypeUtil } from 'minder-core';
+import { $$, Logger, ItemStore, TypeUtil } from 'minder-core';
 
 const logger = Logger.get('db');
-
 
 /**
  * Base database implementation.
  */
 export class Database extends ItemStore {
 
-  // TODO(burdon): Logger.
-
   static DEFAULT = '*';
-
-  // TODO(burdon): Inject.
-  static IdGenerator = new IdGenerator(1000);
 
   constructor(matcher) {
     super(matcher);
 
-    // ItemStores.
+    // ItemStores keyed by type.
     // TODO(burdon): Should be by domain?
     this._stores = new Map();
 
-    // SearchProviders. Keyed by source name.
+    // SearchProviders Keyed by source name.
     this._searchProviders = new Map();
 
     // Callback.
@@ -132,6 +126,9 @@ export class Database extends ItemStore {
     return itemStore.queryItems(context, root, filter, offset, count);
   }
 
+  /**
+   * @returns {Promise}
+   */
   search(context, root, filter={}, offset=0, count=10) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 

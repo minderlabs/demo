@@ -1,6 +1,6 @@
 {
   "name": "minder-ux",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Minder UX components.",
   "license": "UNLICENSED",
   "repository": {
@@ -44,11 +44,12 @@
     "sinon-chai": "^2.8.0",
     "style-loader": "^0.13.1",
     "webpack": "^1.13.2",
+    "webpack-dev-server": "^1.16.2",
     "webpack-link": "^0.2.0"
   },
   "dependencies": {
     "lodash": "^4.17.2",
-    "minder-core": "0.0.1",
+    "minder-core": "0.1.0",
     "moment": "^2.15.2",
     "react": "^15.3.2",
     "react-addons-update": "^15.3.2",

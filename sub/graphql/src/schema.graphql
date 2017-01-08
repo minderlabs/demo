@@ -238,6 +238,8 @@ type Folder implements Item {
   title: String!
   labels: [String]
 
+  icon: String
+
   # JSON serialized FilterInput.
   filter: String!
 }
