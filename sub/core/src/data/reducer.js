@@ -23,7 +23,6 @@ update.extend('$remove', (item, items) => {
   return _.filter(items, i => i.id !== item.id);
 });
 
-
 //
 // In general, Apollo cannot know how to update its cache after a mutation.
 // It's a trivial matter when an Item is updated: it checks for fields declared in the query and if any of these
@@ -52,10 +51,11 @@ update.extend('$remove', (item, items) => {
 
 // TODO(burdon): Holy grail would be to introspect the query and do this automatically (DESIGN DOC).
 
-// TODO(burdon): Called multiple times (on each query?) Figure out when/why and document.
-
-// TODO(burdon): Resolve issue:
+// TODO(burdon): Multiple queries bound with different (filter) values.
+// Remove stopped queries from store and internal tracking.
+// https://github.com/minderlabs/demo/pull/52
 // https://github.com/apollostack/apollo-client/issues/903
+// https://github.com/apollostack/apollo-client/pull/1054 [partially resolved]
 // http://dev.apollodata.com/react/cache-updates.html#resultReducers
 
 /**
@@ -103,14 +103,16 @@ class Reducer {
    * @param spec Object of the form below.
    * @param customReducer Custom reducer function.
    *
+   * TODO(burdon): Document (see project.js for complete example).
+   *
    * {
    *   mutation {
    *     type: MutationType,
-   *     path: "mutation_action_data_path"
+   *     path: "mutation_action_data_path"      // Path to mutation root result.
    *   },
    *   query: {
    *     type: QueryType
-   *     path: "query_result_path"
+   *     path: "query_result_path"              // Path to query root result.
    *   }
    * }
    */
@@ -256,6 +258,7 @@ export class ItemReducer extends Reducer {
 
   /**
    * Execute the reducer.
+   * TODO(burdon): Doc.
    *
    * @param matcher
    * @param context
@@ -283,6 +286,7 @@ export class ItemReducer extends Reducer {
 
   /**
    * Get the custom item transformation.
+   * TODO(burdon): Doc.
    *
    * @param matcher
    * @param context
