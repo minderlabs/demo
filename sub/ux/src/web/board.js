@@ -17,8 +17,13 @@ export class Board extends React.Component {
     item: React.PropTypes.object,
     items: React.PropTypes.array,
     columns: React.PropTypes.array,
-    columnMapper: React.PropTypes.func
+    columnMapper: React.PropTypes.func,
+    onSelect: React.PropTypes.func
   };
+
+  handleItemSelect(item) {
+    this.props.onSelect && this.props.onSelect(item);
+  }
 
   render() {
     let { item={}, items, columns, columnMapper } = this.props;
@@ -37,7 +42,7 @@ export class Board extends React.Component {
         <div key={ board.id } className="ux-board-column">
           <div className="ux-board-header ux-text-noselect">{ board.title }</div>
           <div className="ux-board-list">
-            <List items={ columnItems }/>
+            <List items={ columnItems } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
         </div>
       );

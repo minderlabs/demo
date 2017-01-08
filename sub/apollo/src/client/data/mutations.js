@@ -25,6 +25,7 @@ export const UpdateItemMutation = gql`
   
   fragment TaskMutationFragment on Task {
     bucket
+    status
     owner {
       id
     }

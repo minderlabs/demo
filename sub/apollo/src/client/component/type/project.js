@@ -431,6 +431,10 @@ class ProjectBoardComponent extends React.Component {
     this.context.navigator.push(Path.canvas(ID.toGlobalId('Project', item.id)));
   }
 
+  handleItemSelect(item) {
+    this.context.navigator.push(Path.canvas(ID.toGlobalId('Task', item.id)));
+  }
+
   render() {
     let { user, item={}, typeRegistry } = this.props;
 
@@ -462,7 +466,8 @@ class ProjectBoardComponent extends React.Component {
           <div className="ux-text">{ item.title }</div>
         </div>
 
-        <Board item={ item } columns={ columns } items={ items } columnMapper={ columnMapper }/>
+        <Board item={ item } columns={ columns } items={ items } columnMapper={ columnMapper }
+               onSelect={ this.handleItemSelect.bind(this) }/>
       </div>
     );
   }

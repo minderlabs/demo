@@ -35,6 +35,15 @@ export class StatusBar extends React.Component {
     };
   }
 
+  componentWillUnmount() {
+    // TODO(burdon): Statusbar should be part of outer component (so isn't rerenderes on nav).
+    // Cancel timers to avoid setState on unmounted component.
+    // JS Error: Warning: setState(...): Can only update a mounted or mounting component.
+    // https://facebook.github.io/react/blog/2015/12/16/ismounted-antipattern.html
+    this._timer.networkIn();
+    this._timer.networkOut();
+  }
+
   error(state) {
     this.setState({
       error: state
