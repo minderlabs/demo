@@ -10,9 +10,10 @@ import gql from 'graphql-tag';
 import { List } from 'minder-ux';
 
 /**
- * Testing view for experimental features and components.
+ * Testing Activity.
+ * For experimental features and components.
  */
-class TestView extends React.Component {
+class TestingActivity extends React.Component {
 
   // TODO(burdon): Test toggle.
   static customItemRenderer = (list, item) => {
@@ -96,4 +97,4 @@ export default compose(
     }
   })
 
-)(TestView);
+)(TestingActivity);

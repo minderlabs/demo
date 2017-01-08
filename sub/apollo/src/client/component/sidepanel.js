@@ -49,19 +49,19 @@ export class SidePanel extends React.Component {
         id: 'group',
         title: 'Team',
         icon: 'group',
-        link: Path.detail(ID.toGlobalId('Group', team))
+        link: Path.canvas(ID.toGlobalId('Group', team))
       },
       {
         id: 'demo',
         title: 'Demo',
         icon: 'assignment',
-        link: Path.detail(ID.toGlobalId('Project', 'demo'))
+        link: Path.canvas(ID.toGlobalId('Project', 'demo'))
       },
       {
-        id: 'planning',
-        title: 'Planning',
+        id: 'demo-board',
+        title: 'Demo Board',
         icon: 'view_column',
-        link: Path.page(ID.toGlobalId('Board', 'planning'))
+        link: Path.canvas(ID.toGlobalId('Project', 'demo'), 'board')
       },
     ];
 
@@ -78,10 +78,14 @@ export class SidePanel extends React.Component {
       <div className="app-sidepanel">
         <List items={ folders }
               itemRenderer={ this.itemRenderer.bind(this) }/>
+
         <div className="app-divider"/>
+
         <List items={ items }
               itemRenderer={ this.itemRenderer.bind(this) }/>
+
         <div className="app-divider"/>
+
         <List items={ debugItems } r
               itemRenderer={ this.itemRenderer.bind(this) }/>
       </div>

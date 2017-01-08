@@ -39,7 +39,6 @@ class FolderView extends React.Component {
   constructor() {
     super(...arguments);
 
-    // TODO(burdon): Delete icon.
     this._itemRenderer = (item) => {
       let icon = item.iconUrl || this.props.typeRegistry.icon(item);
       let column = this.props.typeRegistry.column(item);
@@ -62,6 +61,7 @@ class FolderView extends React.Component {
   }
 
   handleItemSelect(item) {
+    // TODO(burdon): Depends on layout.
     this.context.navigator.pushDetail(item);
   }
 
@@ -101,7 +101,7 @@ class FolderView extends React.Component {
         case 'Task': {
           TypeUtil.merge(mutations, [
             {
-              field: 'owner',                         // TODO(burdon): Promote for all items?
+              field: 'owner',             // TODO(burdon): Promote for all items.
               value: {
                 id: user.id
               }
@@ -144,7 +144,7 @@ class FolderView extends React.Component {
     let { filter } = this.props;
 
     return (
-      <div className="app-folder ux-column">
+      <div className="app-folder-view ux-column">
         <div className="ux-scroll-container">
           <div className="ux-scroll-panel">
             <SearchList filter={ filter }
@@ -188,8 +188,8 @@ const mapStateToProps = (state, ownProps) => {
   let filter = queryParser.parse(search.text);
 
   return {
-    // Provide for Mutator.graphql
-    injector,                             // TODO(burdon): Wrap.
+    // TODO(burdon): Provide for Mutator.graphql
+    injector,
 
     typeRegistry,
     filter,
@@ -211,20 +211,13 @@ export default compose(
     // http://dev.apollodata.com/react/queries.html#graphql-props
     props: ({ ownProps, data }) => {
 //    console.log('Folder.props: ', JSON.stringify(Object.keys(data)));
-      let { loading, error, refetch, folders } = data;
+      let { folders } = data;
       let { filter } = ownProps;
-
-      // TODO(burdon): This happens too late. On load, options above has no filter and causes the list
-      // to be rendered, then we are called and update the filter resulting in flickering results (2 server calls).
-      // TODO(burdon): List should return zero items if no filter.
-      // TODO(burdon): Solution is set the redux state in the layout? so can be used above in props?
-      // TODO(burdon): Handler error/redirect if not found.
 
       // Create list filter (if not overridden by text search above).
       if (QueryParser.isEmpty(filter)) {
         _.each(folders, folder => {
-          // TODO(burdon): Match folder's alias.
-          if (folder.alias == ownProps.params.folder) {
+          if (folder.alias == ownProps.folder) {
             filter = JSON.parse(folder.filter);
             return false;
           }
@@ -232,10 +225,6 @@ export default compose(
       }
 
       return {
-        loading,
-        error,
-        refetch,
-        folders,
         filter
       }
     }

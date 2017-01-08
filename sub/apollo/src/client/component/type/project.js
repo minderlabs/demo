@@ -7,7 +7,7 @@ import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
-import { List, ListItem } from 'minder-ux';
+import { Board, List, ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
@@ -297,7 +297,7 @@ class ProjectLayout extends React.Component {
               * Member header.
               */}
             <div className="ux-section-header ux-row">
-              <Link to={ Path.detail(ID.toGlobalId('User', member.id)) }>
+              <Link to={ Path.canvas(ID.toGlobalId('User', member.id)) }>
                 <i className="ux-icon">accessibility</i>
               </Link>
               <h3 className="ux-expand">{ member.title }</h3>
@@ -348,6 +348,51 @@ class ProjectLayout extends React.Component {
 }
 
 /**
+ * Type-specific card container.
+ */
+class ProjectBoardComponent extends React.Component {
+
+  // TODO(burdon): Generalize Board component (not just for projects).
+
+  static propTypes = {
+    user: React.PropTypes.object.isRequired,
+    item: React.PropTypes.object,
+  };
+
+  render() {
+    let { user, item } = this.props;
+
+    // TODO(burdon): Function to map items to board.
+    const boards = [
+      { id: 'c1', status: 0, title: 'Icebox'    },
+      { id: 'c2', status: 1, title: 'Assigned'  },
+      { id: 'c3', status: 2, title: 'Active'    },
+      { id: 'c4', status: 3, title: 'Complete'  }
+    ];
+
+    let items = [
+      { id: 't1', status: 0, title: 'Task 1' },
+      { id: 't2', status: 0, title: 'Task 2' },
+      { id: 't3', status: 0, title: 'Task 3' },
+      { id: 't4', status: 1, title: 'Task 4' },
+      { id: 't5', status: 2, title: 'Task 5' }
+    ];
+
+    let boardMapper = (boards, item) => {
+      let idx = _.findIndex(boards, board => {
+        return (board.status == item.status);
+      });
+
+      return boards[idx];
+    };
+
+    return (
+      <Board item={ item } boards={ boards } items={ items } boardMapper={ boardMapper }/>
+    );
+  }
+}
+
+/**
  * HOC.
  */
 export const ProjectCard = composeItem(
@@ -363,3 +408,20 @@ export const ProjectCard = composeItem(
   },
   ProjectReducer)
 )(ProjectCardComponent);
+
+/**
+ * HOC.
+ */
+export const ProjectBoard = composeItem(
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: ProjectQuery,
+      path: 'item'
+    }
+  },
+  ProjectReducer)
+)(ProjectBoardComponent);

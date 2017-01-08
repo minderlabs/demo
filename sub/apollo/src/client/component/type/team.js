@@ -150,7 +150,7 @@ class TeamLayout extends React.Component {
     const itemList = (type, items, icon) => {
       return items.map(item => (
         <div key={ item.id } className="ux-list-item ux-row ux-data-row">
-          <Link to={ Path.detail(ID.toGlobalId(type, item.id)) }>
+          <Link to={ Path.canvas(ID.toGlobalId(type, item.id)) }>
             <i className="ux-icon">{ icon }</i>
           </Link>
           <div className="ux-text ux-expand">{ item.title }</div>
