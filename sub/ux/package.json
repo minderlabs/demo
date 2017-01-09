@@ -55,9 +55,11 @@
     "moment": "^2.15.2",
     "react": "^15.3.2",
     "react-addons-update": "^15.3.2",
-    "react-dom": "^15.3.2"
+    "react-dom": "^15.3.2",
+    "react-router": "^3.0.0"
   },
   "scripts": {
-    "start": "webpack-dev-server"
+    "//": "https://webpack.github.io/docs/webpack-dev-server.html#content-base",
+    "start": "webpack-dev-server --content-base=src/web/testing/"
   }
 }
