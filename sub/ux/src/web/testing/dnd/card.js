@@ -3,39 +3,7 @@
 //
 
 import React from 'react';
-import { propType } from 'graphql-anywhere';
 import { DragSource } from 'react-dnd';
-
-import 'test_dnd.less';
-
-/**
- * Card canvas.
- */
-export class Canvas extends React.Component {
-
-  render() {
-    return (
-      <div className="canvas">
-        <Column/>
-        <Column/>
-        <Column/>
-      </div>
-    )
-  }
-}
-
-/*
- * Drop Columns.
- */
-class Column extends React.Component {
-
-  render() {
-    return (
-      <div className="column">
-      </div>
-    )
-  }
-}
 
 /**
  * Draggable card.
@@ -43,11 +11,11 @@ class Column extends React.Component {
 class Card extends React.Component {
 
   static propTypes = {
-    text: propType.string.isRequired,
+    text: React.PropTypes.string.isRequired,
 
     // Injected by React DnD.
-    isDragging: propType.bool.isRequired,
-    connectDragSource: propType.func.isRequired
+    isDragging: React.PropTypes.bool.isRequired,
+    connectDragSource: React.PropTypes.func.isRequired
   };
 
   render() {

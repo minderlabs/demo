@@ -7,13 +7,11 @@ import React from 'react';
 import { List, ListItem, TextBox } from '../../index';
 
 /**
- * Test view.
+ * Test List.
  */
-export class TestView extends React.Component {
+export default class TestList extends React.Component {
 
   // TODO(burdon): ux-core matcher with test store.
-
-  static Items = [];
 
   constructor() {
     super(...arguments);
@@ -24,12 +22,15 @@ export class TestView extends React.Component {
       item: null
     };
 
-    TestView.Items.push({
-      id: 'I-0',
-      title: 'A very very very very very very very long title.'
-    });
+    this.state = {
+      items: [{
+        id: 'I-0',
+        title: 'A very very very very very very very long title.'
+      }]
+    };
+
     for (let i = 1; i < 50; i++) {
-      TestView.Items.push({
+      this.state.items.push({
         id: 'I-' + i,
         title: 'Item ' + i
       });
@@ -78,7 +79,7 @@ export class TestView extends React.Component {
 
         <div className="ux-scroll-container">
           <div className="ux-scroll-panel">
-            <List items={ TestView.Items }
+            <List items={ this.state.items }
                   itemRenderer={ this.itemRenderer }
                   onItemSelect={ this.handleSelect.bind(this) }/>
           </div>
