@@ -6,11 +6,16 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import { TestView } from './test_view';
+import { Canvas } from './test_dnd';
 
 // TODO(burdon): For offline testing, load material-icons locally.
 
 import './test.less';
 
+// ReactDOM.render(
+//   <TestView/>, document.getElementById('test-container')
+// );
+
 ReactDOM.render(
-  <TestView/>, document.getElementById('test-container')
+  <Canvas/>, document.getElementById('test-container')
 );
