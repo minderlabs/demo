@@ -15,9 +15,29 @@
     flex-grow: 1;
 
     width: 100px;
-    background-color: #EEEEEE;
+    background-color: #EEE;
     border-radius: 4px;
     margin: 8px;
+
+    .card {
+      margin-bottom: 4px;
+    }
+
+    .header {
+      margin: 4px;
+      user-select: none;
+    }
+
+    .drop-target {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    transition: background-color 200ms linear;
+  }
+  .column.highlight {
+    background-color: #DDD;
   }
 
   .card {
@@ -25,7 +45,13 @@
     flex-direction: column;
     height: 60px;
 
-    background-color: lightblue;
+    padding: 4px;
+    background-color: cornflowerblue;
     border-radius: 4px;
+    user-select: none;
+    cursor: pointer;
+  }
+  .card.dragging {
+    display: none;
   }
 }

@@ -5,20 +5,40 @@
 import React from 'react';
 import { DropTarget } from 'react-dnd';
 
+import Card from './card';
+
 /*
- * Drop Columns.
+ * Columns (Drop target).
  */
 class Column extends React.Component {
 
+  static propTypes = {
+    label: React.PropTypes.string.isRequired,
+    items: React.PropTypes.array.isRequired
+  };
+
   componentWillReceiveProps(nextProps) {
-    // TODO(burdon): Get drag state.
   }
 
   render() {
-    let { connectDropTarget } = this.props;
+    let { items, label, connectDropTarget, isOver } = this.props;
 
-    return connectDropTarget(
-      <div className="column"></div>
+    let cards = items.map(item => (
+      <Card key={ item.id } id={ item.id } title={ item.title }/>
+    ));
+
+    let dropTarget = connectDropTarget(
+      <div className="drop-target">
+        { cards }
+      </div>
+    );
+
+    return (
+      <div className={ 'column' + (isOver ? ' highlight' : '') }>
+        <div className="header">{ label }</div>
+
+        { dropTarget }
+      </div>
     )
   }
 }
@@ -39,8 +59,15 @@ const target = {
 
   // On drop.
   drop(props, monitor, component) {
-    const item = monitor.getItem();
-    console.log('Dropped', item);
+    let item = monitor.getItem();
+    props.emitter.emit('drop', item.id, props.label);
+
+    // TODO(burdon): Observer pattern.
+    // TODO(burdon): Triggers setState (but model changed).
+    // warning.js?8a56:36 Warning: setState(...):
+    // Cannot update during an existing state transition (such as within `render` or another component's constructor).
+    // Render methods should be a pure function of props and state;
+    // constructor side-effects are an anti-pattern, but can be moved to `componentWillMount`.
   }
 };
 

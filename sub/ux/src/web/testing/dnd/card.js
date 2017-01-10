@@ -11,7 +11,8 @@ import { DragSource } from 'react-dnd';
 class Card extends React.Component {
 
   static propTypes = {
-    text: React.PropTypes.string.isRequired,
+    id: React.PropTypes.string.isRequired,
+    title: React.PropTypes.string.isRequired,
 
     // Injected by React DnD.
     isDragging: React.PropTypes.bool.isRequired,
@@ -19,11 +20,11 @@ class Card extends React.Component {
   };
 
   render() {
-    let { text, connectDragSource, isDragging } = this.props;
+    let { title, connectDragSource, isDragging } = this.props;
 
     return connectDragSource(
-      <div className={ 'card' + (isDragging && 'dragging' || '') }>
-        { text }
+      <div className={ 'card' + (isDragging ? ' dragging' : '') }>
+        { title }
       </div>
     );
   }
@@ -35,7 +36,7 @@ class Card extends React.Component {
 const cardSource = {
   beginDrag(props) {
     return {
-      text: props.text
+      id: props.id
     };
   }
 };

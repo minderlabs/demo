@@ -50,6 +50,8 @@
     "webpack-link": "^0.2.0"
   },
   "dependencies": {
+    "chance": "^1.0.4",
+    "fbemitter": "^2.1.1",
     "lodash": "^4.17.2",
     "minder-core": "0.1.0",
     "moment": "^2.15.2",
