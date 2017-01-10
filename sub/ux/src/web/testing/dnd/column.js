@@ -23,24 +23,26 @@ export default class Column extends React.Component {
     let { model, emitter, items, label } = this.props;
 
     let lastPos = 0;
+    let lastId = null;
     let cards = items.map(item => {
       let currentPos = model.getPos(item.id);
       let div = (
-        <div key={ item.id }>
-          <Drop emitter={ emitter } label={ label } pos={ lastPos + (currentPos - lastPos) / 2 }/>
+        <Drop key={ item.id } previous={ lastId } emitter={ emitter } label={ label } pos={ lastPos + (currentPos - lastPos) / 2 }>
           <Card id={ item.id } title={ item.title } meta={ String(currentPos) }/>
-        </div>
+        </Drop>
       );
       lastPos = currentPos;
+      lastId = item.id;
       return div;
     });
 
     return (
       <div className='column'>
         <div className="header">{ label }</div>
-        <div>
+        <div className="cards">
          { cards }
-         <Drop emitter={ emitter } label={ label } pos={ lastPos + 0.5 }/>
+
+         <Drop emitter={ emitter } previous={ lastId } label={ label } pos={ lastPos + 0.5 }/>
         </div>
       </div>
     )

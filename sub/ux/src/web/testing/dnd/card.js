@@ -28,6 +28,7 @@ class Card extends React.Component {
     return connectDragSource(
       <div className={ 'card' + (isDragging ? ' dragging' : '') }>
         <h1>{ title }</h1>
+
         { metaDiv }
       </div>
     );

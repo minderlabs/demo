@@ -10,12 +10,14 @@ import { DropTarget } from 'react-dnd';
  */
 class Drop extends React.Component {
 
-  // TODO(burdon): Card should be inside drop zone (bigger target).
+  // TODO(burdon): Dragging over the item (not drop-zone should move the drop-zone).
 
   static propTypes = {
     emitter: React.PropTypes.object.isRequired,
-    label: React.PropTypes.string.isRequired,
-    pos: React.PropTypes.number.isRequired
+
+    previous: React.PropTypes.string,
+    pos: React.PropTypes.number.isRequired,
+    label: React.PropTypes.string.isRequired
   };
 
   constructor() {
@@ -36,11 +38,17 @@ class Drop extends React.Component {
 
   // TODO(burdon): Add order.
   render() {
-    let { connectDropTarget, isOver } = this.props;
+    let { children, connectDropTarget, isOver } = this.props;
     let { pos } = this.state;
-    let className = 'drop-target' + (isOver ? ' active' : '');
+
+    let itemdId = children && children.props.id;
+    let className = 'drop-target' + (isOver ? ' active' : '') + (children ? '' : ' last');
     return connectDropTarget(
-      <div className={ className } data={ pos }>{ pos }</div>
+      <div className={ className }>
+        <div className="placeholder"></div>
+
+        { children }
+      </div>
     );
   }
 }
@@ -61,17 +69,19 @@ const target = {
 
   // On drop.
   drop(props, monitor, component) {
-    let { emitter, label, pos } = props;
+    let { emitter, previous, pos, label } = props;
     let item = monitor.getItem();
 
-    emitter.emit('drop', item.id, label, pos);
+    // Can't drop onto placeholder for self.
+    if (previous != item.id) {
 
-    // TODO(burdon): Observer pattern.
-    // TODO(burdon): Triggers setState (but model changed).
-    // warning.js?8a56:36 Warning: setState(...):
-    // Cannot update during an existing state transition (such as within `render` or another component's constructor).
-    // Render methods should be a pure function of props and state;
-    // constructor side-effects are an anti-pattern, but can be moved to `componentWillMount`.
+      // NOTE: Observer patter is required to repaint from the root. Otherwise:
+      // warning.js?8a56:36 Warning: setState(...):
+      // Cannot update during an existing state transition (such as within `render` or another component's constructor).
+      // Render methods should be a pure function of props and state;
+      // constructor side-effects are an anti-pattern, but can be moved to `componentWillMount`.
+      emitter.emit('drop', item.id, label, pos);
+    }
   }
 };
 

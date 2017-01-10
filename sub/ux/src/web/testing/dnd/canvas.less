@@ -23,49 +23,64 @@ body {
     border-radius: 4px;
     margin: 8px;
 
+    padding: 8px;
+
     .header {
       margin: 4px;
       user-select: none;
     }
 
+    transition: background-color 200ms linear;
+  }
+
+  .cards {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
     .drop-target {
+      font-size: 8px;
+
+      .placeholder {
+        display: none;
+        background-color: white;
+      }
+    }
+    .drop-target.last {
       display: flex;
       flex-direction: column;
       flex-grow: 1;
     }
+    .drop-target.active {
+      min-height: 60px;
 
-    transition: background-color 200ms linear;
-  }
-
-  .drop-target {
-    font-size: 8px;
-    height: 8px;
-  }
-  .drop-target.active {
-    height: 60px;
-
-    background-color: #BBB;
-    border-radius: 4px;
-    padding: 4px;
-    margin: 8px 0;                // TODO(burdon): No margin: make inner div (to look like card).
-  }
-
-  .card {
-    display: flex;
-    flex-direction: column;
-    height: 60px;
-
-    padding: 4px;
-    background-color: cornflowerblue;
-    border-radius: 4px;
-    user-select: none;
-    cursor: pointer;
-
-    .meta {
-      font-size: 10px;
+      .placeholder {
+        display: block;
+        height: 60px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+      }
     }
-  }
-  .card.dragging {
-    display: none;
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      height: 60px;
+      margin-bottom: 8px;
+
+      background-color: cornflowerblue;
+      border-radius: 8px;
+      user-select: none;
+      cursor: pointer;
+
+      .meta {
+        font-size: 10px;
+      }
+    }
+    // TODO(burdon): Disappears straight away so drop shrinks and we're immeditately in the drop below.
+    .card.dragging {
+      background-color: transparent;
+      display: none;
+    }
   }
 }

@@ -58,6 +58,8 @@ class ItemModel {
     }
 
     // Set the order.
+    // TODO(burdon): Track column ID (so position is reset if doen't match).
+    //               I.e., metadata changed without dragging.
     this.itemPos[item.id] = pos;
   }
 
@@ -88,9 +90,11 @@ class TestCanvas extends React.Component {
     this.emitter = new EventEmitter();
     this.emitter.addListener('drop', (id, label, pos) => {
       console.log('DROP', id, label, pos);
+
       let item = this.model.getItem(id);
       item.label = label;
       this.model.setPos(item, pos);
+
       this.forceUpdate();
     });
 
