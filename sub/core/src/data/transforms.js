@@ -95,7 +95,7 @@ export class Transforms {
   static scalarValue(value) {
     let scalar = undefined;
     const scalars = ['int', 'float', 'string', 'boolean', 'id', 'date'];
-    _.forEach(scalars, (s) => {
+    _.each(scalars, (s) => {
       if (value[s] !== undefined) {
         scalar = value[s];
         return false;

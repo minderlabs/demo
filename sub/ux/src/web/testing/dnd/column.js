@@ -3,93 +3,46 @@
 //
 
 import React from 'react';
-import { DropTarget } from 'react-dnd';
 
 import Card from './card';
+import Drop from './drop';
 
 /*
- * Columns (Drop target).
+ * Columns.
  */
-class Column extends React.Component {
+export default class Column extends React.Component {
 
   static propTypes = {
+    model: React.PropTypes.object.isRequired,
+    emitter: React.PropTypes.object.isRequired,
     label: React.PropTypes.string.isRequired,
     items: React.PropTypes.array.isRequired
   };
 
-  componentWillReceiveProps(nextProps) {
-  }
-
   render() {
-    let { items, label, connectDropTarget, isOver } = this.props;
+    let { model, emitter, items, label } = this.props;
 
-    let cards = items.map(item => (
-      <Card key={ item.id } id={ item.id } title={ item.title }/>
-    ));
-
-    let dropTarget = connectDropTarget(
-      <div className="drop-target">
-        { cards }
-      </div>
-    );
+    let lastPos = 0;
+    let cards = items.map(item => {
+      let currentPos = model.getPos(item.id);
+      let div = (
+        <div key={ item.id }>
+          <Drop emitter={ emitter } label={ label } pos={ lastPos + (currentPos - lastPos) / 2 }/>
+          <Card id={ item.id } title={ item.title } meta={ String(currentPos) }/>
+        </div>
+      );
+      lastPos = currentPos;
+      return div;
+    });
 
     return (
-      <div className={ 'column' + (isOver ? ' highlight' : '') }>
+      <div className='column'>
         <div className="header">{ label }</div>
-
-        { dropTarget }
+        <div>
+         { cards }
+         <Drop emitter={ emitter } label={ label } pos={ lastPos + 0.5 }/>
+        </div>
       </div>
     )
   }
 }
-
-/**
- * Drop target contract.
- */
-const target = {
-
-  // Determine if drop is allowed.
-  canDrop(props, monitor) {
-    return true;
-  },
-
-  // Drag side-effects.
-  hover(props, monitor, component) {
-  },
-
-  // On drop.
-  drop(props, monitor, component) {
-    let item = monitor.getItem();
-    props.emitter.emit('drop', item.id, props.label);
-
-    // TODO(burdon): Observer pattern.
-    // TODO(burdon): Triggers setState (but model changed).
-    // warning.js?8a56:36 Warning: setState(...):
-    // Cannot update during an existing state transition (such as within `render` or another component's constructor).
-    // Render methods should be a pure function of props and state;
-    // constructor side-effects are an anti-pattern, but can be moved to `componentWillMount`.
-  }
-};
-
-/**
- * Injects properties into the component.
- *
- * @param connect
- * @param monitor
- */
-const collect = (connect, monitor) => ({
-
-  // Call this function inside render() to let React DnD handle the drag events.
-  connectDropTarget: connect.dropTarget(),
-
-  // Drag state.
-  isOver: monitor.isOver(),
-  isOverCurrent: monitor.isOver({ shallow: true }),
-  canDrop: monitor.canDrop(),
-  itemType: monitor.getItemType()
-});
-
-/**
- * http://gaearon.github.io/react-dnd/docs-drop-target.html
- */
-export default DropTarget('CARD', target, collect)(Column);

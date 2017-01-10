@@ -26,10 +26,43 @@ class ItemModel {
     this.chance = new Chance(1000);
     this.labels = labels;
     this.items = items;
+
+    // Map of order floats indexed by Item ID.
+    this.itemPos = {};
+
+    _.each(items, item => this.setPos(item));
   }
 
   addItem(item) {
     this.items.push(item);
+    this.setPos(item);
+  }
+
+  /**
+   * Calculates the position of the item within the column.
+   * @param item
+   * @param {float} pos
+   */
+  setPos(item, pos=null) {
+    if (pos === null) {
+      // Get sorted items for column (without current).
+      let items = _.filter(this.getItems(item.label), i => i.id != item.id);
+      let size = _.size(items);
+      if (size == 0) {
+        // First in column.
+        pos = 1;
+      } else {
+        // Last in column.
+        pos = this.itemPos[items[size - 1].id] + 1;
+      }
+    }
+
+    // Set the order.
+    this.itemPos[item.id] = pos;
+  }
+
+  getPos(id) {
+    return this.itemPos[id];
   }
 
   getItem(id) {
@@ -38,7 +71,8 @@ class ItemModel {
   }
 
   getItems(label) {
-    return _.filter(this.items, item => item.label == label)
+    // Get items in order.
+    return _.sortBy(_.filter(this.items, item => item.label == label), item => this.itemPos[item.id]);
   }
 }
 
@@ -52,22 +86,26 @@ class TestCanvas extends React.Component {
 
     // https://github.com/facebook/emitter
     this.emitter = new EventEmitter();
-    this.emitter.addListener('drop', (id, label) => {
-      this.model.getItem(id).label = label;
+    this.emitter.addListener('drop', (id, label, pos) => {
+      console.log('DROP', id, label, pos);
+      let item = this.model.getItem(id);
+      item.label = label;
+      this.model.setPos(item, pos);
       this.forceUpdate();
     });
 
     this.model = new ItemModel(['red', 'green', 'blue']);
     _.times(6, i => this.model.addItem({
-      id: `I-${i}`,
-      title: `Item-${i}`,
+      id: `I-${i + 1}`,
+      title: `Item-${i + 1}`,
       label: this.model.chance.pickone(this.model.labels)
     }));
   }
 
   render() {
     let columns = this.model.labels.map(label =>
-      <Column key={ label } emitter={ this.emitter } items={ this.model.getItems(label) } label={ label }/>);
+      <Column key={ label } emitter={ this.emitter } model={ this.model }
+              items={ this.model.getItems(label) } label={ label }/>);
 
     return (
       <div className="canvas">

@@ -2,6 +2,10 @@
 // Copyright 2016 Minder Labs.
 //
 
+body {
+  box-sizing: border-box;
+}
+
 .canvas {
   display: flex;
   flex-direction: row;
@@ -19,10 +23,6 @@
     border-radius: 4px;
     margin: 8px;
 
-    .card {
-      margin-bottom: 4px;
-    }
-
     .header {
       margin: 4px;
       user-select: none;
@@ -36,8 +36,18 @@
 
     transition: background-color 200ms linear;
   }
-  .column.highlight {
-    background-color: #DDD;
+
+  .drop-target {
+    font-size: 8px;
+    height: 8px;
+  }
+  .drop-target.active {
+    height: 60px;
+
+    background-color: #BBB;
+    border-radius: 4px;
+    padding: 4px;
+    margin: 8px 0;                // TODO(burdon): No margin: make inner div (to look like card).
   }
 
   .card {
@@ -50,6 +60,10 @@
     border-radius: 4px;
     user-select: none;
     cursor: pointer;
+
+    .meta {
+      font-size: 10px;
+    }
   }
   .card.dragging {
     display: none;

@@ -13,6 +13,7 @@ class Card extends React.Component {
   static propTypes = {
     id: React.PropTypes.string.isRequired,
     title: React.PropTypes.string.isRequired,
+    meta: React.PropTypes.string,
 
     // Injected by React DnD.
     isDragging: React.PropTypes.bool.isRequired,
@@ -20,11 +21,14 @@ class Card extends React.Component {
   };
 
   render() {
-    let { title, connectDragSource, isDragging } = this.props;
+    let { meta, title, connectDragSource, isDragging } = this.props;
+
+    let metaDiv = meta && <div className="meta">{ meta }</div>;
 
     return connectDragSource(
       <div className={ 'card' + (isDragging ? ' dragging' : '') }>
-        { title }
+        <h1>{ title }</h1>
+        { metaDiv }
       </div>
     );
   }

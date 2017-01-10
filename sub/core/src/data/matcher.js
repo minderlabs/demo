@@ -152,7 +152,7 @@ export class Matcher {
     switch (expr.op) {
 
       case 'OR': {
-        _.forEach(expr.expr, expr => {
+        _.each(expr.expr, expr => {
           if (Matcher.matchExpression(context, root, expr, item)) {
             match = true;
             return false;
@@ -165,7 +165,7 @@ export class Matcher {
       case 'AND': {
         match = true;
 
-        _.forEach(expr.expr, expr => {
+        _.each(expr.expr, expr => {
           if (!Matcher.matchExpression(context, root, expr, item)) {
             match = false;
             return false;
