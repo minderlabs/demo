@@ -18,12 +18,14 @@ import './canvas.less';
 // http://gaearon.github.io/react-dnd/docs-tutorial.html
 //
 
+/**
+ * Item model.
+ * TODO(burdon): Wraps query.
+ */
 class ItemModel {
 
-  // TODO(burdon): Maintain item order.
-
   constructor(labels=[], items=[]) {
-    this.chance = new Chance(1000);
+    this.chance = new Chance(300);
     this.labels = labels;
     this.items = items;
 
@@ -99,7 +101,7 @@ class TestCanvas extends React.Component {
     });
 
     this.model = new ItemModel(['red', 'green', 'blue']);
-    _.times(6, i => this.model.addItem({
+    _.times(10, i => this.model.addItem({
       id: `I-${i + 1}`,
       title: `Item-${i + 1}`,
       label: this.model.chance.pickone(this.model.labels)

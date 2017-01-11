@@ -36,7 +36,6 @@ class Drop extends React.Component {
     }
   }
 
-  // TODO(burdon): Add order.
   render() {
     let { children, connectDropTarget, isOver } = this.props;
     let { pos } = this.state;
