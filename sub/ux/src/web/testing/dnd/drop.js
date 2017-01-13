@@ -8,7 +8,7 @@ import { DropTarget } from 'react-dnd';
 /**
  * Drop position.
  */
-class Drop extends React.Component {
+class CardDrop extends React.Component {
 
   // TODO(burdon): Dragging over the item (not drop-zone should move the drop-zone).
 
@@ -40,11 +40,17 @@ class Drop extends React.Component {
     let { children, connectDropTarget, isOver } = this.props;
     let { pos } = this.state;
 
-    let itemdId = children && children.props.id;
     let className = 'drop-target' + (isOver ? ' active' : '') + (children ? '' : ' last');
     return connectDropTarget(
       <div className={ className }>
-        <div className="placeholder"></div>
+        <div className="placeholder">
+          {/*
+          <span className="dashing"><i></i></span>
+          <span className="dashing"><i></i></span>
+          <span className="dashing"><i></i></span>
+          <span className="dashing"><i></i></span>
+          */}
+        </div>
 
         { children }
       </div>
@@ -55,7 +61,7 @@ class Drop extends React.Component {
 /**
  * Drop target contract.
  */
-const target = {
+const dropSpec = {
 
   // Determine if drop is allowed.
   canDrop(props, monitor) {
@@ -70,6 +76,8 @@ const target = {
   drop(props, monitor, component) {
     let { emitter, previous, pos, label } = props;
     let item = monitor.getItem();
+
+    console.log('Drop: ' + item.id, label, pos);
 
     // Can't drop onto placeholder for self.
     if (previous != item.id) {
@@ -90,7 +98,7 @@ const target = {
  * @param connect
  * @param monitor
  */
-const collect = (connect, monitor) => ({
+const dropCollect = (connect, monitor) => ({
 
   // Call this function inside render() to let React DnD handle the drag events.
   connectDropTarget: connect.dropTarget(),
@@ -105,4 +113,4 @@ const collect = (connect, monitor) => ({
 /**
  * http://gaearon.github.io/react-dnd/docs-drop-target.html
  */
-export default DropTarget('CARD', target, collect)(Drop);
+export default DropTarget('CARD', dropSpec, dropCollect)(CardDrop);

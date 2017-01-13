@@ -9,9 +9,10 @@ import { DragDropContext } from 'react-dnd';
 import { Chance } from 'chance';
 import { EventEmitter } from 'fbemitter';
 
-import Column from './column';
+import CardDrag from './drag';
+import CardDrop from './drop';
 
-import './canvas.less';
+import './board.less';
 
 //
 // DND test.
@@ -80,10 +81,54 @@ class ItemModel {
   }
 }
 
-/**
- * Card canvas.
+/*
+ * Columns.
  */
-class TestCanvas extends React.Component {
+class Column extends React.Component {
+
+  static propTypes = {
+    model: React.PropTypes.object.isRequired,
+    emitter: React.PropTypes.object.isRequired,
+    label: React.PropTypes.string.isRequired,
+    items: React.PropTypes.array.isRequired
+  };
+
+  render() {
+    let { model, emitter, items, label } = this.props;
+
+    let lastPos = 0;
+    let lastId = null;
+    let cards = items.map(item => {
+      let currentPos = model.getPos(item.id);
+      let div = (
+        <CardDrop key={ item.id } emitter={ emitter }
+                  label={ label } previous={ lastId } pos={ lastPos + (currentPos - lastPos) / 2 }>
+
+          <CardDrag id={ item.id } title={ item.title } meta={ String('POS: ' + currentPos) }/>
+        </CardDrop>
+      );
+      lastPos = currentPos;
+      lastId = item.id;
+      return div;
+    });
+
+    return (
+      <div className='column'>
+        <div className="header">{ label }</div>
+        <div className="cards">
+         { cards }
+
+         <CardDrop emitter={ emitter } previous={ lastId } label={ label } pos={ lastPos + 0.5 }/>
+        </div>
+      </div>
+    )
+  }
+}
+
+/**
+ * Board canvas.
+ */
+class TestDragBoard extends React.Component {
 
   constructor() {
     super(...arguments);
@@ -91,8 +136,6 @@ class TestCanvas extends React.Component {
     // https://github.com/facebook/emitter
     this.emitter = new EventEmitter();
     this.emitter.addListener('drop', (id, label, pos) => {
-      console.log('DROP', id, label, pos);
-
       let item = this.model.getItem(id);
       item.label = label;
       this.model.setPos(item, pos);
@@ -114,11 +157,11 @@ class TestCanvas extends React.Component {
               items={ this.model.getItems(label) } label={ label }/>);
 
     return (
-      <div className="canvas">
+      <div className="board">
         { columns }
       </div>
     )
   }
 }
 
-export default DragDropContext(HTML5Backend)(TestCanvas);
+export default DragDropContext(HTML5Backend)(TestDragBoard);

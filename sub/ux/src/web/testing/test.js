@@ -6,7 +6,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { browserHistory, Route, Router } from 'react-router'
 
-import TestCanvas from './dnd/canvas';
+import TestDragBoard from './dnd/board';
+import TestBoard from './test_board';
 import TestList from './test_list';
 
 import './test.less';
@@ -20,8 +21,9 @@ const App = (
   <Router history={ browserHistory }>
     {/*
     <Route path="/" component={ TestList }/>
+    <Route path="/" component={ TestDragBoard }/>
     */}
-    <Route path="/" component={ TestCanvas }/>
+    <Route path="/" component={ TestBoard }/>
   </Router>
 );
 

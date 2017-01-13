@@ -8,7 +8,7 @@ import { DragSource } from 'react-dnd';
 /**
  * Draggable card.
  */
-class Card extends React.Component {
+class CardDrag extends React.Component {
 
   static propTypes = {
     id: React.PropTypes.string.isRequired,
@@ -38,8 +38,9 @@ class Card extends React.Component {
 /**
  * Implements the drag source contract.
  */
-const cardSource = {
+const dragSpec = {
   beginDrag(props) {
+    console.log('Drag: ' + props.id);
     return {
       id: props.id
     };
@@ -49,11 +50,9 @@ const cardSource = {
 /**
  * Specifies the props to inject into your component.
  */
-function collect(connect, monitor) {
-  return {
-    connectDragSource: connect.dragSource(),
-    isDragging: monitor.isDragging()
-  };
-}
+const dragCollect = (connect, monitor) => ({
+  connectDragSource: connect.dragSource(),
+  isDragging: monitor.isDragging()
+});
 
-export default DragSource('CARD', cardSource, collect)(Card);
+export default DragSource('CARD', dragSpec, dragCollect)(CardDrag);

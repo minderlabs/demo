@@ -453,7 +453,7 @@ class ProjectBoardComponent extends React.Component {
         return (column.status == item.status);
       });
 
-      return columns[idx];
+      return columns[idx].id;
     };
 
     // TODO(burdon): Base class for canvases (e.g., editable title like Card).

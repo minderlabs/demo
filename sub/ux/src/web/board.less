@@ -9,12 +9,13 @@
   flex-direction: column;
   flex-grow: 1;
 
+  overflow-x: scroll;
+
   .ux-board-columns {
     display: flex;
     flex-direction: row;
     flex-grow: 1;
     justify-content: space-between;
-    overflow-x: scroll;
 
     padding: 8px;
 
@@ -34,8 +35,8 @@
       }
 
       .ux-board-list {
-        // TODO(burdon): Handle scrolling inside list.
-        overflow-y: scroll;
+        display: flex;
+        flex-grow: 1;
 
         .ux-list {
           .ux-list-item {
