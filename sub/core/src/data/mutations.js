@@ -12,56 +12,50 @@ import { ID, IdGenerator } from './id';
 export class MutationUtil {
 
   /**
-   * Creates a mutation to add or remove a label.
-   * @param label
-   * @param set
-   * @returns {*[]}
-   */
-  static createLabelUpdate(label, set=true) {
-    return [
-      {
-        field: 'labels',
-        value: {
-          array: {
-            index: set ? 0 : -1,
-            value: {
-              string: label
-            }
-          }
-        }
-      }
-    ];
-  }
-
-  /**
-   * Adds the delete label.
-   * @returns {*[]}
-   */
-  static createDeleteMutation() {
-    return MutationUtil.createLabelUpdate('_deleted');
-  }
-
-  /**
    * Creates a mutation field if the old and new values are different.
    *
    * @param field
    * @param type
-   * @param oldValue
-   * @param newValue
-   * @returns {}
+   * @param value
+   * @returns {mutation}
    */
-  static field(field, type, newValue, oldValue=undefined) {
+  static createFieldMutation(field, type, value) {
+    console.assert(field && type);
+    return {
+      field: field,
+      value: {
+        [type]: value
+      }
+    };
+  }
 
-    // TODO(burdon): If newValue is undefined then remove? Different semantics from "only if set").
-    if (!_.isUndefined(newValue) && newValue !== oldValue) {
-      console.log('BANANAS');
-      return {
-        field: field,
-        value: {
-          [type]: newValue
+  /**
+   * Creates a mutation to add or remove a label.
+   * @param label
+   * @param set
+   * @returns {mutation}
+   */
+  static createLabelUpdate(label, set=true) {
+    console.assert(label);
+    return {
+      field: 'labels',
+      value: {
+        array: {
+          index: set ? 0 : -1,
+          value: {
+            string: label
+          }
         }
-      };
-    }
+      }
+    };
+  }
+
+  /**
+   * Adds the delete label.
+   * @returns {mutation}
+   */
+  static createDeleteMutation() {
+    return MutationUtil.createLabelUpdate('_deleted');
   }
 }
 

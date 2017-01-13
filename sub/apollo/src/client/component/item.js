@@ -102,7 +102,9 @@ export class CardContainer extends React.Component {
     let mutations = [];
 
     // Generic values.
-    TypeUtil.maybeAppend(mutations, MutationUtil.field('title', 'string', this.refs.title.value, item.title));
+    if (!_.isEqual(this.refs.title.value, item.title)) {
+      mutations.push(MutationUtil.createFieldMutation('title', 'string', this.refs.title.value));
+    }
 
     // Get type-specific values.
     if (this.props.onSave) {

@@ -15,11 +15,12 @@ import './board.less';
 export class Board extends React.Component {
 
   static propTypes = {
-    items: React.PropTypes.array.isRequired,            // [{ id: {string}, title: {string} }]
-    columns: React.PropTypes.array.isRequired,          // [{ id: {string}, title: {string} }]
-    columnMapper: React.PropTypes.func.isRequired,      // (columns, item) => column.id
-    onSelect: React.PropTypes.func,                     // (item) => {}
-    onDrop: React.PropTypes.func                        // (column, item) => {}
+    items: React.PropTypes.array.isRequired,              // [{ id: {string}, title: {string} }]
+    itemOrderModel: React.PropTypes.object.isRequired,    // [{DragOrderModel}]
+    columns: React.PropTypes.array.isRequired,            // [{ id: {string}, title: {string} }]
+    columnMapper: React.PropTypes.func.isRequired,        // (columns, item) => column.id
+    onSelect: React.PropTypes.func,                       // (item) => {}
+    onDrop: React.PropTypes.func                          // (column, item) => {}
   };
 
   static defaultProps = {

@@ -15,7 +15,9 @@ import { DragSource, DropTarget } from 'react-dnd';
 class ItemDragContainer extends React.Component {
 
   static propTypes = {
-    data: React.PropTypes.string.isRequired,                    // Item ID.
+
+    // Item ID.
+    data: React.PropTypes.string.isRequired,
 
     // Injected by React DnD.
     isDragging: React.PropTypes.bool.isRequired,
@@ -40,6 +42,10 @@ class ItemDragContainer extends React.Component {
 //
 
 const dragSpec = {
+  // canDrag() {
+  //   return false;
+  // },
+
   beginDrag(props) {
     let item = {
       id: props.data
@@ -80,7 +86,7 @@ class ItemDropContainer extends React.Component {
 
     return connectDropTarget(
       <div className={ className }>
-        <div className="ux-drop-placeholder">{ order }</div>
+        <div className="ux-drop-placeholder"></div>
 
         { children }
       </div>
@@ -178,8 +184,10 @@ export class DragOrderModel {
         state.listId = listId;
       }
 
+      // TODO(burdon): BUG: Should reset order if listId has changed. But frequent re-render makes this difficult to track.
+      //               E.g., if column mapper metadata changed without dragging (elsewhere).
       // Check has a currently valid order.
-      if (!state || state.listId != listId) {
+      if (!state) { // || state.listId != listId) {
 
         // Find next valid order value.
         let nextOrder = previousOrder + 1;
@@ -223,7 +231,7 @@ export class DragOrderModel {
     // Set the state.
     this._itemState.set(itemId, {
       order,
-      listId: listId
+      listId
     });
   }
 
