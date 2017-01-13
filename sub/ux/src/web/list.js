@@ -118,6 +118,7 @@ export class List extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log(nextProps);
 
     // Update the natural order of new items.
     this.props.itemOrderModel && this.props.itemOrderModel.update(nextProps.items, nextProps.data);
@@ -194,7 +195,7 @@ export class List extends React.Component {
   */
 
   render() {
-    let { data, itemOrderModel, onItemDrop, groupBy } = this.props;
+    let { data, itemOrderModel, groupBy } = this.props;
     let { items, itemRenderer } = this.state;
 
     //
@@ -222,7 +223,9 @@ export class List extends React.Component {
         let dropOrder = previousOrder == 0 ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
 
         listItem = (
-          <ListItemDropTarget key={ item.id } data={ data } order={ dropOrder } onDrop={ this.handleItemDrop.bind(this) }>
+          <ListItemDropTarget key={ item.id } data={ data } order={ dropOrder }
+                              onDrop={ this.handleItemDrop.bind(this) }>
+
             <ListItemDragSource data={ item.id }>
               { listItem }
             </ListItemDragSource>

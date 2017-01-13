@@ -166,6 +166,15 @@ type Geo {
   lng: Float!
 }
 
+type ItemOrder {
+  id: ID!
+  order: Float!
+}
+
+type Board {
+  order: [ItemOrder]!
+}
+
 #
 # Root node.
 #
@@ -276,6 +285,9 @@ type Project implements Item {
   # TODO(madadam): Rename -> items.
   # TODO(burdon): Broken -- reimplement using SearchResult.
   refs: [Item]
+
+  # TODO(burdon): Where to store canvas metadata?
+  board: Board
 }
 
 type Task implements Item {

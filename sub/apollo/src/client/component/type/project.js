@@ -436,7 +436,7 @@ class ProjectBoardComponent extends React.Component {
   }
 
   render() {
-    let { user, item={}, typeRegistry } = this.props;
+    let { item={}, typeRegistry } = this.props;
 
     // TODO(burdon): Function to map items to board.
     const columns = [
@@ -467,7 +467,7 @@ class ProjectBoardComponent extends React.Component {
         </div>
 
         <Board item={ item } columns={ columns } items={ items } columnMapper={ columnMapper }
-               onSelect={ this.handleItemSelect.bind(this) }/>
+               onItemSelect={ this.handleItemSelect.bind(this) }/>
       </div>
     );
   }

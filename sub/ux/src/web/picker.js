@@ -132,7 +132,7 @@ export class Picker extends React.Component {
 
   handleItemSelect(item) {
     this.refs.textbox.value = item.title;
-    this.props.onSelect && this.props.onSelect(item);
+    this.props.onItemSelect && this.props.onItemSelect(item);
     this.setState({
       value: item.title,
       showPopup: false

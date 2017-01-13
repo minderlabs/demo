@@ -11,6 +11,12 @@ import './board.less';
 
 /**
  * Board component.
+ *
+ * <Board onItemDrop={ ... }>
+ *   <List data="column-1" onItemDrop={ ... }>
+ *     <DropTarget data="column-1" onDrop={ ... }>
+ *       <DragSource data="item-1">
+ *         <ListItem>
  */
 export class Board extends React.Component {
 
@@ -18,8 +24,8 @@ export class Board extends React.Component {
     items: React.PropTypes.array.isRequired,            // [{ id: {string}, title: {string} }]
     columns: React.PropTypes.array.isRequired,          // [{ id: {string}, title: {string} }]
     columnMapper: React.PropTypes.func.isRequired,      // (columns, item) => column.id
-    onSelect: React.PropTypes.func,                     // (item) => {}
-    onDrop: React.PropTypes.func                        // (column, item) => {}
+    onItemSelect: React.PropTypes.func,                 // (item) => {}
+    onItemDrop: React.PropTypes.func                    // (column, item) => {}
   };
 
   static defaultProps = {
@@ -43,7 +49,7 @@ export class Board extends React.Component {
   }
 
   handleItemSelect(item) {
-    this.props.onSelect && this.props.onSelect(item);
+    this.props.onItemSelect && this.props.onItemSelect(item);
   }
 
   handleItemDrop(list, itemId) {
@@ -53,7 +59,8 @@ export class Board extends React.Component {
     let columnId = list.props.data;
     let column = _.find(columns, column => column.id == columnId);
     let item = _.find(items, item => item.id === itemId);
-    this.props.onDrop && this.props.onDrop(column, item);
+
+    this.props.onItemDrop && this.props.onItemDrop(column, item);
   }
 
   render() {

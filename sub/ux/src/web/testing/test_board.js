@@ -89,7 +89,7 @@ export default class TestBoard extends React.Component {
       <Board items={ model.items }
              columns={ model.columns }
              columnMapper={ model.columnMapper }
-             onDrop={ this.handleDrop.bind(this) }/>
+             onItemDrop={ this.handleDrop.bind(this) }/>
     );
   }
 }
