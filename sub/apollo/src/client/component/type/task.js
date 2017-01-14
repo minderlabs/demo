@@ -6,7 +6,8 @@ import React from 'react';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { MutationUtil, TypeUtil, ItemReducer } from 'minder-core';
+import { MutationUtil, ItemReducer } from 'minder-core';
+import { ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { composeItem, CardContainer, ItemFragment } from '../item';
@@ -188,6 +189,29 @@ class TaskLayout extends React.Component {
           </div>
 
         </div>
+      </div>
+    );
+  }
+}
+
+/**
+ *
+ */
+// TODO(burdon): Wrapper for compact cards.
+// TODO(burdon): Distinguish between HOC components and dumb components (used in renderers).
+export class TaskCompactCard extends React.Component {
+
+  static contextTypes = {
+    item: React.PropTypes.object,
+  };
+
+  render() {
+    let { item } = this.context;
+
+    return (
+      <div>
+        <ListItem.Title/>
+        <div className="ux-text">{ _.get(item, 'assignee.title') }</div>
       </div>
     );
   }
