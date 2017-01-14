@@ -56,7 +56,7 @@ export default class TestBoard extends React.Component {
           {
             id: 'I-4',
             title: 'Item 4',
-            label: 'green'
+            label: 'red'
           },
           {
             id: 'I-5',

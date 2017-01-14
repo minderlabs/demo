@@ -7,7 +7,7 @@ import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
-import { Board, List, ListItem } from 'minder-ux';
+import { Board, DragOrderModel, List, ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
@@ -98,7 +98,7 @@ const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
 class ProjectCardComponent extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object
+    navigator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -210,6 +210,7 @@ class ProjectCardLayout extends React.Component {
     console.assert(assignee && task);
     let { user, item:project } = this.props;
 
+    // TODO(burdon): Use MutationUtil.
     this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
       [
         {
@@ -248,6 +249,7 @@ class ProjectCardLayout extends React.Component {
     console.assert(task);
     let { user, item:project } = this.props;
 
+    // TODO(burdon): Use MutationUtil.
     this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
       [
         {
@@ -270,6 +272,7 @@ class ProjectCardLayout extends React.Component {
     console.assert(task);
     let { user, item:project } = this.props;
 
+    // TODO(burdon): Use MutationUtil.
     this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
       [
         {
@@ -284,7 +287,7 @@ class ProjectCardLayout extends React.Component {
 
   handleTaskDelete(item) {
     // TODO(burdon): Remove from project tasks.
-    this.context.mutator.updateItem(item, MutationUtil.createDeleteMutation());
+    this.context.mutator.updateItem(item, [ MutationUtil.createDeleteMutation() ]);
   }
 
   render() {
@@ -398,6 +401,7 @@ const ProjectBoardQuery = gql`
 
       ... on Project {
         tasks {
+          type
           id
           title
           status
@@ -417,13 +421,21 @@ class ProjectBoardComponent extends React.Component {
   // TODO(burdon): Generalize Board component (not just for projects).
 
   static contextTypes = {
-    navigator: React.PropTypes.object
+    navigator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
     item: React.PropTypes.object,
   };
+
+  constructor() {
+    super(...arguments);
+
+    this.state = {
+      itemOrderModel: new DragOrderModel()
+    };
+  }
 
   handleToggleCanvas() {
     let { item } = this.props;
@@ -435,8 +447,22 @@ class ProjectBoardComponent extends React.Component {
     this.context.navigator.push(Path.canvas(ID.toGlobalId('Task', item.id)));
   }
 
+  handleItemDrop(column, item) {
+    // TODO(burdon): Wrap board with CanvasLayout (and pass mutator via context).
+    let status = column.status;
+
+    // TODO(burdon): doLayout.
+
+    // TODO(burdon): Save board order (as mutation delta).
+    console.log('### SAVE ORDER ###\n', this.state.itemOrderModel.serialize());
+
+    // TODO(burdon): Do optimistic update before re-rendering.
+    this.props.mutator.updateItem(item, [ MutationUtil.createFieldMutation('status', 'int', status) ]);
+  }
+
   render() {
     let { item={}, typeRegistry } = this.props;
+    let { itemOrderModel } = this.state;
 
     // TODO(burdon): Function to map items to board.
     const columns = [
@@ -466,7 +492,9 @@ class ProjectBoardComponent extends React.Component {
           <div className="ux-text">{ item.title }</div>
         </div>
 
-        <Board item={ item } columns={ columns } items={ items } columnMapper={ columnMapper }
+        <Board item={ item } items={ items } columns={ columns } columnMapper={ columnMapper }
+               itemOrderModel={ itemOrderModel }
+               onItemDrop={ this.handleItemDrop.bind(this) }
                onItemSelect={ this.handleItemSelect.bind(this) }/>
       </div>
     );

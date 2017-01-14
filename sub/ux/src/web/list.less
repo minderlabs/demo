@@ -7,6 +7,8 @@
   flex-direction: column;
   flex-grow: 1;
 
+  overflow-y: scroll;
+
   .ux-list-item {
     padding: 0 8px;
   }
@@ -31,9 +33,21 @@
   // Drag and Drop
   //
 
+  .ux-drag-source {
+    .ux-debug {
+      text-align: right;
+      color: red;
+    }
+  }
+  .ux-drag-source.ux-dragging {
+    _display: none;
+    background-color: pink;
+  }
+
   .ux-drop-target {
     .ux-drop-placeholder {
-      _display: none;
+    __display: none;
+
       font-size: 12px;
       font-family: Monaco, monospace;
     }
@@ -47,6 +61,7 @@
     .ux-drop-placeholder {
       display: flex;
       height: 40px;
+      margin-bottom: 4px;
 
       background-color: white;
       border: 3px dotted cornflowerblue;

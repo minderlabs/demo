@@ -114,14 +114,13 @@ export class List extends React.Component {
     };
 
     // Update the natural order of new items.
-    this.props.itemOrderModel && this.props.itemOrderModel.update(this.state.items, this.props.data);
+    //this.props.itemOrderModel && this.props.itemOrderModel.doLayout(this.state.items, this.props.data);
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log(nextProps);
 
     // Update the natural order of new items.
-    this.props.itemOrderModel && this.props.itemOrderModel.update(nextProps.items, nextProps.data);
+    //this.props.itemOrderModel && this.props.itemOrderModel.doLayout(nextProps.items, nextProps.data);
 
     this.setState({
       items: nextProps.items || []
@@ -157,6 +156,19 @@ export class List extends React.Component {
     this.props.onItemSelect && this.props.onItemSelect(item);
   }
 
+  handleItemDrop(dropItem, data, order) {
+    console.assert(dropItem && dropItem.id);
+
+    // Update the order.
+    let mutations = this.props.itemOrderModel.setOrder(this.props.items, dropItem.id, data, order);
+    console.log('MUTATE', JSON.stringify(mutations));
+
+    // TODO(burdon): Pass mutations to callback.
+    // Notify (triggers state change and repaint).
+    this.props.onItemDrop(this, dropItem.id);
+    this.forceUpdate();
+  }
+
   handleItemSave(item) {
     this.props.onItemSave && this.props.onItemSave(item);
     this.setState({
@@ -170,17 +182,6 @@ export class List extends React.Component {
       showAdd: false,
       editedItem: null
     });
-  }
-
-  // TODO(burdon): Drop onto list that doesn't contain ID.
-  handleItemDrop(dropItem, data, order) {
-    console.assert(dropItem && dropItem.id);
-
-    // Update the order.
-    this.props.itemOrderModel.setOrder(dropItem.id, data, order);
-
-    // Notify (triggers state change and repaint).
-    this.props.onItemDrop(this, dropItem.id);
   }
 
   /*
@@ -206,6 +207,8 @@ export class List extends React.Component {
       items = itemOrderModel.getOrderedItems(items);
     }
 
+    console.log('RENDER:', data, _.map(items, item => `${item.id}[${itemOrderModel.getOrder(item.id)}]`));
+
     let previousOrder = 0;
     let rows = _.map(items, item => {
 
@@ -219,14 +222,18 @@ export class List extends React.Component {
       // If supports dragging, wrap with drag container.
       // TODO(burdon): Drop target isn't necessarily required on list.
       if (itemOrderModel) {
-        let itemOrder = itemOrderModel.getOrder(item.id);
-        let dropOrder = previousOrder == 0 ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
+        // Get the order from the state (if set); otherwise invent one.
+        let actualOrder = itemOrderModel.getOrder(item.id);
+        let itemOrder = actualOrder || previousOrder + 1;
+
+        // Calculate the dropzone order (i.e., midway between the previous and current item).
+        let dropOrder = (previousOrder == 0) ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
 
         listItem = (
           <ListItemDropTarget key={ item.id } data={ data } order={ dropOrder }
                               onDrop={ this.handleItemDrop.bind(this) }>
 
-            <ListItemDragSource data={ item.id }>
+            <ListItemDragSource data={ item.id } order={ actualOrder }>
               { listItem }
             </ListItemDragSource>
           </ListItemDropTarget>

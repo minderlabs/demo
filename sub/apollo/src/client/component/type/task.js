@@ -70,11 +70,13 @@ class TaskCardComponent extends React.Component {
 
     let mutations = [];
 
-    TypeUtil.maybeAppend(mutations,
-      MutationUtil.field('status', 'int', _.get(values, 'status'), _.get(item, 'status')));
+    if (!_.isEqual(_.get(values, 'status'), _.get(item, 'status'))) {
+      mutations.push(MutationUtil.createFieldMutation('status', 'int', _.get(values, 'status')));
+    }
 
-    TypeUtil.maybeAppend(mutations,
-      MutationUtil.field('assignee', 'id', _.get(values, 'assignee'), _.get(item, 'assignee.id')));
+    if (!_.isEqual(_.get(values, 'assignee', null), _.get(item, 'assignee'))) {
+      mutations.push(MutationUtil.createFieldMutation('assignee', 'id', _.get(values, 'assignee')));
+    }
 
     return mutations;
   }

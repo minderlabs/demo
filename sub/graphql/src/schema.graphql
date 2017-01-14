@@ -168,7 +168,8 @@ type Geo {
 
 type ItemOrder {
   id: ID!
-  order: Float!
+  listId: String!           # ID of list.
+  order: Float!             # Order value within list.
 }
 
 type Board {
