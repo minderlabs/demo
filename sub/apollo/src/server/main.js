@@ -15,13 +15,14 @@ import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
 import { IdGenerator, Matcher, MemoryItemStore, Logger, Randomizer } from 'minder-core';
-import { Database, Firebase, GoogleDriveItemStore, graphqlRouter } from 'minder-graphql';
+import { Database, Firebase, GoogleDriveItemStore, SlackQueryProvider, graphqlRouter } from 'minder-graphql';
 
-import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
+import { Const, FirebaseConfig, GoogleApiConfig, SlackConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
-import { botkitRouter, BotKitManager, accountsRouter, AccountManager, SlackAccountHandler } from './botkit';
+import { accountsRouter, AccountManager, SlackAccountHandler } from './accounts';
+import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { loginRouter, AuthManager } from './auth';
 import { clientRouter, ClientManager, SocketManager } from './client';
 import { loggingRouter } from './logger';
@@ -118,6 +119,12 @@ database
 
   // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
   .registerSearchProvider('google_drive', googleDriveItemStore);
+
+let botkitManager = new BotKitManager(SlackConfig);
+const slackQueryProvider = new SlackQueryProvider(idGenerator, matcher, botkitManager);
+
+database
+  .registerSearchProvider('slack', slackQueryProvider);
 
 
 //
@@ -352,11 +359,10 @@ app.use(appRouter(authManager, clientManager, {
   assets: env === 'production' ? __dirname : path.join(__dirname, '../../dist')
 }));
 
-let botkitManager = new BotKitManager();
 app.use('/botkit', botkitRouter(botkitManager));
 
 let accountManager = new AccountManager();
-accountManager.registerHandler('Slack', new SlackAccountHandler())
+accountManager.registerHandler('Slack', new SlackAccountHandler());
 
 app.use(accountsRouter(accountManager));
 

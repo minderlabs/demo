@@ -246,7 +246,7 @@ export class ListItem extends React.Component {
     let { item } = context;
 
     let icon = props.icon;
-    if (icon.startsWith('http')) {
+    if (icon.startsWith('http') || icon.startsWith('/')) {
       return (
         <i className="ux-icon ux-icon-img">
           <img src={ icon }/>
