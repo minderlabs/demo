@@ -57,12 +57,14 @@ export class SidePanel extends React.Component {
         icon: 'assignment',
         link: Path.canvas(ID.toGlobalId('Project', 'demo'))
       },
+      /*
       {
         id: 'demo-board',
         title: 'Demo Board',
         icon: 'view_column',
         link: Path.canvas(ID.toGlobalId('Project', 'demo'), 'board')
       },
+      */
     ];
 
     const debugItems = [

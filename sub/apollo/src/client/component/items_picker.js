@@ -15,7 +15,7 @@ class ItemsPicker extends Picker {
     super.handleTextChange(text);
 
     // Update filter.
-    this.props.refetch(_.assign({}, this.props.filter, { text: text }));
+    this.props.refetch(_.assign({}, this.props.filter, { text }));
   }
 }
 

@@ -11,16 +11,23 @@ import './board.less';
 
 /**
  * Board component.
+ *
+ * <Board onItemDrop={ ... }>
+ *   <List data="column-1" onItemDrop={ ... }>
+ *     <DropTarget data="column-1" onDrop={ ... }>
+ *       <DragSource data="item-1">
+ *         <ListItem>
  */
 export class Board extends React.Component {
 
   static propTypes = {
     items: React.PropTypes.array.isRequired,              // [{ id: {string}, title: {string} }]
     itemOrderModel: React.PropTypes.object.isRequired,    // [{DragOrderModel}]
+    itemRenderer: React.PropTypes.func,
     columns: React.PropTypes.array.isRequired,            // [{ id: {string}, title: {string} }]
     columnMapper: React.PropTypes.func.isRequired,        // (columns, item) => column.id
-    onSelect: React.PropTypes.func,                       // (item) => {}
-    onDrop: React.PropTypes.func                          // (column, item) => {}
+    onItemSelect: React.PropTypes.func,                   // (item) => {}
+    onItemDrop: React.PropTypes.func                      // (column, item) => {}
   };
 
   static defaultProps = {
@@ -44,21 +51,21 @@ export class Board extends React.Component {
   }
 
   handleItemSelect(item) {
-    this.props.onSelect && this.props.onSelect(item);
+    this.props.onItemSelect && this.props.onItemSelect(item);
   }
 
-  handleItemDrop(list, itemId) {
-    console.assert(list && itemId);
+  handleItemDrop(listId, itemId, changes) {
+    console.assert(listId && itemId);
     let { items, columns } = this.state;
 
-    let columnId = list.props.data;
-    let column = _.find(columns, column => column.id == columnId);
+    let column = _.find(columns, column => column.id == listId);
     let item = _.find(items, item => item.id === itemId);
-    this.props.onDrop && this.props.onDrop(column, item);
+
+    this.props.onItemDrop && this.props.onItemDrop(column, item, changes);
   }
 
   render() {
-    let { columnMapper, itemOrderModel } = this.props;
+    let { columnMapper, itemRenderer, itemOrderModel } = this.props;
     let { items, columns } = this.state;
 
     // Columns.
@@ -73,6 +80,7 @@ export class Board extends React.Component {
           <div className="ux-board-list">
             <DragDropList data={ column.id }
                           items={ columnItems }
+                          itemRenderer={ itemRenderer }
                           itemOrderModel={ itemOrderModel }
                           onItemDrop={ this.handleItemDrop.bind(this) }
                           onItemSelect={ this.handleItemSelect.bind(this) }/>

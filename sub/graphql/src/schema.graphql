@@ -62,8 +62,8 @@ input ValueInput {
 
   date:       Date
 
-  array:      ArrayMutationInput
-  object:     ObjectMutationInput
+  array:      [ArrayMutationInput]
+  object:     [ObjectMutationInput]
 }
 
 #
@@ -77,6 +77,7 @@ input ArrayMutationInput {
 
 #
 # Object mutation.
+# TODO(burdon): Rename FieldMutationInput
 # E.g., { field: 'title', value: { string: 'Minder' } }
 #
 
@@ -164,6 +165,16 @@ input FilterInput {
 type Geo {
   lat: Float!
   lng: Float!
+}
+
+type ItemMeta {
+  itemId: ID!               # ID of item.
+  listId: String!           # ID of list.
+  order: Float!             # Order value within list.
+}
+
+type Board {
+  itemMeta: [ItemMeta]!
 }
 
 #
@@ -276,6 +287,9 @@ type Project implements Item {
   # TODO(madadam): Rename -> items.
   # TODO(burdon): Broken -- reimplement using SearchResult.
   refs: [Item]
+
+  # TODO(burdon): Where to store canvas metadata?
+  board: Board
 }
 
 type Task implements Item {

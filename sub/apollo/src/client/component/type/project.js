@@ -118,6 +118,7 @@ class ProjectCardComponent extends React.Component {
     return (
       <CardContainer mutator={ mutator } typeRegistry={ typeRegistry} item={ item }
                      onToggleCanvas={ this.handleToggleCanvas.bind(this) }>
+
         <ProjectCardLayout ref="item" user={ user } item={ item }/>
       </CardContainer>
     );
@@ -158,11 +159,11 @@ class ProjectCardLayout extends React.Component {
       {
         field: 'tasks',
         value: {
-          array: {
+          array: [{
             value: {
               id: taskId
             }
-          }
+          }]
         }
       }
     ];
@@ -210,15 +211,9 @@ class ProjectCardLayout extends React.Component {
     console.assert(assignee && task);
     let { user, item:project } = this.props;
 
-    // TODO(burdon): Use MutationUtil.
-    this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
-      [
-        {
-          field: 'assignee',
-          value: {
-            id: assignee.id
-          }
-        }
+    this.updateTask(TypeUtil.merge(
+      ProjectCardLayout.createTaskMutation(user, project, task.title), [
+        MutationUtil.createFieldMutation('assignee', 'id', assignee.id)
       ]
     ));
   }
@@ -249,15 +244,9 @@ class ProjectCardLayout extends React.Component {
     console.assert(task);
     let { user, item:project } = this.props;
 
-    // TODO(burdon): Use MutationUtil.
-    this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
-      [
-        {
-          field: 'project',
-          value: {
-            id: project.id
-          }
-        }
+    this.updateTask(TypeUtil.merge(
+      ProjectCardLayout.createTaskMutation(user, project, task.title), [
+        MutationUtil.createFieldMutation('project', 'id', project.id)
       ]
     ));
   }
@@ -273,14 +262,9 @@ class ProjectCardLayout extends React.Component {
     let { user, item:project } = this.props;
 
     // TODO(burdon): Use MutationUtil.
-    this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
-      [
-        {
-          field: 'bucket',
-          value: {
-            id: user.id
-          }
-        }
+    this.updateTask(TypeUtil.merge(
+      ProjectCardLayout.createTaskMutation(user, project, task.title), [
+        MutationUtil.createFieldMutation('bucket', 'id', user.id)
       ]
     ));
   }
@@ -400,11 +384,21 @@ const ProjectBoardQuery = gql`
       ...ItemFragment
 
       ... on Project {
+
+        board {
+          itemMeta {
+            itemId, listId, order
+          }         
+        }
+
         tasks {
           type
           id
           title
           status
+          assignee {
+            title
+          }
         }
       }
     }
@@ -442,21 +436,56 @@ class ProjectBoardComponent extends React.Component {
     this.context.navigator.push(Path.canvas(ID.toGlobalId('Project', item.id)));
   }
 
-  handleSelect(item) {
+  handleItemSelect(item) {
     this.context.navigator.push(Path.canvas(ID.toGlobalId('Task', item.id)));
   }
 
-  handleDrop(column, item) {
-    // TODO(burdon): Wrap board with CanvasLayout (and pass mutator via context).
-    let status = column.status;
+  handleItemDrop(column, item, changes) {
+    let { item:project } = this.props;
 
-    // TODO(burdon): Save board order (as mutation delta).
-    console.log('### SAVE ORDER ###\n', this.state.itemOrderModel.serialize());
+    // TODO(burdon): Wrap board with CanvasLayout (and pass mutator via context).
+    // TODO(burdon): Do optimistic update before re-rendering.
+    let status = column.status;
     this.props.mutator.updateItem(item, [ MutationUtil.createFieldMutation('status', 'int', status) ]);
+
+    let mutations = _.map(changes, change => ({
+      field: 'board',
+      value: {
+        object: [{
+          field: 'itemMeta',
+          value: {
+            object: [
+              {
+                field: change.itemId,
+                value: {
+                  object: [
+                    {
+                      field: 'listId',
+                      value: {
+                        string: change.listId
+                      }
+                    },
+                    {
+                      field: 'order',
+                      value: {
+                        float: change.order
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }]
+      }
+    }));
+
+    // TODO(burdon): Allow for multiple mutations (on different items).
+    this.props.mutator.updateItem(project, mutations);
   }
 
   render() {
-    let { user, item={}, typeRegistry } = this.props;
+    let { item={}, typeRegistry } = this.props;
     let { itemOrderModel } = this.state;
 
     // TODO(burdon): Function to map items to board.
@@ -467,6 +496,20 @@ class ProjectBoardComponent extends React.Component {
       { id: 'c4', status: 3, title: 'Complete'  }
     ];
 
+    // TODO(burdon): Factor out.
+    const CompactItemRenderer = (item) => {
+      let card = typeRegistry.compact(item);
+      if (!card) {
+        card = <ListItem.Title/>;
+      }
+
+      return (
+        <ListItem item={ item }>
+          { card }
+        </ListItem>
+      );
+    };
+
     let items = _.get(item, 'tasks', []);
 
     let columnMapper = (columns, item) => {
@@ -476,6 +519,9 @@ class ProjectBoardComponent extends React.Component {
 
       return columns[idx].id;
     };
+
+    // Update the sort model.
+    itemOrderModel.setLayout(_.get(item, 'board.itemMeta'));
 
     // TODO(burdon): Base class for canvases (e.g., editable title like Card).
     // TODO(burdon): Title in Breadcrumbs.
@@ -488,9 +534,10 @@ class ProjectBoardComponent extends React.Component {
         </div>
 
         <Board item={ item } items={ items } columns={ columns } columnMapper={ columnMapper }
+               itemRenderer={ CompactItemRenderer }
                itemOrderModel={ itemOrderModel }
-               onDrop={ this.handleDrop.bind(this) }
-               onSelect={ this.handleSelect.bind(this) }/>
+               onItemDrop={ this.handleItemDrop.bind(this) }
+               onItemSelect={ this.handleItemSelect.bind(this) }/>
       </div>
     );
   }

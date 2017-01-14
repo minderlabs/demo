@@ -18,6 +18,7 @@ export class Picker extends React.Component {
 
   static propTypes = {
     onTextChange:   React.PropTypes.func,
+    onItemSelect:   React.PropTypes.func,
     className:      React.PropTypes.string,
     items:          React.PropTypes.array,
     value:          React.PropTypes.string
@@ -132,7 +133,7 @@ export class Picker extends React.Component {
 
   handleItemSelect(item) {
     this.refs.textbox.value = item.title;
-    this.props.onSelect && this.props.onSelect(item);
+    this.props.onItemSelect && this.props.onItemSelect(item);
     this.setState({
       value: item.title,
       showPopup: false
@@ -150,7 +151,7 @@ export class Picker extends React.Component {
     // TODO(burdon): Default props.
     let placeholder = `Search...`;
 
-    // TODO(burdon): Reuse List (for cursor).
+    // TODO(burdon): Reuse List (for cursor capability).
     let rows = items.map((item) => {
       return (
         <input key={ item.id }

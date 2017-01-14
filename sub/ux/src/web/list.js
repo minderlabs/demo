@@ -107,22 +107,14 @@ export class List extends React.Component {
 
     this.state = {
       items: this.props.items || [],
-      itemRenderer: this.props.itemRenderer,
+      itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
       itemEditor: this.props.itemEditor,
       showAdd: this.props.showAdd,
       editedItem: null
     };
-
-    // Update the natural order of new items.
-    this.props.itemOrderModel && this.props.itemOrderModel.update(this.state.items, this.props.data);
   }
 
   componentWillReceiveProps(nextProps) {
-
-    // TODO(burdon): Only call if items have changed (i.e., list x column association has changed).
-    // Update the natural order of new items.
-    this.props.itemOrderModel && this.props.itemOrderModel.update(nextProps.items, nextProps.data);
-
     this.setState({
       items: nextProps.items || []
     });
@@ -157,6 +149,18 @@ export class List extends React.Component {
     this.props.onItemSelect && this.props.onItemSelect(item);
   }
 
+  handleItemDrop(dropItem, data, order) {
+    console.assert(dropItem && dropItem.id);
+
+    // Update the order.
+    let changes = this.props.itemOrderModel.setOrder(this.props.items, dropItem.id, data, order);
+
+    // Repaint and notify parent.
+    this.forceUpdate(() => {
+      this.props.onItemDrop(this.props.data, dropItem.id, changes);
+    });
+  }
+
   handleItemSave(item) {
     this.props.onItemSave && this.props.onItemSave(item);
     this.setState({
@@ -172,17 +176,6 @@ export class List extends React.Component {
     });
   }
 
-  // TODO(burdon): Drop onto list that doesn't contain ID.
-  handleItemDrop(dropItem, data, order) {
-    console.assert(dropItem && dropItem.id);
-
-    // Update the order.
-    this.props.itemOrderModel.setOrder(dropItem.id, data, order);
-
-    // Notify (triggers state change and repaint).
-    this.props.onItemDrop(this, dropItem.id);
-  }
-
   /*
   handleMore() {
     this.props.fetchMoreItems().then(() => {
@@ -195,7 +188,7 @@ export class List extends React.Component {
   */
 
   render() {
-    let { data, itemOrderModel, onItemDrop, groupBy } = this.props;
+    let { data, itemOrderModel, groupBy } = this.props;
     let { items, itemRenderer } = this.state;
 
     //
@@ -219,12 +212,18 @@ export class List extends React.Component {
       // If supports dragging, wrap with drag container.
       // TODO(burdon): Drop target isn't necessarily required on list.
       if (itemOrderModel) {
-        let itemOrder = itemOrderModel.getOrder(item.id);
-        let dropOrder = previousOrder == 0 ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
+        // Get the order from the state (if set); otherwise invent one.
+        let actualOrder = itemOrderModel.getOrder(item.id);
+        let itemOrder = actualOrder || previousOrder + 1;
+
+        // Calculate the dropzone order (i.e., midway between the previous and current item).
+        let dropOrder = (previousOrder == 0) ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
 
         listItem = (
-          <ListItemDropTarget key={ item.id } data={ data } order={ dropOrder } onDrop={ this.handleItemDrop.bind(this) }>
-            <ListItemDragSource data={ item.id }>
+          <ListItemDropTarget key={ item.id } data={ data } order={ dropOrder }
+                              onDrop={ this.handleItemDrop.bind(this) }>
+
+            <ListItemDragSource data={ item.id } order={ actualOrder }>
               { listItem }
             </ListItemDragSource>
           </ListItemDropTarget>

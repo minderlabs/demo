@@ -56,7 +56,7 @@ export default class TestBoard extends React.Component {
           {
             id: 'I-4',
             title: 'Item 4',
-            label: 'green'
+            label: 'red'
           },
           {
             id: 'I-5',
@@ -73,13 +73,16 @@ export default class TestBoard extends React.Component {
     };
   }
 
-  handleDrop(column, item) {
+  handleDrop(column, item, changes) {
     console.assert(column && item);
 
     // Change the list.
     item.label = column.label;
 
+    // Rerender all lists.
     this.forceUpdate();
+
+    console.log('Mutations: ' + JSON.stringify(changes));
   }
 
   render() {
@@ -89,7 +92,7 @@ export default class TestBoard extends React.Component {
       <Board items={ model.items }
              columns={ model.columns }
              columnMapper={ model.columnMapper }
-             onDrop={ this.handleDrop.bind(this) }/>
+             onItemDrop={ this.handleDrop.bind(this) }/>
     );
   }
 }

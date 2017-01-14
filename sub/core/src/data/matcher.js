@@ -41,7 +41,7 @@ export class Matcher {
    */
   matchItem(context, root, filter, item) {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
-    console.assert(item);
+    console.assert(item && filter);
 
     // Bucket match (ACL filtering).
     // TODO(burdon): Filter should not include bucket (implicit in query).

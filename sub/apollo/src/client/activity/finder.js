@@ -33,7 +33,7 @@ export default class FinderActivity extends React.Component {
     let finder = <FinderView folder={ folder }/>;
 
     // TODO(burdon): Layout based on form factor.
-    if (BaseLayout.isMobile()) {
+    if (BaseLayout.isMobile() || true) {
       return (
         <FullLayout>
           { finder }

@@ -33,16 +33,30 @@
   // Drag and Drop
   //
 
+  .ux-drag-source {
+    .ux-debug {
+      display: none;
+      text-align: right;
+      color: red;
+    }
+  }
   .ux-drag-source.ux-dragging {
-    _display: none;
+    display: none;
     background-color: pink;
   }
 
   .ux-drop-target {
     .ux-drop-placeholder {
       display: none;
+
       font-size: 12px;
       font-family: Monaco, monospace;
+
+      .ux-debug {
+        display: none;
+        text-align: left;
+        color: blue;
+      }
     }
   }
   .ux-drop-target.ux-last {
