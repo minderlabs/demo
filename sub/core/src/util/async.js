@@ -16,14 +16,19 @@ export class Async {
     let timeout = null;
 
     /**
-     * Invoke the timeout (optionally immediately).
+     * Returns a functor to the timeout (optionally immediately).
+     * If the callback is null, then the timeout is cancelled.
      */
     return (callback, now=false) => {
       timeout && clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        timeout = null;
-        callback()
-      }, now ? 0 : delay);
+      timeout = null;
+
+      if (callback) {
+        timeout = setTimeout(() => {
+          timeout = null;
+          callback()
+        }, now ? 0 : delay);
+      }
     }
   };
 }

@@ -17,33 +17,37 @@
 # https://facebook.github.io/react/warnings/refs-must-have-owner.html#multiple-copies-of-react
 #
 
-DIRS=(
-  'sub/core'
-  'sub/ux'
-  'sub/graphql'
-  'sub/apollo'
-)
+pushd sub/apollo
+npm-workspace install
+popd
 
-for dir in $"${DIRS[@]}"; do
-  echo "\n### [${dir}] ###"
-  pushd ${dir}
-
-  # Remove existing.
-  rm -f node_modules/minder-*
-
-  # Create new links.
-  npm-workspace install
-
-  # Add us to the local repo.
-  npm link
-
-  # Update npm.
-  npm update
-  npm prune
-  npm outdated
-
-  popd
-done
+#DIRS=(
+#  'sub/core'
+#  'sub/ux'
+#  'sub/graphql'
+#  'sub/apollo'
+#)
+#
+#for dir in $"${DIRS[@]}"; do
+#  echo "\n### [${dir}] ###"
+#  pushd ${dir}
+#
+#  # Remove existing.
+#  rm -f node_modules/minder-*
+#
+#  # Create new links.
+#  npm-workspace install
+#
+#  # Add us to the local repo.
+#  npm link
+#
+#  # Update npm.
+#  npm update
+#  npm prune
+#  npm outdated
+#
+#  popd
+#done
 
 #
 # Update GraphQL Schema.

@@ -83,6 +83,10 @@ export class TypeUtil {
    */
   static maybeAppend(array, value) {
     if (!_.isEmpty(value)) {
+      if (_.isNil(array)) {
+        array = [];
+      }
+
       if (_.isArray(value)) {
         _.each(value, v => array.push(v));
       } else {

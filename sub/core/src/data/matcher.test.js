@@ -83,8 +83,8 @@ describe('Matcher:', () => {
     expect(matcher.matchItem(context, root, { type: 'User' }, items.a)).to.be.ok;
     expect(matcher.matchItem(context, root, { type: 'Task' }, items.a)).to.be.false;
 
-    expect(matcher.matchItems(context, root, null, null)).to.have.length(0);
-    expect(matcher.matchItems(context, root, null, items)).to.have.length(0);
+    expect(matcher.matchItems(context, root, {}, null)).to.have.length(0);
+    expect(matcher.matchItems(context, root, {}, items)).to.have.length(0);
     expect(matcher.matchItems(context, root, { type: 'User' }, items)).to.have.length(2);
 
     // TODO(burdon): Different types!

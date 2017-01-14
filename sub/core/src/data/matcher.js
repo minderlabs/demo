@@ -41,15 +41,9 @@ export class Matcher {
    */
   matchItem(context, root, filter, item) {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
-    console.assert(item);
+    console.assert(item && filter);
 
-    // Must match something.
-    // TODO(burdon): Need to provide namespace (i.e., 'User' can't be used to fan-out to firebase).
-    if (!filter || !filter.matchAll && TypeUtil.isEmpty(_.pick(filter, ['type', 'labels', 'text', 'expr']))) {
-      return false;
-    }
-
-    // Bucket match.
+    // Bucket match (ACL filtering).
     // TODO(burdon): Filter should not include bucket (implicit in query).
     console.assert(context.user);
     if (item.bucket && item.bucket !== context.user.id) {
@@ -62,6 +56,13 @@ export class Matcher {
     // Could match IDs.
     if (filter.ids && _.indexOf(filter.ids, item.id) != -1) {
       return true;
+    }
+
+    // Must match something.
+    // TODO(burdon): Need to provide namespace (i.e., 'User' can't be used to fan-out to firebase).
+    if (!filter || !filter.matchAll && TypeUtil.isEmpty(
+      _.pick(filter, ['type', 'labels', 'text', 'expr']))) {
+      return false;
     }
 
     // Type match.
@@ -151,7 +152,7 @@ export class Matcher {
     switch (expr.op) {
 
       case 'OR': {
-        _.forEach(expr.expr, expr => {
+        _.each(expr.expr, expr => {
           if (Matcher.matchExpression(context, root, expr, item)) {
             match = true;
             return false;
@@ -164,7 +165,7 @@ export class Matcher {
       case 'AND': {
         match = true;
 
-        _.forEach(expr.expr, expr => {
+        _.each(expr.expr, expr => {
           if (!Matcher.matchExpression(context, root, expr, item)) {
             match = false;
             return false;
