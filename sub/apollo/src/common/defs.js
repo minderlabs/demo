@@ -27,6 +27,11 @@ export const GoogleApiConfig = {
   ]
 };
 
+export const SlackConfig = {
+  clientId: '53451657299.53512586673',
+  clientSecret: 'a0efe3524ec77b352f253dc2c4b0e612'
+};
+
 /**
  * App-wide constants.
  */

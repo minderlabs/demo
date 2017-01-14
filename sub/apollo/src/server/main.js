@@ -21,6 +21,7 @@ import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
+import { botkitRouter, BotKitManager, accountsRouter, AccountManager, SlackAccountHandler } from './botkit';
 import { loginRouter, AuthManager } from './auth';
 import { clientRouter, ClientManager, SocketManager } from './client';
 import { loggingRouter } from './logger';
@@ -234,6 +235,7 @@ app.engine('handlebars', handlebars({
   }
 }));
 
+// FIXME: will this interfere w/ botkit?
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -349,6 +351,14 @@ app.use(appRouter(authManager, clientManager, {
   // TODO(burdon): Clean this up with config.
   assets: env === 'production' ? __dirname : path.join(__dirname, '../../dist')
 }));
+
+let botkitManager = new BotKitManager();
+app.use('/botkit', botkitRouter(botkitManager));
+
+let accountManager = new AccountManager();
+accountManager.registerHandler('Slack', new SlackAccountHandler())
+
+app.use(accountsRouter(accountManager));
 
 app.use('/', function(req, res) {
   res.redirect('/home');
