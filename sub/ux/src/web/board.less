@@ -2,21 +2,20 @@
 // Copyright 2016 Minder Labs.
 //
 
+@import (reference) './css/mixin';
+
 .ux-board {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 
-  > .ux-board-header {
-    background-color: lightblue;
-  }
+  overflow-x: scroll;
 
   .ux-board-columns {
     display: flex;
     flex-direction: row;
     flex-grow: 1;
     justify-content: space-between;
-    overflow-x: scroll;
 
     padding: 8px;
 
@@ -36,9 +35,13 @@
       }
 
       .ux-board-list {
+        display: flex;
+        flex-grow: 1;
+
         .ux-list {
           .ux-list-item {
-            margin: 4px;
+            .ux-text-noselect;
+
             background-color: white;
             border-radius: 4px;
           }

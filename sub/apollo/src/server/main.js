@@ -14,7 +14,7 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { IdGenerator, Matcher, MemoryItemStore, Logger, Randomizer } from 'minder-core';
+import { IdGenerator, Matcher, MemoryItemStore, Logger, Randomizer, TypeUtil } from 'minder-core';
 import { Database, Firebase, GoogleDriveItemStore, graphqlRouter } from 'minder-graphql';
 
 import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
@@ -179,7 +179,24 @@ promises.push(database.queryItems(context, {}, { type: 'User' })
         randomizer.generate('Task', 30, {
           project: {
             type: 'Project',
-            likelihood: 0.75
+            likelihood: 0.75,
+
+            // Fantastically elaborate mechanism to create bi-directional links.
+            onCreate: (randomizer, tasks) => {
+              let mutatedProjects = {};
+              return TypeUtil.iterateWithPromises(tasks, task => {
+                let projectId = task.project;
+                if (projectId) {
+                  return randomizer.queryCache({ ids: [ projectId ] }).then(projects => {
+                    let project = projects[0];
+                    project.tasks = TypeUtil.maybeAppend(project.tasks, task.id);
+                    mutatedProjects[project.id] = project;
+                  });
+                }
+              }).then(() => {
+                return randomizer.upsertItems(Object.values(mutatedProjects));
+              });
+            }
           },
           owner: {
             type: 'User',

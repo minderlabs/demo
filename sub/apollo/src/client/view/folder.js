@@ -109,12 +109,12 @@ class FolderView extends React.Component {
             {
               field: 'labels',
               value: {
-                array: {
+                array: [{
                   index: 0,
                   value: {
                     string: '_private'    // TODO(burdon): By default?
                   }
-                }
+                }]
               }
             }
           ]);
@@ -130,11 +130,11 @@ class FolderView extends React.Component {
   }
 
   handleItemDelete(item) {
-    this.props.mutator.updateItem(item, MutationUtil.createDeleteMutation());
+    this.props.mutator.updateItem(item, [ MutationUtil.createDeleteMutation() ]);
   }
 
   handleSetLabel(item, label, set) {
-    this.props.mutator.updateItem(item, MutationUtil.createLabelUpdate(label, set));
+    this.props.mutator.updateItem(item, [ MutationUtil.createLabelUpdate(label, set) ]);
   }
 
   render() {

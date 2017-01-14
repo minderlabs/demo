@@ -3,12 +3,20 @@
 //
 
 import React from 'react';
-
-import { TypeUtil } from 'minder-core';
+import { DragDropContext } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
 
 import { TextBox } from './textbox';
+import { ItemDragSource, ItemDropTarget, DragOrderModel } from './dnd';
 
 import './list.less';
+
+//
+// Drag and Drop.
+//
+
+const ListItemDragSource = ItemDragSource('ListItem');
+const ListItemDropTarget = ItemDropTarget('ListItem');
 
 /**
  * Simple list component.
@@ -77,12 +85,16 @@ export class List extends React.Component {
 
   static propTypes = {
     className: React.PropTypes.string,
+    data: React.PropTypes.string,                               // Custom data.
     items: React.PropTypes.arrayOf(React.PropTypes.object),
     itemRenderer: React.PropTypes.func,
     itemEditor: React.PropTypes.func,
-    showAdd: React.PropTypes.bool,
+    itemOrderModel: React.PropTypes.object,                     // Order model for drag and drop.
     onItemSave: React.PropTypes.func,
-    onItemSelect: React.PropTypes.func
+    onItemSelect: React.PropTypes.func,
+    onItemDrop: React.PropTypes.func,
+    groupBy: React.PropTypes.bool,
+    showAdd: React.PropTypes.bool
   };
 
   static defaultProps = {
@@ -94,11 +106,25 @@ export class List extends React.Component {
     super(...arguments);
 
     this.state = {
+      items: this.props.items || [],
       itemRenderer: this.props.itemRenderer,
       itemEditor: this.props.itemEditor,
       showAdd: this.props.showAdd,
       editedItem: null
-    }
+    };
+
+    // Update the natural order of new items.
+    //this.props.itemOrderModel && this.props.itemOrderModel.doLayout(this.state.items, this.props.data);
+  }
+
+  componentWillReceiveProps(nextProps) {
+
+    // Update the natural order of new items.
+    //this.props.itemOrderModel && this.props.itemOrderModel.doLayout(nextProps.items, nextProps.data);
+
+    this.setState({
+      items: nextProps.items || []
+    });
   }
 
   getChildContext() {
@@ -130,6 +156,18 @@ export class List extends React.Component {
     this.props.onItemSelect && this.props.onItemSelect(item);
   }
 
+  handleItemDrop(dropItem, data, order) {
+    console.assert(dropItem && dropItem.id);
+
+    // Update the order.
+    let changes = this.props.itemOrderModel.setOrder(this.props.items, dropItem.id, data, order);
+
+    // Repaint and notify parent.
+    this.forceUpdate(() => {
+      this.props.onItemDrop(this.props.data, dropItem.id, changes);
+    });
+  }
+
   handleItemSave(item) {
     this.props.onItemSave && this.props.onItemSave(item);
     this.setState({
@@ -157,41 +195,83 @@ export class List extends React.Component {
   */
 
   render() {
-    let { items=[], groupBy } = this.props;
+    let { data, itemOrderModel, groupBy } = this.props;
+    let { items, itemRenderer } = this.state;
 
+    //
     // Rows.
-    let rows = items.map(item => {
+    //
+
+    if (itemOrderModel) {
+      items = itemOrderModel.getOrderedItems(items);
+    }
+
+    let previousOrder = 0;
+    let rows = _.map(items, item => {
 
       // Primary item.
       let listItem = (
         <div key={ item.id } className='ux-list-item'>
-          { this.state.itemRenderer(item) }
+          { itemRenderer(item) }
         </div>
       );
 
-      // Grouped items.
-      if (groupBy && !_.isEmpty(item.refs)) {
-        let refs = item.refs.map(ref => (
-          <div key={ ref.id } className="ux-list-item">
-            { this.state.itemRenderer(ref) }
-          </div>
-        ));
+      // If supports dragging, wrap with drag container.
+      // TODO(burdon): Drop target isn't necessarily required on list.
+      if (itemOrderModel) {
+        // Get the order from the state (if set); otherwise invent one.
+        let actualOrder = itemOrderModel.getOrder(item.id);
+        let itemOrder = actualOrder || previousOrder + 1;
 
-        return (
-          <div key={ item.id } className="ux-list-item-group">
-            { listItem }
-            <div className="ux-list-item-refs">
-              { refs }
-            </div>
-          </div>
-        )
+        // Calculate the dropzone order (i.e., midway between the previous and current item).
+        let dropOrder = (previousOrder == 0) ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
+
+        listItem = (
+          <ListItemDropTarget key={ item.id } data={ data } order={ dropOrder }
+                              onDrop={ this.handleItemDrop.bind(this) }>
+
+            <ListItemDragSource data={ item.id } order={ actualOrder }>
+              { listItem }
+            </ListItemDragSource>
+          </ListItemDropTarget>
+        );
+
+        previousOrder = itemOrder;
       } else {
-        return listItem;
+
+        // Grouped items.
+        // TODO(burdon): Can't group with drag?
+        if (groupBy && !_.isEmpty(item.refs)) {
+          let refs = item.refs.map(ref => (
+            <div key={ ref.id } className="ux-list-item">
+              { itemRenderer(ref) }
+            </div>
+          ));
+
+          return (
+            <div key={ item.id } className="ux-list-item-group">
+              { listItem }
+              <div className="ux-list-item-refs">
+                { refs }
+              </div>
+            </div>
+          )
+        }
       }
+
+      return listItem;
     });
 
+    let lastDrop = null;
+    if (itemOrderModel) {
+      lastDrop = <ListItemDropTarget data={ data } order={ previousOrder + .5 } onDrop={ this.handleItemDrop.bind(this) }/>
+    }
+
+    //
     // Editor.
     // TODO(burdon): By default at the bottom.
+    //
+
     let editor = null;
     if (this.state.showAdd) {
       const Editor = List.DefaultEditor;
@@ -199,8 +279,7 @@ export class List extends React.Component {
         <div className="ux-list-item ux-list-editor">
           <Editor item={ this.state.editedItem }
                   onSave={ this.handleItemSave.bind(this) }
-                  onCancel={ this.handleItemCancel.bind(this) }
-          />
+                  onCancel={ this.handleItemCancel.bind(this) }/>
         </div>
       );
     }
@@ -209,6 +288,7 @@ export class List extends React.Component {
     return (
       <div className={ className }>
         { rows }
+        { lastDrop }
         { editor }
       </div>
     );
@@ -326,3 +406,6 @@ ListItem.Icon.contextTypes      = ListItem.childContextTypes;
 ListItem.Favorite.contextTypes  = ListItem.childContextTypes;
 ListItem.Title.contextTypes     = ListItem.childContextTypes;
 ListItem.Delete.contextTypes    = ListItem.childContextTypes;
+
+// TODO(burdon): Should be broader than List (i.e., on Board, etc.)
+export const DragDropList = DragDropContext(HTML5Backend)(List);

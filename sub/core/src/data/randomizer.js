@@ -79,6 +79,10 @@ export class Randomizer {
     }
   }
 
+  upsertItems(items) {
+    return this._itemStore.upsertItems(this._context, items);
+  }
+
   /**
    * Asynchronously generate items of the given type.
    * Optionally provide field plugins that can either directly set values or query for them.
@@ -96,7 +100,10 @@ export class Randomizer {
     // Each item is generates asynchronously (since it may look-up other items) so we gather the promises.
     return TypeUtil.iterateWithPromises(_.times(n), i => {
 
+      //
       // Generate item.
+      //
+
       let item = {
         type: type,
         labels: this._chance.bool({ likelihood: 20 }) ? ['_favorite'] : [],
@@ -111,7 +118,10 @@ export class Randomizer {
 
       items.push(item);
 
+      //
       // Iterate fields.
+      //
+
       return TypeUtil.iterateWithPromises(fields, (spec, field) => {
 
         // Set literal value.
@@ -134,7 +144,7 @@ export class Randomizer {
     }).then(() => {
 
       // Insert array of items.
-      return this._itemStore.upsertItems(this._context, items).then(items => {
+      return this.upsertItems(items).then(items => {
 
         // TODO(burdon): Should happen before upsert.
         // Fake timestamps (so don't show up in inbox).
@@ -145,7 +155,14 @@ export class Randomizer {
           });
         }
 
-        return items;
+        // Post-create hook.
+        return TypeUtil.iterateWithPromises(fields, (spec, field) => {
+          if (spec.onCreate) {
+            return spec.onCreate(this, items);
+          }
+        }).then(() => {
+          return items;
+        });
       });
     });
   }

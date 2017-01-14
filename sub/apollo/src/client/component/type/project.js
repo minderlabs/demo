@@ -7,12 +7,16 @@ import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
-import { Board, List, ListItem } from 'minder-ux';
+import { Board, DragOrderModel, List, ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
+
+//
+// Project card.
+//
 
 /**
  * Type-specific query.
@@ -93,25 +97,29 @@ const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
  */
 class ProjectCardComponent extends React.Component {
 
+  static contextTypes = {
+    navigator: React.PropTypes.object.isRequired
+  };
+
   static propTypes = {
     user: React.PropTypes.object.isRequired,
     item: React.PropTypes.object,
   };
 
-  render() {
-    let { user, item, mutator } = this.props;
+  handleToggleCanvas() {
+    let { item } = this.props;
 
-    let nav = null && item && (
-      <div>
-        <Link to={ Path.canvas(ID.toGlobalId('Project', item.id), 'board') }>
-          <i className="ux-icon">view_column</i>
-        </Link>
-      </div>
-    );
+    this.context.navigator.push(Path.canvas(ID.toGlobalId('Project', item.id), 'board'));
+  }
+
+  render() {
+    let { user, item, mutator, typeRegistry } = this.props;
 
     return (
-      <CardContainer mutator={ mutator } item={ item } nav={ nav }>
-        <ProjectLayout ref="item" user={ user } item={ item }/>
+      <CardContainer mutator={ mutator } typeRegistry={ typeRegistry} item={ item }
+                     onToggleCanvas={ this.handleToggleCanvas.bind(this) }>
+
+        <ProjectCardLayout ref="item" user={ user } item={ item }/>
       </CardContainer>
     );
   }
@@ -120,7 +128,7 @@ class ProjectCardComponent extends React.Component {
 /**
  * Type-specific layout.
  */
-class ProjectLayout extends React.Component {
+class ProjectCardLayout extends React.Component {
 
   // TODO(burdon): Factor out.
   static createTaskMutation(user, project, title) {
@@ -151,11 +159,11 @@ class ProjectLayout extends React.Component {
       {
         field: 'tasks',
         value: {
-          array: {
+          array: [{
             value: {
               id: taskId
             }
-          }
+          }]
         }
       }
     ];
@@ -196,14 +204,15 @@ class ProjectLayout extends React.Component {
     // TODO(burdon): Upsert.
     // TODO(burdon): Implement bi-directional links.
     let taskId = this.context.mutator.createItem('Task', mutations);
-    this.context.mutator.updateItem(item, ProjectLayout.createProjectMutation(taskId));
+    this.context.mutator.updateItem(item, ProjectCardLayout.createProjectMutation(taskId));
   }
 
   handleMemberTaskSave(assignee, task) {
     console.assert(assignee && task);
     let { user, item:project } = this.props;
 
-    this.updateTask(TypeUtil.merge(ProjectLayout.createTaskMutation(user, project, task.title),
+    // TODO(burdon): Use MutationUtil.
+    this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
       [
         {
           field: 'assignee',
@@ -241,7 +250,8 @@ class ProjectLayout extends React.Component {
     console.assert(task);
     let { user, item:project } = this.props;
 
-    this.updateTask(TypeUtil.merge(ProjectLayout.createTaskMutation(user, project, task.title),
+    // TODO(burdon): Use MutationUtil.
+    this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
       [
         {
           field: 'project',
@@ -263,7 +273,8 @@ class ProjectLayout extends React.Component {
     console.assert(task);
     let { user, item:project } = this.props;
 
-    this.updateTask(TypeUtil.merge(ProjectLayout.createTaskMutation(user, project, task.title),
+    // TODO(burdon): Use MutationUtil.
+    this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
       [
         {
           field: 'bucket',
@@ -277,12 +288,12 @@ class ProjectLayout extends React.Component {
 
   handleTaskDelete(item) {
     // TODO(burdon): Remove from project tasks.
-    this.context.mutator.updateItem(item, MutationUtil.createDeleteMutation());
+    this.context.mutator.updateItem(item, [ MutationUtil.createDeleteMutation() ]);
   }
 
   render() {
     let { user, item:project } = this.props;
-    if (!project) {
+    if (!project || !project.team) {
       return <div/>;
     }
 
@@ -335,7 +346,7 @@ class ProjectLayout extends React.Component {
           { sectionHeader('Shared Notes', 'list-shared') }
 
           <ItemList ref="list-shared"
-                    filter={ ProjectLayout.sharedTasksFilter(project) }
+                    filter={ ProjectCardLayout.sharedTasksFilter(project) }
                     itemRenderer={ this._taskItemRenderer }
                     onItemSelect={ this.handleTaskSelect.bind(this) }
                     onItemSave={ this.handleSharedTaskSave.bind(this) }/>
@@ -348,59 +359,12 @@ class ProjectLayout extends React.Component {
           { sectionHeader('Private Notes', 'list-private') }
 
           <UserTasksList ref="list-private"
-                         filter={ ProjectLayout.privateTasksFilter(user) }
+                         filter={ ProjectCardLayout.privateTasksFilter(user) }
                          itemRenderer={ this._taskItemRenderer }
                          onItemSelect={ this.handleTaskSelect.bind(this) }
                          onItemSave={ this.handlePrivateTaskSave.bind(this) }/>
         </div>
       </div>
-    );
-  }
-}
-
-/**
- * Type-specific card container.
- */
-class ProjectBoardComponent extends React.Component {
-
-  // TODO(burdon): Generalize Board component (not just for projects).
-
-  static propTypes = {
-    user: React.PropTypes.object.isRequired,
-    item: React.PropTypes.object,
-  };
-
-  render() {
-    let { user, item } = this.props;
-
-    // TODO(burdon): Function to map items to board.
-    const columns = [
-      { id: 'c1', status: 0, title: 'Icebox'    },
-      { id: 'c2', status: 1, title: 'Assigned'  },
-      { id: 'c3', status: 2, title: 'Active'    },
-      { id: 'c4', status: 3, title: 'Complete'  }
-    ];
-
-    // TODO(burdon): Use real data.
-    // TODO(burdon): Add status to task.
-    let items = [
-      { id: 't1', status: 0, title: 'Task 1' },
-      { id: 't2', status: 0, title: 'Task 2' },
-      { id: 't3', status: 0, title: 'Task 3' },
-      { id: 't4', status: 1, title: 'Task 4' },
-      { id: 't5', status: 2, title: 'Task 5' }
-    ];
-
-    let columnMapper = (columns, item) => {
-      let idx = _.findIndex(columns, column => {
-        return (column.status == item.status);
-      });
-
-      return columns[idx];
-    };
-
-    return (
-      <Board item={ item } columns={ columns } items={ items } columnMapper={ columnMapper }/>
     );
   }
 }
@@ -422,6 +386,163 @@ export const ProjectCard = composeItem(
   ProjectReducer)
 )(ProjectCardComponent);
 
+
+//
+// Project board.
+//
+
+/**
+ * Type-specific query.
+ */
+const ProjectBoardQuery = gql`
+  query ProjectBoardQuery($itemId: ID!) {
+
+    item(itemId: $itemId) {
+      ...ItemFragment
+
+      ... on Project {
+
+        board {
+          itemMeta {
+            itemId, listId, order
+          }         
+        }
+
+        tasks {
+          type
+          id
+          title
+          status
+        }
+      }
+    }
+  }
+
+  ${ItemFragment}
+`;
+
+/**
+ * Type-specific card container.
+ */
+class ProjectBoardComponent extends React.Component {
+
+  // TODO(burdon): Generalize Board component (not just for projects).
+
+  static contextTypes = {
+    navigator: React.PropTypes.object.isRequired
+  };
+
+  static propTypes = {
+    user: React.PropTypes.object.isRequired,
+    item: React.PropTypes.object,
+  };
+
+  constructor() {
+    super(...arguments);
+
+    this.state = {
+      itemOrderModel: new DragOrderModel()
+    };
+  }
+
+  handleToggleCanvas() {
+    let { item } = this.props;
+
+    this.context.navigator.push(Path.canvas(ID.toGlobalId('Project', item.id)));
+  }
+
+  handleItemSelect(item) {
+    this.context.navigator.push(Path.canvas(ID.toGlobalId('Task', item.id)));
+  }
+
+  handleItemDrop(column, item, changes) {
+    let { item:project } = this.props;
+
+    // TODO(burdon): Wrap board with CanvasLayout (and pass mutator via context).
+    // TODO(burdon): Do optimistic update before re-rendering.
+    let status = column.status;
+    this.props.mutator.updateItem(item, [ MutationUtil.createFieldMutation('status', 'int', status) ]);
+
+    let mutations = _.map(changes, change => ({
+      field: 'board',
+      value: {
+        object: [{
+          field: 'itemMeta',
+          value: {
+            object: [
+              {
+                field: change.itemId,
+                value: {
+                  object: [
+                    {
+                      field: 'listId',
+                      value: {
+                        string: change.listId
+                      }
+                    },
+                    {
+                      field: 'order',
+                      value: {
+                        float: change.order
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }]
+      }
+    }));
+
+    // TODO(burdon): Allow for multiple mutations (on different items).
+    this.props.mutator.updateItem(project, mutations);
+  }
+
+  render() {
+    let { item={}, typeRegistry } = this.props;
+    let { itemOrderModel } = this.state;
+
+    // TODO(burdon): Function to map items to board.
+    const columns = [
+      { id: 'c1', status: 0, title: 'Icebox'    },
+      { id: 'c2', status: 1, title: 'Assigned'  },
+      { id: 'c3', status: 2, title: 'Active'    },
+      { id: 'c4', status: 3, title: 'Complete'  }
+    ];
+
+    let items = _.get(item, 'tasks', []);
+
+    let columnMapper = (columns, item) => {
+      let idx = _.findIndex(columns, column => {
+        return (column.status == item.status);
+      });
+
+      return columns[idx].id;
+    };
+
+    // Update the sort model.
+    itemOrderModel.setLayout(_.get(item, 'board.itemMeta'));
+
+    // TODO(burdon): Base class for canvases (e.g., editable title like Card).
+    // TODO(burdon): Title in Breadcrumbs.
+    return (
+      <div className="ux-column">
+        <div className="app-canvas-header ux-section ux-row">
+          <i className="ux-icon" onClick={ this.handleToggleCanvas.bind(this) }>{ typeRegistry.icon(item) }</i>
+
+          <div className="ux-text">{ item.title }</div>
+        </div>
+
+        <Board item={ item } items={ items } columns={ columns } columnMapper={ columnMapper }
+               itemOrderModel={ itemOrderModel }
+               onItemDrop={ this.handleItemDrop.bind(this) }
+               onItemSelect={ this.handleItemSelect.bind(this) }/>
+      </div>
+    );
+  }
+}
+
 /**
  * HOC.
  */
@@ -432,7 +553,7 @@ export const ProjectBoard = composeItem(
       path: 'updateItem'
     },
     query: {
-      type: ProjectQuery,
+      type: ProjectBoardQuery,
       path: 'item'
     }
   },

@@ -48,7 +48,7 @@ export default class CanvasActivity extends React.Component {
 
     // TODO(burdon): Layout based on form factor.
     // TODO(burdon): If canvas is board then use MainLayout. Ask canvas which layout it prefers?
-    if (BaseLayout.isMobile() || content.props.expand || true) {
+    if (BaseLayout.isMobile() || content.props.expand) {
       return (
         <FullLayout>
           { content }

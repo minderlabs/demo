@@ -49,10 +49,10 @@ class PlaceCardComponent extends React.Component {
   };
 
   render() {
-    let { item, mutator } = this.props;
+    let { item, mutator, typeRegistry } = this.props;
 
     return (
-      <CardContainer mutator={ mutator } item={ item }>
+      <CardContainer mutator={ mutator } typeRegistry={ typeRegistry} item={ item }>
         <PlaceLayout ref="item" item={ item }/>
       </CardContainer>
     );
