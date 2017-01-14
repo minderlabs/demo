@@ -102,59 +102,56 @@ class TaskLayout extends React.Component {
   constructor() {
     super(...arguments);
 
-    this.state = {
-      itemId: null,
-      values: {},
-      items: {}
-    }
+    this.state = {};
   }
 
   componentWillReceiveProps(nextProps) {
+    let { item } = nextProps;
 
     // TODO(burdon): mapStateToProps called every time Redux store is changed.
     // TODO(burdon): Understand and generalize this pattern.
     // TODO(burdon): handleSelectPicker, TaskCardComponent re-renders (why?) and this would overwrite the values
     //               with the old values in the item.
 
-    let { item } = nextProps;
     if (_.get(item, 'id') != this.state.itemId) {
       this.setState({
-        itemId: _.get(item, 'id'),
-        items: {
-          assignee: _.get(item, 'assignee')
-        },
-        values: {
-          assignee: _.get(item, 'assignee.id'),
-          status: _.get(item, 'status', 0)
-        }
+        itemId:         _.get(item, 'id'),
+        assignee_text:  _.get(item, 'assignee.title'),
+        assignee:       _.get(item, 'assignee.id'),
+        status:         _.get(item, 'status', 0)
       });
     }
   }
 
   get values() {
-    return this.state.values;
+    return _.pick(this.state, ['assignee', 'status']);
   }
 
-  handleSelectPicker(property, item) {
+  handleSetItem(property, item) {
     this.setState({
-      items: _.set(this.state.items, property, item),
-      values: _.set(this.state.values, property, item.id)
+      [property]: item.id
     });
   }
 
-  handleSelectStatus(event) {
+  handleSetText(property, value) {
     this.setState({
-      values: _.set(this.state.values, 'status', event.target.value)
+      [property]: value
+    })
+  }
+
+  handleSetStatus(event) {
+    this.setState({
+      status: event.target.value
     });
   }
 
   render() {
     let { item } = this.props;
-    let { items, values } = this.state;
-    let { status } = values;
+    let { assignee_text, status } = this.state;
 
-    const userFilter = {
-      type: 'User'
+    let userFilter = {
+      type: 'User',
+      text: assignee_text
     };
 
     return (
@@ -174,13 +171,14 @@ class TaskLayout extends React.Component {
           <div className="ux-data-row">
             <div className="ux-data-label">Assignee</div>
             <ItemsPicker filter={ userFilter }
-                         value={ _.get(items, 'assignee.title') }
-                         onSelect={ this.handleSelectPicker.bind(this, 'assignee') }/>
+                         value={ assignee_text }
+                         onTextChange={ this.handleSetText.bind(this, 'assignee_text') }
+                         onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
           </div>
 
           <div className="ux-data-row">
             <div className="ux-data-label">Status</div>
-            <select value={ status } onChange={ this.handleSelectStatus.bind(this) }>
+            <select value={ status } onChange={ this.handleSetStatus.bind(this) }>
               <option value="0">Unstarted</option>
               <option value="1">Assigned</option>
               <option value="2">Active</option>
