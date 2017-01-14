@@ -64,7 +64,6 @@ export class Board extends React.Component {
     // Columns.
     let columnsDivs = columns.map(column => {
 
-      // TODO(burdon): BoardModel manages ordering?
       // Get items for column (in order).
       let columnItems = _.filter(items, item => column.id == columnMapper(columns, item));
 

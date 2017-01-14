@@ -186,6 +186,7 @@ export class DragOrderModel {
 
       // TODO(burdon): BUG: Should reset order if listId has changed. But frequent re-render makes this difficult to track.
       //               E.g., if column mapper metadata changed without dragging (elsewhere).
+      //               Called in componentWillReceiveProps (should only update if items have changed).
       // Check has a currently valid order.
       if (!state) { // || state.listId != listId) {
 

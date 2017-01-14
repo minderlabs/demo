@@ -119,6 +119,7 @@ export class List extends React.Component {
 
   componentWillReceiveProps(nextProps) {
 
+    // TODO(burdon): Only call if items have changed (i.e., list x column association has changed).
     // Update the natural order of new items.
     this.props.itemOrderModel && this.props.itemOrderModel.update(nextProps.items, nextProps.data);
 

@@ -439,7 +439,6 @@ class ProjectBoardComponent extends React.Component {
 
   handleToggleCanvas() {
     let { item } = this.props;
-
     this.context.navigator.push(Path.canvas(ID.toGlobalId('Project', item.id)));
   }
 
