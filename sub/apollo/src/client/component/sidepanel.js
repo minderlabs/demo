@@ -69,6 +69,13 @@ export class SidePanel extends React.Component {
 
     const debugItems = [
       {
+        id: 'accounts',
+        title: 'Accounts',
+        icon: 'group',
+        link: Path.ACCOUNTS
+
+      },
+      {
         id: 'testing',
         title: 'Testing',
         icon: 'bug_report',

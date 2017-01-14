@@ -34,6 +34,8 @@ export class Path {
   static ROOT     = ROOT;
   static HOME     = ROOT + '/inbox';
   static TESTING  = ROOT + '/testing';
+  // TODO(madadam): Put the accounts page under /app root.
+  static ACCOUNTS = '/accounts';
 
   /**
    * Route path
