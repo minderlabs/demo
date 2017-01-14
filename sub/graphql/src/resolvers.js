@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
+
 import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
@@ -101,6 +103,18 @@ export class Resolvers {
       },
 
       Project: {
+
+        board: (root, args, context) => {
+          // Reify order map as array of values.
+          let itemMeta = _.map(_.get(root, 'board.itemMeta'), (value, itemId) => ({
+            itemId,
+            ...value
+          }));
+
+          return {
+            itemMeta
+          }
+        },
 
         team: (root, args, context) => {
           return database.getItem(context, 'Group', root.team);

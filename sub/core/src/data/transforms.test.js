@@ -11,12 +11,12 @@ describe('Transforms', () => {
   it('Apply object mutation.', () => {
     let object = {};
 
-    let deltas = [{
+    let mutations = [{
       field: 'title',
       value: { string: 'Minder' }
     }];
 
-    let result = Transforms.applyObjectMutations(object, deltas);
+    let result = Transforms.applyObjectMutations(object, mutations);
     expect(_.get(result, 'title')).to.equal('Minder');
   });
 
@@ -25,12 +25,69 @@ describe('Transforms', () => {
       title: 'Minder'
     };
 
-    let deltas = [{
+    let mutations = [{
       field: 'title'
     }];
 
-    let result = Transforms.applyObjectMutations(object, deltas);
+    let result = Transforms.applyObjectMutations(object, mutations);
     expect(_.get(result, 'title')).to.equal(undefined);
+  });
+
+  it('Apply nested object mutation.', () => {
+    let object = {};
+
+    let mutations = [{
+      field: 'foo',
+      value: {
+        object: [{
+          field: 'bar',
+          value: {
+            string: 'X'
+          }
+        }]
+      }
+    }];
+
+    let result = Transforms.applyObjectMutations(object, mutations);
+    expect(_.get(result, 'foo.bar')).to.equal('X');
+  });
+
+  it('Apply multiple object mutations.', () => {
+    let object = {};
+
+    let mutations = [{
+      field: 'foo',
+      value: {
+        object: [{
+          field: 'bar',
+          value: {
+            object: [{
+              field: 'x',
+              value: {
+                object: [
+                  {
+                    field: 'listId',
+                    value: {
+                      string: 'a'
+                    }
+                  },
+                  {
+                    field: 'order',
+                    value: {
+                      float: 0.5
+                    }
+                  }
+                ]
+              }
+            }]
+          }
+        }]
+      }
+    }];
+
+    let result = Transforms.applyObjectMutations(object, mutations);
+    expect(_.get(result, 'foo.bar.x.listId')).to.equal('a');
+    expect(_.get(result, 'foo.bar.x.order')).to.equal(0.5);
   });
 
   it('Apply array mutation.', () => {
@@ -38,18 +95,19 @@ describe('Transforms', () => {
       labels: ['red', 'green']
     };
 
-    let deltas = [
+    let mutations = [
       {
         field: 'labels',
-        value: { array: { value: { string: 'blue' } } }
-      },
-      {
-        field: 'labels',
-        value: { array: { index: -1, value: { string: 'red' } } }
+        value: {
+          array: [
+            { value: { string: 'blue' } },
+            { value: { string: 'red' }, index: -1 }
+          ]
+        }
       }
     ];
 
-    let result = Transforms.applyObjectMutations(object, deltas);
+    let result = Transforms.applyObjectMutations(object, mutations);
     expect(_.get(result, 'labels').length).to.equal(2);
   });
 });

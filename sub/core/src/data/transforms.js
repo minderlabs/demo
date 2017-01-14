@@ -37,25 +37,31 @@ export class Transforms {
     let field = mutation.field;
     let value = mutation.value;
 
+    // TODO(burdon): Unit tests.
+    // TODO(burdon): mutation.values (see project.js)
     // TODO(burdon): Field dot paths (_.set/get).
     // TODO(burdon): Introspect for type-checking.
 
     // Null.
     if (value === undefined) {
       delete object[field];
-      return;
+      return object;
     }
 
     // Array delta.
     if (value.array !== undefined) {
-      object[field] = Transforms.applyArrayMutation(object[field] || [], value.array);
-      return;
+      _.each(value.array, value => {
+        object[field] = Transforms.applyArrayMutation(object[field] || [], value);
+      });
+      return object;
     }
 
     // Object delta.
     if (value.object !== undefined) {
-      object[field] = Transforms.applyObjectMutation(object[field] || {}, value.object);
-      return;
+      _.each(value.object, value => {
+        object[field] = Transforms.applyObjectMutation(object[field] || {}, value);
+      });
+      return object;
     }
 
     // Scalars.

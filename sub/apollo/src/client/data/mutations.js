@@ -19,7 +19,16 @@ export const UpdateItemMutation = gql`
 
       # TODO(burdon): Add all mutation fragments.
 
+      ...ProjectMutationFragment
       ...TaskMutationFragment
+    }
+  }
+  
+  fragment ProjectMutationFragment on Project {
+    board {
+      itemMeta {
+        itemId, listId, order
+      }
     }
   }
   

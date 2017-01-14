@@ -62,8 +62,8 @@ input ValueInput {
 
   date:       Date
 
-  array:      ArrayMutationInput
-  object:     ObjectMutationInput
+  array:      [ArrayMutationInput]
+  object:     [ObjectMutationInput]
 }
 
 #
@@ -77,6 +77,7 @@ input ArrayMutationInput {
 
 #
 # Object mutation.
+# TODO(burdon): Rename FieldMutationInput
 # E.g., { field: 'title', value: { string: 'Minder' } }
 #
 
@@ -166,14 +167,14 @@ type Geo {
   lng: Float!
 }
 
-type ItemOrder {
-  id: ID!
+type ItemMeta {
+  itemId: ID!               # ID of item.
   listId: String!           # ID of list.
   order: Float!             # Order value within list.
 }
 
 type Board {
-  order: [ItemOrder]!
+  itemMeta: [ItemMeta]!
 }
 
 #

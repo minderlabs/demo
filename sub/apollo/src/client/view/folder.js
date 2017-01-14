@@ -109,12 +109,12 @@ class FolderView extends React.Component {
             {
               field: 'labels',
               value: {
-                array: {
+                array: [{
                   index: 0,
                   value: {
                     string: '_private'    // TODO(burdon): By default?
                   }
-                }
+                }]
               }
             }
           ]);

@@ -30,9 +30,7 @@ class ItemDragContainer extends React.Component {
 
     return connectDragSource(
       <div className={ className }>
-        <div className="ux-debug">
-          <span className="ux-debug">{ order }</span>
-        </div>
+        <div className="ux-debug">{ order }</div>
 
         { children }
       </div>
@@ -90,7 +88,9 @@ class ItemDropContainer extends React.Component {
 
     return connectDropTarget(
       <div className={ className }>
-        <div className="ux-drop-placeholder">{ order }</div>
+        <div className="ux-drop-placeholder">
+          <div className="ux-debug">{ order }</div>
+        </div>
 
         { children }
       </div>
@@ -148,18 +148,18 @@ export class DragOrderModel {
     //   listId: {string} ID of container list.
     //   order: {float} order within column.
     // } by Item ID.
-    this._itemState = new Map();
+    this._itemMeta = new Map();
   }
 
   /**
    * Sets the layout from the persisted set of mutations.
-   * @param orders
+   * @param itemMeta
    */
-  setLayout(orders) {
-    _.each(orders, order => {
-      this._itemState.set(order.id, {
-        listId: order.listId,
-        order: order.order
+  setLayout(itemMeta) {
+    _.each(itemMeta, meta => {
+      this._itemMeta.set(meta.itemId, {
+        listId: meta.listId,
+        order: meta.order
       });
     });
   }
@@ -178,48 +178,53 @@ export class DragOrderModel {
     let previousOrder = 0;
     for (let i = 0; i < _.size(items); i++) {
       let item = items[i];
-      let state = this._itemState.get(item.id);
+      let meta = this._itemMeta.get(item.id);
 
-      // TODO(burdon): Call doLayout explicitely (not on componentWillReceiveProps)
-      // TODO(burdon): Remove states for items that are no longer present.
+      // TODO(burdon): Remove meta for items that are no longer present.
       // TODO(burdon): BUG: Should reset order if listId has changed. But frequent re-render makes this difficult to track.
       //               E.g., if column mapper metadata changed without dragging (elsewhere).
       //               Mutation must do optimistic update first (otherwise association will change before commit).
 
       // Repair listId (e.g., after deserializing).
-      if (state && _.isNil(state.listId)) {
-        state.listId = listId;
+      if (meta && _.isNil(meta.listId)) {
+        meta.listId = listId;
       }
 
       // Check has a currently valid order.
-      if (!state) { // || state.listId != listId) {
+      if (!meta) { // || meta.listId != listId) {
 
         // Find next valid order value.
         let nextOrder = previousOrder + 1;
         for (let j = i + 1; j < _.size(items); j++) {
-          let nextState = this._itemState.get(items[j].id);
-          if (nextState && nextState.listId == listId) {
-            nextOrder = nextState.order;
+          let nextMeta = this._itemMeta.get(items[j].id);
+          if (nextMeta && nextMeta.listId == listId) {
+            nextOrder = nextMeta.order;
             break;
           }
         }
 
         // Calculate our order.
-        state = {
+        meta = {
           listId,
           order: DragOrderModel.split(previousOrder, nextOrder)
         };
 
-        this._stateChanges.push(state);
-        this._itemState.set(item.id, state);
+        this._itemMeta.set(item.id, meta);
       }
 
-      previousOrder = state.order;
+      previousOrder = meta.order;
     }
   }
 
   /**
    * Sets the order of the given item between the drop target and the next item.
+   *
+   * This is complicated.
+   * 1). When the board is first created, there is no meta. So items will be rendered in their "natural" order
+   *     I.e., the order they are presented as props.
+   * 2). Order metadata is only generated when needed. Initially, no meta exist; if an item is re-ordered, then
+   *     metadata must be generated for ALL items that preceed it.
+   * 3). When ordering occurs a vector of order mutations is generated.
    *
    * @param items Currently displayed items.
    * @param itemId Dropped item.
@@ -231,17 +236,17 @@ export class DragOrderModel {
   setOrder(items, itemId, listId, dropOrder) {
     console.log('setOrder:', _.size(items), itemId, dropOrder);
 
-    let mutations = [];
+    let changes = [];
     let sortedItems = this.getOrderedItems(items);
 
     let currentOrder = 0;
     for (let i = 0; i < _.size(sortedItems); i++) {
       let currentItem = sortedItems[i];
 
-      // Check if the current item has a state.
-      let currentState = this._itemState.get(currentItem.id);
-      if (currentState) {
-        currentOrder = currentState.order;
+      // Check if the current item has metadata.
+      let currentMeta = this._itemMeta.get(currentItem.id);
+      if (currentMeta) {
+        currentOrder = currentMeta.order;
       } else {
         currentOrder += 1;
       }
@@ -251,33 +256,33 @@ export class DragOrderModel {
         break;
       }
 
-      // If no state, then create it to fill-in previous items.
-      if (!currentState) {
-        mutations.push(this._setOrder(currentItem.id, listId, currentOrder));
+      // If no meta, then create it to fill-in previous items.
+      if (!currentMeta) {
+        changes.push(this._setOrder(currentItem.id, listId, currentOrder));
       }
     }
 
-    mutations.push(this._setOrder(itemId, listId, DragOrderModel.split(dropOrder, currentOrder)));
+    changes.push(this._setOrder(itemId, listId, DragOrderModel.split(dropOrder, currentOrder)));
 
-    return mutations;
+    return changes;
   }
 
   _setOrder(itemId, listId, order) {
-    this._itemState.set(itemId, {
+    this._itemMeta.set(itemId, {
       listId,
       order
     });
 
     return {
-      id: itemId,
+      itemId,
       listId,
       order
     };
   }
 
   getOrder(itemId) {
-    let state = this._itemState.get(itemId);
-    return state && state.order || 0;
+    let meta = this._itemMeta.get(itemId);
+    return meta && meta.order || 0;
   }
 
   getOrderedItems(items) {

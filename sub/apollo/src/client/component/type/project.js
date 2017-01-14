@@ -158,11 +158,11 @@ class ProjectCardLayout extends React.Component {
       {
         field: 'tasks',
         value: {
-          array: {
+          array: [{
             value: {
               id: taskId
             }
-          }
+          }]
         }
       }
     ];
@@ -400,6 +400,13 @@ const ProjectBoardQuery = gql`
       ...ItemFragment
 
       ... on Project {
+
+        board {
+          itemMeta {
+            itemId, listId, order
+          }         
+        }
+
         tasks {
           type
           id
@@ -447,17 +454,49 @@ class ProjectBoardComponent extends React.Component {
     this.context.navigator.push(Path.canvas(ID.toGlobalId('Task', item.id)));
   }
 
-  handleItemDrop(column, item) {
+  handleItemDrop(column, item, changes) {
+    let { item:project } = this.props;
+
     // TODO(burdon): Wrap board with CanvasLayout (and pass mutator via context).
-    let status = column.status;
-
-    // TODO(burdon): doLayout.
-
-    // TODO(burdon): Save board order (as mutation delta).
-    console.log('### SAVE ORDER ###\n', this.state.itemOrderModel.serialize());
-
     // TODO(burdon): Do optimistic update before re-rendering.
+    let status = column.status;
     this.props.mutator.updateItem(item, [ MutationUtil.createFieldMutation('status', 'int', status) ]);
+
+    let mutations = _.map(changes, change => ({
+      field: 'board',
+      value: {
+        object: [{
+          field: 'itemMeta',
+          value: {
+            object: [
+              {
+                field: change.itemId,
+                value: {
+                  object: [
+                    {
+                      field: 'listId',
+                      value: {
+                        string: change.listId
+                      }
+                    },
+                    {
+                      field: 'order',
+                      value: {
+                        float: change.order
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }]
+      }
+    }));
+
+    // TODO(burdon): Allow for multiple mutations (on different items).
+    console.log('###### Layout Mutations[%s]: %s', project.id, JSON.stringify(mutations));
+    this.props.mutator.updateItem(project, mutations);
   }
 
   render() {
@@ -481,6 +520,9 @@ class ProjectBoardComponent extends React.Component {
 
       return columns[idx].id;
     };
+
+    // Update the sort model.
+    itemOrderModel.setLayout(_.get(item, 'board.itemMeta'));
 
     // TODO(burdon): Base class for canvases (e.g., editable title like Card).
     // TODO(burdon): Title in Breadcrumbs.

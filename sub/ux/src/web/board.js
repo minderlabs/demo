@@ -53,15 +53,14 @@ export class Board extends React.Component {
     this.props.onItemSelect && this.props.onItemSelect(item);
   }
 
-  handleItemDrop(list, itemId) {
-    console.assert(list && itemId);
+  handleItemDrop(listId, itemId, changes) {
+    console.assert(listId && itemId);
     let { items, columns } = this.state;
 
-    let columnId = list.props.data;
-    let column = _.find(columns, column => column.id == columnId);
+    let column = _.find(columns, column => column.id == listId);
     let item = _.find(items, item => item.id === itemId);
 
-    this.props.onItemDrop && this.props.onItemDrop(column, item);
+    this.props.onItemDrop && this.props.onItemDrop(column, item, changes);
   }
 
   render() {

@@ -73,13 +73,16 @@ export default class TestBoard extends React.Component {
     };
   }
 
-  handleDrop(column, item) {
+  handleDrop(column, item, changes) {
     console.assert(column && item);
 
     // Change the list.
     item.label = column.label;
 
+    // Rerender all lists.
     this.forceUpdate();
+
+    console.log('Mutations: ' + JSON.stringify(changes));
   }
 
   render() {

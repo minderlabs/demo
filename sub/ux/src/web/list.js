@@ -160,13 +160,12 @@ export class List extends React.Component {
     console.assert(dropItem && dropItem.id);
 
     // Update the order.
-    let mutations = this.props.itemOrderModel.setOrder(this.props.items, dropItem.id, data, order);
-    console.log('MUTATE', JSON.stringify(mutations));
+    let changes = this.props.itemOrderModel.setOrder(this.props.items, dropItem.id, data, order);
 
-    // TODO(burdon): Pass mutations to callback.
-    // Notify (triggers state change and repaint).
-    this.props.onItemDrop(this, dropItem.id);
-    this.forceUpdate();
+    // Repaint and notify parent.
+    this.forceUpdate(() => {
+      this.props.onItemDrop(this.props.data, dropItem.id, changes);
+    });
   }
 
   handleItemSave(item) {
@@ -206,8 +205,6 @@ export class List extends React.Component {
     if (itemOrderModel) {
       items = itemOrderModel.getOrderedItems(items);
     }
-
-    console.log('RENDER:', data, _.map(items, item => `${item.id}[${itemOrderModel.getOrder(item.id)}]`));
 
     let previousOrder = 0;
     let rows = _.map(items, item => {

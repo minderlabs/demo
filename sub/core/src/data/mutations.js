@@ -40,12 +40,12 @@ export class MutationUtil {
     return {
       field: 'labels',
       value: {
-        array: {
+        array: [{
           index: set ? 0 : -1,
           value: {
             string: label
           }
-        }
+        }]
       }
     };
   }
