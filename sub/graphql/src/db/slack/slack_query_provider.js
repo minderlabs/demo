@@ -15,8 +15,7 @@ export class SlackQueryProvider extends ItemStore {
 
   getBot() {
     // TODO(madadam): get bot by teamID, from context.user.credentials.slack.teamId
-    // Or should the userStore even keep the bot API token (incoming_webhook.token)? Then we need to manage
-    // refreshing it (currently botkit does).
+    // For demo, hard-code our Slack team:
     const botToken = 'xoxb-58769251330-HTpLu0jswjM8OmVLdKaDgJkC';
 
     return this.botManager.getBot(botToken);
@@ -31,7 +30,6 @@ export class SlackQueryProvider extends ItemStore {
    * @private
    */
   static resultToItem(idGenerator, match) {
-    // FIXME
     return {
       id: idGenerator.createId(), // TODO(madadam): keep Slack message ID as foreign key.
       title: `@${match.username} on #${match.channel.name}: ${match.text}`,
@@ -65,14 +63,13 @@ export class SlackQueryProvider extends ItemStore {
   }
 
   _search(query) {
-    console.log('** SEARCH query: ' + JSON.stringify(query)); // FIXME
+    let items = [];
     let bot = this.getBot();
+    if (!bot || !query) {
+      return Promise.resolve(items);
+    }
     const token = bot.config.incoming_webhook.token;
     return new Promise((resolve, reject) => {
-      let items = [];
-      if (!query) {
-        resolve(items);
-      }
       bot.api.search.all(
         {token: token, query: query},
         (err, response) => {
@@ -80,7 +77,6 @@ export class SlackQueryProvider extends ItemStore {
             logger.error('SlackQueryProvider:', err);
             reject(err);
           } else {
-            console.log('Search Response:', JSON.stringify(response)); // FIXME
             for (const match of response.messages.matches) {
               items.push(SlackQueryProvider.resultToItem(this._idGenerator, match));
             }
