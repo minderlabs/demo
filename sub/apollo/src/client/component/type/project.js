@@ -395,6 +395,7 @@ const ProjectBoardQuery = gql`
           type
           id
           title
+          description
           status
           assignee {
             title

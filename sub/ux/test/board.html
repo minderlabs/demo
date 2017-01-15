@@ -41,7 +41,7 @@
       flex-direction: row;
       flex-grow: 1;
       padding: 16px;
-      background-color: cornflowerblue;
+      background-color: lightslategray;
     }
 
     .test-column {
@@ -50,14 +50,53 @@
       width: 300px;
       margin-right: 16px;
       background-color: whitesmoke;
+      border-radius: 8px;
+      padding: 10px;
     }
 
     .test-item {
       display: flex;
+      flex-direction: column;
       background-color: white;
-      height: 60px;
-      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      min-height: 100px;
+      box-shadow: 2px 2px 16px #DDD;
+      font-size: 18px;
     }
+    .test-item > div {
+      padding: 4px;
+    }
+    .test-item .test-header {
+      display: flex;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      font-size: 24px;
+    }
+    .test-item .test-header.test-orange {
+      background-color: darksalmon;
+    }
+    .test-item .test-header.test-blue {
+      background-color: cornflowerblue;
+    }
+    .test-item .test-header.test-green {
+      background-color: darkseagreen;
+    }
+
+    .test-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .test-row {
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+    }
+    .test-row .material-icons {
+      font-size: 16px;
+      margin-right: 4px;
+    }
+
   </style>
 </head>
 <body>
@@ -67,10 +106,57 @@
 
     <div class="test-board">
       <div class="test-column">
-        <div class="test-item">A</div>
+
+        <div class="test-item">
+          <div class="test-header test-orange">Project X</div>
+          <div>This is the latest info for the project.</div>
+        </div>
+
+        <div class="test-item">
+          <div class="test-header test-blue">Project Y</div>
+          <div>Another project.</div>
+          <div class="test-list">
+            <div class="test-row">
+              <span class="material-icons">check_box_outline_blank</span>
+              <span>X</span>
+            </div>
+            <div class="test-row">
+              <span class="material-icons">check_box_outline_blank</span>
+              <span>Y</span>
+            </div>
+            <div class="test-row">
+              <span class="material-icons">done</span>
+              <span>Z</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="test-item">
+          <div class="test-header test-green">Project Z</div>
+          <div>Some projects are better than others.</div>
+        </div>
+
       </div>
 
       <div class="test-column">
+        <div class="test-item">
+          <div class="test-header test-blue">Acme Inc.</div>
+          <div>Another project.</div>
+          <div class="test-list">
+            <div class="test-row">
+              <span class="material-icons">check_box_outline_blank</span>
+              <span>Create Spec</span>
+            </div>
+            <div class="test-row">
+              <span class="material-icons">check_box_outline_blank</span>
+              <span>Wireframes</span>
+            </div>
+            <div class="test-row">
+              <span class="material-icons">done</span>
+              <span>Pitch Deck</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

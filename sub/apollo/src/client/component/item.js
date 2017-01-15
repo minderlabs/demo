@@ -27,6 +27,7 @@ export const ItemFragment = gql`
     type
     labels
     title
+    description
   }
 `;
 
@@ -117,6 +118,10 @@ export class CardContainer extends React.Component {
     }
   }
 
+  handleTextboxChange(property, event) {
+    // TODO(burdon): Set state (same for TextBox title, etc.)
+  }
+
   /**
    * Renders the outer card, with content from type-specific item.
    */
@@ -140,6 +145,13 @@ export class CardContainer extends React.Component {
           <div>
             <i className="ux-icon ux-icon-action ux-icon-save" onClick={ this.maybeSave.bind(this) }>save</i>
           </div>
+        </div>
+
+        {/* TODO(burdon): Factor out. */}
+        <div className="ux-section ux-row">
+          <textarea spellCheck={ false } className="ux-expand"
+                    value={ item.description }
+                    onChange={ this.handleTextboxChange.bind(this, 'description') }/>
         </div>
 
         { debugSection }

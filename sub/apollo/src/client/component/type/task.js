@@ -207,9 +207,15 @@ export class TaskCompactCard extends React.Component {
     let { item } = this.context;
 
     return (
-      <div>
-        <ListItem.Title/>
-        <div className="ux-text">{ _.get(item, 'assignee.title') }</div>
+      <div className="ux-column">
+        <div className="ux-header">
+          <ListItem.Title/>
+          <i className="ux-icon">edit</i>
+        </div>
+        <div className="ux-body">
+          <div className="ux-text">{ _.get(item, 'assignee.title') }</div>
+          <div className="ux-text-block ux-font-xsmall">{ _.get(item, 'description') }</div>
+        </div>
       </div>
     );
   }

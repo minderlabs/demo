@@ -22,7 +22,8 @@ export class Randomizer {
 
     'Task': chance => {
       return {
-        title: chance.sentence({ words: 5 })
+        title: chance.sentence({ words: chance.natural({ min: 3, max: 5 }) }),
+        description: chance.sentence({ words: chance.natural({ min: 10, max: 20 }) })
       }
     },
 
