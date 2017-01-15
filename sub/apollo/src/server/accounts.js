@@ -31,7 +31,10 @@ export const accountsRouter = (accountManager) => {
   let router = express.Router();
 
   accountManager.handlers.forEach((name, handler) => {
-    router.get('/accounts/' + name, handler.oauthRedirectHandler());
+    let oauthHandler = handler.oauthRedirectHandler();
+    if (oauthHandler) {
+      router.get('/accounts/' + name, oauthHandler);
+    }
   });
 
   router.get('/accounts', function(req, res) {
@@ -43,15 +46,33 @@ export const accountsRouter = (accountManager) => {
   return router;
 };
 
-// FIXME just an object instead of a class would do here.. what about other services?
-export class SlackAccountHandler {
+// AccountHandler interface.
+export class AccountHandler {
+  /**
+   * Display name for the accounts management page.
+   */
+  name() { throw 'Not implemented'; }
+
+  /**
+   * Return a block of html for the /accounts management page.
+   */
+  infoHtml() { throw 'Not implemented'; }
+
+  /**
+   * Express route handler for oauth redirects. If implemented, installed at /accounts/<service_name>.
+   */
+  oauthRedirectHandler() { return null; }
+}
+
+export class SlackAccountHandler extends AccountHandler {
   name() {
     return 'Slack';
   }
 
-  info() {
+  infoHtml() {
     return '<a href="/botkit/login"><img alt="Add to Slack" height=40 width="139" src="https://platform.slack-edge.com/img/add_to_slack.png"></a>';
   }
+
+  // Botkit takes care of oauth for Slack.
+  oauthRedirectHandler() { return null; }
 }
-
-

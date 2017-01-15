@@ -34,6 +34,22 @@ RUN groupadd -r nx && useradd -r -g nx nx
 RUN mkdir -p $HOME
 RUN chown -R nx:nx $HOME
 
+# Volume for local data.
+
+RUN mkdir -p $HOME/app/var
+RUN chown -R nx:nx $HOME/app/var
+VOLUME $HOME/app/var
+
+#
+# Tools
+#
+
+ADD dist/package.json     $HOME/app/package.json
+
+WORKDIR $HOME/app
+
+RUN npm install
+
 #
 # Add sources.
 #
@@ -41,21 +57,11 @@ RUN chown -R nx:nx $HOME
 # TODO(burdon): Set-up for Jenkins local build.
 # TODO(burdon): Currently just add all unbuilt assets.
 
-ADD dist/package.json     $HOME/app/package.json
-
 ADD dist                  $HOME/app/dist
 ADD src/server/conf       $HOME/app/dist/conf
 ADD src/server/public     $HOME/app/dist/public
 ADD src/server/testing    $HOME/app/dist/testing
 ADD src/server/views      $HOME/app/dist/views
-
-#
-# Tools
-#
-
-WORKDIR $HOME/app
-
-RUN npm install
 
 #
 # Exposed port for nginx-proxy (matches docker-compose.yml and docker cloud stackfile).

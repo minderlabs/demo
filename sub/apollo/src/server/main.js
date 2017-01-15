@@ -120,7 +120,12 @@ database
   // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
   .registerSearchProvider('google_drive', googleDriveItemStore);
 
-let botkitManager = new BotKitManager(SlackConfig);
+let slackConfig = {
+  port,
+  redirectHost: process.env.OAUTH_REDIRECT_ROOT || 'http://localhost:' + port,
+  ...SlackConfig
+};
+let botkitManager = new BotKitManager(slackConfig);
 const slackQueryProvider = new SlackQueryProvider(idGenerator, matcher, botkitManager);
 
 database
@@ -259,7 +264,6 @@ app.engine('handlebars', handlebars({
   }
 }));
 
-// FIXME: will this interfere w/ botkit?
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 

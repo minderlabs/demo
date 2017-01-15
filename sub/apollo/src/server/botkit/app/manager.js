@@ -5,7 +5,9 @@
 import Botkit from 'botkit';
 import express from 'express';
 
-// FIXME combine with BotManager?
+import { Logger } from 'minder-core';
+
+const logger = Logger.get('botkit');
 
 /**
  * Wraps botkit controller, configures oauth endpoints, and sets up Slack app logic.
@@ -17,10 +19,9 @@ export class BotKitManager {
     // Cache the bots (and their RTM connections etc), keyed by bot token.
     this._bots = {};
 
-    // FIXME
-    // process.env.OAUTH_REDIRECT_ROOT + '/botkit';
-    this.redirectUri = 'http://localhost:3000' + '/botkit/oauth';
-    console.log('*** BotKitManager redirectUri ' + this.redirectUri); // FIXME
+    this.redirectUri = config.redirectHost + '/botkit/oauth';
+    // Botkit logs the endpoints incorrectly when we bring our own express server.
+    logger.info('** Botkit logging below is wrong, true oauth redirect is: ' + this.redirectUri);
 
     this.controller = Botkit.slackbot({
       //debug: true
@@ -31,9 +32,10 @@ export class BotKitManager {
       json_file_store: './var/botkit_storage/'
     });
 
-    // FIXME
-    this.controller.config.hostname = 'localhost';
-    this.controller.config.port = 3000;
+    // Since we're bringing our own express server instead of calling controller.setUpWebServer(), we
+    // need to set this manually. (Undocumented.)
+    // https://github.com/howdyai/botkit#use-botkit-with-an-express-web-server
+    this.controller.config.port = config.port;
 
     // https://github.com/howdyai/botkit/blob/master/readme-slack.md#controllercreateoauthendpoints
     this.controller.configureSlackApp({
@@ -47,10 +49,8 @@ export class BotKitManager {
       scopes: ['commands', 'bot', 'incoming-webhook', 'search:read']
     });
 
-    // FIXME: disentangle botManager etc from App
+    // TODO(madadam): port slackbot logic from framework:sub/botkit.
     // this.slackbot = new App(controller);
-    // FIXME SlackItemStore, then register with database in main.js.
-    // let slackItemStore = new SlackSearch(app.botManager);
   }
 
   /**
@@ -64,7 +64,7 @@ export class BotKitManager {
 
         bot.startPrivateConversation({user: config.createdBy}, (err, convo) => {
           if (err) {
-            console.log(err);
+            logger.error(err);
           } else {
             convo.say('I am a bot that has just joined your team');
             convo.say('You must now /invite me to a channel so that I can do useful stuff!');
@@ -83,42 +83,36 @@ export class BotKitManager {
         if (team.bot) {
           let bot = this.controller.spawn(team);
           this.connect(bot, () => {
-            // FIXME Anything more needs to happen here for credential management?
+            // TODO(madadam): Load bots for all users? Does anything need to happen here for credential management?
             //this.userStateManager.loadUsers(bot);
           });
         }
       }
     });
 
-    // FIXME replace with full-blown SlackApp, ported from framework/sub/botkit/app.js
+    // TODO(madadam): replace with full-blown slackbot app, ported from framework/sub/botkit/app.js
     // this.slackbot.start();
 
     // Simple ping for testing.
     this.controller.hears('hello', 'direct_message', function(bot, message) {
-      console.log('Message: ' + JSON.stringify(message));
-      bot.reply(message, 'hi there');
+      bot.reply(message, 'Hi there');
     });
 
     this.controller.on('create_bot', function(bot, config) {
-      // FIXME: port BotManager from framework:sub/botkit.
-      console.log('** CREATE BOT: ' + JSON.stringify(config));
+      // TODO(madadam): port BotManager from framework:sub/botkit.
+      logger.info('Created bot with token: ' + JSON.stringify(config));
     });
   }
 
   connect(bot, onConnected=null) {
     if (this._bots[bot.config.token]) {
-      // FIXME logger
-      console.log('Bot already registered for token: ' + bot.config.token);
+      logger.info('Bot already registered for token: ' + bot.config.token);
     } else {
-      // FIXME minimal userstate needed to connect RTM bot?
-      //let user = bot.config.createdBy;
-
       bot.startRTM((err) => {
         if (!err) {
           this._track(bot);
         } else {
-          // FIXME logger
-          console.log('Error connecting bot to Slack:', err);
+          logger.error('Error connecting bot to Slack:', err);
         }
         if (onConnected) {
           onConnected();
@@ -152,7 +146,7 @@ export const botkitRouter = (manager) => {
         res.status(500).send('ERROR: ' + err);
       } else {
         // Redirect.
-        // FIXME where?
+        // TODO(madadam): redirect back to /accounts once account info is displayed for already-connected services.
         res.redirect('/');
       }
     })
@@ -162,7 +156,7 @@ export const botkitRouter = (manager) => {
   //.createWebhookEndpoints(webserver, [process.env.slackVerificationToken]);
 
   // Enable CORS support for all routes.
-  // FIXME needed?
+  // TODO(madadam): needed?
   //router.use(cors());
 
   manager.start();
