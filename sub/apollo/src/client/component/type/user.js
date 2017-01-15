@@ -75,6 +75,9 @@ class UserLayout extends React.Component {
 
   render() {
     let { item } = this.props;
+    if (!item) {
+      return <div/>;
+    }
 
     // TODO(burdon): Use List controls.
 

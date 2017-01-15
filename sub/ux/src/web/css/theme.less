@@ -4,6 +4,10 @@
 
 @import (reference) './mixin';
 
+//
+// https://material.io/guidelines/style/color.html#color-color-palette
+//
+
 @ux-body-background:                    #CCC;
 
 @ux-boxshadow:                          4px 4px 16px #AAA;
@@ -15,15 +19,18 @@
 @ux-font-xsmall:                        12px;
 
 @ux-header-color:                       white;
-@ux-header-background:                  #185588;
+@ux-header-background:                  darken(@ux-navbar-background, 10%);
 
 @ux-navbar-color:                       white;
-@ux-navbar-background:                  lighten(@ux-header-background, 15%);
+@ux-navbar-background:                  #01579B;
+
+@ux-canvas-color:                       #333;
+@ux-canvas-background:                  #0277BD;
 
 @ux-section-padding:                    8px;
 @ux-section-header-padding:             4px 8px;
 @ux-section-header-color:               @ux-color-dark;
-@ux-section-header-background:          lighten(@ux-header-background, 60%);
+@ux-section-header-background:          #BDBDBD;
 
 @ux-toolbar-padding:                    8px;
 @ux-toolbar-background:                 whitesmoke;
@@ -47,3 +54,5 @@
 @ux-color-error:                        darkred;
 @ux-color-star:                         orange;
 @ux-color-tag:                          cornflowerblue;
+
+@ux-list-highlight:                     #E0E0E0;

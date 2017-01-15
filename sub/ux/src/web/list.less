@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+@import './css/theme.less';
+
 .ux-list {
   display: flex;
   flex-direction: column;
@@ -14,7 +16,7 @@
   }
 
   .ux-list-item:hover {
-    background-color: lightblue;
+    background-color: @ux-list-highlight;
   }
   .ux-list-editor { // Undo hover.
     background-color: transparent !important;

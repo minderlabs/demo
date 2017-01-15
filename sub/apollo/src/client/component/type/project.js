@@ -524,11 +524,11 @@ class ProjectBoardComponent extends React.Component {
     // Update the sort model.
     itemOrderModel.setLayout(_.get(item, 'board.itemMeta'));
 
+    // TODO(burdon): Move title to NavBar.
     // TODO(burdon): Base class for canvases (e.g., editable title like Card).
-    // TODO(burdon): Title in Breadcrumbs.
     return (
-      <div className="ux-column">
-        <div className="app-canvas-header ux-section ux-row">
+      <div className="ux-canvas ux-column">
+        <div className="ux-section ux-row">
           <i className="ux-icon" onClick={ this.handleToggleCanvas.bind(this) }>{ typeRegistry.icon(item) }</i>
 
           <div className="ux-text">{ item.title }</div>

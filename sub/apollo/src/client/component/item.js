@@ -150,7 +150,7 @@ export class CardContainer extends React.Component {
         {/* TODO(burdon): Factor out. */}
         <div className="ux-section ux-row">
           <textarea spellCheck={ false } className="ux-expand"
-                    value={ item.description }
+                    value={ item.description || '' }
                     onChange={ this.handleTextboxChange.bind(this, 'description') }/>
         </div>
 
