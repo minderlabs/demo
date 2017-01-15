@@ -43,10 +43,10 @@ export class TextBox extends React.Component {
     delay: 100
   };
 
+  state = {};
+
   constructor() {
     super(...arguments);
-
-    this.state = { value: this.props.value || '' };
 
     this._timeout = Async.timeout(this.props.delay);
   }
@@ -57,7 +57,9 @@ export class TextBox extends React.Component {
    */
   componentWillReceiveProps(nextProps) {
     if (nextProps.value != this.state.value) {
-      this.setState({ value: nextProps.value || '' });
+      this.setState({
+        value: nextProps.value || ''
+      });
     }
   }
 
@@ -120,16 +122,17 @@ export class TextBox extends React.Component {
   }
 
   render() {
-    let className = _.join([this.props.className, 'ux-textbox'], ' ');
+    let { autoFocus, className, placeholder } = this.props;
+    let { value } = this.state;
 
     return (
       <input ref="input"
              type="text"
              spellCheck={ false }
-             className={ className }
-             autoFocus={ this.props.autoFocus ? 'autoFocus' : '' }
-             value={ this.state.value }
-             placeholder={ this.props.placeholder }
+             className={ _.join([className, 'ux-textbox'], ' ') }
+             autoFocus={ autoFocus ? 'autoFocus' : '' }
+             value={ value || '' }
+             placeholder={ placeholder }
              onChange={ this.handleTextChange.bind(this) }
              onKeyDown={ this.handleKeyDown.bind(this) }
              onFocus={ this.handleFocusChange.bind(this, true) }

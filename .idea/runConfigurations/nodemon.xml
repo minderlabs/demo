@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="nodemon" type="js.build_tools.npm" factoryName="npm" singleton="false">
     <package-json value="$PROJECT_DIR$/sub/apollo/package.json" />
-    <command value="run" />
+    <command value="run-script" />
     <scripts>
       <script value="nodemon" />
     </scripts>

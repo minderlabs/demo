@@ -6,7 +6,6 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose } from 'react-apollo';
 
-import { QueryParser } from 'minder-core';
 import { SearchBar } from 'minder-ux';
 
 import { ACTION } from '../reducers';

@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 
 import { ID, Matcher, Mutator, MutationUtil, TypeUtil } from 'minder-core';
-import { TextBox } from 'minder-ux';
+import { Textarea, TextBox } from 'minder-ux';
 
 import { TypeRegistry } from './type/registry';
 
@@ -66,6 +66,8 @@ export class CardContainer extends React.Component {
     mutator: React.PropTypes.object
   };
 
+  state = {};
+
   getChildContext() {
     return {
       mutator: this.props.mutator
@@ -76,12 +78,8 @@ export class CardContainer extends React.Component {
    * Auto-save when item chages.
    */
   componentWillReceiveProps(nextProps) {
-    let { item } = this.props;
-    if (item && nextProps.item) {
-      let oldId = item.id;
-      if (oldId && oldId != nextProps.item.id) {
-        this.maybeSave();
-      }
+    if (_.get(this.state, 'id') != _.get(nextProps, 'item.id')) {
+      this.setState(_.pick(nextProps.item, ['id', 'title', 'description']));
     }
   }
 
@@ -99,27 +97,31 @@ export class CardContainer extends React.Component {
    * Check for modified elements and submit mutation if necessary.
    */
   maybeSave() {
-    let { item } = this.props;
+    // TODO(burdon): Get mutator from context? Or from Redux?
+    let { mutator, item } = this.props;
+
     let mutations = [];
 
-    // Generic values.
-    if (!_.isEqual(this.refs.title.value, item.title)) {
-      mutations.push(MutationUtil.createFieldMutation('title', 'string', this.refs.title.value));
-    }
+    // Common properties.
+    _.each(['title', 'description'], property => {
+      let value = _.get(this.state, property);
+      if (!_.isEqual(value, _.get(item, property))) {
+        mutations.push(MutationUtil.createFieldMutation(property, 'string', value));
+      }
+    });
 
     // Get type-specific values.
-    if (this.props.onSave) {
-      TypeUtil.maybeAppend(mutations, this.props.onSave());
-    }
+    this.props.onSave && TypeUtil.maybeAppend(mutations, this.props.onSave());
 
-    // TODO(burdon): Get mutator from context? Or from Redux?
     if (mutations.length) {
-      this.props.mutator.updateItem(item, mutations);
+      mutator.updateItem(item, mutations);
     }
   }
 
-  handleTextboxChange(property, event) {
-    // TODO(burdon): Set state (same for TextBox title, etc.)
+  handlePropertyChange(property, value) {
+    this.setState({
+      [property]: value
+    });
   }
 
   /**
@@ -127,6 +129,7 @@ export class CardContainer extends React.Component {
    */
   render() {
     let { children, debug, item={}, typeRegistry, onToggleCanvas } = this.props;
+    let { title, description } = this.state;
 
     let debugSection = debug && (
       <div className="ux-section ux-debug">
@@ -140,18 +143,19 @@ export class CardContainer extends React.Component {
           <i className="ux-icon"
              onClick={ onToggleCanvas }>{ typeRegistry.icon(item) }</i>
 
-          <TextBox ref="title" className="ux-expand" value={ item.title }/>
+          <TextBox className="ux-expand"
+                   value={ title }
+                   onChange={ this.handlePropertyChange.bind(this, 'title') }/>
 
           <div>
             <i className="ux-icon ux-icon-action ux-icon-save" onClick={ this.maybeSave.bind(this) }>save</i>
           </div>
         </div>
 
-        {/* TODO(burdon): Factor out. */}
         <div className="ux-section ux-row">
-          <textarea spellCheck={ false } className="ux-expand"
-                    value={ item.description || '' }
-                    onChange={ this.handleTextboxChange.bind(this, 'description') }/>
+          <Textarea className="ux-expand" rows="3"
+                    value={ description }
+                    onChange={ this.handlePropertyChange.bind(this, 'description') }/>
         </div>
 
         { debugSection }
