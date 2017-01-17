@@ -15,8 +15,6 @@ import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 
-import './team.less';
-
 /**
  * Type-specific fragment.
  */

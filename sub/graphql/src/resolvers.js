@@ -133,21 +133,19 @@ export class Resolvers {
         },
 
         project: (root, args, context) => {
-          if (root.project) {
-            return database.getItem(context, 'Project', root.project);
-          }
+          return root.project && database.getItem(context, 'Project', root.project);
+        },
+
+        tasks: (root, args, context) => {
+          return root.tasks && database.getItems(context, 'Task', root.tasks) || [];
         },
 
         owner: (root, args, context) => {
-          if (root.owner) {
-            return database.getItem(context, 'User', root.owner);
-          }
+          return root.owner && database.getItem(context, 'User', root.owner);
         },
 
         assignee: (root, args, context) => {
-          if (root.assignee) {
-            return database.getItem(context, 'User', root.assignee);
-          }
+          return root.assignee && database.getItem(context, 'User', root.assignee);
         }
       },
 

@@ -312,6 +312,10 @@ type Task implements Item {
   # TODO(burdon): Implement via links?
   project: Project
 
+  # Sub-tasks.
+  # TODO(burdon): Resolver should flatten the query to return the hierarchical set.
+  tasks: [Task]
+
   status: Int!
 
   # TODO(burdon): Promote to shared meta data for all items.

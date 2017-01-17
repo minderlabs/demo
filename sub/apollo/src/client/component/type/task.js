@@ -3,23 +3,33 @@
 //
 
 import React from 'react';
+import { Link } from 'react-router';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { MutationUtil, ItemReducer } from 'minder-core';
+import { MutationUtil, ID, ItemReducer } from 'minder-core';
 import { ListItem } from 'minder-ux';
 
+import { Path } from '../../path';
 import { UpdateItemMutation } from '../../data/mutations';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 
 import ItemsPicker from '../items_picker';
 
+import './task.less';
+
 /**
  * Type-specific fragment.
  */
-const TaskFragment = gql`
+export const TaskFragment = gql`
   fragment TaskFragment on Task {
-    bucket 
+    bucket
+    type
+    id
+
+    title
+    description
+
     status
     project {
       id
@@ -206,6 +216,17 @@ export class TaskCompactCard extends React.Component {
   render() {
     let { item } = this.context;
 
+    let subTasks = _.map(item.tasks, task => {
+      let icon = (task.status == 3) ? 'done' : 'check_box_outline_blank';
+
+      return (
+        <div key={ task.id } className="ux-row">
+          <i className="ux-icon ux-icon-checkbox">{ icon }</i>
+          <Link className="ux-text" to={ Path.canvas(ID.toGlobalId('Task', task.id)) }>{ task.title }</Link>
+        </div>
+      );
+    });
+
     return (
       <div className="ux-column">
         <div className="ux-header">
@@ -215,6 +236,9 @@ export class TaskCompactCard extends React.Component {
         <div className="ux-body">
           <div className="ux-text">{ _.get(item, 'assignee.title') }</div>
           <div className="ux-text-block ux-font-xsmall">{ _.get(item, 'description') }</div>
+          <div>
+            { subTasks }
+          </div>
         </div>
       </div>
     );

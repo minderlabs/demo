@@ -14,6 +14,8 @@ import { Path } from '../../path';
 import { composeItem, CardContainer, ItemFragment } from '../item';
 import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
 
+import { TaskFragment } from './task';
+
 //
 // Project card.
 //
@@ -392,13 +394,10 @@ const ProjectBoardQuery = gql`
         }
 
         tasks {
-          type
-          id
-          title
-          description
-          status
-          assignee {
-            title
+          ...TaskFragment
+
+          tasks {
+            ...TaskFragment
           }
         }
       }
@@ -406,6 +405,7 @@ const ProjectBoardQuery = gql`
   }
 
   ${ItemFragment}
+  ${TaskFragment}  
 `;
 
 /**

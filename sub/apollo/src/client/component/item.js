@@ -21,8 +21,6 @@ import './item.less';
  */
 export const ItemFragment = gql`
   fragment ItemFragment on Item {
-#   __typename
-
     id
     type
     labels
