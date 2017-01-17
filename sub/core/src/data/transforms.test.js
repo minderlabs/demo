@@ -6,7 +6,7 @@ import _ from 'lodash';
 
 import { Transforms } from './transforms';
 
-describe('Transforms', () => {
+describe('Transforms:', () => {
 
   it('Apply object mutation.', () => {
     let object = {};
@@ -110,4 +110,47 @@ describe('Transforms', () => {
     let result = Transforms.applyObjectMutations(object, mutations);
     expect(_.get(result, 'labels').length).to.equal(2);
   });
+
+  it('Apply array match mutation.', () => {
+    let object = {
+      colors: [
+        {
+          alias: 'red',
+          value: 100
+        },
+        {
+          alias: 'blue',
+          value: 200
+        }
+      ]
+    };
+
+    // TODO(burdon): Upsert.
+    // TODO(burdon): Upsert non-scalar values (i.e., nested mutation).
+    // TODO(burdon): Replace.
+    // TODO(burdon): Remove.
+
+    let mutations = [
+      {
+        field: 'colors',
+        value: {
+          array: [{
+            match: {
+              key: 'alias',
+              value: {
+                string: 'green'
+              }
+            },
+            value: {
+              int: 300
+            }
+          }]
+        }
+      }
+    ];
+
+    let result = Transforms.applyObjectMutations(object, mutations);
+    let item = _.find(_.get(result, 'colors'), color => color.alias == 'green');
+    expect(_.get(item, 'value')).to.equal(300);
+  })
 });

@@ -156,6 +156,7 @@ export class DragOrderModel {
    * @param itemMeta
    */
   setLayout(itemMeta) {
+    console.assert(itemMeta);
     _.each(itemMeta, meta => {
       this._itemMeta.set(meta.itemId, {
         listId: meta.listId,

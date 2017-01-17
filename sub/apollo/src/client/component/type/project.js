@@ -11,7 +11,7 @@ import { Board, DragOrderModel, List, ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
-import { composeItem, CardContainer, ItemFragment } from '../item';
+import { composeItem, CardContainer, ItemFragment, ValueFragment } from '../item';
 import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
 
 import { TaskFragment } from './task';
@@ -387,9 +387,19 @@ const ProjectBoardQuery = gql`
 
       ... on Project {
 
-        board {
+        boards {
+          alias
+          columns {
+            id
+            title
+            value {
+              ...ValueFragment
+            }
+          }
           itemMeta {
-            itemId, listId, order
+            itemId
+            listId
+            order
           }         
         }
 
@@ -404,6 +414,7 @@ const ProjectBoardQuery = gql`
     }
   }
 
+  ${ValueFragment}
   ${ItemFragment}
   ${TaskFragment}  
 `;
@@ -442,42 +453,54 @@ class ProjectBoardComponent extends React.Component {
   }
 
   handleItemDrop(column, item, changes) {
-    let { item:project } = this.props;
+    let { item:project, boardAlias } = this.props;
 
     // TODO(burdon): Wrap board with CanvasLayout (and pass mutator via context).
     // TODO(burdon): Do optimistic update before re-rendering.
     let status = column.status;
     this.props.mutator.updateItem(item, [ MutationUtil.createFieldMutation('status', 'int', status) ]);
 
+    // TODO(burdon): Update specific board (separate node or Project meta?)
+    // TODO(burdon):
     let mutations = _.map(changes, change => ({
-      field: 'board',
+      field: 'boards',
       value: {
-        object: [{
-          field: 'itemMeta',
+        array: {
+          match: {                      // Upsert the given keyed value (in the array).
+            key: 'alias',
+            value: {
+              string: boardAlias
+            }
+          },
           value: {
-            object: [
-              {
-                field: change.itemId,
-                value: {
-                  object: [
-                    {
-                      field: 'listId',
-                      value: {
-                        string: change.listId
-                      }
-                    },
-                    {
-                      field: 'order',
-                      value: {
-                        float: change.order
-                      }
+            object: [{
+              field: 'itemMeta',
+              value: {
+                object: [
+                  {
+                    field: change.itemId,
+                    value: {
+                      object: [
+                        {
+                          field: 'listId',
+                          value: {
+                            string: change.listId
+                          }
+                        },
+                        {
+                          field: 'order',
+                          value: {
+                            float: change.order
+                          }
+                        }
+                      ]
                     }
-                  ]
-                }
+                  }
+                ]
               }
-            ]
+            }]
           }
-        }]
+        }
       }
     }));
 
@@ -488,6 +511,12 @@ class ProjectBoardComponent extends React.Component {
   render() {
     let { item={}, typeRegistry } = this.props;
     let { itemOrderModel } = this.state;
+
+    // Get the appropriate board.
+    // TODO(burdon): Get from props.
+    let boardAlias = "tasks";
+    let board = _.find(_.get(item, 'boards'), board => board.alias == boardAlias);
+    itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
 
     // TODO(burdon): Function to map items to board.
     const columns = [
@@ -513,6 +542,7 @@ class ProjectBoardComponent extends React.Component {
 
     let items = _.get(item, 'tasks', []);
 
+    // Map items to columns.
     let columnMapper = (columns, item) => {
       let idx = _.findIndex(columns, column => {
         return (column.status == item.status);
@@ -520,9 +550,6 @@ class ProjectBoardComponent extends React.Component {
 
       return columns[idx].id;
     };
-
-    // Update the sort model.
-    itemOrderModel.setLayout(_.get(item, 'board.itemMeta'));
 
     // TODO(burdon): Move title to NavBar.
     // TODO(burdon): Base class for canvases (e.g., editable title like Card).

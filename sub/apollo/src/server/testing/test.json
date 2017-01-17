@@ -10,7 +10,18 @@
     {
       "id": "demo",
       "title": "Demo",
-      "team": "minderlabs"
+      "team": "minderlabs",
+      "boards": [
+        {
+          "alias": "tasks",
+          "columns": [
+            { "id": "c1", "value": { "int": 0 }, "title": "Icebox" },
+            { "id": "c2", "value": { "int": 1 }, "title": "Assigned" },
+            { "id": "c3", "value": { "int": 2 }, "title": "Active" },
+            { "id": "c4", "value": { "int": 3 }, "title": "Complete" }
+          ]
+        }
+      ]
     }
   ],
 

@@ -104,16 +104,12 @@ export class Resolvers {
 
       Project: {
 
-        board: (root, args, context) => {
-          // Reify order map as array of values.
-          let itemMeta = _.map(_.get(root, 'board.itemMeta'), (value, itemId) => ({
-            itemId,
-            ...value
+        boards: (root, args, context) => {
+          return _.map(_.get(root, 'boards'), board => ({
+            alias: board.alias,
+            columns: board.columns,
+            itemMeta: _.map(_.get(board, 'itemMeta'), (value, itemId) => ({ itemId, ...value }))
           }));
-
-          return {
-            itemMeta
-          }
         },
 
         team: (root, args, context) => {

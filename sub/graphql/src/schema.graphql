@@ -70,9 +70,16 @@ input ValueInput {
 # Array mutation.
 #
 
+# Multi-purpose Key x Value pair (i.e., can be map accessor or used by operators like ArrayMutationInput).
+input KeyValue {
+  key: [String]
+  value: [ValueInput]
+}
+
 input ArrayMutationInput {
-  index: Int
-  value: ValueInput!
+  match: KeyValue                 # Insert by keyed value (key is property of array items that match the value).
+  index: Int                      # Insert ordinal position (-1 to delete).
+  value: ValueInput!              # Value to input.
 }
 
 #
@@ -162,19 +169,43 @@ input FilterInput {
 # Basic types.
 #
 
+type Value {
+  null:       Boolean
+
+  int:        Int
+  float:      Float
+  string:     String
+  boolean:    Boolean
+
+  id:         ID
+  timestamp:  Timestamp
+
+  date:       Date
+}
+
 type Geo {
   lat: Float!
   lng: Float!
 }
 
-type ItemMeta {
-  itemId: ID!               # ID of item.
-  listId: String!           # ID of list.
-  order: Float!             # Order value within list.
+# Item sort positions.
+type ListItemMeta {
+  itemId: ID!                 # ID of item.
+  listId: String!             # ID of list.
+  order: Float!               # Order value within list.
 }
 
+type BoardColumn {
+  id: ID!
+  title: String!
+  value: Value!
+}
+
+# Board metadata.
 type Board {
-  itemMeta: [ItemMeta]!
+  alias: String!              # type of board.
+  columns: [BoardColumn]
+  itemMeta: [ListItemMeta]
 }
 
 #
@@ -294,8 +325,8 @@ type Project implements Item {
   # TODO(burdon): Broken -- reimplement using SearchResult.
   refs: [Item]
 
-  # TODO(burdon): Where to store canvas metadata?
-  board: Board
+  # TODO(burdon): Map type (array of typed values).
+  boards: [Board]
 }
 
 type Task implements Item {

@@ -26,9 +26,10 @@ export class Transforms {
   }
 
   /**
+   * Update object.
    *
    * @param object
-   * @param mutation
+   * @param {ObjectMutationInput} mutation
    * @returns {*}
    */
   static applyObjectMutation(object, mutation) {
@@ -74,20 +75,35 @@ export class Transforms {
   }
 
   /**
+   * Update array.
    *
    * @param array
-   * @param mutation
+   * @param {ArrayMutationInput} mutation
    */
   static applyArrayMutation(array, mutation) {
     console.assert(array && mutation);
 
-    let scalar = Transforms.scalarValue(mutation.value);
-    console.assert(scalar);
+    // TODO(burdon): Handle non scalar types (i.e., recursive objects).
+    let value = Transforms.scalarValue(mutation.value);
+    console.assert(value);
 
-    if (mutation.index == -1) {
-      _.pull(array, scalar);
+    let match = mutation.match;
+    if (match) {
+      // Find existing value.
+      let current = _.find(array, v => _.get(v, match.key) == Transforms.scalarValue(match.value));
+      if (!current) {
+        array.push({
+          [match.key]: Transforms.scalarValue(match.value),
+          value: value
+        });
+      } else {
+        // TODO(burdon): For scalars replace otherwise apply value mutation.
+        console.log('??????????????? MATCH');
+      }
+    } else if (mutation.index == -1) {
+      _.pull(array, value);
     } else {
-      array = _.union(array, [scalar]);
+      array = _.union(array, [value]);
     }
 
     return array;
