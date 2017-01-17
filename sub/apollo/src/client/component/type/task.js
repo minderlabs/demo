@@ -3,11 +3,13 @@
 //
 
 import React from 'react';
+import { connect } from 'react-redux';
+import { compose } from 'react-apollo';
 import { Link } from 'react-router';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { MutationUtil, ID, ItemReducer } from 'minder-core';
+import { ID, ItemReducer, MutationUtil, Mutator } from 'minder-core';
 import { ListItem } from 'minder-ux';
 
 import { Path } from '../../path';
@@ -203,15 +205,41 @@ class TaskLayout extends React.Component {
 }
 
 /**
- *
+ * HOC.
+ */
+export const TaskCard = composeItem(
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: TaskQuery,
+      path: 'item'
+    }
+  })
+)(TaskCardComponent);
+
+/**
+ * Compact card.
  */
 // TODO(burdon): Wrapper for compact cards.
-// TODO(burdon): Distinguish between HOC components and dumb components (used in renderers).
-export class TaskCompactCard extends React.Component {
+class TaskCompactCardComponent extends React.Component {
 
   static contextTypes = {
-    item: React.PropTypes.object,
+    item: React.PropTypes.object.isRequired
   };
+
+  static propTypes = {
+    mutator: React.PropTypes.object.isRequired
+  };
+
+  handleToggleStatus(task) {
+    let { mutator } = this.props;
+
+    let status = (task.status == 0) ? 3 : 1;
+    mutator.updateItem(task, [ MutationUtil.createFieldMutation('status', 'int', status) ]);
+  }
 
   render() {
     let { item } = this.context;
@@ -221,8 +249,8 @@ export class TaskCompactCard extends React.Component {
 
       return (
         <div key={ task.id } className="ux-row">
-          <i className="ux-icon ux-icon-checkbox">{ icon }</i>
-          <Link className="ux-text" to={ Path.canvas(ID.toGlobalId('Task', task.id)) }>{ task.title }</Link>
+          <i className="ux-icon ux-icon-checkbox" onClick={ this.handleToggleStatus.bind(this, task) }>{ icon }</i>
+         <Link className="ux-text" to={ Path.canvas(ID.toGlobalId('Task', task.id)) }>{ task.title }</Link>
         </div>
       );
     });
@@ -245,18 +273,21 @@ export class TaskCompactCard extends React.Component {
   }
 }
 
+const mapStateToProps = (state, ownProps) => {
+  let { injector } = state.minder;
+
+  return {
+    injector
+  };
+};
+
 /**
  * HOC.
  */
-export const TaskCard = composeItem(
-  new ItemReducer({
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    },
-    query: {
-      type: TaskQuery,
-      path: 'item'
-    }
-  })
-)(TaskCardComponent);
+// TODO(burdon): Use composeItem.
+export const TaskCompactCard = compose(
+  connect(mapStateToProps),
+  Mutator.graphql(UpdateItemMutation)
+)(TaskCompactCardComponent);
+
+// export const TaskCompactCard = TaskCompactCardComponent;

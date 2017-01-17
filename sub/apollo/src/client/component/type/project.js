@@ -105,7 +105,7 @@ class ProjectCardComponent extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
-    item: React.PropTypes.object,
+    item: React.PropTypes.object,               // TODO(burdon): Required?
   };
 
   handleToggleCanvas() {

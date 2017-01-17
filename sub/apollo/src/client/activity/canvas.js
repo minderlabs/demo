@@ -31,7 +31,7 @@ export default class CanvasActivity extends React.Component {
   };
 
   static contextTypes = {
-    injector: React.PropTypes.object
+    injector: React.PropTypes.object.isRequired
   };
 
   render() {

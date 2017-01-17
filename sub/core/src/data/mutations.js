@@ -81,6 +81,7 @@ export class Mutator {
         /**
          * Injects a mutator instance into the wrapped components properties.
          */
+        // TODO(burdon): Where does the injector come from?
         mutator: new Mutator(mutate, ownProps.injector.get(IdGenerator)),
       })
     });
