@@ -9,6 +9,7 @@ import React from 'react';
  */
 export class NavBar extends React.Component {
 
+  // TODO(burdon): Current heading/breadcrumbs.
   // TODO(burdon): Move Navigator and this to ux-core/ux-util.
 
   static contextTypes = {
@@ -28,9 +29,9 @@ export class NavBar extends React.Component {
     return (
       <div className="ux-navbar">
         <div>
-          <i className="ux-icon" onClick={ this.handleBack.bind(this) }>arrow_back</i>
         </div>
         <div>
+          <i className="ux-icon" onClick={ this.handleBack.bind(this) }>arrow_back</i>
           <i className="ux-icon" onClick={ this.handleForward.bind(this) }>arrow_forward</i>
         </div>
       </div>
