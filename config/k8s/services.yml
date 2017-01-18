@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    run: redis
+spec:
+  ports:
+  - port: 6379
+    protocol: TCP
+  selector:
+    run: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  labels:
+    run: elasticsearch
+spec:
+  ports:
+  - port: 9200
+    protocol: TCP
+  selector:
+    run: elasticsearch
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis
+        ports:
+        - containerPort: 6379
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: elasticsearch
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: elasticsearch
+    spec:
+      containers:
+      - name: elasticsearch
+        image: elasticsearch:2.4
+        ports:
+        - containerPort: 9200

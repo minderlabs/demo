@@ -73,8 +73,18 @@ docker build -t ${TAG}:${VERSION} .
 docker tag ${TAG}:${VERSION} ${NAMESPACE}/${REPO}:${VERSION}
 
 #
-# Push to Docker Hub.
-# Triggers docker push redeploy.
+# Push to container repository (docker or AWS ECR).
 #
 
+case "$DOCKER_REPO" in
+  ecr)
+    # Login to AWS ECR.
+    # https://forums.aws.amazon.com/thread.jspa?messageID=692733
+    eval $(AWS_PROFILE=minder aws ecr get-login)
+    ;;
+esac
+
 docker push ${NAMESPACE}/${REPO}:${VERSION}
+
+# Redeploy the service.
+kubectl delete $(kubectl get pods -l run=demo -o name)
