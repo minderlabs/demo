@@ -109,8 +109,7 @@ class FolderView extends React.Component {
             {
               field: 'labels',
               value: {
-                array: [{
-                  index: 0,
+                set: [{
                   value: {
                     string: '_private'    // TODO(burdon): By default?
                   }

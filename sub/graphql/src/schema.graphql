@@ -62,6 +62,7 @@ input ValueInput {
 
   date:       Date
 
+  set:        [SetMutationInput]
   array:      [ArrayMutationInput]
   object:     [ObjectMutationInput]
 }
@@ -76,9 +77,16 @@ input KeyValue {
   value: [ValueInput]
 }
 
+# Ordered set.
+input SetMutationInput {
+  add: Boolean!
+  value: ValueInput!
+}
+
+# TODO(burdon): Treat as set or array? Remove.
 input ArrayMutationInput {
-  match: KeyValue                 # Insert by keyed value (key is property of array items that match the value).
-  index: Int                      # Insert ordinal position (-1 to delete).
+  map: KeyValue                   # Insert by keyed value (key is property of array items that match the value).
+  index: Int                      # Insert ordinal position (-1 to append; undefined to remove).
   value: ValueInput!              # Value to input.
 }
 

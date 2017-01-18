@@ -161,7 +161,7 @@ class ProjectCardLayout extends React.Component {
       {
         field: 'tasks',
         value: {
-          array: [{
+          set: [{
             value: {
               id: taskId
             }
@@ -201,12 +201,12 @@ class ProjectCardLayout extends React.Component {
    * Submits the task mutation, then updates the project's tasks field.
    */
   updateTask(mutations) {
-    let { item } = this.props;
+    let { item:project } = this.props;
 
     // TODO(burdon): Upsert.
     // TODO(burdon): Implement bi-directional links.
     let taskId = this.context.mutator.createItem('Task', mutations);
-    this.context.mutator.updateItem(item, ProjectCardLayout.createProjectMutation(taskId));
+    this.context.mutator.updateItem(project, ProjectCardLayout.createProjectMutation(taskId));
   }
 
   handleMemberTaskSave(assignee, task) {
@@ -465,7 +465,7 @@ class ProjectBoardComponent extends React.Component {
     let mutations = _.map(changes, change => ({
       field: 'boards',
       value: {
-        array: {
+        map: {
           match: {                      // Upsert the given keyed value (in the array).
             key: 'alias',
             value: {

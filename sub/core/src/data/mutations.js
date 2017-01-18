@@ -40,8 +40,8 @@ export class MutationUtil {
     return {
       field: 'labels',
       value: {
-        array: [{
-          index: set ? 0 : -1,
+        set: [{
+          add: set ? true : false,
           value: {
             string: label
           }
