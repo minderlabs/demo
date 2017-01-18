@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-@import './theme.less';
-
 .app-base-layout {
   display: flex;
   flex-direction: column;
@@ -12,15 +10,8 @@
 
   background-color: white;
 
-  .app-header {
-    color: @app-header-color;
-    background-color: @app-header-background;
-
-    padding: 4px 8px;
-
-    a {
-      color: @app-header-color;
-    }
+  > .ux-header {
+    padding: 0 8px;
 
     i.ux-icon {
       font-size: 24px;

@@ -107,21 +107,14 @@ export class List extends React.Component {
 
     this.state = {
       items: this.props.items || [],
-      itemRenderer: this.props.itemRenderer,
+      itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
       itemEditor: this.props.itemEditor,
       showAdd: this.props.showAdd,
       editedItem: null
     };
-
-    // Update the natural order of new items.
-    //this.props.itemOrderModel && this.props.itemOrderModel.doLayout(this.state.items, this.props.data);
   }
 
   componentWillReceiveProps(nextProps) {
-
-    // Update the natural order of new items.
-    //this.props.itemOrderModel && this.props.itemOrderModel.doLayout(nextProps.items, nextProps.data);
-
     this.setState({
       items: nextProps.items || []
     });

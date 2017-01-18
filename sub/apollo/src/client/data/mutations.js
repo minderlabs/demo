@@ -9,13 +9,15 @@ import gql from 'graphql-tag';
  */
 export const UpdateItemMutation = gql`
   mutation UpdateItemMutation($itemId: ID!, $mutations: [ObjectMutationInput]!) {
-    
+
+    # TODO(burdon): Use ItemFragment here.
     updateItem(itemId: $itemId, mutations: $mutations) {
       bucket
       id
       type,
       labels
       title
+      description
 
       # TODO(burdon): Add all mutation fragments.
 

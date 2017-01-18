@@ -200,6 +200,7 @@ interface Item {
   created: Timestamp!
   modified: Timestamp!
   title: String!
+  description: String
   labels: [String]
 }
 
@@ -215,6 +216,7 @@ type User implements Item {
   created: Timestamp!
   modified: Timestamp!
   title: String!
+  description: String
   labels: [String]
 
   email: String
@@ -233,6 +235,7 @@ type Group implements Item {
   created: Timestamp!
   modified: Timestamp!
   title: String!
+  description: String
   labels: [String]
 
   members: [User]!
@@ -247,6 +250,7 @@ type Folder implements Item {
   created: Timestamp!
   modified: Timestamp!
   title: String!
+  description: String
   labels: [String]
 
   icon: String
@@ -263,6 +267,7 @@ type Contact implements Item {
   created: Timestamp!
   modified: Timestamp!
   title: String!
+  description: String
   labels: [String]
 
   email: String!
@@ -276,6 +281,7 @@ type Project implements Item {
   created: Timestamp!
   modified: Timestamp!
   title: String!
+  description: String
   labels: [String]
 
   team: Group!
@@ -300,6 +306,7 @@ type Task implements Item {
   created: Timestamp!
   modified: Timestamp!
   title: String!
+  description: String
   labels: [String]
 
   # TODO(burdon): Implement via links?
@@ -320,6 +327,7 @@ type Event implements Item {
   created: Timestamp!
   modified: Timestamp!
   title: String!
+  description: String
   labels: [String]
 
   location: Place
@@ -334,6 +342,7 @@ type Place implements Item {
   created: Timestamp!
   modified: Timestamp!
   title: String!
+  description: String
   labels: [String]
 
   geo: Geo
@@ -347,6 +356,7 @@ type Document implements Item {
   created: Timestamp!
   modified: Timestamp!
   title: String!
+  description: String
   labels: [String]
 
   url: String

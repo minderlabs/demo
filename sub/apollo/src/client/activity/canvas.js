@@ -15,8 +15,6 @@ import { SplitLayout } from '../layout/split';
 
 import FinderView from '../view/finder';
 
-import './canvas.less';
-
 /**
  * Canvas Activity.
  */

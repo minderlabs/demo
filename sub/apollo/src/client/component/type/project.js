@@ -211,15 +211,9 @@ class ProjectCardLayout extends React.Component {
     console.assert(assignee && task);
     let { user, item:project } = this.props;
 
-    // TODO(burdon): Use MutationUtil.
-    this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
-      [
-        {
-          field: 'assignee',
-          value: {
-            id: assignee.id
-          }
-        }
+    this.updateTask(TypeUtil.merge(
+      ProjectCardLayout.createTaskMutation(user, project, task.title), [
+        MutationUtil.createFieldMutation('assignee', 'id', assignee.id)
       ]
     ));
   }
@@ -250,15 +244,9 @@ class ProjectCardLayout extends React.Component {
     console.assert(task);
     let { user, item:project } = this.props;
 
-    // TODO(burdon): Use MutationUtil.
-    this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
-      [
-        {
-          field: 'project',
-          value: {
-            id: project.id
-          }
-        }
+    this.updateTask(TypeUtil.merge(
+      ProjectCardLayout.createTaskMutation(user, project, task.title), [
+        MutationUtil.createFieldMutation('project', 'id', project.id)
       ]
     ));
   }
@@ -274,14 +262,9 @@ class ProjectCardLayout extends React.Component {
     let { user, item:project } = this.props;
 
     // TODO(burdon): Use MutationUtil.
-    this.updateTask(TypeUtil.merge(ProjectCardLayout.createTaskMutation(user, project, task.title),
-      [
-        {
-          field: 'bucket',
-          value: {
-            id: user.id
-          }
-        }
+    this.updateTask(TypeUtil.merge(
+      ProjectCardLayout.createTaskMutation(user, project, task.title), [
+        MutationUtil.createFieldMutation('bucket', 'id', user.id)
       ]
     ));
   }
@@ -412,7 +395,11 @@ const ProjectBoardQuery = gql`
           type
           id
           title
+          description
           status
+          assignee {
+            title
+          }
         }
       }
     }
@@ -447,7 +434,6 @@ class ProjectBoardComponent extends React.Component {
 
   handleToggleCanvas() {
     let { item } = this.props;
-
     this.context.navigator.push(Path.canvas(ID.toGlobalId('Project', item.id)));
   }
 
@@ -511,6 +497,20 @@ class ProjectBoardComponent extends React.Component {
       { id: 'c4', status: 3, title: 'Complete'  }
     ];
 
+    // TODO(burdon): Factor out.
+    const CompactItemRenderer = (item) => {
+      let card = typeRegistry.compact(item);
+      if (!card) {
+        card = <ListItem.Title/>;
+      }
+
+      return (
+        <ListItem item={ item }>
+          { card }
+        </ListItem>
+      );
+    };
+
     let items = _.get(item, 'tasks', []);
 
     let columnMapper = (columns, item) => {
@@ -524,17 +524,18 @@ class ProjectBoardComponent extends React.Component {
     // Update the sort model.
     itemOrderModel.setLayout(_.get(item, 'board.itemMeta'));
 
+    // TODO(burdon): Move title to NavBar.
     // TODO(burdon): Base class for canvases (e.g., editable title like Card).
-    // TODO(burdon): Title in Breadcrumbs.
     return (
-      <div className="ux-column">
-        <div className="app-canvas-header ux-section ux-row">
+      <div className="ux-canvas ux-column">
+        <div className="ux-section ux-row">
           <i className="ux-icon" onClick={ this.handleToggleCanvas.bind(this) }>{ typeRegistry.icon(item) }</i>
 
           <div className="ux-text">{ item.title }</div>
         </div>
 
         <Board item={ item } items={ items } columns={ columns } columnMapper={ columnMapper }
+               itemRenderer={ CompactItemRenderer }
                itemOrderModel={ itemOrderModel }
                onItemDrop={ this.handleItemDrop.bind(this) }
                onItemSelect={ this.handleItemSelect.bind(this) }/>

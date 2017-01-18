@@ -8,7 +8,7 @@ import { UserCard } from './user';
 import { TeamCard } from './team';
 import { PlaceCard } from './place';
 import { ProjectCard, ProjectBoard } from './project';
-import { TaskCard } from './task';
+import { TaskCard, TaskCompactCard } from './task';
 import { DocumentCard, DocumentColumn } from './document';
 
 /**
@@ -17,7 +17,7 @@ import { DocumentCard, DocumentColumn } from './document';
 export class TypeRegistry {
 
   /**
-   *
+   * System singleton.
    * @param types Map of type specs.
    */
   constructor(types) {
@@ -37,11 +37,17 @@ export class TypeRegistry {
     let spec = this._types.get(type);
     if (spec) {
       let gen = _.get(spec.canvas, canvas);
-      if (gen) {
-        return gen(itemId);
-      }
+      return gen && gen(itemId);
     }
-    return <div>Invalid Canvas: { canvas + ':' + type }</div>;
+  }
+
+  compact(item) {
+    console.assert(item);
+    let spec = this._types.get(item.type);
+    if (spec) {
+      let gen = _.get(spec.canvas, 'compact');
+      return gen && gen(item);
+    }
   }
 
   /**
@@ -106,7 +112,8 @@ export const TypeRegistryDefs = new TypeRegistry([
   ['Task', {
     icon: 'assignment_turned_in',
     canvas: {
-      card: (itemId) => <TaskCard itemId={ itemId }/>
+      card: (itemId) => <TaskCard itemId={ itemId }/>,
+      compact: (item) => <TaskCompactCard item={ item }/>
     }
   }],
 

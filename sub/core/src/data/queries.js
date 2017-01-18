@@ -23,6 +23,7 @@ const ItemsQuery = gql`
  */
 export const ItemsQueryWrapper = graphql(ItemsQuery, {
 
+  // http://dev.apollodata.com/react/queries.html#graphql-options
   options: (props) => {
     let { filter, count } = props;
 
@@ -33,14 +34,15 @@ export const ItemsQueryWrapper = graphql(ItemsQuery, {
     }
   },
 
+  // http://dev.apollodata.com/react/queries.html#graphql-props-option
   props: ({ ownProps, data }) => {
     let { items } = data;
     let { filter, count } = ownProps;
 
     return {
+      // Result.
       items: data.items,
 
-      // TODO(burdon): Rename expr (not filter).
       // Called when variables are updated.
       refetch: (filter) => {
         data.refetch({

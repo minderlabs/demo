@@ -80,12 +80,7 @@ export class BaseLayout extends React.Component {
   render() {
     let { children, className, config, team, viewer, folders } = this.props;
 
-    if (!config) {
-      console.log('############## NULL ################');
-      return null;
-    }
-
-    let baseClassName = 'app-base-layout ' + (className || '');
+    let baseClassName = 'ux-main-layout app-base-layout ' + (className || '');
 
     let sidePanel = <SidePanel team={ team } folders={ folders }/>;
 
@@ -94,7 +89,7 @@ export class BaseLayout extends React.Component {
         <div className={ baseClassName }>
 
           {/* Header */}
-          <div className="app-header ux-row">
+          <div className="ux-header ux-row">
             <div className="ux-row ux-expand">
               <SidebarToggle sidebar={ () => this.refs.sidebar }/>
               <h1>{ Const.APP_NAME }</h1>

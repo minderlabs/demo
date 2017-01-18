@@ -168,8 +168,8 @@ _.each(require('./testing/test.json'), (items, type) => {
 let promises = [];
 
 promises.push(database.queryItems(context, {}, { type: 'User' })
-  .then(users => {
 
+  .then(users => {
     // Get the group and add members.
     return database.getItem(context, 'Group', Const.DEF_TEAM)
       .then(group => {
