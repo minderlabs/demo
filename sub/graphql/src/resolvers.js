@@ -107,6 +107,7 @@ export class Resolvers {
         boards: (root, args, context) => {
           return _.map(_.get(root, 'boards'), board => ({
             alias: board.alias,
+            title: board.title || '',
             columns: board.columns,
             itemMeta: _.map(_.get(board, 'itemMeta'), (value, itemId) => ({ itemId, ...value }))
           }));

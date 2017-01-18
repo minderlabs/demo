@@ -26,8 +26,18 @@ export const UpdateItemMutation = gql`
     }
   }
   
+  # TODO(burdon): Factor out fragments.
+  
   fragment ProjectMutationFragment on Project {
-    board {
+    boards {
+      title
+      columns {
+        id
+        title
+        value {
+          ...ValueFragment
+        }
+      }
       itemMeta {
         itemId, listId, order
       }
@@ -46,5 +56,16 @@ export const UpdateItemMutation = gql`
     project {
       id
     }
+  }
+  
+  fragment ValueFragment on Value {
+    null
+    int
+    float
+    string
+    boolean
+    id
+    timestamp
+    date
   }
 `;

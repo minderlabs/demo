@@ -212,6 +212,7 @@ type BoardColumn {
 # Board metadata.
 type Board {
   alias: String!              # type of board.
+  title: String!
   columns: [BoardColumn]
   itemMeta: [ListItemMeta]
 }
@@ -233,9 +234,9 @@ type Viewer {
 
 interface Item {
   id: ID!
-  bucket: ID                # TODO(burdon): Change to ID.
+  bucket: ID                  # TODO(burdon): Change to ID.
   type: String!
-  alias: String             # Short-name for URLs (unique, human-readable).
+  alias: String               # Short-name for URLs (unique, human-readable).
   created: Timestamp!
   modified: Timestamp!
   title: String!

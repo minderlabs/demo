@@ -371,7 +371,6 @@ export const ProjectCard = composeItem(
   ProjectReducer)
 )(ProjectCardComponent);
 
-
 //
 // Project board.
 //
@@ -520,10 +519,10 @@ class ProjectBoardComponent extends React.Component {
 
     // TODO(burdon): Function to map items to board.
     const columns = [
-      { id: 'c1', status: 0, title: 'Icebox'    },
-      { id: 'c2', status: 1, title: 'Assigned'  },
-      { id: 'c3', status: 2, title: 'Active'    },
-      { id: 'c4', status: 3, title: 'Complete'  }
+      { id: 'c1', value: 0, title: 'Icebox'    },
+      { id: 'c2', value: 1, title: 'Assigned'  },
+      { id: 'c3', value: 2, title: 'Active'    },
+      { id: 'c4', value: 3, title: 'Complete'  }
     ];
 
     // TODO(burdon): Factor out.
@@ -545,7 +544,7 @@ class ProjectBoardComponent extends React.Component {
     // Map items to columns.
     let columnMapper = (columns, item) => {
       let idx = _.findIndex(columns, column => {
-        return (column.status == item.status);
+        return (column.value == item.status);
       });
 
       return columns[idx].id;

@@ -14,6 +14,7 @@
       "boards": [
         {
           "alias": "tasks",
+          "title": "Task Pipeline",
           "columns": [
             { "id": "c1", "value": { "int": 0 }, "title": "Icebox" },
             { "id": "c2", "value": { "int": 1 }, "title": "Assigned" },
