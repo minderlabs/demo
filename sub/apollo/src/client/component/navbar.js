@@ -13,7 +13,7 @@ export class NavBar extends React.Component {
   // TODO(burdon): Move Navigator and this to ux-core/ux-util.
 
   static contextTypes = {
-    navigator: React.PropTypes.object,
+    navigator: React.PropTypes.object.isRequired,
   };
 
   // TODO(burdon): Prevent go back if at top.

@@ -17,7 +17,7 @@ import './sidepanel.less';
 export class SidePanel extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object
+    navigator: React.PropTypes.object.isRequired
   };
 
   onSelect(path) {

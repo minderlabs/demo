@@ -14,7 +14,8 @@ import { List, ListItem } from 'minder-ux';
 
 import { Path } from '../../path';
 import { UpdateItemMutation } from '../../data/mutations';
-import { composeItem, CardContainer, ItemFragment } from '../item';
+import { composeItem, ItemFragment } from '../item';
+import { CardContainer } from '../card';
 
 import ItemsPicker from '../items_picker';
 
@@ -118,10 +119,10 @@ class TaskCardComponent extends React.Component {
   }
 
   render() {
-    let { user, item, mutator, typeRegistry } = this.props;
+    let { user, item, mutator, refetch, typeRegistry } = this.props;
 
     return (
-      <CardContainer mutator={ mutator } typeRegistry={ typeRegistry} item={ item }
+      <CardContainer mutator={ mutator } refetch={ refetch } typeRegistry={ typeRegistry} item={ item }
                      onSave={ this.handleSave.bind(this) }>
         <TaskLayout ref="item" user={ user } item={ item }/>
       </CardContainer>
@@ -316,7 +317,7 @@ class TaskCompactCardComponent extends React.Component {
   handleToggleStatus(task) {
     let { mutator } = this.props;
 
-    let status = (task.status == 0) ? 3 : 1;
+    let status = (task.status == 0) ? 3 : 0;
     mutator.updateItem(task, [ MutationUtil.createFieldMutation('status', 'int', status) ]);
   }
 

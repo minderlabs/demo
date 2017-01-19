@@ -47,6 +47,8 @@ export class FirebaseItemStore extends ItemStore {
     console.assert(db);
 
     this._db = db;
+
+    // TODO(burdon): Need to be able to reset cache.
     this._cache = new Cache(this._db, FirebaseItemStore.ROOT, idGenerator, matcher, FirebaseItemStore.parseData);
   }
 

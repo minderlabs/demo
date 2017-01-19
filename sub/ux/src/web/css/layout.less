@@ -41,6 +41,9 @@
 }
 
 .ux-canvas {
+  display: flex;
+  flex-direction: column;
+
   color: @ux-canvas-color;
   background-color: @ux-canvas-background;
 }
@@ -126,17 +129,23 @@
 
 .ux-section {
   padding: @ux-section-padding;
+
   background-color: @ux-section-background;
   border-bottom: 1px solid @ux-section-border-color;
 }
 .ux-section-header {
   padding: @ux-section-header-padding;
+
   background-color: @ux-section-header-background;
   color: @ux-section-header-color;
 
   i.ux-icon {
     color: @ux-section-header-color;
   }
+}
+.ux-section-header-dark {
+  background-color: @ux-section-header-dark-background;
+  color: @ux-section-header-dark-color;
 }
 
 //

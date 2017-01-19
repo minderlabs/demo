@@ -8,11 +8,10 @@ import { connect } from 'react-redux';
 import { ID } from 'minder-core';
 
 import BaseLayout from '../layout/base';
-
-import { TypeRegistry } from '../component/type/registry';
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
 
+import { TypeRegistry } from '../component/type/registry';
 import FinderView from '../view/finder';
 
 /**
@@ -39,9 +38,11 @@ export default class CanvasActivity extends React.Component {
     let { canvas, itemId } = params;
     let { type } = ID.fromGlobalId(itemId);
 
-    // TODO(burdon): TypeRegsistry canvas(type) should return appropriate object.
-    // TODO(burdon): Redux state for current folder and item (vs. history)?
+    // TODO(burdon): Don't put injector in context. Instead inject required objects?
+    // TODO(burdon): TypeRegistry canvas(type) should return appropriate object.
     let typeRegistry = this.context.injector.get(TypeRegistry);
+
+    // TODO(burdon): Rename canvas.
     let content = typeRegistry.canvas(type, itemId, canvas);
 
     // TODO(burdon): Layout based on form factor.

@@ -9,7 +9,8 @@ import gql from 'graphql-tag';
 import { ItemReducer } from 'minder-core';
 
 import { UpdateItemMutation } from '../../data/mutations';
-import { composeItem, CardContainer, ItemFragment } from '../item';
+import { composeItem, ItemFragment } from '../item';
+import { CardContainer } from '../card';
 
 /**
  * Type-specific fragment.
@@ -49,10 +50,10 @@ class PlaceCardComponent extends React.Component {
   };
 
   render() {
-    let { item, mutator, typeRegistry } = this.props;
+    let { item, mutator, refetch, typeRegistry } = this.props;
 
     return (
-      <CardContainer mutator={ mutator } typeRegistry={ typeRegistry} item={ item }>
+      <CardContainer mutator={ mutator } refetch={ refetch } typeRegistry={ typeRegistry} item={ item }>
         <PlaceLayout ref="item" item={ item }/>
       </CardContainer>
     );

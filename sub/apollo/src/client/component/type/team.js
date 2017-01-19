@@ -13,7 +13,8 @@ import { TextBox } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
-import { composeItem, CardContainer, ItemFragment } from '../item';
+import { composeItem, ItemFragment } from '../item';
+import { CardContainer } from '../card';
 
 /**
  * Type-specific fragment.
@@ -64,10 +65,10 @@ class TeamCardComponent extends React.Component {
   };
 
   render() {
-    let { user, item, mutator, typeRegistry } = this.props;
+    let { user, item, mutator, refetch, typeRegistry } = this.props;
 
     return (
-      <CardContainer mutator={ mutator } typeRegistry={ typeRegistry} item={ item }>
+      <CardContainer mutator={ mutator } refetch={ refetch } typeRegistry={ typeRegistry} item={ item }>
         <TeamLayout ref="item" user={ user } item={ item }/>
       </CardContainer>
     );

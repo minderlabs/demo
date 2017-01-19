@@ -11,7 +11,9 @@ import { Board, DragOrderModel, List, ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
-import { composeItem, CardContainer, ItemFragment, ValueFragment } from '../item';
+import { composeItem, ItemFragment, ValueFragment } from '../item';
+import { CardContainer } from '../card';
+import { CanvasContainer } from '../canvas';
 import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
 
 import { TaskFragment } from './task';
@@ -106,7 +108,7 @@ class ProjectCardComponent extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
-    item: React.PropTypes.object,               // TODO(burdon): Required?
+    item: React.PropTypes.object
   };
 
   handleToggleCanvas() {
@@ -116,10 +118,10 @@ class ProjectCardComponent extends React.Component {
   }
 
   render() {
-    let { user, item, mutator, typeRegistry } = this.props;
+    let { user, item, mutator, refetch, typeRegistry } = this.props;
 
     return (
-      <CardContainer mutator={ mutator } typeRegistry={ typeRegistry} item={ item }
+      <CardContainer mutator={ mutator } refetch={ refetch } typeRegistry={ typeRegistry} item={ item }
                      onToggleCanvas={ this.handleToggleCanvas.bind(this) }>
 
         <ProjectCardLayout ref="item" user={ user } item={ item }/>
@@ -291,8 +293,8 @@ class ProjectCardLayout extends React.Component {
 
     const handleTaskAdd = (listId) => this.handleTaskAdd(getWrappedList(this.refs[listId]));
     const sectionHeader = (title, listId) => (
-      <div className="ux-section-header ux-row">
-        <h3 className="ux-expand">{ title }</h3>
+      <div className="ux-section-header ux-section-header-dark ux-row">
+        <h4 className="ux-expand">{ title }</h4>
         <i className="ux-icon ux-icon-add"
            onClick={ handleTaskAdd.bind(this, listId) }></i>
       </div>
@@ -305,6 +307,9 @@ class ProjectCardLayout extends React.Component {
           * Team tasks.
           */}
         <div>
+          <div className="ux-section-header ux-section-header-dark ux-row">
+            <h3>Team Tasks</h3>
+          </div>
           {project.team.members.map(member => (
           <div key={ member.id }>
             {/*
@@ -314,7 +319,7 @@ class ProjectCardLayout extends React.Component {
               <Link to={ Path.canvas(ID.toGlobalId('User', member.id)) }>
                 <i className="ux-icon">accessibility</i>
               </Link>
-              <h3 className="ux-expand">{ member.title }</h3>
+              <h4 className="ux-expand">{ member.title }</h4>
               <i className="ux-icon ux-icon-add"
                  onClick={ this.handleTaskAdd.bind(this, this.refs['list-' + member.id]) }></i>
             </div>
@@ -457,7 +462,7 @@ class ProjectBoardComponent extends React.Component {
 
     this.setState({
       // Default board.
-      board: project && project.boards[0].alias
+      board: _.get(project, 'boards[0].alias')
     })
   }
 
@@ -577,7 +582,7 @@ class ProjectBoardComponent extends React.Component {
     // TODO(burdon): Move title to NavBar.
     // TODO(burdon): Base class for canvases (e.g., editable title like Card).
     return (
-      <div className="ux-canvas ux-column">
+      <div className="ux-column">
         <div className="ux-section ux-row">
           <i className="ux-icon" onClick={ this.handleToggleCanvas.bind(this) }>{ typeRegistry.icon(item) }</i>
 
@@ -590,6 +595,22 @@ class ProjectBoardComponent extends React.Component {
                onItemDrop={ this.handleItemDrop.bind(this) }
                onItemSelect={ this.handleItemSelect.bind(this) }/>
       </div>
+    );
+  }
+}
+
+/**
+ * Wrapper.
+ */
+class ProjectBoardCanvas extends React.Component {
+
+  render() {
+    let { user, item, refetch, typeRegistry } = this.props;
+
+    return (
+      <CanvasContainer refetch={ refetch }>
+        <ProjectBoardComponent typeRegistry={ typeRegistry } user={ user } item={ item }/>
+      </CanvasContainer>
     );
   }
 }
@@ -609,4 +630,4 @@ export const ProjectBoard = composeItem(
     }
   },
   ProjectReducer)
-)(ProjectBoardComponent);
+)(ProjectBoardCanvas);
