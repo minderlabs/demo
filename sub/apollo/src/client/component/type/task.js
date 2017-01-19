@@ -71,6 +71,23 @@ const TaskQuery = gql`
 `;
 
 /**
+ * Type-specific reducer.
+ */
+const TaskReducer = (matcher, context, previousResult, updatedItem) => {
+
+  // Check not root item.
+  if (previousResult.item.id != updatedItem.id) {
+    return {
+      item: {
+        tasks: {
+          $push: [ updatedItem ]
+        }
+      }
+    }
+  }
+};
+
+/**
  * Type-specific card container.
  */
 class TaskCardComponent extends React.Component {
@@ -101,12 +118,12 @@ class TaskCardComponent extends React.Component {
   }
 
   render() {
-    let { item, mutator, typeRegistry } = this.props;
+    let { user, item, mutator, typeRegistry } = this.props;
 
     return (
       <CardContainer mutator={ mutator } typeRegistry={ typeRegistry} item={ item }
                      onSave={ this.handleSave.bind(this) }>
-        <TaskLayout ref="item" item={ item }/>
+        <TaskLayout ref="item" user={ user } item={ item }/>
       </CardContainer>
     );
   }
@@ -118,14 +135,11 @@ class TaskCardComponent extends React.Component {
 class TaskLayout extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired
+    navigator: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired
   };
 
-  constructor() {
-    super(...arguments);
-
-    this.state = {};
-  }
+  state = {};
 
   componentWillReceiveProps(nextProps) {
     let { item } = nextProps;
@@ -167,15 +181,52 @@ class TaskLayout extends React.Component {
     });
   }
 
-  handleTaskItemSelect(item) {
+  handleTaskSelect(item) {
+    console.assert(item);
     this.context.navigator.push(Path.canvas(ID.toGlobalId('Task', item.id)));
+  }
+
+  handleTaskSave(item) {
+    let { item:task, user } = this.props;
+    console.assert(item);
+
+    // TODO(burdon): Factor out mutations (see project.js).
+    let taskId = this.context.mutator.createItem('Task', [
+      {
+        field: 'owner',
+        value: {
+          id: user.id
+        }
+      },
+      {
+        field: 'title',
+        value: {
+          string: item.title
+        }
+      }
+    ]);
+
+    this.context.mutator.updateItem(task, [
+      {
+        field: 'tasks',
+        value: {
+          set: [{
+            value: {
+              id: taskId
+            }
+          }]
+        }
+      }
+    ]);
+  }
+
+  handleTaskAdd() {
+    this.refs.tasks.addItem();
   }
 
   render() {
     let { item={} } = this.props;
     let { assigneeText, status } = this.state;
-
-    console.log('::::::::::::::', assigneeText, JSON.stringify(item));
 
     let userFilter = {
       type: 'User',
@@ -216,11 +267,15 @@ class TaskLayout extends React.Component {
         </div>
 
         <div>
-          <div className="ux-section-header">
-            <h3>Sub Tasks</h3>
+          <div className="ux-section-header ux-row">
+            <h3 className="ux-expand">Sub Tasks</h3>
+            <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
           </div>
 
-          <List items={ item.tasks } onItemSelect={ this.handleTaskItemSelect.bind(this) }/>
+          <List ref="tasks"
+                items={ item.tasks }
+                onItemSave={ this.handleTaskSave.bind(this) }
+                onItemSelect={ this.handleTaskSelect.bind(this) }/>
         </div>
       </div>
     );
@@ -240,7 +295,8 @@ export const TaskCard = composeItem(
       type: TaskQuery,
       path: 'item'
     }
-  })
+  },
+  TaskReducer)
 )(TaskCardComponent);
 
 /**
@@ -313,5 +369,3 @@ export const TaskCompactCard = compose(
   connect(mapStateToProps),
   Mutator.graphql(UpdateItemMutation)
 )(TaskCompactCardComponent);
-
-// export const TaskCompactCard = TaskCompactCardComponent;
