@@ -15,84 +15,6 @@ brew install kops
 Optional: set up bash completion for kubectl, following http://kubernetes.io/docs/getting-started-guides/kubectl/.
 
 
-## Deploying a cluster on AWS
-
-Following:
-* http://kubernetes.io/docs/getting-started-guides/kops/
-* https://github.com/kubernetes/kops/blob/master/docs/aws.md
-
-Technical details about how it uses AWS infrastructure:
-https://github.com/kubernetes/kops/blob/master/vendor/k8s.io/kubernetes/docs/design/aws_under_the_hood.md
-
-1. Set up route53 hosted zone, and point parent DNS to it with NS records.
-    http://kubernetes.io/docs/getting-started-guides/kops/
-
-1. Set up S3 bucket. Assuming aws CLI is installed and configured:
-    ```
-    export CLUSTER_NAME=dev.k.minderlabs.com
-    aws s3 mb s3://clusters.${CLUSTER_NAME}
-    export KOPS_STATE_STORE=s3://clusters.${CLUSTER_NAME}
-    ```
-
-1. Create the cluster config. This doesn't deploy anything yet:
-
-    ```
-    kops create cluster --zones=us-east-1d ${CLUSTER_NAME}
-    ```
-
-    Kubernetes `instance groups` correspond to aws autoscaling groups. Can edit to change machine
-    type, group size, zones, etc via:
-    ```
-    kops edit ig --name=${CLUSTER_NAME} nodes
-    ```
-
-1. Deploy:
-    ```
-    kops update cluster ${CLUSTER_NAME} --yes
-    ```
-
-    It creates a file ~/.kube/config with the data needed by `kubectl` including keys.
-    It can take a few minutes for it to come up.
-
-    Sharing and merging kubeconfig files: http://kubernetes.io/docs/user-guide/sharing-clusters/
-
-1. Use `kubectl` to administer.
-
-    ```
-    kubectl cluster-info
-    kubectl get nodes
-    ```
-    If these fail, the cluster is probably still coming up.
-
-    The master is exposed at https://api.${CLUSTER_NAME}/ -- you can connect w/ HTTP basic auth,
-    the credentials are in the kubeconfig file.
-
-1. Optional, run the Dashboard UI service.
-    http://kubernetes.io/docs/user-guide/ui/
-    ```
-    kubectl create -f https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
-    ```
-    The service is created in the `kube-system` namespace, so to verify it's running do:
-    ```
-    kubectl --namespace kube-system get svc
-    ```
-
-    There are two ways to connect:
-    1. Via a local kubernetes proxy:
-        ```
-        kubectl proxy
-        ```
-        then connect to http://localhost:8001/ui.
-
-    1. Using http basic auth (see above), you can hit the master https://api.${CLUSTER_NAME}/ui.
-    (TODO: better auth)
-
-
-1. Delete:
-    ```
-    kops delete cluster ${CLUSTER_NAME} # --yes
-    ```
-
 ## Deploying a service.
 
 #### Cheat sheet
@@ -184,6 +106,89 @@ To push an image to ECR:
     A convenient way to get these commands is from the [ECR console](https://console.aws.amazon.com/ecs/home?region=us-east-1#/repositories),
     then select the repo and click "View Push Commands".
 
+
+## Deploying a cluster on AWS
+
+Following:
+* http://kubernetes.io/docs/getting-started-guides/kops/
+* https://github.com/kubernetes/kops/blob/master/docs/aws.md
+
+Technical details about how it uses AWS infrastructure:
+https://github.com/kubernetes/kops/blob/master/vendor/k8s.io/kubernetes/docs/design/aws_under_the_hood.md
+
+1. Set up route53 hosted zone, and point parent DNS to it with NS records.
+    http://kubernetes.io/docs/getting-started-guides/kops/
+
+1. Set up S3 bucket. Assuming aws CLI is installed and configured:
+    ```
+    export CLUSTER_NAME=dev.k.minderlabs.com
+    aws s3 mb s3://clusters.${CLUSTER_NAME}
+    export KOPS_STATE_STORE=s3://clusters.${CLUSTER_NAME}
+    ```
+
+1. Create the cluster config. This doesn't deploy anything yet:
+
+    ```
+    kops create cluster --zones=us-east-1d ${CLUSTER_NAME}
+    ```
+
+    Kubernetes `instance groups` correspond to aws autoscaling groups. Can edit to change machine
+    type, group size, zones, etc via:
+    ```
+    kops edit ig --name=${CLUSTER_NAME} nodes
+    ```
+
+1. Deploy:
+    ```
+    kops update cluster ${CLUSTER_NAME} --yes
+    ```
+
+    It creates a file ~/.kube/config with the data needed by `kubectl` including keys.
+    It can take a few minutes for it to come up.
+
+    We share kubeconfig files using the access-controlled github repo `prod-ops` in
+    `//kube/configs/<cluster>`. Ask
+    for access if you need it.
+
+    Further reading on sharing and merging kubeconfig files: http://kubernetes.io/docs/user-guide/sharing-clusters/
+
+
+1. Use `kubectl` to administer.
+
+    ```
+    kubectl cluster-info
+    kubectl get nodes
+    ```
+    If these fail, the cluster is probably still coming up.
+
+    The master is exposed at https://api.${CLUSTER_NAME}/ -- you can connect w/ HTTP basic auth,
+    the credentials are in the kubeconfig file.
+
+1. Optional, run the Dashboard UI service.
+    http://kubernetes.io/docs/user-guide/ui/
+    ```
+    kubectl create -f https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
+    ```
+    The service is created in the `kube-system` namespace, so to verify it's running do:
+    ```
+    kubectl --namespace kube-system get svc
+    ```
+
+    There are two ways to connect:
+    1. Via a local kubernetes proxy:
+        ```
+        kubectl proxy
+        ```
+        then connect to http://localhost:8001/ui.
+
+    1. Using http basic auth (see above), you can hit the master https://api.${CLUSTER_NAME}/ui.
+    (TODO: better auth)
+
+
+1. Delete:
+    ```
+    kops delete cluster ${CLUSTER_NAME} # --yes
+    ```
 
 ## Ingress: Load balancing, reverse proxy, HTTPS termination.
 
