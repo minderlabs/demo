@@ -109,6 +109,8 @@ export class Resolvers {
             alias: board.alias,
             title: board.title || '',
             columns: board.columns,
+
+            // Return map as an array.
             itemMeta: _.map(_.get(board, 'itemMeta'), (value, itemId) => ({ itemId, ...value }))
           }));
         },

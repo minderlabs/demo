@@ -90,7 +90,7 @@ describe('Transforms:', () => {
     expect(_.get(result, 'foo.bar.x.order')).to.equal(0.5);
   });
 
-  it('Apply set mutation.', () => {
+  it('Apply set mutations.', () => {
     let object = {
       labels: ['red', 'green']
     };
@@ -115,7 +115,7 @@ describe('Transforms:', () => {
     expect(_.indexOf(_.get(result, 'labels'), 'blue')).to.not.equal(-1);
   });
 
-  it('Apply array mutation.', () => {
+  it('Apply array mutations.', () => {
     let object = {
       scores: [1, 2, 3]
     };
@@ -137,7 +137,7 @@ describe('Transforms:', () => {
     expect(_.get(result, 'scores').length).to.equal(4);
   });
 
-  it('Apply array map mutation.', () => {
+  it('Apply map mutations.', () => {
     let object = {
       colors: [
         {
@@ -150,16 +150,14 @@ describe('Transforms:', () => {
       ]
     };
 
-    // TODO(burdon): Upsert non-scalar values (i.e., nested mutation).
-
     let mutations = [
       {
         field: 'colors',
         value: {
-          array: [
+          map: [
             {
               // Update existing.
-              map: {
+              predicate: {
                 key: 'alias',
                 value: {
                   string: 'red'
@@ -176,7 +174,7 @@ describe('Transforms:', () => {
             },
             {
               // Insert new element.
-              map: {
+              predicate: {
                 key: 'alias',
                 value: {
                   string: 'green'
@@ -198,7 +196,7 @@ describe('Transforms:', () => {
             },
             {
               // Remove
-              map: {
+              predicate: {
                 key: 'alias',
                 value: {
                   string: 'blue'
@@ -219,20 +217,4 @@ describe('Transforms:', () => {
     expect(_.get(_.find(_.get(result, 'colors'), color => color.alias == 'green'), 'labels')).to.have.length(2);
     expect(_.findIndex(_.get(result, 'colors'), color => color.alias == 'blue')).to.equal(-1);
   });
-
-  /*
-  it('Apply array map mutation with object values.', () => {
-    let object = {
-      emails: [
-        {
-          alias: 'home',
-
-        },
-        {
-          alias: 'work',
-        }
-      ]
-    }
-  });
-  */
 });

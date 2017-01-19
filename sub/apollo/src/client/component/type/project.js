@@ -388,6 +388,7 @@ const ProjectBoardQuery = gql`
 
         boards {
           alias
+          title
           columns {
             id
             title
@@ -432,19 +433,30 @@ class ProjectBoardComponent extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired,
     item: React.PropTypes.object,
+    board: React.PropTypes.string
   };
 
   constructor() {
     super(...arguments);
 
     this.state = {
+      board: null,
       itemOrderModel: new DragOrderModel()
     };
   }
 
+  componentWillReceiveProps(nextProps) {
+    let { item:project } = nextProps;
+
+    this.setState({
+      // Default board.
+      board: project && project.boards[0].alias
+    })
+  }
+
   handleToggleCanvas() {
-    let { item } = this.props;
-    this.context.navigator.push(Path.canvas(ID.toGlobalId('Project', item.id)));
+    let { item:project } = this.props;
+    this.context.navigator.push(Path.canvas(ID.toGlobalId('Project', project.id)));
   }
 
   handleItemSelect(item) {
@@ -452,54 +464,59 @@ class ProjectBoardComponent extends React.Component {
   }
 
   handleItemDrop(column, item, changes) {
-    let { item:project, boardAlias } = this.props;
+    let { item:project } = this.props;
+    let { board } = this.state;
+    console.assert(board);
 
     // TODO(burdon): Wrap board with CanvasLayout (and pass mutator via context).
     // TODO(burdon): Do optimistic update before re-rendering.
-    let status = column.status;
+
+    // TODO(burdon): Customize for different boards (e.g., assigned).
+    let status = column.value;
     this.props.mutator.updateItem(item, [ MutationUtil.createFieldMutation('status', 'int', status) ]);
 
     // TODO(burdon): Update specific board (separate node or Project meta?)
-    // TODO(burdon):
     let mutations = _.map(changes, change => ({
       field: 'boards',
       value: {
-        map: {
-          match: {                      // Upsert the given keyed value (in the array).
+        map: [{
+
+          // Upsert the given keyed value (in the array).
+          predicate: {
             key: 'alias',
             value: {
-              string: boardAlias
+              string: board
             }
           },
+
           value: {
             object: [{
               field: 'itemMeta',
               value: {
-                object: [
-                  {
-                    field: change.itemId,
-                    value: {
-                      object: [
-                        {
-                          field: 'listId',
-                          value: {
-                            string: change.listId
-                          }
-                        },
-                        {
-                          field: 'order',
-                          value: {
-                            float: change.order
-                          }
+                // TODO(burdon): Should this be a map transformation (could boards above just use an object transform)?
+                object: [{
+                  field: change.itemId,
+                  value: {
+                    object: [
+                      {
+                        field: 'listId',
+                        value: {
+                          string: change.listId
                         }
-                      ]
-                    }
+                      },
+                      {
+                        field: 'order',
+                        value: {
+                          float: change.order
+                        }
+                      }
+                    ]
                   }
-                ]
+                }]
               }
             }]
           }
-        }
+        }]
       }
     }));
 

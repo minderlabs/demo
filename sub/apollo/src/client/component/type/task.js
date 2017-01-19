@@ -10,7 +10,7 @@ import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, Mutator } from 'minder-core';
-import { ListItem } from 'minder-ux';
+import { List, ListItem } from 'minder-ux';
 
 import { Path } from '../../path';
 import { UpdateItemMutation } from '../../data/mutations';
@@ -57,6 +57,12 @@ const TaskQuery = gql`
     item(itemId: $itemId) {
       ...ItemFragment
       ...TaskFragment
+      
+      ... on Task {
+        tasks {
+          ...TaskFragment
+        }
+      }
     }
   }
 
@@ -111,6 +117,10 @@ class TaskCardComponent extends React.Component {
  */
 class TaskLayout extends React.Component {
 
+  static contextTypes = {
+    navigator: React.PropTypes.object.isRequired
+  };
+
   constructor() {
     super(...arguments);
 
@@ -157,19 +167,23 @@ class TaskLayout extends React.Component {
     });
   }
 
+  handleTaskItemSelect(item) {
+    this.context.navigator.push(Path.canvas(ID.toGlobalId('Task', item.id)));
+  }
+
   render() {
-    let { item } = this.props;
-    let { assignee_text, status } = this.state;
+    let { item={} } = this.props;
+    let { assigneeText, status } = this.state;
 
     let userFilter = {
       type: 'User',
-      text: assignee_text
+      text: assigneeText
     };
 
     return (
-      <div className="app-type-task ux-column ux-section">
-        <div className="ux-data">
+      <div className="app-type-task ux-column">
 
+        <div className="ux-section ux-data">
           <div className="ux-data-row">
             <div className="ux-data-label">Project</div>
             <div className="ux-text">{ _.get(item, 'project.title') }</div>
@@ -183,7 +197,7 @@ class TaskLayout extends React.Component {
           <div className="ux-data-row">
             <div className="ux-data-label">Assignee</div>
             <ItemsPicker filter={ userFilter }
-                         value={ assignee_text }
+                         value={ assigneeText }
                          onTextChange={ this.handleSetText.bind(this, 'assignee_text') }
                          onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
           </div>
@@ -197,7 +211,14 @@ class TaskLayout extends React.Component {
               <option value="3">Complete</option>
             </select>
           </div>
+        </div>
 
+        <div>
+          <div className="ux-section-header">
+            <h3>Sub Tasks</h3>
+          </div>
+
+          <List items={ item.tasks } onItemSelect={ this.handleTaskItemSelect.bind(this) }/>
         </div>
       </div>
     );
@@ -244,6 +265,7 @@ class TaskCompactCardComponent extends React.Component {
   render() {
     let { item } = this.context;
 
+    // TODO(burdon): Use list. Factor out for use in detail page.
     let subTasks = _.map(item.tasks, task => {
       let icon = (task.status == 3) ? 'done' : 'check_box_outline_blank';
 

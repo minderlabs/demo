@@ -47,8 +47,6 @@ scalar Timestamp
 # http://www.jinqjs.com/Examples
 # https://jinqjs.readme.io/docs/where-filter
 
-# TODO(burdon): Serialize for stored queries (rather than duplicate types).
-
 input ValueInput {
   null:       Boolean
 
@@ -62,19 +60,34 @@ input ValueInput {
 
   date:       Date
 
+  map:        [MapMutationInput]
   set:        [SetMutationInput]
   array:      [ArrayMutationInput]
+
   object:     [ObjectMutationInput]
 }
 
 #
-# Array mutation.
+# Array mutations.
+# NOTE: GraphQL doesn't support maps (i.e., arbitrary keyed objects).
+# Instead we declare arrays of typed objects and use Map mutations to update them.
+# The underlying stored data representation can be anything (e.g., can be a JSON object), but it has to be
+# queried and updated as an array.
+#
+# NOTE: Mutations COULD treat values as objects, but this would be wierd since they would still need
+# to be queried as arrays.
 #
 
-# Multi-purpose Key x Value pair (i.e., can be map accessor or used by operators like ArrayMutationInput).
+# Multi-purpose Key x Value pair.
 input KeyValue {
-  key: [String]
-  value: [ValueInput]
+  key: String!
+  value: ValueInput!
+}
+
+# Map (stored as array).
+input MapMutationInput {
+  predicate: KeyValue             # Matcher for array object value.
+  value: ValueInput!
 }
 
 # Ordered set.
@@ -83,12 +96,12 @@ input SetMutationInput {
   value: ValueInput!
 }
 
-# TODO(burdon): Treat as set or array? Remove.
+# Plain array.
 input ArrayMutationInput {
-  map: KeyValue                   # Insert by keyed value (key is property of array items that match the value).
   index: Int                      # Insert ordinal position (-1 to append; undefined to remove).
   value: ValueInput!              # Value to input.
 }
+
 
 #
 # Object mutation.
@@ -211,10 +224,10 @@ type BoardColumn {
 
 # Board metadata.
 type Board {
-  alias: String!              # type of board.
+  alias: String!              # Type of board.
   title: String!
   columns: [BoardColumn]
-  itemMeta: [ListItemMeta]
+  itemMeta: [ListItemMeta]    # Map of ID x meta values (i.e., map).
 }
 
 #
