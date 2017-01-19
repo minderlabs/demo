@@ -46,7 +46,7 @@ const ProjectQuery = gql`
                 ]
               }
             }) {
-              ...ItemFragment
+              ...TaskFragment
               
               project {
                 id
@@ -59,6 +59,7 @@ const ProjectQuery = gql`
   }
 
   ${ItemFragment}
+  ${TaskFragment}
 `;
 
 /**
@@ -83,7 +84,7 @@ const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
             members: {
               [memberIdx]: {
                 tasks: {
-                  $apply: Reducer.listApplicator(matcher, context, filter, updatedItem)
+                  $apply: ItemReducer.listApplicator(matcher, context, filter, updatedItem)
                 }
               }
             }
@@ -226,6 +227,12 @@ class ProjectCardLayout extends React.Component {
     expr: {
       op: 'AND',
       expr: [
+        {
+          field: 'bucket',
+          value: {
+            null: true
+          }
+        },
         {
           field: 'project',
           value: {

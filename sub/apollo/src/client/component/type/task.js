@@ -138,7 +138,7 @@ class TaskLayout extends React.Component {
     if (_.get(item, 'id') != this.state.itemId) {
       this.setState({
         itemId:         _.get(item, 'id'),
-        assignee_text:  _.get(item, 'assignee.title'),
+        assigneeText:   _.get(item, 'assignee.title'),
         assignee:       _.get(item, 'assignee.id'),
         status:         _.get(item, 'status', 0)
       });
@@ -175,6 +175,8 @@ class TaskLayout extends React.Component {
     let { item={} } = this.props;
     let { assigneeText, status } = this.state;
 
+    console.log('::::::::::::::', assigneeText, JSON.stringify(item));
+
     let userFilter = {
       type: 'User',
       text: assigneeText
@@ -198,7 +200,7 @@ class TaskLayout extends React.Component {
             <div className="ux-data-label">Assignee</div>
             <ItemsPicker filter={ userFilter }
                          value={ assigneeText }
-                         onTextChange={ this.handleSetText.bind(this, 'assignee_text') }
+                         onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
                          onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
           </div>
 

@@ -92,7 +92,7 @@ input MapMutationInput {
 
 # Ordered set.
 input SetMutationInput {
-  add: Boolean!
+  add: Boolean                    # Default is true.
   value: ValueInput!
 }
 

@@ -2,7 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { graphql } from 'react-apollo';
 import update from 'immutability-helper';
 
 import $$ from '../util/format';
@@ -156,7 +155,7 @@ class Reducer {
 
   doTransform(previousResult, transform) {
     console.assert(previousResult && transform);
-    logger.log($$('Transform: %o: %s', previousResult, JSON.stringify(transform, 0, 2)));
+//  logger.log($$('Transform: %o\n%s', previousResult, JSON.stringify(transform, 0, 2)));
     return update(previousResult, transform);
   }
 }
@@ -188,15 +187,19 @@ export class ListReducer extends Reducer {
   reduceItems(matcher, context, filter, previousResult, action) {
     let result = previousResult;
 
-    let updatedItem = this.getMutatedItem(action);
-    if (updatedItem) {
-      let queryName = this.query.definitions[0].name.value;
-      logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
+    try {
+      let updatedItem = this.getMutatedItem(action);
+      if (updatedItem) {
+        let queryName = this.query.definitions[0].name.value;
+        logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
 
-      let transform = this.getTransform(matcher, context, filter, previousResult, updatedItem);
-      if (transform) {
-        result = this.doTransform(previousResult, transform);
+        let transform = this.getTransform(matcher, context, filter, previousResult, updatedItem);
+        if (transform) {
+          result = this.doTransform(previousResult, transform);
+        }
       }
+    } catch (ex) {
+      console.error('Reducer failed:', ex);
     }
 
     return result;
@@ -270,15 +273,19 @@ export class ItemReducer extends Reducer {
   reduceItem(matcher, context, previousResult, action) {
     let result = previousResult;
 
-    let updatedItem = this.getMutatedItem(action);
-    if (updatedItem) {
-      let queryName = this.query.definitions[0].name.value;
-      logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
+    try {
+      let updatedItem = this.getMutatedItem(action);
+      if (updatedItem) {
+        let queryName = this.query.definitions[0].name.value;
+        logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
 
-      let transform = this.getTransform(matcher, context, previousResult, updatedItem);
-      if (transform) {
-        result = this.doTransform(previousResult, transform);
+        let transform = this.getTransform(matcher, context, previousResult, updatedItem);
+        if (transform) {
+          result = this.doTransform(previousResult, transform);
+        }
       }
+    } catch (ex) {
+      console.error('Reducer failed:', ex);
     }
 
     return result;
