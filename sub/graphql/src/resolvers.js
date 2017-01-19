@@ -104,16 +104,15 @@ export class Resolvers {
 
       Project: {
 
-        board: (root, args, context) => {
-          // Reify order map as array of values.
-          let itemMeta = _.map(_.get(root, 'board.itemMeta'), (value, itemId) => ({
-            itemId,
-            ...value
-          }));
+        boards: (root, args, context) => {
+          return _.map(_.get(root, 'boards'), board => ({
+            alias: board.alias,
+            title: board.title || '',
+            columns: board.columns,
 
-          return {
-            itemMeta
-          }
+            // Return map as an array.
+            itemMeta: _.map(_.get(board, 'itemMeta'), (value, itemId) => ({ itemId, ...value }))
+          }));
         },
 
         team: (root, args, context) => {
@@ -133,21 +132,19 @@ export class Resolvers {
         },
 
         project: (root, args, context) => {
-          if (root.project) {
-            return database.getItem(context, 'Project', root.project);
-          }
+          return root.project && database.getItem(context, 'Project', root.project);
+        },
+
+        tasks: (root, args, context) => {
+          return root.tasks && database.getItems(context, 'Task', root.tasks) || [];
         },
 
         owner: (root, args, context) => {
-          if (root.owner) {
-            return database.getItem(context, 'User', root.owner);
-          }
+          return root.owner && database.getItem(context, 'User', root.owner);
         },
 
         assignee: (root, args, context) => {
-          if (root.assignee) {
-            return database.getItem(context, 'User', root.assignee);
-          }
+          return root.assignee && database.getItem(context, 'User', root.assignee);
         }
       },
 

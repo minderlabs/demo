@@ -24,6 +24,8 @@ export class TypeRegistry {
     this._types = new Map(types);
   }
 
+  // TODO(burdon): Rationalize canvas/card/compact, etc.
+
   /**
    * Canvas component for page view.
    *

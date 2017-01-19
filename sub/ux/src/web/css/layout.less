@@ -25,12 +25,18 @@
 .ux-main-layout {
 
   > .ux-header {
+    padding: 0 8px;
+
     background-color: @ux-header-background;
     color: @ux-header-color;
-  }
 
-  a {
-    color: @ux-header-color;
+    i.ux-icon {
+      margin: 0;
+    }
+
+    a {
+      color: @ux-header-color;
+    }
   }
 }
 
@@ -120,6 +126,8 @@
 
 .ux-section {
   padding: @ux-section-padding;
+  background-color: @ux-section-background;
+  border-bottom: 1px solid @ux-section-border-color;
 }
 .ux-section-header {
   padding: @ux-section-header-padding;

@@ -27,22 +27,26 @@
 @ux-canvas-color:                       #333;
 @ux-canvas-background:                  #0277BD;
 
+@ux-contrast-color:                     lighten(#56ad39, 20%);
+
 @ux-section-padding:                    8px;
 @ux-section-header-padding:             4px 8px;
 @ux-section-header-color:               @ux-color-dark;
-@ux-section-header-background:          #BDBDBD;
+@ux-section-header-background:          gainsboro;
+@ux-section-border-color:               @ux-section-header-background;
+@ux-section-background:                 whitesmoke;
 
 @ux-toolbar-padding:                    8px;
 @ux-toolbar-background:                 whitesmoke;
 @ux-toolbar-control-color:              #333;
-@ux-toolbar-control-background:         whitesmoke;
+@ux-toolbar-control-background:         gainsboro;
 @ux-toolbar-control-background-hover:   darken(@ux-toolbar-control-background, 20%);
 @ux-toolbar-control-border:             darken(@ux-toolbar-control-background, 40%);
 @ux-toolbar-control-border-light:       @ux-toolbar-control-background;
 
 @ux-border:                             1px solid #AAA;
-@ux-button-background:                  #CCC;
-@ux-button-background-hover:            #AAA;
+@ux-button-background:                  @ux-toolbar-control-background;
+@ux-button-background-hover:            lighten(@ux-button-background, 10%);
 
 @ux-background-dark:                    #00456e;
 @ux-background-light:                   #CCC;
@@ -55,4 +59,4 @@
 @ux-color-star:                         orange;
 @ux-color-tag:                          cornflowerblue;
 
-@ux-list-highlight:                     #E0E0E0;
+@ux-list-highlight:                     @ux-contrast-color;

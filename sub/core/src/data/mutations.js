@@ -35,13 +35,13 @@ export class MutationUtil {
    * @param set
    * @returns {mutation}
    */
-  static createLabelUpdate(label, set=true) {
+  static createLabelMutation(label, set=true) {
     console.assert(label);
     return {
       field: 'labels',
       value: {
-        array: [{
-          index: set ? 0 : -1,
+        set: [{
+          add: set ? true : false,
           value: {
             string: label
           }
@@ -54,8 +54,8 @@ export class MutationUtil {
    * Adds the delete label.
    * @returns {mutation}
    */
-  static createDeleteMutation() {
-    return MutationUtil.createLabelUpdate('_deleted');
+  static createDeleteMutation(set=true) {
+    return MutationUtil.createLabelMutation('_deleted', set);
   }
 }
 
@@ -81,6 +81,7 @@ export class Mutator {
         /**
          * Injects a mutator instance into the wrapped components properties.
          */
+        // TODO(burdon): Where does the injector come from?
         mutator: new Mutator(mutate, ownProps.injector.get(IdGenerator)),
       })
     });

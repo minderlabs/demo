@@ -11,8 +11,10 @@ import { Board, DragOrderModel, List, ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
-import { composeItem, CardContainer, ItemFragment } from '../item';
+import { composeItem, CardContainer, ItemFragment, ValueFragment } from '../item';
 import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
+
+import { TaskFragment } from './task';
 
 //
 // Project card.
@@ -44,7 +46,7 @@ const ProjectQuery = gql`
                 ]
               }
             }) {
-              ...ItemFragment
+              ...TaskFragment
               
               project {
                 id
@@ -57,6 +59,7 @@ const ProjectQuery = gql`
   }
 
   ${ItemFragment}
+  ${TaskFragment}
 `;
 
 /**
@@ -81,7 +84,7 @@ const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
             members: {
               [memberIdx]: {
                 tasks: {
-                  $apply: Reducer.listApplicator(matcher, context, filter, updatedItem)
+                  $apply: ItemReducer.listApplicator(matcher, context, filter, updatedItem)
                 }
               }
             }
@@ -103,7 +106,7 @@ class ProjectCardComponent extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
-    item: React.PropTypes.object,
+    item: React.PropTypes.object,               // TODO(burdon): Required?
   };
 
   handleToggleCanvas() {
@@ -159,7 +162,7 @@ class ProjectCardLayout extends React.Component {
       {
         field: 'tasks',
         value: {
-          array: [{
+          set: [{
             value: {
               id: taskId
             }
@@ -199,12 +202,12 @@ class ProjectCardLayout extends React.Component {
    * Submits the task mutation, then updates the project's tasks field.
    */
   updateTask(mutations) {
-    let { item } = this.props;
+    let { item:project } = this.props;
 
     // TODO(burdon): Upsert.
     // TODO(burdon): Implement bi-directional links.
     let taskId = this.context.mutator.createItem('Task', mutations);
-    this.context.mutator.updateItem(item, ProjectCardLayout.createProjectMutation(taskId));
+    this.context.mutator.updateItem(project, ProjectCardLayout.createProjectMutation(taskId));
   }
 
   handleMemberTaskSave(assignee, task) {
@@ -224,6 +227,12 @@ class ProjectCardLayout extends React.Component {
     expr: {
       op: 'AND',
       expr: [
+        {
+          field: 'bucket',
+          value: {
+            null: true
+          }
+        },
         {
           field: 'project',
           value: {
@@ -369,7 +378,6 @@ export const ProjectCard = composeItem(
   ProjectReducer)
 )(ProjectCardComponent);
 
-
 //
 // Project board.
 //
@@ -385,27 +393,37 @@ const ProjectBoardQuery = gql`
 
       ... on Project {
 
-        board {
+        boards {
+          alias
+          title
+          columns {
+            id
+            title
+            value {
+              ...ValueFragment
+            }
+          }
           itemMeta {
-            itemId, listId, order
+            itemId
+            listId
+            order
           }         
         }
 
         tasks {
-          type
-          id
-          title
-          description
-          status
-          assignee {
-            title
+          ...TaskFragment
+
+          tasks {
+            ...TaskFragment
           }
         }
       }
     }
   }
 
+  ${ValueFragment}
   ${ItemFragment}
+  ${TaskFragment}  
 `;
 
 /**
@@ -422,19 +440,30 @@ class ProjectBoardComponent extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired,
     item: React.PropTypes.object,
+    board: React.PropTypes.string
   };
 
   constructor() {
     super(...arguments);
 
     this.state = {
+      board: null,
       itemOrderModel: new DragOrderModel()
     };
   }
 
+  componentWillReceiveProps(nextProps) {
+    let { item:project } = nextProps;
+
+    this.setState({
+      // Default board.
+      board: project && project.boards[0].alias
+    })
+  }
+
   handleToggleCanvas() {
-    let { item } = this.props;
-    this.context.navigator.push(Path.canvas(ID.toGlobalId('Project', item.id)));
+    let { item:project } = this.props;
+    this.context.navigator.push(Path.canvas(ID.toGlobalId('Project', project.id)));
   }
 
   handleItemSelect(item) {
@@ -443,39 +472,56 @@ class ProjectBoardComponent extends React.Component {
 
   handleItemDrop(column, item, changes) {
     let { item:project } = this.props;
+    let { board } = this.state;
+    console.assert(board);
 
     // TODO(burdon): Wrap board with CanvasLayout (and pass mutator via context).
     // TODO(burdon): Do optimistic update before re-rendering.
-    let status = column.status;
+
+    // TODO(burdon): Customize for different boards (e.g., assigned).
+    let status = column.value;
     this.props.mutator.updateItem(item, [ MutationUtil.createFieldMutation('status', 'int', status) ]);
 
+    // TODO(burdon): Update specific board (separate node or Project meta?)
     let mutations = _.map(changes, change => ({
-      field: 'board',
+      field: 'boards',
       value: {
-        object: [{
-          field: 'itemMeta',
+        map: [{
+
+          // Upsert the given keyed value (in the array).
+          predicate: {
+            key: 'alias',
+            value: {
+              string: board
+            }
+          },
+
           value: {
-            object: [
-              {
-                field: change.itemId,
-                value: {
-                  object: [
-                    {
-                      field: 'listId',
-                      value: {
-                        string: change.listId
+            object: [{
+              field: 'itemMeta',
+              value: {
+                // TODO(burdon): Should this be a map transformation (could boards above just use an object transform)?
+                object: [{
+                  field: change.itemId,
+                  value: {
+                    object: [
+                      {
+                        field: 'listId',
+                        value: {
+                          string: change.listId
+                        }
+                      },
+                      {
+                        field: 'order',
+                        value: {
+                          float: change.order
+                        }
                       }
-                    },
-                    {
-                      field: 'order',
-                      value: {
-                        float: change.order
-                      }
-                    }
-                  ]
-                }
+                    ]
+                  }
+                }]
               }
-            ]
+            }]
           }
         }]
       }
@@ -489,12 +535,18 @@ class ProjectBoardComponent extends React.Component {
     let { item={}, typeRegistry } = this.props;
     let { itemOrderModel } = this.state;
 
+    // Get the appropriate board.
+    // TODO(burdon): Get from props.
+    let boardAlias = "tasks";
+    let board = _.find(_.get(item, 'boards'), board => board.alias == boardAlias);
+    itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
+
     // TODO(burdon): Function to map items to board.
     const columns = [
-      { id: 'c1', status: 0, title: 'Icebox'    },
-      { id: 'c2', status: 1, title: 'Assigned'  },
-      { id: 'c3', status: 2, title: 'Active'    },
-      { id: 'c4', status: 3, title: 'Complete'  }
+      { id: 'c1', value: 0, title: 'Icebox'    },
+      { id: 'c2', value: 1, title: 'Assigned'  },
+      { id: 'c3', value: 2, title: 'Active'    },
+      { id: 'c4', value: 3, title: 'Complete'  }
     ];
 
     // TODO(burdon): Factor out.
@@ -513,16 +565,14 @@ class ProjectBoardComponent extends React.Component {
 
     let items = _.get(item, 'tasks', []);
 
+    // Map items to columns.
     let columnMapper = (columns, item) => {
       let idx = _.findIndex(columns, column => {
-        return (column.status == item.status);
+        return (column.value == item.status);
       });
 
       return columns[idx].id;
     };
-
-    // Update the sort model.
-    itemOrderModel.setLayout(_.get(item, 'board.itemMeta'));
 
     // TODO(burdon): Move title to NavBar.
     // TODO(burdon): Base class for canvases (e.g., editable title like Card).

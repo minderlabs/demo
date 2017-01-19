@@ -84,17 +84,17 @@ export class List extends React.Component {
   };
 
   static propTypes = {
-    className: React.PropTypes.string,
-    data: React.PropTypes.string,                               // Custom data.
-    items: React.PropTypes.arrayOf(React.PropTypes.object),
-    itemRenderer: React.PropTypes.func,
-    itemEditor: React.PropTypes.func,
-    itemOrderModel: React.PropTypes.object,                     // Order model for drag and drop.
-    onItemSave: React.PropTypes.func,
-    onItemSelect: React.PropTypes.func,
-    onItemDrop: React.PropTypes.func,
-    groupBy: React.PropTypes.bool,
-    showAdd: React.PropTypes.bool
+    className:          React.PropTypes.string,
+    data:               React.PropTypes.string,                               // Custom data.
+    items:              React.PropTypes.arrayOf(React.PropTypes.object),
+    itemRenderer:       React.PropTypes.func,
+    itemEditor:         React.PropTypes.func,
+    itemOrderModel:     React.PropTypes.object,                               // Order model for drag and drop.
+    onItemSave:         React.PropTypes.func,
+    onItemSelect:       React.PropTypes.func,
+    onItemDrop:         React.PropTypes.func,
+    groupBy:            React.PropTypes.bool,
+    showAdd:            React.PropTypes.bool
   };
 
   static defaultProps = {

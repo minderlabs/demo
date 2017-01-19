@@ -79,7 +79,7 @@ export class StatusBar extends React.Component {
     function state(state) { return state ? ' ux-icon-on' : '' }
 
     // TODO(burdon): Move to config.
-    const github = 'https://github.com/alienlaboratories/react-demos/issues';
+    const github = 'https://github.com/minderlabs/demo/issues?q=is%3Aissue+is%3Aopen+label%3Abug';
 
     return (
       <div className="app-status-toolbar ux-toolbar">

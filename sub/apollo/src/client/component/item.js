@@ -14,20 +14,31 @@ import { TypeRegistry } from './type/registry';
 
 import './item.less';
 
-// TODO(burdon): Generalize to canvas.
+// TODO(burdon): Move to minder-graphql
 
 /**
  * Basic item fragment (common fields).
  */
 export const ItemFragment = gql`
   fragment ItemFragment on Item {
-#   __typename
-
     id
     type
     labels
     title
     description
+  }
+`;
+
+export const ValueFragment = gql`
+  fragment ValueFragment on Value {
+    null
+    int
+    float
+    string
+    boolean
+    id
+    timestamp
+    date
   }
 `;
 

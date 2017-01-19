@@ -62,6 +62,10 @@ export class Randomizer {
     this._cache = new Map();
   }
 
+  get chance() {
+    return this._chance;
+  }
+
   /**
    * Query the itemStore or return a cached value.
    * @param filter
@@ -128,8 +132,8 @@ export class Randomizer {
         // Set literal value.
         if (spec.likelihood === undefined || this._chance.bool({ likelihood: spec.likelihood * 100 })) {
           // Direct value.
-          if (spec.value) {
-            item[field] = spec.value;
+          if (_.isFunction(spec)) {
+            item[field] = spec();
           } else {
             // Get items for generator's type.
             return this.queryCache({ type: spec.type }).then(values => {

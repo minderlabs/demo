@@ -26,9 +26,10 @@ export class Transforms {
   }
 
   /**
+   * Update object.
    *
    * @param object
-   * @param mutation
+   * @param {ObjectMutationInput} mutation
    * @returns {*}
    */
   static applyObjectMutation(object, mutation) {
@@ -45,6 +46,22 @@ export class Transforms {
     // Null.
     if (value === undefined) {
       delete object[field];
+      return object;
+    }
+
+    // Map delta.
+    if (value.map !== undefined) {
+      _.each(value.map, value => {
+        object[field] = Transforms.applyMapMutation(object[field] || [], value);
+      });
+      return object;
+    }
+
+    // Set delta.
+    if (value.set !== undefined) {
+      _.each(value.set, value => {
+        object[field] = Transforms.applySetMutation(object[field] || [], value);
+      });
       return object;
     }
 
@@ -67,39 +84,113 @@ export class Transforms {
     // Scalars.
     // TODO(burdon): Handle null.
     let scalar = Transforms.scalarValue(value);
-    console.assert(scalar !== undefined, 'Invalid value:', value);
+    console.assert(scalar !== undefined, 'Invalid value:', JSON.stringify(mutation));
     object[field] = scalar;
 
     return object;
   }
 
+  // TODO(burdon): When replacing an object value (for a set or array), distinguish between
+  // merge and replace (by default replace).
+
   /**
+   * Update map.
+   *
+   * NOTE: GraphQL doesn't support maps (i.e., arbitrary keyed objects).
+   * Instead we declare arrays of typed objects and use Map mutations to update them.
+   * (See comment in the schema document).
+   *
+   * @param map
+   * @param {MapMutationInput} mutation
+   * @returns updated map.
+   */
+  static applyMapMutation(map, mutation) {
+    let predicate = mutation.predicate;
+
+    // Find the object to mutate (the object in the array that matches the predicate).
+    let key = Transforms.scalarValue(predicate.value);
+    let idx = _.findIndex(map, v => _.get(v, predicate.key) == key);
+
+    // NOTE: Must be object mutation (which mutates to object matching the predicate).
+    let value = mutation.value.object;
+    if (value === undefined) {
+      if (idx != -1) {
+        // Remove.
+        map.splice(idx, 1);
+      }
+    } else {
+      if (idx == -1) {
+        // Append.
+        map.push(Transforms.applyObjectMutations({
+          [predicate.key]: key
+        }, value));
+      } else {
+        // Update.
+        Transforms.applyObjectMutations(map[idx], value);
+      }
+    }
+
+    return map;
+  }
+
+  /**
+   * Update set.
+   *
+   * @param set
+   * @param {SetMutationInput} mutation
+   * @returns updated set.
+   */
+  static applySetMutation(set, mutation) {
+    // NOTE: non-scalar sets don't make sense.
+    let value = Transforms.scalarValue(mutation.value);
+    console.assert(value !== undefined);
+
+    if (mutation.add == false) {
+      _.pull(set, value);
+    } else {
+      set = _.union(set, [value]);
+    }
+
+    return set;
+  }
+
+  /**
+   * Update array.
    *
    * @param array
-   * @param mutation
+   * @param {ArrayMutationInput} mutation
+   * @returns updated array.
    */
   static applyArrayMutation(array, mutation) {
     console.assert(array && mutation);
 
-    let scalar = Transforms.scalarValue(mutation.value);
-    console.assert(scalar);
+    // Clip range.
+    let idx = Math.min(mutation.index, _.size(array) - 1);
 
-    if (mutation.index == -1) {
-      _.pull(array, scalar);
+    // TODO(burdon): Handle non scalar types?
+    let value = Transforms.scalarValue(mutation.value);
+    if (value === undefined) {
+      array.splice(idx, 1)
     } else {
-      array = _.union(array, [scalar]);
+      if (idx == -1) {
+        array.push(value);
+      } else {
+        array.splice(idx, 0, value);
+      }
     }
 
     return array;
   }
 
   /**
+   * Get the scalar value if set.
    *
    * @param value
    * @returns {undefined}
    */
   static scalarValue(value) {
     let scalar = undefined;
+
     const scalars = ['int', 'float', 'string', 'boolean', 'id', 'date'];
     _.each(scalars, (s) => {
       if (value[s] !== undefined) {
