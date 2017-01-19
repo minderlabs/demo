@@ -8,7 +8,7 @@ import SearchView from './search';
 import FolderView from './folder';
 
 /**
- *
+ * Left nav finder.
  */
 export default class FinderView extends React.Component {
 
@@ -18,7 +18,7 @@ export default class FinderView extends React.Component {
     return (
       <div className="ux-column">
         <SearchView/>
-        <FolderView folder={ folder }/>
+        <FolderView folder={ folder } sub={ 1 }/>
       </div>
     )
   }

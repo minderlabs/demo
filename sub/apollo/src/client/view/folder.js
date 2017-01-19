@@ -28,8 +28,7 @@ import './folder.less';
 class FolderView extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object,
-    queryRegistry: React.PropTypes.object
+    navigator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {

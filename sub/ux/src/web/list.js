@@ -369,7 +369,7 @@ export class ListItem extends React.Component {
 
   // From parent <List/> control.
   static contextTypes = {
-    onItemSelect: React.PropTypes.func,
+    onItemSelect: React.PropTypes.func.isRequired,
   };
 
   // To child <ListItem/> components.

@@ -21,35 +21,29 @@ import { StatusBar } from '../component/statusbar';
 
 import './base.less';
 
-// TODO(burdon): Card decks (list).
-// TODO(burdon): Drag-and-drop.
-// TODO(burdon): Inline create/edit.
-// TODO(burdon): Client-side filtering (e.g., by column, sort order, etc.)
-
-// Fragments
-// https://developer.android.com/guide/practices/tablets-and-handsets.html
-
 /**
- * Board layout.
+ * Layout for all containers.
  */
 export class BaseLayout extends React.Component {
 
+  // TODO(burdon): Factor out.
   static isMobile() {
     return !!navigator.userAgent.match(/(Android|iPhone|iPod)/);
   }
 
-  static childContextTypes = {
-    navigator: React.PropTypes.object
+  static contextTypes = {
+    injector: React.PropTypes.object.isRequired
   };
 
-  static contextTypes = {
-    injector: React.PropTypes.object
+  static childContextTypes = {
+    navigator: React.PropTypes.object,
+    queryRegistry: React.PropTypes.object
   };
 
   static propTypes = {
     // Provided by redux.
-    navigator: React.PropTypes.object,
-    queryRegistry: React.PropTypes.object
+    navigator: React.PropTypes.object.isRequired,
+    queryRegistry: React.PropTypes.object.isRequired
   };
 
   constructor() {
@@ -64,7 +58,8 @@ export class BaseLayout extends React.Component {
 
   getChildContext() {
     return {
-      navigator: this.props.navigator
+      navigator: this.props.navigator,
+      queryRegistry: this.props.queryRegistry
     };
   }
 
