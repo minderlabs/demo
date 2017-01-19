@@ -129,11 +129,15 @@ class FolderView extends React.Component {
   }
 
   handleItemDelete(item) {
-    this.props.mutator.updateItem(item, [ MutationUtil.createDeleteMutation() ]);
+    this.props.mutator.updateItem(item, [
+      MutationUtil.createDeleteMutation(_.findIndex(item.labels, '_deleted') != -1)
+    ]);
   }
 
   handleSetLabel(item, label, set) {
-    this.props.mutator.updateItem(item, [ MutationUtil.createLabelUpdate(label, set) ]);
+    this.props.mutator.updateItem(item, [
+      MutationUtil.createLabelMutation(label, set)
+    ]);
   }
 
   render() {

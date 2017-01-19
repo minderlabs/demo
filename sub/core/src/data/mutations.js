@@ -35,7 +35,7 @@ export class MutationUtil {
    * @param set
    * @returns {mutation}
    */
-  static createLabelUpdate(label, set=true) {
+  static createLabelMutation(label, set=true) {
     console.assert(label);
     return {
       field: 'labels',
@@ -54,8 +54,8 @@ export class MutationUtil {
    * Adds the delete label.
    * @returns {mutation}
    */
-  static createDeleteMutation() {
-    return MutationUtil.createLabelUpdate('_deleted');
+  static createDeleteMutation(set=true) {
+    return MutationUtil.createLabelMutation('_deleted', set);
   }
 }
 
