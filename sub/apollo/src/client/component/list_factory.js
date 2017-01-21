@@ -3,17 +3,14 @@
 //
 
 import React from 'react';
-import { Link } from 'react-router';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ID, Getter, Matcher, Mutator, ItemReducer, ListReducer } from 'minder-core';
+import { DocumentFragment, Getter, Matcher, Mutator, ListReducer } from 'minder-core';
 import { List } from 'minder-ux';
 
-import { Path } from '../path';
 import { UpdateItemMutation } from '../data/mutations';
-import { DocumentFragment } from './type/document';
 
 /**
  * Redux properties.

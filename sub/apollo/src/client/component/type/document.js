@@ -6,22 +6,11 @@ import React from 'react';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ItemReducer } from 'minder-core';
+import { DocumentFragment, ItemFragment, ItemReducer } from 'minder-core';
 
 import { UpdateItemMutation } from '../../data/mutations';
-import { composeItem, ItemFragment } from '../item';
+import { composeItem } from '../item';
 import { CardContainer } from '../card';
-
-/**
- * Type-specific fragment.
- */
-export const DocumentFragment = gql`
-  fragment DocumentFragment on Document {
-    url
-    iconUrl
-    source
-  }
-`;
 
 /**
  * Type-specific query.

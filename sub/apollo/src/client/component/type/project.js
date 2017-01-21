@@ -7,16 +7,15 @@ import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
+import { ItemFragment, ProjectBoardFragment, TaskFragment } from 'minder-core';
 import { Board, DragOrderModel, List, ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
-import { composeItem, ItemFragment, ValueFragment } from '../item';
+import { composeItem } from '../item';
 import { CardContainer } from '../card';
 import { CanvasContainer } from '../canvas';
 import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
-
-import { TaskFragment } from './task';
 
 //
 // Project card.
@@ -27,6 +26,8 @@ import { TaskFragment } from './task';
  */
 const ProjectQuery = gql`
   query ProjectQuery($itemId: ID!, $localItemId: ID!) {
+    
+    # TODO(burdon): Remove $localItemId?
 
     item(itemId: $itemId) {
       ...ItemFragment
@@ -397,23 +398,7 @@ const ProjectBoardQuery = gql`
       ...ItemFragment
 
       ... on Project {
-
-        boards {
-          alias
-          title
-          columns {
-            id
-            title
-            value {
-              ...ValueFragment
-            }
-          }
-          itemMeta {
-            itemId
-            listId
-            order
-          }         
-        }
+        ...ProjectBoardFragment
 
         tasks {
           ...TaskFragment
@@ -426,8 +411,8 @@ const ProjectBoardQuery = gql`
     }
   }
 
-  ${ValueFragment}
   ${ItemFragment}
+  ${ProjectBoardFragment}
   ${TaskFragment}  
 `;
 

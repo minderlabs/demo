@@ -4,68 +4,34 @@
 
 import gql from 'graphql-tag';
 
+import {
+  ItemFragment,
+  ProjectBoardFragment,
+  ProjectTasksFragment,
+  TaskFragment,
+  ValueFragment
+} from 'minder-core';
+
+// TODO(burdon): Refine fragments returned by mutation.
+// NOTE: When the Project Detail card adds a new Task, unless "on Project { tasks {} }" is
+// declared in the mutation, then thhe Project Board canvas will not be updated.
+
 /**
  * Upsert item.
  */
 export const UpdateItemMutation = gql`
   mutation UpdateItemMutation($itemId: ID!, $mutations: [ObjectMutationInput]!) {
-
-    # TODO(burdon): Use ItemFragment here.
     updateItem(itemId: $itemId, mutations: $mutations) {
-      bucket
-      id
-      type,
-      labels
-      title
-      description
+      ...ItemFragment
+      ...TaskFragment
+      ...ProjectBoardFragment
+    }
+  }
+  
+  ${ValueFragment}
 
-      # TODO(burdon): Add all mutation fragments.
-
-      ...ProjectMutationFragment
-      ...TaskMutationFragment
-    }
-  }
-  
-  # TODO(burdon): Factor out fragments.
-  
-  fragment ProjectMutationFragment on Project {
-    boards {
-      title
-      columns {
-        id
-        title
-        value {
-          ...ValueFragment
-        }
-      }
-      itemMeta {
-        itemId, listId, order
-      }
-    }
-  }
-  
-  fragment TaskMutationFragment on Task {
-    bucket
-    status
-    owner {
-      id
-    }
-    assignee {
-      id
-    }
-    project {
-      id
-    }
-  }
-  
-  fragment ValueFragment on Value {
-    null
-    int
-    float
-    string
-    boolean
-    id
-    timestamp
-    date
-  }
+  ${ItemFragment}
+  ${ProjectBoardFragment}
+  ${ProjectTasksFragment}
+  ${TaskFragment}
 `;

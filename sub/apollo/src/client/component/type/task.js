@@ -9,45 +9,17 @@ import { Link } from 'react-router';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ID, ItemReducer, MutationUtil, Mutator } from 'minder-core';
+import { ID, ItemFragment, ItemReducer, MutationUtil, Mutator, TaskFragment } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
 import { Path } from '../../path';
 import { UpdateItemMutation } from '../../data/mutations';
-import { composeItem, ItemFragment } from '../item';
+import { composeItem } from '../item';
 import { CardContainer } from '../card';
 
 import ItemsPicker from '../items_picker';
 
 import './task.less';
-
-/**
- * Type-specific fragment.
- */
-export const TaskFragment = gql`
-  fragment TaskFragment on Task {
-    bucket
-    type
-    id
-
-    title
-    description
-
-    status
-    project {
-      id
-      title
-    }
-    owner {
-      id
-      title
-    }
-    assignee {
-      id
-      title
-    }
-  }
-`;
 
 /**
  * Type-specific query.
