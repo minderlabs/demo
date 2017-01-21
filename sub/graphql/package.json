@@ -1,11 +1,11 @@
 {
   "name": "minder-graphql",
   "version": "0.1.0",
-  "description": "Minder GraphQL Database.",
+  "description": "Minder GraphQL Definitions.",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "git://github.com:alienlabs/react-demos.git"
+    "url": "git://github.com:minderlabs/demo.git"
   },
   "main": "src/index.js",
   "devDependencies": {

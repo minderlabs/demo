@@ -1,11 +1,11 @@
 {
   "name": "minder-ux",
   "version": "0.1.0",
-  "description": "Minder UX components.",
+  "description": "Minder UX Components.",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "git://github.com:alienlabs/react-demos.git"
+    "url": "git://github.com:minderlabs/demo.git"
   },
   "main": "src/index.js",
   "devDependencies": {

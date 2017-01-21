@@ -1,11 +1,11 @@
 {
-  "name": "node-apollo",
+  "name": "minder-app",
   "version": "0.1.0",
-  "description": "Apollo tests.",
+  "description": "Minder App.",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "git://github.com:alienlabs/react-demos.git"
+    "url": "git://github.com:minderlabs/demo.git"
   },
   "devDependencies": {
     "babel-cli": "^6.16.0",
