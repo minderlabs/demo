@@ -1,0 +1,87 @@
+#
+# Manifest YML
+# NOTE: We use YML to allow for comments, etc.
+# grunt convert (to convert to JSON file).
+#
+# Manifest format
+# https://developer.chrome.com/extensions/manifest
+# https://developer.chrome.com/extensions/faq
+# https://bugs.chromium.org/p/chromium/issues/list
+#
+
+name:               Minder
+short_name:         Minder
+version:            0.1.0                           # grunt version:crx:patch (uses version.json)
+author:             Minder Labs,
+description:        Automated intelligence.
+manifest_version:   2,
+
+icons:
+  128: "img/icon_128.png"
+
+#
+# Permissions.
+# https://developer.chrome.com/extensions/declare_permissions
+#
+
+permissions:
+  - background
+  - contextMenus
+  - management
+  - notifications
+  - storage
+  - tabs
+  - gcm                                             # Cloud Messaging (FCM).
+
+  - "http://localhost/*"
+  - "http://local-docker-machine/*"
+
+  - "*://minderlabs.com/*"
+
+  - "<all_urls>"
+
+#
+# Content script.
+# https://developer.chrome.com/extensions/content_scripts
+#
+
+content_scripts:
+  -
+    run_at: document_idle
+    matches:
+      - "<all_urls>"
+
+      - "http://localhost/testing/*"
+
+      - "https://www.google.com/*"
+      - "https://mail.google.com/*"
+      - "https://inbox.google.com/*"
+
+    js:
+      # NOTE: Cannot be symlink.
+      # https://bugs.chromium.org/p/chromium/issues/detail?id=27185&q=burdon&colspec=ID%20Pri%20M%20Stars%20ReleaseBlock%20Component%20Status%20Owner%20Summary%20OS%20Modified
+      - "assets/content_script.bundle.js"
+
+    css:
+      - "assets/content_script.css"
+
+#
+# Content Security Policy (CSP)
+# https://developer.chrome.com/extensions/contentSecurityPolicy
+# http://www.html5rocks.com/en/tutorials/security/content-security-policy
+# https://w3c.github.io/webappsec-csp
+# TODO(burdon): Document why unsafe-eval is needed.
+#
+
+content_security_policy: "script-src 'self' 'unsafe-eval' https://minderlabs.com https://apis.google.com; object-src 'self'"
+
+#
+# White list for context script resources.
+# https://developer.chrome.com/extensions/manifest/web_accessible_resources
+# Accessible via: chrome-extension://ID/PATH
+#
+
+web_accessible_resources:
+  - "assets/*"
+  - "page/*"
+  - "img/*"

@@ -40,6 +40,10 @@ module.exports = _.merge(baseConfig, {
       path.resolve(baseConfig.context, 'src/client/main.js')
     ],
 
+    content_script: [
+      path.resolve(baseConfig.context, 'src/crx/content_script.js')
+    ],
+
     hot: [
       path.resolve(baseConfig.context, 'src/client/main.js'),
 

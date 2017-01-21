@@ -45,6 +45,80 @@ module.exports = function(grunt) {
       }
     },
 
+    //
+    // Chrome Extension
+    //
+
+    convert: {
+      yml2json: {
+        // CRX manifest.
+        files: [{
+          src: ['src/crx/manifest.yml'],
+          dest: 'dist/crx/minder/manifest.json'
+        }]
+      }
+    },
+
+    copy: {
+      crx: {
+        files: [
+          {
+            expand: true,
+            cwd: 'dist',
+            src: [
+              'content_script.bundle.js',
+              'content_script.css',
+            ],
+            dest: 'dist/crx/minder/assets/'
+          },
+          {
+            expand: true,
+            cwd: 'src/crx',
+            src: [
+              'img/*'
+            ],
+            dest: 'dist/crx/minder/'
+          }
+        ]
+      }
+    },
+
+    // Create Chrome Extension.
+    // NODE thinks this module is out of date:
+    // https://github.com/oncletom/grunt-crx/issues/59
+    // https://developer.chrome.com/extensions/packaging
+    // NOTE: pem (private key) is created by manually packing the extension from chrome (first time only).
+    // TODO(burdon): set baseURL (for auto-updates).
+    crx: {
+      minder: {
+        options: {
+          privateKey: 'src/crx/minder.pem'
+        },
+        src: ['dist/crx/minder/**/*'],
+        dest: 'dist/crx/minder.crx'
+      }
+    },
+
+    // Create CRX zip file (with PEM)
+    // unzip -vl target/crx/nx.zip
+    // To install (must be logged in with alienlaboratories.com account):
+    // https://chrome.google.com/webstore/developer/dashboard
+    // NOTE: Click Publish after upload After upload (up to 60 mins to update).
+    compress: {
+      crx: {
+        options: {
+          archive: 'dist/crx/minder.zip'
+        },
+        files: [
+          {
+            expand: true,
+            cwd: 'dist/crx/minder',
+            src: ['**']
+          }
+        ]
+      }
+    },
+
     // Webpack
     // NOTE: Use webpack --watch to automatically update all config entries.
     // https://webpack.github.io/docs/usage-with-grunt.html
@@ -58,8 +132,20 @@ module.exports = function(grunt) {
   // https://github.com/gruntjs/grunt-contrib-clean
   grunt.loadNpmTasks('grunt-contrib-clean');
 
+  // https://github.com/gruntjs/grunt-contrib-compress
+  grunt.loadNpmTasks('grunt-contrib-compress');
+
+  // https://github.com/gruntjs/grunt-contrib-copy
+  grunt.loadNpmTasks('grunt-contrib-copy');
+
   // https://github.com/gruntjs/grunt-contrib-watch
   grunt.loadNpmTasks('grunt-contrib-watch');
+
+  // https://www.npmjs.com/package/grunt-convert
+  grunt.loadNpmTasks('grunt-convert');
+
+  // https://www.npmjs.com/package/grunt-crx
+  grunt.loadNpmTasks('grunt-crx');
 
   // https://www.npmjs.com/package/grunt-run
   grunt.loadNpmTasks('grunt-run');
@@ -76,4 +162,5 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['build']);
   grunt.registerTask('build', ['clean', 'run:update_schema', 'webpack']);
+  grunt.registerTask('build_crx', ['convert:yml2json', 'copy:crx', 'crx:minder', 'compress:crx'])
 };
