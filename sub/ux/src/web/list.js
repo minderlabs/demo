@@ -87,6 +87,7 @@ export class List extends React.Component {
     className:          React.PropTypes.string,
     data:               React.PropTypes.string,                               // Custom data.
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
+    itemClassName:      React.PropTypes.string,
     itemRenderer:       React.PropTypes.func,
     itemEditor:         React.PropTypes.func,
     itemOrderModel:     React.PropTypes.object,                               // Order model for drag and drop.
@@ -191,6 +192,8 @@ export class List extends React.Component {
     let { data, itemOrderModel, groupBy } = this.props;
     let { items, itemRenderer } = this.state;
 
+    let itemClassName = 'ux-list-item ' + (this.props.itemClassName || '');
+
     //
     // Rows.
     //
@@ -204,7 +207,7 @@ export class List extends React.Component {
 
       // Primary item.
       let listItem = (
-        <div key={ item.id } className='ux-list-item'>
+        <div key={ item.id } className={ itemClassName }>
           { itemRenderer(item) }
         </div>
       );
@@ -236,7 +239,7 @@ export class List extends React.Component {
         // TODO(burdon): Can't group with drag?
         if (groupBy && !_.isEmpty(item.refs)) {
           let refs = item.refs.map(ref => (
-            <div key={ ref.id } className="ux-list-item">
+            <div key={ ref.id } className={ itemClassName }>
               { itemRenderer(ref) }
             </div>
           ));
@@ -315,6 +318,7 @@ export class ListItem extends React.Component {
     );
   };
 
+  // TODO(burdon): Provide generic callback.
   static Icon = (props, context) => {
     let { item } = context;
 
@@ -367,6 +371,10 @@ export class ListItem extends React.Component {
     );
   };
 
+  static propTypes = {
+    className: React.PropTypes.string,
+  };
+
   // From parent <List/> control.
   static contextTypes = {
     onItemSelect: React.PropTypes.func.isRequired,
@@ -384,10 +392,10 @@ export class ListItem extends React.Component {
     }
   }
 
-  // TODO(burdon): CSS (make ux-list-item? Document ux-data-row)
+  // TODO(burdon): CSS remove: ux-data-row.
   render() {
     return (
-      <div className="ux-row ux-data-row">
+      <div className={ 'ux-row ux-data-row ' + (this.props.className || '') }>
         { this.props.children }
       </div>
     );
