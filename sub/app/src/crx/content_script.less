@@ -1,0 +1,48 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+@sidebar-width: 350px;
+
+@zindex: 2147483647;  // Max.
+
+//
+// Root element in host DOM.
+//
+.crx-content-script {
+
+  //
+  // Components are in iframes for CSS and JS isolation, and deferred loading.
+  //
+  iframe {
+    border: none;
+  }
+
+  //
+  // Sidebar
+  //
+  .crx-sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: @sidebar-width;
+    z-index: @zindex;
+
+    // TODO(burdon): Smooth: https://mango.github.io/slideout
+
+    transition-duration: .2s;
+    transition-timing-function: cubic-bezier(0, 0, 0.6, 1);
+
+    -webkit-transform: translateX(@sidebar-width);
+
+    background-color: white;
+    box-shadow: -1px 0 8px #CCC;
+  }
+
+  .crx-sidebar.crx-open {
+    -webkit-transform: translateX(0px);
+  }
+}

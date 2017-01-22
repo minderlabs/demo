@@ -64,18 +64,10 @@ module.exports = function(grunt) {
         files: [
           {
             expand: true,
-            cwd: 'dist',
-            src: [
-              'content_script.bundle.js',
-              'content_script.css',
-            ],
-            dest: 'dist/crx/minder/assets/'
-          },
-          {
-            expand: true,
             cwd: 'src/crx',
             src: [
-              'img/*'
+              'img/*',
+              'page/*'
             ],
             dest: 'dist/crx/minder/'
           }
@@ -119,13 +111,25 @@ module.exports = function(grunt) {
       }
     },
 
+    watch: {
+      options: {
+        atBegin: true
+      },
+      crx: {
+        files: [
+          'src/crx/*'
+        ],
+        tasks: [ 'build_crx' ]
+      }
+    },
+
     // Webpack
     // NOTE: Use webpack --watch to automatically update all config entries.
     // https://webpack.github.io/docs/usage-with-grunt.html
     // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
     // TODO(burdon): Debug options.
     webpack: {
-      client: require('./webpack.config.js')
+      crx: require('./webpack-crx.config.js')
     },
   });
 
@@ -162,5 +166,5 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['build']);
   grunt.registerTask('build', ['clean', 'run:update_schema', 'webpack']);
-  grunt.registerTask('build_crx', ['convert:yml2json', 'copy:crx', 'crx:minder', 'compress:crx'])
+  grunt.registerTask('build_crx', ['webpack:crx', 'convert:yml2json', 'copy:crx', 'crx:minder', 'compress:crx'])
 };

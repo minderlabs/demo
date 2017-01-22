@@ -3,7 +3,9 @@
 //
 
 export * from './util/async';
+export * from './util/dom';
 export * from './util/event';
+export * from './util/http';
 export * from './util/injector';
 export * from './util/type';
 

@@ -8,6 +8,13 @@
 # https://developer.chrome.com/extensions/faq
 # https://bugs.chromium.org/p/chromium/issues/list
 #
+# Tools
+# grunt watch:crx
+#
+# Chrome extension:
+# https://chrome.google.com/webstore/detail/extensions-reloader/fimgfedafeadlieiabdeeaodndnlbhid
+# NOTE: On manifest changes, must reload via chrome://extensions
+#
 
 name:               Minder
 short_name:         Minder
@@ -49,13 +56,11 @@ content_scripts:
   -
     run_at: document_idle
     matches:
-      - "<all_urls>"
+#     - "<all_urls>"
 
       - "http://localhost/testing/*"
 
-      - "https://www.google.com/*"
-      - "https://mail.google.com/*"
-      - "https://inbox.google.com/*"
+      - "https://*.google.com/*"
 
     js:
       # NOTE: Cannot be symlink.
@@ -74,6 +79,14 @@ content_scripts:
 #
 
 content_security_policy: "script-src 'self' 'unsafe-eval' https://minderlabs.com https://apis.google.com; object-src 'self'"
+
+#
+# https://developer.chrome.com/extensions/manifest/externally_connectable
+#
+
+externally_connectable:
+  ids:
+    - '*'
 
 #
 # White list for context script resources.
