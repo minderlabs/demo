@@ -45,8 +45,6 @@ class ContentScript {
     let inspectors = new InspectorRegistry()
       .add(new InboxInspector())
       .init(events => {
-        console.log('###', JSON.stringify(events));
-
         // TODO(burdon): Wait for window to open and send ready (OPEN) message..
         let frameWindow = this._frames.sidebar.open();
         frameWindow.postMessage({
@@ -80,6 +78,7 @@ class ContentScript {
     });
 
     // Keyboard shortcuts.
+    // TODO(burdon): Add listener to sidebar.
     let keys = new KeyListener()
       .listen({
         keyCode: 8,   // DELETE
