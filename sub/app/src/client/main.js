@@ -169,8 +169,7 @@ const renderApp = (App) => {
       injector={ injector }
       client={ apolloClient }
       history={ history }
-      store={ store }
-    />,
+      store={ store }/>,
 
     document.getElementById(config.root)
   );

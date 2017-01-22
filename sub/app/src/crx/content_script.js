@@ -4,6 +4,8 @@
 
 import { KeyListener } from 'minder-core';
 
+import { InspectorRegistry, InboxInspector } from './util/inspector';
+
 import './content_script.less';
 
 // Unique ID for this content script.
@@ -20,24 +22,37 @@ class ContentScript {
 
   manifest = chrome.runtime.getManifest();
 
-  init() {
+  constructor() {
     console.log(`${this.manifest.name} ${this.manifest.version}`);
 
     // Root element.
     let container = $('<div>').addClass('crx-content-script').appendTo(document.body);
-
-    // Hidden button to grab focus (after sidebar closes).
-    let button = $('<button>').appendTo(container).click(() => {
-      this.frames.sidebar.toggle();
-    });
-
-    // TODO(burdon): Show logo/chip bottom right to represent CS has loaded.
 
     // Frame elements.
     this._frames = {
       sidebar: new Frame(ContentScript.SIDEBAR_FRAME_SRC,
         $('<div>').addClass('crx-sidebar').appendTo(container))
     };
+
+    // Hidden button to grab focus (after sidebar closes).
+    let button = $('<button>').appendTo(container).click(() => {
+      this._frames.sidebar.toggle();
+    });
+
+    // TODO(burdon): Browser action to toggle window.
+    // TODO(burdon): Show logo/chip bottom right to represent CS has loaded.
+
+    let inspectors = new InspectorRegistry()
+      .add(new InboxInspector())
+      .init(events => {
+        console.log('###', JSON.stringify(events));
+
+        // TODO(burdon): Wait for window to open and send ready (OPEN) message..
+        let frameWindow = this._frames.sidebar.open();
+        frameWindow.postMessage({
+          events
+        }, '*');
+      });
 
     // TODO(burdon): Factor out.
     // TODO(burdon): Proxy via background page.
@@ -51,12 +66,12 @@ class ContentScript {
         let message = event.data.message;
         switch (message.command) {
           case 'OPEN': {
-            _.get(this.frames, event.data.frame).open();
+            _.get(this._frames, event.data.frame).open();
             break;
           }
 
           case 'CLOSE': {
-            _.get(this.frames, event.data.frame).close();
+            _.get(this._frames, event.data.frame).close();
             button.focus();
             break;
           }
@@ -69,13 +84,7 @@ class ContentScript {
       .listen({
         keyCode: 8,   // DELETE
         metaKey: true
-      }, () => this.frames.sidebar.toggle());
-
-    return this;
-  }
-
-  get frames() {
-    return this._frames;
+      }, () => this._frames.sidebar.toggle());
   }
 }
 
@@ -108,6 +117,8 @@ class Frame {
     } else {
       this._root.addClass('crx-open');
     }
+
+    return this._frame[0].contentWindow;
   }
 
   close() {
@@ -115,4 +126,4 @@ class Frame {
   }
 }
 
-const app = new ContentScript().init();
+const app = new ContentScript();

@@ -2,9 +2,10 @@
 // Copyright 2016 Minder Labs.
 //
 
-@sidebar-width: 350px;
+@sidebar-width: 400px;
+@sidebar-offset: 420px;   // Additional distance to hide box-shadow.
 
-@zindex: 2147483647;  // Max.
+@zindex: 2147483647;      // Max.
 
 //
 // Root element in host DOM.
@@ -31,15 +32,14 @@
     width: @sidebar-width;
     z-index: @zindex;
 
-    // TODO(burdon): Smooth: https://mango.github.io/slideout
-
-    transition-duration: .2s;
-    transition-timing-function: cubic-bezier(0, 0, 0.6, 1);
-
-    -webkit-transform: translateX(@sidebar-width);
-
     background-color: white;
-    box-shadow: -1px 0 8px #CCC;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+
+    transition-property: -webkit-transform, transform, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+
+    -webkit-transform: translateX(@sidebar-offset);
   }
 
   .crx-sidebar.crx-open {

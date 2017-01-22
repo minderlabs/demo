@@ -117,7 +117,7 @@ module.exports = function(grunt) {
       },
       crx: {
         files: [
-          'src/crx/*'
+          'src/crx/**'
         ],
         tasks: [ 'build_crx' ]
       }

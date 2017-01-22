@@ -9,11 +9,12 @@ import { HttpUtil } from 'minder-core';
 
 import './sidebar.less';
 
-// TODO(burdon): Figure out how to test this outside of CRX. No CRX deps.
 // TODO(burdon): Common guts with App (just different layout and configuration).
-// TODO(burdon): Test HTTP GET (Apollo, etc.)
+// TODO(burdon): Figure out how to test this outside of CRX. No CRX deps.
+// TODO(burdon): Test React/Apollo.
 
-const args = HttpUtil.parseUrl();
+// Config passed from content script container.
+const config = HttpUtil.parseUrl();
 
 // TODO(burdon): Factor out.
 class Messenger {
@@ -36,6 +37,10 @@ class Messenger {
   }
 }
 
+window.addEventListener('message', event => {
+  console.log('!!!!!!!!!!!!!!!!!', event);
+});
+
 /**
  * CRX Sidebar App.
  */
@@ -47,9 +52,15 @@ class SidebarApp extends React.Component {
 
   render() {
     return (
-      <div className="crx-sidebar">
-        <h1>Minder</h1>
-        <div>
+      <div className="crx-panel crx-sidebar crx-expand">
+        <div className="crx-panel crx-header">
+          <h1>Minder</h1>
+        </div>
+
+        <div className="crx-panel crx-expand">
+        </div>
+
+        <div className="crx-panel crx-footer">
           <button onClick={ this.handleClose.bind(this) }>Close</button>
         </div>
       </div>
@@ -57,7 +68,7 @@ class SidebarApp extends React.Component {
   }
 }
 
-let messenger = new Messenger(args.script, args.frame)
+let messenger = new Messenger(config.script, config.frame)
 
 let app = <SidebarApp messenger={ messenger }/>;
 
