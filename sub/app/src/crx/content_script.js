@@ -2,9 +2,11 @@
 // Copyright 2017 Minder Labs.
 //
 
-import { KeyListener } from 'minder-core';
+import { HttpUtil, KeyListener } from 'minder-core';
 
+import { KeyToggleSidebar } from './common';
 import { InspectorRegistry, InboxInspector } from './util/inspector';
+import { Messenger } from './util/messenger';
 
 import './content_script.less';
 
@@ -18,77 +20,70 @@ const scriptId = new Date().getTime();
  */
 class ContentScript {
 
-  static SIDEBAR_FRAME_SRC = chrome.extension.getURL('page/sidebar.html?frame=sidebar&script=' + scriptId);
+  // TODO(burdon): Browser action to toggle window.
+  // TODO(burdon): Show logo/chip bottom right to represent CS has loaded.
 
-  manifest = chrome.runtime.getManifest();
+  static manifest = chrome.runtime.getManifest();
+
+  static SIDEBAR_FRAME_SRC = chrome.extension.getURL(
+    'page/sidebar.html?' + HttpUtil.toUrlArgs({ scriptId, frameId: 'sidebar' }));
 
   constructor() {
-    console.log(`${this.manifest.name} ${this.manifest.version}`);
+    console.log(`${ContentScript.manifest.name} ${ContentScript.manifest.version}`);
 
     // Root element.
     let container = $('<div>').addClass('crx-content-script').appendTo(document.body);
 
     // Frame elements.
-    this._frames = {
-      sidebar: new Frame(ContentScript.SIDEBAR_FRAME_SRC,
-        $('<div>').addClass('crx-sidebar').appendTo(container))
-    };
+    let sidebar = new Frame(ContentScript.SIDEBAR_FRAME_SRC, $('<div>').addClass('crx-sidebar').appendTo(container));
 
     // Hidden button to grab focus (after sidebar closes).
-    let button = $('<button>').appendTo(container).click(() => {
-      this._frames.sidebar.toggle();
-    });
+    let button = $('<button>').appendTo(container).click(() => sidebar.toggle());
 
-    // TODO(burdon): Browser action to toggle window.
-    // TODO(burdon): Show logo/chip bottom right to represent CS has loaded.
+    // Listen for messages from the frame.
+    sidebar.messenger.listen(message => {
+      switch (message.command) {
 
-    let inspectors = new InspectorRegistry()
-      .add(new InboxInspector())
-      .init(events => {
-        // TODO(burdon): Wait for window to open and send ready (OPEN) message..
-        let frameWindow = this._frames.sidebar.open();
-        frameWindow.postMessage({
-          events
-        }, '*');
-      });
+        // TODO(burdon): Create Redux reducer (like sidebar).
+        case 'INIT': {
+          sidebar.initialized().open();
+          break;
+        }
 
-    // TODO(burdon): Factor out.
-    // TODO(burdon): Proxy via background page.
-    // https://developer.chrome.com/extensions/messaging#external-webpage
-    // http://stackoverflow.com/questions/11325415/access-iframe-content-from-a-chromes-extension-content-script
-    // Listen to frames.
-    window.addEventListener('message', event => {
-      if (event.origin == 'chrome-extension://' + chrome.runtime.id) {
-        console.assert(event.data.script == scriptId);
-        console.log('Received: ' + JSON.stringify(event.data));
-        let message = event.data.message;
-        switch (message.command) {
-          case 'OPEN': {
-            _.get(this._frames, event.data.frame).open();
-            break;
-          }
+        case 'OPEN': {
+          sidebar.open();
+          break;
+        }
 
-          case 'CLOSE': {
-            _.get(this._frames, event.data.frame).close();
-            button.focus();
-            break;
-          }
+        case 'CLOSE': {
+          sidebar.close();
+          button.focus();
+          break;
         }
       }
     });
 
-    // Keyboard shortcuts.
-    // TODO(burdon): Add listener to sidebar.
-    let keys = new KeyListener()
-      .listen({
-        keyCode: 8,   // DELETE
-        metaKey: true
-      }, () => this._frames.sidebar.toggle());
+    // Content inspector (listens for DOM changes).
+    let inspectors = new InspectorRegistry()
+      .add(new InboxInspector())
+      .init(events => {
+        // Wait for sidebar to load (if first time).
+        sidebar.open().then(() => {
+          sidebar.messenger.sendMessage({
+            command: 'UPDATE',
+            events
+          }, '*');
+        });
+      });
+
+    // Shortcuts.
+    const keyBindings = new KeyListener()
+      .listen(KeyToggleSidebar, () => sidebar.toggle());
   }
 }
 
 /**
- * Pop-up frame.
+ * IFrame contains the lazily loaded components.
  */
 class Frame {
 
@@ -97,27 +92,54 @@ class Frame {
 
     this._src = src;
     this._root = root;
+
+    // Lazily instantiated frame (loads content when created).
     this._frame = null;
+
+    // Blocking promise (for initial message).
+    this._blocking = null;
+
+    // iFrame messenger (valid after loaded).
+    this._messenger = new Messenger({ scriptId }, 'chrome-extension://' + chrome.runtime.id);
+  }
+
+  get messenger() {
+    return this._messenger;
   }
 
   toggle() {
     this._root.hasClass('crx-open') ? this.close() : this.open();
   }
 
+  initialized() {
+    this._messenger.attach(this._frame[0].contentWindow);
+    this._blocking && this._blocking();
+
+    return this;
+  }
+
   open() {
     if (!this._frame) {
       // Creating the frame loads the content.
-      // TODO(burdon): Get open trigger from the sidebar.
+      // Sidebar sends OPEN event when loaded.
       this._frame = $('<iframe>')
         .attr('src', this._src)
         .attr('width', '100%')
         .attr('height', '100%')
         .appendTo(this._root);
+
+      // Resolve when sidebar has loaded.
+      return new Promise((resolve, reject) => {
+        this._blocking = resolve;
+      });
     } else {
       this._root.addClass('crx-open');
-    }
 
-    return this._frame[0].contentWindow;
+      // Resolve immediately.
+      return new Promise((resolve, reject) => {
+        resolve();
+      });
+    }
   }
 
   close() {
@@ -125,4 +147,6 @@ class Frame {
   }
 }
 
+// Create the app.
+// TODO(burdon): Use Redux?
 const app = new ContentScript();
