@@ -190,6 +190,39 @@ https://github.com/kubernetes/kops/blob/master/vendor/k8s.io/kubernetes/docs/des
     kops delete cluster ${CLUSTER_NAME} # --yes
     ```
 
+### Updating the cluster config.
+
+E.g. to resize the cluster:
+```
+export CLUSTER_NAME=dev.k.minderlabs.com
+export AWS_PROFILE=minder
+export KOPS_STATE_STORE=s3://clusters.${CLUSTER_NAME}
+kops edit ig --name=${CLUSTER_NAME} nodes
+kops update cluster ${CLUSTER_NAME} --yes
+```
+
+and similarly to edit the master instancegroup:
+```
+# Get the master instance group name by looking at:
+kops get instancegroups
+kops edit ig --name=${CLUSTER_NAME} master-us-east-1d
+kops update cluster ${CLUSTER_NAME} --yes
+```
+
+Note: It doesn't want to destroy the only master, so if you have only one
+master replica and edit it's configuration (e.g. changing the instance type),
+it'll update the config but leave the current config running. Instead, scale
+up the group to 2, wait for the new one to come up, then scale back to 1.
+It'll delete the older-config master and fail over.
+
+Note that it took a long time (5 mins+?) to update the Route53 record for
+`api.$CLUSTER_NAME`, meanwhile the dashboard was inaccessible externally.
+
+When we do this for real: thread with some benchmarks to guide setting instance size for masters:
+https://github.com/kubernetes/kubernetes/issues/21500
+(e.g. For 100-node cluster, master can use as little as 50M up to 900M depending on workload.)
+
+
 ## Ingress: Load balancing, reverse proxy, HTTPS termination.
 
 Previously we used nginx-proxy to reverse proxy external requests to containers. I (Adam) tried it on kubernetes but
