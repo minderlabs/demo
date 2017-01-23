@@ -5,7 +5,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { connect, Provider } from 'react-redux';
-import { createStore } from 'redux';
+import { combineReducers, createStore } from 'redux';
 
 import { HttpUtil, KeyListener } from 'minder-core';
 
@@ -49,7 +49,9 @@ const keyBindings = new KeyListener()
 //
 
 // http://redux.js.org/docs/api/createStore.html
-const store = createStore(SidebarReducer(messenger), SidebarActions.initalState);
+const store = createStore(combineReducers({
+  [SidebarActions.namespace]: SidebarReducer(messenger)
+}));
 
 // https://github.com/reactjs/react-redux/blob/master/docs/api.md#provider-store
 const RootApp = (

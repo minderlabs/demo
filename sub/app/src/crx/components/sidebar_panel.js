@@ -5,6 +5,8 @@
 import React from 'react';
 import { connect, Provider } from 'react-redux';
 
+import { SidebarActions } from './sidebar_reducers';
+
 import './sidebar_panel.less';
 
 /**
@@ -55,7 +57,7 @@ class SidebarApp extends React.Component {
 const mapStateToProps = (state, ownProps) => {
   console.log('mapStateToProps:', JSON.stringify(state));
   return {
-    events: state.events
+    events: SidebarActions.getState(state, 'events')
   };
 };
 

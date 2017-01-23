@@ -2,93 +2,115 @@
 // Copyright 2017 Minder Labs.
 //
 
+const NAMESPACE = 'sidebar';
+
 /**
- *  Sidebar Redux actions.
+ * Sidebar Redux actions.
  */
 export class SidebarActions {
 
-  // TODO(burdon): Split state/actions/reducers.
+  static ACTION = {
+    INIT:   `${NAMESPACE}/INIT`,
+    OPEN:   `${NAMESPACE}/OPEN`,
+    CLOSE:  `${NAMESPACE}/CLOSE`,
+    TOGGLE: `${NAMESPACE}/TOGGLE`,
+    UPDATE: `${NAMESPACE}/UPDATE`
+  };
+
+  static get namespace() {
+    return NAMESPACE;
+  }
 
   static get initalState() {
     return {
-      open: false,
-      events: []
+      [NAMESPACE]: {
+        open: false,
+        events: []
+      }
     }
   }
 
+  static getState(state, field=undefined) {
+    return field ? _.get(state[NAMESPACE], field) : state[NAMESPACE];
+  }
+
+  //
+  // Actions.
+  //
+
   static init() {
     return {
-      type: 'INIT'
+      type: SidebarActions.ACTION.INIT
     }
   }
 
   static open() {
     return {
-      type: 'OPEN'
+      type: SidebarActions.ACTION.OPEN
     }
   }
 
   static close() {
     return {
-      type: 'CLOSE'
+      type: SidebarActions.ACTION.CLOSE
     }
   }
 
   static toggle() {
     return {
-      type: 'TOGGLE'
+      type: SidebarActions.ACTION.TOGGLE
     }
   }
 
   static update(events) {
     return {
-      type: 'UPDATE',
+      type: SidebarActions.ACTION.UPDATE,
       events
     }
   }
 }
 
 /**
- * http://redux.js.org/docs/faq/Reducers.html
+ * http://redux.js.org/docs/basics/Reducers.html#handling-actions
  */
-export const SidebarReducer = (messenger) => (state, action) => {
+export const SidebarReducer = (messenger) => (state=SidebarActions.initalState, action) => {
   console.log('AppReducer[%s]: %s', JSON.stringify(state, 0, 2), JSON.stringify(action));
   switch (action.type) {
 
     // TODO(burdon): Get reponse from message to set state (invokes another action?)
 
-    case 'INIT': {
-      messenger.sendMessage({ command: 'INIT' });
-      return {
+    case SidebarActions.ACTION.INIT: {
+      messenger.sendMessage({ command: 'INIT' });       // TODO(burdon): Understand side-effects doc.
+      return _.assign({}, state, {
         open: true
-      };
+      });
     }
 
-    case 'OPEN': {
+    case SidebarActions.ACTION.OPEN: {
       messenger.sendMessage({ command: 'OPEN' });
-      return {
+      return _.assign({}, state, {
         open: true
-      };
+      });
     }
 
-    case 'CLOSE': {
+    case SidebarActions.ACTION.CLOSE: {
       messenger.sendMessage({ command: 'CLOSE' });
-      return {
+      return _.assign({}, state, {
         open: false
-      };
+      });
     }
 
-    case 'TOGGLE': {
-      messenger.sendMessage({ command: state.open ? 'CLOSE' : 'OPEN' });
-      return {
-        open: !state.open
-      };
+    case SidebarActions.ACTION.TOGGLE: {
+      messenger.sendMessage({ command: state[NAMESPACE].open ? 'CLOSE' : 'OPEN' });
+      return _.assign({}, state, {
+        open: !state[NAMESPACE].open
+      });
     }
 
-    case 'UPDATE': {
-      return {
-        events: _.concat(state.events || [], action.events)
-      };
+    case SidebarActions.ACTION.UPDATE: {
+      return _.assign({}, state, {
+        events: _.concat(state[NAMESPACE].events || [], action.events)
+      });
     }
 
     default:
