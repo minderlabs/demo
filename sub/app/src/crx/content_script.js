@@ -25,9 +25,6 @@ class ContentScript {
 
   static manifest = chrome.runtime.getManifest();
 
-  static SIDEBAR_FRAME_SRC = chrome.extension.getURL(
-    'page/sidebar.html?' + HttpUtil.toUrlArgs({ scriptId, frameId: 'sidebar' }));
-
   constructor() {
     console.log(`${ContentScript.manifest.name} ${ContentScript.manifest.version}`);
 
@@ -35,7 +32,8 @@ class ContentScript {
     let container = $('<div>').addClass('crx-content-script').appendTo(document.body);
 
     // Frame elements.
-    let sidebar = new Frame(ContentScript.SIDEBAR_FRAME_SRC, $('<div>').addClass('crx-sidebar').appendTo(container));
+    let sidebar = new Frame('page/sidebar.html', 'sidebar/' + scriptId,
+      $('<div>').addClass('crx-sidebar').appendTo(container));
 
     // Hidden button to grab focus (after sidebar closes).
     let button = $('<button>').appendTo(container).click(() => sidebar.toggle());
@@ -87,10 +85,19 @@ class ContentScript {
  */
 class Frame {
 
-  constructor(src, root) {
-    console.assert(src && root);
+  /**
+   * Frame element to contain pop-up components.
+   * @param {string} page Frame source.
+   * @param {string} channel Routing identifier.
+   * @param {Node} root Root node for iframe channel.
+   */
+  constructor(page, channel, root) {
+    console.assert(page && channel && root);
 
-    this._src = src;
+    // Frame source
+    this._src = chrome.extension.getURL(page + '?' + HttpUtil.toUrlArgs({ channel }));
+
+    // Root node.
     this._root = root;
 
     // Lazily instantiated frame (loads content when created).
@@ -100,7 +107,7 @@ class Frame {
     this._blocking = null;
 
     // iFrame messenger (valid after loaded).
-    this._messenger = new Messenger({ scriptId }, 'chrome-extension://' + chrome.runtime.id);
+    this._messenger = new Messenger(channel, 'chrome-extension://' + chrome.runtime.id);
   }
 
   get messenger() {

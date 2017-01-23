@@ -25,12 +25,13 @@ const config = HttpUtil.parseUrlArgs();
 // Event handling.
 //
 
-const messenger = new Messenger(_.pick(config, ['scriptId', 'frameId']))
+const messenger = new Messenger(config.channel)
   .attach(parent)
   .listen(message => {
     switch (message.command) {
       case 'UPDATE':
-        store.dispatch(SidebarActions.update(message.events));
+        // TODO(burdon): Remove duplicates.
+        store.dispatch(SidebarActions.update(_.uniqBy(message.events, 'email')));
         break;
 
       default:

@@ -39,7 +39,7 @@ class SidebarApp extends React.Component {
           <h1>Minder</h1>
         </div>
 
-        <div className="crx-panel crx-expand">
+        <div className="crx-panel crx-content">
           { events }
         </div>
 
