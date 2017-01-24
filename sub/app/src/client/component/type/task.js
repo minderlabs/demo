@@ -5,7 +5,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose } from 'react-apollo';
-import { Link } from 'react-router';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
@@ -13,6 +12,7 @@ import { ID, ItemFragment, ItemReducer, MutationUtil, Mutator, TaskFragment } fr
 import { List, ListItem } from 'minder-ux';
 
 import { Path } from '../../path';
+import { AppAction } from '../../reducers';
 import { UpdateItemMutation } from '../../data/mutations';
 import { composeItem } from '../item';
 import { CardContainer } from '../card';
@@ -338,7 +338,7 @@ class TaskCompactCardComponent extends React.Component {
 }
 
 const mapStateToProps = (state, ownProps) => {
-  let { injector } = state.minder;
+  let { injector } = AppAction.getState(state);
 
   return {
     injector

@@ -23,10 +23,8 @@ export class SidebarActions {
 
   static get initalState() {
     return {
-      [NAMESPACE]: {
-        open: false,
-        events: []
-      }
+      open: false,
+      events: []
     }
   }
 

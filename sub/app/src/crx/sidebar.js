@@ -30,8 +30,7 @@ const messenger = new Messenger(config.channel)
   .listen(message => {
     switch (message.command) {
       case 'UPDATE':
-        // TODO(burdon): Remove duplicates.
-        store.dispatch(SidebarActions.update(_.uniqBy(message.events, 'email')));
+        store.dispatch(SidebarActions.update(message.events));
         break;
 
       default:
@@ -44,7 +43,6 @@ const keyBindings = new KeyListener()
 
 //
 // Redux set-up.
-// TODO(burdon): Create react-router demo (with onEnter).
 // https://github.com/ReactTraining/react-router/blob/master/docs/API.md#onenternextstate-replace-callback
 //
 
@@ -53,6 +51,7 @@ const store = createStore(combineReducers({
   [SidebarActions.namespace]: SidebarReducer(messenger)
 }));
 
+// TODO(burdon): Create react-router demo (with onEnter).
 // https://github.com/reactjs/react-redux/blob/master/docs/api.md#provider-store
 const RootApp = (
   <Provider store={ store }>

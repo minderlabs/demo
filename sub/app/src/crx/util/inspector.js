@@ -129,6 +129,7 @@ export class InboxInspector extends Inspector {
       }
     });
 
-    return events;
+    // Remove duplicates.
+    return _.uniqBy(events, 'email');
   }
 }

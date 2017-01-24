@@ -10,6 +10,7 @@ import gql from 'graphql-tag';
 import { QueryParser, Mutator, MutationUtil, TypeUtil } from 'minder-core';
 import { List, ListItem, TextBox } from 'minder-ux';
 
+import { AppAction } from '../reducers';
 import { UpdateItemMutation } from '../data/mutations';
 
 import { SearchList } from '../component/list_factory';
@@ -184,7 +185,7 @@ const mapStateToProps = (state, ownProps) => {
 //console.log('Folder.mapStateToProps: %s', JSON.stringify(Object.keys(ownProps)));
 
   // NOTE: Search state come from dispatch via SearchBar.
-  let { injector, search, user, team } = state.minder;
+  let { injector, search, user, team } = AppAction.getState(state);
   let typeRegistry = injector.get(TypeRegistry);
   let queryParser = injector.get(QueryParser);
   let filter = queryParser.parse(search.text);

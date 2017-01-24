@@ -3,19 +3,20 @@
 //
 
 import React from 'react';
-import gql from 'graphql-tag';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 
-import { ID, ItemFragment, Matcher, Mutator, ValueFragment } from 'minder-core';
+import { ID, Matcher, Mutator } from 'minder-core';
 
 import { TypeRegistry } from './type/registry';
+
+import { AppAction } from '../reducers';
 
 /**
  * NOTE: This is applied to the child container (e.g., TaskCardComponent).
  */
 const mapStateToProps = (state, ownProps) => {
-  let { injector, user } = state.minder;
+  let { injector, user } = AppAction.getState(state);
 
   return {
     // TODO(burdon): Bind needed objects instead (e.g., Matcher, TypeRegistry).

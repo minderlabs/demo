@@ -8,7 +8,7 @@ import { compose } from 'react-apollo';
 
 import { SearchBar } from 'minder-ux';
 
-import { ACTION } from '../reducers';
+import { AppAction } from '../reducers';
 
 import './search.less';
 
@@ -33,7 +33,7 @@ class SearchView extends React.Component {
 }
 
 const mapStateToProps = (state, ownProps) => {
-  let { search } = state.minder;
+  let { search } = AppAction.getState(state);
 
   return {
     search
@@ -43,11 +43,8 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     // Store search state (so can restore value when nav back).
-    onSearch: (value) => {
-      dispatch({
-        type: ACTION.SEARCH,
-        value
-      });
+    onSearch: (text) => {
+      dispatch(AppAction.search(text));
     },
   }
 };

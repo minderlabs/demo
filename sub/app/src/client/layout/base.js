@@ -10,6 +10,7 @@ import gql from 'graphql-tag';
 import { EventHandler } from 'minder-core';
 import { Sidebar, SidebarToggle } from 'minder-ux';
 
+import { AppAction } from '../reducers';
 import { Navigator } from '../path'
 import { Const } from '../../common/defs';
 
@@ -156,7 +157,7 @@ const LayoutQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  let { config, injector, user, team } = state.minder;
+  let { config, injector, user, team } = AppAction.getState(state);
 
   let queryRegistry = injector.get(QueryRegistry);
 

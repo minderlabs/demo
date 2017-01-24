@@ -2,50 +2,66 @@
 // Copyright 2016 Minder Labs.
 //
 
+const NAMESPACE = 'minder';
+
 /**
- * Action types.
+ * Main App actions.
  */
-export const ACTION = {
+export class AppAction {
 
-  SEARCH: 'MINDER_SEARCH'
+  static ACTION = {
+    SEARCH: `${NAMESPACE}/SEARCH`
+  };
 
-};
+  static get namespace() {
+    return NAMESPACE;
+  }
+
+  static getState(state, field=undefined) {
+    return field ? _.get(state[NAMESPACE], field) : state[NAMESPACE];
+  }
+
+  //
+  // Actions.
+  //
+
+  static search(text) {
+    return {
+      type: AppAction.ACTION.SEARCH,
+      value: text
+    }
+  }
+}
 
 /**
- * Compute initial state.
- * http://redux.js.org/docs/api/Store.html
- *
- * @param config App configuration (provided by server).
- * @param injector Dependency injector.
- * @returns Redux state object.
+ * Manages state transitions.
  */
 export const AppReducer = (config, injector) => {
 
-  // TODO(burdon): Multiple reducers? Split by section?
+  // TODO(burdon): State should only pertain to actions (i.e., search).
+  // NOTE: We need the injector here since it can't be passed via React context to HOC containers.
 
-  const initialSate = {
-    minder: {
-      config: config,
-      injector: injector,
-      user: config.user,
-      team: config.team,      // TODO(burdon): Temp. Should be queried list.
-      search: {
-        text: ''
-      }
+  const initialState = {
+    injector: injector,     // TODO(burdon): Factor out?
+
+    config: config,
+    user: config.user,
+    team: config.team,      // TODO(burdon): Should be queried list.
+
+    search: {
+      text: ''
     }
   };
 
-  return {
-    minder: (state=initialSate.minder, action) => {
-//    console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
+  return (state=initialState, action) => {
+//  console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
 
-      switch (action.type) {
-        case ACTION.SEARCH: {
-          return _.set(state, 'search.text', action.value);
-        }
+    switch (action.type) {
+      case AppAction.ACTION.SEARCH: {
+        return _.set(state, 'search.text', action.value);
       }
-
-      return state
     }
+
+    return state
   };
 };
