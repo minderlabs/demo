@@ -5,7 +5,7 @@
 /**
  * Handles window-frame communication.
  */
-export class Messenger {
+export class FrameMessenger {
 
   /**
    * @param {string} channel Identifier for routing.

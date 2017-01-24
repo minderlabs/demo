@@ -6,7 +6,7 @@ import { HttpUtil, KeyListener } from 'minder-core';
 
 import { KeyToggleSidebar } from './common';
 import { InspectorRegistry, InboxInspector } from './util/inspector';
-import { Messenger } from './util/messenger';
+import { FrameMessenger } from './util/messenger';
 
 import './content_script.less';
 
@@ -107,7 +107,7 @@ class Frame {
     this._blocking = null;
 
     // iFrame messenger (valid after loaded).
-    this._messenger = new Messenger(channel, 'chrome-extension://' + chrome.runtime.id);
+    this._messenger = new FrameMessenger(channel, 'chrome-extension://' + chrome.runtime.id);
   }
 
   get messenger() {

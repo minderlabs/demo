@@ -3,7 +3,7 @@
 //
 
 import React from 'react';
-import { connect, Provider } from 'react-redux';
+import { connect } from 'react-redux';
 
 import { SidebarActions } from './sidebar_reducers';
 
@@ -65,7 +65,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     close: () => {
       // http://redux.js.org/docs/api/Store.html#dispatch
-      dispatch({ type: 'CLOSE' })
+      dispatch(SidebarActions.close());
     }
   };
 };

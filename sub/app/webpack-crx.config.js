@@ -6,7 +6,6 @@
 
 const _ = require('lodash');
 const path = require('path');
-const webpack = require('webpack');
 
 const baseConfig = require('./webpack-base.config.js');
 
@@ -23,6 +22,10 @@ module.exports = _.merge(baseConfig, {
   devtool: '#eval-source-map',
 
   entry: {
+
+    background: [
+      path.resolve(baseConfig.context, 'src/crx/background.js')
+    ],
 
     content_script: [
       path.resolve(baseConfig.context, 'src/crx/content_script.js')
