@@ -34,6 +34,7 @@ icons:
 permissions:
   - background
   - contextMenus
+  - identity
   - management
   - notifications
   - storage
@@ -46,6 +47,21 @@ permissions:
   - "*://minderlabs.com/*"
 
   - "<all_urls>"
+
+
+#
+# OAuth2
+# Client ID generated in console:
+# https://console.developers.google.com/apis/credentials?project=minder-beta
+# https://developer.chrome.com/apps/app_identity#update_manifest
+# https://developers.google.com/identity/protocols/googlescopes
+#
+
+oauth2:
+  client_id: '189079594739-ngfnpmj856f7i0afsd6dka4712i0urij.apps.googleusercontent.com'
+  scopes:
+    - 'https://www.googleapis.com/auth/userinfo.profile'
+
 
 #
 # Content script.
@@ -77,8 +93,11 @@ content_scripts:
 # https://w3c.github.io/webappsec-csp
 # TODO(burdon): Document why unsafe-eval is needed.
 #
+# Firebase API:
+# https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
+#
 
-content_security_policy: "script-src 'self' 'unsafe-eval' https://minderlabs.com https://apis.google.com; object-src 'self'"
+content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com https://*.firebaseio.com https://www.googleapis.com https://minderlabs.com https://apis.google.com; object-src 'self'"
 
 #
 # https://developer.chrome.com/extensions/manifest/externally_connectable

@@ -312,6 +312,7 @@ app.get('/home', async function(req, res) {
   }
 });
 
+
 //
 // GraphQL
 //
@@ -336,13 +337,16 @@ app.use(graphqlRouter(database, {
     })
 }));
 
+
 //
 // Custom GraphiQL.
 //
 
 let staticPath = (env === 'production' ?
     path.join(__dirname, '../node_modules') : path.join(__dirname, '../../node_modules'));
+
 app.use('/node_modules', express.static(staticPath));
+
 app.get('/graphiql', function(req, res) {
   return authManager.getUserInfoFromCookie(req)
     .then(userInfo => {
@@ -384,13 +388,14 @@ app.use(appRouter(authManager, clientManager, {
       version: Const.APP_VERSION,
     },
 
-    team: Const.DEF_TEAM,
+    team: Const.DEF_TEAM
   },
 
   // TODO(burdon): Clean this up with config.
   assets: env === 'production' ? __dirname : path.join(__dirname, '../../dist')
 }));
 
+// Catch-all (last).
 app.use('/', function(req, res) {
   res.redirect('/home');
 });

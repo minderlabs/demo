@@ -46,8 +46,5 @@ if (module.hot && _.get(config, 'debug.env') === 'hot') {
 //
 
 bootstrap.init().then(() => {
-
-  console.log('>>>>>>>>>>>>>>>>', bootstrap.store.getState());
-
   bootstrap.render(Application);
 });

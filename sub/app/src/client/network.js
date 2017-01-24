@@ -9,8 +9,6 @@ import io from 'socket.io-client';
 
 import { createNetworkInterface } from 'apollo-client';
 
-import { TypeUtil } from 'minder-core';
-
 import { FirebaseConfig, GoogleApiConfig } from '../common/defs';
 
 const logger = Logger.get('net');
@@ -28,7 +26,15 @@ export class AuthManager {
   // Force re-auth.
   // https://firebase.google.com/docs/auth/web/manage-users#re-authenticate_a_user
 
-  constructor(config, networkManager, connectionManager) {
+  /**
+   *
+   * @param config
+   * @param networkManager
+   * @param connectionManager
+   *
+   * @return {Promise}
+   */
+  static init(config, networkManager, connectionManager) {
     console.assert(config && networkManager && connectionManager);
 
     this._networkManager = networkManager;
@@ -43,10 +49,13 @@ export class AuthManager {
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
     firebase.auth().onAuthStateChanged(user => {
-      logger.log($$('Auth changed: %s', user ? user.email : 'Logged out'));
+
       if (user) {
+        logger.log($$('Authenticated: %s', user.email));
+
         // https://firebase.google.com/docs/reference/js/firebase.User#getToken
         user.getToken().then(token => {
+
           // Update the network manager (sets header for graphql requests).
           this._networkManager.token = token;
 
@@ -54,10 +63,38 @@ export class AuthManager {
           connectionManager.connect();
         });
       } else {
+        logger.log('Logged out');
+
+        // Reset token.
         this._networkManager.token = null;
 
-        // Prompt to login (triggers state change above).
-        firebase.auth().signInWithPopup(this._provider);
+        // TODO(burdon): Can only be accessed from background page.
+        // https://github.com/apollostack/apollo-client-devtools
+
+        // Create OAuth client ID (Chrome App)
+        // TODO(burdon): Make sure add dev and prod CRX IDs.
+        // https://console.developers.google.com/apis/credentials?project=minder-beta
+        // https://chrome.google.com/webstore/detail/minder/dkgefopdlgadfghkepoipjbiajpfkfpl
+        // 189079594739-ngfnpmj856f7i0afsd6dka4712i0urij.apps.googleusercontent.com (Generated 1/24/17)
+
+        // TODO(burdon): TypeError: Cannot read property 'getAuthToken' of undefined
+        // https://developer.chrome.com/apps/app_identity
+        // https://developer.chrome.com/apps/identity#method-getAuthToken
+        /*
+        chrome.identity.getAuthToken({ 'interactive': true }, (token) => {
+
+          // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signInWithCredential
+          let credential = firebase.auth.GoogleAuthProvider.credential(null, token);
+          firebase.auth().signInWithCredential(credential);
+        });
+        */
+
+        // Triggers state change above.
+        firebase.auth().signInWithPopup(this._provider).then((result) => {
+          logger.log('Popup result:', result);
+
+          connectionManager.connect();
+        });
       }
     });
   }
@@ -86,7 +123,7 @@ export class ConnectionManager {
     this._eventHandler = eventHandler;
 
     // TODO(burdon): Switch to Firebase Cloud Messaging (with auto-reconnect).
-    this._socket = io();
+    this._socket = config.socket && io();
   }
 
   /**
@@ -95,6 +132,10 @@ export class ConnectionManager {
    */
   connect() {
     logger.log('Connecting...');
+
+    if (!this._socket) {
+      return Promise.resolve();
+    }
 
     return new Promise((resolve, reject) => {
       this._socket.on('connect', () => {
@@ -151,7 +192,7 @@ export class NetworkManager {
     console.assert(config && eventListener);
 
     // Set token from server provided config.
-    console.assert(config.user.token);
+    // NOTE: For the CRX the token will not be available until the login popup.
     this._token = config.user.token;
 
     // Log and match request/reponses.

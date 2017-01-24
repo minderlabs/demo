@@ -40,14 +40,13 @@ export class Base {
     // Manages Apollo query subscriptions.
     this.queryRegistry = new QueryRegistry();
 
+    // TODO(burdon): This is all different for CRX.
+
     // Wraps Apollo network requests.
     this.networkManager = new NetworkManager(config, this.eventHandler);
 
     // Manages the client connection and registration.
     this.connectionManager = new ConnectionManager(config, this.networkManager, this.queryRegistry, this.eventHandler);
-
-    // Manages authentication.
-    this.authManager = new AuthManager(config, this.networkManager, this.connectionManager);
   }
 
   /**
@@ -64,8 +63,11 @@ export class Base {
 
     logger.log($$('Config = %o', this.config));
 
-    // TODO(burdon): Don't attempt connection until authenticated.
-    return this.connectionManager.connect();
+    // Manages authentication.
+    return new Promise((resolve, reject) => {
+      AuthManager.init(this.config, this.networkManager, this.connectionManager);
+      resolve();
+    });
   }
 
   /**
@@ -221,6 +223,6 @@ export class Base {
     );
 
     // Render app.
-    ReactDOM.render(app, document.getElementById(this.config.root));
+    ReactDOM.render(app, document.getElementById(this.config.root));  // TODO(burdon): Rename appRoot.
   }
 }

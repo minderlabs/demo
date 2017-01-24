@@ -49,6 +49,9 @@ export class Application extends React.Component {
     // The acitivity creates (multiple) views (analogous to Android fragments) for the given layout.
     //
 
+    // TODO(burdon): onEnter.
+    // https://github.com/ReactTraining/react-router/blob/master/docs/API.md#onenternextstate-replace-callback
+
     return (
       <ApolloProvider client={ this.props.client } store={ this.props.store }>
 
