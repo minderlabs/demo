@@ -27,25 +27,29 @@ export class AuthManager {
   // https://firebase.google.com/docs/auth/web/manage-users#re-authenticate_a_user
 
   /**
-   *
    * @param config
    * @param networkManager
    * @param connectionManager
    *
    * @return {Promise}
    */
-  static init(config, networkManager, connectionManager) {
+  constructor(config, networkManager, connectionManager) {
     console.assert(config && networkManager && connectionManager);
 
     this._networkManager = networkManager;
+    this._connectionManager = connectionManager;
 
     // https://console.firebase.google.com/project/minder-beta/overview
     firebase.initializeApp(FirebaseConfig);
 
     // Google scopes.
     this._provider = new firebase.auth.GoogleAuthProvider();
-    _.each(GoogleApiConfig.authScopes, scope => { this._provider.addScope(scope); });
+    _.each(GoogleApiConfig.authScopes, scope => {
+      this._provider.addScope(scope);
+    });
+  }
 
+  init() {
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
     firebase.auth().onAuthStateChanged(user => {
@@ -60,7 +64,7 @@ export class AuthManager {
           this._networkManager.token = token;
 
           // Reconnect.
-          connectionManager.connect();
+          this._connectionManager.connect();
         });
       } else {
         logger.log('Logged out');
@@ -93,10 +97,12 @@ export class AuthManager {
         firebase.auth().signInWithPopup(this._provider).then((result) => {
           logger.log('Popup result:', result);
 
-          connectionManager.connect();
+          this._connectionManager.connect();
         });
       }
     });
+
+    return this;
   }
 }
 
@@ -205,6 +211,7 @@ export class NetworkManager {
     // TODO(burdon): Configure batching via options.
     // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
 
+    // TODO(burdon): Custom for CRX.
     // Create the interface.
     // http://dev.apollodata.com/core/network.html
     // http://dev.apollodata.com/core/apollo-client-api.html#createNetworkInterface

@@ -36,17 +36,9 @@ export class Base {
     // Event bus propagates events (e.g., error messages) to components.
     this.eventHandler = new EventHandler();
 
-    // TODO(burdon): Experimental.
+    // TODO(burdon): Experimental (replace with Apollo directives).
     // Manages Apollo query subscriptions.
     this.queryRegistry = new QueryRegistry();
-
-    // TODO(burdon): This is all different for CRX.
-
-    // Wraps Apollo network requests.
-    this.networkManager = new NetworkManager(config, this.eventHandler);
-
-    // Manages the client connection and registration.
-    this.connectionManager = new ConnectionManager(config, this.networkManager, this.queryRegistry, this.eventHandler);
   }
 
   /**
@@ -57,17 +49,14 @@ export class Base {
   init() {
     this.initErrorHandling();
     this.initInjector();
+    this.initNetwork();
     this.initApollo();
     this.initReduxStore();
     this.initRouter();
 
     logger.log($$('Config = %o', this.config));
 
-    // Manages authentication.
-    return new Promise((resolve, reject) => {
-      AuthManager.init(this.config, this.networkManager, this.connectionManager);
-      resolve();
-    });
+    return Promise.resolve();
   }
 
   /**
@@ -119,9 +108,16 @@ export class Base {
   }
 
   /**
+   * Initialize the Apollo network interface.
+   */
+  initNetwork() {}
+
+  /**
    * Acpollo client.
    */
   initApollo() {
+    console.assert(this.networkInterface);
+
     this.apolloClient = new ApolloClient({
 
       // TODO(burdon): Move to minder-core.
@@ -137,7 +133,7 @@ export class Base {
         return null;
       },
 
-      networkInterface: this.networkManager.networkInterface
+      networkInterface: this.networkInterface
     });
   }
 
@@ -224,5 +220,29 @@ export class Base {
 
     // Render app.
     ReactDOM.render(app, document.getElementById(this.config.root));  // TODO(burdon): Rename appRoot.
+  }
+}
+
+/**
+ * Base class for Web apps.
+ */
+export class WebBase extends Base {
+
+  /**
+   * Apollo network.
+   */
+  initNetwork() {
+    // Wraps Apollo network requests.
+    let networkManager = new NetworkManager(this.config, this.eventHandler);
+
+    // Manages the client connection and registration.
+    let connectionManager =
+      new ConnectionManager(this.config, networkManager, this.queryRegistry, this.eventHandler);
+
+    // Manages OAuth.
+    this.authManager = new AuthManager(this.config, networkManager, connectionManager).init();
+
+    // Apollo network interface.
+    this.networkInterface = networkManager.networkInterface;
   }
 }

@@ -58,9 +58,20 @@ permissions:
 #
 
 oauth2:
-  client_id: '189079594739-ngfnpmj856f7i0afsd6dka4712i0urij.apps.googleusercontent.com'
+  client_id: "189079594739-ngfnpmj856f7i0afsd6dka4712i0urij.apps.googleusercontent.com"
   scopes:
-    - 'https://www.googleapis.com/auth/userinfo.profile'
+    - "https://www.googleapis.com/auth/userinfo.profile"
+
+
+#
+# Background page (contains Apollo network interface proxy and push API).
+# https://developer.chrome.com/extensions/background_pages
+# https://developer.chrome.com/extensions/event_pages
+#
+
+background:
+  scripts":
+    - "assets/background.bundle.js"
 
 
 #
@@ -86,6 +97,7 @@ content_scripts:
     css:
       - "assets/content_script.css"
 
+
 #
 # Content Security Policy (CSP)
 # https://developer.chrome.com/extensions/contentSecurityPolicy
@@ -99,13 +111,15 @@ content_scripts:
 
 content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com https://*.firebaseio.com https://www.googleapis.com https://minderlabs.com https://apis.google.com; object-src 'self'"
 
+
 #
 # https://developer.chrome.com/extensions/manifest/externally_connectable
 #
 
 externally_connectable:
   ids:
-    - '*'
+    - "*"
+
 
 #
 # White list for context script resources.

@@ -2,6 +2,8 @@
 // Copyright 2017 Minder Labs.
 //
 
+// TODO(burdon): Move to util.
+
 /**
  * Handles window-frame communication.
  */
@@ -15,7 +17,7 @@ export class FrameMessenger {
     console.assert(channel);
 
     // Routing identifier.
-    this._channel = channel;
+    this._name = channel;
 
     // Callback.
     this._frame = null;
@@ -29,7 +31,7 @@ export class FrameMessenger {
       }
 
       // Since we're listening on the window there may be many posters (e.g., different frames).
-      if (event.data.channel != this._channel) {
+      if (event.data.channel != this._name) {
         return;
       }
 
@@ -70,7 +72,7 @@ export class FrameMessenger {
     // http://stackoverflow.com/questions/11325415/access-iframe-content-from-a-chromes-extension-content-script
 
     this._frame.postMessage({
-      channel: this._channel,
+      channel: this._name,
       message
     }, '*');
   }

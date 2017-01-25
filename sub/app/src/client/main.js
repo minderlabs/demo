@@ -2,7 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { Base } from './base';
+import { WebBase } from './base';
 
 import { AppAction, AppReducer } from './reducers';
 
@@ -13,7 +13,7 @@ const config = window.config;
 /**
  * Main app.
  */
-class Minder extends Base {
+class Minder extends WebBase {
 
   get reducers() {
     return {

@@ -12,6 +12,7 @@ import { AppAction, AppReducer } from '../client/reducers';
 
 import { KeyToggleSidebar } from './common';
 import { FrameMessenger } from './util/messenger';
+import { ChromeMessageChannel, ChromeMessageChannelRouter, ChromeNetworkInterface } from './util/network';
 import { SidebarActions, SidebarReducer } from './components/sidebar_reducers';
 import SidebarPanel from './components/sidebar_panel';
 
@@ -59,6 +60,14 @@ class Sidebar extends Base {
             console.warning('Invalid command: ' + JSON.stringify(message));
         }
       });
+  }
+
+  initNetwork() {
+    let router = new ChromeMessageChannelRouter().connect();
+
+    this.networkInterface =
+      new ChromeNetworkInterface(
+        new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, router));
   }
 
   get reducers() {
