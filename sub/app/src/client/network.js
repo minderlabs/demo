@@ -7,6 +7,8 @@ import { print } from 'graphql-tag/printer';
 import * as firebase from 'firebase';
 import io from 'socket.io-client';
 
+import { HttpUtil } from 'minder-core';
+
 import { createNetworkInterface } from 'apollo-client';
 
 import { FirebaseConfig, GoogleApiConfig } from '../common/defs';
@@ -51,122 +53,151 @@ export class AuthManager {
   }
 
   /**
-   * Authenticaes
+   * Triggers authentication if necessary, and subscribes to auth changes.
    *
    * @return {Promise}
    */
   authenticate() {
-    console.log('Current user: ', firebase.auth().currentUser);
+    let user = firebase.auth().currentUser;
+    if (user) {
+      logger.log('Logged in: ' + user);
+      this._handleAuthStateChanges();
+      return Promise.resolve(user);
+    } else {
+      return new Promise((resolve, reject) => {
+        this._handleAuthStateChanges(resolve);
+      });
+    }
+  }
 
+  /**
+   * Subscribe to auth change updates and trigger auth as needed.
+   * @param callback
+   * @private
+   */
+  _handleAuthStateChanges(callback=undefined) {
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
+    // NOTE: This is triggered immediately if auth is required.
     // https://firebase.google.com/docs/auth/web/manage-users
     // https://firebase.google.com/docs/reference/node/firebase.auth.Auth#onAuthStateChanged
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        logger.log('Authenticated: ' + user.email);
+
+        // https://firebase.google.com/docs/reference/js/firebase.User#getToken
+        user.getToken().then(token => {
+
+          // Update the network manager (sets header for graphql requests).
+          this._networkManager.token = token;
+
+          // Connect (or reconnect) client.
+          this._connectionManager.connect().then(() => callback && callback());
+        });
+      } else {
+        logger.log('Authenticating...');
+
+        // Reset token.
+        this._networkManager.token = null;
+
+        // Trigger authentication.
+        this._doAuth().then(() => callback && callback());
+      }
+    });
+  }
+
+  /**
+   * Authenitcate the user (based on platform).
+   * @return {Promise}
+   * @private
+   */
+  _doAuth() {
+    console.log('Authenticating...');
+    if (_.get(this._config, 'app.platform') == 'crx') {
+      return this._doAuthChromeExtension();
+    } else {
+      return this._doAuthWebApp();
+    }
+  }
+
+  /**
+   * Create OAuth client ID (Chrome App) [store in manifset].
+   * https://console.developers.google.com/apis/credentials?project=minder-beta
+   * https://chrome.google.com/webstore/detail/minder/dkgefopdlgadfghkepoipjbiajpfkfpl
+   * Prod: dkgefopdlgadfghkepoipjbiajpfkfpl
+   * 189079594739-ngfnpmj856f7i0afsd6dka4712i0urij.apps.googleusercontent.com (Generated 1/24/17)
+   * Dev:  ghakkkmnmckhhjangmlfnkpolkgahehp
+   * 189079594739-fmlffnn0o5ka1nej028t44lp2v6knon7.apps.googleusercontent.com (Generated 1/25/17)
+   * https://github.com/firebase/quickstart-js/blob/master/auth/chromextension/credentials.js
+   *
+   * @return {Promise}
+   * @private
+   */
+  _doAuthChromeExtension() {
     return new Promise((resolve, reject) => {
 
-      // TODO(burdon): !!!!!!!!!!!!!!!!!!!!!!
-      // TODO(burdon): Can't do this since will keep calling resolve!
-      // TODO(burdon): Refactor so that auth request happens for user == null; THEN onAuthStateChanged.
-      // TODO(burdon): !!!!!!!!!!!!!!!!!!!!!!
-
-      firebase.auth().onAuthStateChanged(user => {
-
-        if (user) {
-          logger.log($$('Authenticated: %s', user.email));
-
-          // https://firebase.google.com/docs/reference/js/firebase.User#getToken
-          user.getToken().then(token => {
-
-            // Update the network manager (sets header for graphql requests).
-            this._networkManager.token = token;
-
-            // Reconnect.
-            this._connectionManager.connect();
-
-            // OK.
-            resolve();
-          });
-        } else {
-          logger.log('Authenticating...');
-
-          // Reset token.
-          this._networkManager.token = null;
-
-          if (_.get(this._config, 'app.platform') == 'crx') {
-            console.log('CRX: Getting token...');
-
-            // Create OAuth client ID (Chrome App) [store in manifset].
-            // https://console.developers.google.com/apis/credentials?project=minder-beta
-            // https://chrome.google.com/webstore/detail/minder/dkgefopdlgadfghkepoipjbiajpfkfpl
-            // Prod: dkgefopdlgadfghkepoipjbiajpfkfpl
-            // 189079594739-ngfnpmj856f7i0afsd6dka4712i0urij.apps.googleusercontent.com (Generated 1/24/17)
-            // Dev:  ghakkkmnmckhhjangmlfnkpolkgahehp
-            // 189079594739-fmlffnn0o5ka1nej028t44lp2v6knon7.apps.googleusercontent.com (Generated 1/25/17)
-            // https://github.com/firebase/quickstart-js/blob/master/auth/chromextension/credentials.js
-
-            // https://github.com/firebase/firebase-chrome-extension/issues/4
-
-            // NOTE: Can only be accessed from background page.
-            // NOTE: This hangs if the manifest's oauth2 client_id is wronge (e.g., prod vs. dev).
-            // https://developer.chrome.com/apps/app_identity
-            // https://developer.chrome.com/apps/identity#method-getAuthToken
-            chrome.identity.getAuthToken({ interactive: true }, accessToken => {
-              console.log('Token:', accessToken);
-              if (chrome.runtime.lastError) {
-                log.error('Error getting token:', chrome.runtime.lastError);
-                reject(chrome.runtime.lastError);
-              }
-
-              // TODO(burdon): Error (regression in lib: revert to 3.6.5)
-              // npm install --save --save-exact firebase@3.6.5
-              // [burdon 1/25/17] https://github.com/firebase/quickstart-js/issues/98 [ANSWERED]
-              // [burdon 1/25/17] https://github.com/firebase/firebase-chrome-extension/issues/4
-              // http://stackoverflow.com/questions/37865434/firebase-auth-with-facebook-oauth-credential-from-google-extension [6/22/16]
-              // Sign-in failed: {"code":"auth/internal-error","message":"{\"error\":{\"errors\":[{\"domain\":\"global\",
-              // \"reason\":\"invalid\",\"message\":\"INVALID_REQUEST_URI\"}],\"code\":400,\"message\":\"INVALID_REQUEST_URI\"}}"}
-
-              // NOTE: Google specific (since Chrome).
-              // NOTE: If the manifest's oauth2 client_id doesn't match,
-              // the auth promt happens then the signin method doesn't return.
-              // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signInWithCredential
-              let credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
-              firebase.auth().signInWithCredential(credential).then(result => {
-                logger.log('Authenticated:', result);
-
-                // OK.
-                resolve();
-              }).catch(error => {
-                if (error.code === 'auth/invalid-credential') {
-                  // The OAuth token might have been invalidated.
-                  chrome.identity.removeCachedAuthToken({ token: accessToken }, () => {
-                    this.authenticate().then(() => {
-                      resolve();
-                    });
-                  });
-                }
-
-                // TODO(burdon): Just hangs if user closes Login page.
-                logger.error('Sign-in failed:', JSON.stringify(error));
-                reject(error);
-              });
-            });
-
-          } else {
-
-            // NOTE: Triggers state change above.
-            // https://firebase.google.com/docs/reference/js/firebase.auth.Auth.html#signInWithPopup
-            firebase.auth().signInWithPopup(this._provider).then(result => {
-              logger.log('Authenticated:', result);
-
-              // OK.
-              resolve();
-            }).catch(error => {
-              logger.error('Sign-in failed:', JSON.stringify(error));
-            });
-          }
+      // NOTE: Can only be accessed from background page.
+      // NOTE: This hangs if the manifest's oauth2 client_id is wronge (e.g., prod vs. dev).
+      // https://developer.chrome.com/apps/app_identity
+      // https://developer.chrome.com/apps/identity#method-getAuthToken
+      chrome.identity.getAuthToken({ interactive: true }, accessToken => {
+        if (chrome.runtime.lastError) {
+          logger.error('Error getting access token:', chrome.runtime.lastError);
+          reject(chrome.runtime.lastError);
         }
+
+        // NOTE: Get Google specific credentials (since CRX!)
+        // https://firebase.google.com/docs/reference/js/firebase.auth.GoogleAuthProvider
+        logger.log('Retrieved access token:', accessToken);
+        let credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
+
+        // TODO(burdon): Error (regression in lib: revert to 3.6.5)
+        // npm install --save --save-exact firebase@3.6.5
+        // [burdon 1/25/17] https://github.com/firebase/quickstart-js/issues/98 [ANSWERED]
+        // [burdon 1/25/17] https://github.com/firebase/firebase-chrome-extension/issues/4
+        // http://stackoverflow.com/questions/37865434/firebase-auth-with-facebook-oauth-credential-from-google-extension [6/22/16]
+        // Sign-in failed: {"code":"auth/internal-error","message":"{\"error\":{\"errors\":[{\"domain\":\"global\",
+        // \"reason\":\"invalid\",\"message\":\"INVALID_REQUEST_URI\"}],\"code\":400,\"message\":\"INVALID_REQUEST_URI\"}}"}
+
+        // NOTE: If the manifest's oauth2 client_id doesn't match,
+        // the auth promt happens but then the signin method doesn't return.
+        // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signInWithCredential
+        firebase.auth().signInWithCredential(credential)
+          .then(result => {
+            let user = firebase.auth().currentUser;
+            console.log('@@@@@@@@@@@@@@@', user);
+            resolve(user);
+          })
+          .catch(error => {
+            // The OAuth token might have been invalidated; remove the token and try again.
+            if (error.code === 'auth/invalid-credential') {
+              chrome.identity.removeCachedAuthToken({ token: accessToken }, () => {
+                this._doAuthChromeExtension().then(user => resolve(user));
+              });
+            }
+
+            // TODO(burdon): Just hangs if user closes Login page?
+            logger.error('Sign-in failed:', JSON.stringify(error));
+            reject(error);
+          });
       });
     });
+  }
+
+  /**
+   * Show web popup.
+   * @private
+   */
+  _doAuthWebApp() {
+    // NOTE: Triggers state change above.
+    // https://firebase.google.com/docs/reference/js/firebase.auth.Auth.html#signInWithPopup
+    return firebase.auth().signInWithPopup(this._provider)
+      .then(result => {
+        return firebase.auth().currentUser;
+      })
+      .catch(error => {
+        logger.error('Sign-in failed:', JSON.stringify(error));
+      });
   }
 }
 
@@ -202,48 +233,65 @@ export class ConnectionManager {
   connect() {
     logger.log('Connecting...');
 
-    if (!this._socket) {
-      return Promise.resolve();
-    }
+    if (this._socket) {
+      return new Promise((resolve, reject) => {
+        // Wait for socket.io connection.
+        this._socket.on('connect', () => {
+          let socketId = this._socket.io.engine.id;
+          console.assert(socketId);
 
-    return new Promise((resolve, reject) => {
-      this._socket.on('connect', () => {
-        let socketId = this._socket.io.engine.id;
-        console.assert(socketId);
+          this._doRegistration({ socketId })
+            .then(() => {
+              // Listen for invalidations.
+              this._socket.on('invalidate', (data) => {
+                this._eventHandler && this._eventHandler.emit({ type: 'network.in' });
 
-        // TODO(burdon): Factor out (nx-lite utils).
-        let url = $('<a href="/client/register">')[0].href;
+                // TODO(burdon): Invalidate specified queries.
+                this._queryRegistry && this._queryRegistry.invalidate();
+              });
 
-        // http://api.jquery.com/jquery.ajax
-        $.ajax({
-          url: url,
-          type: 'POST',
-          headers: this._networkManager.headers,              // JWT authentication token.
-          contentType: 'application/json; charset=utf-8',
-          dataType: 'json',
-          data: JSON.stringify({
-            clientId: this._config.clientId,
-            socketId: socketId
-          }),
-
-          success: (response) => {
-            logger.log($$('Registered[%s]: %s', this._config.clientId, socketId));
-
-            // Listen for invalidations.
-            this._socket.on('invalidate', (data) => {
-              this._eventHandler && this._eventHandler.emit({ type: 'network.in' });
-
-              // TODO(burdon): Invalidate specified queries.
-              this._queryRegistry && this._queryRegistry.invalidate();
-            });
-
-            resolve();
-          },
-
-          error: (error) => {
-            reject(error);
-          }
+              resolve();
+            })
+            .catch(() => reject);
         });
+      });
+    } else {
+      return this._doRegistration();
+    }
+  }
+
+  /**
+   * Register client with server.
+   * @param {object} registration
+   * @return {Promise}
+   * @private
+   */
+  _doRegistration(registration=undefined) {
+    registration = _.merge({}, registration, {
+      clientId: this._config.clientId
+    });
+
+    let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
+
+    logger.log('Registering client: ' + JSON.stringify(registration));
+    return new Promise((resolve, reject) => {
+      $.ajax({
+        url: url,
+        type: 'POST',
+        headers: this._networkManager.headers,              // JWT authentication token.
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: JSON.stringify(registration),
+
+        success: response => {
+          logger.log('Registered: ' + JSON.stringify(response));
+          resolve();
+        },
+
+        error: error => {
+          logger.error('Registration failed: ' + JSON.stringify(error));
+          reject(error);
+        }
       });
     });
   }
@@ -441,8 +489,6 @@ export class NetworkManager {
  */
 class NetworkLogger {
 
-  static TIMESTAMP = 'hh:mm:ss.SSS';
-
   // TODO(burdon): Verbose option.
   constructor(options) {}
 
@@ -451,7 +497,7 @@ class NetworkLogger {
     logger.log($$('[_TS_] ===>>> [%s] %o', requestId, request.variables || {}));
 
     // TODO(burdon): Optionally show graphiql link.
-    console.info('[' + requestId + ']: ' + document.location.origin + '/graphiql?' +
+    logger.info('[' + requestId + ']: ' + document.location.origin + '/graphiql?' +
       'query=' + encodeURIComponent(print(request.query)) +
       (request.variables ? '&variables=' + encodeURIComponent(JSON.stringify(request.variables)) : ''));
   }

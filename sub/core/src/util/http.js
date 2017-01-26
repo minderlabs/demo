@@ -9,6 +9,16 @@ export class HttpUtil {
 
   // TODO(burdon): Tests.
 
+  static getServerUrl() {
+    return window.location.protocol + '//' + window.location.host +
+      (window.location.port ? (':' + window.location.port) : '')
+  }
+
+  static joinUrl(path, part) {
+    console.assert(path && part);
+    return path.replace(/\/$/, '') + '/' + part.replace(/^\//, '');
+  }
+
   /**
    * Return map of args from URL.
    * @param url

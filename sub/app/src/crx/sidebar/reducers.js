@@ -70,7 +70,7 @@ export class SidebarAction {
     }
   }
 
-  static update(events) {
+  static update(events=[]) {
     return {
       type: SidebarAction.ACTION.UPDATE,
       events
@@ -129,7 +129,7 @@ export const SidebarReducer = (config, injector) => (state=SidebarAction.initalS
 
     case SidebarAction.ACTION.UPDATE: {
       return _.assign({}, state, {
-        events: _.concat(state[NAMESPACE].events || [], action.events)
+        events: _.concat(state.events || [], action.events)
       });
     }
   }

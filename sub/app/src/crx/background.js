@@ -20,6 +20,8 @@ class BackgroundApp {
         platform: 'crx'
       },
 
+      server: 'http://127.0.0.1:3000',
+
       // TODO(burdon): Get from settings.
       graphql: 'http://127.0.0.1:3000/graphql',
     };
@@ -36,7 +38,7 @@ class BackgroundApp {
   init() {
 
     // Triggers popup.
-    // TODO(burdon): Don't start listening until this is running (may need to buffer).
+    // TODO(burdon): Don't start listening until this is running (may need to buffer?)
     this.authManager.authenticate().then(() => {
 
       //
@@ -49,7 +51,7 @@ class BackgroundApp {
           }
         }
 
-        return Promise.resolve({});
+        return Promise.resolve();
       });
 
       //
@@ -64,6 +66,8 @@ class BackgroundApp {
           return gqlResponse;
         });
       });
+
+      console.log('Listening...');
     });
   }
 }
