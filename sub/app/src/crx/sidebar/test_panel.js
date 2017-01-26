@@ -4,10 +4,12 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
+import { compose, graphql } from 'react-apollo';
+import gql from 'graphql-tag';
 
-import { SidebarActions } from './sidebar_reducers';
+import { SidebarAction } from './reducers';
 
-import './sidebar_panel.less';
+import './test_panel.less';
 
 /**
  * CRX Sidebar App.
@@ -21,8 +23,13 @@ class SidebarApp extends React.Component {
   componentWillReceiveProps(nextProps) {
     console.log('componentWillMount:', JSON.stringify(nextProps));
     this.setState({
+      viewer: nextProps.viewer,
       events: nextProps.events
     });
+  }
+
+  handlePing() {
+    this.props.ping();
   }
 
   handleClose() {
@@ -30,8 +37,10 @@ class SidebarApp extends React.Component {
   }
 
   render() {
+    let { viewer, events } = this.state;
+
     let i = 0;
-    let events = _.map(this.state.events, event => (
+    let eventRows = _.map(events, event => (
       <div key={ 'item-' + i++ } className="crx-list-item">{ JSON.stringify(event) }</div>
     ));
 
@@ -42,10 +51,16 @@ class SidebarApp extends React.Component {
         </div>
 
         <div className="crx-panel crx-content">
-          { events }
+          <div>
+            { JSON.stringify(viewer) }
+          </div>
+          <div>
+            { eventRows }
+          </div>
         </div>
 
         <div className="crx-panel crx-footer">
+          <button onClick={ this.handlePing.bind(this) }>Ping</button>
           <button onClick={ this.handleClose.bind(this) }>Close</button>
         </div>
       </div>
@@ -55,21 +70,46 @@ class SidebarApp extends React.Component {
 
 // Subscribe to Redux store updates.
 const mapStateToProps = (state, ownProps) => {
-  console.log('mapStateToProps:', JSON.stringify(state));
   return {
-    events: SidebarActions.getState(state, 'events')
+    events: SidebarAction.getState(state, 'events')
   };
 };
 
+// http://redux.js.org/docs/api/Store.html#dispatch
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
+    ping: () => {
+      dispatch(SidebarAction.ping('test'));
+    },
+
     close: () => {
-      // http://redux.js.org/docs/api/Store.html#dispatch
-      dispatch(SidebarActions.close());
+      dispatch(SidebarAction.close());
     }
   };
 };
 
-// HOC.
+// Minimal test query.
+const TestQuery = gql`
+  query TestQuery {
+    viewer {
+      id
+    }
+  }
+`;
+
+// HOC (Redux + Apollo).
 // https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options
-export default connect(mapStateToProps, mapDispatchToProps)(SidebarApp);
+export default compose(
+
+  connect(mapStateToProps, mapDispatchToProps),
+
+  graphql(TestQuery, {
+    props: ({ ownProps, data }) => {
+      let { viewer } = data;
+      return {
+        viewer
+      };
+    }
+  })
+
+)(SidebarApp);

@@ -11,9 +11,13 @@
 # Tools
 # grunt watch:crx
 #
-# Chrome extension:
+# Chrome extensions:
 # https://chrome.google.com/webstore/detail/extensions-reloader/fimgfedafeadlieiabdeeaodndnlbhid
+# https://chrome.google.com/webstore/detail/chrome-apps-extensions-de/ohmmkhmmmpcnpikjeljgnaoabkaalbgc
+#
 # NOTE: On manifest changes, must reload via chrome://extensions
+# Launch the Extensions Manager from chrome://apps (then select Extensions).
+# NOTE: To keep the BG page window open, click reload then manually reload the content script page.
 #
 
 name:               Minder
@@ -25,6 +29,13 @@ manifest_version:   2,
 
 icons:
   128: "img/icon_128.png"
+
+
+# TODO(burdon): Create consistent key (for dev and prod).
+# https://developer.chrome.com/extensions/manifest/key
+# ~/Library/Application Support/Google/Chrome/Default/Extensions
+# key: ""
+
 
 #
 # Permissions.
@@ -42,25 +53,12 @@ permissions:
   - gcm                                             # Cloud Messaging (FCM).
 
   - "http://localhost/*"
+  - "http://127.0.0.1/*"
   - "http://local-docker-machine/*"
 
   - "*://minderlabs.com/*"
 
   - "<all_urls>"
-
-
-#
-# OAuth2
-# Client ID generated in console:
-# https://console.developers.google.com/apis/credentials?project=minder-beta
-# https://developer.chrome.com/apps/app_identity#update_manifest
-# https://developers.google.com/identity/protocols/googlescopes
-#
-
-oauth2:
-  client_id: "189079594739-ngfnpmj856f7i0afsd6dka4712i0urij.apps.googleusercontent.com"
-  scopes:
-    - "https://www.googleapis.com/auth/userinfo.profile"
 
 
 #
@@ -70,7 +68,7 @@ oauth2:
 #
 
 background:
-  scripts":
+  scripts:
     - "assets/background.bundle.js"
 
 
@@ -90,12 +88,31 @@ content_scripts:
       - "https://*.google.com/*"
 
     js:
-      # NOTE: Cannot be symlink.
+      # NOTE: Cannot be symlink (must be copied).
       # https://bugs.chromium.org/p/chromium/issues/detail?id=27185&q=burdon&colspec=ID%20Pri%20M%20Stars%20ReleaseBlock%20Component%20Status%20Owner%20Summary%20OS%20Modified
       - "assets/content_script.bundle.js"
 
     css:
       - "assets/content_script.css"
+
+
+#
+# OAuth2
+# Client ID generated in console:
+# https://console.developers.google.com/apis/credentials?project=minder-beta
+# https://developer.chrome.com/apps/app_identity#update_manifest
+# https://developers.google.com/identity/protocols/googlescopes
+# TODO(burdon): Inject from defs.GoogleApiConfig
+#
+
+oauth2:
+  # CRX (Dev).
+  client_id: "189079594739-fmlffnn0o5ka1nej028t44lp2v6knon7.apps.googleusercontent.com"
+  # CRX (Prod).
+# client_id: "189079594739-ngfnpmj856f7i0afsd6dka4712i0urij.apps.googleusercontent.com"
+  scopes:
+    - "https://www.googleapis.com/auth/userinfo.email"
+    - "https://www.googleapis.com/auth/userinfo.profile"
 
 
 #
@@ -109,7 +126,7 @@ content_scripts:
 # https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
 #
 
-content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com https://*.firebaseio.com https://www.googleapis.com https://minderlabs.com https://apis.google.com; object-src 'self'"
+content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://minderlabs.com https://apis.google.com; object-src 'self'"
 
 
 #

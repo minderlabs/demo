@@ -47,15 +47,23 @@ export class Base {
    * @return {Promise}
    */
   init() {
-    this.initErrorHandling();
-    this.initInjector();
-    this.initNetwork();
-    this.initApollo();
-    this.initReduxStore();
-    this.initRouter();
+    return this.initErrorHandling()
+      .then(() => this.initInjector())
+      .then(() => this.initNetwork())
+      .then(() => this.initApollo())
+      .then(() => this.initReduxStore())
+      .then(() => this.initRouter())
+      .then(() => this.postInit())
+      .then(() => {
+        logger.log($$('Config = %o', this.config));
+      });
+  }
 
-    logger.log($$('Config = %o', this.config));
-
+  /**
+   *
+   * @return {Promise.<T>}
+   */
+  postInit() {
     return Promise.resolve();
   }
 
@@ -88,6 +96,8 @@ export class Base {
         message
       });
     });
+
+    return Promise.resolve();
   }
 
   /**
@@ -105,12 +115,17 @@ export class Base {
 
     // TODO(burdon): Move to Redux.
     this.injector = new Injector(providers);
+
+    return Promise.resolve();
   }
 
   /**
    * Initialize the Apollo network interface.
+   * @return {Promise}
    */
-  initNetwork() {}
+  initNetwork() {
+    return Promise.resolve();
+  }
 
   /**
    * Acpollo client.
@@ -135,6 +150,8 @@ export class Base {
 
       networkInterface: this.networkInterface
     });
+
+    return Promise.resolve();
   }
 
   /**
@@ -176,6 +193,8 @@ export class Base {
 
     // http://redux.js.org/docs/api/createStore.html
     this.store = createStore(reducers, {}, enhancer);
+
+    return Promise.resolve();
   }
 
   /**
@@ -190,6 +209,8 @@ export class Base {
     this.history.listen(location => {
       logger.log($$('Router: %s', location.pathname));
     });
+
+    return Promise.resolve();
   }
 
   /**
@@ -211,6 +232,7 @@ export class Base {
 
     // Construct app.
     const app = (
+      // TODO(burdon): Get injector from store?
       <App
         injector={ this.injector }
         client={ this.apolloClient }
@@ -232,17 +254,17 @@ export class WebBase extends Base {
    * Apollo network.
    */
   initNetwork() {
+
     // Wraps Apollo network requests.
     let networkManager = new NetworkManager(this.config, this.eventHandler);
+    this.networkInterface = networkManager.networkInterface;
 
     // Manages the client connection and registration.
     let connectionManager =
       new ConnectionManager(this.config, networkManager, this.queryRegistry, this.eventHandler);
 
     // Manages OAuth.
-    this.authManager = new AuthManager(this.config, networkManager, connectionManager).init();
-
-    // Apollo network interface.
-    this.networkInterface = networkManager.networkInterface;
+    let authManager = new AuthManager(this.config, networkManager, connectionManager);
+    return authManager.authenticate();
   }
 }

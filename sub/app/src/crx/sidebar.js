@@ -3,18 +3,19 @@
 //
 
 import React from 'react';
-import { Provider } from 'react-redux';
+import { ApolloProvider } from 'react-apollo';
 
-import { HttpUtil, KeyListener } from 'minder-core';
+import {
+  ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger, HttpUtil, Injector, KeyListener
+} from 'minder-core';
 
 import { Base } from '../client/base';
 import { AppAction, AppReducer } from '../client/reducers';
 
 import { KeyToggleSidebar } from './common';
-import { FrameMessenger } from './util/messenger';
-import { ChromeMessageChannel, ChromeMessageChannelRouter, ChromeNetworkInterface } from './util/network';
-import { SidebarActions, SidebarReducer } from './components/sidebar_reducers';
-import SidebarPanel from './components/sidebar_panel';
+import { ChromeNetworkInterface } from './util/network';
+import { SidebarAction, SidebarReducer } from './sidebar/reducers';
+import SidebarPanel from './sidebar/test_panel';
 
 // TODO(burdon): Test React/Apollo (network/auth).
 
@@ -23,10 +24,13 @@ const config = _.merge({
 
   app: {
     name: 'Minder',
-    version: '0.1.0'
+    version: '0.1.0',
+    platform: 'crx'
   },
 
-  debug: {},
+  debug: {
+    env: 'development'
+  },
 
   graphql: '/graphql',
 
@@ -48,26 +52,43 @@ class Sidebar extends Base {
     super(config);
 
     // TODO(burdon): Get message/event when opened/closed by key press (to update state).
-    this.messenger = new FrameMessenger(config.channel)
+    this.messenger = new WindowMessenger(config.channel)
       .attach(parent)
       .listen(message => {
         switch (message.command) {
           case 'UPDATE':
-            this.store.dispatch(SidebarActions.update(message.events));
+            this.store.dispatch(SidebarAction.update(message.events));
             break;
 
           default:
             console.warning('Invalid command: ' + JSON.stringify(message));
         }
       });
+
+    // Message routing.
+    this.router = new ChromeMessageChannelRouter();
+    this.systemChannel = new ChromeMessageChannel('system', this.router);
+  }
+
+  postInit() {
+    this.router.connect();
+    return Promise.resolve();
   }
 
   initNetwork() {
-    let router = new ChromeMessageChannelRouter().connect();
-
     this.networkInterface =
       new ChromeNetworkInterface(
-        new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, router));
+        new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this.router));
+
+    // TODO(burdon): Wait for connection.
+    return Promise.resolve();
+  }
+
+  get providers() {
+    return [
+      Injector.provider(this.messenger),
+      Injector.provider(this.systemChannel, 'system-channel')
+    ]
   }
 
   get reducers() {
@@ -76,7 +97,7 @@ class Sidebar extends Base {
       [AppAction.namespace] : AppReducer(this.config, this.injector),
 
       // Sidebar-specific.
-      [SidebarActions.namespace]: SidebarReducer(this.messenger)
+      [SidebarAction.namespace]: SidebarReducer(this.config, this.injector)
     }
   }
 }
@@ -84,15 +105,20 @@ class Sidebar extends Base {
 const bootstrap = new Sidebar(config);
 
 /**
- * TODO(burdon): Temporary root application.
+ * Test root application.
  */
 class Application extends React.Component {
 
+  static propTypes = {
+    client: React.PropTypes.object.isRequired,
+    store: React.PropTypes.object.isRequired
+  };
+
   render() {
     return (
-      <Provider store={ this.props.store }>
+      <ApolloProvider client={ this.props.client } store={ this.props.store }>
         <SidebarPanel/>
-      </Provider>
+      </ApolloProvider>
     );
   }
 }
@@ -103,8 +129,8 @@ bootstrap.init().then(() => {
   bootstrap.render(Application);
 
   // Trigger startup via Redux.
-  bootstrap.store.dispatch(SidebarActions.init());
+  bootstrap.store.dispatch(SidebarAction.init());
 
   const keyBindings = new KeyListener()
-    .listen(KeyToggleSidebar, () => bootstrap.store.dispatch(SidebarActions.toggle()));
+    .listen(KeyToggleSidebar, () => bootstrap.store.dispatch(SidebarAction.toggle()));
 });

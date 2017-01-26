@@ -328,7 +328,7 @@ app.use(graphqlRouter(database, {
   context: req => authManager.getUserInfoFromHeader(req)
     .then(userInfo => {
       if (!userInfo) {
-        console.error('Not authenticated.');
+        console.error('GraphQL request is not authenticated.');
       }
 
       return {
@@ -414,6 +414,7 @@ app.use(function(req, res) {
 // Start-up.
 //
 
+// TODO(burdon): Perform in order?
 Promise.all(promises).then(() => {
   logger.log('STARTING...');
 

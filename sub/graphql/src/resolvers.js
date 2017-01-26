@@ -156,6 +156,10 @@ export class Resolvers {
       RootQuery: {
 
         viewer: (root, args, context) => {
+          console.log('??????????', context);
+          console.assert(context && context.user);
+
+          // TODO(burdon): Fails if not authenticated (no context).
           let { user: { id, email, name } } = context;
 
           // TODO(burdon): Local/global ID (need to document to memo this).

@@ -9,35 +9,50 @@ export class Injector {
 
   /**
    * Provides class instance.
-   * @param instance
+   * @param {object} instance
+   * @param {string} key [optional]
    * @returns {{}}
    */
-  static provider(instance) {
+  static provider(instance, key=undefined) {
     console.assert(_.isObject(instance));
-    let module = {};
-    // TODO(burdon): Disambiguate class names.
-    module[instance.constructor.name] = instance;
-    return module;
+
+    if (!key) {
+      key = instance.constructor.name;
+    }
+
+    return {
+      [key]: instance
+    };
   }
 
   constructor(modules) {
-    this._keys = new Map();
+    this._objects = new Map();
 
     _.each(modules, module => {
       console.assert(_.isObject(module));
+
       _.each(module, (value, key) => {
-        this._keys.set(key, value);
+        this._objects.set(key, value);
       });
     });
   }
 
+  /**
+   * Gets the injected value.
+   * @param {string|object} key
+   * @return {*}
+   */
   get(key) {
     console.assert(key);
 
-    if (_.isObject(key)) {
-      let value = this._keys.get(key.name);
-      console.assert(value, 'Missing key: %s', key);
-      return value;
+    let value = null;
+    if (_.isString(key)) {
+      value = this._objects.get(key);
+    } else if (_.isObject(key)) {
+      value = this._objects.get(key.name);
     }
+
+    console.assert(value, 'Missing key: %s', key);
+    return value;
   }
 }

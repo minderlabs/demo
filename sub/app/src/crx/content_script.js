@@ -2,11 +2,10 @@
 // Copyright 2017 Minder Labs.
 //
 
-import { HttpUtil, KeyListener } from 'minder-core';
+import { WindowMessenger, HttpUtil, KeyListener } from 'minder-core';
 
 import { KeyToggleSidebar } from './common';
 import { InspectorRegistry, InboxInspector } from './util/inspector';
-import { FrameMessenger } from './util/messenger';
 
 import './content_script.less';
 
@@ -28,33 +27,41 @@ class ContentScript {
   constructor() {
     console.log(`${ContentScript.manifest.name} ${ContentScript.manifest.version}`);
 
+    // TODO(burdon): Remove jquery or jquery lite?
+
     // Root element.
-    let container = $('<div>').addClass('crx-content-script').appendTo(document.body);
+    let container = $('<div>')
+      .addClass('crx-content-script')
+      .appendTo(document.body);
+
+    // Button to grab focus (after sidebar closes).
+    let button = $('<button>')
+      .append($('<img>')
+        .attr('src', chrome.extension.getURL('img/icon_128.png')))
+      .click(() => { console.log('hi'); this.sidebar.toggle() })
+      .appendTo(container);
 
     // Frame elements.
-    let sidebar = new Frame('page/sidebar.html', 'sidebar/' + scriptId,
+    this.sidebar = new Frame('page/sidebar.html', 'sidebar/' + scriptId,
       $('<div>').addClass('crx-sidebar').appendTo(container));
 
-    // Hidden button to grab focus (after sidebar closes).
-    let button = $('<button>').appendTo(container).click(() => sidebar.toggle());
-
     // Listen for messages from the frame.
-    sidebar.messenger.listen(message => {
+    this.sidebar.messenger.listen(message => {
       switch (message.command) {
 
         // TODO(burdon): Create Redux reducer (like sidebar).
         case 'INIT': {
-          sidebar.initialized().open();
+          this.sidebar.initialized().open();
           break;
         }
 
         case 'OPEN': {
-          sidebar.open();
+          this.sidebar.open();
           break;
         }
 
         case 'CLOSE': {
-          sidebar.close();
+          this.sidebar.close();
           button.focus();
           break;
         }
@@ -66,8 +73,8 @@ class ContentScript {
       .add(new InboxInspector())
       .init(events => {
         // Wait for sidebar to load (if first time).
-        sidebar.open().then(() => {
-          sidebar.messenger.sendMessage({
+        this.sidebar.open().then(() => {
+          this.sidebar.messenger.sendMessage({
             command: 'UPDATE',
             events
           }, '*');
@@ -76,7 +83,7 @@ class ContentScript {
 
     // Shortcuts.
     const keyBindings = new KeyListener()
-      .listen(KeyToggleSidebar, () => sidebar.toggle());
+      .listen(KeyToggleSidebar, () => this.sidebar.toggle());
   }
 }
 
@@ -107,7 +114,7 @@ class Frame {
     this._blocking = null;
 
     // iFrame messenger (valid after loaded).
-    this._messenger = new FrameMessenger(channel, 'chrome-extension://' + chrome.runtime.id);
+    this._messenger = new WindowMessenger(channel, 'chrome-extension://' + chrome.runtime.id);
   }
 
   get messenger() {
@@ -157,3 +164,6 @@ class Frame {
 // Create the app.
 // TODO(burdon): Use Redux?
 const app = new ContentScript();
+
+// TODO(burdon): Debug.
+//app.sidebar.open();

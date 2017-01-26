@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sandbox</title>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+  <style>
+    button {
+      background-color: transparent;
+      outline: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    img {
+      width: 16px;
+      height: 16px;
+    }
+  </style>
+
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <script>
+    $(document).ready(() => {
+
+      $('#root')
+        .append($('<button>')
+          .append($('<img>')
+            .attr('src', './img/icon_128.png'))
+          .click(() => { console.log('click'); }))
+
+    });
+  </script>
+
+</body>

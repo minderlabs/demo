@@ -7,7 +7,9 @@
 /**
  * Grunt config.
  */
-module.exports = function(grunt) {
+module.exports = (grunt) => {
+
+  require('time-grunt')(grunt);
 
   grunt.config.init({
 
@@ -117,6 +119,8 @@ module.exports = function(grunt) {
       },
       crx: {
         files: [
+          'Gruntfile.js',
+          'webpack*',
           'src/crx/**',
           'src/client/**',
         ],
@@ -128,6 +132,7 @@ module.exports = function(grunt) {
     // NOTE: Use webpack --watch to automatically update all config entries.
     // https://webpack.github.io/docs/usage-with-grunt.html
     // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
+    // webpack -d --config webpack-crx.config.js --display-modules --progress
     // TODO(burdon): Debug options.
     webpack: {
       crx: require('./webpack-crx.config.js')

@@ -39,7 +39,26 @@ button {
 }
 
 .crx-header, .crx-footer {
+  flex-direction: row;
   flex-shrink: 0;
+
+  border-top: 1px solid gray;
+  background-color: #EEE;
+}
+
+.crx-header {
+  h1 {
+    .crx-expand;
+  }
+}
+
+.crx-footer {
+  justify-content: space-between;
+  padding: 2px;
+
+  button {
+    width: 80px;
+  }
 }
 
 .crx-content {

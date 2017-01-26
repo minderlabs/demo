@@ -25,7 +25,7 @@ export class InspectorRegistry {
       if (inspector.isValid()) {
         let rootNode = inspector.getRootNode();
         if (rootNode) {
-          console.log('Starting: ' + inspector.constructor.name);
+          console.log('Inspector: ' + inspector.constructor.name);
           inspector.start(rootNode, callback);
         }
       }

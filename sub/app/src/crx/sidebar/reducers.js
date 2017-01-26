@@ -4,16 +4,19 @@
 
 const NAMESPACE = 'sidebar';
 
+import { WindowMessenger } from 'minder-core';
+
 /**
  * Sidebar Redux actions.
  */
-export class SidebarActions {
+export class SidebarAction {
 
   static ACTION = {
     INIT:   `${NAMESPACE}/INIT`,
     OPEN:   `${NAMESPACE}/OPEN`,
     CLOSE:  `${NAMESPACE}/CLOSE`,
     TOGGLE: `${NAMESPACE}/TOGGLE`,
+    PING:   `${NAMESPACE}/PING`,
     UPDATE: `${NAMESPACE}/UPDATE`
   };
 
@@ -38,31 +41,38 @@ export class SidebarActions {
 
   static init() {
     return {
-      type: SidebarActions.ACTION.INIT
+      type: SidebarAction.ACTION.INIT
     }
   }
 
   static open() {
     return {
-      type: SidebarActions.ACTION.OPEN
+      type: SidebarAction.ACTION.OPEN
     }
   }
 
   static close() {
     return {
-      type: SidebarActions.ACTION.CLOSE
+      type: SidebarAction.ACTION.CLOSE
     }
   }
 
   static toggle() {
     return {
-      type: SidebarActions.ACTION.TOGGLE
+      type: SidebarAction.ACTION.TOGGLE
+    }
+  }
+
+  static ping(value) {
+    return {
+      type: SidebarAction.ACTION.PING,
+      value
     }
   }
 
   static update(events) {
     return {
-      type: SidebarActions.ACTION.UPDATE,
+      type: SidebarAction.ACTION.UPDATE,
       events
     }
   }
@@ -71,47 +81,58 @@ export class SidebarActions {
 /**
  * http://redux.js.org/docs/basics/Reducers.html#handling-actions
  */
-export const SidebarReducer = (messenger) => (state=SidebarActions.initalState, action) => {
-  console.log('AppReducer[%s]: %s', JSON.stringify(state, 0, 2), JSON.stringify(action));
+export const SidebarReducer = (config, injector) => (state=SidebarAction.initalState, action) => {
+//console.log('SidebarReducer[%s]: %s', JSON.stringify(state, 0, 2), JSON.stringify(action));
+
+  let messenger = injector.get(WindowMessenger);
+  let channel = injector.get('system-channel');
+
   switch (action.type) {
 
     // TODO(burdon): Get reponse from message to set state (invokes another action?)
 
-    case SidebarActions.ACTION.INIT: {
+    case SidebarAction.ACTION.INIT: {
       messenger.sendMessage({ command: 'INIT' });       // TODO(burdon): Understand side-effects doc.
       return _.assign({}, state, {
         open: true
       });
     }
 
-    case SidebarActions.ACTION.OPEN: {
+    case SidebarAction.ACTION.OPEN: {
       messenger.sendMessage({ command: 'OPEN' });
       return _.assign({}, state, {
         open: true
       });
     }
 
-    case SidebarActions.ACTION.CLOSE: {
+    case SidebarAction.ACTION.CLOSE: {
       messenger.sendMessage({ command: 'CLOSE' });
       return _.assign({}, state, {
         open: false
       });
     }
 
-    case SidebarActions.ACTION.TOGGLE: {
+    case SidebarAction.ACTION.TOGGLE: {
+      // TODO(burdon): Side-effects so that response can update "online" state.
       messenger.sendMessage({ command: state[NAMESPACE].open ? 'CLOSE' : 'OPEN' });
       return _.assign({}, state, {
         open: !state[NAMESPACE].open
       });
     }
 
-    case SidebarActions.ACTION.UPDATE: {
+    case SidebarAction.ACTION.PING: {
+      channel.postMessage({ command: 'ping', value: action.value }).wait().then(response => {
+        console.log('Response: ', JSON.stringify(response));
+      });
+      break;
+    }
+
+    case SidebarAction.ACTION.UPDATE: {
       return _.assign({}, state, {
         events: _.concat(state[NAMESPACE].events || [], action.events)
       });
     }
-
-    default:
-      return state;
   }
+
+  return state;
 };
