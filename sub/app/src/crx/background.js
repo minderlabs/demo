@@ -38,7 +38,6 @@ class BackgroundApp {
     // Triggers popup.
     // TODO(burdon): Don't start listening until this is running (may need to buffer).
     this.authManager.authenticate().then(() => {
-      console.log('### OK ###');
 
       //
       // Handle system request.

@@ -58,27 +58,17 @@ export class AuthManager {
   authenticate() {
     console.log('Current user: ', firebase.auth().currentUser);
 
-    // TODO(burdon): Error (out of date lib?)
-    chrome.identity.getAuthToken({ interactive: true }, accessToken => {
-      let credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
-      firebase.auth().signInWithCredential(credential).catch(error => {
-        console.log(':::::::::::::::::', error);
-      });
-    });
-
-    return new Promise((resolve, reject) => {});
-
-
-
-
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
     // https://firebase.google.com/docs/auth/web/manage-users
     // https://firebase.google.com/docs/reference/node/firebase.auth.Auth#onAuthStateChanged
     return new Promise((resolve, reject) => {
 
+      // TODO(burdon): !!!!!!!!!!!!!!!!!!!!!!
       // TODO(burdon): Can't do this since will keep calling resolve!
       // TODO(burdon): Refactor so that auth request happens for user == null; THEN onAuthStateChanged.
+      // TODO(burdon): !!!!!!!!!!!!!!!!!!!!!!
+
       firebase.auth().onAuthStateChanged(user => {
 
         if (user) {
@@ -127,9 +117,10 @@ export class AuthManager {
                 reject(chrome.runtime.lastError);
               }
 
-              // TODO(burdon): Error.
+              // TODO(burdon): Error (regression in lib: revert to 3.6.5)
+              // npm install --save --save-exact firebase@3.6.5
+              // [burdon 1/25/17] https://github.com/firebase/quickstart-js/issues/98 [ANSWERED]
               // [burdon 1/25/17] https://github.com/firebase/firebase-chrome-extension/issues/4
-              // [burdon 1/25/17] https://github.com/firebase/quickstart-js/issues/98
               // http://stackoverflow.com/questions/37865434/firebase-auth-with-facebook-oauth-credential-from-google-extension [6/22/16]
               // Sign-in failed: {"code":"auth/internal-error","message":"{\"error\":{\"errors\":[{\"domain\":\"global\",
               // \"reason\":\"invalid\",\"message\":\"INVALID_REQUEST_URI\"}],\"code\":400,\"message\":\"INVALID_REQUEST_URI\"}}"}
