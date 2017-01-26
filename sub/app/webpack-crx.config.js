@@ -40,15 +40,15 @@ module.exports = _.merge(baseConfig, {
   entry: {
 
     background: [
-      path.resolve(baseConfig.context, 'src/crx/background.js')
+      path.resolve(baseConfig.context, 'src/client/crx/background.js')
     ],
 
     content_script: [
-      path.resolve(baseConfig.context, 'src/crx/content_script.js')
+      path.resolve(baseConfig.context, 'src/client/crx/content_script.js')
     ],
 
     sidebar: [
-      path.resolve(baseConfig.context, 'src/crx/sidebar.js')
+      path.resolve(baseConfig.context, 'src/client/crx/sidebar.js')
     ]
 
   },

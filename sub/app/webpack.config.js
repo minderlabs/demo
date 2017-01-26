@@ -25,7 +25,20 @@ module.exports = _.merge(baseConfig, {
   entry: {
 
     test: [
-      path.resolve(baseConfig.context, 'src/client/test.js')
+      path.resolve(baseConfig.context, 'src/client/web/test.js')
+    ],
+
+    main: [
+      path.resolve(baseConfig.context, 'src/client/web/main.js')
+    ],
+
+    hot: [
+      path.resolve(baseConfig.context, 'src/client/web/main.js'),
+
+      // BABEL_NODE=hot NODE_ENV=hot
+      // HMR client (connects to dev app server).
+      'webpack/hot/dev-server',
+      'webpack-hot-middleware/client'
     ],
 
     website: [
@@ -34,19 +47,6 @@ module.exports = _.merge(baseConfig, {
 
     graphiql: [
       path.resolve(baseConfig.context, 'src/graphiql/graphiql.js')
-    ],
-
-    main: [
-      path.resolve(baseConfig.context, 'src/client/main.js')
-    ],
-
-    hot: [
-      path.resolve(baseConfig.context, 'src/client/main.js'),
-
-      // BABEL_NODE=hot NODE_ENV=hot
-      // HMR client (connects to dev app server).
-      'webpack/hot/dev-server',
-      'webpack-hot-middleware/client'
     ]
   },
 

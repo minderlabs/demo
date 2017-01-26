@@ -11,7 +11,7 @@ import { HttpUtil } from 'minder-core';
 
 import { createNetworkInterface } from 'apollo-client';
 
-import { FirebaseConfig, GoogleApiConfig } from '../common/defs';
+import { FirebaseConfig, GoogleApiConfig } from '../../common/defs';
 
 const logger = Logger.get('net');
 

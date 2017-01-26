@@ -43,5 +43,3 @@ export const Const = {
 
   AUTH_COOKIE: 'minder_auth_token'
 };
-
-

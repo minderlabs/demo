@@ -12,7 +12,7 @@ import { Sidebar, SidebarToggle } from 'minder-ux';
 
 import { AppAction } from '../reducers';
 import { Navigator } from '../path'
-import { Const } from '../../common/defs';
+import { Const } from '../../../common/defs';
 
 import { QueryRegistry } from '../data/subscriptions';
 

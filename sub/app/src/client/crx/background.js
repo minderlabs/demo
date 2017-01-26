@@ -4,7 +4,7 @@
 
 import { ChromeMessageChannelDispatcher } from 'minder-core';
 
-import { AuthManager, ConnectionManager, NetworkManager } from '../client/network';
+import { AuthManager, ConnectionManager, NetworkManager } from '../web/network';
 import { ChromeNetworkInterface } from './util/network';
 
 /**

@@ -9,16 +9,15 @@ import {
   ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger, HttpUtil, Injector, KeyListener
 } from 'minder-core';
 
-import { Base } from '../client/base';
-import { AppAction, AppReducer } from '../client/reducers';
+import { Base } from '../web/base';
+import { AppAction, AppReducer } from '../web/reducers';
 
 import { KeyToggleSidebar } from './common';
 import { ChromeNetworkInterface } from './util/network';
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 import SidebarPanel from './sidebar/test_panel';
 
-// TODO(burdon): Test React/Apollo (network/auth).
-
+// TODO(burdon): Document config.
 // Config passed from content script container.
 const config = _.merge({
 

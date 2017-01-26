@@ -55,7 +55,7 @@ module.exports = (grunt) => {
       yml2json: {
         // CRX manifest.
         files: [{
-          src: ['src/crx/manifest.yml'],
+          src: ['src/client/crx/manifest.yml'],
           dest: 'dist/crx/minder/manifest.json'
         }]
       }
@@ -86,7 +86,7 @@ module.exports = (grunt) => {
     crx: {
       minder: {
         options: {
-          privateKey: 'src/crx/minder.pem'
+          privateKey: 'src/client/crx/minder.pem'
         },
         src: ['dist/crx/minder/**/*'],
         dest: 'dist/crx/minder.crx'
@@ -121,7 +121,6 @@ module.exports = (grunt) => {
         files: [
           'Gruntfile.js',
           'webpack*',
-          'src/crx/**',
           'src/client/**',
         ],
         tasks: [ 'build_crx' ]
