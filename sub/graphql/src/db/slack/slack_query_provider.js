@@ -2,11 +2,15 @@
 // Copyright 2017 Minder Labs.
 //
 
+import _ from 'lodash';
 
 import { ItemStore, Logger } from 'minder-core';
 
-const logger = Logger.get('db');
+const logger = Logger.get('slack');
 
+/**
+ * SlackQueryProvider
+ */
 export class SlackQueryProvider extends ItemStore {
   constructor(idGenerator, matcher, botManager) {
     super(idGenerator, matcher);
@@ -31,6 +35,7 @@ export class SlackQueryProvider extends ItemStore {
    */
   static resultToItem(idGenerator, match) {
     return {
+      type: 'Document',
       id: idGenerator.createId(), // TODO(madadam): keep Slack message ID as foreign key.
       title: `@${match.username} on #${match.channel.name}: ${match.text}`,
 
@@ -40,7 +45,6 @@ export class SlackQueryProvider extends ItemStore {
       iconUrl: '/img/slack-icon-24px.png',
 
       source: 'Slack',
-      type: 'Document',
     }
   }
 
@@ -71,15 +75,15 @@ export class SlackQueryProvider extends ItemStore {
     const token = bot.config.incoming_webhook.token;
     return new Promise((resolve, reject) => {
       bot.api.search.all(
-        {token: token, query: query},
+        { token: token, query: query },
         (err, response) => {
           if (err) {
-            logger.error('SlackQueryProvider:', err);
+            logger.error('Search failed:', err);
             reject(err);
           } else {
-            for (const match of response.messages.matches) {
+            _.each(response.messages.matches, match => {
               items.push(SlackQueryProvider.resultToItem(this._idGenerator, match));
-            }
+            });
 
             resolve(items);
           }

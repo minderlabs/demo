@@ -5,26 +5,35 @@
 import express from 'express';
 
 
-// AccountManager handles service-specific accounts, each provided by an AccountHandler
-// e.g. SlackAccountHandler.
-
-// Sign up buttons can start oauth flow that redirects back to /accounts/<service>, which delegates to the
+// Sign-up buttons can start oauth flow that redirects back to /accounts/<service>, which delegates to the
 // service handler. After creating accounts (userStore?) and getting credentials from the service and
 // storing them in the UserStore, the handler can redirect back to /accounts.
 
+/**
+ * AccountManager handles service-specific accounts, each provided by an AccountHandler
+ * e.g. SlackAccountHandler.
+ *
+ */
 export class AccountManager {
   constructor() {
-    this.handlers = new Map();
+    this._handlers = new Map();
   }
 
+  get handlers() { return this._handlers; }
+
   registerHandler(name, handler) {
-    this.handlers[name] = handler;
+    this._handlers[name] = handler;
   }
 }
 
-// Router for '/accounts' paths. Root /accounts page iterates over AccountManager.accounts exposing
-// account.signUpButtons() if not already connected, or account.info() if connected.
 
+/**
+ * Router for '/accounts' paths. Root /accounts page iterates over AccountManager.accounts exposing
+ * account.signUpButtons() if not already connected, or account.info() if connected.
+ *
+ * @param accountManager
+ * @returns {core.Router|*}
+ */
 export const accountsRouter = (accountManager) => {
   console.assert(accountManager);
 
@@ -46,7 +55,10 @@ export const accountsRouter = (accountManager) => {
   return router;
 };
 
-// AccountHandler interface.
+
+/**
+ * AccountHandler interface.
+ */
 export class AccountHandler {
   /**
    * Display name for the accounts management page.

@@ -2,6 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import Botkit from 'botkit';
 import express from 'express';
 
@@ -17,10 +18,11 @@ export class BotKitManager {
     this.config = config;
 
     // Cache the bots (and their RTM connections etc), keyed by bot token.
-    this._bots = {};
+    this._bots = new Map();
 
     this.redirectUri = config.redirectHost + '/botkit/oauth';
     // Botkit logs the endpoints incorrectly when we bring our own express server.
+    // TODO(madadam): Fix botkit logging upstream.
     logger.info('** Botkit logging below is wrong, true oauth redirect is: ' + this.redirectUri);
 
     this.controller = Botkit.slackbot({
@@ -59,17 +61,18 @@ export class BotKitManager {
   start() {
 
     this.controller.on('create_bot', (bot, config) => {
-      // TODO(madadam): promise and .then instead of callback?
-      this.connect(bot, () => {
-
-        bot.startPrivateConversation({user: config.createdBy}, (err, convo) => {
-          if (err) {
-            logger.error(err);
-          } else {
-            convo.say('I am a bot that has just joined your team');
-            convo.say('You must now /invite me to a channel so that I can do useful stuff!');
-          }
-        });
+      this.startBot(bot).then(({bot, isFirstConnect}) => {
+        if (isFirstConnect) {
+          bot.startPrivateConversation({user: config.createdBy}, (err, conversation) => {
+            if (err) {
+              logger.error(err);
+            } else {
+              // TODO(madadam): Manage user-visible strings with an i18n-friendly string manager.
+              conversation.say('I am a bot that has just joined your team');
+              conversation.say('You must now /invite me to a channel so that I can do useful stuff!');
+            }
+          });
+        }
       });
     });
 
@@ -79,15 +82,16 @@ export class BotKitManager {
         throw new Error(err);
       }
 
-      for (let team of teams) {
+      _.each(teams, team => {
         if (team.bot) {
+          // Spawn bot instance to represent specific bot identity for team (will appear online in Slack once connected).
           let bot = this.controller.spawn(team);
-          this.connect(bot, () => {
+          this.startBot(bot).then(({bot}) => {
             // TODO(madadam): Load bots for all users? Does anything need to happen here for credential management?
             //this.userStateManager.loadUsers(bot);
           });
         }
-      }
+      });
     });
 
     // TODO(madadam): replace with full-blown slackbot app, ported from framework/sub/botkit/app.js
@@ -104,31 +108,39 @@ export class BotKitManager {
     });
   }
 
-  connect(bot, onConnected=null) {
-    if (this._bots[bot.config.token]) {
-      logger.info('Bot already registered for token: ' + bot.config.token);
-    } else {
-      bot.startRTM((err) => {
-        if (!err) {
-          this._track(bot);
-        } else {
-          logger.error('Error connecting bot to Slack:', err);
-        }
-        if (onConnected) {
-          onConnected();
-        }
-      });
-
-    }
+  /**
+   * Connect the bot to Slack's Real-time Messaging (RTM) API and start listening on channels.
+   * @param bot
+   * @returns {Promise} of {bot, isFirstConnect).
+   */
+  startBot(bot) {
+    return new Promise((resolve, reject) => {
+      if (this._bots[bot.config.token]) {
+        logger.info('Bot already registered for token: ' + bot.config.token);
+        resolve({
+          bot,
+          isFirstConnect: false
+        });
+      } else {
+        bot.startRTM((err) => {
+          if (!err) {
+            console.log('Connecting team: ' + JSON.stringify(bot.config));
+            this._bots[bot.config.token] = bot;
+            resolve({
+              bot,
+              isFirstConnect: true
+            });
+          } else {
+            logger.error('Error connecting bot to Slack:', err);
+            reject(err);
+          }
+        });
+      }
+    });
   }
 
   getBot(token) {
     return this._bots[token];
-  }
-
-  _track(bot) {
-    console.log('Connecting team: ' + JSON.stringify(bot.config));
-    this._bots[bot.config.token] = bot;
   }
 }
 

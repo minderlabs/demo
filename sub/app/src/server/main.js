@@ -120,7 +120,7 @@ database
   // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
   .registerSearchProvider('google_drive', googleDriveItemStore);
 
-let slackConfig = {
+const slackConfig = {
   port,
   redirectHost: process.env.OAUTH_REDIRECT_ROOT || 'http://localhost:' + port,
   ...SlackConfig
