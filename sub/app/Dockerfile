@@ -1,8 +1,8 @@
 #
 # Copyright 2016 Minder Labs.
 #
-# Apollo Demo Server Dockerfile
-# alienlaboratories/react-demos
+# Minder Demo Server Dockerfile
+# minderlabs/demo
 #
 
 #

@@ -104,15 +104,17 @@ ul.ux-inline {
 .ux-data {
   display: flex;
   flex-direction: column;
+
+  .ux-data-row {
+    margin-bottom: 4px;
+  }
 }
 
-// TODO(burdon): Rename ux-control-row
+// TODO(burdon): Rename ux-control-row?
 .ux-data-row {
   display: flex;
   flex-direction: row;
   align-items: center;
-
-  margin-bottom: 4px;
 
   .ux-data-label {
     font-size: @ux-font-small;

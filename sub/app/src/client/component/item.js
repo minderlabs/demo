@@ -7,37 +7,9 @@ import gql from 'graphql-tag';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 
-import { ID, Matcher, Mutator } from 'minder-core';
+import { ID, ItemFragment, Matcher, Mutator, ValueFragment } from 'minder-core';
 
 import { TypeRegistry } from './type/registry';
-
-// TODO(burdon): Factor out fragments (to minder-graphql).
-
-/**
- * Basic item fragment (common fields).
- */
-export const ItemFragment = gql`
-  fragment ItemFragment on Item {
-    id
-    type
-    labels
-    title
-    description
-  }
-`;
-
-export const ValueFragment = gql`
-  fragment ValueFragment on Value {
-    null
-    int
-    float
-    string
-    boolean
-    id
-    timestamp
-    date
-  }
-`;
 
 /**
  * NOTE: This is applied to the child container (e.g., TaskCardComponent).

@@ -7,6 +7,7 @@ export * from './util/event';
 export * from './util/injector';
 export * from './util/type';
 
+export * from './data/fragments';
 export * from './data/id';
 export * from './data/item_store';
 export * from './data/matcher';

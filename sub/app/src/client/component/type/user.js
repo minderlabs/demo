@@ -7,10 +7,10 @@ import { Link } from 'react-router';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ID, ItemReducer } from 'minder-core';
+import { ID, ItemFragment, ItemReducer } from 'minder-core';
 
 import { UpdateItemMutation } from '../../data/mutations';
-import { composeItem, ItemFragment } from '../item';
+import { composeItem } from '../item';
 import { CardContainer } from '../card';
 
 /**

@@ -9,45 +9,17 @@ import { Link } from 'react-router';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ID, ItemReducer, MutationUtil, Mutator } from 'minder-core';
+import { ID, ItemFragment, ItemReducer, MutationUtil, Mutator, TaskFragment } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
 import { Path } from '../../path';
 import { UpdateItemMutation } from '../../data/mutations';
-import { composeItem, ItemFragment } from '../item';
+import { composeItem } from '../item';
 import { CardContainer } from '../card';
 
 import ItemsPicker from '../items_picker';
 
 import './task.less';
-
-/**
- * Type-specific fragment.
- */
-export const TaskFragment = gql`
-  fragment TaskFragment on Task {
-    bucket
-    type
-    id
-
-    title
-    description
-
-    status
-    project {
-      id
-      title
-    }
-    owner {
-      id
-      title
-    }
-    assignee {
-      id
-      title
-    }
-  }
-`;
 
 /**
  * Type-specific query.
@@ -234,6 +206,8 @@ class TaskLayout extends React.Component {
       text: assigneeText
     };
 
+    // TODO(burdon): Generalize status (mapped to board column model).
+
     return (
       <div className="app-type-task ux-column">
 
@@ -307,12 +281,18 @@ export const TaskCard = composeItem(
 class TaskCompactCardComponent extends React.Component {
 
   static contextTypes = {
+    navigator: React.PropTypes.object.isRequired,
     item: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
     mutator: React.PropTypes.object.isRequired
   };
+
+  handleTaskSelect(item) {
+    console.assert(item);
+    this.context.navigator.push(Path.canvas(ID.toGlobalId('Task', item.id)));
+  }
 
   handleToggleStatus(task) {
     let { mutator } = this.props;
@@ -324,17 +304,17 @@ class TaskCompactCardComponent extends React.Component {
   render() {
     let { item } = this.context;
 
-    // TODO(burdon): Use list. Factor out for use in detail page.
-    let subTasks = _.map(item.tasks, task => {
+    // TODO(burdon): Factor out (e.g., reuse in task detail above).
+    const SubTaskRenderer = (task) => {
       let icon = (task.status == 3) ? 'done' : 'check_box_outline_blank';
 
       return (
-        <div key={ task.id } className="ux-row">
+        <ListItem item={ task }>
           <i className="ux-icon ux-icon-checkbox" onClick={ this.handleToggleStatus.bind(this, task) }>{ icon }</i>
-         <Link className="ux-text" to={ Path.canvas(ID.toGlobalId('Task', task.id)) }>{ task.title }</Link>
-        </div>
+          <ListItem.Title item={ task }/>
+        </ListItem>
       );
-    });
+    };
 
     return (
       <div className="ux-column">
@@ -342,12 +322,15 @@ class TaskCompactCardComponent extends React.Component {
           <ListItem.Title/>
           <i className="ux-icon">edit</i>
         </div>
+
         <div className="ux-body">
           <div className="ux-text">{ _.get(item, 'assignee.title') }</div>
           <div className="ux-text-block ux-font-xsmall">{ _.get(item, 'description') }</div>
-          <div>
-            { subTasks }
-          </div>
+
+          <List items={ item.tasks }
+                itemRenderer={ SubTaskRenderer }
+                onItemSelect={ this.handleTaskSelect.bind(this) }/>
+
         </div>
       </div>
     );

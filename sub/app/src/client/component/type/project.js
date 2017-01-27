@@ -7,16 +7,15 @@ import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
+import { ItemFragment, ProjectBoardFragment, TaskFragment } from 'minder-core';
 import { Board, DragOrderModel, List, ListItem } from 'minder-ux';
 
 import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
-import { composeItem, ItemFragment, ValueFragment } from '../item';
+import { composeItem } from '../item';
 import { CardContainer } from '../card';
 import { CanvasContainer } from '../canvas';
 import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
-
-import { TaskFragment } from './task';
 
 //
 // Project card.
@@ -27,6 +26,8 @@ import { TaskFragment } from './task';
  */
 const ProjectQuery = gql`
   query ProjectQuery($itemId: ID!, $localItemId: ID!) {
+    
+    # TODO(burdon): Remove $localItemId?
 
     item(itemId: $itemId) {
       ...ItemFragment
@@ -397,23 +398,7 @@ const ProjectBoardQuery = gql`
       ...ItemFragment
 
       ... on Project {
-
-        boards {
-          alias
-          title
-          columns {
-            id
-            title
-            value {
-              ...ValueFragment
-            }
-          }
-          itemMeta {
-            itemId
-            listId
-            order
-          }         
-        }
+        ...ProjectBoardFragment
 
         tasks {
           ...TaskFragment
@@ -426,8 +411,8 @@ const ProjectBoardQuery = gql`
     }
   }
 
-  ${ValueFragment}
   ${ItemFragment}
+  ${ProjectBoardFragment}
   ${TaskFragment}  
 `;
 
@@ -537,22 +522,32 @@ class ProjectBoardComponent extends React.Component {
   }
 
   render() {
-    let { item={}, typeRegistry } = this.props;
+    let { item:project={}, typeRegistry } = this.props;
     let { itemOrderModel } = this.state;
 
     // Get the appropriate board.
     // TODO(burdon): Get from props.
     let boardAlias = "tasks";
-    let board = _.find(_.get(item, 'boards'), board => board.alias == boardAlias);
+    let board = _.find(_.get(project, 'boards'), board => board.alias == boardAlias);
     itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
 
-    // TODO(burdon): Function to map items to board.
-    const columns = [
-      { id: 'c1', value: 0, title: 'Icebox'    },
-      { id: 'c2', value: 1, title: 'Assigned'  },
-      { id: 'c3', value: 2, title: 'Active'    },
-      { id: 'c4', value: 3, title: 'Complete'  }
-    ];
+    let items = _.get(project, 'tasks', []);
+
+    // TODO(burdon): Config value.
+    const columns = _.map(_.get(board, 'columns'), column => ({
+      id: column.id,
+      value: column.value.int,
+      title: column.title
+    }));
+
+    // Map items to columns.
+    const columnMapper = (columns, item) => {
+      let idx = _.findIndex(columns, column => {
+        return (column.value == item.status);
+      });
+
+      return columns[idx].id;
+    };
 
     // TODO(burdon): Factor out.
     const CompactItemRenderer = (item) => {
@@ -568,28 +563,17 @@ class ProjectBoardComponent extends React.Component {
       );
     };
 
-    let items = _.get(item, 'tasks', []);
-
-    // Map items to columns.
-    let columnMapper = (columns, item) => {
-      let idx = _.findIndex(columns, column => {
-        return (column.value == item.status);
-      });
-
-      return columns[idx].id;
-    };
-
     // TODO(burdon): Move title to NavBar.
     // TODO(burdon): Base class for canvases (e.g., editable title like Card).
     return (
       <div className="ux-column">
         <div className="ux-section ux-row">
-          <i className="ux-icon" onClick={ this.handleToggleCanvas.bind(this) }>{ typeRegistry.icon(item) }</i>
+          <i className="ux-icon" onClick={ this.handleToggleCanvas.bind(this) }>{ typeRegistry.icon(project) }</i>
 
-          <div className="ux-text">{ item.title }</div>
+          <div className="ux-text">{ project.title }</div>
         </div>
 
-        <Board item={ item } items={ items } columns={ columns } columnMapper={ columnMapper }
+        <Board item={ project } items={ items } columns={ columns } columnMapper={ columnMapper }
                itemRenderer={ CompactItemRenderer }
                itemOrderModel={ itemOrderModel }
                onItemDrop={ this.handleItemDrop.bind(this) }

@@ -83,6 +83,7 @@ export class Board extends React.Component {
           <div className="ux-board-list">
             <DragDropList data={ column.id }
                           items={ columnItems }
+                          itemClassName="ux-board-list-item"
                           itemRenderer={ itemRenderer }
                           itemOrderModel={ itemOrderModel }
                           onItemDrop={ this.handleItemDrop.bind(this) }
