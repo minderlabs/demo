@@ -19,7 +19,7 @@ VERSION=latest
 set -e
 set -v
 
-DOCKER_REPO=${1:-docker}
+DOCKER_REPO=${1:-ecr}
 
 case "$DOCKER_REPO" in
   docker)
@@ -58,6 +58,7 @@ webpack --config webpack-server.config.js
 # Bump version.
 #
 
+# TODO(burdon): Git commit/push and merge master after this.
 grunt version:client:patch
 
 #
@@ -73,8 +74,18 @@ docker build -t ${TAG}:${VERSION} .
 docker tag ${TAG}:${VERSION} ${NAMESPACE}/${REPO}:${VERSION}
 
 #
-# Push to Docker Hub.
-# Triggers docker push redeploy.
+# Push to container repository (docker or AWS ECR).
 #
 
+case "$DOCKER_REPO" in
+  ecr)
+    # Login to AWS ECR.
+    # https://forums.aws.amazon.com/thread.jspa?messageID=692733
+    eval $(AWS_PROFILE=minder aws ecr get-login)
+    ;;
+esac
+
 docker push ${NAMESPACE}/${REPO}:${VERSION}
+
+# Redeploy the service.
+kubectl delete $(kubectl get pods -l run=demo -o name)
