@@ -77,10 +77,12 @@ export const SidebarReducer = (messenger) => (state=SidebarActions.initalState, 
   console.log('AppReducer[%s]: %s', JSON.stringify(state, 0, 2), JSON.stringify(action));
   switch (action.type) {
 
-    // TODO(burdon): Get reponse from message to set state (invokes another action?)
+    // TODO(burdon): Async actions (side effects).
+    // http://redux.js.org/docs/advanced/AsyncActions.html#async-action-creators
+    // Get reponse from message to set state (invokes another action?)
 
     case SidebarActions.ACTION.INIT: {
-      messenger.sendMessage({ command: 'INIT' });       // TODO(burdon): Understand side-effects doc.
+      messenger.sendMessage({ command: 'INIT' });
       return _.assign({}, state, {
         open: true
       });
