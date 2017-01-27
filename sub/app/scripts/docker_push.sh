@@ -19,7 +19,7 @@ VERSION=latest
 set -e
 set -v
 
-DOCKER_REPO=${1:-docker}
+DOCKER_REPO=${1:-ecr}
 
 case "$DOCKER_REPO" in
   docker)
