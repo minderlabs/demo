@@ -147,15 +147,13 @@ export class Database extends ItemStore {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
     let searchProviders = this.getSearchProviders(filter);
-
-    let searchPromises = [];
-    for (let provider of searchProviders) {
+    let searchPromises = _.map(searchProviders, provider => {
       // TODO(madadam): Pagination over the merged result set. Need to over-fetch from each provider.
-      searchPromises.push(provider.queryItems(context, root, filter, offset, count));
-    }
+      return provider.queryItems(context, root, filter, offset, count);
+    });
+
     return Promise.all(searchPromises)
-      .then((results) => {
-        // TODO(burdon): Why?
+      .then(results => {
         // TODO(madadam): better merging, scoring, etc.
         //let merged = _.flatten(results);
         return [].concat.apply([], results);
