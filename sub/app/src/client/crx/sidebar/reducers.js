@@ -128,6 +128,7 @@ export const SidebarReducer = (config, injector) => (state=SidebarAction.initalS
     }
 
     case SidebarAction.ACTION.UPDATE: {
+      console.log('Updating events.');
       return _.assign({}, state, {
         events: _.concat(state.events || [], action.events)
       });

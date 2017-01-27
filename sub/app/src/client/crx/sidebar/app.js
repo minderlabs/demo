@@ -44,6 +44,8 @@ export class Application extends React.Component {
   render() {
     let { client, store, history } = this.props;
 
+    // TODO(burdon): Don't use browser history (since path can't change).
+
     return (
       <ApolloProvider client={ client } store={ store }>
 
@@ -64,9 +66,8 @@ export class Application extends React.Component {
   }
 }
 
+// const mapStateToProps = (state, ownProps) => {
+//   console.log('!!!!!!!!!!!!!!!!!!!!!!!', state);
+// };
+
 export default connect()(Application);
-
-
-
-            // {/* E.g., /page/sidebar.html?folder=favorites */}
-            // <Route path={ Path.FINDER } component={ FinderActivity }/>

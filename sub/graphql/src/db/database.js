@@ -149,7 +149,7 @@ export class Database extends ItemStore {
     let searchProviders = this.getSearchProviders(filter);
     let searchPromises = _.map(searchProviders, provider => {
       // TODO(madadam): Pagination over the merged result set. Need to over-fetch from each provider.
-      return provider.queryItems(context, root, filter, offset, count);
+      return provider.queryItems(context, root, filter, offset, count).catch(error => []);
     });
 
     return Promise.all(searchPromises)

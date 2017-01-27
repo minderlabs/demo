@@ -73,12 +73,13 @@ class ContentScript {
       .add(new InboxInspector())
       .init(events => {
         // Wait for sidebar to load (if first time).
-        this.sidebar.open().then(() => {
+        // TODO(burdon): Option to auto-open (unless the user has explicitly closed or set event level).
+//      this.sidebar.open().then(() => {
           this.sidebar.messenger.sendMessage({
             command: 'UPDATE',
             events
           }, '*');
-        });
+//      });
       });
 
     // Shortcuts.

@@ -92,7 +92,7 @@ class Sidebar extends Base {
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace] : AppReducer(this.config, this.injector),
+      [AppAction.namespace]: AppReducer(this.config, this.injector),
 
       // Sidebar-specific.
       [SidebarAction.namespace]: SidebarReducer(this.config, this.injector)
