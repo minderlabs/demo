@@ -58,6 +58,7 @@ webpack --config webpack-server.config.js
 # Bump version.
 #
 
+// TODO(burdon): Git commit/push and merge master after this.
 grunt version:client:patch
 
 #

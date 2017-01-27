@@ -27,7 +27,11 @@ export const GoogleApiConfig = {
   ]
 };
 
+/**
+ * https://api.slack.com/apps
+ */
 export const SlackConfig = {
+  // "Minder dev" app, as of 20170127.
   clientId: '53451657299.53512586673',
   clientSecret: 'a0efe3524ec77b352f253dc2c4b0e612'
 };
