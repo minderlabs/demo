@@ -9,6 +9,8 @@ import gql from 'graphql-tag';
 
 import { List } from 'minder-ux';
 
+import { FullLayout } from '../layout/full';
+
 /**
  * Testing Activity.
  * For experimental features and components.
@@ -43,7 +45,7 @@ class TestingActivity extends React.Component {
     // TODO(burdon): Select.
 
     return (
-      <div>
+      <FullLayout>
         <div className="ux-toolbar">
           <div>
             <i className="ux-icon ux-icon-action"
@@ -58,7 +60,7 @@ class TestingActivity extends React.Component {
         </div>
 
         <List ref="list" items={ items } onItemSave={ this.onItemSave.bind(this) }/>
-      </div>
+      </FullLayout>
     );
   }
 }

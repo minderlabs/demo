@@ -23,6 +23,7 @@ import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
 import { loginRouter, AuthManager } from './auth';
 import { clientRouter, ClientManager, SocketManager } from './client';
+import { testingRouter } from './testing';
 import { loggingRouter } from './logger';
 
 const logger = Logger.get('main');
@@ -149,6 +150,7 @@ _.each(require('./testing/test.json'), (items, type) => {
 
 //
 // Create test data.
+// TODO(burdon): Factor out.
 //
 
 // TODO(burdon): Use injector pattern (esp for async startup).
@@ -285,6 +287,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 if (env === 'production') {
   app.use('/', loggingRouter({}));
+} else {
+  app.use('/testing', testingRouter({}));
 }
 
 

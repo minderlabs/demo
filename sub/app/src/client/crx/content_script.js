@@ -165,5 +165,7 @@ class Frame {
 // TODO(burdon): Use Redux?
 const app = new ContentScript();
 
-// TODO(burdon): Debug.
-//app.sidebar.open();
+// Auto-open if testing.
+if ($('#crx-testing')[0]) {
+  app.sidebar.open();
+}

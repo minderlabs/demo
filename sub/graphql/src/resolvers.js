@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
-import { $$, Logger, ID, Transforms } from 'minder-core';
+import { $$, Logger, ID, Transforms, TypeUtil } from 'minder-core';
 
 import Schema from './schema.graphql';
 
@@ -60,7 +60,7 @@ export class Resolvers {
 
       Item: {
         __resolveType(root) {
-          console.assert(root.type);
+          console.assert(root.type, 'Invalid type: ' + TypeUtil.stringify(root));
 
           // The type property maps onto the GraphQL schema type name.
           return root.type;
@@ -156,7 +156,6 @@ export class Resolvers {
       RootQuery: {
 
         viewer: (root, args, context) => {
-          console.log('??????????', context);
           console.assert(context && context.user);
 
           // TODO(burdon): Fails if not authenticated (no context).

@@ -3,7 +3,6 @@
 //
 
 import React from 'react';
-import { connect } from 'react-redux';
 
 import BaseLayout from '../layout/base';
 
@@ -28,7 +27,7 @@ export default class FinderActivity extends React.Component {
 
   render() {
     let { params } = this.props;
-    let { folder } = params;
+    let { folder='inbox' } = params;
 
     let finder = <FinderView folder={ folder }/>;
 

@@ -18,15 +18,15 @@ import { Path } from './path';
  */
 export class Application extends React.Component {
 
-  static childContextTypes = {
-    injector: React.PropTypes.object,
-  };
-
   static propTypes = {
     injector: React.PropTypes.object.isRequired,
     client: React.PropTypes.object.isRequired,
     history: React.PropTypes.object.isRequired,
     store: React.PropTypes.object.isRequired
+  };
+
+  static childContextTypes = {
+    injector: React.PropTypes.object,
   };
 
   getChildContext() {
@@ -36,6 +36,7 @@ export class Application extends React.Component {
   }
 
   render() {
+    let { client, store, history } = this.props;
 
     //
     // Redux Router.
@@ -53,9 +54,9 @@ export class Application extends React.Component {
     // https://github.com/ReactTraining/react-router/blob/master/docs/API.md#onenternextstate-replace-callback
 
     return (
-      <ApolloProvider client={ this.props.client } store={ this.props.store }>
+      <ApolloProvider client={ client } store={ store }>
 
-        <Router history={ this.props.history }>
+        <Router history={ history }>
 
           <Route path={ Path.ROOT }>
             <IndexRedirect to={ Path.HOME }/>

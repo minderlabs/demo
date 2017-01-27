@@ -108,8 +108,8 @@ content_scripts:
 oauth2:
   # CRX (Dev).
   client_id: "189079594739-fmlffnn0o5ka1nej028t44lp2v6knon7.apps.googleusercontent.com"
-  # CRX (Prod).
-# client_id: "189079594739-ngfnpmj856f7i0afsd6dka4712i0urij.apps.googleusercontent.com"
+
+  # Default scopes (can be overridden in getAuthToken call (network.js)
   scopes:
     - "https://www.googleapis.com/auth/userinfo.email"
     - "https://www.googleapis.com/auth/userinfo.profile"

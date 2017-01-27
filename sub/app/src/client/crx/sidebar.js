@@ -2,9 +2,6 @@
 // Copyright 2017 Minder Labs.
 //
 
-import React from 'react';
-import { ApolloProvider } from 'react-apollo';
-
 import {
   ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger, HttpUtil, Injector, KeyListener
 } from 'minder-core';
@@ -15,7 +12,9 @@ import { AppAction, AppReducer } from '../web/reducers';
 import { KeyToggleSidebar } from './common';
 import { ChromeNetworkInterface } from './util/network';
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
-import SidebarPanel from './sidebar/test_panel';
+
+import { TestApplication } from './sidebar/test_app';
+import Application from './sidebar/app';
 
 // TODO(burdon): Document config.
 // Config passed from content script container.
@@ -103,28 +102,10 @@ class Sidebar extends Base {
 
 const bootstrap = new Sidebar(config);
 
-/**
- * Test root application.
- */
-class Application extends React.Component {
-
-  static propTypes = {
-    client: React.PropTypes.object.isRequired,
-    store: React.PropTypes.object.isRequired
-  };
-
-  render() {
-    return (
-      <ApolloProvider client={ this.props.client } store={ this.props.store }>
-        <SidebarPanel/>
-      </ApolloProvider>
-    );
-  }
-}
-
 bootstrap.init().then(() => {
 
   // Init UX.
+//bootstrap.render(TestApplication);
   bootstrap.render(Application);
 
   // Trigger startup via Redux.

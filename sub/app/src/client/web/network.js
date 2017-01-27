@@ -86,10 +86,10 @@ export class AuthManager {
         logger.log('Authenticated: ' + user.email);
 
         // https://firebase.google.com/docs/reference/js/firebase.User#getToken
-        user.getToken().then(token => {
+        user.getToken().then(jwtToken => {
 
           // Update the network manager (sets header for graphql requests).
-          this._networkManager.token = token;
+          this._networkManager.token = jwtToken;
 
           // Connect (or reconnect) client.
           this._connectionManager.connect().then(() => callback && callback());
@@ -136,11 +136,17 @@ export class AuthManager {
   _doAuthChromeExtension() {
     return new Promise((resolve, reject) => {
 
+      // NOTE: The OAuth2 token uses the scopes defined in the manifest (can be overridden below).
+      let options = {
+        interactive: true,
+        scopes: GoogleApiConfig.authScopes
+      };
+
       // NOTE: Can only be accessed from background page.
       // NOTE: This hangs if the manifest's oauth2 client_id is wronge (e.g., prod vs. dev).
       // https://developer.chrome.com/apps/app_identity
       // https://developer.chrome.com/apps/identity#method-getAuthToken
-      chrome.identity.getAuthToken({ interactive: true }, accessToken => {
+      chrome.identity.getAuthToken(options, accessToken => {
         if (chrome.runtime.lastError) {
           logger.error('Error getting access token:', chrome.runtime.lastError);
           reject(chrome.runtime.lastError);
@@ -165,10 +171,11 @@ export class AuthManager {
         firebase.auth().signInWithCredential(credential)
           .then(result => {
             let user = firebase.auth().currentUser;
-            console.log('@@@@@@@@@@@@@@@', user);
             resolve(user);
           })
           .catch(error => {
+            logger.error('Sign-in failed:', JSON.stringify(error));
+
             // The OAuth token might have been invalidated; remove the token and try again.
             if (error.code === 'auth/invalid-credential') {
               chrome.identity.removeCachedAuthToken({ token: accessToken }, () => {
@@ -177,7 +184,6 @@ export class AuthManager {
             }
 
             // TODO(burdon): Just hangs if user closes Login page?
-            logger.error('Sign-in failed:', JSON.stringify(error));
             reject(error);
           });
       });
