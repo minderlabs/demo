@@ -31,7 +31,7 @@ module.exports = {
     // http://stackoverflow.com/questions/31169760/how-to-avoid-react-loading-twice-with-webpack-when-developing
     alias: {
       graphql:  path.resolve('./node_modules/graphql'),
-      react:    path.resolve('./node_modules/react'),
+      react:    path.resolve('./node_modules/react')
     }
   },
 

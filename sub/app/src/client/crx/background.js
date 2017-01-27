@@ -20,9 +20,8 @@ class BackgroundApp {
         platform: 'crx'
       },
 
-      server: 'http://127.0.0.1:3000',
-
       // TODO(burdon): Get from settings.
+      server: 'http://127.0.0.1:3000',
       graphql: 'http://127.0.0.1:3000/graphql',
     };
 
@@ -60,14 +59,20 @@ class BackgroundApp {
       // See also ChromeNetworkInterface
       //
       this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
-        console.log('>>>>>>', gqlRequest);
+        // TODO(burdon): Logging.
         return this.networkInterface.query(gqlRequest).then(gqlResponse => {
-          console.log('<<<<<<', gqlResponse);
           return gqlResponse;
         });
       });
 
       console.log('Listening...');
+    });
+
+    // TODO(burdon): Notify scripts.
+    // Listen for termination and inform scripts.
+    // https://developer.chrome.com/extensions/runtime#event-onSuspend
+    chrome.runtime.onSuspend.addListener(() => {
+      console.log('System going down...');
     });
   }
 }

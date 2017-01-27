@@ -17,12 +17,14 @@ const Level = {
 
 //
 // With npm-link each module has its own copy of global definitions!
-// So we bind to window (for the browser) to create a singleon.
+// So we bind to window (for the browser) to create a singleton.
 //
 
-const levels = {};
+const levels = {
+  ID: new Date().getTime()
+};
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && !window.__LOGGER_LEVELS) {
   window.__LOGGER_LEVELS = levels;
 }
 
@@ -112,6 +114,7 @@ class Logger {
   constructor(name='', showPrefix=true) {
     let prefix = showPrefix ? [`[${name}]`] : [];
 
+    // NOTE: Cannot be dynamic since we have to bind console methods directly.
     let level = _.get(singleton(), name, _.get(singleton(), '*', Logger.debug));
 
     this.log    = (level > Level.log)    ? Logger.noop : console.log     .bind(console, ...prefix);

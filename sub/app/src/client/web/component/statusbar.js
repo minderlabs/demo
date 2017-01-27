@@ -95,9 +95,6 @@ export class StatusBar extends React.Component {
           <a href="/admin" target="MINDER_ADMIN">
             <i className="ux-icon ux-icon-action" title="Admin">graphic_eq</i>
           </a>
-          <a href="https://console.firebase.google.com/project/minder-beta/database/data" target="MINDER_FIREBASE">
-            <i className="ux-icon ux-icon-action" title="Database">cloud_circle</i>
-          </a>
         </div>
 
         <div className="app-status-info">{ config.app.version }</div>

@@ -66,6 +66,11 @@ export class BaseLayout extends React.Component {
 
   handleToolbarClick(id) {
     switch (id) {
+      case 'bug': {
+        console.warn('Debug Info...');
+        break;
+      }
+
       case 'refresh': {
         this.props.queryRegistry.invalidate();
         break;
@@ -171,6 +176,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
+    // TODO(burdon): Should this be shared or have sub-components bind dispatch methods?
     navigator: new Navigator(dispatch)
   }
 };

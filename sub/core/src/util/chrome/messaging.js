@@ -2,6 +2,11 @@
 // Copyright 2017 Minder Labs.
 //
 
+import { TypeUtil } from '../../util/type';
+import Logger from '../../util/logger';
+
+const logger = Logger.get('message');
+
 //-----------------------------------------------------------------------------
 // Sender and Receiver.
 //-----------------------------------------------------------------------------
@@ -13,13 +18,18 @@
  */
 export class ChromeMessageSender {
 
-  // TODO(burdon): Do quick test first then look at framework for learnings (e.g., reconnect).
+  // Time for CRX to re-install.
+  static RELOAD_DELAY = 3000;
 
   /**
-   * @param {string} name Client name.
+   * @param {string} channel Client name.
+   * @param {object} options
    */
-  constructor(name=undefined) {
-    this._channel = name || 'Client-' + new Date().getTime();  // TODO(burdon): Random.
+  constructor(channel=undefined, options=undefined) {
+    this._channel = channel || 'Client-' + new Date().getTime();  // TODO(burdon): Random.
+    this._options = options || {
+      reconnect: true
+    };
 
     // Connected port.
     this._port = null;
@@ -31,19 +41,32 @@ export class ChromeMessageSender {
    * @return {ChromeMessageSender}
    */
   connect(onMessage=undefined) {
+    logger.info('Connecting: ' + this._channel);
 
     // https://developer.chrome.com/extensions/messaging#connect
     // https://developer.chrome.com/extensions/runtime#method-connect
     this._port = chrome.runtime.connect({ name: this._channel });
 
-    // TODO(burdon): Reconcile blocking senders (by message ID).
     // Handle messages.
     this._port.onMessage.addListener((message) => {
-      console.log('Received: ' + JSON.stringify(message));
+      logger.log('Received: ' + TypeUtil.stringify(message));
       message && onMessage(message);
     });
 
-    // TODO(burdon): Handle disconnect.
+    // Handle disconnect and auto-retry.
+    this._port.onDisconnect.addListener(() => {
+      this._port = null;
+      logger.info('Disconnected');
+
+      // TODO(burdon): Listen for BG event onSuspend to flush data.
+      // NOTE: Cannot reconnect when CRX is re-installed/updated (so reload).
+      // https://groups.google.com/a/chromium.org/forum/#!msg/chromium-extensions/QLC4gNlYjbA/Ay41e2tYAQAJ
+      setTimeout(() => {
+        // TODO(burdon): Alternatively show RELOAD page.
+        document.location.reload();
+      }, ChromeMessageSender.RELOAD_DELAY);
+    });
+
     return this;
   }
 
@@ -51,10 +74,9 @@ export class ChromeMessageSender {
    * Posts the message.
    * @param {object} data
    * @param {object} header
-   * @return {string} Message ID.
+   * @return {object} Updated header object (i.e., with message ID).
    */
   postMessage(data, header=undefined) {
-    // TODO(burdon): Promise?
     if (!this._port) {
       this.connect();
     }
@@ -65,7 +87,7 @@ export class ChromeMessageSender {
     });
 
     let message = { header, data };
-    console.log('Sending: ' + JSON.stringify(message));
+    logger.log('Sending: ' + TypeUtil.stringify(message));
     this._port.postMessage(message);
     return header;
   }
@@ -95,12 +117,12 @@ export class ChromeMessageReceiver {
 
     // https://developer.chrome.com/extensions/runtime#event-onMessage
     chrome.runtime.onConnect.addListener((port) => {
-      console.log('Connected[%d]: ', this._ports.size, port.name);
       this._ports.set(port.name, port);
+      logger.log(`Connected[${this._ports.size}]: ${port.name}`);
 
       // Handle messages.
       port.onMessage.addListener((message) => {
-        console.log('Received: ' + JSON.stringify(message));
+        logger.log('Received: ' + TypeUtil.stringify(message));
         let { header, data } = message;
         onMessage(port.name, data, header);
       });
@@ -108,8 +130,8 @@ export class ChromeMessageReceiver {
       // TODO(burdon): Retry back-off.
       // https://developer.chrome.com/extensions/runtime#type-Port
       port.onDisconnect.addListener(() => {
-        console.log('Disconnected: ' + port.name);
         this._ports.delete(port.name);
+        logger.log(`Disonnected[${this._ports.size}]: ${port.name}`);
       });
     });
 
@@ -131,7 +153,7 @@ export class ChromeMessageReceiver {
       });
 
       let message = { header, data };
-      console.log('Sending: ' + JSON.stringify(message));
+      logger.log('Sending: ' + TypeUtil.stringify(message));
       port.postMessage(message);
       return true;
     } else {
@@ -194,12 +216,12 @@ export class ChromeMessageChannel {
 
   /**
    * Creates the named channel.
-   * @param {string} name Channel name.
+   * @param {string} channel Channel name.
    * @param {ChromeMessageChannelRouter} router
    */
-  constructor(name, router) {
-    console.assert(name && router);
-    this._channel = name;
+  constructor(channel, router) {
+    console.assert(channel && router);
+    this._channel = channel;
     this._dispatcher = router;
 
     // Map of pending resolvers by ID.

@@ -2,6 +2,9 @@
 // Copyright 2016 Minder Labs.
 //
 
+// NOTE: Must come first.
+import './config';
+
 import { WebBase } from './base';
 
 import { AppAction, AppReducer } from './reducers';

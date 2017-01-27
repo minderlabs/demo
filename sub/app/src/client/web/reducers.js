@@ -57,6 +57,7 @@ export const AppReducer = (config, injector) => {
 //  console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
 
     switch (action.type) {
+      // TODO(burdon): Get search query (not just text).
       case AppAction.ACTION.SEARCH: {
         return _.set(state, 'search.text', action.value);
       }

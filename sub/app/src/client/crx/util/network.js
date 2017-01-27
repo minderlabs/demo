@@ -9,9 +9,15 @@ export class ChromeNetworkInterface {
 
   static CHANNEL = 'apollo';
 
-  constructor(channel) {
+  /**
+   *
+   * @param channel
+   * @param eventHandler
+   */
+  constructor(channel, eventHandler=undefined) {
     console.assert(channel);
     this._channel = channel;
+    this._eventHandler = eventHandler;
   }
 
   init() {
@@ -27,7 +33,9 @@ export class ChromeNetworkInterface {
    * @return {Promise<GraphQLResult>}
    */
   query(gqlRequest) {
+    this._eventHandler && this._eventHandler.emit({ type: 'network.out' });
     return this._channel.postMessage(gqlRequest).wait().then(gqlResponse => {
+      this._eventHandler && this._eventHandler.emit({ type: 'network.in' });
       return gqlResponse;
     });
   }

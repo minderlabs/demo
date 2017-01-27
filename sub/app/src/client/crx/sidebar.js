@@ -2,6 +2,9 @@
 // Copyright 2017 Minder Labs.
 //
 
+// NOTE: Must come first.
+import './config';
+
 import {
   ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger, HttpUtil, Injector, KeyListener
 } from 'minder-core';
@@ -13,7 +16,6 @@ import { KeyToggleSidebar } from './common';
 import { ChromeNetworkInterface } from './util/network';
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 
-import { TestApplication } from './sidebar/test_app';
 import Application from './sidebar/app';
 
 // TODO(burdon): Document config.
@@ -76,7 +78,8 @@ class Sidebar extends Base {
   initNetwork() {
     this.networkInterface =
       new ChromeNetworkInterface(
-        new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this.router));
+        new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this.router),
+      this.eventHandler);
 
     // TODO(burdon): Wait for connection.
     return Promise.resolve();

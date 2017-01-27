@@ -2,9 +2,6 @@
 // Copyright 2017 Minder Labs.
 //
 
-// NOTE: Must come first.
-import './config';
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { browserHistory } from 'react-router'
