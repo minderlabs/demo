@@ -19,3 +19,5 @@ dist/
 .idea/jsLibraryMappings.xml
 .idea/codeStyleSettings.xml
 .idea/copyright/
+
+virtual_env/

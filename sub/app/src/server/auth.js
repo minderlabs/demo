@@ -84,7 +84,7 @@ export class AuthManager {
 
     return this.getUserFromJWT(token).catch(ex => {
       ex && logger.error(ex);
-      return null
+      return null;
     });
   }
 
@@ -100,7 +100,7 @@ export class AuthManager {
     let token = req.cookies && req.cookies[Const.AUTH_COOKIE];
     return this.getUserFromJWT(token).catch(ex => {
       ex && logger.error(ex);
-      return null
+      return null;
     });
   }
 }

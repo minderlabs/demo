@@ -7,7 +7,24 @@
  */
 export class HttpUtil {
 
-  // TODO(burdon): Tests.
+  /**
+   * Returns the server URL.
+   * @return {string}
+   */
+  static getServerUrl() {
+    return window.location.protocol + '//' + window.location.host;
+  }
+
+  /**
+   * Safely joins the path components (stripping '/' chars as neee).
+   * @param path
+   * @param part
+   * @return {string}
+   */
+  static joinUrl(path, part) {
+    console.assert(path && part);
+    return path.replace(/\/$/, '') + '/' + part.replace(/^\//, '');
+  }
 
   /**
    * Return map of args from URL.

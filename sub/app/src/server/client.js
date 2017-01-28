@@ -10,6 +10,7 @@ import moment from 'moment';
 
 import { $$, Logger, IdGenerator } from 'minder-core';
 
+// TODO(burdon): Split up logger for each component.
 const logger = Logger.get('client');
 
 /**

@@ -46,8 +46,8 @@ export class ID {
  */
 export class IdGenerator {
 
+  // TODO(burdon): Factor out random.
   // TODO(burdon): Ensure consistent with server.
-
   constructor(seed=undefined) {
     this._random = Random.create(seed);
   }

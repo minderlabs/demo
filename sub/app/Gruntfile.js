@@ -7,7 +7,9 @@
 /**
  * Grunt config.
  */
-module.exports = function(grunt) {
+module.exports = (grunt) => {
+
+  require('time-grunt')(grunt);
 
   grunt.config.init({
 
@@ -42,6 +44,14 @@ module.exports = function(grunt) {
         src: [
           'src/common/defs.js'
         ]
+      },
+      crx: {
+        options: {
+          release: 'patch'
+        },
+        src: [
+          'src/client/crx/manifest.yml'
+        ]
       }
     },
 
@@ -53,7 +63,7 @@ module.exports = function(grunt) {
       yml2json: {
         // CRX manifest.
         files: [{
-          src: ['src/crx/manifest.yml'],
+          src: ['src/client/crx/manifest.yml'],
           dest: 'dist/crx/minder/manifest.json'
         }]
       }
@@ -84,7 +94,7 @@ module.exports = function(grunt) {
     crx: {
       minder: {
         options: {
-          privateKey: 'src/crx/minder.pem'
+          privateKey: 'src/client/crx/minder.pem'
         },
         src: ['dist/crx/minder/**/*'],
         dest: 'dist/crx/minder.crx'
@@ -104,7 +114,7 @@ module.exports = function(grunt) {
         files: [
           {
             expand: true,
-            cwd: 'dist/crx/minder',
+            cwd: 'dist/crx/minder/',
             src: ['**']
           }
         ]
@@ -117,7 +127,9 @@ module.exports = function(grunt) {
       },
       crx: {
         files: [
-          'src/crx/**'
+          'Gruntfile.js',
+          'webpack*',
+          'src/client/**',
         ],
         tasks: [ 'build_crx' ]
       }
@@ -127,6 +139,7 @@ module.exports = function(grunt) {
     // NOTE: Use webpack --watch to automatically update all config entries.
     // https://webpack.github.io/docs/usage-with-grunt.html
     // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
+    // webpack -d --config webpack-crx.config.js --display-modules --progress
     // TODO(burdon): Debug options.
     webpack: {
       crx: require('./webpack-crx.config.js')
