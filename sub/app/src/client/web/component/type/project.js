@@ -136,7 +136,8 @@ class ProjectCardComponent extends React.Component {
  */
 class ProjectCardLayout extends React.Component {
 
-  // TODO(burdon): Factor out.
+  // TODO(burdon): Factor out mutations.
+
   static createTaskMutation(user, project, title) {
     return [
       {

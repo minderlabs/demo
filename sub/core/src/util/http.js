@@ -44,6 +44,7 @@ export class HttpUtil {
    * @returns {string}
    */
   static toUrlArgs(args) {
-    return _.map(args, (v, k) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');
+    return _.compact(_.map(args, (v, k) => (v !== undefined) && encodeURIComponent(k) + '=' + encodeURIComponent(v)))
+      .join('&');
   }
 }

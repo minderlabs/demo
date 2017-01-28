@@ -58,16 +58,15 @@ export class AuthManager {
    * @return {Promise}
    */
   authenticate() {
-    let user = firebase.auth().currentUser;
-    if (user) {
-      logger.log('Logged in: ' + user);
-      this._handleAuthStateChanges();
-      return Promise.resolve(user);
-    } else {
-      return new Promise((resolve, reject) => {
-        this._handleAuthStateChanges(resolve);
+    // TODO(burdon): Get Minder User ID (either from config or from server). (set the config object).
+    return new Promise((resolve, reject) => {
+      this._handleAuthStateChanges(registration => {
+        let userId = _.get(this._config, 'user.id');
+        console.assert(!userId || userId === registration.user.id);
+        _.assign(this._config, { user: registration.user }, { client: registration.client });
+        resolve(this._config.user);
       });
-    }
+    });
   }
 
   /**
@@ -98,7 +97,7 @@ export class AuthManager {
             }
 
             return this._connectionManager.connect();
-          }).then(() => callback && callback());
+          }).then(registration => callback && callback(registration));
         });
       } else {
         logger.log('Authenticating...');
@@ -253,7 +252,7 @@ export class ConnectionManager {
           console.assert(socketId);
 
           this._doRegistration({ socketId })
-            .then(() => {
+            .then(registration => {
               // Listen for invalidations.
               this._socket.on('invalidate', (data) => {
                 this._eventHandler && this._eventHandler.emit({ type: 'network.in' });
@@ -262,7 +261,7 @@ export class ConnectionManager {
                 this._queryRegistry && this._queryRegistry.invalidate();
               });
 
-              resolve();
+              resolve(registration);
             })
             .catch(() => reject);
         });
@@ -280,9 +279,10 @@ export class ConnectionManager {
    */
   _doRegistration(registration=undefined) {
     registration = _.merge({}, registration, {
-      clientId: this._config.client.id
+      clientId: _.get(this._config, 'client.id', undefined)
     });
 
+    // See clientRouter on server.
     let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
 
     logger.log('Registering client: ' + JSON.stringify(registration));
@@ -295,9 +295,9 @@ export class ConnectionManager {
         dataType: 'json',
         data: JSON.stringify(registration),
 
-        success: response => {
-          logger.log('Registered: ' + JSON.stringify(response));
-          resolve();
+        success: registration => {
+          logger.log('Registered: ' + JSON.stringify(registration));
+          resolve(registration);
         },
 
         error: error => {
@@ -333,13 +333,14 @@ export class NetworkManager {
     this._requestCount = 0;
     this._requestMap = new Map();
 
-    // TODO(burdon): Configure via options.
-    this._logger = new NetworkLogger(config.logging);
-
     // TODO(burdon): Configure batching via options.
     // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
 
-    // TODO(burdon): Custom for CRX.
+    // Logging.
+    this._logger = new NetworkLogger(_.defaults(config.logging, {
+      uri: config.graphql.replace('/graphql', '/graphiql')
+    }));
+
     // Create the interface.
     // http://dev.apollodata.com/core/network.html
     // http://dev.apollodata.com/core/apollo-client-api.html#createNetworkInterface
@@ -502,16 +503,26 @@ export class NetworkManager {
 class NetworkLogger {
 
   // TODO(burdon): Verbose option.
-  constructor(options) {}
+  constructor(options) {
+    console.assert(options);
+    this._options = options;
+
+    this._rootUri = options.uri;
+    if (this._rootUri.startsWith('/')) {
+      this._rootUri = document.location.origin + this._rootUri;
+    }
+  }
 
   logRequest(requestId, request) {
-    // TODO(burdon): How to serialize request.
     logger.log($$('[_TS_] ===>>> [%s] %o', requestId, request.variables || {}));
 
-    // TODO(burdon): Optionally show graphiql link.
-    logger.info('[' + requestId + ']: ' + document.location.origin + '/graphiql?' +
-      'query=' + encodeURIComponent(print(request.query)) +
-      (request.variables ? '&variables=' + encodeURIComponent(JSON.stringify(request.variables)) : ''));
+    // Show iGQL link.
+    if (_.get(this._options, 'debug', true)) {
+      logger.info('[' + requestId + ']: ' + this._rootUri + '?' + HttpUtil.toUrlArgs({
+          query: print(request.query),
+          variables: JSON.stringify(request.variables)
+        }));
+    }
   }
 
   logResponse(requestId, response) {

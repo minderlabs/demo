@@ -2,8 +2,9 @@
 // Copyright 2017 Minder Labs.
 //
 
-// NOTE: Must come first.
-import './config';
+Logger.setLevel({
+  'reducer': Logger.Level.debug,
+}, Logger.Level.info);
 
 import { createMemoryHistory } from 'react-router';
 
@@ -21,9 +22,15 @@ import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 
 import Application from './sidebar/app';
 
-// TODO(burdon): Document config.
+//
 // Config passed from content script container.
+// TODO(burdon): Document config object.
+//
 const config = _.merge({
+
+  root: 'crx-root',
+
+  graphql: '/graphql',
 
   app: {
     name: 'Minder',
@@ -35,13 +42,9 @@ const config = _.merge({
     env: 'development'
   },
 
-  graphql: '/graphql',
-
-  root: 'crx-root',
-
   team: 'minderlabs',
 
-  // TODO(burdon): Get auth (userInfo): see server/app.
+  // Set by server registration with background page.
   user: {}
 
 }, HttpUtil.parseUrlArgs());
@@ -78,7 +81,13 @@ class Sidebar extends Base {
 
   postInit() {
     this._router.connect();
-    return Promise.resolve();
+
+    // Register the client witht the background page.
+    return this._systemChannel.postMessage({
+      command: 'register'
+    }).wait().then(response => {
+      this.store.dispatch(AppAction.register(response.value.user));
+    });
   }
 
   initNetwork() {

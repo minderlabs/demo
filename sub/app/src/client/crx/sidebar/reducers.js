@@ -12,12 +12,12 @@ import { WindowMessenger } from 'minder-core';
 export class SidebarAction {
 
   static ACTION = {
-    INIT:   `${NAMESPACE}/INIT`,
-    OPEN:   `${NAMESPACE}/OPEN`,
-    CLOSE:  `${NAMESPACE}/CLOSE`,
-    TOGGLE: `${NAMESPACE}/TOGGLE`,
-    PING:   `${NAMESPACE}/PING`,
-    UPDATE: `${NAMESPACE}/UPDATE`
+    INIT:     `${NAMESPACE}/INIT`,
+    OPEN:     `${NAMESPACE}/OPEN`,
+    CLOSE:    `${NAMESPACE}/CLOSE`,
+    TOGGLE:   `${NAMESPACE}/TOGGLE`,
+    PING:     `${NAMESPACE}/PING`,
+    UPDATE:   `${NAMESPACE}/UPDATE`
   };
 
   static get namespace() {

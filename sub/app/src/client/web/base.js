@@ -213,6 +213,13 @@ export class Base {
   }
 
   /**
+   * Access config
+   */
+  get config() {
+    return this._config;
+  }
+
+  /**
    * Access the store (for dispatching actions).
    */
   get store() {

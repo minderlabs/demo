@@ -10,7 +10,8 @@ const NAMESPACE = 'minder';
 export class AppAction {
 
   static ACTION = {
-    SEARCH: `${NAMESPACE}/SEARCH`
+    REGISTER:   `${NAMESPACE}/REGISTER`,
+    SEARCH:     `${NAMESPACE}/SEARCH`
   };
 
   static get namespace() {
@@ -25,11 +26,18 @@ export class AppAction {
   // Actions.
   //
 
+  static register(user) {
+    return {
+      type: AppAction.ACTION.REGISTER,
+      value: user
+    };
+  }
+
   static search(text) {
     return {
       type: AppAction.ACTION.SEARCH,
       value: text
-    }
+    };
   }
 }
 
@@ -58,6 +66,11 @@ export const AppReducer = (config, injector) => {
 //  console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
 
     switch (action.type) {
+      case AppAction.ACTION.REGISTER: {
+        console.log('Registered: ' + JSON.stringify(action.value));
+        return _.set(state, 'user', action.value);
+      }
+
       // TODO(burdon): Get search query (not just text).
       case AppAction.ACTION.SEARCH: {
         return _.set(state, 'search.text', action.value);

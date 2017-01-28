@@ -302,25 +302,36 @@ export class ChromeMessageChannelDispatcher {
    *
    * @param {string} channel
    * @param {Function} onMessage Optionally returns a promise yielding the response.
-   * @return {ChromeMessageChannelRouter}
+   * @return {ChromeMessagePushChannel}
    */
   listen(channel, onMessage) {
     console.assert(channel && onMessage);
     this._listeners.set(channel, onMessage);
+    return new ChromeMessagePushChannel(this._receiver, channel);
+  }
+}
 
-    return this;
+/**
+ * Push channel to clients.
+ */
+class ChromeMessagePushChannel {
+
+  constructor(receiver, channel) {
+    console.assert(receiver && channel);
+    this._receiver = receiver;
+    this._channel = channel;
   }
 
   /**
    * Posts the message to the given client and channel.
    *
    * @param {string} client
-   * @param {string} channel
    * @param {object} message
    */
-  postMessage(client, channel, message) {
+  postMessage(client, message) {
+    // TODO(burdon): Implement broadcast.
     this._receiver.postMessage(client, message, {
-      channel
+      channel: this._channel
     });
   }
 }

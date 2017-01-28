@@ -2,6 +2,10 @@
 // Copyright 2017 Minder Labs.
 //
 
+Logger.setLevel({
+  'net': Logger.Level.debug
+}, Logger.Level.info);
+
 import { ChromeMessageChannelDispatcher, TypeUtil } from 'minder-core';
 
 import { AuthManager, ConnectionManager, NetworkManager } from '../web/network';
@@ -23,8 +27,8 @@ class BackgroundApp {
       },
 
       // TODO(burdon): Get from settings store.
-      server: 'http://127.0.0.1:3000',
-      graphql: 'http://127.0.0.1:3000/graphql',
+      server: 'http://localhost:3000',
+      graphql: 'http://localhost:3000/graphql',
     };
 
     // TODO(burdon): Event listener.
@@ -36,17 +40,44 @@ class BackgroundApp {
     this.networkInterface = networkManager.networkInterface;
   }
 
+  /**
+   * On initialization we authenticate (get User ID from the server),
+   * and then connect (get the Client ID from the server).
+   *
+   * AuthManager.authenticate()
+   *   => firebase.auth().signInWithCredential()
+   *     => ConnectionManager.connect()
+   *       => ConnectionManager.register() => { client, user }
+   *
+   * Then start listening to client (context page) requests. The first request should be a 'register' command
+   * on the system channel. We return to the client the current user ID.
+   *
+   * NOTE: For the web app, this isn't necessary since both the User ID and Client ID are known ahead of time.
+   */
   init() {
 
     // Triggers popup.
-    // TODO(burdon): Don't start listening until this is running (may need to buffer?)
-    this.authManager.authenticate().then(() => {
+    this.authManager.authenticate().then(user => {
 
       //
       // Handle system request.
       //
-      this._dispatcher.listen('system', request => {
+      this._systemChannel = this._dispatcher.listen('system', request => {
+        console.log('System request: ' + TypeUtil.stringify(request));
         switch (request.command) {
+
+          // On client startup.
+          // Send user ID from client registration.
+          case 'register': {
+            return Promise.resolve({
+              command: 'registered',
+              value: {
+                user
+              }
+            });
+          }
+
+          // Ping.
           case 'ping': {
             return Promise.resolve({ command: 'pong', value: request.value });
           }
@@ -59,16 +90,15 @@ class BackgroundApp {
       // Proxy Apollo requests.
       // http://dev.apollodata.com/core/network.html#custom-network-interface
       // See also ChromeNetworkInterface
+      // TODO(burdon): Logging (assign req
       //
       this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
-        // TODO(burdon): Logging.
-        console.log('>>>', TypeUtil.stringify(gqlRequest));
         return this.networkInterface.query(gqlRequest).then(gqlResponse => {
-          console.log('<<<', TypeUtil.stringify(gqlResponse));
           return gqlResponse;
         });
       });
 
+      // OK
       console.log('Listening...');
     });
 
