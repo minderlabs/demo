@@ -14,6 +14,7 @@ import { Textarea, TextBox } from 'minder-ux';
  */
 export class CardContainer extends React.Component {
 
+  // TODO(burdon): Sandardize card.
   // TODO(burdon): Better way to use this as a container (not declared inside each type?)
 
   static contextTypes = {
@@ -134,27 +135,30 @@ export class CardContainer extends React.Component {
     );
 
     return (
-      <div className="ux-column">
-        <div className="ux-section ux-row">
-          <i className="ux-icon"
-             onClick={ onToggleCanvas }>{ typeRegistry.icon(item) }</i>
+      <div className="ux-card ux-column">
+        <div className="ux-panel ux-noshrink">
+          <div className="ux-section ux-row">
+            <i className="ux-icon"
+               onClick={ onToggleCanvas }>{ typeRegistry.icon(item) }</i>
 
-          <TextBox className="ux-expand"
-                   value={ title }
-                   onChange={ this.handlePropertyChange.bind(this, 'title') }/>
+            <TextBox className="ux-expand"
+                     value={ title }
+                     onChange={ this.handlePropertyChange.bind(this, 'title') }/>
 
-          <div>
-            <i className="ux-icon ux-icon-action ux-icon-save" onClick={ this.maybeSave.bind(this) }>save</i>
+            <div>
+              <i className="ux-icon ux-icon-action ux-icon-save" onClick={ this.maybeSave.bind(this) }>save</i>
+            </div>
           </div>
-        </div>
 
-        <div className="ux-section ux-row">
-          <Textarea className="ux-expand" rows="3"
-                    value={ description }
-                    onChange={ this.handlePropertyChange.bind(this, 'description') }/>
-        </div>
+          <div className="ux-row">
+            <Textarea className="ux-expand ux-noborder ux-font-xsmall" rows="3"
+                      placeholder="Notes"
+                      value={ description }
+                      onChange={ this.handlePropertyChange.bind(this, 'description') }/>
+          </div>
 
-        { debugSection }
+          { debugSection }
+        </div>
 
         <div className="ux-scroll-container">
           <div className="ux-scroll-panel">

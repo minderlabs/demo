@@ -108,6 +108,7 @@ class ProjectCardComponent extends React.Component {
   };
 
   static propTypes = {
+    mutator: React.PropTypes.object.isRequired,
     user: React.PropTypes.object.isRequired,
     item: React.PropTypes.object
   };
@@ -296,7 +297,7 @@ class ProjectCardLayout extends React.Component {
     const handleTaskAdd = (listId) => this.handleTaskAdd(getWrappedList(this.refs[listId]));
     const sectionHeader = (title, listId) => (
       <div className="ux-section-header ux-section-header-dark ux-row">
-        <h4 className="ux-expand">{ title }</h4>
+        <h4 className="ux-expand ux-title">{ title }</h4>
         <i className="ux-icon ux-icon-add"
            onClick={ handleTaskAdd.bind(this, listId) }></i>
       </div>
@@ -310,7 +311,7 @@ class ProjectCardLayout extends React.Component {
           */}
         <div>
           <div className="ux-section-header ux-section-header-dark ux-row">
-            <h3>Team Tasks</h3>
+            <h3 className="ux-title">Team Tasks</h3>
           </div>
           {project.team.members.map(member => (
           <div key={ member.id }>
@@ -318,10 +319,9 @@ class ProjectCardLayout extends React.Component {
               * Member header.
               */}
             <div className="ux-section-header ux-row">
-              <Link to={ Path.canvas(ID.toGlobalId('User', member.id)) }>
-                <i className="ux-icon">accessibility</i>
+              <Link className="ux-expand" to={ Path.canvas(ID.toGlobalId('User', member.id)) }>
+                <h4 className="ux-title">{ member.title }</h4>
               </Link>
-              <h4 className="ux-expand">{ member.title }</h4>
               <i className="ux-icon ux-icon-add"
                  onClick={ this.handleTaskAdd.bind(this, this.refs['list-' + member.id]) }></i>
             </div>
@@ -590,11 +590,11 @@ class ProjectBoardComponent extends React.Component {
 class ProjectBoardCanvas extends React.Component {
 
   render() {
-    let { user, item, refetch, typeRegistry } = this.props;
+    let { user, item, refetch, typeRegistry, mutator } = this.props;
 
     return (
       <CanvasContainer refetch={ refetch }>
-        <ProjectBoardComponent typeRegistry={ typeRegistry } user={ user } item={ item }/>
+        <ProjectBoardComponent typeRegistry={ typeRegistry } mutator={ mutator } user={ user } item={ item }/>
       </CanvasContainer>
     );
   }

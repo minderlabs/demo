@@ -243,7 +243,7 @@ class TaskLayout extends React.Component {
 
         <div>
           <div className="ux-section-header ux-row">
-            <h3 className="ux-expand">Sub Tasks</h3>
+            <h4 className="ux-expand ux-title">Sub Tasks</h4>
             <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
           </div>
 
@@ -330,7 +330,6 @@ class TaskCompactCardComponent extends React.Component {
           <List items={ item.tasks }
                 itemRenderer={ SubTaskRenderer }
                 onItemSelect={ this.handleTaskSelect.bind(this) }/>
-
         </div>
       </div>
     );
