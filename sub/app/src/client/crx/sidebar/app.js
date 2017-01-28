@@ -7,22 +7,17 @@ import { IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { connect } from 'react-redux'
 import { ApolloProvider } from 'react-apollo';
 
+import { Path } from '../../web/path';
 import CanvasActivity from '../../web/activity/canvas';
 import FinderActivity from '../../web/activity/finder';
 import TestingActivity from '../../web/activity/testing';
 
-
-class Path {
-  static ROOT     = '/page';
-  static HOME     = '/page/sidebar.html(?**)';
-  static FINDER   = '/page/sidebar.html(?**)';
-  static TESTING  = '/page/sidebar.html(?**)';
-}
+import { AppAction } from '../../web/reducers';
 
 /**
  * Main Application Root component.
  */
-export class Application extends React.Component {
+class Application extends React.Component {
 
   static propTypes = {
     injector: React.PropTypes.object.isRequired,
@@ -32,19 +27,19 @@ export class Application extends React.Component {
   };
 
   static childContextTypes = {
+    config: React.PropTypes.object,
     injector: React.PropTypes.object,
   };
 
   getChildContext() {
     return {
+      config: this.props.config,
       injector: this.props.injector
     };
   }
 
   render() {
     let { client, store, history } = this.props;
-
-    // TODO(burdon): Don't use browser history (since path can't change).
 
     return (
       <ApolloProvider client={ client } store={ store }>
@@ -54,7 +49,11 @@ export class Application extends React.Component {
           <Route path={ Path.ROOT }>
             <IndexRedirect to={ Path.HOME }/>
 
-            <Route path={ Path.HOME } component={ FinderActivity }/>
+            {/* E.g., /app/inbox, /app/favorites?selected=xxx */}
+            <Route path={ Path.route(['folder']) } component={ FinderActivity }/>
+
+            {/* E.g., /app/card/xxx, /app/board/xxx */}
+            <Route path={ Path.route(['canvas', 'itemId']) } component={ CanvasActivity }/>
 
             <Redirect from='*' to={ Path.HOME }/>
           </Route>
@@ -66,8 +65,11 @@ export class Application extends React.Component {
   }
 }
 
-// const mapStateToProps = (state, ownProps) => {
-//   console.log('!!!!!!!!!!!!!!!!!!!!!!!', state);
-// };
+const mapStateToProps = (state, ownProps) => {
+  let { config } = AppAction.getState(state);
+  return {
+    config
+  };
+};
 
-export default connect()(Application);
+export default connect(mapStateToProps)(Application);

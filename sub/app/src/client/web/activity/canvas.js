@@ -3,11 +3,9 @@
 //
 
 import React from 'react';
-import { connect } from 'react-redux';
 
 import { ID } from 'minder-core';
 
-import BaseLayout from '../layout/base';
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
 
@@ -19,8 +17,13 @@ import FinderView from '../view/finder';
  */
 export default class CanvasActivity extends React.Component {
 
+  static contextTypes = {
+    config: React.PropTypes.object.isRequired,
+    injector: React.PropTypes.object.isRequired
+  };
+
   /**
-   * Properties set by the router.
+   * Params set by the router.
    */
   static propTypes = {
     params: React.PropTypes.shape({
@@ -29,12 +32,9 @@ export default class CanvasActivity extends React.Component {
     })
   };
 
-  static contextTypes = {
-    injector: React.PropTypes.object.isRequired
-  };
-
   render() {
-    let { params, folder } = this.props;
+    let { config } = this.context;
+    let { params } = this.props;
     let { canvas, itemId } = params;
     let { type } = ID.fromGlobalId(itemId);
 
@@ -47,14 +47,16 @@ export default class CanvasActivity extends React.Component {
 
     // TODO(burdon): Layout based on form factor.
     // TODO(burdon): If canvas is board then use MainLayout. Ask canvas which layout it prefers?
-    if (BaseLayout.isMobile() || content.props.expand) {
+    let platform = _.get(config, 'app.platform');
+    if (platform == 'mobile' || platform == 'crx' || content.props.expand) {
       return (
         <FullLayout>
           { content }
         </FullLayout>
       )
     } else {
-      let finder = <FinderView folder={ folder }/>;
+      // TODO(burdon): Get folder from state.
+      let finder = <FinderView folder={ 'inbox' }/>;
       return (
         <SplitLayout nav={ finder }>
           { content }

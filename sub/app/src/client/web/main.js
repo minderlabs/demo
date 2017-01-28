@@ -5,13 +5,22 @@
 // NOTE: Must come first.
 import './config';
 
+import { DomUtil } from 'minder-core';
+
 import { WebBase } from './base';
 
 import { AppAction, AppReducer } from './reducers';
 
 import Application from './app';
 
-const config = window.config;
+/**
+ * Configuration (from server).
+ */
+const config = _.defaultsDeep(window.config, {
+  app: {
+    platform: DomUtil.isMobile() ? 'mobile': 'web'
+  }
+});
 
 /**
  * Main app.
@@ -22,7 +31,7 @@ class Minder extends WebBase {
     return {
 
       // Main app reducer.
-      [AppAction.namespace] : AppReducer(this.config, this.injector)
+      [AppAction.namespace] : AppReducer(this._config, this._injector)
     }
   }
 }

@@ -37,6 +37,7 @@ export class AppAction {
  * Manages state transitions.
  */
 export const AppReducer = (config, injector) => {
+  console.assert(config);
 
   // TODO(burdon): State should only pertain to actions (i.e., search).
   // NOTE: We need the injector here since it can't be passed via React context to HOC containers.

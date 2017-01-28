@@ -31,4 +31,42 @@ export class Async {
       }
     }
   };
+
+  /**
+   * Retry the promise with back-off.
+   * @param {Function} promise
+   * @param {number} retries
+   * @returns {Promise}
+   */
+  static retry(promise, retries=-1) {
+    let attempt = 0;
+    let delay = 1000;
+    const maxDelay = 60 * 1000;
+
+    const doRetry = () => {
+      return new Promise((resolve, reject) => {
+        promise(attempt)
+
+          // OK.
+          .then(value => {
+            resolve(value)
+          })
+
+          // Retry.
+          .catch(error => {
+            if (retries > 0 && attempt >= retries) {
+              reject('Max retries: ' + retries);
+            } else {
+              setTimeout(() => {
+                attempt++;
+                delay = Math.min(delay * 2, maxDelay);
+                return doRetry(promise);
+              }, delay);
+            }
+          });
+      });
+    };
+
+    return doRetry();
+  }
 }

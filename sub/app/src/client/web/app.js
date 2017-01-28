@@ -11,6 +11,8 @@ import CanvasActivity from './activity/canvas';
 import FinderActivity from './activity/finder';
 import TestingActivity from './activity/testing';
 
+import { AppAction } from './reducers';
+
 import { Path } from './path';
 
 /**
@@ -26,29 +28,19 @@ export class Application extends React.Component {
   };
 
   static childContextTypes = {
+    config: React.PropTypes.object,
     injector: React.PropTypes.object,
   };
 
   getChildContext() {
     return {
+      config: this.props.config,
       injector: this.props.injector
     };
   }
 
   render() {
     let { client, store, history } = this.props;
-
-    //
-    // Redux Router.
-    // https://github.com/reactjs/react-router-redux
-    // TODO(burdon): Distinguish form factor (e.g., column) from canvas (e.g., board).
-    //
-    // [App]==(Route)==>[Activity]o--[Layout]o--[View]
-    //
-    // App's route determines the activity.
-    // The form-factor (e.g., mobile, web, CRX) determines the layout.
-    // The acitivity creates (multiple) views (analogous to Android fragments) for the given layout.
-    //
 
     // TODO(burdon): onEnter.
     // https://github.com/ReactTraining/react-router/blob/master/docs/API.md#onenternextstate-replace-callback
@@ -79,4 +71,11 @@ export class Application extends React.Component {
   }
 }
 
-export default connect()(Application);
+const mapStateToProps = (state, ownProps) => {
+  let { config } = AppAction.getState(state);
+  return {
+    config
+  };
+};
+
+export default connect(mapStateToProps)(Application);

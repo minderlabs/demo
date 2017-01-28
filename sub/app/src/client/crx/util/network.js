@@ -3,6 +3,8 @@
 //
 
 /**
+ * Implements the Apollo NetworkInterface to proxy requests to the background page.
+ *
  * http://dev.apollodata.com/core/network.html#custom-network-interface
  */
 export class ChromeNetworkInterface {
@@ -10,6 +12,7 @@ export class ChromeNetworkInterface {
   static CHANNEL = 'apollo';
 
   /**
+   * Creates the network interface with the given Chrome channel (to the BG page).
    *
    * @param channel
    * @param eventHandler
@@ -20,11 +23,6 @@ export class ChromeNetworkInterface {
     this._eventHandler = eventHandler;
   }
 
-  init() {
-    // TODO(burdon): Config re-connect.
-    this._channel.connect();
-    return this;
-  }
 
   /**
    * Proxy request through the message sender.

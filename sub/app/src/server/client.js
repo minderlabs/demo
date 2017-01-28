@@ -27,6 +27,7 @@ export const clientRouter = (authManager, clientManager, options) => {
   router.post('/client/register', async function(req, res) {
     let { clientId, socketId } = req.body;
 
+    // Get current user.
     let userInfo = await authManager.getUserInfoFromHeader(req);
     if (userInfo) {
       clientManager.register(userInfo.id, clientId, socketId);
@@ -34,7 +35,12 @@ export const clientRouter = (authManager, clientManager, options) => {
       res.status(401);
     }
 
-    res.send({});
+    // Send registration info.
+    res.send({
+      user: {
+        id: userInfo.id
+      }
+    });
   });
 
   // Invalidate client.

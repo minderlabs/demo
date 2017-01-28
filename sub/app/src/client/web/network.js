@@ -7,7 +7,7 @@ import { print } from 'graphql-tag/printer';
 import * as firebase from 'firebase';
 import io from 'socket.io-client';
 
-import { HttpUtil } from 'minder-core';
+import { Async, HttpUtil } from 'minder-core';
 
 import { createNetworkInterface } from 'apollo-client';
 
@@ -92,7 +92,13 @@ export class AuthManager {
           this._networkManager.token = jwtToken;
 
           // Connect (or reconnect) client.
-          this._connectionManager.connect().then(() => callback && callback());
+          Async.retry(attempt => {
+            if (attempt > 0) {
+              logger.log('Retrying...');
+            }
+
+            return this._connectionManager.connect();
+          }).then(() => callback && callback());
         });
       } else {
         logger.log('Authenticating...');
@@ -274,7 +280,7 @@ export class ConnectionManager {
    */
   _doRegistration(registration=undefined) {
     registration = _.merge({}, registration, {
-      clientId: this._config.clientId
+      clientId: this._config.client.id
     });
 
     let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');

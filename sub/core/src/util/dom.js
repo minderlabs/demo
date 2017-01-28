@@ -3,6 +3,16 @@
 //
 
 /**
+ * DOM Utils.
+ */
+export class DomUtil {
+
+  static isMobile() {
+    return !!navigator.userAgent.match(/(Android|iPhone|iPod)/);
+  }
+}
+
+/**
  * Handles window-frame communication.
  */
 export class WindowMessenger {

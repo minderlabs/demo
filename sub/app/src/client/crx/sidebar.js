@@ -5,11 +5,14 @@
 // NOTE: Must come first.
 import './config';
 
+import { createMemoryHistory } from 'react-router';
+
 import {
   ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger, HttpUtil, Injector, KeyListener
 } from 'minder-core';
 
 import { Base } from '../web/base';
+import { Path } from '../web/path';
 import { AppAction, AppReducer } from '../web/reducers';
 
 import { KeyToggleSidebar } from './common';
@@ -52,7 +55,7 @@ class Sidebar extends Base {
     super(config);
 
     // TODO(burdon): Get message/event when opened/closed by key press (to update state).
-    this.messenger = new WindowMessenger(config.channel)
+    this._messenger = new WindowMessenger(config.channel)
       .attach(parent)
       .listen(message => {
         switch (message.command) {
@@ -66,50 +69,58 @@ class Sidebar extends Base {
       });
 
     // Message routing.
-    this.router = new ChromeMessageChannelRouter();
-    this.systemChannel = new ChromeMessageChannel('system', this.router);
+    this._router = new ChromeMessageChannelRouter();
+    this._systemChannel = new ChromeMessageChannel('system', this._router);
+
+    // React Router history.
+    this._history = createMemoryHistory(Path.HOME);
   }
 
   postInit() {
-    this.router.connect();
+    this._router.connect();
     return Promise.resolve();
   }
 
   initNetwork() {
-    this.networkInterface =
+    this._networkInterface =
       new ChromeNetworkInterface(
-        new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this.router),
-      this.eventHandler);
+        new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this._router), this._eventHandler);
 
     // TODO(burdon): Wait for connection.
     return Promise.resolve();
   }
 
+  get history() {
+    return this._history;
+  }
+
   get providers() {
     return [
-      Injector.provider(this.messenger),
-      Injector.provider(this.systemChannel, 'system-channel')
+      Injector.provider(this._messenger),
+      Injector.provider(this._systemChannel, 'system-channel')
     ]
   }
 
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace]: AppReducer(this.config, this.injector),
+      [AppAction.namespace]: AppReducer(this._config, this._injector),
 
       // Sidebar-specific.
-      [SidebarAction.namespace]: SidebarReducer(this.config, this.injector)
+      [SidebarAction.namespace]: SidebarReducer(this._config, this._injector)
     }
   }
 }
 
+//
+// Root application.
+//
 const bootstrap = new Sidebar(config);
 
 bootstrap.init().then(() => {
 
-  // Init UX.
-//bootstrap.render(TestApplication);
   bootstrap.render(Application);
+//bootstrap.render(TestApplication);
 
   // Trigger startup via Redux.
   bootstrap.store.dispatch(SidebarAction.init());

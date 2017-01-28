@@ -2,7 +2,7 @@
 // Copyright 2017 Minder Labs.
 //
 
-import { ChromeMessageChannelDispatcher } from 'minder-core';
+import { ChromeMessageChannelDispatcher, TypeUtil } from 'minder-core';
 
 import { AuthManager, ConnectionManager, NetworkManager } from '../web/network';
 import { ChromeNetworkInterface } from './util/network';
@@ -12,6 +12,8 @@ import { ChromeNetworkInterface } from './util/network';
  */
 class BackgroundApp {
 
+  // TODO(burdon): React dashboard: clients, messages.
+
   constructor() {
     this._dispatcher = new ChromeMessageChannelDispatcher();
 
@@ -20,7 +22,7 @@ class BackgroundApp {
         platform: 'crx'
       },
 
-      // TODO(burdon): Get from settings.
+      // TODO(burdon): Get from settings store.
       server: 'http://127.0.0.1:3000',
       graphql: 'http://127.0.0.1:3000/graphql',
     };
@@ -60,7 +62,9 @@ class BackgroundApp {
       //
       this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
         // TODO(burdon): Logging.
+        console.log('>>>', TypeUtil.stringify(gqlRequest));
         return this.networkInterface.query(gqlRequest).then(gqlResponse => {
+          console.log('<<<', TypeUtil.stringify(gqlResponse));
           return gqlResponse;
         });
       });

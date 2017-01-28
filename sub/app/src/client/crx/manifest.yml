@@ -1,22 +1,22 @@
 #
 # Manifest YML
-# NOTE: We use YML to allow for comments, etc.
-# grunt convert (to convert to JSON file).
 #
 # Manifest format
 # https://developer.chrome.com/extensions/manifest
 # https://developer.chrome.com/extensions/faq
+# NOTE: We use YML (converted to JSON via Grunt) to support comments, etc.
 #
 # Development
 # grunt watch:crx
 #
 # Chrome extensions:
-# https://chrome.google.com/webstore/detail/extensions-reloader/fimgfedafeadlieiabdeeaodndnlbhid
 # https://chrome.google.com/webstore/detail/chrome-apps-extensions-de/ohmmkhmmmpcnpikjeljgnaoabkaalbgc
+# https://chrome.google.com/webstore/detail/extensions-reloader/fimgfedafeadlieiabdeeaodndnlbhid
 #
-# NOTE: On manifest changes, must reload via chrome://extensions
 # Launch the Extensions Manager from chrome://apps (then select Extensions).
+# NOTE: ### MAKE SURE THE RIGHT CHROME EXTENSION TOOL IS RUNNING FOR THE PROFILE BEING TESTED ###
 # NOTE: To keep the BG page window open, click reload then manually reload the content script page.
+# NOTE: On manifest changes, MUST reload via the Chrome Extenion Tool (not via the Extensions Reloader).
 #
 # https://bugs.chromium.org/p/chromium/issues/list
 #

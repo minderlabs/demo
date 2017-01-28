@@ -28,14 +28,14 @@ export class Base {
 
   constructor(config) {
     console.assert(config);
-    this.config = config;
+    this._config = config;
 
     // Event bus propagates events (e.g., error messages) to components.
-    this.eventHandler = new EventHandler();
+    this._eventHandler = new EventHandler();
 
     // TODO(burdon): Experimental (replace with Apollo directives).
     // Manages Apollo query subscriptions.
-    this.queryRegistry = new QueryRegistry();
+    this._queryRegistry = new QueryRegistry();
   }
 
   /**
@@ -52,7 +52,7 @@ export class Base {
       .then(() => this.initRouter())
       .then(() => this.postInit())
       .then(() => {
-        logger.log($$('Config = %o', this.config));
+        logger.log($$('Config = %o', this._config));
       });
   }
 
@@ -78,7 +78,7 @@ export class Base {
     };
 
     window.addEventListener('error', (error) => {
-      this.eventHandler.emit({
+      this._eventHandler.emit({
         type: 'error',
         message: error.message
       });
@@ -88,7 +88,7 @@ export class Base {
     window.addEventListener('unhandledrejection', (event) => {
       let message = event.reason ? String(event.reason) : 'Uncaught promise';
       logger.error(message);
-      this.eventHandler.emit({
+      this._eventHandler.emit({
         type: 'error',
         message
       });
@@ -102,8 +102,8 @@ export class Base {
    */
   initInjector() {
     let providers = _.concat([
-      Injector.provider(this.eventHandler),
-      Injector.provider(this.queryRegistry),
+      Injector.provider(this._eventHandler),
+      Injector.provider(this._queryRegistry),
       Injector.provider(new IdGenerator()),
       Injector.provider(new Matcher()),
       Injector.provider(new QueryParser()),
@@ -111,7 +111,7 @@ export class Base {
     ], this.providers);
 
     // TODO(burdon): Move to Redux.
-    this.injector = new Injector(providers);
+    this._injector = new Injector(providers);
 
     return Promise.resolve();
   }
@@ -128,9 +128,9 @@ export class Base {
    * Acpollo client.
    */
   initApollo() {
-    console.assert(this.networkInterface);
+    console.assert(this._networkInterface);
 
-    this.apolloClient = new ApolloClient({
+    this._apolloClient = new ApolloClient({
 
       // TODO(burdon): Move to minder-core.
       // Normalization (for client caching).
@@ -145,7 +145,7 @@ export class Base {
         return null;
       },
 
-      networkInterface: this.networkInterface
+      networkInterface: this._networkInterface
     });
 
     return Promise.resolve();
@@ -160,6 +160,7 @@ export class Base {
    */
   initReduxStore() {
 
+    // State handlers.
     // http://redux.js.org/docs/api/combineReducers.html
     const reducers = combineReducers(_.merge({
 
@@ -167,20 +168,21 @@ export class Base {
       routing: routerReducer,
 
       // Apollo framework reducer.
-      apollo: this.apolloClient.reducer(),
+      apollo: this._apolloClient.reducer(),
 
     }, this.reducers));
 
-    // https://github.com/reactjs/redux/blob/master/docs/api/compose.md
+    // Enhance the store.
+    // https://github.com/reactjs/redux/blob/master/docs/Glossary.md#store-enhancer
     const enhancer = compose(
 
       // Apollo-Redux bindings.
-      applyMiddleware(this.apolloClient.middleware()),
+      applyMiddleware(this._apolloClient.middleware()),
 
       // Enable navigation via redux dispatch.
       // https://github.com/reactjs/react-router-redux#what-if-i-want-to-issue-navigation-events-via-redux-actions
       // https://github.com/reactjs/react-router-redux#pushlocation-replacelocation-gonumber-goback-goforward
-      applyMiddleware(routerMiddleware(browserHistory)),
+      applyMiddleware(routerMiddleware(this.history)),
 
       // NOTE: Must go last.
       // https://github.com/gaearon/redux-devtools
@@ -189,7 +191,7 @@ export class Base {
     );
 
     // http://redux.js.org/docs/api/createStore.html
-    this.store = createStore(reducers, {}, enhancer);
+    this._store = createStore(reducers, {}, enhancer);
 
     return Promise.resolve();
   }
@@ -200,7 +202,7 @@ export class Base {
   initRouter() {
 
     // Enhanced history that syncs navigation events with the store.
-    this.history = syncHistoryWithStore(browserHistory, this.store);
+    this._reduxHistory = syncHistoryWithStore(this.history, this._store);
 
     // TODO(burdon): Factor out logging.
     this.history.listen(location => {
@@ -210,6 +212,20 @@ export class Base {
     return Promise.resolve();
   }
 
+  /**
+   * Access the store (for dispatching actions).
+   */
+  get store() {
+    return this._store;
+  }
+
+  /**
+   * React router history.
+   */
+  get history() {
+    return null;
+  }
+  
   /**
    * App-specific Redux reducers.
    */
@@ -224,21 +240,40 @@ export class Base {
     return [];
   }
 
+  /**
+   * Renders the root application.
+   *
+   * <Application injector={} client={} state={} history={}>
+   *   <ApolloProvider client={} store={}>
+   *     <Router history={}>
+   *       <Route path="/activity" component={ Activity }/>
+   *     </Router>
+   *   </ApolloProvider
+   * </Application>
+   *
+   * Routes instantiate activity components, which receive params from the path.
+   *
+   * <Activity>
+   *   <Layout>
+   *     <Canvas/>
+   *   </Layout>
+   * </Activity>
+   */
   render(App) {
-    logger.log($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this.config, 'debug.env')));
+    logger.log($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._config, 'debug.env')));
 
     // Construct app.
     const app = (
       // TODO(burdon): Get injector from store?
       <App
-        injector={ this.injector }
-        client={ this.apolloClient }
-        history={ this.history }
-        store={ this.store }/>
+        injector={ this._injector }
+        client={ this._apolloClient }
+        history={ this._reduxHistory }
+        store={ this._store }/>
     );
 
     // Render app.
-    ReactDOM.render(app, document.getElementById(this.config.root));  // TODO(burdon): Rename appRoot.
+    ReactDOM.render(app, document.getElementById(this._config.root));  // TODO(burdon): Rename appRoot.
   }
 }
 
@@ -253,15 +288,20 @@ export class WebBase extends Base {
   initNetwork() {
 
     // Wraps Apollo network requests.
-    let networkManager = new NetworkManager(this.config, this.eventHandler);
-    this.networkInterface = networkManager.networkInterface;
+    let networkManager = new NetworkManager(this._config, this._eventHandler);
+    this._networkInterface = networkManager.networkInterface;
 
     // Manages the client connection and registration.
     let connectionManager =
-      new ConnectionManager(this.config, networkManager, this.queryRegistry, this.eventHandler);
+      new ConnectionManager(this._config, networkManager, this._queryRegistry, this._eventHandler);
 
     // Manages OAuth.
-    let authManager = new AuthManager(this.config, networkManager, connectionManager);
+    let authManager = new AuthManager(this._config, networkManager, connectionManager);
     return authManager.authenticate();
+  }
+
+  // https://github.com/ReactTraining/react-router/blob/master/docs/guides/Histories.md#browserhistory
+  get history() {
+    return browserHistory;
   }
 }

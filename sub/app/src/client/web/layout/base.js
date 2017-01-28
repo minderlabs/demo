@@ -27,11 +27,6 @@ import './base.less';
  */
 export class BaseLayout extends React.Component {
 
-  // TODO(burdon): Factor out.
-  static isMobile() {
-    return !!navigator.userAgent.match(/(Android|iPhone|iPod)/);
-  }
-
   static contextTypes = {
     injector: React.PropTypes.object.isRequired
   };

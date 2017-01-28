@@ -16,8 +16,12 @@ import FinderView from '../view/finder';
  */
 export default class FinderActivity extends React.Component {
 
+  static contextTypes = {
+    config: React.PropTypes.object.isRequired
+  };
+
   /**
-   * Properties set by the router.
+   * Params set by the router.
    */
   static propTypes = {
     params: React.PropTypes.shape({
@@ -26,13 +30,14 @@ export default class FinderActivity extends React.Component {
   };
 
   render() {
+    let { config } = this.context;
     let { params } = this.props;
     let { folder='inbox' } = params;
 
     let finder = <FinderView folder={ folder }/>;
 
-    // TODO(burdon): Layout based on form factor.
-    if (BaseLayout.isMobile() || true) {
+    let platform = _.get(config, 'app.platform');
+    if (platform == 'mobile' || platform == 'crx') {
       return (
         <FullLayout>
           { finder }

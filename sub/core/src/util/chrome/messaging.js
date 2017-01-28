@@ -62,7 +62,7 @@ export class ChromeMessageSender {
       // NOTE: Cannot reconnect when CRX is re-installed/updated (so reload).
       // https://groups.google.com/a/chromium.org/forum/#!msg/chromium-extensions/QLC4gNlYjbA/Ay41e2tYAQAJ
       setTimeout(() => {
-        // TODO(burdon): Alternatively show RELOAD page.
+        // TODO(burdon): Alternatively show RELOAD page (i.e., tell user).
         document.location.reload();
       }, ChromeMessageSender.RELOAD_DELAY);
     });
@@ -222,13 +222,13 @@ export class ChromeMessageChannel {
   constructor(channel, router) {
     console.assert(channel && router);
     this._channel = channel;
-    this._dispatcher = router;
+    this._router = router;
 
     // Map of pending resolvers by ID.
     this._pending = new Map();
 
     // Listen for channel messages.
-    this._dispatcher.listen(this._channel, message => {
+    this._router.listen(this._channel, message => {
       let { header, data } = message;
       let resolver = this._pending.get(header.id);
       if (resolver) {
@@ -251,7 +251,7 @@ export class ChromeMessageChannel {
    * @return {object} Message receipt.
    */
   postMessage(data) {
-    let header = this._dispatcher.sender.postMessage(data, {
+    let header = this._router.sender.postMessage(data, {
       channel: this._channel
     });
 

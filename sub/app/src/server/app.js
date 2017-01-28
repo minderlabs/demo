@@ -51,7 +51,7 @@ export const appRouter = (authManager, clientManager, options) => {
     // TODO(burdon): Deprecate cookies? Do redirect from app?
     let userInfo = await authManager.getUserInfoFromCookie(req);
     if (!userInfo) {
-      // TODO(burdon): Router object.
+      // TODO(burdon): Create Router object rather than hardcoding path.
       res.redirect('/');
     } else {
       // Create the client (and socket).
@@ -61,11 +61,15 @@ export const appRouter = (authManager, clientManager, options) => {
         app: WEBPACK_BUNDLE[options.env],
         config: _.defaults({
           root: 'app-root',
-          user: userInfo,
-          clientId: client.id,
           graphql: options.graphql,
           debug: {
             env: options.env
+          },
+          user: {
+            id: userInfo.id
+          },
+          client: {
+            id: client.id
           }
         }, options.config)
       });
