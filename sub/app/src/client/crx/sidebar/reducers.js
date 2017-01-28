@@ -116,9 +116,9 @@ export const SidebarReducer = (config, injector) => (state=SidebarAction.initalS
 
     case SidebarAction.ACTION.TOGGLE: {
       // TODO(burdon): Side-effects so that response can update "online" state.
-      messenger.sendMessage({ command: state[NAMESPACE].open ? 'CLOSE' : 'OPEN' });
+      messenger.sendMessage({ command: state.open ? 'CLOSE' : 'OPEN' });
       return _.assign({}, state, {
-        open: !state[NAMESPACE].open
+        open: !state.open
       });
     }
 

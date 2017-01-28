@@ -74,7 +74,7 @@ module.exports = (grunt) => {
         files: [
           {
             expand: true,
-            cwd: 'src/crx',
+            cwd: 'src/client/crx',
             src: [
               'img/*',
               'page/*'
@@ -130,6 +130,7 @@ module.exports = (grunt) => {
           'Gruntfile.js',
           'webpack*',
           'src/client/**',
+          '../core/src/**'
         ],
         tasks: [ 'build_crx' ]
       }

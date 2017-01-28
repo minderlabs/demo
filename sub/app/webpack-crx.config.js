@@ -49,6 +49,10 @@ module.exports = _.merge(baseConfig, {
 
     sidebar: [
       path.resolve(baseConfig.context, 'src/client/crx/sidebar.js')
+    ],
+
+    options: [
+      path.resolve(baseConfig.context, 'src/client/crx/options.js')
     ]
 
   },
