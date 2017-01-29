@@ -47,6 +47,10 @@ module.exports = _.merge(baseConfig, {
       path.resolve(baseConfig.context, 'src/client/crx/content_script.js')
     ],
 
+    browser_action: [
+      path.resolve(baseConfig.context, 'src/client/crx/browser_action.js')
+    ],
+
     sidebar: [
       path.resolve(baseConfig.context, 'src/client/crx/sidebar.js')
     ],

@@ -25,6 +25,25 @@ if (typeof btoa === 'undefined') {
  */
 export class ID {
 
+  /**
+   * ID for Apollo Cache Normalization.
+   * http://dev.apollodata.com/react/cache-updates.html#dataIdFromObject
+   * @param result
+   * @returns {*}
+   */
+  static dataIdFromObject(result) {
+    if (result.__typename && result.id) {
+      return result.__typename + '/' + result.id;
+    }
+
+    return null;
+  }
+
+  /**
+   *
+   * @param globalId
+   * @returns {{type: *, id: *}}
+   */
   static fromGlobalId(globalId) {
     console.assert(_.isString(globalId));
     let parts = atob(globalId).match(/(.+)\/(.+)/);
@@ -34,6 +53,12 @@ export class ID {
     }
   }
 
+  /**
+   *
+   * @param type
+   * @param localId
+   * @returns {string}
+   */
   static toGlobalId(type, localId) {
     console.assert(_.isString(type) && _.isString(localId));
     return btoa(type + '/' + localId);

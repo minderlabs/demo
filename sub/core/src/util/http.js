@@ -8,6 +8,14 @@
 export class HttpUtil {
 
   /**
+   * Changes a local url to an absolute.
+   */
+  static absoluteUrl(url, server=document.location.origin) {
+    console.assert(url && server);
+    return url.startsWith('/') ? server + url : url;
+  }
+
+  /**
    * Returns the server URL.
    * @return {string}
    */

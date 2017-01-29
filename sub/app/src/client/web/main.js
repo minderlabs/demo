@@ -44,7 +44,7 @@ const bootstrap = new Minder(config);
 // https://webpack.github.io/docs/hot-module-replacement.html
 //
 
-if (module.hot && _.get(config, 'debug.env') === 'hot') {
+if (module.hot && _.get(config, 'env') === 'hot') {
 
   // List modules that can be dynamically reloaded.
   module.hot.accept('./app', () => {

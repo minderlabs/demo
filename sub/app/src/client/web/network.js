@@ -7,7 +7,7 @@ import { print } from 'graphql-tag/printer';
 import * as firebase from 'firebase';
 import io from 'socket.io-client';
 
-import { Async, HttpUtil } from 'minder-core';
+import { Async, HttpUtil, Wrapper } from 'minder-core';
 
 import { createNetworkInterface } from 'apollo-client';
 
@@ -213,7 +213,7 @@ export class AuthManager {
 }
 
 /**
- * Manages client connection.
+ * Manages the client connection and registration.
  */
 export class ConnectionManager {
   
@@ -285,7 +285,7 @@ export class ConnectionManager {
     // See clientRouter on server.
     let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
 
-    logger.log('Registering client: ' + JSON.stringify(registration));
+    logger.log('Registering client: ' + url);
     return new Promise((resolve, reject) => {
       $.ajax({
         url: url,
@@ -310,7 +310,7 @@ export class ConnectionManager {
 }
 
 /**
- * Wrapper for network.
+ * Wrapper for the Apollo network interface.
  */
 export class NetworkManager {
 
@@ -324,29 +324,46 @@ export class NetworkManager {
    */
   constructor(config, eventHandler=undefined) {
     console.assert(config);
+    this._config = config;
 
     // Set token from server provided config.
     // NOTE: For the CRX the token will not be available until the login popup.
     this._token = _.get(config, 'user.token');
 
+    // Emit network events.
+    this._eventHandler = eventHandler;
+
     // Log and match request/reponses.
     this._requestCount = 0;
     this._requestMap = new Map();
 
-    // TODO(burdon): Configure batching via options.
-    // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
+    // Set on initialization.
+    this._logger = null;
+    this._networkInterface = null;
+  }
+
+  /**
+   * Initializes the network manager.
+   * May be called multiple times -- e.g., after config has changed.
+   * @returns {NetworkManager}
+   */
+  init() {
+    // Reset stats.
+    this._requestCount = 0;
+    this._requestMap.clear();
 
     // Logging.
-    this._logger = new NetworkLogger(_.defaults(config.logging, {
-      uri: config.graphql.replace('/graphql', '/graphiql')
-    }));
+    this._logger = new NetworkLogger(this._config);
 
     // Create the interface.
     // http://dev.apollodata.com/core/network.html
     // http://dev.apollodata.com/core/apollo-client-api.html#createNetworkInterface
     this._networkInterface = createNetworkInterface({
-      uri: config.graphql
+      uri: this._config.graphql
     });
+
+    // TODO(burdon): Configure batching via options.
+    // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
 
     // TODO(burdon): Currently catching network errors as unhandled promises (see main.js)
     // https://github.com/apollostack/apollo-client/issues/657 [Added comment]
@@ -359,10 +376,8 @@ export class NetworkManager {
      */
     const addHeaders = {
       applyMiddleware: ({ request, options }, next) => {
-
         // Set the JWT header.
         options.headers = _.defaults(options.headers, this.headers);
-
         next();
       }
     };
@@ -410,9 +425,7 @@ export class NetworkManager {
         });
 
         this._logger.logRequest(requestId, request);
-
-        eventHandler && eventHandler.emit({ type: 'network.out' });
-
+        this._eventHandler && this._eventHandler.emit({ type: 'network.out' });
         next();
       }
     };
@@ -448,7 +461,7 @@ export class NetworkManager {
         } else {
           // GraphQL Error.
           response.clone().text().then(text => {
-            eventHandler && eventHandler.emit({ type: 'error', message: response.statusText });
+            this._eventHandler && this._eventHandler.emit({ type: 'error', message: response.statusText });
           });
         }
 
@@ -466,6 +479,9 @@ export class NetworkManager {
       .useAfter([
         logResponse
       ]);
+
+    logger.log('Initialized.');
+    return this;
   }
 
   /**
@@ -502,15 +518,12 @@ export class NetworkManager {
  */
 class NetworkLogger {
 
-  // TODO(burdon): Verbose option.
+  /**
+   * @param {Wrapper} options
+   */
   constructor(options) {
     console.assert(options);
     this._options = options;
-
-    this._rootUri = options.uri;
-    if (this._rootUri.startsWith('/')) {
-      this._rootUri = document.location.origin + this._rootUri;
-    }
   }
 
   logRequest(requestId, request) {
@@ -518,7 +531,8 @@ class NetworkLogger {
 
     // Show iGQL link.
     if (_.get(this._options, 'debug', true)) {
-      logger.info('[' + requestId + ']: ' + this._rootUri + '?' + HttpUtil.toUrlArgs({
+      let url = HttpUtil.absoluteUrl(_.get(this._options, 'graphiql', '/graphiql'));
+      logger.info('[' + requestId + ']: ' + url + '?' + HttpUtil.toUrlArgs({
           query: print(request.query),
           variables: JSON.stringify(request.variables)
         }));

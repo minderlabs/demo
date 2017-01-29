@@ -69,8 +69,8 @@ permissions:
 
 options_ui:
   page: "page/options.html"
-  chrome_style: true
-  open_in_tab: false
+# chrome_style: true
+  open_in_tab: true
 
 
 #
@@ -82,6 +82,17 @@ options_ui:
 background:
   scripts:
     - "assets/background.bundle.js"
+
+
+#
+# Browser actions.
+# https://developer.chrome.com/extensions/browserAction
+#
+
+browser_action:
+  default_icon: "img/icon_128.png",
+  default_title: "Minder",
+  default_popup: "page/browser_action.html"
 
 
 #

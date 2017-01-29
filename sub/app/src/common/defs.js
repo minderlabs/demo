@@ -40,7 +40,7 @@ export const GoogleApiConfig = {
 export const Const = {
 
   APP_NAME: 'minder',
-  APP_VERSION: "0.1.0",
+  APP_VERSION: "0.1.1",
 
   DEF_TEAM: 'minderlabs',
 

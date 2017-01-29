@@ -11,7 +11,7 @@ import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
 
-import { EventHandler, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
+import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
 
 import { QueryRegistry } from './data/subscriptions';
 import { TypeRegistryDefs } from './component/type/registry';
@@ -128,24 +128,13 @@ export class Base {
    * Acpollo client.
    */
   initApollo() {
-    console.assert(this._networkInterface);
+    let networkInterface = this.networkInterface;
+    console.assert(networkInterface);
 
+    // http://dev.apollodata.com/react/initialization.html
     this._apolloClient = new ApolloClient({
-
-      // TODO(burdon): Move to minder-core.
-      // Normalization (for client caching).
-      // http://dev.apollodata.com/react/cache-updates.html#dataIdFromObject
-      dataIdFromObject: (result) => {
-
-        // Extract the ID for types.
-        if (result.__typename && result.id) {
-          return result.__typename + '/' + result.id;
-        }
-
-        return null;
-      },
-
-      networkInterface: this._networkInterface
+      dataIdFromObject: ID.dataIdFromObject,
+      networkInterface
     });
 
     return Promise.resolve();
@@ -220,6 +209,13 @@ export class Base {
   }
 
   /**
+   * Returns the Apollo network interface.
+   */
+  get networkInterface() {
+    return null;
+  }
+
+  /**
    * Access the store (for dispatching actions).
    */
   get store() {
@@ -267,7 +263,7 @@ export class Base {
    * </Activity>
    */
   render(App) {
-    logger.log($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._config, 'debug.env')));
+    logger.log($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._config, 'env')));
 
     // Construct app.
     const app = (
@@ -294,21 +290,26 @@ export class WebBase extends Base {
    */
   initNetwork() {
 
-    // Wraps Apollo network requests.
-    let networkManager = new NetworkManager(this._config, this._eventHandler);
-    this._networkInterface = networkManager.networkInterface;
+    // Wraps the Apollo network requests.
+    this._networkManager = new NetworkManager(this._config, this._eventHandler).init();
 
     // Manages the client connection and registration.
-    let connectionManager =
-      new ConnectionManager(this._config, networkManager, this._queryRegistry, this._eventHandler);
+    this._connectionManager =
+      new ConnectionManager(this._config, this._networkManager, this._queryRegistry, this._eventHandler);
 
     // Manages OAuth.
-    let authManager = new AuthManager(this._config, networkManager, connectionManager);
-    return authManager.authenticate();
+    this._authManager = new AuthManager(this._config, this._networkManager, this._connectionManager);
+
+    // Trigger auth.
+    return this._authManager.authenticate();
   }
 
-  // https://github.com/ReactTraining/react-router/blob/master/docs/guides/Histories.md#browserhistory
+  get networkInterface() {
+    return this._networkManager.networkInterface;
+  }
+
   get history() {
+    // https://github.com/ReactTraining/react-router/blob/master/docs/guides/Histories.md#browserhistory
     return browserHistory;
   }
 }

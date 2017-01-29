@@ -27,24 +27,17 @@ import Application from './sidebar/app';
 // TODO(burdon): Document config object.
 //
 const config = _.merge({
-
   root: 'crx-root',
-
-  graphql: '/graphql',
+  env: 'development',
 
   app: {
     name: 'Minder',
-    version: '0.1.0',
+    version: '0.1.1',
     platform: 'crx'
   },
 
-  debug: {
-    env: 'development'
-  },
-
-  team: 'minderlabs',
-
   // Set by server registration with background page.
+  team: 'minderlabs',
   user: {}
 
 }, HttpUtil.parseUrlArgs());
@@ -91,12 +84,15 @@ class Sidebar extends Base {
   }
 
   initNetwork() {
-    this._networkInterface =
-      new ChromeNetworkInterface(
-        new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this._router), this._eventHandler);
+    this._networkInterface = new ChromeNetworkInterface(
+      new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this._router), this._eventHandler);
 
     // TODO(burdon): Wait for connection.
     return Promise.resolve();
+  }
+
+  get networkInterface() {
+    return this._networkInterface;
   }
 
   get history() {

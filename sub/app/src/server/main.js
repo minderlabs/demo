@@ -396,7 +396,7 @@ app.use(appRouter(authManager, clientManager, {
   },
 
   // TODO(burdon): Clean this up with config.
-  assets: env === 'production' ? __dirname : path.join(__dirname, '../../dist')
+  assets: (env === 'production') ? __dirname : path.join(__dirname, '../../dist')
 }));
 
 // Catch-all (last).

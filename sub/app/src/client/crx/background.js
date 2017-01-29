@@ -10,6 +10,10 @@ import { ChromeMessageChannelDispatcher, TypeUtil } from 'minder-core';
 
 import { AuthManager, ConnectionManager, NetworkManager } from '../web/network';
 import { ChromeNetworkInterface } from './util/network';
+import { Notification } from './util/notification';
+import { Settings } from './util/settings';
+
+import { DefaultSettings } from './common';
 
 /**
  * Background Page.
@@ -18,26 +22,44 @@ class BackgroundApp {
 
   // TODO(burdon): React dashboard: clients, messages.
 
+  //
+  // Initial config.
+  //
+  static Config = {
+    env: 'development',
+    app: {
+      platform: 'crx'
+    }
+  };
+
+  /**
+   * Updates the config from stored settings (which may change).
+   * NOTE: Allows update of muliple config params from settings.
+   */
+  static UpdateConfig(config, settings) {
+    _.assign(config, settings, {
+      graphql: settings.server + '/graphql',
+      graphiql: settings.server + '/graphiql'
+    });
+
+    console.log('Config updated: ', JSON.stringify(config));
+  }
+
   constructor() {
+    // Initial configuration (dynamically updated).
+    this._config = _.defaults({}, BackgroundApp.Config);
+
+    // Dynamic settings.
+    this._settings = new Settings(DefaultSettings);
+
+    // Listens for client connections.
     this._dispatcher = new ChromeMessageChannelDispatcher();
 
-    const config = {
-      app: {
-        platform: 'crx'
-      },
+    this._networkManager = new NetworkManager(this._config);
+    this._connectionManager = new ConnectionManager(this._config, this._networkManager);
+    this._authManager = new AuthManager(this._config, this._networkManager, this._connectionManager);
 
-      // TODO(burdon): Get from settings store.
-      server: 'http://localhost:3000',
-      graphql: 'http://localhost:3000/graphql',
-    };
-
-    // TODO(burdon): Event listener.
-    let networkManager = new NetworkManager(config);
-    let connectionManager = new ConnectionManager(config, networkManager);
-
-    this.authManager = new AuthManager(config, networkManager, connectionManager);
-
-    this.networkInterface = networkManager.networkInterface;
+    this._notification = new Notification();
   }
 
   /**
@@ -56,57 +78,76 @@ class BackgroundApp {
    */
   init() {
 
-    // Triggers popup.
-    this.authManager.authenticate().then(user => {
+    // Load the settings.
+    this._settings.load().then(settings => {
+      BackgroundApp.UpdateConfig(this._config, settings);
+      this._networkManager.init();
 
-      //
-      // Handle system request.
-      //
-      this._systemChannel = this._dispatcher.listen('system', request => {
-        console.log('System request: ' + TypeUtil.stringify(request));
-        switch (request.command) {
+      // Triggers popup.
+      this._authManager.authenticate().then(user => {
 
-          // On client startup.
-          // Send user ID from client registration.
-          case 'register': {
-            return Promise.resolve({
-              command: 'registered',
-              value: {
-                user
-              }
-            });
-          }
+        // Listen for updates.
+        this._settings.onChange(settings => {
+          // TODO(burdon): Have to change network interface.
+          BackgroundApp.UpdateConfig(this._config, settings);
+          this._networkManager.init();
+          this._connectionManager.connect();
+        });
 
-          // Ping.
-          case 'ping': {
-            return Promise.resolve({ command: 'pong', value: request.value });
-          }
+        // Only show if not dev.
+        if (!settings.server.startsWith('http://localhost')) {
+          this._notification.show('Minder', 'Authentication succeeded.');
         }
 
-        return Promise.resolve();
-      });
+        //
+        // Handle system request.
+        //
+        this._systemChannel = this._dispatcher.listen('system', request => {
+          console.log('System request: ' + TypeUtil.stringify(request));
+          switch (request.command) {
 
-      //
-      // Proxy Apollo requests.
-      // http://dev.apollodata.com/core/network.html#custom-network-interface
-      // See also ChromeNetworkInterface
-      // TODO(burdon): Logging (assign req
-      //
-      this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
-        return this.networkInterface.query(gqlRequest).then(gqlResponse => {
-          return gqlResponse;
+            // On client startup.
+            // Send user ID from client registration.
+            case 'register': {
+              return Promise.resolve({
+                command: 'registered',
+                value: {
+                  user
+                }
+              });
+            }
+
+            // Ping.
+            case 'ping': {
+              return Promise.resolve({ command: 'pong', value: request.value });
+            }
+          }
+
+          return Promise.resolve();
         });
+
+        //
+        // Proxy Apollo requests.
+        // http://dev.apollodata.com/core/network.html#custom-network-interface
+        // See also ChromeNetworkInterface
+        // TODO(burdon): Logging (assign req
+        //
+        this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
+          return this._networkManager.networkInterface.query(gqlRequest).then(gqlResponse => {
+            return gqlResponse;
+          });
+        });
+
+        // OK
+        console.log('Listening...');
       });
 
-      // OK
-      console.log('Listening...');
-    });
-
-    // TODO(burdon): Notify scripts.
-    // Listen for termination and inform scripts.
-    // https://developer.chrome.com/extensions/runtime#event-onSuspend
-    chrome.runtime.onSuspend.addListener(() => {
-      console.log('System going down...');
+      // TODO(burdon): Notify scripts.
+      // Listen for termination and inform scripts.
+      // https://developer.chrome.com/extensions/runtime#event-onSuspend
+      chrome.runtime.onSuspend.addListener(() => {
+        console.log('System going down...');
+      });
     });
   }
 }

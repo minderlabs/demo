@@ -34,13 +34,6 @@ export const appRouter = (authManager, clientManager, options) => {
   console.assert(authManager && clientManager);
   const router = express.Router();
 
-  options = _.defaults(options, {
-    env: 'development',
-    graphql: '/graphql'
-  });
-
-  logger.log($$('Client options = %o', options));
-
   // Webpack assets.
   router.use('/assets', express.static(options.assets));
 
@@ -57,21 +50,27 @@ export const appRouter = (authManager, clientManager, options) => {
       // Create the client (and socket).
       let client = clientManager.create(userInfo.id);
 
+      // App config.
+      let config = _.defaults({
+        root: 'app-root',
+        graphql: '/graphql',
+        graphiql: '/graphiql',
+
+        env: options.env,
+
+        client: {
+          id: client.id
+        },
+
+        user: {
+          id: userInfo.id
+        }
+      }, options.config);
+
+      logger.log($$('Client options = %o', config));
       res.render('app', {
         app: WEBPACK_BUNDLE[options.env],
-        config: _.defaults({
-          root: 'app-root',
-          graphql: options.graphql,
-          debug: {
-            env: options.env
-          },
-          user: {
-            id: userInfo.id
-          },
-          client: {
-            id: client.id
-          }
-        }, options.config)
+        config: config,
       });
     }
   });
