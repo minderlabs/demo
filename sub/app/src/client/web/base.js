@@ -131,11 +131,19 @@ export class Base {
     let networkInterface = this.networkInterface;
     console.assert(networkInterface);
 
+    // TODO(burdon): Custom resolvers.
+    // http://dev.apollodata.com/react/cache-updates.html#cacheRedirect
+
     // http://dev.apollodata.com/react/initialization.html
+    // https://github.com/apollostack/apollo-client/blob/6b6e8ded1e0f83cb134d2261a3cf7d2d9416400f/src/ApolloClient.ts
     this._apolloClient = new ApolloClient({
       dataIdFromObject: ID.dataIdFromObject,
+      queryDeduplication: true,
+      addTypename: true,
       networkInterface
     });
+
+    // TODO(burdon): subscribe().
 
     return Promise.resolve();
   }
@@ -209,10 +217,10 @@ export class Base {
   }
 
   /**
-   * Returns the Apollo network interface.
+   * Access Apollo client.
    */
-  get networkInterface() {
-    return null;
+  get client() {
+    return this._apolloClient;
   }
 
   /**
@@ -220,6 +228,17 @@ export class Base {
    */
   get store() {
     return this._store;
+  }
+
+  //
+  // Virtual methods.
+  //
+
+  /**
+   * Returns the Apollo network interface.
+   */
+  get networkInterface() {
+    return null;
   }
 
   /**

@@ -66,6 +66,7 @@ class BackgroundApp {
       BackgroundApp.UpdateConfig(this._config, settings);
 
       if (restart) {
+        // TODO(burdon): Notify clients (to reset cache).
         this._networkManager.init();
         this._connectionManager.connect();
       }

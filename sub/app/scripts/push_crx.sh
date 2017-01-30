@@ -26,7 +26,7 @@ DASHBOARD_URL="https://chrome.google.com/webstore/developer/dashboard/${CRX_GROU
 
 # Build new bundles.
 #grunt version:crx:patch
-grunt build_crx
+grunt build-crx
 
 #
 # Only members of the Google Group (nx-publishers@googlegroups.com) can push.

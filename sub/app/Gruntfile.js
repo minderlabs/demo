@@ -132,7 +132,7 @@ module.exports = (grunt) => {
           'src/client/**',
           '../core/src/**'
         ],
-        tasks: [ 'build_crx' ]
+        tasks: [ 'build-crx' ]
       }
     },
 
@@ -180,5 +180,5 @@ module.exports = (grunt) => {
 
   grunt.registerTask('default', ['build']);
   grunt.registerTask('build', ['clean', 'run:update_schema', 'webpack']);
-  grunt.registerTask('build_crx', ['webpack:crx', 'convert:yml2json', 'copy:crx', 'crx:minder', 'compress:crx'])
+  grunt.registerTask('build-crx', ['webpack:crx', 'convert:yml2json', 'copy:crx', 'crx:minder', 'compress:crx'])
 };

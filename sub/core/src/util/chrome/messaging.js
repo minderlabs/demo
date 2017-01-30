@@ -3,6 +3,7 @@
 //
 
 import { TypeUtil } from '../../util/type';
+import { Listener } from '../../util/async';
 import Logger from '../../util/logger';
 
 const logger = Logger.get('message');
@@ -234,9 +235,13 @@ export class ChromeMessageChannel {
       if (resolver) {
         resolver(data);
       } else {
-        console.warn('Unexpected message: ' + JSON.stringify(message));
+        // Notify listeners.
+        this.onMessage.
       }
     });
+
+    // Event handler.
+    this.onMessage = new Listener();
   }
 
   /**
@@ -259,6 +264,7 @@ export class ChromeMessageChannel {
       // TODO(burdon): Stipulate timeout.
       wait: () => {
         return new Promise((resolve, reject) => {
+          // Wait for inbound message.
           this._pending.set(header.id, resolve);
         });
       }
