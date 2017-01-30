@@ -30,6 +30,8 @@ export class Settings {
     // https://developer.chrome.com/extensions/storage#event-onChanged
     chrome.storage.onChanged.addListener((changes, areaName) => {
       if (areaName == 'local') {
+        console.log('Updated: ' + JSON.stringify(changes));
+
         // Update changes.
         _.each(changes, (value, key) => {
           if (value.newValue) {
@@ -48,8 +50,9 @@ export class Settings {
   }
 
   fireUpdate() {
-    console.log('Updated: ' + JSON.stringify(this._values));
-    this._onChange && this._onChange(this._values);
+    if (this._onChange) {
+      this._onChange(this._values);
+    }
   }
 
   /**
@@ -67,7 +70,6 @@ export class Settings {
    * @returns {Promise}
    */
   load() {
-    console.log('Loading...');
     return new Promise((resolve, reject) => {
       chrome.storage.local.get(this._defaults, values => {
         _.assign(this._values, values);
@@ -82,7 +84,7 @@ export class Settings {
   reset() {
     this._values = {};
     this._store.clear(() => {
-      return this.load().then(values => this.fireUpdate());
+      chrome.storage.local.set(this._defaults);
     });
   }
 

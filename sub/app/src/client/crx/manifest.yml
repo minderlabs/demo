@@ -69,8 +69,8 @@ permissions:
 
 options_ui:
   page: "page/options.html"
-# chrome_style: true
-  open_in_tab: true
+  chrome_style: true
+  open_in_tab: false
 
 
 #

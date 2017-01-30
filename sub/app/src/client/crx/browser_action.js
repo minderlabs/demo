@@ -12,6 +12,9 @@ import './browser_action.less';
  */
 class BrowserAction extends React.Component {
 
+  // TODO(burdon): Access BG page directly.
+  // chrome.extension.getBackgroundPage().app.config;
+
   state = {
     url: ''
   };
@@ -48,6 +51,5 @@ class BrowserAction extends React.Component {
 }
 
 ReactDOM.render(
-  <BrowserAction/>,
-  document.getElementById('app-root')
+  <BrowserAction/>, document.getElementById('app-root')
 );

@@ -20,8 +20,6 @@ import { DefaultSettings } from './common';
  */
 class BackgroundApp {
 
-  // TODO(burdon): React dashboard: clients, messages.
-
   //
   // Initial config.
   //
@@ -55,11 +53,34 @@ class BackgroundApp {
     // Listens for client connections.
     this._dispatcher = new ChromeMessageChannelDispatcher();
 
+    // Network.
     this._networkManager = new NetworkManager(this._config);
     this._connectionManager = new ConnectionManager(this._config, this._networkManager);
     this._authManager = new AuthManager(this._config, this._networkManager, this._connectionManager);
 
+    // Listen for updates (not called on first load).
+    this._settings.onChange(settings => {
+
+      // Check network settings (server) changes.
+      let restart = this._config.server != settings.server;
+      BackgroundApp.UpdateConfig(this._config, settings);
+
+      if (restart) {
+        this._networkManager.init();
+        this._connectionManager.connect();
+      }
+    });
+
+    // Pop-ups.
     this._notification = new Notification();
+  }
+
+  /**
+   * Access config from other pages.
+   * @returns {object}
+   */
+  get config() {
+    return this._config;
   }
 
   /**
@@ -74,25 +95,19 @@ class BackgroundApp {
    * Then start listening to client (context page) requests. The first request should be a 'register' command
    * on the system channel. We return to the client the current user ID.
    *
-   * NOTE: For the web app, this isn't necessary since both the User ID and Client ID are known ahead of time.
+   * NOTE: For the web runtime, this isn't necessary since both the User ID and Client ID are known ahead of time.
    */
   init() {
 
     // Load the settings.
     this._settings.load().then(settings => {
       BackgroundApp.UpdateConfig(this._config, settings);
+
+      // Initialize the network manager.
       this._networkManager.init();
 
       // Triggers popup.
       this._authManager.authenticate().then(user => {
-
-        // Listen for updates.
-        this._settings.onChange(settings => {
-          // TODO(burdon): Have to change network interface.
-          BackgroundApp.UpdateConfig(this._config, settings);
-          this._networkManager.init();
-          this._connectionManager.connect();
-        });
 
         // Only show if not dev.
         if (!settings.server.startsWith('http://localhost')) {
@@ -149,7 +164,9 @@ class BackgroundApp {
         console.log('System going down...');
       });
     });
+
+    return this;
   }
 }
 
-new BackgroundApp().init();
+window.app = new BackgroundApp().init();

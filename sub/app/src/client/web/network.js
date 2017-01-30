@@ -296,8 +296,12 @@ export class ConnectionManager {
         data: JSON.stringify(registration),
 
         success: registration => {
-          logger.log('Registered: ' + JSON.stringify(registration));
-          resolve(registration);
+          if (!registration.client || !registration.user) {
+            reject('Invalid registration: ' + JSON.stringify(registration));
+          } else {
+            logger.log('Registered: ' + JSON.stringify(registration));
+            resolve(registration);
+          }
         },
 
         error: error => {
