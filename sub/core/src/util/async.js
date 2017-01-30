@@ -70,3 +70,24 @@ export class Async {
     return doRetry();
   }
 }
+
+/**
+ * Event handlers.
+ */
+export class Listeners {
+
+  constructor() {
+    this._listeners = new Set();
+  }
+
+  addListener(listener) {
+    this._listeners.add(listener);
+  }
+
+  fireListeners() {
+    let args = arguments;
+    this._listeners.forEach(listener => {
+      listener.apply(null, args);
+    })
+  }
+}

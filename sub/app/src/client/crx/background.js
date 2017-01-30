@@ -6,7 +6,7 @@ Logger.setLevel({
   'net': Logger.Level.debug
 }, Logger.Level.info);
 
-import { ChromeMessageChannelDispatcher, TypeUtil } from 'minder-core';
+import { ChromeMessageChannelDispatcher, Listeners, TypeUtil } from 'minder-core';
 
 import { AuthManager, ConnectionManager, NetworkManager } from '../web/network';
 import { ChromeNetworkInterface } from './util/network';
@@ -59,7 +59,7 @@ class BackgroundApp {
     this._authManager = new AuthManager(this._config, this._networkManager, this._connectionManager);
 
     // Listen for updates (not called on first load).
-    this._settings.onChange(settings => {
+    this._settings.onChange.addListener(settings => {
 
       // Check network settings (server) changes.
       let restart = this._config.server != settings.server;
@@ -69,10 +69,15 @@ class BackgroundApp {
         this._networkManager.init();
         this._connectionManager.connect();
       }
+
+      this.onChange.fireListeners();
     });
 
     // Pop-ups.
     this._notification = new Notification();
+
+    // Event listeners.
+    this.onChange = new Listeners();
   }
 
   /**
