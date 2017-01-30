@@ -31,13 +31,19 @@ class Options extends React.Component {
     super(...arguments);
 
     this._settings = new Settings(DefaultSettings);
-    this._settings.onChange(settings => {
+    this._settings.onChange.addListener(settings => {
       this.setState({
         settings
       });
     });
 
-    this._settings.load().then(settings => this._settings.fireUpdate());
+    // Do initial load then fire update.
+    this._settings.load(true);
+
+    // TODO(burdon): Subscribe to changes from BG page (config and client state).
+    chrome.extension.getBackgroundPage().app.onChange.addListener(() => {
+      console.log('BG updated');
+    });
   }
 
   onReset() {

@@ -2,6 +2,8 @@
 // Copyright 2017 Minder Labs.
 //
 
+import { Listeners } from 'minder-core';
+
 /**
  * Chrome store abstraction.
  */
@@ -43,37 +45,29 @@ export class Settings {
 
         // Don't update after reset.
         if (!_.isEmpty(this._values)) {
-          this.fireUpdate();
+          this.onChange.fireListeners(this._values);
         }
       }
     });
-  }
 
-  fireUpdate() {
-    if (this._onChange) {
-      this._onChange(this._values);
-    }
-  }
-
-  /**
-   * Listens for changes.
-   * @param {Function} onChange
-   */
-  onChange(onChange) {
-    this._onChange = onChange;
-    return this;
+    this.onChange = new Listeners();
   }
 
   /**
    * Loads the options.
    * NOTE: This doesn't trigger onChange.
+   * @param trigger If true, fire update.
    * @returns {Promise}
    */
-  load() {
+  load(trigger=false) {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get(this._defaults, values => {
         _.assign(this._values, values);
+
         resolve(values);
+        if (trigger) {
+          this.onChange.fireListeners(this._values);
+        }
       });
     });
   }
