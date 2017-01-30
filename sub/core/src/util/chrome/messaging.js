@@ -3,7 +3,7 @@
 //
 
 import { TypeUtil } from '../../util/type';
-import { Listener } from '../../util/async';
+import { Listeners } from '../../util/async';
 import Logger from '../../util/logger';
 
 const logger = Logger.get('message');
@@ -103,7 +103,7 @@ export class ChromeMessageReceiver {
 
   constructor() {
 
-    // Map of active ports indexed by name.
+    // Map of active ports indexed by port name.
     this._ports = new Map();
   }
 
@@ -141,39 +141,44 @@ export class ChromeMessageReceiver {
 
   /**
    * Posts messages to the given client.
-   * @param {string} client
+   * @param {string} client If null, then broadcast.
    * @param {object} data
    * @param {object} header
    * @return {boolean}
    */
   postMessage(client, data, header=undefined) {
-    let port = this._ports.get(client);
-    if (port) {
-      header = _.merge({}, header, {
-        timestamp: new Date().getTime()
-      });
+    header = _.merge({}, header, {
+      timestamp: new Date().getTime()
+    });
 
-      let message = { header, data };
-      logger.log('Sending: ' + TypeUtil.stringify(message));
+    let message = { header, data };
+
+    const send = (client, port) => {
+      logger.log('Sending[%s]: %s', client, TypeUtil.stringify(message));
       port.postMessage(message);
-      return true;
+    };
+
+    if (client) {
+      let port = this._ports.get(client);
+      send(client, port);
     } else {
-      console.warn('Client not connected: ' + client);
-      return false;
+      // Broadcast.
+      this._ports.forEach((port, client) => {
+        send(client, port);
+      });
     }
   }
-
-  // TODO(burdon): Broadcast.
 }
 
-//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------
+// Sender/Receiver provides low level request/response messaging.
 // Channels implement routing between components.
 //
 // [Channel] \
-// [Channel] --> [ChannelRouter] --> [Sender] <---> [Receiver] --> [Dispatcher]
+// [Channel] --> [ChannelRouter] --> [Sender] <====> [Receiver] --> [Dispatcher] <-- [ChannelDispatcher]
 // [Channel] /
 //
-//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------
 
 /**
  * Multiplexes ChromeMessageSender for multiple instance of ChromeMessageChannel.
@@ -233,15 +238,16 @@ export class ChromeMessageChannel {
       let { header, data } = message;
       let resolver = this._pending.get(header.id);
       if (resolver) {
+        // Notify postMessage wait.
         resolver(data);
       } else {
         // Notify listeners.
-        this.onMessage.
+        this.onMessage.fireListeners(message);
       }
     });
 
     // Event handler.
-    this.onMessage = new Listener();
+    this.onMessage = new Listeners();
   }
 
   /**
@@ -331,11 +337,10 @@ class ChromeMessagePushChannel {
   /**
    * Posts the message to the given client and channel.
    *
-   * @param {string} client
+   * @param {string} client If null, then broadcast.
    * @param {object} message
    */
   postMessage(client, message) {
-    // TODO(burdon): Implement broadcast.
     this._receiver.postMessage(client, message, {
       channel: this._channel
     });

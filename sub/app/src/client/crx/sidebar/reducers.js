@@ -123,7 +123,7 @@ export const SidebarReducer = (config, injector) => (state=SidebarAction.initalS
     }
 
     case SidebarAction.ACTION.PING: {
-      channel.postMessage({ command: 'ping', value: action.value }).wait().then(response => {
+      channel.postMessage({ command: 'PING', value: action.value }).wait().then(response => {
         console.log('Response: ', JSON.stringify(response));
       });
       break;

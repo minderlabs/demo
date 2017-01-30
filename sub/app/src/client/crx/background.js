@@ -53,12 +53,24 @@ class BackgroundApp {
     // Listens for client connections.
     this._dispatcher = new ChromeMessageChannelDispatcher();
 
+    // Pop-ups.
+    this._notification = new Notification();
+
+    // Event listeners (for background state changes).
+    this.onChange = new Listeners();
+
+    //
     // Network.
+    //
+
     this._networkManager = new NetworkManager(this._config);
     this._connectionManager = new ConnectionManager(this._config, this._networkManager);
     this._authManager = new AuthManager(this._config, this._networkManager, this._connectionManager);
 
-    // Listen for updates (not called on first load).
+    //
+    // Listen for settings updates (not called on first load).
+    //
+
     this._settings.onChange.addListener(settings => {
 
       // Check network settings (server) changes.
@@ -66,19 +78,45 @@ class BackgroundApp {
       BackgroundApp.UpdateConfig(this._config, settings);
 
       if (restart) {
-        // TODO(burdon): Notify clients (to reset cache).
         this._networkManager.init();
         this._connectionManager.connect();
+
+        // Broadcast reset to all clients (to reset cache).
+        this._systemChannel.postMessage(null, {
+          command: 'RESET'
+        });
       }
 
       this.onChange.fireListeners();
     });
 
-    // Pop-ups.
-    this._notification = new Notification();
+    //
+    // Handle system requests/responses.
+    //
 
-    // Event listeners.
-    this.onChange = new Listeners();
+    this._systemChannel = this._dispatcher.listen('system', request => {
+      console.log('System request: ' + TypeUtil.stringify(request));
+      switch (request.command) {
+
+        // On client startup.
+        // Send user ID from client registration.
+        case 'REGISTER': {
+          return Promise.resolve({
+            command: 'registered',
+            value: {
+              user                              // TODO(burdon): Get current user.
+            }
+          });
+        }
+
+        // Ping.
+        case 'PING': {
+          return Promise.resolve({ command: 'PONG', value: request.value });
+        }
+      }
+
+      return Promise.resolve();
+    });
   }
 
   /**
@@ -98,7 +136,7 @@ class BackgroundApp {
    *     => ConnectionManager.connect()
    *       => ConnectionManager.register() => { client, user }
    *
-   * Then start listening to client (context page) requests. The first request should be a 'register' command
+   * Then start listening to client (context page) requests. The first request should be a 'REGISTER' command
    * on the system channel. We return to the client the current user ID.
    *
    * NOTE: For the web runtime, this isn't necessary since both the User ID and Client ID are known ahead of time.
@@ -119,33 +157,6 @@ class BackgroundApp {
         if (!settings.server.startsWith('http://localhost')) {
           this._notification.show('Minder', 'Authentication succeeded.');
         }
-
-        //
-        // Handle system request.
-        //
-        this._systemChannel = this._dispatcher.listen('system', request => {
-          console.log('System request: ' + TypeUtil.stringify(request));
-          switch (request.command) {
-
-            // On client startup.
-            // Send user ID from client registration.
-            case 'register': {
-              return Promise.resolve({
-                command: 'registered',
-                value: {
-                  user
-                }
-              });
-            }
-
-            // Ping.
-            case 'ping': {
-              return Promise.resolve({ command: 'pong', value: request.value });
-            }
-          }
-
-          return Promise.resolve();
-        });
 
         //
         // Proxy Apollo requests.

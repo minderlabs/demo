@@ -67,6 +67,15 @@ class Sidebar extends Base {
     // Message routing.
     this._router = new ChromeMessageChannelRouter();
     this._systemChannel = new ChromeMessageChannel('system', this._router);
+    this._systemChannel.onMessage.addListener(message => {
+      console.log('>>>>>>>>>>>>', message);
+      switch (message.command) {
+        case 'RESET': {
+          console.log('### RESET ###');
+          break;
+        }
+      }
+    });
 
     // React Router history.
     this._history = createMemoryHistory(Path.HOME);
@@ -77,7 +86,7 @@ class Sidebar extends Base {
 
     // Register the client witht the background page.
     return this._systemChannel.postMessage({
-      command: 'register'
+      command: 'REGISTER'
     }).wait().then(response => {
       this.store.dispatch(AppAction.register(response.value.user));
     });
