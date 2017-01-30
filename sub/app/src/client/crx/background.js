@@ -59,6 +59,8 @@ class BackgroundApp {
     // Event listeners (for background state changes).
     this.onChange = new Listeners();
 
+    this._user = null;
+
     //
     // Network.
     //
@@ -104,7 +106,7 @@ class BackgroundApp {
           return Promise.resolve({
             command: 'registered',
             value: {
-              user                              // TODO(burdon): Get current user.
+              user: this._user    // TODO(burdon): Get current user.
             }
           });
         }
@@ -152,6 +154,7 @@ class BackgroundApp {
 
       // Triggers popup.
       this._authManager.authenticate().then(user => {
+        this._user = user;
 
         // Only show if not dev.
         if (!settings.server.startsWith('http://localhost')) {
