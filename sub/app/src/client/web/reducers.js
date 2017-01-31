@@ -2,7 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-const NAMESPACE = 'minder';
+const APP_NAMESPACE = 'app';
 
 /**
  * Main App actions.
@@ -10,16 +10,16 @@ const NAMESPACE = 'minder';
 export class AppAction {
 
   static ACTION = {
-    REGISTER:   `${NAMESPACE}/REGISTER`,
-    SEARCH:     `${NAMESPACE}/SEARCH`
+    REGISTER:   `${APP_NAMESPACE}/REGISTER`,
+    SEARCH:     `${APP_NAMESPACE}/SEARCH`
   };
 
   static get namespace() {
-    return NAMESPACE;
+    return APP_NAMESPACE;
   }
 
   static getState(state, field=undefined) {
-    return field ? _.get(state[NAMESPACE], field) : state[NAMESPACE];
+    return field ? _.get(state[APP_NAMESPACE], field) : state[APP_NAMESPACE];
   }
 
   //
@@ -44,9 +44,6 @@ export class AppAction {
   }
 }
 
-/**
- * Manages state transitions.
- */
 export const AppReducer = (config, injector) => {
   console.assert(config);
 
@@ -82,4 +79,52 @@ export const AppReducer = (config, injector) => {
 
     return state
   };
+};
+
+const CONTEXT_NAMESPACE = 'context';
+
+/**
+ * Application context (e.g., current page for CRX, location, time, etc.)
+ */
+export class ContextAction {
+
+  static initialState = {
+    context: null
+  };
+
+  static ACTION = {
+    UPDATE_CONTEXT: `${CONTEXT_NAMESPACE}/UPDATE_CONTEXT`,
+  };
+
+  static get namespace() {
+    return CONTEXT_NAMESPACE;
+  }
+
+  static getState(state, field=undefined) {
+    return field ? _.get(state[CONTEXT_NAMESPACE], field) : state[CONTEXT_NAMESPACE];
+  }
+
+  /**
+   * Received context events from content script.
+   * @param context
+   */
+  static updateContext(context) {
+    return {
+      type: ContextAction.ACTION.UPDATE_CONTEXT,
+      context
+    }
+  }
+}
+
+export const ContextReducer = (state=ContextAction.initialState, action) => {
+  switch (action.type) {
+
+    case ContextAction.ACTION.UPDATE_CONTEXT: {
+      return _.assign({}, state, {
+        context: action.context
+      });
+    }
+  }
+
+  return state;
 };

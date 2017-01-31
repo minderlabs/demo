@@ -10,7 +10,7 @@ import gql from 'graphql-tag';
 import { QueryParser, Mutator, MutationUtil, TypeUtil } from 'minder-core';
 import { List, ListItem, TextBox } from 'minder-ux';
 
-import { AppAction } from '../reducers';
+import { AppAction, ContextAction } from '../reducers';
 import { UpdateItemMutation } from '../data/mutations';
 
 import { SearchList } from '../component/list_factory';
@@ -186,9 +186,15 @@ const mapStateToProps = (state, ownProps) => {
 
   // NOTE: Search state come from dispatch via SearchBar.
   let { injector, search, user, team } = AppAction.getState(state);
+  let { context } = ContextAction.getState(state);
   let typeRegistry = injector.get(TypeRegistry);
   let queryParser = injector.get(QueryParser);
   let filter = queryParser.parse(search.text);
+
+  // Use contextual filter.
+  if (context && context.filter) {
+    filter = context.filter
+  }
 
   return {
     // TODO(burdon): Provide for Mutator.graphql

@@ -46,10 +46,8 @@ class Inspector {
     // DOM mutation observer.
     // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
     this._observer = new MutationObserver(mutations => {
-      let events = this.inspect(mutations);
-      if (!_.isEmpty(events)) {
-        this._callback && this._callback(events);
-      }
+      let context = this.inspect(mutations);
+      this._callback && this._callback(context);
     });
   }
 
@@ -71,7 +69,9 @@ class Inspector {
   /**
    * @return {boolean} Returns true if this inspector is valid.
    */
-  isValid() {}
+  isValid() {
+    return false;
+  }
 
   /**
    * @return the CSS selector for the root of mutation changes.
@@ -83,8 +83,11 @@ class Inspector {
   /**
    * Process the mutations.
    * @param mutations
+   * @return {object} Context object.
    */
-  inspect(mutations) {}
+  inspect(mutations) {
+    return null;
+  }
 }
 
 /**
@@ -103,7 +106,7 @@ export class TestInspector extends Inspector {
   }
 
   inspect(mutations) {
-    let events = [];
+    let context = null;
 
     /*
       <div id="content">
@@ -115,17 +118,22 @@ export class TestInspector extends Inspector {
       let text = $(mutation.target).text();
 
       // TODO(burdon): Determine if person.
-      // TODO(burdon): Generate suggested query.
-      events.push({
-        type: 'select',
-        item: {
-          type: 'Person',
-          title: text
-        }
-      });
+      if (text) {
+        context = {
+          item: {
+            type: 'Person',
+            title: text
+          },
+          filter: {
+            text: text
+          }
+        };
+
+        return false;
+      }
     });
 
-    return events;
+    return context;
   }
 }
 
@@ -145,7 +153,7 @@ export class GoogleInboxInspector extends Inspector {
   }
 
   inspect(mutations) {
-    let events = [];
+    let context = null;
 
     /*
       <div data-item-id="#gmail:thread-f:1557184509751026059">
@@ -160,18 +168,18 @@ export class GoogleInboxInspector extends Inspector {
       // TODO(burdon): Get closest parent for thread ID.
       let root = $(mutation.target).find('div[data-msg-id] div[email]:first');
       if (root[0]) {
-        events.push({
-          type: 'select',
+        context = {
           item: {
             type: 'Person',
             title: root.text(),
             email: root.attr('email')
           }
-        });
+        };
+
+        return false;
       }
     });
 
-    // Remove duplicates.
-    return _.uniqBy(events, 'email');
+    return context;
   }
 }

@@ -92,12 +92,13 @@ class ContentScript {
     let inspectors = new InspectorRegistry()
       .add(new TestInspector())
       .add(new GoogleInboxInspector())
-      .init(events => {
+      .init(context => {
+
         // Send update to SidebarApp.
         const send = () => {
           this.sidebar.messenger.sendMessage({
             command: SidebarCommand.UPDATE_CONTEXT,
-            events
+            context
           });
         };
 

@@ -11,22 +11,17 @@ import { DocumentFragment, Getter, Matcher, Mutator, ListReducer } from 'minder-
 import { List } from 'minder-ux';
 
 import { UpdateItemMutation } from '../data/mutations';
+import { AppAction } from '../reducers';
 
-/**
- * Redux properties.
- *
- * @param state
- * @param ownProps
- * @returns {{injector, context: {user: {id}}}}
- */
+// TODO(burdon): Document injector.
 const mapStateToProps = (state, ownProps) => {
-  let { minder } = state;
+  let { injector, user } = AppAction.getState(state);
 
   return {
     // Provide for Mutator.graphql
-    injector: minder.injector,
+    injector,
     context: {
-      user: { id: minder.user.id }
+      user: { id: user.id }
     }
   }
 };

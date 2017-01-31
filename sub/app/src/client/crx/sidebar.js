@@ -14,7 +14,7 @@ import {
 
 import { Base } from '../web/base';
 import { Path } from '../web/path';
-import { AppAction, AppReducer } from '../web/reducers';
+import { AppAction, AppReducer, ContextAction, ContextReducer } from '../web/reducers';
 
 import { BackgroundCommand, SidebarCommand, KeyToggleSidebar } from './common';
 import { ChromeNetworkInterface } from './util/network';
@@ -68,7 +68,7 @@ class SidebarApp extends Base {
 
           // Updated context from Content Script.
           case SidebarCommand.UPDATE_CONTEXT:
-            this.store.dispatch(SidebarAction.updateContext(message.events));
+            this.store.dispatch(ContextAction.updateContext(message.context));
             break;
 
           default:
@@ -136,6 +136,9 @@ class SidebarApp extends Base {
     return {
       // Main app.
       [AppAction.namespace]: AppReducer(this._config, this._injector),
+
+      // Context.
+      [ContextAction.namespace]: ContextReducer,
 
       // Sidebar-specific.
       [SidebarAction.namespace]: SidebarReducer

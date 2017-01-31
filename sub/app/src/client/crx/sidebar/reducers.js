@@ -16,22 +16,19 @@ export class SidebarAction {
   static ACTION = {
     INITIALIZED:        `${NAMESPACE}/INITIALIZED`,
     PING:               `${NAMESPACE}/PING`,
-    UPDATE_VISIBILITY:  `${NAMESPACE}/UPDATE_VISIBILITY`,
-    UPDATE_CONTEXT:     `${NAMESPACE}/UPDATE_CONTEXT`
+    UPDATE_VISIBILITY:  `${NAMESPACE}/UPDATE_VISIBILITY`
   };
 
   static get namespace() {
     return NAMESPACE;
   }
 
-  static get initalState() {
-    return {
-      initializeed: false,
-      timestamp: null,            // TS from background page.
-      open: false,
-      events: []
-    }
-  }
+  static initalState = {
+    initializeed: false,
+    timestamp: null,            // TS from background page ping.
+    open: false,
+    events: []
+  };
 
   static getState(state, field=undefined) {
     return field ? _.get(state[NAMESPACE], field) : state[NAMESPACE];
@@ -102,17 +99,6 @@ export class SidebarAction {
       visible
     };
   }
-
-  /**
-   * Received context events from content script.
-   * @param events
-   */
-  static updateContext(events=[]) {
-    return {
-      type: SidebarAction.ACTION.UPDATE_CONTEXT,
-      events
-    }
-  }
 }
 
 /**
@@ -138,17 +124,6 @@ export const SidebarReducer = (state=SidebarAction.initalState, action) => {
     case SidebarAction.ACTION.UPDATE_VISIBILITY: {
       return _.assign({}, state, {
         visible: action.visible
-      });
-    }
-
-    case SidebarAction.ACTION.UPDATE_CONTEXT: {
-      // TODO(burdon): Get suggested query from inspector.
-      // TODO(burdon): Move to ContextReducer (shared state with App).
-      // TODO(burdon): FolderView should listen for this state change (and configure filter).
-      // TODO(burdon): How to let user toggle?
-      console.log('### UPDATE ###');
-      return _.assign({}, state, {
-        events: _.concat(state.events || [], action.events)
       });
     }
   }
