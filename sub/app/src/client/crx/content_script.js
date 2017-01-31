@@ -5,7 +5,7 @@
 import { WindowMessenger, HttpUtil, KeyListener } from 'minder-core';
 
 import { SidebarCommand, KeyToggleSidebar } from './common';
-import { InspectorRegistry, InboxInspector } from './util/inspector';
+import { InspectorRegistry, TestInspector, GoogleInboxInspector } from './util/inspector';
 
 import './content_script.less';
 
@@ -90,7 +90,8 @@ class ContentScript {
     // Listen for context updates from the Inspectors.
     //
     let inspectors = new InspectorRegistry()
-      .add(new InboxInspector())
+      .add(new TestInspector())
+      .add(new GoogleInboxInspector())
       .init(events => {
         // Send update to SidebarApp.
         const send = () => {

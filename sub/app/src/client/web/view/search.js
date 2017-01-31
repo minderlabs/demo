@@ -45,7 +45,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     // Store search state (so can restore value when nav back).
     onSearch: (text) => {
       dispatch(AppAction.search(text));
-    },
+    }
   }
 };
 

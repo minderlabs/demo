@@ -142,6 +142,11 @@ export const SidebarReducer = (state=SidebarAction.initalState, action) => {
     }
 
     case SidebarAction.ACTION.UPDATE_CONTEXT: {
+      // TODO(burdon): Get suggested query from inspector.
+      // TODO(burdon): Move to ContextReducer (shared state with App).
+      // TODO(burdon): FolderView should listen for this state change (and configure filter).
+      // TODO(burdon): How to let user toggle?
+      console.log('### UPDATE ###');
       return _.assign({}, state, {
         events: _.concat(state.events || [], action.events)
       });

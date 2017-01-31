@@ -69,14 +69,16 @@ class Inspector {
   }
 
   /**
-   * @return the CSS selector for the root of mutation changes.
-   */
-  getRootNode() {}
-
-  /**
    * @return {boolean} Returns true if this inspector is valid.
    */
   isValid() {}
+
+  /**
+   * @return the CSS selector for the root of mutation changes.
+   */
+  getRootNode() {
+    return null;
+  }
 
   /**
    * Process the mutations.
@@ -86,18 +88,60 @@ class Inspector {
 }
 
 /**
+ * Test inspector.
+ */
+export class TestInspector extends Inspector {
+
+  static PATH = '/testing/crx';
+
+  isValid() {
+    return document.location.href.endsWith(TestInspector.PATH);
+  }
+
+  getRootNode() {
+    return $('#content')[0];
+  }
+
+  inspect(mutations) {
+    let events = [];
+
+    /*
+      <div id="content">
+        <div>TEXT</div>
+      </div>
+     */
+
+    _.each(mutations, mutation => {
+      let text = $(mutation.target).text();
+
+      // TODO(burdon): Determine if person.
+      // TODO(burdon): Generate suggested query.
+      events.push({
+        type: 'select',
+        item: {
+          type: 'Person',
+          title: text
+        }
+      });
+    });
+
+    return events;
+  }
+}
+
+/**
  * Google Inbox inspector.
  */
-export class InboxInspector extends Inspector {
+export class GoogleInboxInspector extends Inspector {
 
   static PATH = 'https://inbox.google.com';
 
-  getRootNode() {
-    return $('.yDSKFc')[0];
+  isValid() {
+    return document.location.href.startsWith(GoogleInboxInspector.PATH);
   }
 
-  isValid() {
-    return document.location.href.startsWith(InboxInspector.PATH);
+  getRootNode() {
+    return $('.yDSKFc')[0];
   }
 
   inspect(mutations) {
@@ -109,13 +153,11 @@ export class InboxInspector extends Inspector {
           <div data-msg-id="#msg-f:1557184509751026059">
             <div role="heading">
               <div email="">Name</div>
-    */
+     */
 
     _.each(mutations, mutation => {
 
       // TODO(burdon): Get closest parent for thread ID.
-      // div[data-item-id]
-
       let root = $(mutation.target).find('div[data-msg-id] div[email]:first');
       if (root[0]) {
         events.push({
