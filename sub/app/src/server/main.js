@@ -125,7 +125,7 @@ const slackConfig = {
   redirectHost: process.env.OAUTH_REDIRECT_ROOT || 'http://localhost:' + port,
   ...SlackConfig
 };
-let botkitManager = new BotKitManager(slackConfig);
+let botkitManager = new BotKitManager(slackConfig, database);
 const slackQueryProvider = new SlackQueryProvider(idGenerator, matcher, botkitManager);
 
 database

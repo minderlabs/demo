@@ -45,8 +45,7 @@ export class Matcher {
 
     // Bucket match (ACL filtering).
     // TODO(burdon): Filter should not include bucket (implicit in query).
-    console.assert(context.user);
-    if (item.bucket && item.bucket !== context.user.id) {
+    if (item.bucket && item.bucket !== _.get(context, 'user.id')) {
       return false;
     }
     if (filter.bucket && item.bucket !== filter.bucket) {

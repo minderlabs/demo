@@ -98,6 +98,25 @@ export class TypeUtil {
   }
 
   /**
+   * Set obj.key = val if val evaluates true.
+   * Returns the object.
+   */
+  static maybeSet(obj, path, val) {
+    val && _.set(obj, path, val);
+    return obj;
+  }
+
+  /**
+   * Get value for key or set to default value.
+   */
+  static getOrSet(obj, key, defaultVal) {
+    if (!obj.hasOwnProperty(key)) {
+      obj[key] = defaultVal;
+    }
+    return obj[key];
+  }
+
+  /**
    * Iterates the collection sequentially calling the async function for each.
    *
    * @param collection Data to iterate.

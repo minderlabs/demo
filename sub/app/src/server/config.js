@@ -13,6 +13,7 @@ Logger.setLevel({
 
   'main'      : Logger.Level.debug,
 
+  'botkit'    : Logger.Level.debug,
   'db'        : Logger.Level.debug,
   'resolver'  : Logger.Level.debug,
   'gql'       : Logger.Level.debug,
