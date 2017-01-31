@@ -83,7 +83,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     },
 
     close: () => {
-      dispatch(SidebarAction.close());
+      dispatch(SidebarAction.toggleVisibility(false));
     }
   };
 };

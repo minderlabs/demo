@@ -52,6 +52,10 @@ export class AuthManager {
     });
   }
 
+  get currentUser() {
+    return _.get(this._config, 'user', null);
+  }
+
   /**
    * Triggers authentication if necessary, and subscribes to auth changes.
    *

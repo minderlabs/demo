@@ -25,7 +25,7 @@ const config = _.defaultsDeep(window.config, {
 /**
  * Main app.
  */
-class Minder extends WebBase {
+class WebApp extends WebBase {
 
   get reducers() {
     return {
@@ -36,7 +36,7 @@ class Minder extends WebBase {
   }
 }
 
-const bootstrap = new Minder(config);
+const bootstrap = new WebApp(config);
 
 //
 // React Hot Loader (3)

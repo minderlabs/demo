@@ -7,6 +7,7 @@ import ReactDOM from 'react-dom';
 import { browserHistory } from 'react-router'
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-router-redux'
+import ReduxThunk from 'redux-thunk'
 import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
@@ -173,6 +174,11 @@ export class Base {
     // https://github.com/reactjs/redux/blob/master/docs/Glossary.md#store-enhancer
     const enhancer = compose(
 
+      // Redux-thunk (for asynchronous actions).
+      // NOTE: The arg is passed as the third arg to the handler:
+      // () => (dispatch, getState, injector) => { ... }
+      applyMiddleware(ReduxThunk.withExtraArgument(this._injector)),
+
       // Apollo-Redux bindings.
       applyMiddleware(this._apolloClient.middleware()),
 
@@ -188,7 +194,7 @@ export class Base {
     );
 
     // http://redux.js.org/docs/api/createStore.html
-    this._store = createStore(reducers, {}, enhancer);
+    this._store = createStore(reducers, enhancer);
 
     return Promise.resolve();
   }
@@ -210,17 +216,21 @@ export class Base {
   }
 
   /**
+   * Flush the cache and reset the Apollo store.
+   */
+  resetStore() {
+    logger.warn('Resetting store...');
+
+    // Reset store (causes queries to update).
+    // https://github.com/apollostack/apollo-client/blob/6b6e8ded1e0f83cb134d2261a3cf7d2d9416400f/src/ApolloClient.ts
+    this._apolloClient.resetStore();
+  }
+
+  /**
    * Access config
    */
   get config() {
     return this._config;
-  }
-
-  /**
-   * Access Apollo client.
-   */
-  get client() {
-    return this._apolloClient;
   }
 
   /**

@@ -238,11 +238,11 @@ export class ChromeMessageChannel {
       let { header, data } = message;
       let resolver = this._pending.get(header.id);
       if (resolver) {
-        // Notify postMessage wait.
+        // Notify caller waiting for async response.
         resolver(data);
       } else {
         // Notify listeners.
-        this.onMessage.fireListeners(message);
+        this.onMessage.fireListeners(data);
       }
     });
 

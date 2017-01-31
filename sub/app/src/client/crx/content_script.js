@@ -4,7 +4,7 @@
 
 import { WindowMessenger, HttpUtil, KeyListener } from 'minder-core';
 
-import { KeyToggleSidebar } from './common';
+import { SidebarCommand, KeyToggleSidebar } from './common';
 import { InspectorRegistry, InboxInspector } from './util/inspector';
 
 import './content_script.less';
@@ -45,51 +45,81 @@ class ContentScript {
     this.sidebar = new Frame('page/sidebar.html', 'sidebar/' + scriptId,
       $('<div>').addClass('crx-sidebar').appendTo(container));
 
-    // Listen for messages from the frame.
+    // Notify sidebar of visibility.
+    const updateVisibility = (visible) => {
+      this.sidebar.messenger.sendMessage({
+        command: SidebarCommand.UPDATE_VISIBILITY,
+        visible
+      })
+    };
+
+    //
+    // Listen for messages from the SidebarApp (frame).
+    //
     this.sidebar.messenger.listen(message => {
       switch (message.command) {
 
-        // TODO(burdon): Create Redux reducer (like sidebar).
-        case 'INIT': {
-          this.sidebar.initialized().open();
+        //
+        // Sidebar loaded and is ready.
+        //
+        case SidebarCommand.INITIALIZED: {
+          this.sidebar.initialized().open().then(visible => updateVisibility(visible));
           break;
         }
 
-        case 'OPEN': {
-          this.sidebar.open();
-          break;
-        }
+        //
+        // Sidebar wants to change visibility.
+        //
+        case SidebarCommand.SET_VISIBILITY: {
+          let promise;
+          if (message.open === true) {
+            promise = this.sidebar.open();
+          } else if (message.open === false) {
+            promise = this.sidebar.close();
+          } else {
+            promise = this.sidebar.toggle();
+          }
 
-        case 'CLOSE': {
-          this.sidebar.close();
-          button.focus();
+          promise.then(visible => updateVisibility(visible));
           break;
         }
       }
     });
 
-    // Content inspector (listens for DOM changes).
+    //
+    // Listen for context updates from the Inspectors.
+    //
     let inspectors = new InspectorRegistry()
       .add(new InboxInspector())
       .init(events => {
-        // Wait for sidebar to load (if first time).
-        // TODO(burdon): Option to auto-open (unless the user has explicitly closed or set event level).
-//      this.sidebar.open().then(() => {
+        // Send update to SidebarApp.
+        const send = () => {
           this.sidebar.messenger.sendMessage({
-            command: 'UPDATE',
+            command: SidebarCommand.UPDATE_CONTEXT,
             events
-          }, '*');
-//      });
+          });
+        };
+
+        // TODO(burdon): Option to auto-open.
+        const openOnEvent = false;
+        if (openOnEvent) {
+          // Maybe wait for sidebar to open.
+          this.sidebar.open().then(() => send);
+        } else {
+          if (this.sidebar.loaded) {
+            send();
+          }
+        }
       });
 
     // Shortcuts.
     const keyBindings = new KeyListener()
-      .listen(KeyToggleSidebar, () => this.sidebar.toggle());
+      .listen(KeyToggleSidebar, () => this.sidebar.toggle().then(visible => updateVisibility(visible)));
   }
 }
 
 /**
- * IFrame contains the lazily loaded components.
+ * IFrame that contains the lazily loaded components.
  */
 class Frame {
 
@@ -122,17 +152,21 @@ class Frame {
     return this._messenger;
   }
 
-  toggle() {
-    this._root.hasClass('crx-open') ? this.close() : this.open();
+  get loaded() {
+    return !!this._frame;
   }
 
   initialized() {
     this._messenger.attach(this._frame[0].contentWindow);
-    this._blocking && this._blocking();
+    this._blocking && this._blocking(true);
 
     return this;
   }
 
+  /**
+   * Opens the sidebar. Returns a promise that resolves when the sidebar is open.
+   * @return {Promise}
+   */
   open() {
     if (!this._frame) {
       // Creating the frame loads the content.
@@ -143,22 +177,38 @@ class Frame {
         .attr('height', '100%')
         .appendTo(this._root);
 
-      // Resolve when sidebar has loaded.
+      // Resolve when sidebar has loaded (and the INITIALIZED message is received).
       return new Promise((resolve, reject) => {
         this._blocking = resolve;
       });
     } else {
       this._root.addClass('crx-open');
-
-      // Resolve immediately.
-      return new Promise((resolve, reject) => {
-        resolve();
-      });
+      return Promise.resolve(true);
     }
   }
 
-  close() {
+  /**
+   * Closes the sidebar.
+   * @return {Promise}
+   */
+  close(unload=false) {
     this._root.removeClass('crx-open');
+    if (unload) {
+      this._frame.attr('src', 'about:blank');
+    }
+    return Promise.resolve(false);
+  }
+
+  /**
+   * Toggle the sidebar state.
+   * @return {Promise}
+   */
+  toggle() {
+    if (this._root.hasClass('crx-open')) {
+      return this.close();
+    } else {
+      return this.open();
+    }
   }
 }
 

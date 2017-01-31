@@ -16,7 +16,7 @@ import { Base } from '../web/base';
 import { Path } from '../web/path';
 import { AppAction, AppReducer } from '../web/reducers';
 
-import { KeyToggleSidebar } from './common';
+import { BackgroundCommand, SidebarCommand, KeyToggleSidebar } from './common';
 import { ChromeNetworkInterface } from './util/network';
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 
@@ -45,50 +45,67 @@ const config = _.merge({
 /**
  * Main sidebar app.
  */
-class Sidebar extends Base {
+class SidebarApp extends Base {
 
   constructor(config) {
     super(config);
 
-    // TODO(burdon): Get message/event when opened/closed by key press (to update state).
+    // React Router history.
+    this._history = createMemoryHistory(Path.HOME);
+
+    //
+    // Messages from Content Script.
+    //
     this._messenger = new WindowMessenger(config.channel)
       .attach(parent)
       .listen(message => {
         switch (message.command) {
-          case 'UPDATE':
-            this.store.dispatch(SidebarAction.update(message.events));
+
+          // Updated visibility.
+          case SidebarCommand.UPDATE_VISIBILITY:
+            this.store.dispatch(SidebarAction.updateVisibility(message.visible));
+            break;
+
+          // Updated context from Content Script.
+          case SidebarCommand.UPDATE_CONTEXT:
+            this.store.dispatch(SidebarAction.updateContext(message.events));
             break;
 
           default:
-            console.warning('Invalid command: ' + JSON.stringify(message));
+            console.warn('Invalid command: ' + JSON.stringify(message));
         }
       });
 
-    // Message routing.
+    //
+    // Messages from Background Page.
+    //
     this._router = new ChromeMessageChannelRouter();
     this._systemChannel = new ChromeMessageChannel('system', this._router);
     this._systemChannel.onMessage.addListener(message => {
-      console.log('>>>>>>>>>>>>', message);
       switch (message.command) {
-        case 'RESET': {
-          console.log('### RESET ###');
+
+        // Reset Apollo client (flush cache); e.g., Backend re-connected.
+        case BackgroundCommand.RESET: {
+          this.resetStore();
           break;
         }
+
+        default:
+          console.warn('Invalid command: ' + JSON.stringify(message));
       }
     });
-
-    // React Router history.
-    this._history = createMemoryHistory(Path.HOME);
   }
 
   postInit() {
     this._router.connect();
 
-    // Register the client witht the background page.
+    // Register the client with the background page.
     return this._systemChannel.postMessage({
-      command: 'REGISTER'
+      command: BackgroundCommand.REGISTER
     }).wait().then(response => {
-      this.store.dispatch(AppAction.register(response.value.user));
+      // TODO(burdon): Retry if not registered (server might not be responding).
+      console.assert(response.user);
+      this.store.dispatch(AppAction.register(response.user));
     });
   }
 
@@ -121,7 +138,7 @@ class Sidebar extends Base {
       [AppAction.namespace]: AppReducer(this._config, this._injector),
 
       // Sidebar-specific.
-      [SidebarAction.namespace]: SidebarReducer(this._config, this._injector)
+      [SidebarAction.namespace]: SidebarReducer
     }
   }
 }
@@ -129,7 +146,7 @@ class Sidebar extends Base {
 //
 // Root application.
 //
-const bootstrap = new Sidebar(config);
+const bootstrap = new SidebarApp(config);
 
 bootstrap.init().then(() => {
 
@@ -137,8 +154,8 @@ bootstrap.init().then(() => {
 //bootstrap.render(TestApplication);
 
   // Trigger startup via Redux.
-  bootstrap.store.dispatch(SidebarAction.init());
+  bootstrap.store.dispatch(SidebarAction.initialized());
 
   const keyBindings = new KeyListener()
-    .listen(KeyToggleSidebar, () => bootstrap.store.dispatch(SidebarAction.toggle()));
+    .listen(KeyToggleSidebar, () => bootstrap.store.dispatch(SidebarAction.toggleVisibility()));
 });

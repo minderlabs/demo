@@ -12,11 +12,25 @@ import { AuthManager, ConnectionManager, NetworkManager } from '../web/network';
 import { ChromeNetworkInterface } from './util/network';
 import { Notification } from './util/notification';
 import { Settings } from './util/settings';
+import { BackgroundCommand } from './common';
 
 import { DefaultSettings } from './common';
 
 /**
  * Background Page.
+ *
+ * The BackgroundApp multiplexes multiple Content Scripts (SidebarApps) and proxies server communication via a
+ * dedicated "apollo" channel. It also sends and receives messages on a separate "system" channel.
+ *
+ *  _______________        ____________                 _______________        ________________________
+ * |               |      |            | ==[system]==> |               |      |                        |
+ * | ContentScript | ===> | SidebarApp |               | BackgroundApp | ===> | Express(graphqlRouter) |
+ * |_______________|  |   |____________| ==[apollo]==> |_______________|  |   |________________________|
+ *                    |                       |                           |
+ *             (WindowMessenger)        (ChromeChannel)                   |
+ *                                  (ChromeNetworkInterface)      (NetworkInterface)
+ *
+ * TODO(burdon): Cache and subscribe to live queries.
  */
 class BackgroundApp {
 
@@ -56,15 +70,9 @@ class BackgroundApp {
     // Pop-ups.
     this._notification = new Notification();
 
-    // Event listeners (for background state changes).
-    this.onChange = new Listeners();
-
-    this._user = null;
-
     //
     // Network.
     //
-
     this._networkManager = new NetworkManager(this._config);
     this._connectionManager = new ConnectionManager(this._config, this._networkManager);
     this._authManager = new AuthManager(this._config, this._networkManager, this._connectionManager);
@@ -72,7 +80,6 @@ class BackgroundApp {
     //
     // Listen for settings updates (not called on first load).
     //
-
     this._settings.onChange.addListener(settings => {
 
       // Check network settings (server) changes.
@@ -85,7 +92,7 @@ class BackgroundApp {
 
         // Broadcast reset to all clients (to reset cache).
         this._systemChannel.postMessage(null, {
-          command: 'RESET'
+          command: BackgroundCommand.RESET
         });
       }
 
@@ -95,30 +102,33 @@ class BackgroundApp {
     //
     // Handle system requests/responses.
     //
-
     this._systemChannel = this._dispatcher.listen('system', request => {
       console.log('System request: ' + TypeUtil.stringify(request));
       switch (request.command) {
 
         // On client startup.
         // Send user ID from client registration.
-        case 'REGISTER': {
+        case BackgroundCommand.REGISTER: {
+          // TODO(burdon): Registration might not have happened yet (esp. if server not responding).
+          console.assert(this._authManager.currentUser);
           return Promise.resolve({
-            command: 'registered',
-            value: {
-              user: this._user    // TODO(burdon): Get current user.
-            }
+            user: this._authManager.currentUser
           });
         }
 
         // Ping.
-        case 'PING': {
-          return Promise.resolve({ command: 'PONG', value: request.value });
+        case BackgroundCommand.PING: {
+          return Promise.resolve({
+            timestamp: new Date().getTime()
+          });
         }
       }
 
       return Promise.resolve();
     });
+
+    // Event listeners (for background state changes).
+    this.onChange = new Listeners();
   }
 
   /**
@@ -154,7 +164,6 @@ class BackgroundApp {
 
       // Triggers popup.
       this._authManager.authenticate().then(user => {
-        this._user = user;
 
         // Only show if not dev.
         if (!settings.server.startsWith('http://localhost')) {

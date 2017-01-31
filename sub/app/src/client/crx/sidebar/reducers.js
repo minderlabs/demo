@@ -6,18 +6,18 @@ const NAMESPACE = 'sidebar';
 
 import { WindowMessenger } from 'minder-core';
 
+import { BackgroundCommand, SidebarCommand } from '../common';
+
 /**
  * Sidebar Redux actions.
  */
 export class SidebarAction {
 
   static ACTION = {
-    INIT:     `${NAMESPACE}/INIT`,
-    OPEN:     `${NAMESPACE}/OPEN`,
-    CLOSE:    `${NAMESPACE}/CLOSE`,
-    TOGGLE:   `${NAMESPACE}/TOGGLE`,
-    PING:     `${NAMESPACE}/PING`,
-    UPDATE:   `${NAMESPACE}/UPDATE`
+    INITIALIZED:        `${NAMESPACE}/INITIALIZED`,
+    PING:               `${NAMESPACE}/PING`,
+    UPDATE_VISIBILITY:  `${NAMESPACE}/UPDATE_VISIBILITY`,
+    UPDATE_CONTEXT:     `${NAMESPACE}/UPDATE_CONTEXT`
   };
 
   static get namespace() {
@@ -26,6 +26,8 @@ export class SidebarAction {
 
   static get initalState() {
     return {
+      initializeed: false,
+      timestamp: null,            // TS from background page.
       open: false,
       events: []
     }
@@ -36,43 +38,78 @@ export class SidebarAction {
   }
 
   //
-  // Actions.
+  // Action creators.
+  // NOTE: Uses thunk to handle async request.
+  // http://redux.js.org/docs/advanced/AsyncActions.html
+  // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
   //
 
-  static init() {
-    return {
-      type: SidebarAction.ACTION.INIT
-    }
+  /**
+   * App is initialized.
+   */
+  static initialized() {
+    return (dispatch, getState, injector) => {
+      injector.get(WindowMessenger).sendMessage({ command: SidebarCommand.INITIALIZED });
+
+      dispatch({
+        type: SidebarAction.ACTION.INITIALIZED
+      })
+    };
   }
 
-  static open() {
-    return {
-      type: SidebarAction.ACTION.OPEN
-    }
-  }
-
-  static close() {
-    return {
-      type: SidebarAction.ACTION.CLOSE
-    }
-  }
-
-  static toggle() {
-    return {
-      type: SidebarAction.ACTION.TOGGLE
-    }
-  }
-
+  /**
+   * Ping the background page.
+   * @param value
+   */
+  // TODO(burdon): Test with test panel.
   static ping(value) {
-    return {
-      type: SidebarAction.ACTION.PING,
-      value
+    return (dispatch, getState, injector) => {
+      // Set waiting.
+      dispatch({
+        type: SidebarAction.ACTION.PING
+      });
+
+      injector.get('system-channel')
+        .postMessage({ command: BackgroundCommand.PING })
+        .wait()
+        .then(response => {
+          // Set received response.
+          dispatch({
+            type: SidebarAction.ACTION.PING,
+            timestamp: response.timestamp
+          });
+      });
+    };
+  }
+
+  /**
+   * Toggle the sidebar.
+   * @param {boolean|undefined} open Open/Close or Toggle if undefined.
+   */
+  static toggleVisibility(open=undefined) {
+    return (dispatch, getState, injector) => {
+      injector.get(WindowMessenger).sendMessage({ command: SidebarCommand.SET_VISIBILITY, open });
     }
   }
 
-  static update(events=[]) {
+  /**
+   * Updates the sidebar visibility.
+   * @param visible
+   */
+  static updateVisibility(visible) {
     return {
-      type: SidebarAction.ACTION.UPDATE,
+      type: SidebarAction.ACTION.UPDATE_VISIBILITY,
+      visible
+    };
+  }
+
+  /**
+   * Received context events from content script.
+   * @param events
+   */
+  static updateContext(events=[]) {
+    return {
+      type: SidebarAction.ACTION.UPDATE_CONTEXT,
       events
     }
   }
@@ -81,56 +118,30 @@ export class SidebarAction {
 /**
  * http://redux.js.org/docs/basics/Reducers.html#handling-actions
  */
-export const SidebarReducer = (config, injector) => (state=SidebarAction.initalState, action) => {
+export const SidebarReducer = (state=SidebarAction.initalState, action) => {
 //console.log('SidebarReducer[%s]: %s', JSON.stringify(state, 0, 2), JSON.stringify(action));
-
-  let messenger = injector.get(WindowMessenger);
-  let channel = injector.get('system-channel');
 
   switch (action.type) {
 
-    // TODO(burdon): Async actions (side effects).
-    // http://redux.js.org/docs/advanced/AsyncActions.html#async-action-creators
-    // Get reponse from message to set state (invokes another action?)
-
-    case SidebarAction.ACTION.INIT: {
-      messenger.sendMessage({ command: 'INIT' });   // TODO(burdon): Understand side-effects doc.
+    case SidebarAction.ACTION.INITIALIZED: {
       return _.assign({}, state, {
-        open: true
-      });
-    }
-
-    case SidebarAction.ACTION.OPEN: {
-      messenger.sendMessage({ command: 'OPEN' });
-      return _.assign({}, state, {
-        open: true
-      });
-    }
-
-    case SidebarAction.ACTION.CLOSE: {
-      messenger.sendMessage({ command: 'CLOSE' });
-      return _.assign({}, state, {
-        open: false
-      });
-    }
-
-    case SidebarAction.ACTION.TOGGLE: {
-      // TODO(burdon): Side-effects so that response can update "online" state.
-      messenger.sendMessage({ command: state.open ? 'CLOSE' : 'OPEN' });
-      return _.assign({}, state, {
-        open: !state.open
+        initialized: true
       });
     }
 
     case SidebarAction.ACTION.PING: {
-      channel.postMessage({ command: 'PING', value: action.value }).wait().then(response => {
-        console.log('Response: ', JSON.stringify(response));
+      return _.assign({}, state, {
+        timestamp: action.timestamp
       });
-      break;
     }
 
-    case SidebarAction.ACTION.UPDATE: {
-      console.log('Updating events.');
+    case SidebarAction.ACTION.UPDATE_VISIBILITY: {
+      return _.assign({}, state, {
+        visible: action.visible
+      });
+    }
+
+    case SidebarAction.ACTION.UPDATE_CONTEXT: {
       return _.assign({}, state, {
         events: _.concat(state.events || [], action.events)
       });

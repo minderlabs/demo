@@ -23,7 +23,10 @@ export class AppAction {
   }
 
   //
-  // Actions.
+  // Action creators.
+  // TODO(burdon): Use thunk to handle async request.
+  // http://redux.js.org/docs/advanced/AsyncActions.html
+  // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
   //
 
   static register(user) {

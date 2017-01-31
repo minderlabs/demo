@@ -74,11 +74,8 @@ export class WindowMessenger {
   sendMessage(message) {
     console.assert(this._frame);
 
-    // TODO(burdon): '*' could be intercepted by anything else on the page.
-    // TODO(burdon): Proxy via background page if secure messaging is required.
-    // https://developer.chrome.com/extensions/messaging#external-webpage
-    // http://stackoverflow.com/questions/11325415/access-iframe-content-from-a-chromes-extension-content-script
-
+    // NOTE: '*' could be intercepted by anything else on the page.
+    // https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
     this._frame.postMessage({
       channel: this._channel,
       message

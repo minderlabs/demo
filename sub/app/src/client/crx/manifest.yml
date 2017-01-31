@@ -162,7 +162,7 @@ externally_connectable:
 
 
 #
-# White list for context script resources.
+# White list for content script resources.
 # https://developer.chrome.com/extensions/manifest/web_accessible_resources
 # Accessible via: chrome-extension://ID/PATH
 #
