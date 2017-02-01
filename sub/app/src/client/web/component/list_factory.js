@@ -7,10 +7,9 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { DocumentFragment, Getter, Matcher, Mutator, ListReducer } from 'minder-core';
+import { DocumentFragment, Getter, Matcher, Mutator, ListReducer, UpdateItemMutation } from 'minder-core';
 import { List } from 'minder-ux';
 
-import { UpdateItemMutation } from '../data/mutations';
 import { AppAction } from '../reducers';
 
 // TODO(burdon): Document injector.

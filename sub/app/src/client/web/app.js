@@ -42,6 +42,10 @@ export class Application extends React.Component {
   render() {
     let { client, store, history } = this.props;
 
+    //
+    // Activities are top-level components that set-up the context.
+    //
+
     // TODO(burdon): onEnter.
     // https://github.com/ReactTraining/react-router/blob/master/docs/API.md#onenternextstate-replace-callback
 
@@ -58,7 +62,7 @@ export class Application extends React.Component {
             {/* E.g., /app/inbox, /app/favorites?selected=xxx */}
             <Route path={ Path.route(['folder']) } component={ FinderActivity }/>
 
-            {/* E.g., /app/card/xxx, /app/board/xxx */}
+            {/* E.g., /app/app/board/xxx */}
             <Route path={ Path.route(['canvas', 'itemId']) } component={ CanvasActivity }/>
 
             <Redirect from='*' to={ Path.HOME }/>

@@ -12,12 +12,12 @@ import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
 
-import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser } from 'minder-core';
+import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 
-import { QueryRegistry } from './data/subscriptions';
-import { TypeRegistryDefs } from './component/type/registry';
+import { AuthManager, ConnectionManager, NetworkManager } from '../common/network';
 
-import { AuthManager, ConnectionManager, NetworkManager } from './network';
+import { TypeRegistryFactory } from './component/type/factory';
+
 import { Monitor } from './component/devtools';
 
 const logger = Logger.get('main');
@@ -108,7 +108,7 @@ export class Base {
       Injector.provider(new IdGenerator()),
       Injector.provider(new Matcher()),
       Injector.provider(new QueryParser()),
-      Injector.provider(TypeRegistryDefs)
+      Injector.provider(TypeRegistryFactory())
     ], this.providers);
 
     // TODO(burdon): Move to Redux.
@@ -190,6 +190,7 @@ export class Base {
       // NOTE: Must go last.
       // https://github.com/gaearon/redux-devtools
       // https://github.com/gaearon/redux-devtools/blob/master/docs/Walkthrough.md
+      // TODO(burdon): Factor out.
       Monitor.instrument()
     );
 
@@ -313,6 +314,8 @@ export class Base {
  * Base class for Web apps.
  */
 export class WebBase extends Base {
+
+  // TODO(burdon): Factor out.
 
   /**
    * Apollo network.

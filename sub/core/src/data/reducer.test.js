@@ -6,7 +6,6 @@ import gql from 'graphql-tag';
 
 import { ItemReducer, ListReducer } from './reducer';
 
-import { UpdateItemMutation } from './mutations';
 import { Matcher } from './matcher';
 
 const TestListQuery = gql`

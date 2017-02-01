@@ -4,17 +4,25 @@
 
 import React from 'react';
 
-import { UserCard } from './user';
-import { TeamCard } from './team';
-import { PlaceCard } from './place';
-import { ProjectCard, ProjectBoard } from './project';
-import { TaskCard, TaskCompactCard } from './task';
-import { DocumentCard, DocumentColumn } from './document';
-
 /**
  * Type registry.
+ *
+ * Manages layout for different types.
  */
 export class TypeRegistry {
+
+  // TODO(burdon): Rename.
+  // TODO(burdon): Rationalize canvas/card/compact, etc.
+  // TODO(burdon): Project has 2 canvas types.
+  // TODO(burdon): Task needs card + canvas
+  // TODO(burdon): Clean-up <CardContainer> + <CanvasContainer>
+  // TODO(burdon): Use Card in Board (by type).
+  // TODO(burdon): Org type (with contacts)
+  // TODO(burdon): Org board.
+
+  // - card (compact)
+  // - canvas (default canvas)
+  // - canvas/board (alt canvases)
 
   /**
    * System singleton.
@@ -24,7 +32,15 @@ export class TypeRegistry {
     this._types = new Map(types);
   }
 
-  // TODO(burdon): Rationalize canvas/card/compact, etc.
+  // TODO(burdon): Rename card.
+  compact(item) {
+    console.assert(item);
+    let spec = this._types.get(item.type);
+    if (spec) {
+      let gen = _.get(spec.canvas, 'compact');
+      return gen && gen(item);
+    }
+  }
 
   /**
    * Canvas component for page view.
@@ -40,15 +56,6 @@ export class TypeRegistry {
     if (spec) {
       let gen = _.get(spec.canvas, canvas);
       return gen && gen(itemId);
-    }
-  }
-
-  compact(item) {
-    console.assert(item);
-    let spec = this._types.get(item.type);
-    if (spec) {
-      let gen = _.get(spec.canvas, 'compact');
-      return gen && gen(item);
     }
   }
 
@@ -75,55 +82,3 @@ export class TypeRegistry {
     return spec && spec.icon || '';
   }
 }
-
-/**
- * Class utility to create the TypeRegistry singleton.
- */
-export const TypeRegistryDefs = new TypeRegistry([
-
-  ['Document', {
-    icon: 'insert_drive_file',
-    canvas: {
-      card: (itemId) => <DocumentCard itemId={ itemId }/>
-    },
-    column: (item) => <DocumentColumn item={ item }/>
-  }],
-
-  ['Group', {
-    icon: 'group',
-    canvas: {
-      card: (itemId) => <TeamCard itemId={ itemId }/>
-    }
-  }],
-
-  ['Place', {
-    icon: 'location_city',
-    canvas: {
-      card: (itemId) => <PlaceCard itemId={ itemId }/>
-    }
-  }],
-
-  ['Project', {
-    icon: 'assignment',
-    canvas: {
-      card: (itemId) => <ProjectCard itemId={ itemId }/>,
-      board: (itemId) => <ProjectBoard itemId={ itemId } expand={ true }/>
-    }
-  }],
-
-  ['Task', {
-    icon: 'assignment_turned_in',
-    canvas: {
-      card: (itemId) => <TaskCard itemId={ itemId }/>,
-      compact: (item) => <TaskCompactCard item={ item }/>
-    }
-  }],
-
-  ['User', {
-    icon: 'accessibility',
-    canvas: {
-      card: (itemId) => <UserCard itemId={ itemId }/>
-    }
-  }]
-
-]);

@@ -4,8 +4,6 @@
 
 import React from 'react';
 
-import BaseLayout from '../layout/base';
-
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
 
@@ -25,7 +23,7 @@ export default class FinderActivity extends React.Component {
    */
   static propTypes = {
     params: React.PropTypes.shape({
-      folder: React.PropTypes.string
+      folder: React.PropTypes.string.isRequired
     })
   };
 

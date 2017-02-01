@@ -19,7 +19,8 @@ export class AppAction {
   }
 
   static getState(state, field=undefined) {
-    return field ? _.get(state[APP_NAMESPACE], field) : state[APP_NAMESPACE];
+    state = _.get(state, AppAction.namespace, {});
+    return field ? _.get(state, field) : state;
   }
 
   //
@@ -101,7 +102,8 @@ export class ContextAction {
   }
 
   static getState(state, field=undefined) {
-    return field ? _.get(state[CONTEXT_NAMESPACE], field) : state[CONTEXT_NAMESPACE];
+    state = _.get(state, ContextAction.namespace, {});
+    return field ? _.get(state, field) : state;
   }
 
   /**

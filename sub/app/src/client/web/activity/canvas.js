@@ -27,8 +27,8 @@ export default class CanvasActivity extends React.Component {
    */
   static propTypes = {
     params: React.PropTypes.shape({
-      type: React.PropTypes.string,
-      itemId: React.PropTypes.string
+      canvas: React.PropTypes.string.isRequired,
+      itemId: React.PropTypes.string.isRequired
     })
   };
 
@@ -39,19 +39,16 @@ export default class CanvasActivity extends React.Component {
     let { type } = ID.fromGlobalId(itemId);
 
     // TODO(burdon): Don't put injector in context. Instead inject required objects?
-    // TODO(burdon): TypeRegistry canvas(type) should return appropriate object.
     let typeRegistry = this.context.injector.get(TypeRegistry);
-
-    // TODO(burdon): Rename canvas.
-    let content = typeRegistry.canvas(type, itemId, canvas);
+    let canvasComponent = typeRegistry.canvas(type, itemId, canvas);
 
     // TODO(burdon): Layout based on form factor.
-    // TODO(burdon): If canvas is board then use MainLayout. Ask canvas which layout it prefers?
+    // TODO(burdon): Expand button (in app state).
     let platform = _.get(config, 'app.platform');
-    if (platform == 'mobile' || platform == 'crx' || content.props.expand) {
+    if (platform == 'mobile' || platform == 'crx') { //} || canvasComponent.props.expand) {
       return (
         <FullLayout>
-          { content }
+          { canvasComponent }
         </FullLayout>
       )
     } else {
@@ -59,7 +56,7 @@ export default class CanvasActivity extends React.Component {
       let finder = <FinderView folder={ 'inbox' }/>;
       return (
         <SplitLayout nav={ finder }>
-          { content }
+          { canvasComponent }
         </SplitLayout>
       )
     }

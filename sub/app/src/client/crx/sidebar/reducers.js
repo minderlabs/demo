@@ -31,7 +31,8 @@ export class SidebarAction {
   };
 
   static getState(state, field=undefined) {
-    return field ? _.get(state[NAMESPACE], field) : state[NAMESPACE];
+    state = _.get(state, SidebarAction.namespace, {});
+    return field ? _.get(state, field) : state;
   }
 
   //

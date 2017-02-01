@@ -8,12 +8,11 @@ import { compose } from 'react-apollo';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ID, ItemFragment, ItemReducer, MutationUtil, Mutator, TaskFragment } from 'minder-core';
+import { ID, ItemFragment, ItemReducer, MutationUtil, Mutator, TaskFragment, UpdateItemMutation } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
 import { Path } from '../../path';
 import { AppAction } from '../../reducers';
-import { UpdateItemMutation } from '../../data/mutations';
 import { composeItem } from '../item';
 import { CardContainer } from '../card';
 

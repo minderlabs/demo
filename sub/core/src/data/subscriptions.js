@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+import Logger from '../util/logger';
+
 const logger = Logger.get('sub');
 
 /**
@@ -18,9 +20,7 @@ export class QueryRegistry {
 
   register(id, refetch) {
     console.assert(id && refetch);
-    this._components.set(id, {
-      refetch
-    });
+    this._components.set(id, { refetch });
     logger.log(`Registered[${this._components.size}]: ${id}`);
   }
 

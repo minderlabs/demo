@@ -7,14 +7,12 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { EventHandler } from 'minder-core';
+import { EventHandler, QueryRegistry } from 'minder-core';
 import { Sidebar, SidebarToggle } from 'minder-ux';
 
 import { AppAction } from '../reducers';
 import { Navigator } from '../path'
 import { Const } from '../../../common/defs';
-
-import { QueryRegistry } from '../data/subscriptions';
 
 import { NavBar } from '../component/navbar';
 import { SidePanel } from '../component/sidepanel';

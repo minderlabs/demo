@@ -7,10 +7,9 @@ import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
-import { ItemFragment, ProjectBoardFragment, TaskFragment } from 'minder-core';
+import { ItemFragment, ProjectBoardFragment, TaskFragment, UpdateItemMutation } from 'minder-core';
 import { Board, DragOrderModel, List, ListItem } from 'minder-ux';
 
-import { UpdateItemMutation } from '../../data/mutations';
 import { Path } from '../../path';
 import { composeItem } from '../item';
 import { CardContainer } from '../card';

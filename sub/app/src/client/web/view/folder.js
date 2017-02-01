@@ -7,11 +7,10 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { QueryParser, Mutator, MutationUtil, TypeUtil } from 'minder-core';
+import { QueryParser, Mutator, MutationUtil, TypeUtil, UpdateItemMutation } from 'minder-core';
 import { List, ListItem, TextBox } from 'minder-ux';
 
 import { AppAction, ContextAction } from '../reducers';
-import { UpdateItemMutation } from '../data/mutations';
 
 import { SearchList } from '../component/list_factory';
 import { TypeRegistry } from '../component/type/registry';

@@ -2,8 +2,6 @@
 // Copyright 2017 Minder Labs.
 //
 
-// TODO(burdon): Test pages (served by express).
-
 /**
  * Registry of inspectors.
  */
@@ -47,6 +45,7 @@ class Inspector {
     // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
     this._observer = new MutationObserver(mutations => {
       let context = this.inspect(mutations);
+      console.log('Context: ' + JSON.stringify(context));
       this._callback && this._callback(context);
     });
   }
@@ -173,6 +172,9 @@ export class GoogleInboxInspector extends Inspector {
             type: 'Person',
             title: root.text(),
             email: root.attr('email')
+          },
+          filter: {
+            text: root.text()
           }
         };
 
