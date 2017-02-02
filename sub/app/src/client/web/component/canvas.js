@@ -4,13 +4,14 @@
 
 import React from 'react';
 
-import { QueryRegistry } from 'minder-core';
+import { MutationUtil, QueryRegistry, TypeUtil } from 'minder-core';
+import { Textarea, TextBox } from 'minder-ux';
 
 /**
  * Canvas container.
  *
- * <CanvasContainer>
- *   <ProjectCanvas/>
+ * <CanvasContainer>                    Instantiated by activity with type-specific content.
+ *   <ProjectCanvas/>                   Wraps the Canvas element (for consistent layout); provides the mutator.
  *     <Canvas>
  *       <div>{ customLayout }</div>
  *     </Canvas>
@@ -18,7 +19,6 @@ import { QueryRegistry } from 'minder-core';
  * </CanvasContainer>
  *
  * The container uses the TypeRegistry to obtain the custom canvas HOC.
- *
  */
 export class CanvasContainer extends React.Component {
 
@@ -45,7 +45,11 @@ export class CanvasContainer extends React.Component {
 export class Canvas extends React.Component {
 
   static propTypes = {
+    // Type-specific GQL properties.
     refetch: React.PropTypes.func.isRequired,
+    mutator: React.PropTypes.func,                                // Read-only if not set.
+
+    // Root item (retrieved by type-specific GQL query).
     item: React.PropTypes.object.isRequired
   };
 

@@ -65,9 +65,6 @@ export class ContactCanvasComponent extends React.Component {
 // HOC.
 //
 
-/**
- * Type-specific query.
- */
 const ContactQuery = gql`
   query ContactQuery($itemId: ID!) { 
     

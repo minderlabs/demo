@@ -15,11 +15,6 @@ import FinderView from '../view/finder';
  */
 export default class CanvasActivity extends React.Component {
 
-  static contextTypes = {
-    config: React.PropTypes.object.isRequired,
-    injector: React.PropTypes.object.isRequired
-  };
-
   /**
    * Params set by the router.
    */
@@ -31,20 +26,23 @@ export default class CanvasActivity extends React.Component {
     })
   };
 
+  static contextTypes = {
+    config: React.PropTypes.object.isRequired,
+    injector: React.PropTypes.object.isRequired
+  };
+
   render() {
-    let { config } = this.context;
+    let { config, injector } = this.context;
     let { params } = this.props;
     let { canvas, itemId } = params;
 
-    let typeRegistry = this.context.injector.get(TypeRegistry);
     let canvasComponent = (
-      <CanvasContainer typeRegistry={ typeRegistry } canvas={ canvas } itemId={ itemId }/>
+      <CanvasContainer typeRegistry={ injector.get(TypeRegistry) } canvas={ canvas } itemId={ itemId }/>
     );
 
-    // TODO(burdon): Layout based on form factor.
-    // TODO(burdon): Expand button (in app state).
+    // TODO(burdon): Layout based on form factor. Replace "expand" prop below with app state.
     let platform = _.get(config, 'app.platform');
-    if (platform == 'mobile' || platform == 'crx') { //} || canvasComponent.props.expand) {
+    if (platform == 'mobile' || platform == 'crx') {
       return (
         <FullLayout>
           { canvasComponent }

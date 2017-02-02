@@ -332,7 +332,7 @@ class ProjectCardLayout extends React.Component {
                   items={ member.tasks }
                   itemRenderer={ this._taskItemRenderer }
                   onItemSelect={ this.handleTaskSelect.bind(this) }
-                  onItemSave={ this.handleMemberTaskSave.bind(this, member) }/>
+                  onItemUpdate={ this.handleMemberTaskSave.bind(this, member) }/>
           </div>
           ))}
         </div>
@@ -347,7 +347,7 @@ class ProjectCardLayout extends React.Component {
                     filter={ ProjectCardLayout.sharedTasksFilter(project) }
                     itemRenderer={ this._taskItemRenderer }
                     onItemSelect={ this.handleTaskSelect.bind(this) }
-                    onItemSave={ this.handleSharedTaskSave.bind(this) }/>
+                    onItemUpdate={ this.handleSharedTaskSave.bind(this) }/>
         </div>
 
         {/*
@@ -360,7 +360,7 @@ class ProjectCardLayout extends React.Component {
                          filter={ ProjectCardLayout.privateTasksFilter(user) }
                          itemRenderer={ this._taskItemRenderer }
                          onItemSelect={ this.handleTaskSelect.bind(this) }
-                         onItemSave={ this.handlePrivateTaskSave.bind(this) }/>
+                         onItemUpdate={ this.handlePrivateTaskSave.bind(this) }/>
         </div>
       </div>
     );

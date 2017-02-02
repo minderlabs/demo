@@ -6,11 +6,13 @@ import React from 'react';
 
 import { TypeRegistry } from '../framework/type_registry';
 
+import { ItemCard, ItemCanvas } from '../type/item';
+
 import { ContactCard, ContactCanvas } from '../type/contact';
 import { DocumentColumn } from '../type/document';
 //import { GroupCard } from '../type/group';
 //import { ProjectCard } from '../type/project';
-import { TaskCard } from '../type/task';
+import { TaskCard, TaskCanvas } from '../type/task';
 //import { UserCard } from '../type/user';
 
 /**
@@ -18,38 +20,11 @@ import { TaskCard } from '../type/task';
  */
 export const TypeRegistryFactory = () => new TypeRegistry({
 
-// ['Group', {
-//   icon: 'group',
-//   card: (itemId) => <TeamCard itemId={ itemId }/>,
-// }],
-//
-//
-// ['Project', {
-//   icon: 'assignment',
-//   card: (itemId) => <ProjectCard itemId={ itemId }/>,
-//   canvas: {
-//     def: (itemId) => <ProjectBoard itemId={ itemId } expand={ true }/>
-//   }
-// }],
-
-// ['Task', {
-//   icon: 'assignment_turned_in',
-//   card: (item) => <TaskCard item={ item }/>,
-//   canvas: {
-//     def: (itemId) => <TaskCanvas itemId={ itemId } expand={ true }/>
-//   }
-// }],
-
-// ['User', {
-//   icon: 'accessibility',
-//   card: (itemId) => <UserCard itemId={ itemId }/>
-// }]
-
   Contact: {
     icon: 'contacts',
     card: (item) => <ContactCard item={ item }/>,
     canvas: {
-      def: (itemId) => <ContactCanvas itemId={ itemId }/>
+      def: (itemId) => <ContactCanvas itemId={ itemId }/>           // TODO(burdon): Tasks.
     }
   },
 
@@ -58,9 +33,34 @@ export const TypeRegistryFactory = () => new TypeRegistry({
     column: (item) => <DocumentColumn item={ item }/>
   },
 
+  Group: {
+    icon: 'group',
+    canvas: {
+      def: (itemId) => <ItemCanvas itemId={ itemId }/>              // TODO(burdon): Group -> Members + Projects.
+    }
+  },
+
+  Project: {
+    icon: 'assignment',
+    card: (item) => <ItemCard item={ item }/>,                      // TODO(burdon): Project -> Tasks (priority).
+    canvas: {
+      def: (itemId) => <ItemCanvas itemId={ itemId }/>              // TODO(burdon): Board -> Members/Tasks.
+    }
+  },
+
   Task: {
     icon: 'assignment_turned_in',
-    card: (item) => <TaskCard item={ item }/>
+    card: (item) => <TaskCard item={ item }/>,
+    canvas: {
+      def: (itemId) => <TaskCanvas itemId={ itemId }/>
+    }
+  },
+
+  User: {
+    icon: 'accessibility',
+    canvas: {
+      def: (itemId) => <ItemCanvas itemId={ itemId }/>              // TODO(burdon): User -> Tasks.
+    }
   }
 
 });

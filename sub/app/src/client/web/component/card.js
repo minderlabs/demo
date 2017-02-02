@@ -4,9 +4,6 @@
 
 import React from 'react';
 
-import { MutationUtil, TypeUtil } from 'minder-core';
-import { Textarea, TextBox } from 'minder-ux';
-
 /**
  * Card wrapper.
  */

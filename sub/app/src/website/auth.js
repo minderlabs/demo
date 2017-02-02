@@ -28,7 +28,7 @@ export class Auth {
    * @param path
    */
   login(path) {
-    console.log('LOGIN');
+    console.log('OAuth Login');
 
     // TODO(burdon): Document.
     // Access Token: Determine authorization (short-lived).
@@ -83,7 +83,7 @@ export class Auth {
    * @param path
    */
   logout(path) {
-    console.log('LOGOUT');
+    console.log('OAuth Logout');
 
     // https://firebase.google.com/docs/auth/web/google-signin
     firebase.auth().signOut().then(

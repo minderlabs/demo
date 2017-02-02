@@ -76,12 +76,9 @@ export class Mutator {
 
       props: ({ ownProps, mutate }) => ({
 
-        // TODO(burdon): Wrap Redux's mapStateToProps to grab injector.
-
-        /**
-         * Injects a mutator instance into the wrapped components properties.
-         */
-        // TODO(burdon): Where does the injector come from?
+        //
+        // Injects a mutator instance into the wrapped components' properties.
+        //
         mutator: new Mutator(mutate, ownProps.injector.get(IdGenerator)),
       })
     });

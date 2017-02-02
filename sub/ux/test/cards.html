@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cards</title>
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,700">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <style>
+    body {
+      display: flex;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      margin: 0;
+      background-color: #CCC;
+      font-family: Roboto, sans-serif;
+    }
+    h1, h2, h3 {
+      font-weight: 100;
+      margin: 0;
+    }
+    .test-container {
+      display: flex;
+      flex-grow: 1;
+    }
+    .test-card-container {
+      background-color: #EEE;
+      margin: 0 32px;
+      padding: 16px 8px;
+    }
+    .test-card-container .test-card {
+      width: 300px;
+    }
+    .test-card-container .test-card .test-card-header {
+      background-color: #a5bde8;
+      padding: 4px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+    .test-card-container .test-card .test-card-section {
+      padding: 4px;
+      background-color: white;
+    }
+    .test-card-container .test-card .test-card-section img {
+      width: 80px;
+    }
+    .test-card-container .test-card .test-card-rule {
+      border-top: 1px solid #EEE;
+    }
+    .test-card-container .test-card .test-card-footer {
+      background-color: white;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      height: 8px;
+    }
+
+    .test-row {
+      display: flex;
+      flex-direction: row;
+    }
+    .test-column {
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="test-container">
+
+    <div class="test-card-container">
+      <div class="test-card">
+        <div class="test-card-header">
+          <h3>Alice</h3>
+        </div>
+        <div class="test-card-section">
+          <div class="test-row">
+            <div>
+              <img src="./img/people/p1.png"/>
+            </div>
+            <div class="test-column">
+              <div>Minder Labs</div>
+              <div>SVP Product</div>
+              <div>alice.braintree@gmail.com</div>
+              <div>(212) 345-9078</div>
+            </div>
+          </div>
+        </div>
+        <div class="test-card-rule"></div>
+        <div class="test-card-section">
+          <div>
+            Content
+          </div>
+        </div>
+        <div class="test-card-footer"></div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

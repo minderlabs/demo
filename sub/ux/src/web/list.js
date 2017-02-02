@@ -6,6 +6,8 @@ import React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
+import { MutationUtil } from 'minder-core';
+
 import { TextBox } from './textbox';
 import { ItemDragSource, ItemDropTarget, DragOrderModel } from './dnd';
 
@@ -19,7 +21,12 @@ const ListItemDragSource = ItemDragSource('ListItem');
 const ListItemDropTarget = ItemDropTarget('ListItem');
 
 /**
- * Simple list component.
+ * List is a super flexible component for rendering items.
+ *
+ * Lists can specify a custom itemRenderer that creates ListItem components.
+ *
+ * Inline components within each ListItem receive the List's context to access the data item,
+ * and to handle events (e.g., selection, update).
  */
 export class List extends React.Component {
 
@@ -57,10 +64,15 @@ export class List extends React.Component {
   static DefaultEditor = React.createClass({
 
     // TODO(burdon): Modularize to extend (list ListItem).
+    // TODO(burdon): Change to class.
 
     handleSave() {
+      let { item } = this.props;
       let title = this.refs.title.value;
-      this.props.onSave && this.props.onSave({ title });
+      let mutations = [
+        MutationUtil.createFieldMutation('title', 'string', title)
+      ];
+      this.props.onSave && this.props.onSave(item, mutations);
     },
 
     handleCancel() {
@@ -88,8 +100,12 @@ export class List extends React.Component {
     }
   });
 
+  //
+  // Context passed to ListItem and inline widgets.
+  //
   static childContextTypes = {
-    onItemSelect: React.PropTypes.func
+    onItemSelect: React.PropTypes.func,
+    onItemUpdate: React.PropTypes.func
   };
 
   static propTypes = {
@@ -100,7 +116,7 @@ export class List extends React.Component {
     itemRenderer:       React.PropTypes.func,
     itemEditor:         React.PropTypes.func,
     itemOrderModel:     React.PropTypes.object,                               // Order model for drag and drop.
-    onItemSave:         React.PropTypes.func,
+    onItemUpdate:       React.PropTypes.func,
     onItemSelect:       React.PropTypes.func,
     onItemDrop:         React.PropTypes.func,
     groupBy:            React.PropTypes.bool,
@@ -132,7 +148,8 @@ export class List extends React.Component {
 
   getChildContext() {
     return {
-      onItemSelect: this.handleItemSelect.bind(this)
+      onItemSelect: this.handleItemSelect.bind(this),
+      onItemUpdate: this.handleItemUpdate.bind(this)
     }
   }
 
@@ -154,9 +171,38 @@ export class List extends React.Component {
     });
   }
 
-  // TODO(burdon): Standardize selection for items.
+  /**
+   * Call the List's onItemSelect callback.
+   * @param {Item} item Item to select or null to cancel.
+   */
   handleItemSelect(item) {
+    // TODO(burdon): Should provide selection model.
     this.props.onItemSelect && this.props.onItemSelect(item);
+  }
+
+  /**
+   * Call the List's onItemUpdate callback with the given mutations.
+   * @param {Item} item
+   * @param mutations
+   */
+  handleItemUpdate(item, mutations) {
+    console.assert(item, mutations);
+    this.props.onItemUpdate && this.props.onItemUpdate(item, mutations);
+
+    // Cancel inline editing.
+    if (this.state.showAdd) {
+      this.setState({
+        showAdd: false,
+        editedItem: null
+      });
+    }
+  }
+
+  handleItemCancel() {
+    this.setState({
+      showAdd: false,
+      editedItem: null
+    });
   }
 
   handleItemDrop(dropItem, data, order) {
@@ -168,21 +214,6 @@ export class List extends React.Component {
     // Repaint and notify parent.
     this.forceUpdate(() => {
       this.props.onItemDrop(this.props.data, dropItem.id, changes);
-    });
-  }
-
-  handleItemSave(item) {
-    this.props.onItemSave && this.props.onItemSave(item);
-    this.setState({
-      showAdd: false,
-      editedItem: null
-    });
-  }
-
-  handleItemCancel() {
-    this.setState({
-      showAdd: false,
-      editedItem: null
     });
   }
 
@@ -275,6 +306,7 @@ export class List extends React.Component {
     //
     // Editor.
     // TODO(burdon): By default at the bottom.
+    // TODO(burdon): Distinguish create/update for handleItemUpdate callback.
     //
 
     let editor = null;
@@ -283,7 +315,7 @@ export class List extends React.Component {
       editor = (
         <div className="ux-list-item ux-list-editor">
           <Editor item={ this.state.editedItem }
-                  onSave={ this.handleItemSave.bind(this) }
+                  onSave={ this.handleItemUpdate.bind(this) }
                   onCancel={ this.handleItemCancel.bind(this) }/>
         </div>
       );
@@ -300,6 +332,18 @@ export class List extends React.Component {
   }
 }
 
+//
+// To child <ListItem/> components.
+// Enable sub-components to access the item and handlers.
+//
+const ListItemChildContextTypes = {
+  item: React.PropTypes.object,
+
+  // Inherit these from parent List.
+  onItemSelect: React.PropTypes.func,
+  onItemUpdate: React.PropTypes.func
+};
+
 /**
  * List item component (and sub-components).
  *
@@ -311,13 +355,21 @@ export class List extends React.Component {
  */
 export class ListItem extends React.Component {
 
-  // TODO(burdon): Custom columns (by type).
+  /**
+   * Creates an inline ListItem widget with the context declarations.
+   * @param render
+   * @returns {*}
+   */
+  static createInlineComponent(render) {
+    render.contextTypes = ListItemChildContextTypes;
+    return render;
+  }
 
   //
-  // List Item Components.
+  // List Item Widgets.
   //
 
-  static Debug = (props, context) => {
+  static Debug = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
     let { fields } = props;
 
@@ -325,10 +377,10 @@ export class ListItem extends React.Component {
     return (
       <div className="ux-debug">{ JSON.stringify(obj, null, 1) }</div>
     );
-  };
+  });
 
   // TODO(burdon): Provide generic callback.
-  static Icon = (props, context) => {
+  static Icon = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
 
     let icon = props.icon;
@@ -343,9 +395,9 @@ export class ListItem extends React.Component {
         <i className="ux-icon">{ props.icon }</i>
       );
     }
-  };
+  });
 
-  static Favorite = (props, context) => {
+  static Favorite = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
     let { onSetLabel } = props;
 
@@ -356,9 +408,9 @@ export class ListItem extends React.Component {
         { set ? 'star' : 'star_border' }
       </i>
     );
-  };
+  });
 
-  static Title = (props, context) => {
+  static Title = ListItem.createInlineComponent((props, context) => {
     let { item, onItemSelect } = context;
     let { select=true } = props;
 
@@ -368,9 +420,9 @@ export class ListItem extends React.Component {
         { item.title }
       </div>
     );
-  };
+  });
 
-  static Delete = (props, context) => {
+  static Delete = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
     let { onDelete } = props;
 
@@ -378,22 +430,29 @@ export class ListItem extends React.Component {
       <i className="ux-icon ux-icon-delete"
          onClick={ onDelete.bind(null, item) }>cancel</i>
     );
-  };
+  });
 
+  //
+  // Provided by renderer.
+  //
   static propTypes = {
+    item: React.PropTypes.object.isRequired,
     className: React.PropTypes.string,
   };
 
+  //
   // From parent <List/> control.
+  //
   static contextTypes = {
     onItemSelect: React.PropTypes.func.isRequired,
+    onItemUpdate: React.PropTypes.func
   };
 
+  //
   // To child <ListItem/> components.
-  static childContextTypes = {
-    onItemSelect: React.PropTypes.func,
-    item: React.PropTypes.object
-  };
+  // Enable sub-components to access the item and handlers.
+  //
+  static childContextTypes = ListItemChildContextTypes;
 
   getChildContext() {
     return {
@@ -410,12 +469,6 @@ export class ListItem extends React.Component {
     );
   }
 }
-
-ListItem.Debug.contextTypes     = ListItem.childContextTypes;
-ListItem.Icon.contextTypes      = ListItem.childContextTypes;
-ListItem.Favorite.contextTypes  = ListItem.childContextTypes;
-ListItem.Title.contextTypes     = ListItem.childContextTypes;
-ListItem.Delete.contextTypes    = ListItem.childContextTypes;
 
 // TODO(burdon): Should be broader than List (i.e., on Board, etc.)
 export const DragDropList = DragDropContext(HTML5Backend)(List);

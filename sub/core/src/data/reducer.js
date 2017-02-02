@@ -11,7 +11,7 @@ const logger = Logger.get('reducer');
 
 //
 // Custom helper commands.
-// https://github.com/kolodny/immutability-helper
+// https://github.com/kolodny/immutability-helper (Replaces below)
 // https://facebook.github.io/react/docs/update.html#available-commands
 //
 
@@ -228,6 +228,7 @@ export class ListReducer extends Reducer {
 
     // Determine if the item matches and is new, otherwise remove it.
     // NOTE: do nothing if it's just an update.
+    // https://github.com/kolodny/immutability-helper
     let path = this._spec.query.path;
     let items = _.get(previousResult, path);
     let insert = match && _.findIndex(items, item => item.id === updatedItem.id) === -1;

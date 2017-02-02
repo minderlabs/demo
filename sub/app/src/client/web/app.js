@@ -33,16 +33,23 @@ export class Application extends React.Component {
   };
 
   getChildContext() {
+    let { config, injector } = this.props;
     return {
-      config: this.props.config,
-      injector: this.props.injector
+      config,
+      injector
     };
   }
 
   /**
    * Render top-level application routes.
    * Activities are top-level components that set-up the context.
-   */
+   *
+   * <Route>
+   *   <Activity>                 HOC providing context (injector, navigator, etc.)
+   *     <View/>                  Components.
+   *   </Activity>
+   * <Route>
+   */m
   render() {
     let { client, store, history } = this.props;
 

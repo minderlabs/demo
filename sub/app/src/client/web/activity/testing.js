@@ -43,7 +43,7 @@ class TestingActivity extends React.Component {
     this.refs.list.itemRenderer = (type === 'card') && TestView.customItemRenderer;
   }
 
-  onItemSave(item) {
+  onItemUpdate(item) {
     console.log('Save: %s', JSON.stringify(item));
   }
 
@@ -70,7 +70,7 @@ class TestingActivity extends React.Component {
         <List ref="list"
               items={ items }
               itemRenderer={ itemRenderer }
-              onItemSave={ this.onItemSave.bind(this) }/>
+              onItemUpdate={ this.onItemUpdate.bind(this) }/>
       </FullLayout>
     );
   }
@@ -83,9 +83,15 @@ const TestQuery = gql`
       ...ItemFragment
       ...ContactFragment
       ...TaskFragment
+      
+      ... on Task {
+        tasks {
+          ...TaskFragment
+        }
+      }
     }
   }
-  
+
   ${ItemFragment}
   ${ContactFragment}
   ${TaskFragment}
