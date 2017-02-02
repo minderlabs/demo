@@ -37,6 +37,12 @@ export const ItemFragment = gql`
   }
 `;
 
+export const ContactFragment = gql`
+  fragment ContactFragment on Contact {
+    email
+  }
+`;
+
 export const DocumentFragment = gql`
   fragment DocumentFragment on Document {
     url

@@ -12,8 +12,8 @@ import { List, ListItem, TextBox } from 'minder-ux';
 
 import { AppAction, ContextAction } from '../reducers';
 
-import { SearchList } from '../component/list_factory';
-import { TypeRegistry } from '../component/type/registry';
+import { SearchList } from '../framework/list_factory';
+import { TypeRegistry } from '../framework/type_registry';
 
 import './folder.less';
 
@@ -61,7 +61,7 @@ class FolderView extends React.Component {
 
   handleItemSelect(item) {
     // TODO(burdon): Depends on layout.
-    this.context.navigator.pushDetail(item);
+    this.context.navigator.pushCanvas(item);
   }
 
   handleItemCreate() {

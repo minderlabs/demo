@@ -117,7 +117,8 @@
   "Contact": [
     {
       "id": "contact_alice",
-      "title": "Alice Braintree"
+      "title": "Alice Braintree",
+      "email": "alice.braintree@gmail.com"
     }
   ]
 }

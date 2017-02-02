@@ -11,58 +11,24 @@ import gql from 'graphql-tag';
 import { ID, ItemFragment, ItemReducer, MutationUtil, Mutator, TaskFragment, UpdateItemMutation } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
-import { Path } from '../../path';
-import { AppAction } from '../../reducers';
-import { composeItem } from '../item';
-import { CardContainer } from '../card';
-
-import ItemsPicker from '../items_picker';
+import { Path } from '../path';
+import { AppAction } from '../reducers';
+import { composeItem } from '../framework/item_factory';
+import { CardContainer } from '../component/card';
+import ItemsPicker from '../component/items_picker';
 
 import './task.less';
 
-/**
- * Type-specific query.
- */
-const TaskQuery = gql`
-  query TaskQuery($itemId: ID!) { 
-    
-    item(itemId: $itemId) {
-      ...ItemFragment
-      ...TaskFragment
-      
-      ... on Task {
-        tasks {
-          ...TaskFragment
-        }
-      }
-    }
-  }
+//
+// Components.
+//
 
-  ${ItemFragment}
-  ${TaskFragment}  
-`;
+// TODO(burdon): Base classes.
 
 /**
- * Type-specific reducer.
+ * Card.
  */
-const TaskReducer = (matcher, context, previousResult, updatedItem) => {
-
-  // Check not root item.
-  if (previousResult.item.id != updatedItem.id) {
-    return {
-      item: {
-        tasks: {
-          $push: [ updatedItem ]
-        }
-      }
-    }
-  }
-};
-
-/**
- * Type-specific card container.
- */
-class TaskCardComponent extends React.Component {
+class TaskCard extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -102,13 +68,13 @@ class TaskCardComponent extends React.Component {
 }
 
 /**
- * Type-specific layout.
+ * Canvas.
  */
-class TaskLayout extends React.Component {
+class TaskCanvas extends React.Component {
 
-  static contextTypes = {
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
+  static propTypes = {
+    user: React.PropTypes.object.isRequired,
+    item: propType(TaskFragment)
   };
 
   state = {};
@@ -256,10 +222,33 @@ class TaskLayout extends React.Component {
   }
 }
 
-/**
- * HOC.
- */
-export const TaskCard = composeItem(
+
+
+
+
+
+
+
+
+
+
+
+
+  // static contextTypes = {
+  //   navigator: React.PropTypes.object.isRequired,
+  //   mutator: React.PropTypes.object.isRequired
+  // };
+
+//
+// HOC.
+//
+
+export const TaskCard = compose(
+  connect(mapStateToProps),
+  Mutator.graphql(UpdateItemMutation)
+)(TaskCard);
+
+export const TaskCanvas = composeItem(
   new ItemReducer({
     mutation: {
       type: UpdateItemMutation,
@@ -271,7 +260,66 @@ export const TaskCard = composeItem(
     }
   },
   TaskReducer)
-)(TaskCardComponent);
+)(TaskCanvas);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Type-specific query.
+ */
+const TaskQuery = gql`
+  query TaskQuery($itemId: ID!) { 
+    
+    item(itemId: $itemId) {
+      ...ItemFragment
+      ...TaskFragment
+      
+      ... on Task {
+        tasks {
+          ...TaskFragment
+        }
+      }
+    }
+  }
+
+  ${ItemFragment}
+  ${TaskFragment}  
+`;
+
+/**
+ * Type-specific reducer.
+ */
+const TaskReducer = (matcher, context, previousResult, updatedItem) => {
+
+  // Check not root item.
+  if (previousResult.item.id != updatedItem.id) {
+    return {
+      item: {
+        tasks: {
+          $push: [ updatedItem ]
+        }
+      }
+    }
+  }
+};
 
 /**
  * Compact card.
@@ -342,12 +390,3 @@ const mapStateToProps = (state, ownProps) => {
     injector
   };
 };
-
-/**
- * HOC.
- */
-// TODO(burdon): Use composeItem.
-export const TaskCompactCard = compose(
-  connect(mapStateToProps),
-  Mutator.graphql(UpdateItemMutation)
-)(TaskCompactCardComponent);

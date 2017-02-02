@@ -24,6 +24,15 @@ const ListItemDropTarget = ItemDropTarget('ListItem');
 export class List extends React.Component {
 
   /**
+   * Render items as cards.
+   * @param typeRegistry
+   * @constructor
+   */
+  static CardRenderer = (typeRegistry) => (item) => {
+    return typeRegistry.card(item)
+  };
+
+  /**
    * Default item renderer.
    */
   static DefaultItemRenderer = (item) => {

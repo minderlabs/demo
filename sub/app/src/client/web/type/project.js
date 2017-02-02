@@ -10,11 +10,11 @@ import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
 import { ItemFragment, ProjectBoardFragment, TaskFragment, UpdateItemMutation } from 'minder-core';
 import { Board, DragOrderModel, List, ListItem } from 'minder-ux';
 
-import { Path } from '../../path';
-import { composeItem } from '../item';
-import { CardContainer } from '../card';
-import { CanvasContainer } from '../canvas';
-import { ItemList, UserTasksList, getWrappedList } from '../list_factory';
+import { Path } from '../path';
+import { composeItem } from '../framework/item_factory';
+import { CardContainer } from '../component/card';
+import { Canvas } from '../component/canvas';
+import { ItemList, UserTasksList, getWrappedList } from '../framework/list_factory';
 
 //
 // Project card.
@@ -195,7 +195,7 @@ class ProjectCardLayout extends React.Component {
 
   // TODO(burdon): Also item select (e.g., nav to team member).
   handleTaskSelect(item) {
-    this.context.navigator.pushDetail(item);
+    this.context.navigator.pushCanvas(item);
   }
 
   handleTaskAdd(list) {
@@ -551,7 +551,7 @@ class ProjectBoardComponent extends React.Component {
 
     // TODO(burdon): Factor out.
     const CompactItemRenderer = (item) => {
-      let card = typeRegistry.compact(item);
+      let card = typeRegistry.card(item);
       if (!card) {
         card = <ListItem.Title/>;
       }
@@ -592,9 +592,9 @@ class ProjectBoardCanvas extends React.Component {
     let { user, item, refetch, typeRegistry, mutator } = this.props;
 
     return (
-      <CanvasContainer refetch={ refetch }>
+      <Canvas refetch={ refetch }>
         <ProjectBoardComponent typeRegistry={ typeRegistry } mutator={ mutator } user={ user } item={ item }/>
-      </CanvasContainer>
+      </Canvas>
     );
   }
 }

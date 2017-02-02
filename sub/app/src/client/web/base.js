@@ -15,9 +15,7 @@ import moment from 'moment';
 import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 
 import { AuthManager, ConnectionManager, NetworkManager } from '../common/network';
-
-import { TypeRegistryFactory } from './component/type/factory';
-
+import { TypeRegistryFactory } from './type/type_factory';
 import { Monitor } from './component/devtools';
 
 const logger = Logger.get('main');

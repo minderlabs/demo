@@ -8,9 +8,9 @@ import { compose, graphql } from 'react-apollo';
 
 import { ID, Matcher, Mutator } from 'minder-core';
 
-import { TypeRegistry } from './type/registry';
-
 import { AppAction } from '../reducers';
+
+import { TypeRegistry } from './type_registry';
 
 /**
  * NOTE: This is applied to the child container (e.g., TaskCardComponent).

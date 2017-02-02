@@ -323,7 +323,7 @@ type Contact implements Item {
   description: String
   labels: [String]
 
-  email: String!
+  email: String
 }
 
 type Project implements Item {

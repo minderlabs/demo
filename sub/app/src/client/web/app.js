@@ -39,15 +39,12 @@ export class Application extends React.Component {
     };
   }
 
+  /**
+   * Render top-level application routes.
+   * Activities are top-level components that set-up the context.
+   */
   render() {
     let { client, store, history } = this.props;
-
-    //
-    // Activities are top-level components that set-up the context.
-    //
-
-    // TODO(burdon): onEnter.
-    // https://github.com/ReactTraining/react-router/blob/master/docs/API.md#onenternextstate-replace-callback
 
     return (
       <ApolloProvider client={ client } store={ store }>
@@ -59,11 +56,18 @@ export class Application extends React.Component {
 
             <Route path={ Path.TESTING } component={ TestingActivity }/>
 
-            {/* E.g., /app/inbox, /app/favorites?selected=xxx */}
+            {/*
+              * /inbox
+              * /favorites
+              */}
             <Route path={ Path.route(['folder']) } component={ FinderActivity }/>
 
-            {/* E.g., /app/app/board/xxx */}
-            <Route path={ Path.route(['canvas', 'itemId']) } component={ CanvasActivity }/>
+            {/*
+              * /project/xxx
+              * /project/board/xxx
+              */}
+            <Route path={ Path.route(['type', 'itemId']) } component={ CanvasActivity }/>
+            <Route path={ Path.route(['type', 'canvas', 'itemId']) } component={ CanvasActivity }/>
 
             <Redirect from='*' to={ Path.HOME }/>
           </Route>

@@ -8,9 +8,43 @@ import { MutationUtil, TypeUtil } from 'minder-core';
 import { Textarea, TextBox } from 'minder-ux';
 
 /**
+ * Card wrapper.
+ */
+export class Card extends React.Component {
+
+  static propTypes = {
+    item: React.PropTypes.object.isRequired
+  };
+
+  render() {
+    let { children, item } = this.props;
+
+    return (
+      <div className="ux-card">
+        <div>
+          <h1>{ item.title }</h1>
+        </div>
+        <div>
+          { children }
+        </div>
+      </div>
+    );
+  }
+}
+
+
+
+
+// TODO(burdon): Port below to Canvas.
+
+/**
  * Card component wrapper.
  * This component renders the common layout and common controls.
  * It also implement item lifecycle (e.g., saving modified fields).
+ *
+ * <CardContainer>
+ *   <TaskCardComponent/>
+ * </CardContainer>
  */
 export class CardContainer extends React.Component {
 

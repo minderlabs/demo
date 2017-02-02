@@ -7,8 +7,12 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
+import { ItemFragment, ContactFragment } from 'minder-core';
+
 import { List } from 'minder-ux';
 
+import { AppAction } from '../reducers';
+import { TypeRegistry } from '../framework/type_registry';
 import { FullLayout } from '../layout/full';
 
 /**
@@ -16,6 +20,10 @@ import { FullLayout } from '../layout/full';
  * For experimental features and components.
  */
 class TestingActivity extends React.Component {
+
+  static propTypes = {
+    typeRegistry: React.PropTypes.object.isRequired
+  };
 
   // TODO(burdon): Test toggle.
   static customItemRenderer = (list, item) => {
@@ -40,9 +48,9 @@ class TestingActivity extends React.Component {
   }
 
   render() {
-    let { items } = this.props;
+    let { typeRegistry, items } = this.props;
 
-    // TODO(burdon): Select.
+    const itemRenderer = List.CardRenderer(typeRegistry);
 
     return (
       <FullLayout>
@@ -59,7 +67,10 @@ class TestingActivity extends React.Component {
           </div>
         </div>
 
-        <List ref="list" items={ items } onItemSave={ this.onItemSave.bind(this) }/>
+        <List ref="list"
+              items={ items }
+              itemRenderer={ itemRenderer }
+              onItemSave={ this.onItemSave.bind(this) }/>
       </FullLayout>
     );
   }
@@ -69,14 +80,21 @@ const TestQuery = gql`
   query TestQuery($filter: FilterInput) { 
 
     items(filter: $filter) {
-      id
-      title
+      ...ItemFragment
+      ...ContactFragment
     }
   }
+  
+  ${ItemFragment}
+  ${ContactFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  return {};
+  let { injector } = AppAction.getState(state);
+
+  return {
+    typeRegistry: injector.get(TypeRegistry)
+  };
 };
 
 export default compose(
@@ -86,7 +104,7 @@ export default compose(
     options: (props) => {
       return {
         variables: {
-          filter: { type: 'Task' }
+          filter: { type: 'Contact' }
         }
       };
     },

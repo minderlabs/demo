@@ -8,8 +8,8 @@ import gql from 'graphql-tag';
 
 import { ItemFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
 
-import { composeItem } from '../item';
-import { CardContainer } from '../card';
+import { composeItem } from '../framework/item_factory';
+import { CardContainer } from '../component/card';
 
 /**
  * Type-specific fragment.

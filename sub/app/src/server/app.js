@@ -38,8 +38,10 @@ export const appRouter = (authManager, clientManager, options) => {
   router.use('/assets', express.static(options.assets));
 
   // Client.
+  // Path: /\/app\/(.*)/
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
-  router.get(/^\/app\/?(.*)/, async function(req, res) {
+  const path = new RegExp(options.root.replace('/', '\/') + '\/?(.*)');
+  router.get(path, async function(req, res) {
 
     // TODO(burdon): Deprecate cookies? Do redirect from app?
     let userInfo = await authManager.getUserInfoFromCookie(req);

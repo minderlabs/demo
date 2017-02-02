@@ -11,9 +11,9 @@ import { ID, ItemFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
 
 import { TextBox } from 'minder-ux';
 
-import { Path } from '../../path';
-import { composeItem } from '../item';
-import { CardContainer } from '../card';
+import { Path } from '../path';
+import { composeItem } from '../framework/item_factory';
+import { CardContainer } from '../component/card';
 
 /**
  * Type-specific fragment.
@@ -94,7 +94,7 @@ class TeamLayout extends React.Component {
   }
 
   handleItemSelect(item) {
-    this.context.navigator.pushDetail(item);
+    this.context.navigator.pushCanvas(item);
   }
 
   handleProjectAdd() {

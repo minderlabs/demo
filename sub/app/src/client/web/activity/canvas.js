@@ -4,12 +4,10 @@
 
 import React from 'react';
 
-import { ID } from 'minder-core';
-
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
-
-import { TypeRegistry } from '../component/type/registry';
+import { CanvasContainer } from '../component/canvas';
+import { TypeRegistry } from '../framework/type_registry';
 import FinderView from '../view/finder';
 
 /**
@@ -27,7 +25,8 @@ export default class CanvasActivity extends React.Component {
    */
   static propTypes = {
     params: React.PropTypes.shape({
-      canvas: React.PropTypes.string.isRequired,
+      type: React.PropTypes.string.isRequired,
+      canvas: React.PropTypes.string,
       itemId: React.PropTypes.string.isRequired
     })
   };
@@ -36,11 +35,11 @@ export default class CanvasActivity extends React.Component {
     let { config } = this.context;
     let { params } = this.props;
     let { canvas, itemId } = params;
-    let { type } = ID.fromGlobalId(itemId);
 
-    // TODO(burdon): Don't put injector in context. Instead inject required objects?
     let typeRegistry = this.context.injector.get(TypeRegistry);
-    let canvasComponent = typeRegistry.canvas(type, itemId, canvas);
+    let canvasComponent = (
+      <CanvasContainer typeRegistry={ typeRegistry } canvas={ canvas } itemId={ itemId }/>
+    );
 
     // TODO(burdon): Layout based on form factor.
     // TODO(burdon): Expand button (in app state).

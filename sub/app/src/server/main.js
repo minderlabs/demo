@@ -312,7 +312,7 @@ app.get('/home', async function(req, res) {
   if (!userInfo) {
     res.render('home');
   } else {
-    res.redirect('/app');
+    res.redirect(Const.ROOT_PATH);
   }
 });
 
@@ -383,6 +383,8 @@ app.use(adminRouter(clientManager, firebase));
 app.use(clientRouter(authManager, clientManager, server));
 
 app.use(appRouter(authManager, clientManager, {
+  root: Const.ROOT_PATH,
+
   env,
 
   // Additional config params.

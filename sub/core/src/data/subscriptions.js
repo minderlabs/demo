@@ -11,6 +11,10 @@ const logger = Logger.get('sub');
  */
 export class QueryRegistry {
 
+  static createId() {
+    return 'C-' + new Date().getTime();
+  }
+
   // TODO(burdon): Factor out (minder-core/client).
   // http://dev.apollodata.com/core/apollo-client-api.html#QuerySubscription
 

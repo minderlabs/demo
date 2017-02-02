@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-// TODO(burdon): Move path defs here.
-
 /**
  * https://console.firebase.google.com/project/minder-beta/overview
  * https://console.firebase.google.com/project/minder-beta/authentication/users
@@ -38,6 +36,9 @@ export const GoogleApiConfig = {
  * App-wide constants.
  */
 export const Const = {
+
+  // TODO(burdon): Move path defs here.
+  ROOT_PATH: '/app',
 
   APP_NAME: 'minder',
   APP_VERSION: "0.1.1",
