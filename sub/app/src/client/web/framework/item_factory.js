@@ -81,7 +81,9 @@ export function composeItem(reducer) {
       }
     }),
 
-    // TODO(burdon): Provides props.mutator (too obscure)! Move here?
+    //
+    // Provides props.mutator.
+    //
     Mutator.graphql(reducer.mutation)
   );
 }

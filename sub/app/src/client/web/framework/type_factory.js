@@ -24,7 +24,7 @@ export const TypeRegistryFactory = () => new TypeRegistry({
     icon: 'contacts',
     card: (item) => <ContactCard item={ item }/>,
     canvas: {
-      def: (itemId) => <ContactCanvas itemId={ itemId }/>           // TODO(burdon): Tasks.
+      def: (itemId) => <ContactCanvas itemId={ itemId }/>     // TODO(burdon): Tasks.
     }
   },
 
@@ -36,15 +36,15 @@ export const TypeRegistryFactory = () => new TypeRegistry({
   Group: {
     icon: 'group',
     canvas: {
-      def: (itemId) => <ItemCanvas itemId={ itemId }/>              // TODO(burdon): Group -> Members + Projects.
+      def: (itemId) => <ItemCanvas itemId={ itemId }/>        // TODO(burdon): Group -> Members + Projects.
     }
   },
 
   Project: {
     icon: 'assignment',
-    card: (item) => <ItemCard item={ item }/>,                      // TODO(burdon): Project -> Tasks (priority).
+    card: (item) => <ItemCard item={ item }/>,                // TODO(burdon): Project -> Tasks (priority).
     canvas: {
-      def: (itemId) => <ItemCanvas itemId={ itemId }/>              // TODO(burdon): Board -> Members/Tasks.
+      def: (itemId) => <ItemCanvas itemId={ itemId }/>        // TODO(burdon): Board -> Members/Tasks.
     }
   },
 
@@ -59,7 +59,7 @@ export const TypeRegistryFactory = () => new TypeRegistry({
   User: {
     icon: 'accessibility',
     canvas: {
-      def: (itemId) => <ItemCanvas itemId={ itemId }/>              // TODO(burdon): User -> Tasks.
+      def: (itemId) => <ItemCanvas itemId={ itemId }/>        // TODO(burdon): User -> Tasks.
     }
   }
 

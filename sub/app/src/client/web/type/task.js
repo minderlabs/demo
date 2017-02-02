@@ -25,6 +25,7 @@ const TaskStatus = ListItem.createInlineComponent((props, context) => {
   let { item } = context;
 
   // TODO(burdon): Const for status levels.
+  // TODO(burdon): Generalize status (mapping to board column model).
   let icon = (item.status == 3) ? 'done' : 'check_box_outline_blank';
   const toggleStatus = () => {
     let status = (item.status == 0) ? 3 : 0;
@@ -146,69 +147,36 @@ class TaskCanvasComponent extends React.Component {
   }
 
   handleTaskUpdate(item, mutations) {
-    console.assert(item && mutations);
-    this.props.mutator.updateItem(item, mutations);
+    console.assert(mutations);
+    if (item) {
+      this.props.mutator.updateItem(item, mutations);
+    } else {
+      this.props.mutator.createItem('Task', mutations);
+    }
   }
 
-  /*
-  handleTaskUpdate(item) {
-    let { item:task, user } = this.props;
-    console.assert(item);
-
-    // TODO(burdon): Factor out mutations (see project.js).
-    let taskId = this.context.mutator.createItem('Task', [
-      {
-        field: 'owner',
-        value: {
-          id: user.id
-        }
-      },
-      {
-        field: 'title',
-        value: {
-          string: item.title
-        }
-      }
-    ]);
-
-    this.context.mutator.updateItem(task, [
-      {
-        field: 'tasks',
-        value: {
-          set: [{
-            value: {
-              id: taskId
-            }
-          }]
-        }
-      }
-    ]);
-  }
-
-  getMutations() {
+  handleSave() {
     let { item } = this.props;
-    let values = this.refs.item.values;
 
     let mutations = [];
 
-    if (!_.isEqual(_.get(values, 'status'), _.get(item, 'status'))) {
-      mutations.push(MutationUtil.createFieldMutation('status', 'int', _.get(values, 'status')));
+    if (!_.isEqual(_.get(this.state, 'status'), _.get(item, 'status'))) {
+      mutations.push(MutationUtil.createFieldMutation('status', 'int', _.get(this.state, 'status')));
     }
 
-    if (!_.isEqual(_.get(values, 'assignee', null), _.get(item, 'assignee'))) {
-      mutations.push(MutationUtil.createFieldMutation('assignee', 'id', _.get(values, 'assignee')));
+    if (!_.isEqual(_.get(this.state, 'assignee', null), _.get(item, 'assignee.id'))) {
+      mutations.push(MutationUtil.createFieldMutation('assignee', 'id', _.get(this.state, 'assignee')));
     }
 
     return mutations;
   }
-  */
 
   handleTaskAdd() {
     this.refs.tasks.addItem();
   }
 
   render() {
-    let { refetch, item={} } = this.props;
+    let { mutator, refetch, item={} } = this.props;
     let { assigneeText, status } = this.state;
 
     let userFilter = {
@@ -216,11 +184,8 @@ class TaskCanvasComponent extends React.Component {
       text: assigneeText
     };
 
-    // TODO(burdon): <Canvas
-    // TODO(burdon): Generalize status (mapping to board column model).
-
     return (
-      <Canvas ref="canvas" item={ item } refetch={ refetch }>
+      <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
         <div className="app-type-task ux-column">
 
           <div className="ux-section ux-data">
@@ -259,7 +224,8 @@ class TaskCanvasComponent extends React.Component {
               <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
             </div>
 
-            <List items={ item.tasks }
+            <List ref="tasks"
+                  items={ item.tasks }
                   itemRenderer={ TaskListItemRenderer }
                   onItemSelect={ this.handleTaskSelect.bind(this) }
                   onItemUpdate={ this.handleTaskUpdate.bind(this) }/>

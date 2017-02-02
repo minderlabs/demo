@@ -182,11 +182,11 @@ export class List extends React.Component {
 
   /**
    * Call the List's onItemUpdate callback with the given mutations.
-   * @param {Item} item
+   * @param {Item} item Null if create.
    * @param mutations
    */
   handleItemUpdate(item, mutations) {
-    console.assert(item, mutations);
+    console.assert(mutations);
     this.props.onItemUpdate && this.props.onItemUpdate(item, mutations);
 
     // Cancel inline editing.
