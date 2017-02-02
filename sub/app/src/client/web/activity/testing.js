@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ItemFragment, ContactFragment } from 'minder-core';
+import { ItemFragment, ContactFragment, TaskFragment } from 'minder-core';
 
 import { List } from 'minder-ux';
 
@@ -82,11 +82,13 @@ const TestQuery = gql`
     items(filter: $filter) {
       ...ItemFragment
       ...ContactFragment
+      ...TaskFragment
     }
   }
   
   ${ItemFragment}
   ${ContactFragment}
+  ${TaskFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
@@ -104,7 +106,7 @@ export default compose(
     options: (props) => {
       return {
         variables: {
-          filter: { type: 'Contact' }
+          filter: { type: 'Task' }
         }
       };
     },

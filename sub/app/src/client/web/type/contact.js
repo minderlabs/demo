@@ -17,7 +17,7 @@ import { Card } from '../component/card';
 //
 
 /**
- * Card
+ * Card.
  */
 export class ContactCard extends React.Component {
 
@@ -29,7 +29,7 @@ export class ContactCard extends React.Component {
     let { item } = this.props;
 
     return (
-      <Card item={ item }>
+      <Card ref="card" item={ item }>
         <div>{ item.email }</div>
       </Card>
     );
@@ -54,7 +54,7 @@ export class ContactCanvasComponent extends React.Component {
     }
 
     return (
-      <Canvas item={ item } refetch={ refetch }>
+      <Canvas ref="canvas" item={ item } refetch={ refetch }>
         <div>{ item.email }</div>
       </Canvas>
     );

@@ -8,14 +8,15 @@ import { compose } from 'react-apollo';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ID, ItemFragment, ItemReducer, MutationUtil, Mutator, TaskFragment, UpdateItemMutation } from 'minder-core';
+import { ID, ItemFragment, TaskFragment, UpdateItemMutation, ItemReducer, MutationUtil, Mutator } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
 import { Path } from '../path';
 import { AppAction } from '../reducers';
 import { composeItem } from '../framework/item_factory';
-import { CardContainer } from '../component/card';
-import ItemsPicker from '../component/items_picker';
+import { FilteredItemsPicker } from '../component/items_picker';
+import { Canvas } from '../component/canvas';
+import { Card } from '../component/card';
 
 import './task.less';
 
@@ -23,24 +24,39 @@ import './task.less';
 // Components.
 //
 
-// TODO(burdon): Base classes.
+/**
+ * List of tasks with checkboxes.
+ */
+export class TaskList extends React.Component {
+
+  static propTypes = {
+    items: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+    onStatusUpdate: React.PropTypes.func.isRequired
+  };
+
+  render() {
+    return (
+      <div>
+        <List/>
+      </div>
+    );
+  }
+}
 
 /**
  * Card.
  */
-class TaskCard extends React.Component {
+export class TaskCard extends React.Component {
 
   static propTypes = {
-    user: React.PropTypes.object.isRequired,
     item: propType(TaskFragment)
   };
 
-  handleSave() {
+  /*
+  // TODO(burdon): Read-only except for sub-tasks.
+  getMutations() {
     let { item } = this.props;
     let values = this.refs.item.values;
-
-    // TODO(burdon): Cache isn't updated on mutation.
-    // TODO(burdon): Utils to connect with state.values below?
 
     let mutations = [];
 
@@ -54,23 +70,39 @@ class TaskCard extends React.Component {
 
     return mutations;
   }
+  */
 
   render() {
-    let { user, item, mutator, refetch, typeRegistry } = this.props;
+    let { item } = this.props;
+
+    // TODO(burdon): Inline tasks (pass mutations to card which uses context?).
 
     return (
-      <CardContainer mutator={ mutator } refetch={ refetch } typeRegistry={ typeRegistry} item={ item }
-                     onSave={ this.handleSave.bind(this) }>
-        <TaskLayout ref="item" user={ user } item={ item }/>
-      </CardContainer>
+      <Card ref="card" item={ item }>
+        <div>{ _.get(item, 'assignee.title') }</div>
+        <div>{ _.get(item, 'status', 0) }</div>
+      </Card>
     );
   }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * Canvas.
  */
-class TaskCanvas extends React.Component {
+class TaskCanvasComponent extends React.Component {
 
   static propTypes = {
     user: React.PropTypes.object.isRequired,
@@ -189,10 +221,10 @@ class TaskCanvas extends React.Component {
 
           <div className="ux-data-row">
             <div className="ux-data-label">Assignee</div>
-            <ItemsPicker filter={ userFilter }
-                         value={ assigneeText }
-                         onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
-                         onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
+            <FilteredItemsPicker filter={ userFilter }
+                                 value={ assigneeText }
+                                 onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
+                                 onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
           </div>
 
           <div className="ux-data-row">
@@ -238,31 +270,6 @@ class TaskCanvas extends React.Component {
   //   navigator: React.PropTypes.object.isRequired,
   //   mutator: React.PropTypes.object.isRequired
   // };
-
-//
-// HOC.
-//
-
-export const TaskCard = compose(
-  connect(mapStateToProps),
-  Mutator.graphql(UpdateItemMutation)
-)(TaskCard);
-
-export const TaskCanvas = composeItem(
-  new ItemReducer({
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    },
-    query: {
-      type: TaskQuery,
-      path: 'item'
-    }
-  },
-  TaskReducer)
-)(TaskCanvas);
-
-
 
 
 
@@ -390,3 +397,24 @@ const mapStateToProps = (state, ownProps) => {
     injector
   };
 };
+
+//
+// HOC.
+//
+
+
+export const TaskCanvas = composeItem(
+  new ItemReducer({
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    query: {
+      type: TaskQuery,
+      path: 'item'
+    }
+  },
+  TaskReducer)
+)(TaskCanvasComponent);
+
+

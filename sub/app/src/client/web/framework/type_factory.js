@@ -6,35 +6,23 @@ import React from 'react';
 
 import { TypeRegistry } from '../framework/type_registry';
 
-import { ContactCard, ContactCanvas } from './contact';
-import { DocumentColumn } from './document';
-
-// import { UserCard } from './user';
-// import { TeamCard } from './team';
-// import { PlaceCard } from './place';
-// import { ProjectCard, ProjectBoard } from './project';
-// import { TaskCard, TaskCompactCard } from './task';
+import { ContactCard, ContactCanvas } from '../type/contact';
+import { DocumentColumn } from '../type/document';
+//import { GroupCard } from '../type/group';
+//import { ProjectCard } from '../type/project';
+import { TaskCard } from '../type/task';
+//import { UserCard } from '../type/user';
 
 /**
  * Class utility to create the TypeRegistry singleton.
  */
 export const TypeRegistryFactory = () => new TypeRegistry({
 
-/*['Document', {*/
-//   icon: 'insert_drive_file',
-//   card: (itemId) => <DocumentCard itemId={ itemId }/>,
-//   column: (item) => <DocumentColumn item={ item }/>
-// }],
-//
 // ['Group', {
 //   icon: 'group',
 //   card: (itemId) => <TeamCard itemId={ itemId }/>,
 // }],
 //
-// ['Place', {
-//   icon: 'location_city',
-//   card: (itemId) => <PlaceCard itemId={ itemId }/>,
-// }],
 //
 // ['Project', {
 //   icon: 'assignment',
@@ -68,6 +56,11 @@ export const TypeRegistryFactory = () => new TypeRegistry({
   Document: {
     icon: 'insert_drive_file',
     column: (item) => <DocumentColumn item={ item }/>
+  },
+
+  Task: {
+    icon: 'assignment_turned_in',
+    card: (item) => <TaskCard item={ item }/>
   }
 
 });

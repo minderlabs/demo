@@ -19,4 +19,4 @@ class ItemsPicker extends Picker {
   }
 }
 
-export default ItemsQueryWrapper(ItemsPicker);
+export const FilteredItemsPicker = ItemsQueryWrapper(ItemsPicker);
