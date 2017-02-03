@@ -12,9 +12,9 @@ import { composeItem } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
-//
+//-------------------------------------------------------------------------------------------------
 // Components.
-//
+//-------------------------------------------------------------------------------------------------
 
 /**
  * Card.
@@ -61,9 +61,9 @@ export class ContactCanvasComponent extends React.Component {
   }
 }
 
-//
+//-------------------------------------------------------------------------------------------------
 // HOC.
-//
+//-------------------------------------------------------------------------------------------------
 
 const ContactQuery = gql`
   query ContactQuery($itemId: ID!) { 

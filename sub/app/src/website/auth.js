@@ -74,7 +74,7 @@ export class Auth {
         }
       })
       .catch((error) => {
-        console.log('ERROR', error);
+        console.error(error);
       });
   }
 
@@ -95,7 +95,7 @@ export class Auth {
         window.location.href = path;
       },
       function(error) {
-        console.log('ERROR', error);
+        console.error(error);
       });
   }
 
@@ -131,7 +131,7 @@ export class Auth {
         },
 
         error: (error) => {
-          console.log('ERROR', error);
+          console.error(error);
         }
       });
     });

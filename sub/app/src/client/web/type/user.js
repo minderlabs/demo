@@ -3,18 +3,75 @@
 //
 
 import React from 'react';
-import { Link } from 'react-router';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ID, ItemFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
+import { ItemFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
+import { List } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
-import { CardContainer } from '../component/card';
+import { Canvas } from '../component/canvas';
+import { TaskListItemRenderer } from './task';
+
+//-------------------------------------------------------------------------------------------------
+// Components.
+//-------------------------------------------------------------------------------------------------
 
 /**
- * Type-specific fragment.
+ * Canvas.
  */
+class UserCanvasComponent extends React.Component {
+
+  static propTypes = {
+    mutator: React.PropTypes.object.isRequired,
+    user: React.PropTypes.object.isRequired,
+    item: propType(UserFragment)
+  };
+
+  // TODO(burdon): Factor out (shared across types?). Normalize names (Item/Task).
+  handleItemSelect(item) {}
+  handleItemUpdate(item, mutations) {}
+  handleItemAdd() {
+    this.refs.tasks.addItem();
+  }
+
+  render() {
+    let { mutator, refetch, item } = this.props;
+
+    // TODO(burdon): Use List controls.
+
+    return (
+      <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch }>
+        <div className="app-type-user ux-column">
+
+          <div className="ux-section-header ux-row">
+            <h3 className="ux-expand">Owned</h3>
+            <i className="ux-icon" onClick={ this.handleItemAdd.bind(this) }>add</i>
+          </div>
+          <List ref="tasks"
+                items={ item.ownerTasks }
+                itemRenderer={ TaskListItemRenderer }
+                onItemSelect={ this.handleItemSelect.bind(this) }
+                onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+
+          <div className="ux-section-header ux-row">
+            <h3 className="ux-expand">Assigned</h3>
+          </div>
+          <List items={ item.assigneeTasks }
+                itemRenderer={ TaskListItemRenderer }
+                onItemSelect={ this.handleItemSelect.bind(this) }
+                onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+        </div>
+      </Canvas>
+    );
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
+// HOC.
+//-------------------------------------------------------------------------------------------------
+
+// TODO(burdon): Move to fragments.js
 const UserFragment = gql`
   fragment UserFragment on User {
     title
@@ -31,9 +88,7 @@ const UserFragment = gql`
   }
 `;
 
-/**
- * Type-specific query.
- */
+// TODO(burdon): Link to contact?
 const UserQuery = gql`
   query UserQuery($itemId: ID!) { 
     
@@ -47,81 +102,7 @@ const UserQuery = gql`
   ${UserFragment}  
 `;
 
-/**
- * Type-specific card container.
- */
-class UserCardComponent extends React.Component {
-
-  static propTypes = {
-    user: React.PropTypes.object.isRequired,
-    item: propType(UserFragment)
-  };
-
-  render() {
-    let { item, mutator, refetch, typeRegistry } = this.props;
-
-    return (
-      <CardContainer mutator={ mutator } refetch={ refetch } typeRegistry={ typeRegistry} item={ item }>
-        <UserLayout ref="item" item={ item }/>
-      </CardContainer>
-    );
-  }
-}
-
-/**
- * Type-specific layout.
- */
-class UserLayout extends React.Component {
-
-  render() {
-    let { item } = this.props;
-    if (!item) {
-      return <div/>;
-    }
-
-    // TODO(burdon): Use List controls.
-
-    return (
-      <div className="app-type-user ux-column">
-
-        <div className="ux-section-header ux-row">
-          <h3 className="ux-expand">Owned</h3>
-          <i className="ux-icon">add</i>
-        </div>
-        <div className="ux-list">
-          {item.ownerTasks.map(task => (
-            <div key={ task.id } className="ux-list-item ux-row">
-              <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
-                <i className="ux-icon">assignment_turned_in</i>
-              </Link>
-              <div className="ux-expand">{ task.title }</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="ux-section-header ux-row">
-          <h3 className="ux-expand">Assigned</h3>
-        </div>
-        <div className="ux-list">
-          {item.assigneeTasks.map(task => (
-            <div key={ task.id } className="ux-list-item ux-row">
-              <Link to={ '/task/' + ID.toGlobalId('Task', task.id) }>
-                <i className="ux-icon">assignment_turned_in</i>
-              </Link>
-              <div className="ux-expand">{ task.title }</div>
-            </div>
-          ))}
-        </div>
-
-      </div>
-    );
-  }
-}
-
-/**
- * HOC.
- */
-export const UserCard = composeItem(
+export const UserCanvas = composeItem(
   new ItemReducer({
     mutation: {
       type: UpdateItemMutation,
@@ -132,4 +113,4 @@ export const UserCard = composeItem(
       path: 'item'
     }
   })
-)(UserCardComponent);
+)(UserCanvasComponent);

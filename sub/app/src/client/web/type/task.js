@@ -17,9 +17,9 @@ import { Card } from '../component/card';
 
 import './task.less';
 
-//
+//-------------------------------------------------------------------------------------------------
 // Components.
-//
+//-------------------------------------------------------------------------------------------------
 
 const TaskStatus = ListItem.createInlineComponent((props, context) => {
   let { item } = context;
@@ -143,7 +143,7 @@ class TaskCanvasComponent extends React.Component {
 
   handleTaskSelect(item) {
     console.assert(item);
-    this.context.navigator.push(Path.canvas(ID.toGlobalId('Task', item.id)));
+    this.context.navigator.push(Path.canvas(ID.getGlobalId(item)));
   }
 
   handleTaskUpdate(item, mutations) {
@@ -236,9 +236,9 @@ class TaskCanvasComponent extends React.Component {
   }
 }
 
-//
+//-------------------------------------------------------------------------------------------------
 // HOC.
-//
+//-------------------------------------------------------------------------------------------------
 
 const TaskQuery = gql`
   query TaskQuery($itemId: ID!) { 

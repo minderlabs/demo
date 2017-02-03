@@ -94,8 +94,8 @@ export class Board extends React.Component {
     });
 
     return (
-      <div className="ux-board">
-        <div className="ux-scroll-x-container">
+      <div className="ux-board ux-scroll-container">
+        <div className="ux-scroll-x-panel">
           <div className="ux-board-columns">
             { columnsDivs }
           </div>

@@ -10,10 +10,10 @@ import { ItemCard, ItemCanvas } from '../type/item';
 
 import { ContactCard, ContactCanvas } from '../type/contact';
 import { DocumentColumn } from '../type/document';
-//import { GroupCard } from '../type/group';
-//import { ProjectCard } from '../type/project';
+import { GroupCanvas } from '../type/group';
+import { ProjectCanvas } from '../type/project';
 import { TaskCard, TaskCanvas } from '../type/task';
-//import { UserCard } from '../type/user';
+import { UserCanvas } from '../type/user';
 
 /**
  * Class utility to create the TypeRegistry singleton.
@@ -24,7 +24,7 @@ export const TypeRegistryFactory = () => new TypeRegistry({
     icon: 'contacts',
     card: (item) => <ContactCard item={ item }/>,
     canvas: {
-      def: (itemId) => <ContactCanvas itemId={ itemId }/>     // TODO(burdon): Tasks.
+      def: (itemId) => <ContactCanvas itemId={ itemId }/>
     }
   },
 
@@ -36,7 +36,7 @@ export const TypeRegistryFactory = () => new TypeRegistry({
   Group: {
     icon: 'group',
     canvas: {
-      def: (itemId) => <ItemCanvas itemId={ itemId }/>        // TODO(burdon): Group -> Members + Projects.
+      def: (itemId) => <GroupCanvas itemId={ itemId }/>
     }
   },
 
@@ -44,7 +44,7 @@ export const TypeRegistryFactory = () => new TypeRegistry({
     icon: 'assignment',
     card: (item) => <ItemCard item={ item }/>,                // TODO(burdon): Project -> Tasks (priority).
     canvas: {
-      def: (itemId) => <ItemCanvas itemId={ itemId }/>        // TODO(burdon): Board -> Members/Tasks.
+      def: (itemId) => <ProjectCanvas itemId={ itemId }/>
     }
   },
 
@@ -59,7 +59,7 @@ export const TypeRegistryFactory = () => new TypeRegistry({
   User: {
     icon: 'accessibility',
     canvas: {
-      def: (itemId) => <ItemCanvas itemId={ itemId }/>        // TODO(burdon): User -> Tasks.
+      def: (itemId) => <UserCanvas itemId={ itemId }/>
     }
   }
 

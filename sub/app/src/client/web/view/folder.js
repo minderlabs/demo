@@ -147,14 +147,10 @@ class FolderView extends React.Component {
 
     return (
       <div className="app-folder-view ux-column">
-        <div className="ux-scroll-container">
-          <div className="ux-scroll-panel">
-            <SearchList filter={ filter }
-                        groupBy={ true }
-                        itemRenderer={ this._itemRenderer }
-                        onItemSelect={ this.handleItemSelect.bind(this) }/>
-          </div>
-        </div>
+        <SearchList filter={ filter }
+                    groupBy={ true }
+                    itemRenderer={ this._itemRenderer }
+                    onItemSelect={ this.handleItemSelect.bind(this) }/>
 
         <div className="ux-section ux-toolbar">
           <TextBox ref="text" className="ux-expand" onEnter={ this.handleItemCreate.bind(this) }/>

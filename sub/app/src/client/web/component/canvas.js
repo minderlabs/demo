@@ -28,6 +28,17 @@ export class CanvasContainer extends React.Component {
     canvas: React.PropTypes.string
   };
 
+  static childContextTypes = {
+    typeRegistry: React.PropTypes.object
+  };
+
+  getChildContext() {
+    let { typeRegistry } = this.props;
+    return {
+      typeRegistry
+    };
+  }
+
   render() {
     let { typeRegistry, itemId, canvas } = this.props;
 
@@ -148,11 +159,9 @@ export class Canvas extends React.Component {
                     onChange={ this.handlePropertyChange.bind(this, 'description') }/>
         </div>
 
-        <div>
-          { debugSection }
-        </div>
+        { debugSection }
 
-        <div>
+        <div className="ux-expand">
           { children }
         </div>
       </div>

@@ -40,7 +40,7 @@ export class ID {
   }
 
   /**
-   *
+   * Converts a global ID.
    * @param globalId
    * @returns {{type: *, id: *}}
    */
@@ -54,14 +54,23 @@ export class ID {
   }
 
   /**
-   *
-   * @param type
-   * @param localId
+   * Converts a local ID and type.
+   * @param {string} type
+   * @param {string} localId
    * @returns {string}
    */
   static toGlobalId(type, localId) {
     console.assert(_.isString(type) && _.isString(localId));
     return btoa(type + '/' + localId);
+  }
+
+  /**
+   * Returns the global ID of the item.
+   * @param item
+   * @return {string}
+   */
+  static getGlobalId(item) {
+    return ID.toGlobalId(item.type, item.id);
   }
 }
 

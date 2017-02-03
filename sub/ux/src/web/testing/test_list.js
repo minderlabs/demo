@@ -77,12 +77,10 @@ export default class TestList extends React.Component {
           <div className="ux-text ux-text-nocollapse">{ this.state.value }</div>
         </div>
 
-        <div className="ux-scroll-container">
-          <div className="ux-scroll-panel">
-            <List items={ this.state.items }
-                  itemRenderer={ this.itemRenderer }
-                  onItemSelect={ this.handleSelect.bind(this) }/>
-          </div>
+        <div className="ux-expand">
+          <List items={ this.state.items }
+                itemRenderer={ this.itemRenderer }
+                onItemSelect={ this.handleSelect.bind(this) }/>
         </div>
 
         <div className="ux-bar">

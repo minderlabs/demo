@@ -8,13 +8,12 @@ Logger.setLevel({
 
 import { ChromeMessageChannelDispatcher, Listeners, TypeUtil } from 'minder-core';
 
-import { AuthManager, ConnectionManager, NetworkManager } from '../web/network';
+import { AuthManager, ConnectionManager, NetworkManager } from '../common/network';
 import { ChromeNetworkInterface } from './util/network';
 import { Notification } from './util/notification';
 import { Settings } from './util/settings';
-import { BackgroundCommand } from './common';
 
-import { DefaultSettings } from './common';
+import { BackgroundCommand, DefaultSettings } from './common';
 
 /**
  * Background Page.
@@ -30,7 +29,7 @@ import { DefaultSettings } from './common';
  *             (WindowMessenger)        (ChromeChannel)                   |
  *                                  (ChromeNetworkInterface)      (NetworkInterface)
  *
- * TODO(burdon): Cache and subscribe to live queries.
+ * TODO(burdon): Cache and subscribe to live queries (via GQL directive).
  */
 class BackgroundApp {
 
