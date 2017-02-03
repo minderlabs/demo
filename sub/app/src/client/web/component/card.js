@@ -18,10 +18,10 @@ export class Card extends React.Component {
 
     return (
       <div className="ux-card">
-        <div>
+        <div className="ux-card-header">
           <h1>{ item.title }</h1>
         </div>
-        <div>
+        <div className="ux-card-body">
           { children }
         </div>
       </div>

@@ -145,7 +145,7 @@ export class Canvas extends React.Component {
     return (
       <div className="ux-canvas">
         <div className="ux-row">
-          <TextBox className="ux-expand ux-font-large"
+          <TextBox className="ux-expand ux-noborder ux-font-large"
                    value={ title }
                    onChange={ this.handlePropertyChange.bind(this, 'title') }/>
 

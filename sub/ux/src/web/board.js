@@ -68,7 +68,9 @@ export class Board extends React.Component {
     let { columnMapper, itemRenderer, itemOrderModel } = this.props;
     let { items, columns } = this.state;
 
+    //
     // Columns.
+    //
     let columnsDivs = columns.map(column => {
 
       // Get items for column (in order).
@@ -80,15 +82,13 @@ export class Board extends React.Component {
             <h2>{ column.title }</h2>
           </div>
 
-          <div className="ux-board-list">
-            <DragDropList data={ column.id }
-                          items={ columnItems }
-                          itemClassName="ux-board-list-item"
-                          itemRenderer={ itemRenderer }
-                          itemOrderModel={ itemOrderModel }
-                          onItemDrop={ this.handleItemDrop.bind(this) }
-                          onItemSelect={ this.handleItemSelect.bind(this) }/>
-          </div>
+          <DragDropList data={ column.id }
+                        items={ columnItems }
+                        itemClassName="ux-board-list-item"
+                        itemRenderer={ itemRenderer }
+                        itemOrderModel={ itemOrderModel }
+                        onItemDrop={ this.handleItemDrop.bind(this) }
+                        onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
       );
     });

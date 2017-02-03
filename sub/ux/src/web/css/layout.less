@@ -42,11 +42,10 @@
 
 //
 // Panel
-// TODO(burdon): Rationalize panel, section, etc.
 //
 
 .ux-panel {
-  _display: flex;
+  display: flex;
 }
 
 //
@@ -62,6 +61,10 @@
   flex-direction: column;
   flex-grow: 1;
   overflow: hidden;
+
+  > .ux-row {
+    border-bottom: 1px solid #DDD;
+  }
 }
 
 //
@@ -69,7 +72,32 @@
 //
 
 .ux-card {
+  display: flex;
+  flex-direction: column;
 
+  width: @ux-card-width;
+
+  // TODO(burdon): Theme.
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 1px #AAA;
+
+  .ux-card-header {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    background-color: gainsboro;
+    padding: 4px;
+
+    h1 {
+      font-size: @ux-font-medium;
+    }
+  }
+
+  .ux-card-body {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    padding: 4px;
+  }
 }
 
 //

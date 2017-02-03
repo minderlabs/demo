@@ -15,15 +15,17 @@ export class MutationUtil {
    * Creates a mutation field if the old and new values are different.
    *
    * @param field
-   * @param type
-   * @param value
+   * @param type If null, then set nul value.
+   * @param value If null, then set null value.
    * @returns {mutation}
    */
-  static createFieldMutation(field, type, value) {
+  static createFieldMutation(field, type=null, value=null) {
     console.assert(field && type);
     return {
       field: field,
-      value: {
+      value: !type || _.isNil(value) ? {
+        null: true
+      } : {
         [type]: value
       }
     };
@@ -41,7 +43,7 @@ export class MutationUtil {
       field: 'labels',
       value: {
         set: [{
-          add: set ? true : false,
+          add: set == true,
           value: {
             string: label
           }

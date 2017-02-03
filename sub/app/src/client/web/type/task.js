@@ -17,6 +17,14 @@ import { Card } from '../component/card';
 
 import './task.less';
 
+// TODO(burdon): Get from query (see test.json).
+export const TASK_LEVELS = [
+  { value: 0, title: 'Unstarted'  },
+  { value: 1, title: 'Active'     },
+  { value: 2, title: 'Complete'   },
+  { value: 3, title: 'Blocked'    }
+];
+
 //-------------------------------------------------------------------------------------------------
 // Components.
 //-------------------------------------------------------------------------------------------------
@@ -56,35 +64,44 @@ export const TaskListItemRenderer = (item) => {
  */
 export class TaskCard extends React.Component {
 
+  static contextTypes = {
+    navigator: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired
+  };
+
   static propTypes = {
     item: propType(TaskFragment)
   };
 
   handleItemSelect(item) {
-    // TODO(burdon): context?
-    console.log('SELECT', item);
+    this.context.navigator.push(Path.canvas(ID.getGlobalId(item)));
   }
 
   handleItemUpdate(item, mutations) {
-    // TODO(burdon): context?
-    console.log('UPDATE', item, mutations);
+    this.context.mutator.updateItem(item, mutations);
   }
 
   render() {
     let { item } = this.props;
-
-    // TODO(burdon): Inline tasks (pass mutations to card which uses context?).
+    let { assignee, description='' } = item;
 
     return (
       <Card ref="card" item={ item }>
-        <div>{ _.get(item, 'assignee.title') }</div>
-        <div>{ _.get(item, 'status', 0) }</div>
+        { description &&
+        <div className="ux-font-xsmall">{ description }</div>
+        }
+
+        <List items={ item.tasks }
+              itemRenderer={ TaskListItemRenderer }
+              onItemSelect={ this.handleItemSelect.bind(this) }
+              onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+
+        { assignee &&
         <div>
-          <List items={ item.tasks }
-                itemRenderer={ TaskListItemRenderer }
-                onItemSelect={ this.handleItemSelect.bind(this) }
-                onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+          <span className="ux-font-xsmall">Assigned: </span>
+          <span>{ assignee.title }</span>
         </div>
+        }
       </Card>
     );
   }
@@ -160,12 +177,16 @@ class TaskCanvasComponent extends React.Component {
 
     let mutations = [];
 
-    if (!_.isEqual(_.get(this.state, 'status'), _.get(item, 'status'))) {
+    if (!_.isEqual(_.get(this.state, 'status', 0), _.get(item, 'status'))) {
       mutations.push(MutationUtil.createFieldMutation('status', 'int', _.get(this.state, 'status')));
     }
 
-    if (!_.isEqual(_.get(this.state, 'assignee', null), _.get(item, 'assignee.id'))) {
-      mutations.push(MutationUtil.createFieldMutation('assignee', 'id', _.get(this.state, 'assignee')));
+    let assigneeId = _.get(this.state, 'assignee');
+    let currentAssigneeId = _.get(item, 'assignee.id');
+    if (assigneeId && assigneeId !== currentAssigneeId) {
+      mutations.push(MutationUtil.createFieldMutation('assignee', 'id', assigneeId));
+    } else if (!assigneeId && currentAssigneeId) {
+      mutations.push(MutationUtil.createFieldMutation('assignee'));
     }
 
     return mutations;
@@ -183,6 +204,9 @@ class TaskCanvasComponent extends React.Component {
       type: 'User',
       text: assigneeText
     };
+
+    let levels = TASK_LEVELS.map(level =>
+      <option key={ level.value } value={ level.value }>{ level.title }</option>);
 
     return (
       <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
@@ -210,10 +234,7 @@ class TaskCanvasComponent extends React.Component {
             <div className="ux-data-row">
               <div className="ux-data-label">Status</div>
               <select value={ status } onChange={ this.handleSetStatus.bind(this) }>
-                <option value="0">Unstarted</option>
-                <option value="1">Assigned</option>
-                <option value="2">Active</option>
-                <option value="3">Complete</option>
+                { levels }
               </select>
             </div>
           </div>

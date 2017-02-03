@@ -3,15 +3,13 @@
 //
 
 import React from 'react';
-import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
+import { ID, ItemReducer, MutationUtil } from 'minder-core';
 import { ItemFragment, ProjectBoardFragment, TaskFragment, UpdateItemMutation } from 'minder-core';
-import { Board, DragOrderModel, List, ListItem } from 'minder-ux';
+import { Board, DragOrderModel, List } from 'minder-ux';
 
 import { Path } from '../path';
-import { ItemList, UserTasksList, getWrappedList } from '../framework/list_factory';
 import { composeItem } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
@@ -30,10 +28,15 @@ class ProjectCanvasComponent extends React.Component {
 
   static contextTypes = {
     typeRegistry: React.PropTypes.object.isRequired,
-    navigator: React.PropTypes.object.isRequired,
+    navigator: React.PropTypes.object.isRequired
+  };
+
+  static childContextTypes = {
+    mutator: React.PropTypes.object
   };
 
   static propTypes = {
+    mutator: React.PropTypes.object.isRequired,
     user: React.PropTypes.object.isRequired,
     item: React.PropTypes.object,
     board: React.PropTypes.string
@@ -43,6 +46,13 @@ class ProjectCanvasComponent extends React.Component {
     board: null,
     itemOrderModel: new DragOrderModel()
   };
+
+  getChildContext() {
+    let { mutator } = this.props;
+    return {
+      mutator
+    }
+  }
 
   componentWillReceiveProps(nextProps) {
     let { item:project } = nextProps;
@@ -133,7 +143,6 @@ class ProjectCanvasComponent extends React.Component {
 
     let items = _.get(project, 'tasks', []);
 
-    // TODO(burdon): Config value (remove Assigned from status: i.e., separate field).
     const columns = _.map(_.get(board, 'columns'), column => ({
       id: column.id,
       value: column.value.int,
