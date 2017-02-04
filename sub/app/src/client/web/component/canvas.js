@@ -24,8 +24,9 @@ export class CanvasContainer extends React.Component {
 
   static propTypes = {
     typeRegistry: React.PropTypes.object.isRequired,
-    itemId: React.PropTypes.string.isRequired,
-    canvas: React.PropTypes.string
+    type: React.PropTypes.string.isRequired,
+    canvas: React.PropTypes.string,
+    itemId: React.PropTypes.string.isRequired
   };
 
   static childContextTypes = {

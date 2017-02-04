@@ -8,12 +8,13 @@ import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
 import { CanvasContainer } from '../component/canvas';
 import { TypeRegistry } from '../framework/type_registry';
+
 import FinderView from '../view/finder';
 
 /**
  * Canvas Activity.
  */
-export default class CanvasActivity extends React.Component {
+class CanvasActivity extends React.Component {
 
   /**
    * Params set by the router.
@@ -34,10 +35,10 @@ export default class CanvasActivity extends React.Component {
   render() {
     let { config, injector } = this.context;
     let { params } = this.props;
-    let { canvas, itemId } = params;
+    let { type, canvas, itemId } = params;
 
     let canvasComponent = (
-      <CanvasContainer typeRegistry={ injector.get(TypeRegistry) } canvas={ canvas } itemId={ itemId }/>
+      <CanvasContainer typeRegistry={ injector.get(TypeRegistry) } type={ type } canvas={ canvas } itemId={ itemId }/>
     );
 
     // TODO(burdon): Layout based on form factor. Replace "expand" prop below with app state.
@@ -59,3 +60,5 @@ export default class CanvasActivity extends React.Component {
     }
   }
 }
+
+export default CanvasActivity;

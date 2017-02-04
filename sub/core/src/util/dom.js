@@ -10,6 +10,14 @@ export class DomUtil {
   static isMobile() {
     return !!navigator.userAgent.match(/(Android|iPhone|iPod)/);
   }
+
+  /**
+   * @param [{string}] variable length class names (which may be blank).
+   * @returns {string} Space separated list of classnames.
+   */
+  static className() {
+    return _.compact(arguments).join(' ');
+  }
 }
 
 /**

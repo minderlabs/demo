@@ -10,7 +10,7 @@ import FolderView from './folder';
 /**
  * Left nav finder.
  */
-export default class FinderView extends React.Component {
+class FinderView extends React.Component {
 
   render() {
     let { folder } = this.props;
@@ -18,8 +18,10 @@ export default class FinderView extends React.Component {
     return (
       <div className="ux-column">
         <SearchView/>
-        <FolderView folder={ folder } sub={ 1 }/>
+        <FolderView folder={ folder }/>
       </div>
     )
   }
 }
+
+export default FinderView;

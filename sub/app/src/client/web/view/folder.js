@@ -8,22 +8,17 @@ import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { QueryParser, Mutator, MutationUtil, TypeUtil, UpdateItemMutation } from 'minder-core';
-import { List, ListItem, TextBox } from 'minder-ux';
+import { List, TextBox } from 'minder-ux';
 
 import { AppAction, ContextAction } from '../reducers';
 
-import { SearchList } from '../framework/list_factory';
+import { BasicSearchList, BasicListItemRenderer, CardSearchList } from '../framework/list_factory';
 import { TypeRegistry } from '../framework/type_registry';
 
 import './folder.less';
 
 /**
  * Folder View.
- * http://dev.apollodata.com/react
- *
- * NOTES:
- * @graphql creates a "Higher Order Component" (i.e., a smart container that wraps the "dumb" React component).
- * http://dev.apollodata.com/react/higher-order-components.html
  */
 class FolderView extends React.Component {
 
@@ -35,33 +30,12 @@ class FolderView extends React.Component {
     user: React.PropTypes.object.isRequired
   };
 
-  constructor() {
-    super(...arguments);
-
-    this._itemRenderer = (item) => {
-      let icon = item.iconUrl || this.props.typeRegistry.icon(item);
-      let column = this.props.typeRegistry.column(item);
-      let custom = column && (<div className="ux-noshrink">{ column }</div>);
-
-      return (
-        <ListItem item={ item }>
-          <ListItem.Favorite onSetLabel={ this.handleSetLabel.bind(this) }/>
-          <ListItem.Title select={ true }/>
-          { custom }
-          <div className="ux-icons ux-noshrink">
-            <ListItem.Icon icon={ icon }/>
-            <ListItem.Delete onDelete={ this.handleItemDelete.bind(this) }/>
-          </div>
-        </ListItem>
-      );
-    };
-
-//  this._itemRenderer = List.DebugItemRenderer(['id', 'refs']);
+  handleItemSelect(item) {
+    this.context.navigator.pushCanvas(item);
   }
 
-  handleItemSelect(item) {
-    // TODO(burdon): Depends on layout.
-    this.context.navigator.pushCanvas(item);
+  handleItemUpdate(item, mutations) {
+    this.props.mutator.updateItem(item, mutations);
   }
 
   handleItemCreate() {
@@ -69,57 +43,30 @@ class FolderView extends React.Component {
 
     let title = _.trim(this.refs.text.value);
     if (title) {
-
-      // TODO(burdon): If no type then hide create button.
-      let type = _.get(filter, 'type', 'Task');
-
-      // Basic mutation.
       let mutations = [
-        {
-          field: 'title',
-          value: {
-            string: title
-          }
-        }
+        MutationUtil.createFieldMutation('title', 'string', title)
       ];
 
-      // TODO(burdon): Factor out type-specific fields.
       switch (type) {
         case 'Project': {
           TypeUtil.merge(mutations, [
-            {
-              field: 'team',
-              value: {
-                id: team
-              }
-            }
+            MutationUtil.createFieldMutation('team', 'id', team)
           ]);
           break;
         }
 
         case 'Task': {
           TypeUtil.merge(mutations, [
-            {
-              field: 'owner',             // TODO(burdon): Promote for all items.
-              value: {
-                id: user.id
-              }
-            },
-            {
-              field: 'labels',
-              value: {
-                set: [{
-                  value: {
-                    string: '_private'    // TODO(burdon): By default?
-                  }
-                }]
-              }
-            }
+            // TODO(burdon): Promote to all types.
+            MutationUtil.createFieldMutation('owner', 'id', user.id),
+            MutationUtil.createLabelMutation('_private')
           ]);
           break;
         }
       }
 
+      // TODO(burdon): If no type then hide create button.
+      let type = _.get(filter, 'type', 'Task');
       this.props.mutator.createItem(type, mutations);
 
       this.refs.text.value = '';
@@ -127,30 +74,33 @@ class FolderView extends React.Component {
     }
   }
 
-  handleItemDelete(item) {
-    this.props.mutator.updateItem(item, [
-      MutationUtil.createDeleteMutation(_.findIndex(item.labels, '_deleted') != -1)
-    ]);
-  }
-
-  handleSetLabel(item, label, set) {
-    this.props.mutator.updateItem(item, [
-      MutationUtil.createLabelMutation(label, set)
-    ]);
-  }
-
   render() {
-//  console.log('Folderg.render');
+    let { typeRegistry, filter, listType } = this.props;
 
-    // http://dev.apollodata.com/react/queries.html#default-result-props
-    let { filter } = this.props;
+    // TODO(burdon): Get type from config.
+    // TODO(burdon): Factor out for performance.
+    let list;
+    switch (listType) {
+      case 'card':
+        list = <CardSearchList filter={ filter }
+                               highlight={ false }
+                               itemRenderer={ List.CardRenderer(typeRegistry) }
+                               onItemSelect={ this.handleItemSelect.bind(this) }
+                               onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
+        break;
+
+      case 'list':
+      default:
+        list = <BasicSearchList filter={ filter }
+                                groupBy={ true }
+                                itemRenderer={ BasicListItemRenderer(typeRegistry) }
+                                onItemSelect={ this.handleItemSelect.bind(this) }
+                                onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
+    }
 
     return (
       <div className="app-folder-view ux-column">
-        <SearchList filter={ filter }
-                    groupBy={ true }
-                    itemRenderer={ this._itemRenderer }
-                    onItemSelect={ this.handleItemSelect.bind(this) }/>
+        { list }
 
         <div className="ux-section ux-toolbar">
           <TextBox ref="text" className="ux-expand" onEnter={ this.handleItemCreate.bind(this) }/>
@@ -161,9 +111,9 @@ class FolderView extends React.Component {
   }
 }
 
-//
-// Queries.
-//
+//-------------------------------------------------------------------------------------------------
+// HOC.
+//-------------------------------------------------------------------------------------------------
 
 const FoldersQuery = gql`
   query FoldersQuery { 
@@ -177,14 +127,15 @@ const FoldersQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
-//console.log('Folder.mapStateToProps: %s', JSON.stringify(Object.keys(ownProps)));
-
-  // NOTE: Search state come from dispatch via SearchBar.
-  let { injector, search, user, team } = AppAction.getState(state);
+  let { config, injector, search, user, team } = AppAction.getState(state);
   let { context } = ContextAction.getState(state);
+
   let typeRegistry = injector.get(TypeRegistry);
   let queryParser = injector.get(QueryParser);
   let filter = queryParser.parse(search.text);
+
+  // TODO(burdon): Move to layout config.
+  let listType = _.get(config, 'app.platform') == 'crx' ? 'card' : 'list';
 
   // Use contextual filter.
   if (context && context.filter) {
@@ -192,9 +143,11 @@ const mapStateToProps = (state, ownProps) => {
   }
 
   return {
-    // TODO(burdon): Provide for Mutator.graphql
+    // TODO(burdon): Wrap connect to provide injector for for Mutator.graphql
+    // AppAction.connect(mapStateToProps),
     injector,
 
+    listType,
     typeRegistry,
     filter,
     search,
@@ -213,8 +166,8 @@ export default compose(
 
     // Configure props passed to component.
     // http://dev.apollodata.com/react/queries.html#graphql-props
+    // http://dev.apollodata.com/react/queries.html#default-result-props
     props: ({ ownProps, data }) => {
-//    console.log('Folder.props: ', JSON.stringify(Object.keys(data)));
       let { folders } = data;
       let { filter } = ownProps;
 

@@ -258,10 +258,10 @@ interface Item {
 }
 
 #
-# User Item Types.
+# Item Types.
 #
 
-type User implements Item {
+type Contact implements Item {
   id: ID!
   bucket: ID
   type: String!
@@ -273,14 +273,9 @@ type User implements Item {
   labels: [String]
 
   email: String
-
-  contact: Contact
-
-  # TODO(burdon): Remove (only query via project links).
-  tasks(filter: FilterInput): [Task]!
 }
 
-type Group implements Item {
+type Document implements Item {
   id: ID!
   bucket: ID
   type: String!
@@ -291,8 +286,27 @@ type Group implements Item {
   description: String
   labels: [String]
 
-  members: [User]!
-  projects: [Project]!
+  # TODO(burdon): Move url, iconUrl, thumbnailUrl to ItemFragment
+  url: String
+  iconUrl: String
+  thumbnailUrl: String
+
+  source: String
+}
+
+type Event implements Item {
+  id: ID!
+  bucket: ID
+  type: String!
+  alias: String
+  created: Timestamp!
+  modified: Timestamp!
+  title: String!
+  description: String
+  labels: [String]
+
+  location: Place
+  participants: [Contact]
 }
 
 type Folder implements Item {
@@ -312,7 +326,7 @@ type Folder implements Item {
   filter: String!
 }
 
-type Contact implements Item {
+type Group implements Item {
   id: ID!
   bucket: ID
   type: String!
@@ -323,7 +337,22 @@ type Contact implements Item {
   description: String
   labels: [String]
 
-  email: String
+  members: [User]!
+  projects: [Project]!
+}
+
+type Place implements Item {
+  id: ID!
+  bucket: ID
+  type: String!
+  alias: String
+  created: Timestamp!
+  modified: Timestamp!
+  title: String!
+  description: String
+  labels: [String]
+
+  geo: Geo
 }
 
 type Project implements Item {
@@ -376,7 +405,7 @@ type Task implements Item {
   assignee: User
 }
 
-type Event implements Item {
+type User implements Item {
   id: ID!
   bucket: ID
   type: String!
@@ -387,39 +416,12 @@ type Event implements Item {
   description: String
   labels: [String]
 
-  location: Place
-  participants: [Contact]
-}
+  email: String
 
-type Place implements Item {
-  id: ID!
-  bucket: ID
-  type: String!
-  alias: String
-  created: Timestamp!
-  modified: Timestamp!
-  title: String!
-  description: String
-  labels: [String]
+  contact: Contact
 
-  geo: Geo
-}
-
-type Document implements Item {
-  id: ID!
-  bucket: ID
-  type: String!
-  alias: String           # User short-name for links.
-  created: Timestamp!
-  modified: Timestamp!
-  title: String!
-  description: String
-  labels: [String]
-
-  url: String
-  source: String
-  iconUrl: String
-  thumbnailUrl: String
+  # TODO(burdon): Remove (only query via project links).
+  tasks(filter: FilterInput): [Task]!
 }
 
 #

@@ -7,8 +7,17 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { DocumentFragment, Getter, Matcher, Mutator, ListReducer, UpdateItemMutation } from 'minder-core';
-import { List } from 'minder-ux';
+import { Getter, Matcher, Mutator, ListReducer } from 'minder-core';
+import {
+  ItemFragment,
+  ContactFragment,
+  DocumentFragment,
+  ProjectFragment,
+  TaskFragment,
+  UpdateItemMutation
+} from 'minder-core';
+
+import { List, ListItem } from 'minder-ux';
 
 import { AppAction } from '../reducers';
 
@@ -108,40 +117,20 @@ function composeList(reducer) {
  */
 export const getWrappedList = function(hoc) {
 
+  // TODO(burdon): Move to minder-core.
+
   // https://github.com/apollostack/react-apollo/issues/118
   // http://dev.apollodata.com/react/higher-order-components.html#with-ref
   // https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options
   return hoc.getWrappedInstance().getWrappedInstance().getWrappedInstance();
 };
 
+//-------------------------------------------------------------------------------------------------
+// Basic List.
+//-------------------------------------------------------------------------------------------------
 
-//
-// HOC Lists.
-//
-
-// TODO(burdon): Filter items.
-// import { filter } from 'graphql-anywhere';
-// <ListItem item={ filter(this.getItemFragment(), item) }
-
-// TODO(burdon): Warning: fragment with name ListItemFragment already exists.
-// May be spurious (see http://dev.apollodata.com/react/fragments.html)
-// https://github.com/apollostack/graphql-tag/pull/22 [12/1/16] => 0.6
-
-// TODO(madadam). Each type-specific ListItem type needs to define its own fragment. Currently hard-coded
-// here (e.g. DocumentFragment). Instead, getItemFragment should iterate over the TypeRegistry to get
-// type-specific fragments to include.
-
-/**
- * Defines properties needed by Item.
- * NOTE: External definition used by static propTypes.
- *
- * http://dev.apollodata.com/react/fragments.html#reusing-fragments
- * http://dev.apollodata.com/core/fragments.html
- * http://github.com/apollostack/graphql-fragments
- */
-const ListItemFragment = gql`
-  fragment ListItemFragment on Item {
-    __typename
+const BasicItemFragment = gql`
+  fragment BasicItemFragment on Item {
     id
     type
 
@@ -154,122 +143,124 @@ const ListItemFragment = gql`
   ${DocumentFragment}
 `;
 
-/**
- * List of search results.
- */
-const SearchQuery = gql`
+// TODO(burdon): Project-specific grouping (refs).
+const BasicSearchQuery = gql`
   query SearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
 
     search(filter: $filter, offset: $offset, count: $count) {
-      __typename
       id
 
-      ...ListItemFragment
-      
-      ...on Project {
+      ...BasicItemFragment
+
+      ... on Project {
         refs {
-          ...ListItemFragment
+          ...BasicItemFragment
         }
       }
     }
   }
 
-  ${ListItemFragment}
+  ${BasicItemFragment}
 `;
 
-export const SearchList = composeList(
+export const BasicSearchList = composeList(
   new ListReducer({
     mutation: {
       type: UpdateItemMutation,
       path: 'updateItem'
     },
     query: {
-      type: SearchQuery,
+      type: BasicSearchQuery,
       path: 'search'
     }
   })
 );
 
-/**
- * Generic list of items.
- */
-const ItemsQuery = gql`
-  query ItemsQuery($filter: FilterInput, $offset: Int, $count: Int) {
+const CustomIcon = ListItem.createInlineComponent((props, context) => {
+  let { item } = context;
+  let { typeRegistry } = props;
+  return (
+    <ListItem.Icon icon={ item.iconUrl || typeRegistry.icon(item) }/>
+  )
+});
 
-    items(filter: $filter, offset: $offset, count: $count) {
-      __typename
-      id
-
-      ...ListItemFragment
-    }
-  }
-
-  ${ListItemFragment}
-`;
-
-export const ItemList = composeList(
-  new ListReducer({
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    },
-    query: {
-      type: ItemsQuery,
-      path: 'items'
-    }
-  })
-);
+const CustomColumn = ListItem.createInlineComponent((props, context) => {
+  let { item } = context;
+  let { typeRegistry } = props;
+  let column = typeRegistry.column(item);
+  return (
+    <div className="ux-noshrink">{ column }</div>
+  );
+});
 
 /**
- * List of user items.
- * TODO(madadam): Pagination (offset/count) for tasks.
+ * NOTE: Depends on ItemFragment fields.
  */
-const UserTasksQuery = gql`
-  query UserTasksQuery($filter: FilterInput) {
-
-    viewer {
-      id
-      
-      user {
-        id
-        tasks(filter: $filter) {
-          __typename
-          id
-          
-          ...ListItemFragment
-        }
-      }
-    }
-  }
-    
-  ${ListItemFragment}
-`;
-
-const UserTasksReducer = (matcher, context, filter, previousResult, updatedItem) => {
-  // TODO(burdon): Handle delete.
-  if (matcher.matchItem(context, {}, filter, updatedItem)) {
-    return {
-      viewer: {
-        user: {
-          tasks: {
-            $push: [ updatedItem ]
-          }
-        }
-      }
-    };
-  }
+export const BasicListItemRenderer = (typeRegistry) => (item) => {
+  return (
+    <ListItem item={ item }>
+      <ListItem.Favorite/>
+      <ListItem.Title select={ true }/>
+      <CustomColumn typeRegistry={ typeRegistry }/>
+      <div className="ux-icons ux-noshrink">
+        <CustomIcon typeRegistry={ typeRegistry }/>
+        <ListItem.Delete/>
+      </div>
+    </ListItem>
+  );
 };
 
-export const UserTasksList = composeList(
+//-------------------------------------------------------------------------------------------------
+// Card List.
+//-------------------------------------------------------------------------------------------------
+
+/**
+ * Contains all fragments (since any card may be rendered).
+ */
+const CardItemFragment = gql`
+  fragment CardItemFragment on Item {
+    ...ItemFragment
+    ...ContactFragment
+    ...DocumentFragment
+    ...ProjectFragment
+    ...TaskFragment
+  }
+
+  ${ItemFragment}
+  ${ContactFragment}
+  ${DocumentFragment}
+  ${ProjectFragment}
+  ${TaskFragment}
+`;
+
+const CardSearchQuery = gql`
+  query SearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
+
+    search(filter: $filter, offset: $offset, count: $count) {
+      id
+
+      ... on Task {
+        tasks {
+          ...TaskFragment
+        }
+      }
+      
+      ...CardItemFragment
+    }
+  }
+
+  ${CardItemFragment}
+`;
+
+export const CardSearchList = composeList(
   new ListReducer({
     mutation: {
       type: UpdateItemMutation,
       path: 'updateItem'
     },
     query: {
-      type: UserTasksQuery,
-      path: 'viewer.user.tasks'
+      type: CardSearchQuery,
+      path: 'search'
     }
-  },
-  UserTasksReducer)
+  })
 );

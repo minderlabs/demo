@@ -7,12 +7,10 @@ import { IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { connect } from 'react-redux'
 import { ApolloProvider } from 'react-apollo';
 
-import { Path } from '../../web/path';
-import CanvasActivity from '../../web/activity/canvas';
 import FinderActivity from '../../web/activity/finder';
-import TestingActivity from '../../web/activity/testing';
 
 import { AppAction } from '../../web/reducers';
+import { Path } from '../../web/path';
 
 /**
  * Main Application Root component.
@@ -49,11 +47,7 @@ class Application extends React.Component {
           <Route path={ Path.ROOT }>
             <IndexRedirect to={ Path.HOME }/>
 
-            {/* E.g., /app/inbox, /app/favorites?selected=xxx */}
             <Route path={ Path.route(['folder']) } component={ FinderActivity }/>
-
-            {/* E.g., /app/card/xxx, /app/board/xxx */}
-            <Route path={ Path.route(['canvas', 'itemId']) } component={ CanvasActivity }/>
 
             <Redirect from='*' to={ Path.HOME }/>
           </Route>

@@ -9,15 +9,21 @@
   flex-direction: column;
   flex-grow: 1;
 
+  // Outer class should expand and overflow:hidden
   overflow-y: scroll;
 
-  .ux-list-item:hover {
-    background-color: @ux-list-highlight;
+  // .ux-list.ux-list-highlight
+  &.ux-list-highlight {
+    .ux-list-item:hover {
+      background-color: @ux-list-highlight;
+    }
   }
+
   .ux-list-editor { // Undo hover.
     background-color: transparent !important;
   }
 
+  // Groups for combined results.
   .ux-list-item-group {
     display: flex;
     flex-direction: column;

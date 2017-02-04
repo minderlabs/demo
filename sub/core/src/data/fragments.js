@@ -43,6 +43,7 @@ export const ContactFragment = gql`
   }
 `;
 
+// TODO(burdon): Move url, iconUrl to ItemFragment
 export const DocumentFragment = gql`
   fragment DocumentFragment on Document {
     url
@@ -76,6 +77,22 @@ export const TaskFragment = gql`
   }
 `;
 
+export const ProjectFragment = gql`
+  fragment ProjectFragment on Project {
+    id  # TODO(burdon): Placeholder.
+  }
+`;
+
+export const ProjectTasksFragment = gql`
+  fragment ProjectTasksFragment on Project {
+    tasks {
+      ...TaskFragment
+    }
+  }
+
+  ${TaskFragment}
+`;
+
 export const ProjectBoardFragment = gql`
   fragment ProjectBoardFragment on Project {
     boards {
@@ -97,16 +114,6 @@ export const ProjectBoardFragment = gql`
   }
 
   ${ValueFragment}
-`;
-
-export const ProjectTasksFragment = gql`
-  fragment ProjectBoardFragment on Project {
-    tasks {
-      ...TaskFragment
-    }
-  }
-
-  ${TaskFragment}
 `;
 
 //

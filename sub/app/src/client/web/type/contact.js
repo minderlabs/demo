@@ -27,10 +27,11 @@ export class ContactCard extends React.Component {
 
   render() {
     let { item } = this.props;
+    let { email } = item;
 
     return (
       <Card ref="card" item={ item }>
-        <div>{ item.email }</div>
+        <div>{ email }</div>
       </Card>
     );
   }

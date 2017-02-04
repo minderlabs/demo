@@ -3,6 +3,9 @@
 //
 
 import React from 'react';
+import { connect } from 'react-redux';
+
+import { AppAction } from '../reducers';
 
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
@@ -12,7 +15,7 @@ import FinderView from '../view/finder';
 /**
  * Finder Activity.
  */
-export default class FinderActivity extends React.Component {
+class FinderActivity extends React.Component {
 
   static contextTypes = {
     config: React.PropTypes.object.isRequired
@@ -49,3 +52,12 @@ export default class FinderActivity extends React.Component {
     }
   }
 }
+
+const mapStateToProps = (state, ownProps) => {
+  let { config } = AppAction.getState(state);
+  return {
+    config
+  };
+};
+
+export default connect(mapStateToProps)(FinderActivity);

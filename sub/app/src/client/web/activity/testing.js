@@ -68,6 +68,7 @@ class TestingActivity extends React.Component {
         </div>
 
         <List ref="list"
+              highlight={ false }
               items={ items }
               itemRenderer={ itemRenderer }
               onItemUpdate={ this.onItemUpdate.bind(this) }/>
@@ -75,6 +76,10 @@ class TestingActivity extends React.Component {
     );
   }
 }
+
+//-------------------------------------------------------------------------------------------------
+// HOC.
+//-------------------------------------------------------------------------------------------------
 
 const TestQuery = gql`
   query TestQuery($filter: FilterInput) { 

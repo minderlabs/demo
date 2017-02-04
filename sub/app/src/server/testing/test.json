@@ -10,6 +10,7 @@
     {
       "id": "demo",
       "title": "Demo",
+      "description": "Demo project.",
       "team": "minderlabs",
       "boards": [
         {

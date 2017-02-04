@@ -6,7 +6,7 @@ import React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
-import { MutationUtil } from 'minder-core';
+import { DomUtil, MutationUtil } from 'minder-core';
 
 import { TextBox } from './textbox';
 import { ItemDragSource, ItemDropTarget, DragOrderModel } from './dnd';
@@ -110,6 +110,7 @@ export class List extends React.Component {
 
   static propTypes = {
     className:          React.PropTypes.string,
+    highlight:          React.PropTypes.bool,
     data:               React.PropTypes.string,                               // Custom data.
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
     itemClassName:      React.PropTypes.string,
@@ -124,21 +125,18 @@ export class List extends React.Component {
   };
 
   static defaultProps = {
+    highlight: true,
     itemRenderer: List.DefaultItemRenderer,
     itemEditor: List.DefaultEditor
   };
 
-  constructor() {
-    super(...arguments);
-
-    this.state = {
-      items: this.props.items || [],
-      itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
-      itemEditor: this.props.itemEditor,
-      showAdd: this.props.showAdd,
-      editedItem: null
-    };
-  }
+  state = {
+    items: this.props.items || [],
+    itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
+    itemEditor: this.props.itemEditor,
+    showAdd: this.props.showAdd,
+    editedItem: null
+  };
 
   componentWillReceiveProps(nextProps) {
     this.setState({
@@ -187,14 +185,18 @@ export class List extends React.Component {
    */
   handleItemUpdate(item, mutations) {
     console.assert(mutations);
-    this.props.onItemUpdate && this.props.onItemUpdate(item, mutations);
+    if (!this.props.onItemUpdate) {
+      console.warning('Immutable list (set onItemUpdate property).');
+    } else {
+      this.props.onItemUpdate && this.props.onItemUpdate(item, mutations);
 
-    // Cancel inline editing.
-    if (this.state.showAdd) {
-      this.setState({
-        showAdd: false,
-        editedItem: null
-      });
+      // Cancel inline editing.
+      if (this.state.showAdd) {
+        this.setState({
+          showAdd: false,
+          editedItem: null
+        });
+      }
     }
   }
 
@@ -321,7 +323,7 @@ export class List extends React.Component {
       );
     }
 
-    let className = 'ux-list ' + (this.props.className || '');
+    let className = DomUtil.className('ux-list', this.props.className, this.props.highlight && 'ux-list-highlight');
     return (
       <div className={ className }>
         { rows }
@@ -365,10 +367,9 @@ export class ListItem extends React.Component {
     return render;
   }
 
-  //
-  // List Item Widgets.
-  //
-
+  /**
+   * <ListItem.Debug/>
+   */
   static Debug = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
     let { fields } = props;
@@ -379,11 +380,13 @@ export class ListItem extends React.Component {
     );
   });
 
-  // TODO(burdon): Provide generic callback.
+  /**
+   * <ListItem.Icon/>
+   */
   static Icon = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
 
-    let icon = props.icon;
+    let icon = props.icon || item.icon || '';
     if (icon.startsWith('http')) {
       return (
         <i className="ux-icon ux-icon-img">
@@ -392,24 +395,34 @@ export class ListItem extends React.Component {
       )
     } else {
       return (
-        <i className="ux-icon">{ props.icon }</i>
+        <i className="ux-icon">{ icon }</i>
       );
     }
   });
 
+  /**
+   * <ListItem.Favorite/>
+   */
   static Favorite = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
-    let { onSetLabel } = props;
+
+    // TODO(burdon): Generalize to toggle any icon.
 
     let set = _.indexOf(item.labels, '_favorite') != -1;
+    const handleToggleLabel = () => {
+      context.onItemUpdate(item, [
+        MutationUtil.createLabelMutation('_favorite', !set)
+      ]);
+    };
+
     return (
-      <i className="ux-icon"
-         onClick={ onSetLabel.bind(null, item, '_favorite', !set) }>
-        { set ? 'star' : 'star_border' }
-      </i>
+      <i className="ux-icon" onClick={ handleToggleLabel }>{ set ? 'star' : 'star_border' }</i>
     );
   });
 
+  /**
+   * <ListItem.Title select={ true }/>
+   */
   static Title = ListItem.createInlineComponent((props, context) => {
     let { item, onItemSelect } = context;
     let { select=true } = props;
@@ -422,13 +435,20 @@ export class ListItem extends React.Component {
     );
   });
 
+  /**
+   * <ListItem.Delete/>
+   */
   static Delete = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
-    let { onDelete } = props;
+
+    const handleDelete = () => {
+      context.onItemUpdate(item, [
+        MutationUtil.createDeleteMutation(_.findIndex(item.labels, '_deleted') == -1)
+      ]);
+    };
 
     return (
-      <i className="ux-icon ux-icon-delete"
-         onClick={ onDelete.bind(null, item) }>cancel</i>
+      <i className="ux-icon ux-icon-delete" onClick={ handleDelete }>cancel</i>
     );
   });
 
@@ -436,6 +456,7 @@ export class ListItem extends React.Component {
   // Provided by renderer.
   //
   static propTypes = {
+    // TODO(burdon): Highlight on/off.
     item: React.PropTypes.object.isRequired,
     className: React.PropTypes.string,
   };

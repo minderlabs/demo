@@ -12,7 +12,6 @@ import FinderActivity from './activity/finder';
 import TestingActivity from './activity/testing';
 
 import { AppAction } from './reducers';
-
 import { Path } from './path';
 
 /**
@@ -49,9 +48,12 @@ export class Application extends React.Component {
    *     <View/>                  Components.
    *   </Activity>
    * <Route>
-   */m
+   */
   render() {
     let { client, store, history } = this.props;
+
+    // https://github.com/ReactTraining/react-router
+    // TODO(burdon): onEnter/onLeave
 
     return (
       <ApolloProvider client={ client } store={ store }>
