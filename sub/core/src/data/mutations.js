@@ -64,6 +64,7 @@ export class MutationUtil {
 /**
  * Helper class that manages item mutations.
  * The Mutator is used directly by components to create and update items.
+ * NOTE: The mutation is GraphQL Mutation specific (and typically involves specific resolvers).
  */
 export class Mutator {
 

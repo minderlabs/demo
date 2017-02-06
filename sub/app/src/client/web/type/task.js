@@ -77,8 +77,10 @@ export class TaskCard extends React.Component {
     this.context.navigator.push(Path.canvas(ID.getGlobalId(item)));
   }
 
-  handleItemUpdate(item, mutations) {
-    this.context.mutator && this.context.mutator.updateItem(item, mutations);
+  handleSubItemUpdate(item, mutations) {
+    if (this.context.mutator) {
+      let taskId = this.context.mutator.updateItem(item, mutations);
+    }
   }
 
   render() {
@@ -94,7 +96,7 @@ export class TaskCard extends React.Component {
         <List items={ tasks }
               itemRenderer={ TaskListItemRenderer }
               onItemSelect={ this.handleItemSelect.bind(this) }
-              onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+              onItemUpdate={ this.handleSubItemUpdate.bind(this) }/>
 
         { assignee &&
         <div>

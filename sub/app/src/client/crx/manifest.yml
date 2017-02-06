@@ -21,6 +21,11 @@
 # https://bugs.chromium.org/p/chromium/issues/list
 #
 
+# Publishing Group Delted (2/6/17 case #12034091 + #12038661)
+# https://productforums.google.com/forum/#!topic/chrome/llSseh0Gtzc;context-place=forum/chrome
+# https://groups.google.com/a/chromium.org/forum/#!searchin/chromium-extensions/publishing$20group%7Csort:relevance/chromium-extensions/pWK2sy6MLEI/U-vAvmFrgGsJ
+# https://support.google.com/chrome/a/answer/2663860?hl=en#contact=1
+
 manifest_version:   2
 
 name:               "Minder"
