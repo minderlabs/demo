@@ -7,6 +7,7 @@ import _ from 'lodash';
 import { Logger } from 'minder-core';
 
 import { ActionDispatcher } from '../commands/action';
+import { PasteCommand } from '../commands/paste';
 import { QueryCommand } from '../commands/query';
 import { DatabaseContext } from './database_context';
 
@@ -43,11 +44,8 @@ export class SlackBot {
 
     // Registered commands.
     this.commands = [
-      // new AddCommand(),
-      // new DeleteCommand(),
       new QueryCommand(),
-      // new SearchCommand(),
-      // new UndoCommand()
+      new PasteCommand(),
     ];
   }
 
