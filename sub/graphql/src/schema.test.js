@@ -21,7 +21,7 @@ import { IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
 import { Database } from './db/database';
 import { Resolvers } from './resolvers';
 
-import Schema from './schema.graphql';
+import Schema from './gql/schema.graphql';
 
 
 // TODO(burdon): GraphiQL server testing?

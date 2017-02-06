@@ -15,6 +15,15 @@ export CRX_ID="jfekpjgleenkenjdoagecjilcnmhlncf"
 
 #
 # Group is needed for publishing CRX app.
+# TODO(burdon): Document.
+#
+
+# !!!
+# SUPPORT TICKET
+# https://developer.chrome.com/webstore/publish#set-up-group-publishing
+# You cannot change which group is linked to the Group Publisher account.
+# !!!
+
 # https://groups.google.com/d/forum/minder-crx-pub
 # https://developer.chrome.com/webstore?visit_id=1-636211654188889700-3011291085&rd=2
 # https://chrome.google.com/webstore/developer/dashboard/u32a9eaef58cd96cf309f9a48dfd49b9d

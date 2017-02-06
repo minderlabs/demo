@@ -11,7 +11,7 @@ import { graphql }  from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 import { makeExecutableSchema } from 'graphql-tools';
 
-import Schema from '../../src/schema.graphql';
+import Schema from '../../src/gql/schema.graphql';
 
 const dist = path.join(__dirname, '../../dist');
 const filename = path.join(dist, 'schema.json');

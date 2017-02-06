@@ -81,7 +81,7 @@ export class TaskCard extends React.Component {
     this.context.navigator.push(Path.canvas(ID.getGlobalId(item)));
   }
 
-  // TODO(burdon): List should provide context.
+  // TODO(burdon): List should provide context (or link). Change signature to update/return mutation object? (item/link mutations).
   handleItemUpdate(item, mutations) {
     if (item) {
       // Update existing.
