@@ -71,21 +71,22 @@
 // Card
 //
 
+// TODO(burdon): ux-card-deck: f2f2f2
+
 .ux-card {
   display: flex;
   flex-direction: column;
 
   width: @ux-card-width;
-  margin-bottom: 8px;
+  margin: 8px 8px 8px;
 
   // TODO(burdon): Theme.
-  background-color: white;
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: 0 1px 1px #AAA;
 
   .ux-card-header {
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
     background-color: gainsboro;
     padding: 4px;
 
@@ -95,8 +96,9 @@
   }
 
   .ux-card-body {
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
+    background-color: white;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
     padding: 4px;
   }
 }
