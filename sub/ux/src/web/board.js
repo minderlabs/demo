@@ -82,8 +82,9 @@ export class Board extends React.Component {
             <h2>{ column.title }</h2>
           </div>
 
-          <DragDropList data={ column.id }
-                        hightlight={ false }
+          <DragDropList className="ux-board-list"
+                        highlight={ false }
+                        data={ column.id }
                         items={ columnItems }
                         itemClassName="ux-board-list-item"
                         itemRenderer={ itemRenderer }

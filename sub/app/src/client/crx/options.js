@@ -62,10 +62,14 @@ class Options extends React.Component {
 
     return (
       <div>
-
         <div className="crx-panel crx-form">
-          <h2>Debugging</h2>
           <div className="crx-section">
+            <label><input type="checkbox"/> Notifications</label>
+          </div>
+
+          <br/>
+          <div className="crx-section">
+            <h2>Debugging</h2>
             <label htmlFor="settings_server">Server</label>
             <select name="settings_server" onChange={ this.onChange.bind(this, 'server') } value={ settings.server }>
               { _.map(Options.options['server'], option =>

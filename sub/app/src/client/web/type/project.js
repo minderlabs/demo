@@ -161,7 +161,7 @@ class ProjectCanvasComponent extends React.Component {
     return (
       <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
         <Board item={ project } items={ items } columns={ columns } columnMapper={ columnMapper }
-               itemRenderer={ List.CardRenderer(typeRegistry) }
+               itemRenderer={ Card.ItemRenderer(typeRegistry) }
                itemOrderModel={ itemOrderModel }
                onItemDrop={ this.handleItemDrop.bind(this) }
                onItemSelect={ this.handleItemSelect.bind(this) }/>
@@ -219,6 +219,9 @@ const ProjectQuery = gql`
 
 const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
 
+  // TODO(burdon): Get parent task for sub-tasks.
+  // TODO(burdon): Check type.
+
   // Filter appropriate mutations.
   let assignee = _.get(updatedItem, 'assignee.id');
   if (assignee) {
@@ -274,14 +277,14 @@ const ProjectBoardQuery = gql`
 
 export const ProjectCanvas = composeItem(
   new ItemReducer({
+    query: {
+      type: ProjectBoardQuery,
+      path: 'item'
+    },
     mutation: {
       type: UpdateItemMutation,
       path: 'updateItem'
     },
-    query: {
-      type: ProjectBoardQuery,
-      path: 'item'
-    }
-  },
-  ProjectReducer)
+    reducer: ProjectReducer
+  })
 )(ProjectCanvasComponent);

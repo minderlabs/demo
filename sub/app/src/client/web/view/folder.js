@@ -14,6 +14,7 @@ import { AppAction, ContextAction } from '../reducers';
 
 import { BasicSearchList, BasicListItemRenderer, CardSearchList } from '../framework/list_factory';
 import { TypeRegistry } from '../framework/type_registry';
+import { Card } from '../component/card';
 
 import './folder.less';
 
@@ -84,7 +85,7 @@ class FolderView extends React.Component {
       case 'card':
         list = <CardSearchList filter={ filter }
                                highlight={ false }
-                               itemRenderer={ List.CardRenderer(typeRegistry) }
+                               itemRenderer={ Card.ItemRenderer(typeRegistry) }
                                onItemSelect={ this.handleItemSelect.bind(this) }
                                onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
         break;

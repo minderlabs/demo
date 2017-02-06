@@ -104,6 +104,7 @@ export class List extends React.Component {
   // Context passed to ListItem and inline widgets.
   //
   static childContextTypes = {
+    mutator:      React.PropTypes.object,
     onItemSelect: React.PropTypes.func,
     onItemUpdate: React.PropTypes.func
   };
@@ -117,6 +118,7 @@ export class List extends React.Component {
     itemRenderer:       React.PropTypes.func,
     itemEditor:         React.PropTypes.func,
     itemOrderModel:     React.PropTypes.object,                               // Order model for drag and drop.
+    mutator:            React.PropTypes.object,
     onItemUpdate:       React.PropTypes.func,
     onItemSelect:       React.PropTypes.func,
     onItemDrop:         React.PropTypes.func,
@@ -145,7 +147,9 @@ export class List extends React.Component {
   }
 
   getChildContext() {
+    let { mutator } = this.props;
     return {
+      mutator,
       onItemSelect: this.handleItemSelect.bind(this),
       onItemUpdate: this.handleItemUpdate.bind(this)
     }

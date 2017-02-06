@@ -81,13 +81,13 @@ const ContactQuery = gql`
 
 export const ContactCanvas = composeItem(
   new ItemReducer({
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    },
     query: {
       type: ContactQuery,
       path: 'item'
+    },
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
     }
   })
 )(ContactCanvasComponent);

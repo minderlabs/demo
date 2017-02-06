@@ -27,9 +27,10 @@ export class ItemCard extends React.Component {
 
   render() {
     let { item } = this.props;
+    let className = 'ux-type-' + item.type.toLowerCase();
 
     return (
-      <Card item={ item }/>
+      <Card className={ className } item={ item }/>
     );
   }
 }
@@ -77,13 +78,13 @@ const ItemQuery = gql`
 
 export const ItemCanvas = composeItem(
   new ItemReducer({
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    },
     query: {
       type: ItemQuery,
       path: 'item'
+    },
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
     }
   })
 )(ItemCanvasComponent);

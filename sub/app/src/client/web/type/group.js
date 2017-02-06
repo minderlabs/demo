@@ -124,13 +124,13 @@ const GroupQuery = gql`
 
 export const GroupCanvas = composeItem(
   new ItemReducer({
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    },
     query: {
       type: GroupQuery,
       path: 'item'
+    },
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
     }
   })
 )(GroupCanvasComponent);

@@ -83,16 +83,6 @@ export const ProjectFragment = gql`
   }
 `;
 
-export const ProjectTasksFragment = gql`
-  fragment ProjectTasksFragment on Project {
-    tasks {
-      ...TaskFragment
-    }
-  }
-
-  ${TaskFragment}
-`;
-
 export const ProjectBoardFragment = gql`
   fragment ProjectBoardFragment on Project {
     boards {
@@ -137,6 +127,5 @@ export const UpdateItemMutation = gql`
 
   ${ItemFragment}
   ${ProjectBoardFragment}
-  ${ProjectTasksFragment}
   ${TaskFragment}
 `;

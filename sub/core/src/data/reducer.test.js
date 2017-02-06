@@ -96,37 +96,38 @@ describe('Reducers:', () => {
   });
 
   const itemReducer = new ItemReducer({
+    query: {
+      type: TestItemQuery,
+      path: 'item'
+    },
     mutation: {
       type: TestItemMutation,
       path: 'updateItem'
     },
-    query: {
-      type: TestItemQuery,
-      path: 'item'
-    }
-  }, (matcher, context, previousResult, item) => {
-    let match = matcher.matchItem(context, {}, filter, item);
+    reducer: (matcher, context, previousResult, item) => {
+      let match = matcher.matchItem(context, {}, filter, item);
 
-    let idx = _.findIndex(_.get(previousResult, 'item.project.items'), i => i.id == item.id);
+      let idx = _.findIndex(_.get(previousResult, 'item.project.items'), i => i.id == item.id);
 
-    // Ignore if matches and already exists.
-    let change = (match && idx == -1) || (!match && idx != -1);
-    return change && {
-      item: {
-        project: {
-          items: {
-            $apply: (items) => {
-              if (idx == -1) {
-                // Insert.
-                return [...items, item];
-              } else {
-                // Remove.
-                return _.filter(items, i => i.id != item.id);
+      // Ignore if matches and already exists.
+      let change = (match && idx == -1) || (!match && idx != -1);
+      return change && {
+        item: {
+          project: {
+            items: {
+              $apply: (items) => {
+                if (idx == -1) {
+                  // Insert.
+                  return [...items, item];
+                } else {
+                  // Remove.
+                  return _.filter(items, i => i.id != item.id);
+                }
               }
             }
           }
         }
-      }
+      };
     }
   });
 

@@ -73,12 +73,26 @@ export class TaskCard extends React.Component {
     item: propType(TaskFragment)
   };
 
+  handlTaskAdd() {
+    this.refs.tasks.addItem();
+  }
+
   handleItemSelect(item) {
     this.context.navigator.push(Path.canvas(ID.getGlobalId(item)));
   }
 
+  // TODO(burdon): List should provide context.
   handleItemUpdate(item, mutations) {
-    this.context.mutator && this.context.mutator.updateItem(item, mutations);
+    if (item) {
+      // Update existing.
+      this.context.mutator.updateItem(item, mutations);
+    } else {
+      // Create and add to parent.
+      let taskId = this.context.mutator.createItem('Task', mutations);
+      this.context.mutator.updateItem(this.props.item, [
+        MutationUtil.createSetMutation('tasks', 'id', taskId)
+      ]);
+    }
   }
 
   render() {
@@ -91,17 +105,22 @@ export class TaskCard extends React.Component {
         <div className="ux-font-xsmall">{ description }</div>
         }
 
-        <List items={ tasks }
-              itemRenderer={ TaskListItemRenderer }
-              onItemSelect={ this.handleItemSelect.bind(this) }
-              onItemUpdate={ this.handleItemUpdate.bind(this) }/>
-
         { assignee &&
         <div>
           <span className="ux-font-xsmall">Assigned: </span>
           <span>{ assignee.title }</span>
         </div>
         }
+
+        <List ref="tasks"
+              items={ tasks }
+              itemRenderer={ TaskListItemRenderer }
+              onItemSelect={ this.handleItemSelect.bind(this) }
+              onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+        <div>
+          <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }></i>
+        </div>
+
       </Card>
     );
   }
@@ -311,14 +330,14 @@ const TaskReducer = (matcher, context, previousResult, updatedItem) => {
 
 export const TaskCanvas = composeItem(
   new ItemReducer({
+    query: {
+      type: TaskQuery,
+      path: 'item'
+    },
     mutation: {
       type: UpdateItemMutation,
       path: 'updateItem'
     },
-    query: {
-      type: TaskQuery,
-      path: 'item'
-    }
-  },
-  TaskReducer)
+    reducer: TaskReducer
+  })
 )(TaskCanvasComponent);

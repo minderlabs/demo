@@ -252,15 +252,21 @@ const CardSearchQuery = gql`
   ${CardItemFragment}
 `;
 
+const CardReducer = (matcher, context, filter, previousResult, updatedItem) => {
+  // TODO(burdon): Reducer for sub-tasks (determine parent).
+  console.log('### CardReducer', updatedItem);
+};
+
 export const CardSearchList = composeList(
   new ListReducer({
+    query: {
+      type: CardSearchQuery,
+      path: 'search'
+    },
     mutation: {
       type: UpdateItemMutation,
       path: 'updateItem'
     },
-    query: {
-      type: CardSearchQuery,
-      path: 'search'
-    }
+    reducer: CardReducer
   })
 );
