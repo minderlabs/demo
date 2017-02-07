@@ -30,10 +30,12 @@ export class AppAction {
   // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
   //
 
-  static register(user) {
+  static register(server, user) {
     return {
       type: AppAction.ACTION.REGISTER,
-      value: user
+      value: {
+        server, user
+      }
     };
   }
 
@@ -69,7 +71,7 @@ export const AppReducer = (config, injector) => {
     switch (action.type) {
       case AppAction.ACTION.REGISTER: {
         console.log('Registered: ' + JSON.stringify(action.value));
-        return _.set(state, 'user', action.value);
+        return _.assign(state, _.pick(action.value, ['server', 'user']));
       }
 
       // TODO(burdon): Get search query (not just text).

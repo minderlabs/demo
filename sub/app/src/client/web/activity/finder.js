@@ -17,10 +17,6 @@ import FolderView from '../view/folder';
  */
 class FinderActivity extends React.Component {
 
-  static contextTypes = {
-    config: React.PropTypes.object.isRequired
-  };
-
   /**
    * Params set by the router.
    */
@@ -31,8 +27,7 @@ class FinderActivity extends React.Component {
   };
 
   render() {
-    let { config } = this.context;
-    let { params } = this.props;
+    let { config, params } = this.props;
     let { folder='inbox' } = params;
 
     let finder = <FolderView folder={ folder }/>;
@@ -46,8 +41,7 @@ class FinderActivity extends React.Component {
       )
     } else {
       return (
-        <SplitLayout nav={ finder }>
-        </SplitLayout>
+        <SplitLayout nav={ finder }/>
       )
     }
   }

@@ -7,11 +7,11 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { EventHandler, QueryRegistry } from 'minder-core';
+import { DomUtil, EventHandler, PropertyProvider, QueryRegistry } from 'minder-core';
 import { Sidebar, SidebarToggle } from 'minder-ux';
 
 import { AppAction } from '../reducers';
-import { Navigator } from '../path'
+import { Navigator, WindowNavigator } from '../path'
 import { Const } from '../../../common/defs';
 
 import { NavBar } from '../component/navbar';
@@ -51,9 +51,17 @@ export class BaseLayout extends React.Component {
   }
 
   getChildContext() {
+    let { config, navigator, queryRegistry, serverProvider } = this.props;
+
+    // CRX opens window on nav.
+    let platform = _.get(config, 'app.platform');
+    if (platform === 'crx') {
+      navigator = new WindowNavigator(serverProvider);
+    }
+
     return {
-      navigator: this.props.navigator,
-      queryRegistry: this.props.queryRegistry
+      navigator,
+      queryRegistry
     };
   }
 
@@ -74,13 +82,11 @@ export class BaseLayout extends React.Component {
   render() {
     let { children, className, config, team, viewer, folders } = this.props;
 
-    let baseClassName = 'ux-main-layout app-base-layout ' + (className || '');
-
     let sidePanel = <SidePanel team={ team } folders={ folders }/>;
 
     return (
       <div className="ux-fullscreen">
-        <div className={ baseClassName }>
+        <div className={ DomUtil.className('ux-main-layout', 'app-base-layout', className) }>
 
           {/* Header */}
           <div className="ux-header ux-row">
@@ -155,23 +161,24 @@ const LayoutQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  let { config, injector, user, team } = AppAction.getState(state);
-
+  let appState = AppAction.getState(state);
+  let { config, injector, user, team } = appState;
+  let serverProvider = new PropertyProvider(appState, 'server');
   let queryRegistry = injector.get(QueryRegistry);
 
   return {
     config,
+    serverProvider,
     queryRegistry,
     user,
     team
-  }
+  };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
-    // TODO(burdon): Should this be shared or have sub-components bind dispatch methods?
     navigator: new Navigator(dispatch)
-  }
+  };
 };
 
 export default compose(

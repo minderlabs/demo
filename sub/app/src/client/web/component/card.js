@@ -47,7 +47,7 @@ export class Card extends React.Component {
           <h1 className="ux-text-noselect ux-selector"
               onClick={ this.handleSelect.bind(this, item) }>{ item.title }</h1>
 
-          { icon && <i className="ux-icon">save</i> }
+          { icon && <i className="ux-icon">{ icon }</i> }
         </div>
         <div className="ux-card-body">
           { children }

@@ -27,7 +27,7 @@ export class Base {
 
   constructor(config) {
     console.assert(config);
-    this._config = config;
+    this._serverProvider = config;
 
     // Event bus propagates events (e.g., error messages) to components.
     this._eventHandler = new EventHandler();
@@ -51,7 +51,7 @@ export class Base {
       .then(() => this.initRouter())
       .then(() => this.postInit())
       .then(() => {
-        logger.log($$('Config = %o', this._config));
+        logger.log($$('Config = %o', this._serverProvider));
       });
   }
 
@@ -229,7 +229,7 @@ export class Base {
    * Access config
    */
   get config() {
-    return this._config;
+    return this._serverProvider;
   }
 
   /**
@@ -291,7 +291,7 @@ export class Base {
    * </Activity>
    */
   render(App) {
-    logger.log($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._config, 'env')));
+    logger.log($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._serverProvider, 'env')));
 
     // Construct app.
     const app = (
@@ -304,7 +304,7 @@ export class Base {
     );
 
     // Render app.
-    ReactDOM.render(app, document.getElementById(this._config.root));  // TODO(burdon): Rename appRoot.
+    ReactDOM.render(app, document.getElementById(this._serverProvider.root));  // TODO(burdon): Rename appRoot.
   }
 }
 
@@ -321,14 +321,14 @@ export class WebBase extends Base {
   initNetwork() {
 
     // Wraps the Apollo network requests.
-    this._networkManager = new NetworkManager(this._config, this._eventHandler).init();
+    this._networkManager = new NetworkManager(this._serverProvider, this._eventHandler).init();
 
     // Manages the client connection and registration.
     this._connectionManager =
-      new ConnectionManager(this._config, this._networkManager, this._queryRegistry, this._eventHandler);
+      new ConnectionManager(this._serverProvider, this._networkManager, this._queryRegistry, this._eventHandler);
 
     // Manages OAuth.
-    this._authManager = new AuthManager(this._config, this._networkManager, this._connectionManager);
+    this._authManager = new AuthManager(this._serverProvider, this._networkManager, this._connectionManager);
 
     // Trigger auth.
     return this._authManager.authenticate();

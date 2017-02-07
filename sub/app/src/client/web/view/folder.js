@@ -23,15 +23,16 @@ import './folder.less';
  */
 class FolderView extends React.Component {
 
-  static contextTypes = {
-    navigator: React.PropTypes.object.isRequired
-  };
-
   static propTypes = {
     user: React.PropTypes.object.isRequired
   };
 
+  static contextTypes = {
+    navigator: React.PropTypes.object.isRequired
+  };
+
   handleItemSelect(item) {
+    console.log(':::::::', item);
     this.context.navigator.pushCanvas(item);
   }
 

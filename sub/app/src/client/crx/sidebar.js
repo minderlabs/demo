@@ -104,8 +104,8 @@ class SidebarApp extends Base {
       command: BackgroundCommand.REGISTER
     }).wait().then(response => {
       // TODO(burdon): Retry if not registered (server might not be responding).
-      console.assert(response.user);
-      this.store.dispatch(AppAction.register(response.user));
+      console.assert(response.server && response.user);
+      this.store.dispatch(AppAction.register(response.server, response.user));
     });
   }
 
@@ -135,7 +135,7 @@ class SidebarApp extends Base {
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace]: AppReducer(this._config, this._injector),
+      [AppAction.namespace]: AppReducer(this._serverProvider, this._injector),
 
       // Context.
       [ContextAction.namespace]: ContextReducer,

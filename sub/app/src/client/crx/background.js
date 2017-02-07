@@ -58,7 +58,7 @@ class BackgroundApp {
 
   constructor() {
     // Initial configuration (dynamically updated).
-    this._config = _.defaults({}, BackgroundApp.Config);
+    this._serverProvider = _.defaults({}, BackgroundApp.Config);
 
     // Dynamic settings.
     this._settings = new Settings(DefaultSettings);
@@ -72,9 +72,9 @@ class BackgroundApp {
     //
     // Network.
     //
-    this._networkManager = new NetworkManager(this._config);
-    this._connectionManager = new ConnectionManager(this._config, this._networkManager);
-    this._authManager = new AuthManager(this._config, this._networkManager, this._connectionManager);
+    this._networkManager = new NetworkManager(this._serverProvider);
+    this._connectionManager = new ConnectionManager(this._serverProvider, this._networkManager);
+    this._authManager = new AuthManager(this._serverProvider, this._networkManager, this._connectionManager);
 
     //
     // Listen for settings updates (not called on first load).
@@ -82,8 +82,8 @@ class BackgroundApp {
     this._settings.onChange.addListener(settings => {
 
       // Check network settings (server) changes.
-      let restart = this._config.server != settings.server;
-      BackgroundApp.UpdateConfig(this._config, settings);
+      let restart = this._serverProvider.server != settings.server;
+      BackgroundApp.UpdateConfig(this._serverProvider, settings);
 
       if (restart) {
         this._networkManager.init();
@@ -111,7 +111,8 @@ class BackgroundApp {
           // TODO(burdon): Registration might not have happened yet (esp. if server not responding).
           console.assert(this._authManager.currentUser);
           return Promise.resolve({
-            user: this._authManager.currentUser
+            user: this._authManager.currentUser,
+            server: this._serverProvider.server
           });
         }
 
@@ -135,7 +136,7 @@ class BackgroundApp {
    * @returns {object}
    */
   get config() {
-    return this._config;
+    return this._serverProvider;
   }
 
   /**
@@ -156,7 +157,7 @@ class BackgroundApp {
 
     // Load the settings.
     this._settings.load().then(settings => {
-      BackgroundApp.UpdateConfig(this._config, settings);
+      BackgroundApp.UpdateConfig(this._serverProvider, settings);
 
       // Initialize the network manager.
       this._networkManager.init();

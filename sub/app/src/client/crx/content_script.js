@@ -138,7 +138,7 @@ class Frame {
     this._src = chrome.extension.getURL(page + '?' + HttpUtil.toUrlArgs({ channel }));
 
     // Root node.
-    this._root = root;
+    this._serverProvider = root;
 
     // Lazily instantiated frame (loads content when created).
     this._frame = null;
@@ -178,7 +178,7 @@ class Frame {
         .attr('src', this._src)
         .attr('width', '100%')
         .attr('height', '100%')
-        .appendTo(this._root);
+        .appendTo(this._serverProvider);
 
       // Resolve when sidebar has loaded (and the INITIALIZED message is received).
       return new Promise((resolve, reject) => {
@@ -186,7 +186,7 @@ class Frame {
         this._onLoading && this._onLoading();
       });
     } else {
-      this._root.addClass('crx-open');
+      this._serverProvider.addClass('crx-open');
       return Promise.resolve(true);
     }
   }
@@ -196,7 +196,7 @@ class Frame {
    * @return {Promise}
    */
   close(unload=false) {
-    this._root.removeClass('crx-open');
+    this._serverProvider.removeClass('crx-open');
     if (unload) {
       this._frame.attr('src', 'about:blank');
     }
@@ -208,7 +208,7 @@ class Frame {
    * @return {Promise}
    */
   toggle() {
-    if (this._root.hasClass('crx-open')) {
+    if (this._serverProvider.hasClass('crx-open')) {
       return this.close();
     } else {
       return this.open();

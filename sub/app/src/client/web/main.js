@@ -31,7 +31,7 @@ class WebApp extends WebBase {
     return {
 
       // Main app reducer.
-      [AppAction.namespace] : AppReducer(this._config, this._injector)
+      [AppAction.namespace] : AppReducer(this._serverProvider, this._injector)
     }
   }
 }

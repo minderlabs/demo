@@ -85,7 +85,26 @@ export class Navigator {
     this.dispatch(push(path));
   }
 
+  // TODO(burdon): Standardize usage.
   pushCanvas(item) {
-    this.dispatch(push(Path.canvas(ID.toGlobalId(item.type, item.id))));
+    this.push(Path.canvas(ID.toGlobalId(item.type, item.id)));
+  }
+}
+
+/**
+ * Navigator by opening windows.
+ */
+export class WindowNavigator {
+
+  constructor(serverProvider) {
+    console.assert(serverProvider);
+    this._serverProvider = serverProvider;
+  }
+
+  pushCanvas(item) {
+    console.log('>>>>>>>>>>>', this._serverProvider, this._serverProvider.value);
+
+    let path = this._serverProvider.value + Path.canvas(ID.toGlobalId(item.type, item.id));
+    window.open(path, 'MINDER');
   }
 }

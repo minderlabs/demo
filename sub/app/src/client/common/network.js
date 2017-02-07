@@ -38,7 +38,7 @@ export class AuthManager {
   constructor(config, networkManager, connectionManager) {
     console.assert(config && networkManager && connectionManager);
 
-    this._config = config;
+    this._serverProvider = config;
     this._networkManager = networkManager;
     this._connectionManager = connectionManager;
 
@@ -53,7 +53,7 @@ export class AuthManager {
   }
 
   get currentUser() {
-    return _.get(this._config, 'user', null);
+    return _.get(this._serverProvider, 'user', null);
   }
 
   /**
@@ -65,10 +65,10 @@ export class AuthManager {
     // TODO(burdon): Get Minder User ID (either from config or from server). (set the config object).
     return new Promise((resolve, reject) => {
       this._handleAuthStateChanges(registration => {
-        let userId = _.get(this._config, 'user.id');
+        let userId = _.get(this._serverProvider, 'user.id');
         console.assert(!userId || userId === registration.user.id);
-        _.assign(this._config, { user: registration.user }, { client: registration.client });
-        resolve(this._config.user);
+        _.assign(this._serverProvider, { user: registration.user }, { client: registration.client });
+        resolve(this._serverProvider.user);
       });
     });
   }
@@ -122,7 +122,7 @@ export class AuthManager {
    */
   _doAuth() {
     console.log('Authenticating...');
-    if (_.get(this._config, 'app.platform') == 'crx') {
+    if (_.get(this._serverProvider, 'app.platform') == 'crx') {
       return this._doAuthChromeExtension();
     } else {
       return this._doAuthWebApp();
@@ -232,7 +232,7 @@ export class ConnectionManager {
   constructor(config, networkManager, queryRegistry=undefined, eventHandler=undefined) {
     console.assert(config && networkManager);
 
-    this._config = config;
+    this._serverProvider = config;
     this._networkManager = networkManager;
     this._queryRegistry = queryRegistry;
     this._eventHandler = eventHandler;
@@ -283,11 +283,11 @@ export class ConnectionManager {
    */
   _doRegistration(registration=undefined) {
     registration = _.merge({}, registration, {
-      clientId: _.get(this._config, 'client.id', undefined)
+      clientId: _.get(this._serverProvider, 'client.id', undefined)
     });
 
     // See clientRouter on server.
-    let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
+    let url = HttpUtil.joinUrl(this._serverProvider.server || HttpUtil.getServerUrl(), '/client/register');
 
     logger.log('Registering client: ' + url);
     return new Promise((resolve, reject) => {
@@ -332,7 +332,7 @@ export class NetworkManager {
    */
   constructor(config, eventHandler=undefined) {
     console.assert(config);
-    this._config = config;
+    this._serverProvider = config;
 
     // Set token from server provided config.
     // NOTE: For the CRX the token will not be available until the login popup.
@@ -361,13 +361,13 @@ export class NetworkManager {
     this._requestMap.clear();
 
     // Logging.
-    this._logger = new NetworkLogger(this._config);
+    this._logger = new NetworkLogger(this._serverProvider);
 
     // Create the interface.
     // http://dev.apollodata.com/core/network.html
     // http://dev.apollodata.com/core/apollo-client-api.html#createNetworkInterface
     this._networkInterface = createNetworkInterface({
-      uri: this._config.graphql
+      uri: this._serverProvider.graphql
     });
 
     // TODO(burdon): Configure batching via options.
