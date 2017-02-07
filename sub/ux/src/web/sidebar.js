@@ -4,6 +4,8 @@
 
 import React from 'react';
 
+import { DomUtil } from 'minder-core';
+
 import './sidebar.less';
 
 /**
@@ -44,11 +46,9 @@ export class Sidebar extends React.Component {
   }
 
   render() {
-    let className = _.join(['ux-sidebar-drawer', this.state.open ? 'ux-open' : ''], ' ');
-
     return (
       <div className="ux-sidebar">
-        <div className={ className }>
+        <div className={ DomUtil.className('ux-sidebar-drawer', this.state.open && 'ux-open') }>
           <div>
             <input ref="hidden" onBlur={ this.close.bind(this) }/>
           </div>

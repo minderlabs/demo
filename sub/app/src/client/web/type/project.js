@@ -5,7 +5,7 @@
 import React from 'react';
 import gql from 'graphql-tag';
 
-import { ID, ItemReducer, MutationUtil } from 'minder-core';
+import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
 import { ItemFragment, ProjectBoardFragment, TaskFragment, UpdateItemMutation } from 'minder-core';
 import { Board, DragOrderModel, List } from 'minder-ux';
 
@@ -51,7 +51,7 @@ class ProjectCanvasComponent extends React.Component {
     let { mutator } = this.props;
     return {
       mutator
-    }
+    };
   }
 
   componentWillReceiveProps(nextProps) {
@@ -60,11 +60,29 @@ class ProjectCanvasComponent extends React.Component {
     this.setState({
       // Default board.
       board: _.get(project, 'boards[0].alias')
-    })
+    });
   }
 
   handleItemSelect(item) {
     this.context.navigator.push(Path.canvas(ID.getGlobalId(item)));
+  }
+
+  handleItemUpdate(item, mutations, column) {
+    let { mutator } = this.props;
+    if (item) {
+      mutator.updateItem(item, mutations);
+    } else {
+      let { item:project } = this.props;
+
+      let taskId = mutator.createItem('Task', TypeUtil.merge(mutations, [
+        MutationUtil.createFieldMutation('project', 'id', project.id),
+        MutationUtil.createFieldMutation('status', 'int', column.value)
+      ]));
+
+      mutator.updateItem(project, [
+        MutationUtil.createSetMutation('tasks', 'id', taskId)
+      ]);
+    }
   }
 
   handleItemDrop(column, item, changes) {
@@ -159,12 +177,15 @@ class ProjectCanvasComponent extends React.Component {
     };
 
     return (
-      <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
+      <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch }
+              onSave={ this.handleSave.bind(this)}>
+
         <Board item={ project } items={ items } columns={ columns } columnMapper={ columnMapper }
-               itemRenderer={ List.CardRenderer(typeRegistry) }
+               itemRenderer={ Card.ItemRenderer(typeRegistry) }
                itemOrderModel={ itemOrderModel }
                onItemDrop={ this.handleItemDrop.bind(this) }
-               onItemSelect={ this.handleItemSelect.bind(this) }/>
+               onItemSelect={ this.handleItemSelect.bind(this) }
+               onItemUpdate={ this.handleItemUpdate.bind(this) }/>
       </Canvas>
     );
   }
@@ -175,7 +196,7 @@ class ProjectCanvasComponent extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 // TODO(burdon): Remove and use 2 board views.
-
+/*
 const ProjectQuery = gql`
   query ProjectQuery($itemId: ID!, $localItemId: ID!) {
     
@@ -219,6 +240,9 @@ const ProjectQuery = gql`
 
 const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
 
+  // TODO(burdon): Get parent task for sub-tasks.
+  // TODO(burdon): Check type.
+
   // Filter appropriate mutations.
   let assignee = _.get(updatedItem, 'assignee.id');
   if (assignee) {
@@ -246,6 +270,7 @@ const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
     }
   }
 };
+*/
 
 const ProjectBoardQuery = gql`
   query ProjectBoardQuery($itemId: ID!) {
@@ -272,16 +297,47 @@ const ProjectBoardQuery = gql`
   ${TaskFragment}  
 `;
 
+const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
+  let { item:project } = previousResult;
+
+  // Updated task.
+  if (project.id == _.get(updatedItem, 'project.id')) {
+    // TODO(burdon): Factor out pattern (see task also).
+    let taskIdx = _.findIndex(project.tasks, task => task.id == updatedItem.id);
+    if (taskIdx != -1) {
+      // Update task.
+      return {
+        item: {
+          tasks: {
+            [taskIdx]: {
+              $set: updatedItem
+            }
+          }
+        }
+      }
+    } else {
+      // Append task.
+      return {
+        item: {
+          tasks: {
+            $push: [ updatedItem ]
+          }
+        }
+      }
+    }
+  }
+};
+
 export const ProjectCanvas = composeItem(
   new ItemReducer({
+    query: {
+      type: ProjectBoardQuery,
+      path: 'item'
+    },
     mutation: {
       type: UpdateItemMutation,
       path: 'updateItem'
     },
-    query: {
-      type: ProjectBoardQuery,
-      path: 'item'
-    }
-  },
-  ProjectReducer)
+    reducer: ProjectReducer
+  })
 )(ProjectCanvasComponent);

@@ -13,6 +13,7 @@ import { List } from 'minder-ux';
 
 import { AppAction } from '../reducers';
 import { TypeRegistry } from '../framework/type_registry';
+import { Card } from '../component/card';
 import { FullLayout } from '../layout/full';
 
 /**
@@ -50,7 +51,7 @@ class TestingActivity extends React.Component {
   render() {
     let { typeRegistry, items } = this.props;
 
-    const itemRenderer = List.CardRenderer(typeRegistry);
+    const itemRenderer = Card.ItemRenderer(typeRegistry);
 
     return (
       <FullLayout>

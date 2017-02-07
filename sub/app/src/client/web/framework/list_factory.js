@@ -254,13 +254,13 @@ const CardSearchQuery = gql`
 
 export const CardSearchList = composeList(
   new ListReducer({
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    },
     query: {
       type: CardSearchQuery,
       path: 'search'
+    },
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
     }
   })
 );

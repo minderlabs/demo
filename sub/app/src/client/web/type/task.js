@@ -6,12 +6,12 @@ import React from 'react';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ID, ItemFragment, TaskFragment, UpdateItemMutation, ItemReducer, MutationUtil } from 'minder-core';
+import { ID, ItemFragment, TaskFragment, UpdateItemMutation, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
 import { Path } from '../path';
 import { composeItem } from '../framework/item_factory';
-import { FilteredItemsPicker } from '../component/items_picker';
+import { FilteredItemsPicker } from '../view/items_picker';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -73,13 +73,28 @@ export class TaskCard extends React.Component {
     item: propType(TaskFragment)
   };
 
+  handlTaskAdd() {
+    this.refs.tasks.addItem();
+  }
+
   handleItemSelect(item) {
     this.context.navigator.push(Path.canvas(ID.getGlobalId(item)));
   }
 
-  handleSubItemUpdate(item, mutations) {
-    if (this.context.mutator) {
-      let taskId = this.context.mutator.updateItem(item, mutations);
+  handleItemUpdate(item, mutations) {
+    let { mutator } = this.context;
+    console.assert(mutator);
+
+    if (item) {
+      // Update existing.
+      mutator.updateItem(item, mutations);
+    } else {
+      // Create and add to parent.
+      // TODO(burdon): Need to batch so that resolver can work?
+      let taskId = mutator.createItem('Task', mutations);
+      mutator.updateItem(this.props.item, [
+        MutationUtil.createSetMutation('tasks', 'id', taskId)
+      ]);
     }
   }
 
@@ -93,17 +108,22 @@ export class TaskCard extends React.Component {
         <div className="ux-font-xsmall">{ description }</div>
         }
 
-        <List items={ tasks }
-              itemRenderer={ TaskListItemRenderer }
-              onItemSelect={ this.handleItemSelect.bind(this) }
-              onItemUpdate={ this.handleSubItemUpdate.bind(this) }/>
-
         { assignee &&
         <div>
           <span className="ux-font-xsmall">Assigned: </span>
           <span>{ assignee.title }</span>
         </div>
         }
+
+        <List ref="tasks"
+              items={ tasks }
+              itemRenderer={ TaskListItemRenderer }
+              onItemSelect={ this.handleItemSelect.bind(this) }
+              onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+        <div>
+          <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }></i>
+        </div>
+
       </Card>
     );
   }
@@ -167,10 +187,16 @@ class TaskCanvasComponent extends React.Component {
 
   handleTaskUpdate(item, mutations) {
     console.assert(mutations);
+
+    let { mutator } = this.props;
     if (item) {
-      this.props.mutator.updateItem(item, mutations);
+      mutator.updateItem(item, mutations);
     } else {
-      this.props.mutator.createItem('Task', mutations);
+      // Add to parent.
+      let taskId = mutator.createItem('Task', mutations);
+      mutator.updateItem(this.props.item, [
+        MutationUtil.createSetMutation('tasks', 'id', taskId)
+      ]);
     }
   }
 
@@ -270,8 +296,10 @@ const TaskQuery = gql`
       ...ItemFragment
       ...TaskFragment
       
+      # TODO(burdon): Possible bug (TaskFragment includes title, but sub tasks field also needs it).
       ... on Task {
         tasks {
+          ...ItemFragment
           ...TaskFragment
         }
       }
@@ -286,6 +314,7 @@ const TaskReducer = (matcher, context, previousResult, updatedItem) => {
 
   // Check not root item.
   if (previousResult.item.id != updatedItem.id) {
+    // TODO(burdon): Factor out pattern (see project.js)
     let taskIdx = _.findIndex(previousResult.item.tasks, task => task.id == updatedItem.id);
     if (taskIdx != -1) {
       // Update task.
@@ -299,7 +328,7 @@ const TaskReducer = (matcher, context, previousResult, updatedItem) => {
         }
       };
     } else {
-      // Add task (to bottom).
+      // Append task.
       return {
         item: {
           tasks: {
@@ -313,14 +342,14 @@ const TaskReducer = (matcher, context, previousResult, updatedItem) => {
 
 export const TaskCanvas = composeItem(
   new ItemReducer({
+    query: {
+      type: TaskQuery,
+      path: 'item'
+    },
     mutation: {
       type: UpdateItemMutation,
       path: 'updateItem'
     },
-    query: {
-      type: TaskQuery,
-      path: 'item'
-    }
-  },
-  TaskReducer)
+    reducer: TaskReducer
+  })
 )(TaskCanvasComponent);

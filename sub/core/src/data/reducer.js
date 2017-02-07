@@ -100,28 +100,23 @@ class Reducer {
 
   /**
    * @param spec Object of the form below.
-   * @param customReducer Custom reducer function.
-   *
-   * TODO(burdon): Document (see project.js for complete example).
    *
    * {
+   *   query: {
+   *     type: QueryType
+   *     path: "query_result_path"              // Path to query root result.
+   *   },
    *   mutation {
    *     type: MutationType,
    *     path: "mutation_action_data_path"      // Path to mutation root result.
    *   },
-   *   query: {
-   *     type: QueryType
-   *     path: "query_result_path"              // Path to query root result.
-   *   }
+   *   reducer: (matcher, context, previousResult, updatedItem) => {}
    * }
    */
-  constructor(spec, customReducer) {
-    console.assert(spec, customReducer);
+  constructor(spec) {
+    console.assert(spec);
 
     this._spec = spec;
-
-    // TODO(burdon): Extend or inject?
-    this._customReducer = customReducer;
 
     // TODO(burdon): Check when created and called. And when instantiated.
     let queryName = this.query.definitions[0].name.value;
@@ -164,10 +159,6 @@ class Reducer {
  * the List Reducer updates the currently cached list items based on the mutation.
  */
 export class ListReducer extends Reducer {
-
-  constructor(spec, customReducer=null) {
-    super(spec, customReducer);
-  }
 
   getItems(data) {
     return this.getResult(data);
@@ -218,8 +209,9 @@ export class ListReducer extends Reducer {
   getTransform(matcher, context, filter, previousResult, updatedItem) {
 
     // Custom reducers are required when the list is not at the root of the result.
-    if (this._customReducer) {
-      return this._customReducer(matcher, context, filter, previousResult, updatedItem);
+    let reducer = this._spec.reducer;
+    if (reducer) {
+      return reducer(matcher, context, filter, previousResult, updatedItem);
     }
 
     // TODO(burdon): Is the root item needed?
@@ -251,10 +243,6 @@ export class ListReducer extends Reducer {
  * (like Group) it could be on one (or more) of the branches (e.g., Second member's tasks).
  */
 export class ItemReducer extends Reducer {
-
-  constructor(spec, customReducer=null) {
-    super(spec, customReducer);
-  }
 
   getItem(data) {
     return this.getResult(data);
@@ -303,6 +291,7 @@ export class ItemReducer extends Reducer {
    * @returns {*}
    */
   getTransform(matcher, context, previousResult, updatedItem) {
-    return this._customReducer && this._customReducer(matcher, context, previousResult, updatedItem);
+    let reducer = this._spec.reducer;
+    return reducer && reducer(matcher, context, previousResult, updatedItem);
   }
 }

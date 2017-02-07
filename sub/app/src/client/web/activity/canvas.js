@@ -9,7 +9,7 @@ import { SplitLayout } from '../layout/split';
 import { CanvasContainer } from '../component/canvas';
 import { TypeRegistry } from '../framework/type_registry';
 
-import FinderView from '../view/finder';
+import FolderView from '../view/folder';
 
 /**
  * Canvas Activity.
@@ -43,20 +43,20 @@ class CanvasActivity extends React.Component {
 
     // TODO(burdon): Layout based on form factor. Replace "expand" prop below with app state.
     let platform = _.get(config, 'app.platform');
-    if (platform == 'mobile' || platform == 'crx') {
+    if (platform === 'mobile' || platform === 'crx') {
       return (
         <FullLayout>
           { canvasComponent }
         </FullLayout>
-      )
+      );
     } else {
       // TODO(burdon): Get folder from state.
-      let finder = <FinderView folder={ 'inbox' }/>;
+      let finder = <FolderView folder={ 'inbox' }/>;
       return (
         <SplitLayout nav={ finder }>
           { canvasComponent }
         </SplitLayout>
-      )
+      );
     }
   }
 }

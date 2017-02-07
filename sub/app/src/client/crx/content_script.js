@@ -19,15 +19,10 @@ const scriptId = new Date().getTime();
  */
 class ContentScript {
 
-  // TODO(burdon): Browser action to toggle window.
-  // TODO(burdon): Show logo/chip bottom right to represent CS has loaded.
-
   static manifest = chrome.runtime.getManifest();
 
   constructor() {
     console.log(`${ContentScript.manifest.name} ${ContentScript.manifest.version}`);
-
-    // TODO(burdon): Remove jquery or jquery lite?
 
     // Root element.
     let container = $('<div>')
@@ -37,13 +32,17 @@ class ContentScript {
     // Button to grab focus (after sidebar closes).
     let button = $('<button>')
       .append($('<img>')
+        .attr('title', '⌘-DEL')
         .attr('src', chrome.extension.getURL('img/icon_128.png')))
-      .click(() => { console.log('hi'); this.sidebar.toggle() })
+      .click(() => { this.sidebar.toggle() })
       .appendTo(container);
 
     // Frame elements.
     this.sidebar = new Frame('page/sidebar.html', 'sidebar/' + scriptId,
-      $('<div>').addClass('crx-sidebar').appendTo(container));
+      $('<div>').addClass('crx-sidebar').appendTo(container), () => {
+        console.log('Opening...');
+        button.addClass('crx-bounce');
+      });
 
     // Notify sidebar of visibility.
     const updateVisibility = (visible) => {
@@ -130,8 +129,9 @@ class Frame {
    * @param {string} page Frame source.
    * @param {string} channel Routing identifier.
    * @param {Node} root Root node for iframe channel.
+   * @param {Function} onLoading Loading Callback.
    */
-  constructor(page, channel, root) {
+  constructor(page, channel, root, onLoading) {
     console.assert(page && channel && root);
 
     // Frame source
@@ -145,6 +145,7 @@ class Frame {
 
     // Blocking promise (for initial message).
     this._blocking = null;
+    this._onLoading = onLoading;
 
     // iFrame messenger (valid after loaded).
     this._messenger = new WindowMessenger(channel, 'chrome-extension://' + chrome.runtime.id);
@@ -182,6 +183,7 @@ class Frame {
       // Resolve when sidebar has loaded (and the INITIALIZED message is received).
       return new Promise((resolve, reject) => {
         this._blocking = resolve;
+        this._onLoading && this._onLoading();
       });
     } else {
       this._root.addClass('crx-open');

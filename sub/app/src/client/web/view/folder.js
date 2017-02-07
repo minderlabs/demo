@@ -14,6 +14,7 @@ import { AppAction, ContextAction } from '../reducers';
 
 import { BasicSearchList, BasicListItemRenderer, CardSearchList } from '../framework/list_factory';
 import { TypeRegistry } from '../framework/type_registry';
+import { Card } from '../component/card';
 
 import './folder.less';
 
@@ -77,6 +78,8 @@ class FolderView extends React.Component {
   render() {
     let { typeRegistry, filter, listType } = this.props;
 
+//  listType = 'card';
+
     // TODO(burdon): Get type from config.
     // TODO(burdon): Factor out for performance.
     let list;
@@ -84,7 +87,7 @@ class FolderView extends React.Component {
       case 'card':
         list = <CardSearchList filter={ filter }
                                highlight={ false }
-                               itemRenderer={ List.CardRenderer(typeRegistry) }
+                               itemRenderer={ Card.ItemRenderer(typeRegistry) }
                                onItemSelect={ this.handleItemSelect.bind(this) }
                                onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
         break;
@@ -102,10 +105,13 @@ class FolderView extends React.Component {
       <div className="app-folder-view ux-column">
         { list }
 
+        {/*
+         TODO(burdon): (+) to add item (of specific type).
         <div className="ux-section ux-toolbar">
           <TextBox ref="text" className="ux-expand" onEnter={ this.handleItemCreate.bind(this) }/>
           <i className="ux-icon ux-icon-add" onClick={ this.handleItemCreate.bind(this) }/>
         </div>
+        */}
       </div>
     );
   }

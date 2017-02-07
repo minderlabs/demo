@@ -4,13 +4,28 @@
 
 import React from 'react';
 
+import SearchView from '../view/search';
+
 /**
  * App navigation
  */
 export class NavBar extends React.Component {
 
-  // TODO(burdon): Current heading/breadcrumbs.
-  // TODO(burdon): Move Navigator and this to ux-core/ux-util.
+  // TODO(burdon): Show/hide search view? Search "folder" overlay? (in full screen mode).
+  // TODO(burdon): Show hide < > arrows (on mobile).
+  // TODO(burdon): Current heading/breadcrumbs (in redux store).
+
+  render() {
+    return (
+      <div className="ux-navbar">
+        <SearchView/>
+        <NavButtons/>
+      </div>
+    );
+  }
+}
+
+export class NavButtons extends React.Component {
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
@@ -27,13 +42,9 @@ export class NavBar extends React.Component {
 
   render() {
     return (
-      <div className="ux-navbar">
-        <div>
-        </div>
-        <div>
-          <i className="ux-icon" onClick={ this.handleBack.bind(this) }>arrow_back</i>
-          <i className="ux-icon" onClick={ this.handleForward.bind(this) }>arrow_forward</i>
-        </div>
+      <div>
+        <i className="ux-icon ux-icon-action" onClick={ this.handleBack.bind(this) }>arrow_back</i>
+        <i className="ux-icon ux-icon-action" onClick={ this.handleForward.bind(this) }>arrow_forward</i>
       </div>
     );
   }

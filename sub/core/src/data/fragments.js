@@ -58,6 +58,7 @@ export const TaskFragment = gql`
     type
     id
 
+    # TODO(burdon): Already in ItemFragment.
     title
     description
 
@@ -74,6 +75,12 @@ export const TaskFragment = gql`
       id
       title
     }
+
+    # TODO(burdon): Required for sub-task mutations.
+    tasks {
+      id
+      title
+    }
   }
 `;
 
@@ -81,16 +88,6 @@ export const ProjectFragment = gql`
   fragment ProjectFragment on Project {
     id  # TODO(burdon): Placeholder.
   }
-`;
-
-export const ProjectTasksFragment = gql`
-  fragment ProjectTasksFragment on Project {
-    tasks {
-      ...TaskFragment
-    }
-  }
-
-  ${TaskFragment}
 `;
 
 export const ProjectBoardFragment = gql`
@@ -134,9 +131,8 @@ export const UpdateItemMutation = gql`
   }
   
   ${ValueFragment}
-
   ${ItemFragment}
+
   ${ProjectBoardFragment}
-  ${ProjectTasksFragment}
   ${TaskFragment}
 `;

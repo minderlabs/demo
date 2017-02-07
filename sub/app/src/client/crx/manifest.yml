@@ -1,15 +1,19 @@
 #
 # Manifest YML
+# NOTE: We use YML (converted to JSON via Grunt) to support comments, etc.
 #
 # Manifest format
 # https://developer.chrome.com/extensions/manifest
 # https://developer.chrome.com/extensions/faq
-# NOTE: We use YML (converted to JSON via Grunt) to support comments, etc.
+# https://bugs.chromium.org/p/chromium/issues/list
+#
+# Dashboard
+# https://chrome.google.com/webstore/developer/dashboard/u32a9eaef58cd96cf309f9a48dfd49b9d
 #
 # Development
 # grunt watch:crx
 #
-# Chrome extensions:
+# Chrome Extension Tools:
 # https://chrome.google.com/webstore/detail/chrome-apps-extensions-de/ohmmkhmmmpcnpikjeljgnaoabkaalbgc
 # https://chrome.google.com/webstore/detail/extensions-reloader/fimgfedafeadlieiabdeeaodndnlbhid
 #
@@ -18,13 +22,14 @@
 # NOTE: To keep the BG page window open, click reload then manually reload the content script page.
 # NOTE: On manifest changes, MUST reload via the Chrome Extenion Tool (not via the Extensions Reloader).
 #
-# https://bugs.chromium.org/p/chromium/issues/list
-#
 
-# Publishing Group Delted (2/6/17 case #12034091 + #12038661)
-# https://productforums.google.com/forum/#!topic/chrome/llSseh0Gtzc;context-place=forum/chrome
-# https://groups.google.com/a/chromium.org/forum/#!searchin/chromium-extensions/publishing$20group%7Csort:relevance/chromium-extensions/pWK2sy6MLEI/U-vAvmFrgGsJ
+# TODO(burdon): Publishing Group Deleted (2/6/17 case #12034091 + #12038661)
+# Submitted form (Chrome Web Store Help): https://support.google.com/chrome_webstore/contact/developer_support/?hl=en&vid=0-409079033547-1486423924689
+# http://stackoverflow.com/questions/42079184/chrome-web-store-group-publishing [2/6/17]
+# https://productforums.google.com/forum/#!topic/chrome/llSseh0Gtzc;context-place=forum/chrome [2/6/17]
+# https://developer.chrome.com/webstore/publish#set-up-group-publishing
 # https://support.google.com/chrome/a/answer/2663860?hl=en#contact=1
+# https://groups.google.com/a/chromium.org/forum/#!searchin/chromium-extensions/publishing$20group%7Csort:relevance/chromium-extensions/pWK2sy6MLEI/U-vAvmFrgGsJ
 
 manifest_version:   2
 

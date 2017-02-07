@@ -15,6 +15,7 @@
   //
   // Components are in iframes for CSS and JS isolation, and deferred loading.
   //
+
   iframe {
     border: none;
   }
@@ -22,6 +23,7 @@
   //
   // Logo
   //
+
   button {
     position: fixed;
     bottom: 0;
@@ -37,11 +39,24 @@
       width: 24px;
       height: 24px;
     }
+
+    -webkit-animation-duration: 1s;
+  }
+
+  button.crx-bounce {
+    -webkit-animation-name: bounce;
+  }
+
+  @-webkit-keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateX(0); }
+    40% { transform: translateX(-30px); }
+    60% { transform: translateX(-15px); }
   }
 
   //
   // Sidebar
   //
+
   .crx-sidebar {
     display: flex;
     flex-direction: column;

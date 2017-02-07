@@ -4,8 +4,11 @@
 
 import React from 'react';
 
+import { MutationUtil } from 'minder-core';
+
 import { DragOrderModel } from './dnd';
 import { DragDropList } from './list';
+import { TextBox } from './textbox';
 
 import './board.less';
 
@@ -27,6 +30,7 @@ export class Board extends React.Component {
     columns: React.PropTypes.array.isRequired,            // [{ id: {string}, title: {string} }]
     columnMapper: React.PropTypes.func.isRequired,        // (columns, item) => column.id
     onItemSelect: React.PropTypes.func,                   // (item) => {}
+    onItemUpdate: React.PropTypes.func,                   // (item, mutations) => {}
     onItemDrop: React.PropTypes.func                      // (column, item) => {}
   };
 
@@ -64,6 +68,14 @@ export class Board extends React.Component {
     this.props.onItemDrop && this.props.onItemDrop(column, item, changes);
   }
 
+  handleItemCreate(column, text) {
+    if (text) {
+      this.props.onItemUpdate && this.props.onItemUpdate(null, [
+        MutationUtil.createFieldMutation('title', 'string', text)
+      ], column);
+    }
+  }
+
   render() {
     let { columnMapper, itemRenderer, itemOrderModel } = this.props;
     let { items, columns } = this.state;
@@ -82,14 +94,22 @@ export class Board extends React.Component {
             <h2>{ column.title }</h2>
           </div>
 
-          <DragDropList data={ column.id }
-                        hightlight={ false }
+          <DragDropList className="ux-board-list"
+                        highlight={ false }
+                        data={ column.id }
                         items={ columnItems }
                         itemClassName="ux-board-list-item"
                         itemRenderer={ itemRenderer }
                         itemOrderModel={ itemOrderModel }
                         onItemDrop={ this.handleItemDrop.bind(this) }
                         onItemSelect={ this.handleItemSelect.bind(this) }/>
+
+          <div className="ux-board-add">
+            <div className="ux-section ux-toolbar">
+              <TextBox className="ux-expand" placeholder="Add item..."
+                       onEnter={ this.handleItemCreate.bind(this, column) }/>
+            </div>
+          </div>
         </div>
       );
     });

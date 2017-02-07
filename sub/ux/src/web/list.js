@@ -104,6 +104,7 @@ export class List extends React.Component {
   // Context passed to ListItem and inline widgets.
   //
   static childContextTypes = {
+    mutator:      React.PropTypes.object,
     onItemSelect: React.PropTypes.func,
     onItemUpdate: React.PropTypes.func
   };
@@ -117,6 +118,7 @@ export class List extends React.Component {
     itemRenderer:       React.PropTypes.func,
     itemEditor:         React.PropTypes.func,
     itemOrderModel:     React.PropTypes.object,                               // Order model for drag and drop.
+    mutator:            React.PropTypes.object,
     onItemUpdate:       React.PropTypes.func,
     onItemSelect:       React.PropTypes.func,
     onItemDrop:         React.PropTypes.func,
@@ -145,10 +147,19 @@ export class List extends React.Component {
   }
 
   getChildContext() {
-    return {
+    let context = {
       onItemSelect: this.handleItemSelect.bind(this),
       onItemUpdate: this.handleItemUpdate.bind(this)
+    };
+
+    // Maybe set the mutator (don't overwrite if already set by higher context).
+    // E.g., if we're a sublist of a card that is itself part of a list in a canvas...
+    let { mutator } = this.props;
+    if (mutator) {
+      context.mutator = mutator;
     }
+
+    return context;
   }
 
   set itemRenderer(itemRenderer) {

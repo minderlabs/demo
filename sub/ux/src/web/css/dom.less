@@ -10,10 +10,16 @@
 // Generic DOM elements.
 //
 
+* {
+  // Dimensions include padding and border (but not the margin).
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  overflow: hidden;                     // Prevent scrolling/bounce.
-  box-sizing: border-box;
+
+  // Prevent scrolling/bounce.
+  overflow: hidden;
 
   background-color: @ux-body-background;
   color: @ux-color-dark;

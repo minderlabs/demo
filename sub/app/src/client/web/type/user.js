@@ -104,13 +104,13 @@ const UserQuery = gql`
 
 export const UserCanvas = composeItem(
   new ItemReducer({
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    },
     query: {
       type: UserQuery,
       path: 'item'
+    },
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
     }
   })
 )(UserCanvasComponent);

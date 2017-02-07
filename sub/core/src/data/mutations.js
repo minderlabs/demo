@@ -12,6 +12,27 @@ import { ID, IdGenerator } from './id';
 export class MutationUtil {
 
   /**
+   * Creates a set mutation.
+   *
+   * @param field
+   * @param type
+   * @param value
+   */
+  static createSetMutation(field, type, value) {
+    console.assert(field && type && value);
+    return {
+      field,
+      value: {
+        set: {
+          value: {
+            [type]: value
+          }
+        }
+      }
+    };
+  }
+
+  /**
    * Creates a mutation field if the old and new values are different.
    *
    * @param field
@@ -20,9 +41,9 @@ export class MutationUtil {
    * @returns {mutation}
    */
   static createFieldMutation(field, type=null, value=null) {
-    console.assert(field && type);
+    console.assert(field);
     return {
-      field: field,
+      field,
       value: !type || _.isNil(value) ? {
         null: true
       } : {

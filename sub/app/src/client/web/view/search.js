@@ -25,8 +25,8 @@ class SearchView extends React.Component {
     let { search } = this.props;
 
     return (
-      <div className="ux-section ux-toolbar">
-        <SearchBar value={ search.text } onSearch={ this.handleSearch.bind(this) }/>
+      <div className="app-search-toolbar">
+        <SearchBar className="ux-expand" value={ search.text } onSearch={ this.handleSearch.bind(this) }/>
       </div>
     );
   }

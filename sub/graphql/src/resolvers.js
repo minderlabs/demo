@@ -9,7 +9,7 @@ import { introspectionQuery } from 'graphql/utilities';
 
 import { $$, Logger, ID, Transforms, TypeUtil } from 'minder-core';
 
-import Schema from './schema.graphql';
+import Schema from './gql/schema.graphql';
 
 const logger = Logger.get('resolver');
 

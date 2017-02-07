@@ -10,7 +10,7 @@ import { AppAction } from '../reducers';
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
 
-import FinderView from '../view/finder';
+import FolderView from '../view/folder';
 
 /**
  * Finder Activity.
@@ -35,10 +35,10 @@ class FinderActivity extends React.Component {
     let { params } = this.props;
     let { folder='inbox' } = params;
 
-    let finder = <FinderView folder={ folder }/>;
+    let finder = <FolderView folder={ folder }/>;
 
     let platform = _.get(config, 'app.platform');
-    if (platform == 'mobile' || platform == 'crx') {
+    if (platform === 'mobile' || platform === 'crx') {
       return (
         <FullLayout>
           { finder }
