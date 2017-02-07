@@ -14,7 +14,7 @@
       "team": "minderlabs",
       "boards": [
         {
-          "alias": "tasks",
+          "alias": "priority",
           "title": "Task Pipeline",
           "columns": [
             { "id": "c1", "value": { "int": 0 }, "title": "Unstarted" },
@@ -22,6 +22,10 @@
             { "id": "c3", "value": { "int": 2 }, "title": "Complete"  },
             { "id": "c4", "value": { "int": 3 }, "title": "Blocked"   }
           ]
+        },
+        {
+          "alias": "user",
+          "title": "User Tasks"
         }
       ]
     }

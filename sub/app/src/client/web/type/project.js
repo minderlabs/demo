@@ -23,9 +23,6 @@ import { Card } from '../component/card';
  */
 class ProjectCanvasComponent extends React.Component {
 
-  // TODO(burdon): By user (+shared/private)
-  // TODO(burdon): By priority.
-
   static contextTypes = {
     typeRegistry: React.PropTypes.object.isRequired,
     navigator: React.PropTypes.object.isRequired
@@ -43,8 +40,8 @@ class ProjectCanvasComponent extends React.Component {
   };
 
   state = {
-    board: null,
-    itemOrderModel: new DragOrderModel()
+    itemOrderModel: new DragOrderModel(),
+    boardAlias: null
   };
 
   getChildContext() {
@@ -58,8 +55,8 @@ class ProjectCanvasComponent extends React.Component {
     let { item:project } = nextProps;
 
     this.setState({
-      // Default board.
-      board: _.get(project, 'boards[0].alias')
+      // TODO(burdon): Move to redux state (remove componentWillReceiveProps).
+      boardAlias: _.get(project, 'boards[0].alias')
     });
   }
 
@@ -87,7 +84,7 @@ class ProjectCanvasComponent extends React.Component {
 
   handleItemDrop(column, item, changes) {
     let { mutator, item:project } = this.props;
-    let { board } = this.state;
+    let { boardAlias } = this.state;
     console.assert(board);
 
     // TODO(burdon): Customize for different boards (e.g., assigned).
@@ -104,7 +101,7 @@ class ProjectCanvasComponent extends React.Component {
           predicate: {
             key: 'alias',
             value: {
-              string: board
+              string: boardAlias
             }
           },
 
@@ -144,23 +141,31 @@ class ProjectCanvasComponent extends React.Component {
   }
 
   handleSave() {
-    console.log('HANDLE SAVE');
     return [];
+  }
+
+  handleSetView(view) {
+    // TODO(burdon): Dispatch store state.
+    console.log('View:', view);
+    this.setState({
+      view: view
+    })
   }
 
   render() {
     let { typeRegistry } = this.context;
     let { item:project={}, refetch, mutator } = this.props;
-    let { itemOrderModel } = this.state;
+    let { boardAlias, itemOrderModel } = this.state;
+
+    // All items for board.
+    let items = _.get(project, 'tasks', []);
 
     // Get the appropriate board.
-    // TODO(burdon): Get from props.
-    let boardAlias = "tasks";
     let board = _.find(_.get(project, 'boards'), board => board.alias == boardAlias);
     itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
 
-    let items = _.get(project, 'tasks', []);
-
+    // Columns (from board metadata).
+    // TODO(burdon): How to make dynamic based on users?
     const columns = _.map(_.get(board, 'columns'), column => ({
       id: column.id,
       value: column.value.int,
@@ -176,9 +181,19 @@ class ProjectCanvasComponent extends React.Component {
       return columns[idx].id;
     };
 
+    // Memu items.
+    const Menu = (props) => {
+      return (
+        <div className="ux-bar">
+          <i className="ux-icon ux-icon-action" onClick={ this.handleSetView.bind(this, 'priority') }>poll</i>
+          <i className="ux-icon ux-icon-action" onClick={ this.handleSetView.bind(this, 'user') }>people</i>
+        </div>
+      );
+    };
+
     return (
       <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch }
-              onSave={ this.handleSave.bind(this)}>
+              onSave={ this.handleSave.bind(this) } menu={ <Menu/> }>
 
         <Board item={ project } items={ items } columns={ columns } columnMapper={ columnMapper }
                itemRenderer={ Card.ItemRenderer(typeRegistry) }

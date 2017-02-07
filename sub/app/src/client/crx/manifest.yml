@@ -23,10 +23,11 @@
 # NOTE: On manifest changes, MUST reload via the Chrome Extenion Tool (not via the Extensions Reloader).
 #
 
-# TODO(burdon): Publishing Group Deleted (2/6/17 case #12034091 + #12038661)
+# TODO(burdon): Publishing Group Deleted; Account suspended; Publish rejected (2/6/17 case #12034091 + #12038661)
 # Submitted form (Chrome Web Store Help): https://support.google.com/chrome_webstore/contact/developer_support/?hl=en&vid=0-409079033547-1486423924689
 # http://stackoverflow.com/questions/42079184/chrome-web-store-group-publishing [2/6/17]
 # https://productforums.google.com/forum/#!topic/chrome/llSseh0Gtzc;context-place=forum/chrome [2/6/17]
+# https://mail.google.com/mail/u/0/#inbox/15a14d7e0cf1e47a [2/7/17]
 # https://developer.chrome.com/webstore/publish#set-up-group-publishing
 # https://support.google.com/chrome/a/answer/2663860?hl=en#contact=1
 # https://groups.google.com/a/chromium.org/forum/#!searchin/chromium-extensions/publishing$20group%7Csort:relevance/chromium-extensions/pWK2sy6MLEI/U-vAvmFrgGsJ

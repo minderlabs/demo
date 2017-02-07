@@ -67,8 +67,12 @@ export class Canvas extends React.Component {
     // Read-only if not set.
     mutator: React.PropTypes.object,
 
+    // TODO(burdon): Move to custom menu.
     // Get mutations from child component.
-    onSave: React.PropTypes.func
+    onSave: React.PropTypes.func,
+
+    // Custom menu component.
+    menu: React.PropTypes.object,
   };
 
   static defaultProps = {
@@ -132,25 +136,20 @@ export class Canvas extends React.Component {
   }
 
   render() {
-    let { item, debug, children } = this.props;
+    let { item, debug, menu, children } = this.props;
     let { title, description } = this.state;
-
-    // TODO(burdon): Toolbar (Save, etc.)
-
-    let debugSection = debug && (
-      <div className="ux-section ux-debug">
-        { JSON.stringify(_.pick(item, 'bucket', 'type', 'id')) }
-      </div>
-    );
 
     return (
       <div className="ux-canvas">
         <div className="ux-row">
-          <TextBox className="ux-expand ux-noborder ux-font-large"
+          <TextBox className="ux-expand ux-noborder ux-font-xlarge"
                    value={ title }
                    onChange={ this.handlePropertyChange.bind(this, 'title') }/>
 
-          <i className="ux-icon ux-icon-action" onClick={ this.handleSave.bind(this) }>save</i>
+          <div className="ux-canvas-menu-bar ux-bar">
+            { menu }
+            <i className="ux-icon ux-icon-action" onClick={ this.handleSave.bind(this) }>save</i>
+          </div>
         </div>
 
         <div className="ux-row">
@@ -160,7 +159,11 @@ export class Canvas extends React.Component {
                     onChange={ this.handlePropertyChange.bind(this, 'description') }/>
         </div>
 
-        { debugSection }
+        { debug &&
+        <div className="ux-section ux-debug">
+          { JSON.stringify(_.pick(item, 'bucket', 'type', 'id')) }
+        </div>
+        }
 
         <div className="ux-expand">
           { children }
