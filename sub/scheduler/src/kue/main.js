@@ -43,20 +43,20 @@ class TestJob extends Job {
   }
 }
 
-// Main queue.
+// Create the main queue (client and service).
 let queue = kue.createQueue();
 
-// Service.
+// Register the job processor (service).
 queue.process(JobDefs.TEST, Job.processor(new TestJob()));
 
-// Client.
+// Create the job (client).
 let job = queue.createJob(JobDefs.TEST, Job.data({ foo: 100 }));
 
-// Scheduler.
+// Schedule the job (client).
 queue.every('2 seconds', job);
 
 //
 // http://localhost:9000
 //
-console.log('Starting Kue...');
+console.log('Starting Scheduler...');
 kue.app.listen(KueOptions.PORT);
