@@ -86,7 +86,10 @@ export const TaskFragment = gql`
 
 export const ProjectFragment = gql`
   fragment ProjectFragment on Project {
-    id  # TODO(burdon): Placeholder.
+    tasks {
+      id
+      title
+    }
   }
 `;
 

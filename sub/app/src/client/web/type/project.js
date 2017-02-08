@@ -57,6 +57,37 @@ class ProjectTasksCanvasComponent extends React.Component {
  */
 class ProjectBoardCanvasComponent extends React.Component {
 
+  /**
+   * Columns by status.
+   */
+  static statusBoardAdapter = {
+    columnMapper: (columns, item) => {
+
+    },
+    onCreate: (column) => {
+
+    },
+    onDrop: (column) => {
+
+    }
+  };
+
+  /**
+   * Columns by assignee.
+   */
+  static assignedBoardAdapter = {
+    // TODO(burdon): Is first column part of board (Icebox, Complete, Private tabs).
+    columnMapper: (columns, item) => {
+
+    },
+    onCreate: (column) => {
+
+    },
+    onDrop: (column) => {
+
+    }
+  };
+
   static contextTypes = {
     typeRegistry: React.PropTypes.object.isRequired,
     navigator: React.PropTypes.object.isRequired
@@ -252,6 +283,16 @@ class ProjectBoardCanvasComponent extends React.Component {
 // TODO(burdon): Team/Tasks master/list + list/detail.
 // TODO(burdon): All, private, shared items (under team page).
 
+const ProjectTasksQuery = gql`
+  query ProjectTasksQuery($itemId: ID!) {
+    item(itemId: $itemId) {
+      ...ItemFragment
+    }    
+  }
+
+  ${ItemFragment}
+`;
+
 /*
 const ProjectQuery = gql`
   query ProjectQuery($itemId: ID!, $localItemId: ID!) {
@@ -332,14 +373,13 @@ const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
 export const ProjectTasksCanvas = composeItem(
   new ItemReducer({
     query: {
-      type: ProjectBoardQuery,
+      type: ProjectTasksQuery,
       path: 'item'
     },
     mutation: {
       type: UpdateItemMutation,
       path: 'updateItem'
-    },
-    reducer: ProjectBoardReducer
+    }
   })
 )(ProjectTasksCanvasComponent);
 

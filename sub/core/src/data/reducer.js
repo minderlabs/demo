@@ -104,19 +104,20 @@ class Reducer {
    * {
    *   query: {
    *     type: QueryType
-   *     path: "query_result_path"              // Path to query root result.
+   *     path: {string} query_result_path              // Path to query root result.
    *   },
    *   mutation {
    *     type: MutationType,
-   *     path: "mutation_action_data_path"      // Path to mutation root result.
+   *     path: {string} mutation_action_data_path      // Path to mutation root result.
    *   },
    *   reducer: (matcher, context, previousResult, updatedItem) => {}
    * }
    */
   constructor(spec) {
     console.assert(spec);
-
     this._spec = spec;
+
+    console.log('!!!!!!!', this._spec, this.query);
 
     // TODO(burdon): Check when created and called. And when instantiated.
     let queryName = this.query.definitions[0].name.value;
