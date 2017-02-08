@@ -35,12 +35,17 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 /**
- * List factory, compose a List component from a query.
+ * The HOC wrapper provides the following properties:
+ * {
+ *   user     (from the Redux state)
+ *   mutator  (from the Redux injector)
+ * }
  *
- * @param reducer Mutation reducer object.
+ * @param {ListReducer} reducer Mutation reducer object.
  * @returns {React.Component} List control.
  */
 function composeList(reducer) {
+  console.assert(reducer);
   return compose(
 
     // Access component via getWrappedInstance()

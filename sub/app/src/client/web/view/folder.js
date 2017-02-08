@@ -79,7 +79,8 @@ class FolderView extends React.Component {
   render() {
     let { typeRegistry, filter, listType } = this.props;
 
-//  listType = 'card';
+    // TODO(burdon): Testing.
+    listType = 'card';
 
     // TODO(burdon): Get type from config.
     // TODO(burdon): Factor out for performance.

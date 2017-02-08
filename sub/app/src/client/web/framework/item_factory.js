@@ -35,16 +35,17 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 /**
- * The wrapper provides the following properties:
+ * The HOC wrapper provides the following properties:
  * {
  *   user     (from the Redux state)
  *   mutator  (from the Redux injector)
  * }
  *
- * @param reducer
+ * @param {ItemReducer} reducer
  * @returns {React.Component} Item control.
  */
 export function composeItem(reducer) {
+  console.assert(reducer);
   return compose(
 
     // Map Redux state to properties.

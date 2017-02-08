@@ -19,9 +19,43 @@ import { Card } from '../component/card';
 //-------------------------------------------------------------------------------------------------
 
 /**
- * Type-specific card container.
+ * Card.
  */
-class ProjectCanvasComponent extends React.Component {
+export class ProjectCard extends React.Component {
+
+  render() {
+    let { item } = this.props;
+
+    return (
+      <Card ref="card" item={ item }>
+      </Card>
+    );
+  }
+}
+
+// TODO(burdon): Register different canvas types (different files: project_card, project_board, project_tasks).
+
+/**
+ * Tasks canvas.
+ * http://localhost:3000/app/project/tasks/UHJvamVjdC9kZW1v
+ */
+class ProjectTasksCanvasComponent extends React.Component {
+
+  render() {
+    let { item:project={}, refetch, mutator } = this.props;
+
+    return (
+      <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch }>
+      </Canvas>
+    );
+  }
+}
+
+/**
+ * Board canvas.
+ * http://localhost:3000/app/project/UHJvamVjdC9kZW1v
+ */
+class ProjectBoardCanvasComponent extends React.Component {
 
   static contextTypes = {
     typeRegistry: React.PropTypes.object.isRequired,
@@ -207,10 +241,13 @@ class ProjectCanvasComponent extends React.Component {
 }
 
 //-------------------------------------------------------------------------------------------------
-// HOC.
+// HOC: ProjectTasksCanvas
 //-------------------------------------------------------------------------------------------------
 
-// TODO(burdon): Remove and use 2 board views.
+// TODO(burdon): Different sub-components (e.g., TeamList, TasksList). No query required?
+// TODO(burdon): Team/Tasks master/list + list/detail.
+// TODO(burdon): All, private, shared items (under team page).
+
 /*
 const ProjectQuery = gql`
   query ProjectQuery($itemId: ID!, $localItemId: ID!) {
@@ -287,6 +324,25 @@ const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
 };
 */
 
+// TODO(burdon): Different query, reducer, etc.
+export const ProjectTasksCanvas = composeItem(
+  new ItemReducer({
+    query: {
+      type: ProjectBoardQuery,
+      path: 'item'
+    },
+    mutation: {
+      type: UpdateItemMutation,
+      path: 'updateItem'
+    },
+    reducer: ProjectBoardReducer
+  })
+)(ProjectTasksCanvasComponent);
+
+//-------------------------------------------------------------------------------------------------
+// HOC: ProjectBoardCanvas
+//-------------------------------------------------------------------------------------------------
+
 const ProjectBoardQuery = gql`
   query ProjectBoardQuery($itemId: ID!) {
 
@@ -312,7 +368,7 @@ const ProjectBoardQuery = gql`
   ${TaskFragment}  
 `;
 
-const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
+const ProjectBoardReducer = (matcher, context, previousResult, updatedItem) => {
   let { item:project } = previousResult;
 
   // Updated task.
@@ -343,7 +399,7 @@ const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
   }
 };
 
-export const ProjectCanvas = composeItem(
+export const ProjectBoardCanvas = composeItem(
   new ItemReducer({
     query: {
       type: ProjectBoardQuery,
@@ -353,6 +409,6 @@ export const ProjectCanvas = composeItem(
       type: UpdateItemMutation,
       path: 'updateItem'
     },
-    reducer: ProjectReducer
+    reducer: ProjectBoardReducer
   })
-)(ProjectCanvasComponent);
+)(ProjectBoardCanvasComponent);
