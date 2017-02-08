@@ -78,6 +78,7 @@ export const TaskFragment = gql`
 
     # TODO(burdon): Required for sub-task mutations.
     tasks {
+      type
       id
       title
     }
@@ -86,7 +87,10 @@ export const TaskFragment = gql`
 
 export const ProjectFragment = gql`
   fragment ProjectFragment on Project {
+
+    # TODO(burdon): Potential collision with Task.tasks (for card search mixin).
     tasks {
+      type
       id
       title
     }

@@ -9,7 +9,7 @@ import { DomUtil } from 'minder-core';
 import './sidebar.less';
 
 /**
- * Sidebar nav.
+ * Side panel.
  */
 export class Sidebar extends React.Component {
 

@@ -14,7 +14,7 @@
       "team": "minderlabs",
       "boards": [
         {
-          "alias": "priority",
+          "alias": "status",
           "title": "Task Pipeline",
           "columns": [
             { "id": "c1", "value": { "int": 0 }, "title": "Unstarted" },

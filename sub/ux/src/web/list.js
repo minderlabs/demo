@@ -492,15 +492,14 @@ export class ListItem extends React.Component {
     }
   }
 
-  // TODO(burdon): CSS remove: ux-data-row.
   render() {
     return (
-      <div className={ 'ux-row ux-data-row ' + (this.props.className || '') }>
+      <div className={ DomUtil.className('ux-row', 'ux-data-row', this.props.className) }>
         { this.props.children }
       </div>
     );
   }
 }
 
-// TODO(burdon): Should be broader than List (i.e., on Board, etc.)
+// TODO(burdon): Should be broader than List (i.e., on Canvas/Layout?)
 export const DragDropList = DragDropContext(HTML5Backend)(List);

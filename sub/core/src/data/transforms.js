@@ -82,10 +82,13 @@ export class Transforms {
     }
 
     // Scalars.
-    // TODO(burdon): Handle null.
-    let scalar = Transforms.scalarValue(value);
-    console.assert(scalar !== undefined, 'Invalid value:', JSON.stringify(mutation));
-    object[field] = scalar;
+    if (value.null) {
+      delete object[field];
+    } else {
+      let scalar = Transforms.scalarValue(value);
+      console.assert(scalar !== undefined, 'Invalid value:', JSON.stringify(mutation));
+      object[field] = scalar;
+    }
 
     return object;
   }

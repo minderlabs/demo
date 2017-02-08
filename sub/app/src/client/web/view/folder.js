@@ -51,14 +51,14 @@ class FolderView extends React.Component {
 
       switch (type) {
         case 'Project': {
-          TypeUtil.merge(mutations, [
+          _.concat(mutations, [
             MutationUtil.createFieldMutation('team', 'id', team)
           ]);
           break;
         }
 
         case 'Task': {
-          TypeUtil.merge(mutations, [
+          _.concat(mutations, [
             // TODO(burdon): Promote to all types.
             MutationUtil.createFieldMutation('owner', 'id', user.id),
             MutationUtil.createLabelMutation('_private')
@@ -80,7 +80,7 @@ class FolderView extends React.Component {
     let { typeRegistry, filter, listType } = this.props;
 
     // TODO(burdon): Testing.
-    listType = 'card';
+//  listType = 'card';
 
     // TODO(burdon): Get type from config.
     // TODO(burdon): Factor out for performance.

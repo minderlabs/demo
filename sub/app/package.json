@@ -91,6 +91,7 @@
     "minder-ux": "0.1.0",
     "moment": "^2.15.2",
     "morgan": "^1.7.0",
+    "prevent-parent-scroll": "0.0.6",
     "random-seed": "^0.3.0",
     "react": "^15.3.2",
     "react-addons-update": "^15.3.2",

@@ -66,7 +66,7 @@ export class TaskCard extends React.Component {
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object
+    mutator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -112,7 +112,7 @@ export class TaskCard extends React.Component {
         </div>
         }
 
-        <div>
+        <div className="ux-list-tasks">
           <List ref="tasks"
                 items={ tasks }
                 itemRenderer={ TaskListItemRenderer }
