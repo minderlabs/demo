@@ -56,7 +56,7 @@ let job = queue.createJob(JobDefs.TEST, Job.data({ foo: 100 }));
 queue.every('2 seconds', job);
 
 //
-// http://localhost:9000
+// http://localhost:9000 (UI)
 //
 console.log('Starting Scheduler...');
 kue.app.listen(KueOptions.PORT);

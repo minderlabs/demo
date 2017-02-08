@@ -11,7 +11,7 @@ export class Job {
 
   // Custom namespace.
   // NOTE: kue spreads its own metadata into the job.data param.
-  static NAMESPACE = 'minder';
+  static NAMESPACE = '_DATA_';
 
   /**
    * Create namespaced data property.
