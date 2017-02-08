@@ -85,14 +85,18 @@ class ProjectCanvasComponent extends React.Component {
   handleItemDrop(column, item, changes) {
     let { mutator, item:project } = this.props;
     let { boardAlias } = this.state;
-    console.assert(board);
 
+    // Update status.
     // TODO(burdon): Customize for different boards (e.g., assigned).
-    let status = column.value;
-    this.props.mutator.updateItem(item, [ MutationUtil.createFieldMutation('status', 'int', status) ]);
+    // TODO(burdon): What happens when drag items for user (change priority?)
+    if (item.status !== column.value) {
+      mutator.updateItem(item, [
+        MutationUtil.createFieldMutation('status', 'int', column.value)
+      ]);
+    }
 
-    // TODO(burdon): Update specific board (separate node or Project meta?)
-    let mutations = _.map(changes, change => ({
+    // Update item order.
+    mutator.updateItem(project, _.map(changes, change => ({
       field: 'boards',
       value: {
         map: [{
@@ -109,9 +113,15 @@ class ProjectCanvasComponent extends React.Component {
             object: [{
               field: 'itemMeta',
               value: {
-                // TODO(burdon): Use map transformation (same as server for optimistic results).
-                object: [{
-                  field: change.itemId,
+                map: [{
+
+                  // Upsert item.
+                  predicate: {
+                    key: 'itemId',
+                    value: {
+                      string: change.itemId
+                    }
+                  },
                   value: {
                     object: [
                       {
@@ -134,10 +144,7 @@ class ProjectCanvasComponent extends React.Component {
           }
         }]
       }
-    }));
-
-    // TODO(burdon): Allow for multiple mutations (on different items).
-    mutator.updateItem(project, mutations);
+    })));
   }
 
   handleSave() {
@@ -174,10 +181,7 @@ class ProjectCanvasComponent extends React.Component {
 
     // Map items to columns.
     const columnMapper = (columns, item) => {
-      let idx = _.findIndex(columns, column => {
-        return (column.value == item.status);
-      });
-
+      let idx = _.findIndex(columns, column => column.value == item.status);
       return columns[idx].id;
     };
 
