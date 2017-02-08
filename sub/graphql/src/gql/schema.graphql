@@ -63,7 +63,6 @@ input ValueInput {
   map:        [MapMutationInput]
   set:        [SetMutationInput]
   array:      [ArrayMutationInput]
-
   object:     [ObjectMutationInput]
 }
 
@@ -101,7 +100,6 @@ input ArrayMutationInput {
   index: Int                      # Insert ordinal position (-1 to append; undefined to remove).
   value: ValueInput!              # Value to input.
 }
-
 
 #
 # Object mutation.
