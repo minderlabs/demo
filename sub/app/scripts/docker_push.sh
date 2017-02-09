@@ -64,7 +64,7 @@ webpack --config webpack-server.config.js
 # Create package.json for Dockerfile's npm install.
 #
 
-./scripts/create_package_file.py dist/package.json
+../tools/src/python/create_package_file.py dist/package.json
 
 #
 # Bump version.
