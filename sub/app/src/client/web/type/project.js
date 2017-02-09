@@ -112,7 +112,14 @@ class ProjectBoardCanvasComponent extends React.Component {
 
       // Columns (from board metadata).
       columns: (project, board) => {
-        return _.map(_.get(board, 'columns'), column => ({
+        const COLUMNS = [
+          { "id": "c1", "value": { "int": 0 }, "title": "Unstarted" },
+          { "id": "c2", "value": { "int": 1 }, "title": "Active"    },
+          { "id": "c3", "value": { "int": 2 }, "title": "Complete"  },
+          { "id": "c4", "value": { "int": 3 }, "title": "Blocked"   }
+        ];
+
+        return _.map(COLUMNS, column => ({
           id:     column.id,
           value:  column.value.int,
           title:  column.title

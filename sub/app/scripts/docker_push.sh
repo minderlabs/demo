@@ -53,6 +53,13 @@ kubectl cluster-info
 eval "$(docker-machine env ${DOCKER_MACHINE})"
 
 #
+# Bump version (must happen before webpack).
+# TODO(burdon): Git commit/push and merge master after this.
+#
+
+grunt version:web:patch
+
+#
 # Build webpack modules.
 # TODO(burdon): Move build steps to Dockerfile?
 #
@@ -65,13 +72,6 @@ webpack --config webpack-server.config.js
 #
 
 ../tools/src/python/create_package_file.py dist/package.json
-
-#
-# Bump version.
-# TODO(burdon): Git commit/push and merge master after this.
-#
-
-grunt version:web:patch
 
 #
 # Build docker image.
@@ -116,11 +116,11 @@ kubectl get pods -l run=demo -o name
 STATUS_URL="https://demo-dev.minderlabs.com/status"
 LOCAL_VERSION=$(cat "package.json" | jq '.version')
 
-until [ $LOCAL_VERSION = $(curl -s $STATUS_URL | jq '.version') ]; do
+until [ ${LOCAL_VERSION} = $(curl -s ${STATUS_URL} | jq '.version') ]; do
   echo "Waiting..."
-  sleep 1
+  sleep 5
 done
 
 echo "Deployed OK"
 
-curl -s -w '\n' $STATUS_URL
+curl -s -w '\n' ${STATUS_URL}
