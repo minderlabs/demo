@@ -8,6 +8,8 @@ import moment from 'moment';
 
 import { $$, Logger } from 'minder-core';
 
+import { Const } from '../common/defs';
+
 const logger = Logger.get('app');
 
 //
@@ -74,9 +76,11 @@ export const appRouter = (authManager, clientManager, options) => {
 
   // Status
   router.get('/status', function(req, res) {
-    res.send({
-      version: '0.1.0'
-    });
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({
+      env: options.env,
+      version: Const.APP_VERSION
+    }, null, 2));
   });
 
   return router;

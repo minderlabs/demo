@@ -12,17 +12,20 @@ import express from 'express';
 /**
  * AccountManager handles service-specific accounts, each provided by an AccountHandler
  * e.g. SlackAccountHandler.
- *
  */
 export class AccountManager {
+
   constructor() {
     this._handlers = new Map();
   }
 
-  get handlers() { return this._handlers; }
+  get handlers() {
+    return this._handlers;
+  }
 
   registerHandler(name, handler) {
     this._handlers[name] = handler;
+    return this;
   }
 }
 

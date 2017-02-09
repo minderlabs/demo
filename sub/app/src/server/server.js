@@ -406,10 +406,8 @@ app.use(appRouter(authManager, clientManager, {
 
 app.use('/botkit', botkitRouter(botkitManager));
 
-let accountManager = new AccountManager();
-accountManager.registerHandler('Slack', new SlackAccountHandler());
-
-app.use(accountsRouter(accountManager));
+app.use(accountsRouter(new AccountManager()
+  .registerHandler('Slack', new SlackAccountHandler())));
 
 app.use('/', function(req, res) {
   res.redirect('/home');
@@ -430,10 +428,10 @@ app.use(function(req, res) {
 //
 
 Promise.all(promises).then(() => {
-  logger.log('STARTING...');
+  logger.log('Starting minder-app-server');
 
   server.listen(port, host, () => {
     let addr = server.address();
-    logger.log(`RUNNING[${env}] http://${addr.address}:${addr.port}`);
+    logger.log(`[${env}] http://${addr.address}:${addr.port}`);
   });
 });

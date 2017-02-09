@@ -42,7 +42,7 @@ module.exports = _.merge(baseConfig, {
       // https://babeljs.io/docs/usage/polyfill
       'babel-polyfill',
 
-      path.resolve(baseConfig.context, 'src/server/main.js')
+      path.resolve(baseConfig.context, 'src/server/server.js')
     ]
   },
 

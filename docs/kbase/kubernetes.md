@@ -3,7 +3,15 @@
 General introduction, concepts: http://kubernetes.io/docs/user-guide/
 
 
-## Set up
+## Getting Started.
+
+* Install the AWS CLI (See [AWS](https://github.com/minderlabs/demo/blob/master/docs/kbase/aws.md).
+
+* Create the AWS credentials:
+
+```
+cp /keybase/private/richburdon,madadam/aws-credentials ~/.aws/credentials
+```
 
 * Install [kubectl](http://kubernetes.io/docs/getting-started-guides/kubectl/)
 
@@ -12,26 +20,32 @@ brew install kubectl
 brew install kops
 ```
 
-Optional: set up bash completion for kubectl, following http://kubernetes.io/docs/getting-started-guides/kubectl/.
+* Create the kube configuration (form the prod-ops repo):
+
+```angular2html
+cp ${PROJECTS}/minderlabs/prod-ops/kube/configs/dev ~/.kube/config
+```
+
+* Optional: set up bash completion for kubectl: http://kubernetes.io/docs/getting-started-guides/kubectl
+
 
 
 ## Deploying a service.
 
-#### Cheat sheet
+#### Cheat Sheet
 
 * Deploying the demo-dev stack for the first time:
     ```
     cd config/k8s
     kubectl create -f demo.yml
     ```
-* Pushing a new docker image to the demo-dev stack, if there are no configuration changes.
-    Note that this is a disruptive push (the service will go down temporarily, don't use for
-    prod.)
-    First, make sure your AWS credentials are set up. See
-    [AWS](https://github.com/minderlabs/demo/blob/master/docs/kbase/es6.md).
+* Pushing a new docker image to the `demo-dev` stack (if there are no configuration changes).
+    Note that this is a disruptive push (the service will go down temporarily: don't use for
+    prod.) First, make sure your AWS credentials are set up. See
+    [AWS](https://github.com/minderlabs/demo/blob/master/docs/kbase/aws.md).
     ```
-    cd sub/apollo
-    ./scripts docker_push.sh ecr
+    cd sub/app
+    ./scripts/docker_push.sh ecr
     ```
 * Pushing configuration changes to the demo-dev stack.
     Note that this is a disruptive push (the service will go down temporarily, don't use for
@@ -43,17 +57,19 @@ Optional: set up bash completion for kubectl, following http://kubernetes.io/doc
 
 * TODO: rolling-update instructions for prod.
 
+
 #### Deploying a new service.
 
 See the [kubernetes user guide](http://kubernetes.io/docs/user-guide/).
 
 In short, create a config (yaml or json file), and then run
-```
-kubectl create -f $CONFIG_FILE
-```
+    ```
+    kubectl create -f $CONFIG_FILE
+    ```
 
 Configs can be concatenated into one yaml file, each separated by `---`, or placed in separate files in a directory,
 and launched with one command e.g. `kubectl create -f config_dir/`
+
 
 ### Updating a running service.
 
@@ -70,9 +86,9 @@ Several approaches:
    kubernetes will pull the image on each push. Then you can just delete the pods and the
    ReplicaSet will recreate them and fetch the new image. For example to update the deployment
    with label `run: demo`, you can do:
-   ```
-   kubectl delete $(kubectl get pods -l run=demo -o name)
-   ```
+    ```
+    kubectl delete $(kubectl get pods -l run=demo -o name)
+    ```
    See [here](http://kubernetes.io/docs/user-guide/config-best-practices/#container-images).
 
    Note that this is bad practice for production because you can’t roll back (see next bullet.)
@@ -88,7 +104,7 @@ Several approaches:
 ## Using Amazon container registry (ECR) to host images.
 
 Kubernetes supports several options for hosting images, to pull images from a private repo (or private images
-from docker hub), see [image pull secrets](http://kubernetes.io/docs/user-guide/images/).
+from docker hub), see [image pull secrets](http://kubernetes.io/docs/user-guide/images).
 
 When running on AWS, the most convenient thing is to host images on ECR.
 
@@ -100,8 +116,8 @@ To push an image to ECR:
 
 1. Use the ECR repo URI as the namespace, e.g.:
     ```
-    docker tag node-apollo:latest 240980109537.dkr.ecr.us-east-1.amazonaws.com/node-apollo:latest
-    docker push 240980109537.dkr.ecr.us-east-1.amazonaws.com/node-apollo:latest
+    docker tag minder-app-server:latest 240980109537.dkr.ecr.us-east-1.amazonaws.com/minder-app-server:latest
+    docker push 240980109537.dkr.ecr.us-east-1.amazonaws.com/minder-app-server:latest
     ```
     A convenient way to get these commands is from the [ECR console](https://console.aws.amazon.com/ecs/home?region=us-east-1#/repositories),
     then select the repo and click "View Push Commands".
@@ -165,7 +181,7 @@ https://github.com/kubernetes/kops/blob/master/vendor/k8s.io/kubernetes/docs/des
     the credentials are in the kubeconfig file.
 
 1. Optional, run the Dashboard UI service.
-    http://kubernetes.io/docs/user-guide/ui/
+    http://kubernetes.io/docs/user-guide/ui
     ```
     kubectl create -f https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
     ```

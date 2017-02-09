@@ -29,9 +29,10 @@ spec:
         run: demo
     spec:
       containers:
-      - name: node-apollo
-        # NOTE: Don't use the :latest tag in production. see http://kubernetes.io/docs/user-guide/config-best-practices/#container-images
-        image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/node-apollo:latest
+      - name: minder-app-server
+        # NOTE: Don't use the :latest tag in production.
+        # See http://kubernetes.io/docs/user-guide/config-best-practices/#container-images
+        image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/minder-app-server:latest
         env:
           # TODO(madadam): Prod vs dev.
           - name: OAUTH_REDIRECT_ROOT

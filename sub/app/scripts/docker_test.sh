@@ -9,12 +9,12 @@ webpack --config webpack-server.config.js
 
 ./scripts/create_package_file.py dist/package.json
 
-docker build -t node-apollo .
+docker build -t minder-app-server .
 
-docker rm -f node-apollo
+docker rm -f minder-app-server
 
-docker run -d -p 3000:3000 --name node-apollo node-apollo
+docker run -d -p 3000:3000 --name minder-app-server minder-app-server
 
-docker logs node-apollo
+docker logs minder-app-server
 
 curl "$(docker-machine ip dev):3000/status"
