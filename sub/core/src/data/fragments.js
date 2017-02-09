@@ -4,6 +4,11 @@
 
 import gql from 'graphql-tag';
 
+// TODO(burdon): Factor out GQL component (mutations, etc.)
+// TODO(burdon): Refine fragments returned by mutation.
+// NOTE: When the Project Detail card adds a new Task, unless "on Project { tasks {} }" is
+// declared in the mutation, then thhe Project Board canvas will not be updated.
+
 //
 // Canonical Query fragments (i.e., contain all fields).
 //
@@ -102,3 +107,23 @@ export const ProjectTasksFragment = gql`
 // Mutation fragments.
 // TODO(burdon): Doc (fields that are returned from the server after the mutation).
 //
+
+/**
+ * Upsert item.
+ */
+export const UpdateItemMutation = gql`
+  mutation UpdateItemMutation($itemId: ID!, $mutations: [ObjectMutationInput]!) {
+    updateItem(itemId: $itemId, mutations: $mutations) {
+      ...ItemFragment
+      ...TaskFragment
+      ...ProjectBoardFragment
+    }
+  }
+  
+  ${ValueFragment}
+
+  ${ItemFragment}
+  ${ProjectBoardFragment}
+  ${ProjectTasksFragment}
+  ${TaskFragment}
+`;

@@ -112,5 +112,12 @@
         "groupBy": false
       }
     }
+  ],
+
+  "Contact": [
+    {
+      "id": "contact_alice",
+      "title": "Alice Braintree"
+    }
   ]
 }

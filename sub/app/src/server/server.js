@@ -25,6 +25,7 @@ import { accountsRouter, AccountManager, SlackAccountHandler } from './accounts'
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { loginRouter, AuthManager } from './auth';
 import { clientRouter, ClientManager, SocketManager } from './client';
+import { testingRouter } from './testing';
 import { loggingRouter } from './logger';
 
 const logger = Logger.get('main');
@@ -162,6 +163,7 @@ _.each(require('./testing/test.json'), (items, type) => {
 
 //
 // Create test data.
+// TODO(burdon): Factor out.
 //
 
 // TODO(burdon): Use injector pattern (esp for async startup).
@@ -298,6 +300,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 if (env === 'production') {
   app.use('/', loggingRouter({}));
+} else {
+  app.use('/testing', testingRouter({}));
 }
 
 
@@ -325,6 +329,7 @@ app.get('/home', async function(req, res) {
   }
 });
 
+
 //
 // GraphQL
 //
@@ -340,7 +345,7 @@ app.use(graphqlRouter(database, {
   context: req => authManager.getUserInfoFromHeader(req)
     .then(userInfo => {
       if (!userInfo) {
-        console.error('Not authenticated.');
+        console.error('GraphQL request is not authenticated.');
       }
 
       return {
@@ -349,13 +354,16 @@ app.use(graphqlRouter(database, {
     })
 }));
 
+
 //
 // Custom GraphiQL.
 //
 
 let staticPath = (env === 'production' ?
     path.join(__dirname, '../node_modules') : path.join(__dirname, '../../node_modules'));
+
 app.use('/node_modules', express.static(staticPath));
+
 app.get('/graphiql', function(req, res) {
   return authManager.getUserInfoFromCookie(req)
     .then(userInfo => {
@@ -397,17 +405,21 @@ app.use(appRouter(authManager, clientManager, {
       version: Const.APP_VERSION,
     },
 
-    team: Const.DEF_TEAM,
+    team: Const.DEF_TEAM
   },
 
   // TODO(burdon): Clean this up with config.
-  assets: env === 'production' ? __dirname : path.join(__dirname, '../../dist')
+  assets: (env === 'production') ? __dirname : path.join(__dirname, '../../dist')
 }));
 
 app.use('/botkit', botkitRouter(botkitManager));
 
 app.use(accountsRouter(new AccountManager()
   .registerHandler('Slack', new SlackAccountHandler())));
+
+//
+// Catch-all (last).
+//
 
 app.use('/', function(req, res) {
   res.redirect('/home');
@@ -427,6 +439,7 @@ app.use(function(req, res) {
 // Start-up.
 //
 
+// TODO(burdon): Perform in order?
 Promise.all(promises).then(() => {
   logger.log('Starting minder-app-server');
 

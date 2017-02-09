@@ -1,0 +1,173 @@
+#
+# Manifest YML
+#
+# Manifest format
+# https://developer.chrome.com/extensions/manifest
+# https://developer.chrome.com/extensions/faq
+# NOTE: We use YML (converted to JSON via Grunt) to support comments, etc.
+#
+# Development
+# grunt watch:crx
+#
+# Chrome extensions:
+# https://chrome.google.com/webstore/detail/chrome-apps-extensions-de/ohmmkhmmmpcnpikjeljgnaoabkaalbgc
+# https://chrome.google.com/webstore/detail/extensions-reloader/fimgfedafeadlieiabdeeaodndnlbhid
+#
+# Launch the Extensions Manager from chrome://apps (then select Extensions).
+# NOTE: ### MAKE SURE THE RIGHT CHROME EXTENSION TOOL IS RUNNING FOR THE PROFILE BEING TESTED ###
+# NOTE: To keep the BG page window open, click reload then manually reload the content script page.
+# NOTE: On manifest changes, MUST reload via the Chrome Extenion Tool (not via the Extensions Reloader).
+#
+# https://bugs.chromium.org/p/chromium/issues/list
+#
+
+manifest_version:   2
+
+name:               "Minder"
+short_name:         "Minder"
+version:            "0.1.1"                           # grunt version:crx:patch (uses version.json)
+author:             "Minder Labs"
+description:        "Automated intelligence."
+
+icons:
+  128: "img/icon_128.png"
+
+
+# TODO(burdon): Create consistent key (for dev and prod).
+# https://developer.chrome.com/extensions/manifest/key
+# ~/Library/Application Support/Google/Chrome/Default/Extensions
+# key: ""
+
+
+#
+# Permissions.
+# https://developer.chrome.com/extensions/declare_permissions
+#
+
+permissions:
+  - background
+  - contextMenus
+  - identity
+  - management
+  - notifications
+  - storage
+  - tabs
+  - gcm                                             # Cloud Messaging (FCM).
+
+  - "http://localhost/*"
+  - "http://127.0.0.1/*"
+  - "http://local-docker-machine/*"
+
+  - "*://minderlabs.com/*"
+
+  - "<all_urls>"
+
+
+#
+# https://developer.chrome.com/extensions/optionsV2
+#
+
+options_ui:
+  page: "page/options.html"
+  chrome_style: true
+  open_in_tab: false
+
+
+#
+# Background page (contains Apollo network interface proxy and push API).
+# https://developer.chrome.com/extensions/background_pages
+# https://developer.chrome.com/extensions/event_pages
+#
+
+background:
+  scripts:
+    - "assets/background.bundle.js"
+
+
+#
+# Browser actions.
+# https://developer.chrome.com/extensions/browserAction
+#
+
+browser_action:
+  default_icon: "img/icon_128.png",
+  default_title: "Minder",
+  default_popup: "page/browser_action.html"
+
+
+#
+# Content script.
+# https://developer.chrome.com/extensions/content_scripts
+#
+
+content_scripts:
+  -
+    run_at: document_idle
+    matches:
+#     - "<all_urls>"
+
+      - "http://localhost/testing/*"
+
+      - "https://*.google.com/*"
+
+    js:
+      # NOTE: Cannot be symlink (must be copied).
+      # https://bugs.chromium.org/p/chromium/issues/detail?id=27185&q=burdon&colspec=ID%20Pri%20M%20Stars%20ReleaseBlock%20Component%20Status%20Owner%20Summary%20OS%20Modified
+      - "assets/content_script.bundle.js"
+
+    css:
+      - "assets/content_script.css"
+
+
+#
+# OAuth2
+# Client ID generated in console:
+# https://console.developers.google.com/apis/credentials?project=minder-beta
+# https://developer.chrome.com/apps/app_identity#update_manifest
+# https://developers.google.com/identity/protocols/googlescopes
+# TODO(burdon): Inject from defs.GoogleApiConfig
+#
+
+oauth2:
+  # CRX (Dev).
+  client_id: "189079594739-fmlffnn0o5ka1nej028t44lp2v6knon7.apps.googleusercontent.com"
+
+  # Default scopes (can be overridden in getAuthToken call (network.js)
+  scopes:
+    - "https://www.googleapis.com/auth/userinfo.email"
+    - "https://www.googleapis.com/auth/userinfo.profile"
+
+
+#
+# Content Security Policy (CSP)
+# https://developer.chrome.com/extensions/contentSecurityPolicy
+# http://www.html5rocks.com/en/tutorials/security/content-security-policy
+# https://w3c.github.io/webappsec-csp
+# TODO(burdon): Document why unsafe-eval is needed.
+#
+# Firebase API:
+# https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
+#
+
+content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://minderlabs.com https://apis.google.com; object-src 'self'"
+
+
+#
+# https://developer.chrome.com/extensions/manifest/externally_connectable
+#
+
+externally_connectable:
+  ids:
+    - "*"
+
+
+#
+# White list for content script resources.
+# https://developer.chrome.com/extensions/manifest/web_accessible_resources
+# Accessible via: chrome-extension://ID/PATH
+#
+
+web_accessible_resources:
+  - "assets/*"
+  - "page/*"
+  - "img/*"

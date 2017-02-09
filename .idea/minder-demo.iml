@@ -15,8 +15,9 @@
       <excludeFolder url="file://$MODULE_DIR$/sub/relay" />
       <excludeFolder url="file://$MODULE_DIR$/sub/relay/dist" />
       <excludeFolder url="file://$MODULE_DIR$/sub/relay/node_modules" />
+      <excludeFolder url="file://$MODULE_DIR$/sub/tools/virtual_env" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Python 2.7.12 virtualenv at ~/projects/src/minderlabs/demo/sub/tools/tools/python" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TemplatesService">

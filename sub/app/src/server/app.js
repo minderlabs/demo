@@ -36,13 +36,6 @@ export const appRouter = (authManager, clientManager, options) => {
   console.assert(authManager && clientManager);
   const router = express.Router();
 
-  options = _.defaults(options, {
-    env: 'development',
-    graphql: '/graphql'
-  });
-
-  logger.log($$('Client options = %o', options));
-
   // Webpack assets.
   router.use('/assets', express.static(options.assets));
 
@@ -53,23 +46,33 @@ export const appRouter = (authManager, clientManager, options) => {
     // TODO(burdon): Deprecate cookies? Do redirect from app?
     let userInfo = await authManager.getUserInfoFromCookie(req);
     if (!userInfo) {
-      // TODO(burdon): Router object.
+      // TODO(burdon): Create Router object rather than hardcoding path.
       res.redirect('/');
     } else {
       // Create the client (and socket).
       let client = clientManager.create(userInfo.id);
 
+      // App config.
+      let config = _.defaults({
+        root: 'app-root',
+        graphql: '/graphql',
+        graphiql: '/graphiql',
+
+        env: options.env,
+
+        client: {
+          id: client.id
+        },
+
+        user: {
+          id: userInfo.id
+        }
+      }, options.config);
+
+      logger.log($$('Client options = %o', config));
       res.render('app', {
         app: WEBPACK_BUNDLE[options.env],
-        config: _.defaults({
-          root: 'app-root',
-          user: userInfo,
-          clientId: client.id,
-          graphql: options.graphql,
-          debug: {
-            env: options.env
-          }
-        }, options.config)
+        config: config,
       });
     }
   });

@@ -117,3 +117,45 @@ export class TypeUtil {
     return p;
   }
 }
+
+/**
+ * Dynamic value provider.
+ */
+export class Provider {
+
+  get value() {}
+}
+
+/**
+ * Dyamically returns the give property from the object.
+ * new PropertyProvider({ foo: { bar: 100 } }, 'foo.bar').value == 100;
+ */
+export class PropertyProvider extends Provider {
+
+  constructor(object, property) {
+    super();
+    console.assert(object && property);
+
+    this._object = object;
+    this._property = property;
+  }
+
+  get value() {
+    return _.get(this._object, this._property);
+  }
+}
+
+/**
+ * Wraps a read-only object. Allows for dynamic access of values.
+ */
+export class Wrapper {
+
+  constructor(object) {
+    console.assert(object);
+    this._object = object;
+  }
+
+  value(property, defaultValue) {
+    return _.get(this._object, property, defaultValue);
+  }
+}

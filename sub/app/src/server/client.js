@@ -10,6 +10,7 @@ import moment from 'moment';
 
 import { $$, Logger, IdGenerator } from 'minder-core';
 
+// TODO(burdon): Split up logger for each component.
 const logger = Logger.get('client');
 
 /**
@@ -26,14 +27,30 @@ export const clientRouter = (authManager, clientManager, options) => {
   router.post('/client/register', async function(req, res) {
     let { clientId, socketId } = req.body;
 
+    // Get current user.
     let userInfo = await authManager.getUserInfoFromHeader(req);
     if (userInfo) {
+      // Assign client ID for CRX.
+      if (!clientId) {
+        let client = clientManager.create(userInfo.id);
+        clientId = client.id;
+        console.log('New CRX client: ' + clientId);
+      }
+
       clientManager.register(userInfo.id, clientId, socketId);
     } else {
       res.status(401);
     }
 
-    res.send({});
+    // Send registration info.
+    res.send({
+      client: {
+        id: clientId
+      },
+      user: {
+        id: userInfo.id
+      }
+    });
   });
 
   // Invalidate client.
@@ -102,8 +119,8 @@ export class ClientManager {
    * Called by client on start-up.
    * NOTE: mobile devices requet ID here.
    */
-  register(userId, clientId, socketId) {
-    console.assert(userId, clientId && socketId);
+  register(userId, clientId, socketId=undefined) {
+    console.assert(userId && clientId);
 
     let client = this._clients.get(clientId);
     if (!client) {
@@ -119,6 +136,10 @@ export class ClientManager {
     }
   }
 
+  /**
+   * Send query invalidations to client.
+   * @param clientId
+   */
   invalidate(clientId) {
     let client = this._clients.get(clientId);
     if (!client) {

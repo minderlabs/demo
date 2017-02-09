@@ -16,12 +16,19 @@ export const FirebaseConfig = {
   messagingSenderId: '189079594739'
 };
 
+/**
+ * Web application credentials.
+ * https://console.developers.google.com/apis/credentials/oauthclient/189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com?project=minder-beta
+ */
 export const GoogleApiConfig = {
   clientId: '189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com',
   clientSecret: 'WZypHT09Z8Fy8NHVKY3qmMFt',
 
+  // https://myaccount.google.com/permissions
   // TODO(madadam): Scopes for a specific service should be specified by that service provider.
   authScopes: [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/plus.login',
     'https://www.googleapis.com/auth/drive.readonly'
   ]
@@ -48,5 +55,3 @@ export const Const = {
 
   AUTH_COOKIE: 'minder_auth_token'
 };
-
-
