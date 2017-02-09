@@ -1,6 +1,6 @@
 {
   "name": "minder-app",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Minder App.",
   "license": "UNLICENSED",
   "repository": {
@@ -67,6 +67,7 @@
     "babel-polyfill": "^6.16.0",
     "babel-runtime": "^6.18.0",
     "body-parser": "^1.15.2",
+    "botkit": "^0.4.9",
     "chance": "^1.0.4",
     "cheerio": "^0.22.0",
     "cookie-parser": "^1.4.3",
@@ -117,9 +118,9 @@
     ],
     "webpack": "webpack --watch",
     "webpack-server": "webpack --config webpack-server.config.js",
-    "babel-node": "BABEL_DISABLE_CACHE=1 babel-node src/server/main.js",
+    "babel-node": "BABEL_DISABLE_CACHE=1 babel-node src/server/server.js",
     "nodemon": "nodemon --config nodemon.json --exec npm run babel-node",
     "server": "webpack --config webpack-server.config.js && node dist/server.bundle.js",
-    "start": "BABEL_DISABLE_CACHE=1 BABEL_ENV=hot NODE_ENV=hot babel-node src/server/main.js"
+    "start": "BABEL_DISABLE_CACHE=1 BABEL_ENV=hot NODE_ENV=hot babel-node src/server/server.js"
   }
 }

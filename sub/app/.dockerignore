@@ -1,0 +1,4 @@
+dist/hot*
+dist/*hot-update.json
+var
+node_modules

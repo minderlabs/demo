@@ -148,9 +148,12 @@ export class Canvas extends React.Component {
                      value={ title }
                      onChange={ this.handlePropertyChange.bind(this, 'title') }/>
 
-            <div className="ux-canvas-menu-bar ux-bar">
+            <div className="ux-canvas-menu-bar">
               { menu }
-              <i className="ux-icon ux-icon-action" onClick={ this.handleSave.bind(this) }>save</i>
+
+              <div className="ux-bar">
+                <i className="ux-icon ux-icon-action" onClick={ this.handleSave.bind(this) }>save</i>
+              </div>
             </div>
           </div>
 

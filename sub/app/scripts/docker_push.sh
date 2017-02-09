@@ -6,20 +6,11 @@
 # TODO(burdon): Configure script for Jenkins.
 #
 
-#NAMESPACE=minderlabs
-#REPO=demo
-#TAG=demo
-
-#NAMESPACE=alienlaboratories
-REPO=node-apollo
-TAG=node-apollo
+TAG=minder-app-server
+REPO=minder-app-server
 VERSION=latest
 
-
-set -e
-set -v
-
-DOCKER_REPO=${1:-docker}
+DOCKER_REPO=${1:-ecr}
 
 case "$DOCKER_REPO" in
   docker)
@@ -31,8 +22,29 @@ case "$DOCKER_REPO" in
     NAMESPACE=240980109537.dkr.ecr.us-east-1.amazonaws.com
     ;;
   *)
-    echo Unknown docker repo $DOCKER_REPO
+    echo "Unknown docker repo $DOCKER_REPO"
 esac
+
+echo
+echo "================================================================================"
+echo ${NAMESPACE}/${REPO}:${VERSION}
+echo "================================================================================"
+echo
+
+kubectl config use-context dev.k.minderlabs.com
+kubectl config get-contexts
+
+# Exit if command fails.
+set -e
+
+# Echo commands.
+set -v
+
+#
+# Check Authorized.
+#
+
+kubectl cluster-info
 
 #
 # Connect.
@@ -41,7 +53,7 @@ esac
 eval "$(docker-machine env ${DOCKER_MACHINE})"
 
 #
-# Build client.
+# Build webpack modules.
 # TODO(burdon): Move build steps to Dockerfile?
 #
 
@@ -52,10 +64,11 @@ webpack --config webpack-server.config.js
 # Create package.json for Dockerfile's npm install.
 #
 
-./scripts/create_package_file.py dist/package.json
+../tools/src/python/create_package_file.py dist/package.json
 
 #
 # Bump version.
+# TODO(burdon): Git commit/push and merge master after this.
 #
 
 grunt version:client:patch
@@ -73,8 +86,31 @@ docker build -t ${TAG}:${VERSION} .
 docker tag ${TAG}:${VERSION} ${NAMESPACE}/${REPO}:${VERSION}
 
 #
-# Push to Docker Hub.
-# Triggers docker push redeploy.
+# Push to container repository (docker or AWS ECR).
 #
 
+case "$DOCKER_REPO" in
+  ecr)
+    # Login to AWS ECR.
+    # https://forums.aws.amazon.com/thread.jspa?messageID=692733
+    eval $(AWS_PROFILE=minder aws ecr get-login)
+    ;;
+esac
+
 docker push ${NAMESPACE}/${REPO}:${VERSION}
+
+#
+# Redeploy the service.
+#
+
+kubectl delete $(kubectl get pods -l run=demo -o name)
+
+kubectl get pods -l run=demo -o name
+
+#
+# Check running version.
+# https://console.aws.amazon.com/ecs/home?region=us-east-1#/repositories/${TAG}#images;tagStatus=ALL
+# NOTE: kubectl replace -f demo.yml
+#
+
+curl -w '\n' https://demo-dev.minderlabs.com/status

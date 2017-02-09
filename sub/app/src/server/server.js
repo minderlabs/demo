@@ -4,9 +4,6 @@
 
 import './config';
 
-import _ from 'lodash';
-import moment from 'moment';
-
 import path from 'path';
 import http from 'http';
 import express from 'express';
@@ -14,15 +11,18 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { IdGenerator, Matcher, MemoryItemStore, Logger, Randomizer, TypeUtil } from 'minder-core';
-import { Database, Firebase, GoogleDriveItemStore, graphqlRouter } from 'minder-graphql';
+import { IdGenerator, Matcher, MemoryItemStore, Logger } from 'minder-core';
+import { Database, Firebase, GoogleDriveItemStore, SlackQueryProvider, graphqlRouter } from 'minder-graphql';
 
-import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
+import { Const, FirebaseConfig, GoogleApiConfig, SlackConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
+import { accountsRouter, AccountManager, SlackAccountHandler } from './accounts';
 import { loginRouter, AuthManager } from './auth';
+import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { clientRouter, ClientManager, SocketManager } from './client';
+import { DataLoader } from './data/loader';
 import { testingRouter } from './testing';
 import { loggingRouter } from './logger';
 
@@ -119,126 +119,29 @@ database
   // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
   .registerSearchProvider('google_drive', googleDriveItemStore);
 
-
-//
-// Testing.
-//
-
-let context = {
-  user: {
-    id: null
-  }
+const slackConfig = {
+  port,
+  redirectHost: process.env.OAUTH_REDIRECT_ROOT || 'http://localhost:' + port,
+  ...SlackConfig
 };
+let botkitManager = new BotKitManager(slackConfig);
+const slackQueryProvider = new SlackQueryProvider(idGenerator, matcher, botkitManager);
 
-// Load test data.
-_.each(require('./testing/test.json'), (items, type) => {
-
-  // Iterate items per type.
-  database.upsertItems(context, _.map(items, (item) => {
-
-    // NOTE: The GraphQL schema defines filter as an input type.
-    // In order to "store" the filter within the Folder's filter property, we need
-    // to serialize it to a string (otherwise we need to create parallel output type defs).
-    if (type == 'Folder') {
-      item.filter = JSON.stringify(item.filter);
-    }
-
-    return { type, ...item };
-  }));
-});
+database
+  .registerSearchProvider('slack', slackQueryProvider);
 
 
 //
-// Create test data.
-// TODO(burdon): Factor out.
+// Data config and testing.
 //
 
-// TODO(burdon): Use injector pattern (esp for async startup).
 let promises = [];
 
-promises.push(database.queryItems(context, {}, { type: 'User' })
+let loader = new DataLoader(database);
 
-  .then(users => {
-    // Get the group and add members.
-    return database.getItem(context, 'Group', Const.DEF_TEAM)
-      .then(group => {
-        group.members = _.map(users, user => user.id);
-        return database.upsertItem(context, group);
-      });
-  })
-
-  .then(group => {
-    // TODO(burdon): Is this needed in the GraphQL context below?
-    context.group = group;
-
-    //
-    // Generate test data.
-    //
-
-    if (testing) {
-      // TODO(burdon): Pass query registry into Randomizer.
-      let randomizer = new Randomizer(database, _.defaults(context, {
-        created: moment().subtract(10, 'days').unix()
-      }));
-
-      return Promise.all([
-        randomizer.generate('Task', 30, {
-
-          status: () => randomizer.chance.natural({ min: 0, max: 3 }),
-
-          project: {
-            type: 'Project',
-            likelihood: 0.75,
-
-            // Fantastically elaborate mechanism to create bi-directional links (add tasks to project).
-            onCreate: (randomizer, tasks) => {
-              let mutatedProjects = {};
-              return TypeUtil.iterateWithPromises(tasks, task => {
-
-                // Add to project.
-                let projectId = task.project;
-                if (projectId) {
-                  return randomizer.queryCache({ ids: [ projectId ] }).then(projects => {
-                    let project = projects[0];
-                    project.tasks = TypeUtil.maybeAppend(project.tasks, task.id);
-                    mutatedProjects[project.id] = project;
-                  }).then(() => {
-
-                    // Create sub-tasks.
-                    if (randomizer.chance.bool({ likelihood: 30 })) {
-                      randomizer.generate('Task', randomizer.chance.natural({ min: 1, max: 3 }), {
-                        status: () => randomizer.chance.bool({ likelihood: 50 }) ? 0 : 3,
-                      }).then(tasks => {
-
-                        // Add sub-tasks to parent task.
-                        task.tasks = _.map(tasks, task => task.id);
-                        return randomizer.upsertItems([task]);
-                      });
-                    }
-                  });
-                }
-              }).then(() => {
-                return randomizer.upsertItems(Object.values(mutatedProjects));
-              });
-            }
-          },
-
-          owner: {
-            type: 'User',
-            likelihood: 1.0
-          },
-
-          assignee: {
-            type: 'User',
-            likelihood: 0.5
-          }
-        }),
-
-        randomizer.generate('Contact', 10),
-        randomizer.generate('Place', 10)
-      ]);
-    }
-  }));
+promises.push(loader.parse(require('./data/startup.json')));
+promises.push(loader.parse(require('./data/demo.json')));
+promises.push(loader.init(require('./data/whitelist.json'), testing));
 
 
 //
@@ -401,7 +304,15 @@ app.use(appRouter(authManager, clientManager, {
   assets: (env === 'production') ? __dirname : path.join(__dirname, '../../dist')
 }));
 
+app.use('/botkit', botkitRouter(botkitManager));
+
+app.use(accountsRouter(new AccountManager()
+  .registerHandler('Slack', new SlackAccountHandler())));
+
+//
 // Catch-all (last).
+//
+
 app.use('/', function(req, res) {
   res.redirect('/home');
 });
@@ -422,10 +333,10 @@ app.use(function(req, res) {
 
 // TODO(burdon): Perform in order?
 Promise.all(promises).then(() => {
-  logger.log('STARTING...');
+  logger.log('Starting minder-app-server');
 
   server.listen(port, host, () => {
     let addr = server.address();
-    logger.log(`RUNNING[${env}] http://${addr.address}:${addr.port}`);
+    logger.log(`[${env}] http://${addr.address}:${addr.port}`);
   });
 });

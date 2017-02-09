@@ -1,6 +1,8 @@
 #!/usr/bin/env babel-node --optional es7.asyncFunctions
 
+//
 // Transpiles GraphQL schema.
+//
 
 'use strict';
 

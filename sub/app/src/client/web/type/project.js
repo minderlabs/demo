@@ -119,9 +119,9 @@ class ProjectBoardCanvasComponent extends React.Component {
         }));
       },
 
-      columnMapper: (columns, item) => {
+      columnMapper: (user) => (columns, item) => {
         let idx = _.findIndex(columns, column => column.value == _.get(item, 'status'));
-        return idx != -1 && columns[idx].id;
+        return (item.bucket) ? null : (idx != -1) && columns[idx].id;
       },
 
       onCreateMutations: (user, column) => {
@@ -157,9 +157,9 @@ class ProjectBoardCanvasComponent extends React.Component {
         }, users);
       },
 
-      columnMapper: (columns, item) => {
+      columnMapper: (user) => (columns, item) => {
         let idx = _.findIndex(columns, column => column.value == _.get(item, 'assignee.id'));
-        return (idx == -1) ? ProjectBoardCanvasComponent.COLUMN_ICEBOX : columns[idx].id;
+        return (item.bucket) ? null : (idx == -1) ? ProjectBoardCanvasComponent.COLUMN_ICEBOX : columns[idx].id;
       },
 
       onCreateMutations: (user, column) => {
@@ -177,6 +177,35 @@ class ProjectBoardCanvasComponent extends React.Component {
           ];
         }
       }
+    },
+
+    /**
+     * Private items.
+     * TODO(burdon): Merge with other boards.
+     */
+    private: {
+
+      // Columns (from board metadata).
+      columns: (project, board) => {
+        return [{
+          id:     'private',
+          value:  'private',
+          title:  'Private'
+        }];
+      },
+
+      columnMapper: (user) => (columns, item) => {
+        console.log(JSON.stringify(item));
+        return (item.bucket == user.id) ? 'private' : null;
+      },
+
+      onCreateMutations: (user, column) => {
+        return [
+          MutationUtil.createFieldMutation('bucket', 'id', user.id)
+        ];
+      },
+
+      onDropMutations: (item, column) => {}
     }
   };
 
@@ -311,7 +340,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   render() {
     let { typeRegistry } = this.context;
-    let { item:project={}, refetch, mutator } = this.props;
+    let { user, item:project={}, refetch, mutator } = this.props;
     let { boardAdapter, boardAlias, itemOrderModel } = this.state;
 
     // All items for board.
@@ -326,8 +355,12 @@ class ProjectBoardCanvasComponent extends React.Component {
     const Menu = (props) => {
       return (
         <div className="ux-bar">
-          <i className="ux-icon ux-icon-action" onClick={ this.handleSetBoardType.bind(this, 'status') }>poll</i>
-          <i className="ux-icon ux-icon-action" onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
+          <i className="ux-icon ux-icon-action" title="Status Board"
+             onClick={ this.handleSetBoardType.bind(this, 'status') }>assessment</i>
+          <i className="ux-icon ux-icon-action" title="Team Board"
+             onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
+          <i className="ux-icon ux-icon-action" title="Private Board"
+             onClick={ this.handleSetBoardType.bind(this, 'private') }>person</i>
         </div>
       );
     };
@@ -339,7 +372,7 @@ class ProjectBoardCanvasComponent extends React.Component {
         <Board item={ project }
                items={ items }
                columns={ boardAdapter.columns(project, board) }
-               columnMapper={ boardAdapter.columnMapper }
+               columnMapper={ boardAdapter.columnMapper(user) }
                itemRenderer={ Card.ItemRenderer(typeRegistry) }
                itemOrderModel={ itemOrderModel }
                onItemDrop={ this.handleItemDrop.bind(this) }

@@ -88,12 +88,13 @@ module.exports = {
         loader: 'babel-loader',
 
         // TODO(burdon): Unsure if has any effect.
+        // TODO(burdon): NOTE: Adding 'react' here breaks the server build.
         // http://engineering.invisionapp.com/post/optimizing-webpack/
-        query: {
-          cacheDirectory: true, // Important for performance.
-          plugins: ['transform-regenerator'],
-          presets: ['react', 'es2015', 'stage-0']
-        }
+        // query: {
+        //   cacheDirectory: true, // Important for performance.
+        //   plugins: ['transform-regenerator'],
+        //   presets: ['react', 'es2015', 'stage-0']
+        // }
       },
 
       // Allow direct imports of .graphql files.
