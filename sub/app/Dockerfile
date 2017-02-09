@@ -59,8 +59,8 @@ RUN npm install
 
 ADD dist                  $HOME/app/dist
 ADD src/server/conf       $HOME/app/dist/conf
+ADD src/server/data       $HOME/app/dist/data
 ADD src/server/public     $HOME/app/dist/public
-ADD src/server/testing    $HOME/app/dist/testing
 ADD src/server/views      $HOME/app/dist/views
 
 #

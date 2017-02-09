@@ -71,7 +71,7 @@ webpack --config webpack-server.config.js
 # TODO(burdon): Git commit/push and merge master after this.
 #
 
-grunt version:client:patch
+grunt version:web:patch
 
 #
 # Build docker image.
@@ -113,4 +113,14 @@ kubectl get pods -l run=demo -o name
 # NOTE: kubectl replace -f demo.yml
 #
 
-curl -w '\n' https://demo-dev.minderlabs.com/status
+STATUS_URL="https://demo-dev.minderlabs.com/status"
+LOCAL_VERSION=$(cat "package.json" | jq '.version')
+
+until [ $LOCAL_VERSION = $(curl -s $STATUS_URL | jq '.version') ]; do
+  echo "Waiting..."
+  sleep 1
+done
+
+echo "Deployed OK"
+
+curl -s -w '\n' $STATUS_URL
