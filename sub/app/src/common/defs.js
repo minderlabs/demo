@@ -50,7 +50,7 @@ export const Const = {
   ROOT_PATH: '/app',
 
   APP_NAME: 'minder',
-  APP_VERSION: "0.1.4",
+  APP_VERSION: "0.1.5",
 
   DEF_TEAM: 'minderlabs',
 
