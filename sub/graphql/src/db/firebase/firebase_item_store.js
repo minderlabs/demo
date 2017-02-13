@@ -7,7 +7,6 @@ import moment from 'moment';
 
 import { ItemStore } from 'minder-core';
 
-import { Database } from '../database';
 import { Cache } from './cache';
 
 /**

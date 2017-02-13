@@ -5,6 +5,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import { DomUtil } from 'minder-core';
 import { TextBox } from './textbox';
 
 import './picker.less';
@@ -26,9 +27,11 @@ export class Picker extends React.Component {
 
   constructor() {
     super(...arguments);
+    let { value:text, items } = this.props;
 
     this.state = {
-      text: this.props.value,     // Manage child textbox's state.
+      text,
+      items,
       value: null,
       showPopup: false
     };
@@ -38,8 +41,10 @@ export class Picker extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    let { value:text, items } = nextProps;
     this.setState({
-      text: nextProps.value
+      text,
+      items
     });
   }
 
@@ -146,7 +151,8 @@ export class Picker extends React.Component {
   }
 
   render() {
-    let { items=[] } = this.props;
+    let { className } = this.props;
+    let { text, items=[], showPopup } = this.state;
 
     // TODO(burdon): Default props.
     let placeholder = `Search...`;
@@ -155,6 +161,7 @@ export class Picker extends React.Component {
     let rows = items.map((item) => {
       return (
         <input key={ item.id }
+               type="text"
                readOnly="readOnly"
                spellCheck={ false }
                defaultValue={ item.title }
@@ -165,22 +172,20 @@ export class Picker extends React.Component {
       );
     });
 
-    let className = _.join(['ux-picker', this.props.className], ' ');
-
     // TODO(burdon): Pop-out of overflow: hidden (need javascript!)
     // https://css-tricks.com/popping-hidden-overflow/
 
     return (
-      <div className={ className }>
+      <div className={ DomUtil.className('ux-picker', className) }>
         <TextBox ref="textbox"
-                 value={ this.state.text }
+                 value={ text }
                  placeholder={ placeholder }
                  onCancel={ this.handleCancel.bind(this) }
                  onChange={ this.handleTextChange.bind(this) }
                  onKeyDown={ this.handleTextKeyDown.bind(this) }
                  onFocusChange={ this.handleTextFocusChange.bind(this) }/>
 
-        <div ref="popup" className="ux-picker-popup" style={ {'display': this.state.showPopup ? 'block' : 'none' } }>
+        <div ref="popup" className="ux-picker-popup" style={{ 'display': showPopup ? 'block' : 'none' }}>
           <div>
             { rows }
           </div>

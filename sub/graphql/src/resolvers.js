@@ -85,7 +85,7 @@ export class Resolvers {
           let filter = {
             type: 'Project',
             filter: {
-              expr: { field: "team", ref: "id" }
+              expr: { field: "group", ref: "id" }
             }
           };
 
@@ -115,12 +115,14 @@ export class Resolvers {
           }));
         },
 
-        team: (root, args, context) => {
-          return database.getItem(context, 'Group', root.team);
+        group: (root, args, context) => {
+          let { group } = root;
+          return database.getItem(context, 'Group', group);
         },
 
         tasks: (root, args, context) => {
-          return root.tasks && database.getItems(context, 'Task', root.tasks) || [];
+          let { tasks } = root;
+          return root.tasks && database.getItems(context, 'Task', tasks) || [];
         }
       },
 

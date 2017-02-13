@@ -25,7 +25,6 @@ export class MemoryItemStore extends ItemStore {
 
     return Promise.resolve(_.map(items, (item) => {
       item = TypeUtil.clone(item);
-
       console.assert(item.type);
 
       // TODO(burdon): Factor out to MutationProcessor (then remove idGenerator requirement).
@@ -48,6 +47,10 @@ export class MemoryItemStore extends ItemStore {
 
     return Promise.resolve(_.map(itemIds, itemId => TypeUtil.clone(this._items.get(itemId) || {})));
   }
+
+  //
+  // QueryProcessor interface.
+  //
 
   queryItems(context, root, filter={}, offset=0, count=10) {
     console.assert(context && filter);

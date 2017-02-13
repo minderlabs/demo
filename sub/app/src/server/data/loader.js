@@ -58,7 +58,7 @@ export class DataLoader {
       .then(users => {
         // Get the group and add members.
         // TODO(burdon): Whitelist.
-        return this._database.getItem(this._context, 'Group', Const.DEF_TEAM)
+        return this._database.getItem(this._context, 'Group', Const.DEF_GROUP)
           .then(group => {
             let members = _.get(whitelist, group.id);
             group.members = _.compact(_.map(users, user => {

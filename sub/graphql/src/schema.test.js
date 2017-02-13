@@ -62,7 +62,7 @@ const matcher = new Matcher();
 
 function createDatabase() {
   return new Database(idGenerator, matcher)
-    .registerItemStore(Database.DEFAULT, new MemoryItemStore(idGenerator, matcher));
+    .registerItemStore(new MemoryItemStore(idGenerator, matcher));
 }
 
 //

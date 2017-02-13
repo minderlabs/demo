@@ -28,7 +28,7 @@ export class Application extends React.Component {
 
   static childContextTypes = {
     config: React.PropTypes.object,
-    injector: React.PropTypes.object,
+    injector: React.PropTypes.object
   };
 
   getChildContext() {

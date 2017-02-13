@@ -3,15 +3,11 @@
 //
 
 /**
- * Base class for type-specific stores.
+ * Base class for read-only stores.
  */
-export class ItemStore {
-
-  // TODO(burdon): Dispatch by domain not type.
-  // TODO(burdon): ID should contain type.
+export class QueryProcessor {
 
   /**
-   * 
    * @param idGenerator
    * @param matcher
    */
@@ -20,6 +16,27 @@ export class ItemStore {
 
     this._idGenerator = idGenerator;
     this._matcher = matcher
+  }
+
+  get namespace() {
+    return '*';
+  }
+
+  queryItems(context, root, filter = {}, offset = 0, count = 10) {
+    throw 'Not implemented';
+  }
+}
+
+/**
+ * Base class for type-specific stores.
+ */
+export class ItemStore extends QueryProcessor {
+
+  // TODO(burdon): Dispatch by domain not type.
+  // TODO(burdon): ID should contain type.
+
+  constructor(idGenerator, matcher) {
+    super(idGenerator, matcher);
   }
 
   //

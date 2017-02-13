@@ -4,14 +4,17 @@
 
 import _ from 'lodash';
 
-import { ItemStore, Logger } from 'minder-core';
+import { QueryProcessor, Logger } from 'minder-core';
 
 const logger = Logger.get('slack');
 
 /**
  * SlackQueryProvider
  */
-export class SlackQueryProvider extends ItemStore {
+export class SlackQueryProcessor extends QueryProcessor {
+
+  static NAMESPACE = 'slack.com';
+
   constructor(idGenerator, matcher, botManager) {
     super(idGenerator, matcher);
     this.botManager = botManager;
@@ -35,6 +38,7 @@ export class SlackQueryProvider extends ItemStore {
    */
   static resultToItem(idGenerator, match) {
     return {
+      namespace: SlackQueryProcessor.NAMESPACE,
       type: 'Document',
       id: idGenerator.createId(), // TODO(madadam): keep Slack message ID as foreign key.
       title: `@${match.username} on #${match.channel.name}: ${match.text}`,
@@ -42,24 +46,16 @@ export class SlackQueryProvider extends ItemStore {
       // TODO(madadam): Snippet.
       //snippet: match.text,
       url: match.permalink,
-      iconUrl: '/img/slack-icon-24px.png',
-
-      source: 'Slack',
+      iconUrl: '/img/slack-icon-24px.png'
     }
   }
 
   //
-  // ItemStore API.
+  // QueryProcessor API.
   //
 
-  // TODO(burdon): QueryProcessor interface.
-
-  upsertItems(context, items) {
-    throw 'Not Supported';
-  }
-
-  getItems(context, type, itemIds) {
-    throw 'Not Supported';
+  get namespace() {
+    return SlackQueryProcessor.NAMESPACE;
   }
 
   queryItems(context, root, filter={}, offset=0, count=10) {
@@ -82,7 +78,7 @@ export class SlackQueryProvider extends ItemStore {
             reject(err);
           } else {
             _.each(response.messages.matches, match => {
-              items.push(SlackQueryProvider.resultToItem(this._idGenerator, match));
+              items.push(SlackQueryProcessor.resultToItem(this._idGenerator, match));
             });
 
             resolve(items);

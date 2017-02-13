@@ -148,15 +148,16 @@ const BasicItemFragment = gql`
   ${DocumentFragment}
 `;
 
-// TODO(burdon): Project-specific grouping (refs).
 const BasicSearchQuery = gql`
-  query SearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
+  query BasicSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
 
     search(filter: $filter, offset: $offset, count: $count) {
+      namespace
       id
 
       ...BasicItemFragment
 
+      # TODO(burdon): Generalize grouping?
       ... on Project {
         refs {
           ...BasicItemFragment
@@ -239,9 +240,10 @@ const CardItemFragment = gql`
 `;
 
 const CardSearchQuery = gql`
-  query SearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
+  query CardSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
 
     search(filter: $filter, offset: $offset, count: $count) {
+      namespace
       id
 
       ... on Task {

@@ -35,6 +35,8 @@ export class Sidebar extends React.Component {
   close() {
     // NOTE: Race condition with <Link> so use manual onMouseDown to trigger navigation events.
     // http://stackoverflow.com/questions/10652852/jquery-fire-click-before-blur-event
+    // NOTE: If timer is used, get error below:
+    // Warning: setState(...): Can only update a mounted or mounting component. This usually means you called setState()
     this.setState({
       open: false
     });

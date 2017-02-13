@@ -10,10 +10,11 @@ import gql from 'graphql-tag';
 import { DomUtil, EventHandler, PropertyProvider, QueryRegistry } from 'minder-core';
 import { Sidebar, SidebarToggle } from 'minder-ux';
 
-import { AppAction } from '../reducers';
-import { Navigator, WindowNavigator } from '../path'
 import { Const } from '../../../common/defs';
 
+import { AppAction } from '../reducers';
+import { Navigator, WindowNavigator } from '../path'
+import { TypeRegistry } from '../framework/type_registry';
 import { NavBar } from '../component/navbar';
 import { SidePanel } from '../component/sidepanel';
 import { StatusBar } from '../component/statusbar';
@@ -80,9 +81,12 @@ export class BaseLayout extends React.Component {
   }
 
   render() {
-    let { children, className, config, team, viewer, folders } = this.props;
+    let { children, className, config, group, projects, viewer, folders, typeRegistry } = this.props;
 
-    let sidePanel = <SidePanel team={ team } folders={ folders }/>;
+    let sidePanel = <SidePanel group={ group }
+                               projects={ projects }
+                               folders={ folders }
+                               typeRegistry={ typeRegistry }/>;
 
     return (
       <div className="ux-fullscreen">
@@ -142,7 +146,7 @@ export class BaseLayout extends React.Component {
 // 3). Furthermore, the react-relay-router can block until these queries are satisfied, so that on error a different router path can be displayed. This also prevents render "flickering" i.e., the child component making a default invalid query, and then re-rendering once the parent's query loads and then reconfigures the child.
 
 const LayoutQuery = gql`
-  query LayoutQuery { 
+  query LayoutQuery($projectFilter: FilterInput) { 
 
     viewer {
       id
@@ -157,21 +161,29 @@ const LayoutQuery = gql`
       title
       icon
     }
+    
+    projects: items(filter: $projectFilter) {
+      id
+      type
+      title
+    }
   }
 `;
 
 const mapStateToProps = (state, ownProps) => {
   let appState = AppAction.getState(state);
-  let { config, injector, user, team } = appState;
+  let { config, injector, user, group } = appState;
   let serverProvider = new PropertyProvider(appState, 'server');
   let queryRegistry = injector.get(QueryRegistry);
+  let typeRegistry = injector.get(TypeRegistry);
 
   return {
     config,
     serverProvider,
     queryRegistry,
+    typeRegistry,
     user,
-    team
+    group
   };
 };
 
@@ -187,11 +199,21 @@ export default compose(
   // Configure query (from redux state).
   // http://dev.apollodata.com/react/queries.html#graphql-options
   graphql(LayoutQuery, {
-    props: ({ ownProps, data }) => {
-      let { viewer, folders } = data;
+    options: (props) => ({
+      // TODO(burdon): ACL for user.
+      variables: {
+        projectFilter: {
+          type: 'Project'
+        }
+      }
+    }),
 
+    props: ({ ownProps, data }) => {
+      let { viewer, folders, projects } = data;
       return {
-        viewer, folders
+        viewer,
+        folders,
+        projects,
       };
     }
   })

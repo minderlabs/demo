@@ -31,15 +31,6 @@ const ListItemDropTarget = ItemDropTarget('ListItem');
 export class List extends React.Component {
 
   /**
-   * Render items as cards.
-   * @param typeRegistry
-   * @constructor
-   */
-  static CardRenderer = (typeRegistry) => (item) => {
-    return typeRegistry.card(item)
-  };
-
-  /**
    * Default item renderer.
    */
   static DefaultItemRenderer = (item) => {
@@ -185,6 +176,7 @@ export class List extends React.Component {
    * @param {Item} item Item to select or null to cancel.
    */
   handleItemSelect(item) {
+
     // TODO(burdon): Should provide selection model.
     this.props.onItemSelect && this.props.onItemSelect(item);
   }
@@ -418,7 +410,6 @@ export class ListItem extends React.Component {
     let { item } = context;
 
     // TODO(burdon): Generalize to toggle any icon.
-
     let set = _.indexOf(item.labels, '_favorite') != -1;
     const handleToggleLabel = () => {
       context.onItemUpdate(item, [
@@ -438,12 +429,19 @@ export class ListItem extends React.Component {
     let { item, onItemSelect } = context;
     let { select=true } = props;
 
-    return (
-      <div className="ux-expand ux-text ux-selector"
-           onClick={ select && onItemSelect.bind(null, item) }>
-        { item.title }
-      </div>
-    );
+    // NOTE: Use onMouseDown instead of onClick (happens before onBlur for focusable components).
+    if (select) {
+      return (
+        <div className="ux-expand ux-text ux-selector"
+             onMouseDown={ select && onItemSelect.bind(null, item) }>
+          { item.title }
+        </div>
+      );
+    } else {
+      return (
+        <div className="ux-expand ux-text">{ item.title }</div>
+      );
+    }
   });
 
   /**

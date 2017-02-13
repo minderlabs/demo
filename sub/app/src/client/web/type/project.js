@@ -45,8 +45,7 @@ export class ProjectCard extends React.Component {
       // Update existing.
       mutator.updateItem(item, mutations);
     } else {
-      // TODO(burdon): Add personal item (see task.js).
-      console.warning('Not implemented.');
+      throw 'Not implemented';
     }
   }
 
@@ -150,7 +149,7 @@ class ProjectBoardCanvasComponent extends React.Component {
     assignee: {
 
       columns: (project, board) => {
-        let users = _.map(_.get(project, 'team.members'), user => ({
+        let users = _.map(_.get(project, 'group.members'), user => ({
           id:     user.id,
           value:  user.id,
           title:  user.title,
@@ -391,114 +390,6 @@ class ProjectBoardCanvasComponent extends React.Component {
 }
 
 //-------------------------------------------------------------------------------------------------
-// HOC: ProjectTasksCanvas
-//-------------------------------------------------------------------------------------------------
-
-// TODO(burdon): Different sub-components (e.g., TeamList, TasksList). No query required?
-// TODO(burdon): Team/Tasks master/list + list/detail.
-// TODO(burdon): All, private, shared items (under team page).
-
-const ProjectTasksQuery = gql`
-  query ProjectTasksQuery($itemId: ID!) {
-    item(itemId: $itemId) {
-      ...ItemFragment
-    }    
-  }
-
-  ${ItemFragment}
-`;
-
-/*
-const ProjectQuery = gql`
-  query ProjectQuery($itemId: ID!, $localItemId: ID!) {
-    
-    # TODO(burdon): Remove $localItemId?
-
-    item(itemId: $itemId) {
-      ...ItemFragment
-
-      ... on Project {
-        team {
-          title
-          members {
-            id
-            title
-
-            tasks(filter: {
-              type: "Task",
-              expr: { 
-                op: AND,
-                expr: [
-                  { field: "project", value: { id: $localItemId } }
-                  { field: "assignee", ref: "id" },
-                ]
-              }
-            }) {
-              ...TaskFragment
-              
-              project {
-                id
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  ${ItemFragment}
-  ${TaskFragment}
-`;
-
-const ProjectReducer = (matcher, context, previousResult, updatedItem) => {
-
-  // TODO(burdon): Get parent task for sub-tasks.
-  // TODO(burdon): Check type.
-
-  // Filter appropriate mutations.
-  let assignee = _.get(updatedItem, 'assignee.id');
-  if (assignee) {
-
-    // Find the associated member.
-    let members = _.get(previousResult, 'item.team.members');
-    let memberIdx = _.findIndex(members, member => member.id === assignee);
-    if (memberIdx != -1) {
-      let member = members[memberIdx];
-      let filter = { expr: { field: "assignee", value: { id: member.id } } };
-
-      return {
-        item: {
-          team: {
-            members: {
-              [memberIdx]: {
-                tasks: {
-                  $apply: ItemReducer.listApplicator(matcher, context, filter, updatedItem)
-                }
-              }
-            }
-          }
-        }
-      };
-    }
-  }
-};
-*/
-
-// TODO(burdon): Different query, reducer, etc.
-export const ProjectTasksCanvas = composeItem(
-  new ItemReducer({
-    query: {
-      type: ProjectTasksQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    }
-  })
-)(ProjectTasksCanvasComponent);
-
-//-------------------------------------------------------------------------------------------------
 // HOC: ProjectBoardCanvas
 //-------------------------------------------------------------------------------------------------
 
@@ -511,7 +402,7 @@ const ProjectBoardQuery = gql`
       ... on Project {
         ...ProjectBoardFragment
 
-        team {
+        group {
           members {
             type
             id

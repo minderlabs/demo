@@ -27,7 +27,7 @@ export class Matcher {
    * @returns {[item]} Array of items that match.
    */
   matchItems(context, root, filter, items) {
-    return _.compact(_.map(items, item => this.matchItem(context, root, filter, item) ? item : false));
+    return _.filter(items, item => this.matchItem(context, root, filter, item));
   }
 
   /**

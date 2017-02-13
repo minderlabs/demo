@@ -41,7 +41,7 @@ class FolderView extends React.Component {
   }
 
   handleItemCreate() {
-    let { user, team, filter } = this.props;
+    let { user, group, filter } = this.props;
 
     let title = _.trim(this.refs.text.value);
     if (title) {
@@ -52,7 +52,7 @@ class FolderView extends React.Component {
       switch (type) {
         case 'Project': {
           _.concat(mutations, [
-            MutationUtil.createFieldMutation('team', 'id', team)
+            MutationUtil.createFieldMutation('group', 'id', group)
           ]);
           break;
         }
@@ -135,7 +135,7 @@ const FoldersQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  let { config, injector, search, user, team } = AppAction.getState(state);
+  let { config, injector, search, user, group } = AppAction.getState(state);
   let { context } = ContextAction.getState(state);
 
   let typeRegistry = injector.get(TypeRegistry);
@@ -160,7 +160,7 @@ const mapStateToProps = (state, ownProps) => {
     filter,
     search,
     user,
-    team
+    group
   }
 };
 

@@ -57,8 +57,9 @@ export const AppReducer = (config, injector) => {
     injector: injector,     // TODO(burdon): Factor out?
 
     config: config,
+
     user: config.user,
-    team: config.team,      // TODO(burdon): Should be queried list.
+    group: config.group,      // TODO(burdon): Should be queried list.
 
     search: {
       text: ''

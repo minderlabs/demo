@@ -115,13 +115,11 @@ export default compose(
   connect(mapStateToProps),
 
   graphql(TestQuery, {
-    options: (props) => {
-      return {
-        variables: {
-          filter: { type: 'Task' }
-        }
-      };
-    },
+    options: (props) => ({
+      variables: {
+        filter: { type: 'Task' }
+      }
+    }),
 
     props: ({ ownProps, data }) => {
       let { items } = data;

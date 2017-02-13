@@ -5,7 +5,7 @@
 import React from 'react';
 
 import { ID } from 'minder-core';
-import { List } from 'minder-ux';
+import { List, ListItem } from 'minder-ux';
 
 import { Path } from '../path';
 
@@ -16,55 +16,38 @@ import './sidepanel.less';
  */
 export class SidePanel extends React.Component {
 
+  static ItemRenderer = (typeRegistry) => (item) => {
+    let { icon } = item;
+
+    return (
+      <ListItem item={ item }>
+        <ListItem.Icon icon={ icon || typeRegistry.icon(item) }/>
+        <ListItem.Title/>
+      </ListItem>
+    );
+  };
+
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired
   };
 
-  onSelect(path) {
-    this.context.navigator.push(path);
-  }
-
-  /**
-   * Renders the folder.
-   * NOTE: We can't use <Link> here since the sidebar's onBlur event is triggered before the Link's onClick.
-   * So we manually listen for onMouseDown which happens first.
-   */
-  // TODO(burdon): Make static.
-  itemRenderer(item) {
-    return (
-      <div className="ux-row" key={ item.id }
-           onMouseDown={ this.onSelect.bind(this, item.link || Path.folder(item.alias)) }>
-        <i className="ux-icon">{ item.icon }</i>
-        <div className="ux-selector">{ item.title }</div>
-      </div>
-    );
+  onSelect(item) {
+    let {  alias, link } = item;
+    this.context.navigator.push(
+      link || (alias && Path.folder(alias)) || Path.canvas(ID.getGlobalId(item)));
   }
 
   render() {
-    let { team, folders } = this.props;
+    let { folders, group, projects, typeRegistry } = this.props;
+    let itemRenderer = SidePanel.ItemRenderer(typeRegistry);
 
-    // TODO(burdon): Query for these by label?
+    // TODO(burdon): List group items.
     const items = [
       {
-        id: 'group',
-        title: 'Team',
-        icon: 'group',
-        link: Path.canvas(ID.toGlobalId('Group', team))
-      },
-      {
-        id: 'demo',
-        title: 'Demo',
-        icon: 'assignment',
-        link: Path.canvas(ID.toGlobalId('Project', 'demo'))
-      },
-      /*
-      {
-        id: 'demo-board',
-        title: 'Demo Board',
-        icon: 'view_column',
-        link: Path.canvas(ID.toGlobalId('Project', 'demo'), 'board')
-      },
-      */
+        id: group,
+        type: 'Group',
+        title: 'Minder Labs'
+      }
     ];
 
     const debugItems = [
@@ -79,17 +62,22 @@ export class SidePanel extends React.Component {
     return (
       <div className="app-sidepanel">
         <List items={ folders }
-              itemRenderer={ this.itemRenderer.bind(this) }/>
+              itemRenderer={ itemRenderer } onItemSelect={ this.onSelect.bind(this) }/>
 
         <div className="app-divider"/>
 
         <List items={ items }
-              itemRenderer={ this.itemRenderer.bind(this) }/>
+              itemRenderer={ itemRenderer } onItemSelect={ this.onSelect.bind(this) }/>
 
         <div className="app-divider"/>
 
-        <List items={ debugItems } r
-              itemRenderer={ this.itemRenderer.bind(this) }/>
+        <List items={ projects }
+              itemRenderer={ itemRenderer } onItemSelect={ this.onSelect.bind(this) }/>
+
+        <div className="app-divider"/>
+
+        <List items={ debugItems }
+              itemRenderer={ itemRenderer } onItemSelect={ this.onSelect.bind(this) }/>
       </div>
     );
   }

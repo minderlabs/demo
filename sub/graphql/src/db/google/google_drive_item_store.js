@@ -5,7 +5,7 @@
 import _ from 'lodash';
 import google from 'googleapis';
 
-import { ItemStore, Logger } from 'minder-core';
+import { QueryProcessor, Logger } from 'minder-core';
 
 const logger = Logger.get('google.drive');
 
@@ -29,10 +29,10 @@ class GoogleDriveClient {
     // it's an Item wrapper around foreign data.
 
     let item = {
+      namespace: GoogleDriveQueryProcessor.NAMESPACE,
       type: 'Document',
       id: idGenerator.createId(), // TODO(madadam): keep file.id (Google Drive ID) as a foreign key.
-      title: file.name,
-      source: 'Google Drive',
+      title: file.name
     };
 
     if (file.webViewLink) {
@@ -132,9 +132,9 @@ class GoogleDriveClient {
 /**
  * Google Drive.
  */
-export class GoogleDriveItemStore extends ItemStore {
+export class GoogleDriveQueryProcessor extends QueryProcessor {
 
-  // TODO(burdon): Generalize GoogleItemStore.
+  static NAMESPACE = 'google.com/drive';
 
   static makeDriveQuery(queryString) {
     // https://developers.google.com/drive/v3/web/search-parameters
@@ -148,20 +148,15 @@ export class GoogleDriveItemStore extends ItemStore {
   }
 
   //
-  // ItemStore API.
-  // TODO(burdon): QueryProcessor interface.
+  // QueryProcessor API.
   //
 
-  upsertItems(context, items) {
-    throw 'Not Supported';
-  }
-
-  getItems(context, type, itemIds) {
-    throw 'Not Supported';
+  get namespace() {
+    return GoogleDriveQueryProcessor.NAMESPACE;
   }
 
   queryItems(context, root, filter={}, offset=0, count=10) {
-    let driveQuery = GoogleDriveItemStore.makeDriveQuery(filter.text);
+    let driveQuery = GoogleDriveQueryProcessor.makeDriveQuery(filter.text);
     if (!driveQuery) {
       return Promise.resolve([]);
     }

@@ -6,7 +6,7 @@ import React from 'react';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ItemFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
+import { ItemFragment, UserFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
 import { List } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
@@ -22,30 +22,41 @@ import { TaskListItemRenderer } from './task';
  */
 class UserCanvasComponent extends React.Component {
 
+  static contextTypes = {
+    navigator: React.PropTypes.object.isRequired
+  };
+
   static propTypes = {
     mutator: React.PropTypes.object.isRequired,
     user: React.PropTypes.object.isRequired,
     item: propType(UserFragment)
   };
 
-  // TODO(burdon): Factor out (shared across types?). Normalize names (Item/Task).
-  handleItemSelect(item) {}
-  handleItemUpdate(item, mutations) {}
+  handleItemSelect(item) {
+    console.log(':::', item);
+    this.context.navigator.pushCanvas(item);
+  }
+
+  // TODO(burdon): Factor out create/update (to task).
+  handleItemUpdate(item, mutations) {
+    console.log(':::', item, mutations);
+  }
+
   handleItemAdd() {
     this.refs.tasks.addItem();
   }
 
   render() {
-    let { mutator, refetch, item } = this.props;
+    let { item={}, mutator, refetch } = this.props;
 
-    // TODO(burdon): Use List controls.
+    // TODO(burdon): List type styling.
 
     return (
       <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch }>
         <div className="app-type-user ux-column">
 
           <div className="ux-section-header ux-row">
-            <h3 className="ux-expand">Owned</h3>
+            <h3 className="ux-expand">Owner</h3>
             <i className="ux-icon" onClick={ this.handleItemAdd.bind(this) }>add</i>
           </div>
           <List ref="tasks"
@@ -71,24 +82,6 @@ class UserCanvasComponent extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
-// TODO(burdon): Move to fragments.js
-const UserFragment = gql`
-  fragment UserFragment on User {
-    title
-
-    ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
-      id
-      title
-    }
-
-    assigneeTasks: tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
-      id
-      title
-    }
-  }
-`;
-
-// TODO(burdon): Link to contact?
 const UserQuery = gql`
   query UserQuery($itemId: ID!) { 
     

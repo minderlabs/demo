@@ -6,7 +6,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 
-import { ID, Matcher, Mutator } from 'minder-core';
+import { Matcher, Mutator } from 'minder-core';
 
 import { AppAction } from '../reducers';
 
@@ -44,47 +44,57 @@ const mapStateToProps = (state, ownProps) => {
  * @param {ItemReducer} reducer
  * @returns {React.Component} Item control.
  */
-export function composeItem(reducer) {
+export function composeItem(reducer, ...containers) {
   console.assert(reducer);
-  return compose(
+
+  let args = [
 
     // Map Redux state to properties.
     connect(mapStateToProps),
 
+    //
+    // GraphQL query.
+    //
     graphql(reducer.query, {
 
       // Map mproperties to query.
       // http://dev.apollodata.com/react/queries.html#graphql-options
       options: (props) => {
+        let { context, itemId } = props;
         let matcher = props.injector.get(Matcher);
-
-        let { type, id:localItemId } = ID.fromGlobalId(props.itemId);
 
         return {
           variables: {
-            itemId: props.itemId,
-            localItemId: localItemId
+            itemId
           },
 
           reducer: (previousResult, action) => {
-            return reducer.reduceItem(matcher, props.context, previousResult, action);
+            return reducer.reduceItem(matcher, context, previousResult, action);
           }
         };
       },
 
       // Map query result to component properties.
       // http://dev.apollodata.com/react/queries.html#graphql-props
-      props: ({ ownProps, data }) => {
-        return {
-          item: reducer.getItem(data),
-          refetch: data.refetch
-        };
-      }
-    }),
+      props: ({ ownProps, data }) => ({
+        item: reducer.getItem(data),
+        refetch: data.refetch
+      })
+    })
+  ];
 
+  if (reducer.mutation) {
     //
+    // GraphQL mutation.
     // Provides props.mutator.
     //
-    Mutator.graphql(reducer.mutation)
+    // TODO(burdon): Optional.
+    args.push(Mutator.graphql(reducer.mutation));
+  }
+
+  // TODO(burdon): Deconstruct so that caller composes directly (helper -- don't obfuscate apollo).
+  return compose(
+    ...args,
+    ...containers
   );
 }

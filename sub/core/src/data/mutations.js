@@ -12,6 +12,20 @@ import { ID, IdGenerator } from './id';
 export class MutationUtil {
 
   /**
+   * Create mutations to clone the given item.
+   *
+   * @param {Item} item
+   * @return {[Mutation]}
+   */
+  static clone(item) {
+    // TODO(burdon): Introspect type map?
+    return [
+      MutationUtil.createFieldMutation('fkey', 'string', ID.getForeignKey(item)),
+      MutationUtil.createFieldMutation('title', 'string', item.title)
+    ];
+  }
+
+  /**
    * Creates a set mutation.
    *
    * @param field
@@ -145,13 +159,23 @@ export class Mutator {
    *
    * @param item
    * @param mutations
+   * @return {string} Updated item's ID (NOTE: this will change if the item is being copied).
    */
   updateItem(item, mutations) {
-    this._mutate({
-      variables: {
-        itemId: ID.toGlobalId(item.type, item.id),
-        mutations
-      }
-    });
+    if (item.namespace) {
+      console.log('Cloning item: ' + JSON.stringify(item));
+
+      // TODO(burdon): Replace cloned mutations with new mutation.
+      return this.createItem(item.type, _.concat(MutationUtil.clone(item), mutations));
+    } else {
+      this._mutate({
+        variables: {
+          itemId: ID.toGlobalId(item.type, item.id),
+          mutations
+        }
+      });
+
+      return item.id;
+    }
   }
 }

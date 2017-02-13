@@ -39,7 +39,7 @@ const config = _.merge({
   },
 
   // Set by server registration with background page.
-  team: 'minderlabs',
+  group: 'minderlabs',
   user: {}
 
 }, HttpUtil.parseUrlArgs());

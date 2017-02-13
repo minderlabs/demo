@@ -12,7 +12,14 @@ import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
 import { IdGenerator, Matcher, MemoryItemStore, Logger } from 'minder-core';
-import { Database, Firebase, GoogleDriveItemStore, SlackQueryProvider, graphqlRouter } from 'minder-graphql';
+import {
+  Database,
+  Firebase,
+  GoogleDriveQueryProcessor,
+  SlackQueryProcessor,
+  TestQueryProcessor,
+  graphqlRouter
+} from 'minder-graphql';
 
 import { Const, FirebaseConfig, GoogleApiConfig, SlackConfig } from '../common/defs';
 
@@ -34,7 +41,7 @@ const logger = Logger.get('main');
 //
 
 function handleError(err) {
-  console.error((new Date).toUTCString() + ' uncaughtException:', err.message);
+  console.error(new Date().toUTCString() + ':', err.message);
   console.error(err.stack);
 //process.exit(1)
 }
@@ -94,10 +101,10 @@ const defaultItemStore = testing ? new MemoryItemStore(idGenerator, matcher) : f
 
 const database = new Database(idGenerator, matcher)
 
-  .registerItemStore('User', firebase.userStore)
-  .registerItemStore(Database.DEFAULT, defaultItemStore)
+  .registerItemStore(firebase.userStore, 'User')
+  .registerItemStore(defaultItemStore)
 
-  .registerSearchProvider(Database.DEFAULT, defaultItemStore)
+  .registerQueryProcessor(defaultItemStore)
 
   .onMutation(() => {
     // Notify clients of changes.
@@ -105,30 +112,30 @@ const database = new Database(idGenerator, matcher)
     clientManager.invalidateOthers();
   });
 
+if (testing) {
+  database.registerQueryProcessor(new TestQueryProcessor(idGenerator, matcher));
+}
 
 //
 // Google
 //
 
-const googleDriveItemStore = new GoogleDriveItemStore(idGenerator, matcher, GoogleApiConfig);
-
 database
-  // TODO(madadam): Keep this? Convenient for testing: e.g. "@Document foo".
-  .registerItemStore('Document', googleDriveItemStore)
+  .registerQueryProcessor(new GoogleDriveQueryProcessor(idGenerator, matcher, GoogleApiConfig));
 
-  // TODO(madadam): Introduce new SearchProvider interface? For now re-using ItemStore.
-  .registerSearchProvider('google_drive', googleDriveItemStore);
 
-const slackConfig = {
+//
+// Slack.
+//
+
+const botkitManager = new BotKitManager({
   port,
   redirectHost: process.env.OAUTH_REDIRECT_ROOT || 'http://localhost:' + port,
   ...SlackConfig
-};
-let botkitManager = new BotKitManager(slackConfig);
-const slackQueryProvider = new SlackQueryProvider(idGenerator, matcher, botkitManager);
+});
 
 database
-  .registerSearchProvider('slack', slackQueryProvider);
+  .registerQueryProcessor(new SlackQueryProcessor(idGenerator, matcher, botkitManager));
 
 
 //
@@ -297,7 +304,7 @@ app.use(appRouter(authManager, clientManager, {
       version: Const.APP_VERSION,
     },
 
-    team: Const.DEF_TEAM
+    group: Const.DEF_GROUP
   },
 
   // TODO(burdon): Clean this up with config.

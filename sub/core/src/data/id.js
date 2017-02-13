@@ -70,7 +70,18 @@ export class ID {
    * @return {string}
    */
   static getGlobalId(item) {
+    console.assert(item && item.type && item.id);
     return ID.toGlobalId(item.type, item.id);
+  }
+
+  /**
+   * Creates a foreign key.
+   * @param item
+   * @return {string}
+   */
+  static getForeignKey(item) {
+    console.assert(item && item.namespace && item.id);
+    return item.namespace + '/' + item.id;
   }
 }
 

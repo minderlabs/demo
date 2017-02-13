@@ -27,25 +27,21 @@ scalar Date
 
 scalar Timestamp
 
-# TODO(burdon): Directives.
+# TODO(burdon): Directives (for subscriptions, links, etc.)
 
-#
-# Input types.
-#
+#===================================================================================================
+# Core.
+# TODO(burdon): Factor out to minder-core.
+# http://docs.oracle.com/javadb/10.8.3.0/ref (WHERE boolean expression)
+# https://github.com/ghislainfourny/jsoniq-tutorial
+# http://www.jinqjs.com/Examples
+# https://jinqjs.readme.io/docs/where-filter
+#===================================================================================================
 
 # TODO(burdon): Why can't inputs be used for outputs?
 # > https://github.com/graphql/graphql-js/issues/599 [me: 11/15/16]
 # > https://github.com/graphql/graphql-js/issues/423 [me: 11/15/16]
 # > https://github.com/apollostack/graphql-tools/issues/179
-
-# TODO(burdon): Predicate operator.
-# TODO(burdon): Build AST for query syntax? Boolean logic.
-# TODO(burdon): Generalize other filter fields to predicates (except type).
-
-# http://docs.oracle.com/javadb/10.8.3.0/ref (WHERE boolean expression)
-# https://github.com/ghislainfourny/jsoniq-tutorial
-# http://www.jinqjs.com/Examples
-# https://jinqjs.readme.io/docs/where-filter
 
 input ValueInput {
   null:       Boolean
@@ -184,9 +180,9 @@ input FilterInput {
   groupBy: Boolean
 }
 
-#
+#===================================================================================================
 # Basic types.
-#
+#===================================================================================================
 
 type Value {
   null:       Boolean
@@ -237,16 +233,19 @@ type Viewer {
   user: User!
 }
 
-#
+#===================================================================================================
 # Item.
+# TODO(burdon): Move common fields into meta?
 # http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Unions-and-interfaces
 # https://github.com/apollostack/graphql-server/issues/172
-#
+#===================================================================================================
 
 interface Item {
-  id: ID!
-  bucket: ID                  # TODO(burdon): Change to ID.
+  namespace: String           # External namespace (query provider).
+  fkey: String                # Foreign key.
+  bucket: ID
   type: String!
+  id: ID!
   alias: String               # Short-name for URLs (unique, human-readable).
   created: Timestamp!
   modified: Timestamp!
@@ -260,9 +259,11 @@ interface Item {
 #
 
 type Contact implements Item {
-  id: ID!
+  namespace: String
+  fkey: String
   bucket: ID
   type: String!
+  id: ID!
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -274,9 +275,11 @@ type Contact implements Item {
 }
 
 type Document implements Item {
-  id: ID!
+  namespace: String
+  fkey: String
   bucket: ID
   type: String!
+  id: ID!
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -288,14 +291,14 @@ type Document implements Item {
   url: String
   iconUrl: String
   thumbnailUrl: String
-
-  source: String
 }
 
 type Event implements Item {
-  id: ID!
+  namespace: String
+  fkey: String
   bucket: ID
   type: String!
+  id: ID!
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -308,9 +311,11 @@ type Event implements Item {
 }
 
 type Folder implements Item {
-  id: ID!
+  namespace: String
+  fkey: String
   bucket: ID
   type: String!
+  id: ID!
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -325,9 +330,11 @@ type Folder implements Item {
 }
 
 type Group implements Item {
-  id: ID!
+  namespace: String
+  fkey: String
   bucket: ID
   type: String!
+  id: ID!
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -336,13 +343,17 @@ type Group implements Item {
   labels: [String]
 
   members: [User]!
+
+  # TODO(burdon): Shouldn't be part of Group. Instead link (since many-to-may).
   projects: [Project]!
 }
 
 type Place implements Item {
-  id: ID!
+  namespace: String
+  fkey: String
   bucket: ID
   type: String!
+  id: ID!
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -354,9 +365,11 @@ type Place implements Item {
 }
 
 type Project implements Item {
-  id: ID!
+  namespace: String
+  fkey: String
   bucket: ID
   type: String!
+  id: ID!
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -364,7 +377,7 @@ type Project implements Item {
   description: String
   labels: [String]
 
-  team: Group!
+  group: Group!
 
   # TODO(burdon): Directives for links.
   tasks: [Task]!
@@ -379,9 +392,11 @@ type Project implements Item {
 }
 
 type Task implements Item {
-  id: ID!
+  namespace: String
+  fkey: String
   bucket: ID
   type: String!
+  id: ID!
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -404,9 +419,11 @@ type Task implements Item {
 }
 
 type User implements Item {
-  id: ID!
+  namespace: String
+  fkey: String
   bucket: ID
   type: String!
+  id: ID!
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -422,11 +439,11 @@ type User implements Item {
   tasks(filter: FilterInput): [Task]!
 }
 
-#
+#===================================================================================================
 # Queries.
 # NOTE: Must only have Input types (since regular types might be recursive and therefore not serializable).
 # https://github.com/graphql/graphql-js/issues/312
-#
+#===================================================================================================
 
 type RootQuery {
 
@@ -446,17 +463,17 @@ type RootQuery {
   search(filter: FilterInput, offset: Int, count: Int): [Item]!
 }
 
-#
+#===================================================================================================
 # Mutations.
-#
+#===================================================================================================
 
 type RootMutation {
   updateItem(itemId: ID!, mutations: [ObjectMutationInput]!): Item!
 }
 
-#
+#===================================================================================================
 # Schema.
-#
+#===================================================================================================
 
 schema {
   query: RootQuery

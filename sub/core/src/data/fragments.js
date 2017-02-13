@@ -29,8 +29,8 @@ export const ValueFragment = gql`
 export const ItemFragment = gql`
   fragment ItemFragment on Item {
     bucket
-    id
     type
+    id
     labels
     title
     description
@@ -48,7 +48,22 @@ export const DocumentFragment = gql`
   fragment DocumentFragment on Document {
     url
     iconUrl
-    source
+  }
+`;
+
+export const GroupFragment = gql`
+  fragment GroupFragment on Group {
+    id 
+    members {
+      type
+      id
+      title
+    }
+    projects {
+      type
+      id
+      title
+    }
   }
 `;
 
@@ -118,6 +133,24 @@ export const ProjectBoardFragment = gql`
   }
 
   ${ValueFragment}
+`;
+
+export const UserFragment = gql`
+  fragment UserFragment on User {
+    title
+
+    ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
+      type
+      id
+      title
+    }
+
+    assigneeTasks: tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
+      type
+      id
+      title
+    }
+  }
 `;
 
 //

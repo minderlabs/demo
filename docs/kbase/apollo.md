@@ -3,6 +3,12 @@
 ![Apollo](https://github.com/minderlabs/demo/blob/master/docs/kbase/apollo.png "Apollo")
 
 
+## Ref
+
+- http://dev.apollodata.com/react/higher-order-components.html
+- http://dev.apollodata.com/core/apollo-client-api.html#apollo-client
+
+
 ## Call Sequence.
 
 TODO(burdon): When is redux callback triggered (all called on each action?)

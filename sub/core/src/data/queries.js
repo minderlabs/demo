@@ -5,8 +5,6 @@
 import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
-// TODO(burdon): Pass in fragment.
-
 const ItemsQuery = gql`
   query ItemsQuery($filter: FilterInput, $offset: Int, $count: Int) { 
 

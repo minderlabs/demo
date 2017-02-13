@@ -28,7 +28,7 @@ export class TypeRegistry {
    * material-icons icon.
    *
    * @param item
-   * @return {V|icon|(function(*): string)|string|TypeRegistry.icon|string|*|*}
+   * @return {string}
    */
   icon(item) {
     console.assert(item && item.type);

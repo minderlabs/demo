@@ -11,6 +11,7 @@ import { Picker } from 'minder-ux';
  */
 class ItemsPicker extends Picker {
 
+  // TODO(burdon): Wrap instead of extend?
   handleTextChange(text) {
     super.handleTextChange(text);
 

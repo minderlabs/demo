@@ -117,6 +117,11 @@ export class Canvas extends React.Component {
    */
   handleSave() {
     let { mutator, item } = this.props;
+    if (!mutator) {
+      console.warn('Read-only canvas.');
+      return;
+    }
+
     let mutations = [];
 
     // Determine which properties changed.

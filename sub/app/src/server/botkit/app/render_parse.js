@@ -13,7 +13,6 @@ import { ItemRenderer } from '../renderer/renderer';
 /**
  * Manages backend API queries on behalf of a team, e.g. manages team-wide notification subscriptions.
  * Manages Parsers and Renderers that need to make Minder API calls.
- *
  */
 // NOTE: API queries need to be executed under some valid user, so we use the account of the user who
 // created this bot, presumably the administrator. This may cause privacy leaks down the road, we may want

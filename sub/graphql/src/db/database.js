@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { $$, Logger, ItemStore, TypeUtil } from 'minder-core';
+import { $$, ID, Logger, ItemStore, TypeUtil } from 'minder-core';
 
 const logger = Logger.get('db');
 
@@ -13,7 +13,7 @@ const logger = Logger.get('db');
  */
 export class Database extends ItemStore {
 
-  static DEFAULT = '*';
+  static DEFAULT_NAMESPACE = '*';
 
   constructor(idGenerator, matcher) {
     super(idGenerator, matcher);
@@ -22,8 +22,8 @@ export class Database extends ItemStore {
     // TODO(burdon): Should be by domain?
     this._stores = new Map();
 
-    // SearchProviders Keyed by source name.
-    this._searchProviders = new Map();
+    // SearchProviders Keyed by namespace.
+    this._queryProcessors = new Map();
 
     // Callback.
     this._onMutation = null;
@@ -32,29 +32,32 @@ export class Database extends ItemStore {
   /**
    * Register fan-out stores.
    *
-   * @param type
    * @param store
+   * @param type
    * @returns {Database}
    */
-  registerItemStore(type, store) {
+  registerItemStore(store, type='*') {
     console.assert(type && store);
+    console.assert(!this._stores.get(type), 'Already registered: ' + type);
     this._stores.set(type, store);
     return this;
   }
 
-  getItemStore(type) {
-    return this._stores.get(type) || this._stores.get(Database.DEFAULT);
-  }
-
-  registerSearchProvider(source, provider) {
-    console.assert(source && provider);
-    this._searchProviders.set(source, provider);
+  /**
+   *
+   * @param {QueryProcessor} processor
+   * @return {Database}
+   */
+  registerQueryProcessor(processor) {
+    // TODO(burdon): Maintain order.
+    console.assert(processor && processor.namespace);
+    console.assert(!this._queryProcessors.get(processor.namespace), 'Already registered: ' + processor.namespace);
+    this._queryProcessors.set(processor.namespace, processor);
     return this;
   }
 
-  getSearchProviders(filter) {
-    // TODO(madadam): Allow filter to specify which sources to dispatch to. For now, fan out to all.
-    return Array.from(this._searchProviders.values());
+  getItemStore(type) {
+    return this._stores.get(type) || this._stores.get(Database.DEFAULT_NAMESPACE);
   }
 
   // TODO(burdon): Evolve into mutation dispatcher to QueryRegistry.
@@ -90,7 +93,7 @@ export class Database extends ItemStore {
     logger.log($$('UPSERT: %s', items.length > 1 ? TypeUtil.stringify(items) : JSON.stringify(items)));
 
     // TODO(burdon): Dispatch to store (check permissions).
-    let itemStore = this.getItemStore(Database.DEFAULT);
+    let itemStore = this.getItemStore(Database.DEFAULT_NAMESPACE);
     return itemStore.upsertItems(context, items).then(modifiedItems => {
 
       // Invalidate clients.
@@ -138,7 +141,7 @@ export class Database extends ItemStore {
       });
   }
 
-  // TODO(burdon): Move this out of database.
+  // TODO(burdon): Move fan-out out of database.
 
   /**
    * @returns {Promise}
@@ -146,17 +149,53 @@ export class Database extends ItemStore {
   _searchAll(context, root, filter={}, offset=0, count=10) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
-    let searchProviders = this.getSearchProviders(filter);
-    let searchPromises = _.map(searchProviders, provider => {
+    let promises = _.map(Array.from(this._queryProcessors.values()), processor => {
+
       // TODO(madadam): Pagination over the merged result set. Need to over-fetch from each provider.
-      return provider.queryItems(context, root, filter, offset, count).catch(error => []);
+      return processor.queryItems(context, root, filter, offset, count)
+        .then(items => {
+          return {
+            namespace: processor.namespace,
+            items
+          };
+        })
+        .catch(error => {
+          console.warn('Query failed:', error);
+        });
     });
 
-    return Promise.all(searchPromises)
+    // Join stored items with external items.
+    return Promise.all(promises)
       .then(results => {
-        // TODO(madadam): better merging, scoring, etc.
-        //let merged = _.flatten(results);
-        return [].concat.apply([], results);
+
+        // Map stored item foreign keys.
+        let fkeys = new Map();
+        let result = _.find(results, result => result.namespace == Database.DEFAULT_NAMESPACE);
+        _.each(result.items, item => {
+          if (item.fkey) {
+            fkeys.set(item.fkey, item);
+          }
+        });
+
+        // Merge items.
+        // TODO(burdon): Better ranking, sorting, etc.
+        let items = [];
+        _.each(results, result => {
+          _.each(result.items, item => {
+            if (result.namespace == Database.DEFAULT_NAMESPACE) {
+              items.push(item);
+            } else {
+              // TODO(burdon): Requires stable external keys.
+              let fkey = ID.getForeignKey(item);
+              if (!fkeys.get(fkey)) {
+                fkeys.set(fkey, item);
+                items.push(item);
+              }
+            }
+          });
+        });
+
+        return items;
       });
   }
 
@@ -169,7 +208,8 @@ export class Database extends ItemStore {
    */
   _groupBy(items) {
 
-    // TODO(burdon): Reimplement using search items.
+    // TODO(burdon): Reimplement grouping using search items.
+    // Currently item.refs pollutes the apollo client cache (since depends on search context).
 
     let itemsById = new Map();
 

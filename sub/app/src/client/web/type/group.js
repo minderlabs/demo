@@ -6,7 +6,7 @@ import React from 'react';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ItemFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
+import { GroupFragment, ItemFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
 import { List } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
@@ -43,10 +43,11 @@ class GroupCanvasComponent extends React.Component {
   handleProjectSave(item, mutations) {
     let { mutator } = this.props;
 
+    // TODO(burdon): Add project to group (link?)
     // Augment editor mutations.
     mutations.push(
       {
-        field: 'team',
+        field: 'group',
         value: {
           id: item.id
         }
@@ -56,8 +57,9 @@ class GroupCanvasComponent extends React.Component {
     mutator.createItem('Project', mutations);
   }
 
+  // TODO(burdon): Warning: Failed prop type: Cannot read property 'kind' of undefined
   render() {
-    let { item, mutator, refetch } = this.props;
+    let { item={}, mutator, refetch } = this.props;
 
     return (
       <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch }>
@@ -67,8 +69,7 @@ class GroupCanvasComponent extends React.Component {
             <div className="ux-section-header ux-row">
               <h3 className="ux-expand">Members</h3>
             </div>
-            <List items={ item.members }
-                  onItemSelect={ this.handleItemSelect.bind(this) }/>
+            <List items={ item.members } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
 
           <div className="ux-column">
@@ -92,26 +93,9 @@ class GroupCanvasComponent extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
-const GroupFragment = gql`
-  fragment GroupFragment on Group {
-    id 
-    members {
-      id
-      type
-      title
-    }
-    
-    # TODO(burdon): Shouldn't be part of Group. Instead link.
-    projects {
-      id
-      title
-    }
-  }
-`;
-
 const GroupQuery = gql`
-  query GroupQuery($itemId: ID!) { 
-    
+
+  query GroupQuery($itemId: ID!) {
     item(itemId: $itemId) {
       ...ItemFragment
       ...GroupFragment

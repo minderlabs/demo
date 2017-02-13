@@ -13,10 +13,8 @@ import React from 'react';
  */
 export const DocumentColumn = (props, context) => {
   return (
-    <div className="ux-font-xsmall ux-link">
-      <a target="MINDER_OPEN" href={ props.item.url }>
-        { props.item.source }
-      </a>
-    </div>
+    <a target="MINDER_OPEN" className="ux-center-row" href={ props.item.url }>
+      <i className="ux-icon">open_in_new</i>
+    </a>
   );
 };

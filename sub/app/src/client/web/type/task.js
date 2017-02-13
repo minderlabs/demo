@@ -5,13 +5,16 @@
 import React from 'react';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
+import { connect } from 'react-redux';
+import { compose, graphql } from 'react-apollo';
+import { Link } from 'react-router';
 
-import { ID, ItemFragment, TaskFragment, UpdateItemMutation, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
-import { List, ListItem } from 'minder-ux';
+import { ID, ItemFragment, TaskFragment, UpdateItemMutation, ItemReducer, Matcher, MutationUtil } from 'minder-core';
+import { List, ListItem, Picker } from 'minder-ux';
 
+import { AppAction } from '../reducers';
 import { Path } from '../path';
 import { composeItem } from '../framework/item_factory';
-import { FilteredItemsPicker } from '../view/items_picker';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -29,6 +32,9 @@ export const TASK_LEVELS = [
 // Components.
 //-------------------------------------------------------------------------------------------------
 
+/**
+ * Status checkbox.
+ */
 const TaskStatus = ListItem.createInlineComponent((props, context) => {
   let { item } = context;
 
@@ -223,9 +229,11 @@ class TaskCanvasComponent extends React.Component {
   }
 
   render() {
-    let { mutator, refetch, item={} } = this.props;
+    let { mutator, refetch, item={}, members } = this.props;
     let { assigneeText, status } = this.state;
+    let { project } = item;
 
+    // TODO(burdon): Provide query.
     let userFilter = {
       type: 'User',
       text: assigneeText
@@ -241,7 +249,11 @@ class TaskCanvasComponent extends React.Component {
           <div className="ux-section ux-data">
             <div className="ux-data-row">
               <div className="ux-data-label">Project</div>
-              <div className="ux-text">{ _.get(item, 'project.title') }</div>
+              <div className="ux-text">
+                { project &&
+                <Link to={ Path.canvas(ID.toGlobalId('Project', project.id)) }>{ _.get(project, 'title') }</Link>
+                }
+              </div>
             </div>
 
             <div className="ux-data-row">
@@ -251,10 +263,9 @@ class TaskCanvasComponent extends React.Component {
 
             <div className="ux-data-row">
               <div className="ux-data-label">Assignee</div>
-              <FilteredItemsPicker filter={ userFilter }
-                                   value={ assigneeText }
-                                   onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
-                                   onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
+              <MembersPicker value={ assigneeText }
+                             onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
+                             onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
             </div>
 
             <div className="ux-data-row">
@@ -284,7 +295,48 @@ class TaskCanvasComponent extends React.Component {
 }
 
 //-------------------------------------------------------------------------------------------------
-// HOC.
+// HOC: Members Picker.
+//-------------------------------------------------------------------------------------------------
+
+// TODO(burdon): Require generic link query (e.g., Group -> Members).
+const MembersQuery = gql`
+  query MembersQuery($itemId: ID!) {
+    
+    group: item(itemId: $itemId) {
+      ... on Group {
+        members {
+          type
+          id
+          title
+        }
+      }
+    }
+  }  
+`;
+
+const MembersPicker = compose(
+  connect((state, ownProps) => {
+    let { injector, user, group } = AppAction.getState(state);
+    return {
+      matcher: injector.get(Matcher),
+      user,
+      group
+    }
+  }),
+  graphql(MembersQuery, {
+    options: (props) => ({
+      variables: {
+        itemId: ID.toGlobalId('Group', props.group)
+      }
+    }),
+    props: ({ ownProps, data }) => ({
+      items: _.get(data, 'group.members')
+    })
+  })
+)(Picker);
+
+//-------------------------------------------------------------------------------------------------
+// HOC: TaskCanvas.
 //-------------------------------------------------------------------------------------------------
 
 const TaskQuery = gql`

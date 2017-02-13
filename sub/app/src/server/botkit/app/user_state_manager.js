@@ -12,6 +12,7 @@
 import { Database, HttpPollingChannel } from 'nx/data';
 import { Url } from 'nx/util'; // FIXME
 
+// TODO(burdon): Config is not defined.
 import { Config } from '../config';
 import { RenderParseHelper } from './render_parse.js'
 import { UserState } from './user_state'
@@ -23,8 +24,8 @@ let jwt = require('jsonwebtoken');
  * which holds JWT tokens for Minder API authentication on behalf of the user.
  */
 export class UserStateManager {
+
   /**
-   *
    * @param controller botkit controller, for storage.
    */
   constructor(controller, apiBase) {
@@ -32,6 +33,7 @@ export class UserStateManager {
     this._controller = controller;
 
     this.apiBase = apiBase;
+
     // Cache of UserState per user, keyed by user_id.
     // TODO(madadam): Cache invalidation, timeout.
     this._userState = {};
@@ -42,22 +44,24 @@ export class UserStateManager {
    * @param bot, one team's bot.
    */
   loadUsers(bot) {
-    let self = this;
-    this._controller.storage.users.all(function(err, userInfos) {
+    this._controller.storage.users.all((err, userInfos) => {
       if (err) {
         throw new Error(err);
       }
+
       let promises = [];
       for (let userInfo of userInfos) {
         if (userInfo.payload.team == bot.config.id) {
-          promises.push(self._getUserStateFor(userInfo, bot));
+          promises.push(this._getUserStateFor(userInfo, bot));
         }
       }
-      Promise.all(promises, function(results) {
-        console.log('Loaded states for ' + results.length + ' users.');
-      })
-        .catch(function(err) {
-          console.log('** ERROR: ' + err);
+
+      Promise
+        .all(promises, (results) => {
+          console.log('Loaded states for ' + results.length + ' users.');
+        })
+        .catch((err) => {
+          console.error(err);
         });
     });
   }
@@ -69,22 +73,22 @@ export class UserStateManager {
    * @returns Promise of UserState.
    */
   getUserState(user, bot) {
-    let self = this;
+
     // Look for cached userInfo with jwt token.
-    return new Promise(function(resolve, reject) {
-      self._controller.storage.users.get(user, function(err, userInfo) {
+    return new Promise((resolve, reject) => {
+      this._controller.storage.users.get(user, (err, userInfo) => {
         if (userInfo && userInfo.jwtToken) {
-          self._getUserStateFor(userInfo, bot).then(function(userState) {
+          this._getUserStateFor(userInfo, bot).then((userState) => {
             resolve(userState);
           });
         } else {
-          self.getUserInfoForUser(user, bot)
-            .then(function(userInfo) {
-              self._getUserStateFor(userInfo, bot).then(function(userState) {
+          this.getUserInfoForUser(user, bot)
+            .then((userInfo) => {
+              this._getUserStateFor(userInfo, bot).then((userState) => {
                 resolve(userState);
               })
             })
-            .catch(function(err) {
+            .catch((err) => {
               reject(err);
             });
         }
@@ -99,7 +103,9 @@ export class UserStateManager {
    * @private
    */
   _getUserStateFor(userInfo, bot) {
-    if (!this._userState[userInfo.id]) {
+    if (this._userState[userInfo.id]) {
+      return Promise.resolve(this._userState[userInfo.id]);
+    } else {
       let apiUrl = Url.of(this.apiBase, {
         Authorization: 'Bearer ' + userInfo.jwtToken
       });
@@ -111,41 +117,44 @@ export class UserStateManager {
       // Get this user's Minder ID via an API call.
       let helper = new RenderParseHelper(userState);
       return helper.getUserFromSlackAccountId(userInfo.id)
-        .then(function(minderId) {
+        .then((minderId) => {
           userInfo.minderId = minderId;
           // TODO(madadam): Update userInfo cache with minderId.
-          // self._controller.storage.users.save(userInfo, function(err, id) {...});
+          // this._controller.storage.users.save(userInfo, (err, id) => {...});
         })
-        .catch(function(err) {
+        .catch((err) => {
           console.log('ERROR getting userId for ' + userInfo.id + ': ' + err);
         });
     }
-    return Promise.resolve(this._userState[userInfo.id]);
   }
 
-  // Request user info from the Slack API, create a JWT token for the user, and cache.
-  // Return a Promise of UserInfo.
+  /**
+   * Request user info from the Slack API, create a JWT token for the user, and cache.
+   * @param userId
+   * @param bot
+   * @return {Promise} Promise of UserInfo.
+   */
   getUserInfoForUser(userId, bot) {
-    let self = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       bot.api.users.info({
         user: userId
-      }, function(err, res) {
+      }, (err, res) => {
         let payload = {
-          service: 'slack.com',
-          user: userId,
-          team: res.user.team_id,
-          email: res.user.profile.email,
-          name: res.user.profile.real_name
+          service:  'slack.com',
+          user:     userId,
+          team:     res.user.team_id,
+          email:    res.user.profile.email,
+          name:     res.user.profile.real_name
         };
-        let jwtToken = jwt.sign(payload, process.env.jwtSecret);
 
+        let jwtToken = jwt.sign(payload, process.env.jwtSecret);
         let userInfo = {
           id: userId, // Required for controller.storage.save.
           jwtToken: jwtToken,
           payload: payload
         };
-        self._controller.storage.users.save(userInfo, function(err, id) {
+
+        this._controller.storage.users.save(userInfo, (err, id) => {
           if (err) {
             reject(err)
           } else {
