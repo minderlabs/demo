@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import { Async } from 'minder-core';
+import { Async, DomUtil } from 'minder-core';
 
 import './statusbar.less';
 
@@ -44,9 +44,9 @@ export class StatusBar extends React.Component {
     this._timer.networkOut();
   }
 
-  error(state) {
+  error(error) {
     this.setState({
-      error: state
+      error
     });
   }
 
@@ -75,8 +75,7 @@ export class StatusBar extends React.Component {
 
   render() {
     let { config } = this.props;
-
-    function state(state) { return state ? ' ux-icon-on' : '' }
+    let { error, networkIn, networkOut } = this.state;
 
     // TODO(burdon): Move to config.
     const github = 'https://github.com/minderlabs/demo/issues?q=is%3Aissue+is%3Aopen+label%3Abug';
@@ -110,11 +109,10 @@ export class StatusBar extends React.Component {
           <i className="ux-icon ux-icon-action" title="Refresh queries"
              onClick={ this.handleAction.bind(this, 'refresh') }>refresh</i>
 
-          <i className={ "ux-icon app-icon-network-in" + state(this.state.networkIn) }></i>
-          <i className={ "ux-icon app-icon-network-out" + state(this.state.networkOut) }></i>
-
-          <i className={ "ux-icon ux-icon-error" + state(this.state.error) }
-             title={ this.state.error }
+          <i className={ DomUtil.className('app-icon-network-in', 'ux-icon', networkIn && 'ux-icon-on') }></i>
+          <i className={ DomUtil.className('app-icon-network-out', 'ux-icon', networkOut && 'ux-icon-on') }></i>
+          <i className={ DomUtil.className('ux-icon-error', 'ux-icon', error && 'ux-icon-on') }
+             title={ error && error.message }
              onClick={ this.handleClickError.bind(this, 'error') }></i>
         </div>
       </div>

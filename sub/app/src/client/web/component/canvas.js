@@ -3,9 +3,12 @@
 //
 
 import React from 'react';
+import { connect } from 'react-redux';
 
 import { MutationUtil, QueryRegistry, TypeUtil } from 'minder-core';
 import { Textarea, TextBox } from 'minder-ux';
+
+import { AppAction } from '../reducers';
 
 /**
  * Canvas container.
@@ -54,7 +57,7 @@ export class CanvasContainer extends React.Component {
 /**
  * Canvas wrapper.
  */
-export class Canvas extends React.Component {
+class CanvasComponent extends React.Component {
 
   static propTypes = {
 
@@ -157,7 +160,8 @@ export class Canvas extends React.Component {
               { menu }
 
               <div className="ux-bar">
-                <i className="ux-icon ux-icon-action" onClick={ this.handleSave.bind(this) }>save</i>
+                <i className="ux-icon ux-icon-action"
+                   onClick={ this.handleSave.bind(this) }>save</i>
               </div>
             </div>
           </div>
@@ -183,3 +187,7 @@ export class Canvas extends React.Component {
     )
   }
 }
+
+export const Canvas = connect(
+  (state, ownProps) => _.pick(AppAction.getState(state), ['debug'])
+)(CanvasComponent);

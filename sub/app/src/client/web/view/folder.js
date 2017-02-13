@@ -32,7 +32,6 @@ class FolderView extends React.Component {
   };
 
   handleItemSelect(item) {
-    console.log(':::::::', item);
     this.context.navigator.pushCanvas(item);
   }
 

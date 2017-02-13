@@ -45,7 +45,9 @@ export class MemoryItemStore extends ItemStore {
   getItems(context, type, itemIds) {
     console.assert(context && type && itemIds);
 
-    return Promise.resolve(_.map(itemIds, itemId => TypeUtil.clone(this._items.get(itemId) || {})));
+    // Return clones of matching items.
+    let items = _.compact(_.map(itemIds, itemId => this._items.get(itemId)));
+    return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
   }
 
   //
@@ -55,13 +57,12 @@ export class MemoryItemStore extends ItemStore {
   queryItems(context, root, filter={}, offset=0, count=10) {
     console.assert(context && filter);
 
+    // Match items (cloning those that match).
     let items = [];
     this._items.forEach(item => {
-      if (!this._matcher.matchItem(context, root, filter, item)) {
-        return;
+      if (this._matcher.matchItem(context, root, filter, item)) {
+        items.push(TypeUtil.clone(item));
       }
-
-      items.push(TypeUtil.clone(item));
     });
 
     // Sort.

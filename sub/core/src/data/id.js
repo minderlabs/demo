@@ -6,7 +6,7 @@ import _ from 'lodash';
 import Random from 'random-seed';
 
 //
-// Detect node.
+// If Node (i.e., not DOM) then augment global functions.
 // TODO(burdon): Factor out node/web abstraction layer.
 //
 
@@ -24,6 +24,17 @@ if (typeof btoa === 'undefined') {
  * ID Utils.
  */
 export class ID {
+
+  /**
+   * UTC timestamp (milliseonds)
+   * https://en.wikipedia.org/wiki/Unix_time
+   * https://docs.python.org/2/library/time.html#time.time (NOTE: Python counts in seconds).
+   * http://stackoverflow.com/questions/18724037/datetime-unix-timestamp-contains-milliseconds
+   * @return {number} GraphQL Timestamp.
+   */
+  static timestamp() {
+    return _.now();
+  }
 
   /**
    * ID for Apollo Cache Normalization.

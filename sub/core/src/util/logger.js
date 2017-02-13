@@ -57,6 +57,7 @@ class Logger {
    * @param f
    * @return {string}
    */
+  // TODO(burdon): Replace with ``.
   static format(f) {
     let i = 1;
     let args = arguments;

@@ -26,6 +26,7 @@ export const ValueFragment = gql`
   }
 `;
 
+// TODO(burdon): Warning: fragment with name ItemFragment already exists.
 export const ItemFragment = gql`
   fragment ItemFragment on Item {
     bucket

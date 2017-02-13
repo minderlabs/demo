@@ -199,6 +199,8 @@ https://github.com/kubernetes/kops/blob/master/vendor/k8s.io/kubernetes/docs/des
 
     1. Using http basic auth (see above), you can hit the master https://api.${CLUSTER_NAME}/ui.
     (TODO: better auth)
+      
+    E.g., https://api.dev.k.minderlabs.com/ui (self-sign cert; admin; password in ~/.kubectl/config)
 
 
 1. Delete:

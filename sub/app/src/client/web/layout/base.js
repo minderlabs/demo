@@ -46,9 +46,9 @@ export class BaseLayout extends React.Component {
 
     // TODO(burdon): Need to display error state on startup (status not yet rendered).
     this.context.injector.get(EventHandler)
-      .listen('error',        event => { this.refs.status && this.refs.status.error(event.message); })
-      .listen('network.in',   event => { this.refs.status && this.refs.status.networkIn();          })
-      .listen('network.out',  event => { this.refs.status && this.refs.status.networkOut();         });
+      .listen('error',        event => { this.refs.status && this.refs.status.error(event); })
+      .listen('network.in',   event => { this.refs.status && this.refs.status.networkIn(); })
+      .listen('network.out',  event => { this.refs.status && this.refs.status.networkOut(); });
   }
 
   getChildContext() {

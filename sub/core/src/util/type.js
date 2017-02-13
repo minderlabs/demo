@@ -36,6 +36,7 @@ export class TypeUtil {
    */
   static clone(obj) {
     console.assert(obj);
+    // TODO(burdon): Consider _.cloneDeep?
     return JSON.parse(JSON.stringify(obj));
   }
 

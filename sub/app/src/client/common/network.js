@@ -461,15 +461,24 @@ export class NetworkManager {
 
               // Check GraphQL error.
               if (response.errors) {
-                this._logger.logErrors(requestId, response.errors)
+                // GraphQL Error.
+                this._logger.logErrors(requestId, response.errors);
+                this._eventHandler && this._eventHandler.emit({
+                  type: 'error',
+                  message: NetworkLogger.stringify(response.errors)
+                });
               } else {
                 this._logger.logResponse(requestId, response);
               }
             });
         } else {
-          // GraphQL Error.
+          // GraphQL Network Error.
           response.clone().text().then(text => {
-            this._eventHandler && this._eventHandler.emit({ type: 'error', message: response.statusText });
+            this._logger.logErrors(requestId, response.errors);
+            this._eventHandler && this._eventHandler.emit({
+              type: 'error',
+              message: NetworkLogger.stringify(response.errors)
+            });
           });
         }
 
@@ -526,6 +535,10 @@ export class NetworkManager {
  */
 class NetworkLogger {
 
+  static stringify(errors) {
+    return errors.map(error => error.message).join(' | ');
+  }
+
   /**
    * @param {Wrapper} options
    */
@@ -552,6 +565,6 @@ class NetworkLogger {
   }
 
   logErrors(requestId, errors) {
-    logger.error($$('GraphQL Error [%s]: %s', requestId, errors.map(error => error.message)));
+    logger.error($$('GraphQL Error [%s]: %s', requestId, NetworkLogger.stringify(errors)));
   }
 }

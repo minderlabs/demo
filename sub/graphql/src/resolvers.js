@@ -45,11 +45,14 @@ export class Resolvers {
       // http://graphql.org/graphql-js/type/#graphqlscalartype
       //
 
+      /**
+       * Milliseconds since Unix epoch (_.now() == new Date().getTime()).
+       */
       Timestamp: {
         __serialize: value => value,
         __parseValue: value => value,
         __parseLiteral: ast => {
-          return (ask.kind === Kind.FLOAT) ? parseFloat(ast.value) : null;
+          return (ask.kind === Kind.INT) ? parseInt(ast.value) : null;
         }
       },
 
@@ -60,6 +63,7 @@ export class Resolvers {
 
       Item: {
         __resolveType(root) {
+          console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', JSON.stringify(root));
           console.assert(root.type, 'Invalid type: ' + TypeUtil.stringify(root));
 
           // The type property maps onto the GraphQL schema type name.

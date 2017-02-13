@@ -109,8 +109,10 @@ export class Database extends ItemStore {
   getItems(context, type, itemIds) {
     logger.log($$('GET[%s]: [%s]', type, itemIds));
 
+    // TODO(burdon): Error if not found!
     let itemStore = this.getItemStore(type);
     return itemStore.getItems(context, type, itemIds).then(items => {
+      console.log('>>>>>>>>>>>>', items);
       if (!_.compact(items).length) {
         console.warn('Invalid result: %s' % items);
       }
@@ -187,7 +189,12 @@ export class Database extends ItemStore {
             } else {
               // TODO(burdon): Requires stable external keys.
               let fkey = ID.getForeignKey(item);
-              if (!fkeys.get(fkey)) {
+              let existing = fkeys.get(fkey);
+              if (existing) {
+                // TODO(burdon): Merge non-editable fields.
+                _.assign(existing, item);
+              } else {
+                // TODO(burdon): Need to check for matching items that are not in the query.
                 fkeys.set(fkey, item);
                 items.push(item);
               }

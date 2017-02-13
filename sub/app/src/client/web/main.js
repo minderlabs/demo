@@ -17,6 +17,7 @@ import Application from './app';
  * Configuration (from server).
  */
 const config = _.defaultsDeep(window.config, {
+  debug: (window.config.env !== 'production'),
   app: {
     platform: DomUtil.isMobile() ? 'mobile': 'web'
   }
