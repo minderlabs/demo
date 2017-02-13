@@ -28,7 +28,7 @@ Optional: set up bash completion for kubectl, following http://kubernetes.io/doc
     Note that this is a disruptive push (the service will go down temporarily, don't use for
     prod.)
     First, make sure your AWS credentials are set up. See
-    [AWS](https://github.com/minderlabs/demo/blob/master/docs/kbase/es6.md).
+    [AWS](https://github.com/minderlabs/demo/blob/master/docs/kbase/aws.md).
     ```
     cd sub/apollo
     ./scripts docker_push.sh ecr
@@ -150,8 +150,17 @@ https://github.com/kubernetes/kops/blob/master/vendor/k8s.io/kubernetes/docs/des
     `//kube/configs/<cluster>`. Ask
     for access if you need it.
 
-    Further reading on sharing and merging kubeconfig files: http://kubernetes.io/docs/user-guide/sharing-clusters/
+    The kubeconfig file can contain metadata about multiple clusters. A few useful commands
+    for switching `contexts`:
+    ```
+    # List all known contexts, also shows the default.
+    kubectl config get-contexts
 
+    # Switch context to e.g. the research cluster.
+    kubectl config use-context research.k.minderlabs.com
+    ```
+
+    Further reading on sharing and merging kubeconfig files: http://kubernetes.io/docs/user-guide/sharing-clusters/
 
 1. Use `kubectl` to administer.
 
