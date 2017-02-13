@@ -66,7 +66,7 @@ export class TaskCard extends React.Component {
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object
+    mutator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -100,13 +100,10 @@ export class TaskCard extends React.Component {
 
   render() {
     let { item } = this.props;
-    let { assignee, description='', tasks } = item;
+    let { assignee, tasks } = item;
 
     return (
       <Card ref="card" item={ item }>
-        { description &&
-        <div className="ux-font-xsmall">{ description }</div>
-        }
 
         { assignee &&
         <div>
@@ -115,13 +112,14 @@ export class TaskCard extends React.Component {
         </div>
         }
 
-        <List ref="tasks"
-              items={ tasks }
-              itemRenderer={ TaskListItemRenderer }
-              onItemSelect={ this.handleItemSelect.bind(this) }
-              onItemUpdate={ this.handleItemUpdate.bind(this) }/>
-        <div>
-          <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }></i>
+        <div className="ux-list-tasks">
+          <List ref="tasks"
+                items={ tasks }
+                itemRenderer={ TaskListItemRenderer }
+                onItemSelect={ this.handleItemSelect.bind(this) }
+                onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+
+          <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
         </div>
 
       </Card>

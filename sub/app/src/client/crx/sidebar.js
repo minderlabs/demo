@@ -8,6 +8,8 @@ Logger.setLevel({
 
 import { createMemoryHistory } from 'react-router';
 
+import PreventParentScoll from 'prevent-parent-scroll';
+
 import {
   ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger, HttpUtil, Injector, KeyListener
 } from 'minder-core';
@@ -153,8 +155,15 @@ const bootstrap = new SidebarApp(config);
 
 bootstrap.init().then(() => {
 
-  bootstrap.render(Application);
+  let root = bootstrap.render(Application);
 //bootstrap.render(TestApplication);
+
+  // TODO(burdon): Dynamically set on scroll container (on mouseover?)
+  // https://www.npmjs.com/package/prevent-parent-scroll
+  /*
+  let preventParentScroll = new PreventParentScoll(root);
+  preventParentScroll.start();
+  */
 
   // Trigger startup via Redux.
   bootstrap.store.dispatch(SidebarAction.initialized());

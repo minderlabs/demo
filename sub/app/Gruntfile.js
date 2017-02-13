@@ -37,11 +37,12 @@ module.exports = (grunt) => {
         // Match both ["version": "0.0.1"] and [__version__ = '0.0.1']
         prefix: '[^\\-]((version)|(VERSION))[\'"]?[_\\s]*[:=]\\s*[\'"]'
       },
-      client: {
+      web: {
         options: {
           release: 'patch'
         },
         src: [
+          'package.json',
           'src/common/defs.js'
         ]
       },

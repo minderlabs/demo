@@ -67,16 +67,6 @@ export class TypeUtil {
   }
 
   /**
-   * Merges the array into the current array.
-   * @param current
-   * @param array
-   */
-  static merge(current, array) {
-    current.splice(current.length, 0, ...array);
-    return current;
-  }
-
-  /**
    * Appends non-null values to array.
    * @param array
    * @param value Value or array of values.

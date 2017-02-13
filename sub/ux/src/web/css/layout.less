@@ -54,6 +54,7 @@
 
 .ux-canvas-container {
   display: flex;
+  flex-grow: 1;
 }
 
 .ux-canvas {
@@ -62,13 +63,21 @@
   flex-grow: 1;
   overflow: hidden;
 
-  > .ux-row {
+  > div > .ux-row {
     border-bottom: 1px solid #DDD;
   }
 
-  .ux-bar {
-    .ux-icon {
-      font-size: @ux-font-large;
+  .ux-canvas-menu-bar {
+    display: flex;
+    flex-direction: row;
+
+    .ux-bar {
+      padding: 0 6px;
+      border-left: 1px solid #DDD;
+
+      .ux-icon {
+        font-size: @ux-font-large;
+      }
     }
   }
 }

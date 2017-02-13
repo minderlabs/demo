@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo
+  labels:
+    run: demo
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:240980109537:certificate/da3b47a7-8bd1-4deb-8c43-885e19acfcdb
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 443
+    targetPort: 3000
+    protocol: TCP
+    name: https
+  selector:
+    run: demo
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: demo
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: demo
+    spec:
+      containers:
+      - name: minder-app-server
+        # NOTE: Don't use the :latest tag in production.
+        # See http://kubernetes.io/docs/user-guide/config-best-practices/#container-images
+        image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/minder-app-server:latest
+        env:
+          # TODO(madadam): Prod vs dev.
+          - name: OAUTH_REDIRECT_ROOT
+            value: https://demo-dev.minderlabs.com
+        ports:
+        - containerPort: 3000

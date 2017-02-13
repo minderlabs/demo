@@ -6,31 +6,6 @@
     }
   ],
 
-  "Project": [
-    {
-      "id": "demo",
-      "title": "Demo",
-      "description": "Demo project.",
-      "team": "minderlabs",
-      "boards": [
-        {
-          "alias": "priority",
-          "title": "Task Pipeline",
-          "columns": [
-            { "id": "c1", "value": { "int": 0 }, "title": "Unstarted" },
-            { "id": "c2", "value": { "int": 1 }, "title": "Active"    },
-            { "id": "c3", "value": { "int": 2 }, "title": "Complete"  },
-            { "id": "c4", "value": { "int": 3 }, "title": "Blocked"   }
-          ]
-        },
-        {
-          "alias": "user",
-          "title": "User Tasks"
-        }
-      ]
-    }
-  ],
-
   "Folder": [
     {
       "id": "folder_inbox",
@@ -116,14 +91,6 @@
         "labels": ["_deleted"],
         "groupBy": false
       }
-    }
-  ],
-
-  "Contact": [
-    {
-      "id": "contact_alice",
-      "title": "Alice Braintree",
-      "email": "alice.braintree@gmail.com"
     }
   ]
 }

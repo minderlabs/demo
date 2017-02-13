@@ -38,18 +38,26 @@ export class Card extends React.Component {
 
   render() {
     let { children, icon, item } = this.props;
+    let { title, description } = item;
     let className = DomUtil.className('ux-card', 'ux-card-type-' + item.type.toLowerCase(), this.props.className);
 
+    // TODO(burdon): Optionally show description.
     // TODO(burdon): Set icon via context's typeRegistry.
+
     return (
       <div className={ className }>
         <div className="ux-card-header">
           <h1 className="ux-text-noselect ux-selector"
-              onClick={ this.handleSelect.bind(this, item) }>{ item.title }</h1>
+              onClick={ this.handleSelect.bind(this, item) }>{ title }</h1>
 
           { icon && <i className="ux-icon">{ icon }</i> }
         </div>
+
         <div className="ux-card-body">
+          { description &&
+          <div className="ux-font-xsmall">{ description }</div>
+          }
+
           { children }
         </div>
       </div>

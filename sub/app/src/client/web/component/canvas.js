@@ -139,24 +139,30 @@ export class Canvas extends React.Component {
     let { item, debug, menu, children } = this.props;
     let { title, description } = this.state;
 
+    // TODO(burdon): Canvas header (in navbar).
     return (
       <div className="ux-canvas">
-        <div className="ux-row">
-          <TextBox className="ux-expand ux-noborder ux-font-xlarge"
-                   value={ title }
-                   onChange={ this.handlePropertyChange.bind(this, 'title') }/>
+        <div>
+          <div className="ux-row">
+            <TextBox className="ux-expand ux-noborder ux-font-large"
+                     value={ title }
+                     onChange={ this.handlePropertyChange.bind(this, 'title') }/>
 
-          <div className="ux-canvas-menu-bar ux-bar">
-            { menu }
-            <i className="ux-icon ux-icon-action" onClick={ this.handleSave.bind(this) }>save</i>
+            <div className="ux-canvas-menu-bar">
+              { menu }
+
+              <div className="ux-bar">
+                <i className="ux-icon ux-icon-action" onClick={ this.handleSave.bind(this) }>save</i>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="ux-row">
-          <Textarea className="ux-expand ux-noborder ux-font-xsmall" rows="3"
-                    placeholder="Notes"
-                    value={ description }
-                    onChange={ this.handlePropertyChange.bind(this, 'description') }/>
+          <div className="ux-row">
+            <Textarea className="ux-expand ux-noborder ux-font-xsmall" rows="3"
+                      placeholder="Notes"
+                      value={ description }
+                      onChange={ this.handlePropertyChange.bind(this, 'description') }/>
+          </div>
         </div>
 
         { debug &&

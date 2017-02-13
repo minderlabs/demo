@@ -304,7 +304,9 @@ export class Base {
     );
 
     // Render app.
-    ReactDOM.render(app, document.getElementById(this._serverProvider.root));  // TODO(burdon): Rename appRoot.
+    let root = document.getElementById(this._serverProvider.root);
+    ReactDOM.render(app, root);
+    return root;
   }
 }
 

@@ -63,7 +63,6 @@ input ValueInput {
   map:        [MapMutationInput]
   set:        [SetMutationInput]
   array:      [ArrayMutationInput]
-
   object:     [ObjectMutationInput]
 }
 
@@ -101,7 +100,6 @@ input ArrayMutationInput {
   index: Int                      # Insert ordinal position (-1 to append; undefined to remove).
   value: ValueInput!              # Value to input.
 }
-
 
 #
 # Object mutation.
@@ -395,8 +393,8 @@ type Task implements Item {
   project: Project
 
   # Sub-tasks.
-  # TODO(burdon): Resolver should flatten the query to return the hierarchical set.
-  tasks: [Task]
+  # TODO(burdon): Resolver should flatten the query to return the hierarchical set?
+  tasks: [Task]!
 
   status: Int!
 

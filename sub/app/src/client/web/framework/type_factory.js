@@ -11,7 +11,7 @@ import { ItemCard, ItemCanvas } from '../type/item';
 import { ContactCard, ContactCanvas } from '../type/contact';
 import { DocumentColumn } from '../type/document';
 import { GroupCanvas } from '../type/group';
-import { ProjectCanvas } from '../type/project';
+import { ProjectCard, ProjectBoardCanvas, ProjectTasksCanvas } from '../type/project';
 import { TaskCard, TaskCanvas } from '../type/task';
 import { UserCanvas } from '../type/user';
 
@@ -42,9 +42,10 @@ export const TypeRegistryFactory = () => new TypeRegistry({
 
   Project: {
     icon: 'assignment',
-    card: (item) => <ItemCard item={ item }/>,                // TODO(burdon): Project -> Tasks (priority).
+    card: (item) => <ProjectCard item={ item }/>,
     canvas: {
-      def: (itemId) => <ProjectCanvas itemId={ itemId }/>
+      def: (itemId) => <ProjectBoardCanvas itemId={ itemId }/>,
+      tasks: (itemId) => <ProjectTasksCanvas itemId={ itemId }/>
     }
   },
 

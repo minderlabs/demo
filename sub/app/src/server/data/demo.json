@@ -1,0 +1,18 @@
+{
+  "Project": [
+    {
+      "id": "demo",
+      "title": "Demo",
+      "description": "Demo project.",
+      "team": "minderlabs"
+    }
+  ],
+
+  "Contact": [
+    {
+      "id": "contact_alice",
+      "title": "Alice Braintree",
+      "email": "alice.braintree@gmail.com"
+    }
+  ]
+}

@@ -104,11 +104,9 @@ export class Board extends React.Component {
                         onItemDrop={ this.handleItemDrop.bind(this) }
                         onItemSelect={ this.handleItemSelect.bind(this) }/>
 
-          <div className="ux-board-add">
-            <div className="ux-section ux-toolbar">
-              <TextBox className="ux-expand" placeholder="Add item..."
-                       onEnter={ this.handleItemCreate.bind(this, column) }/>
-            </div>
+          <div className="ux-toolbar">
+            <TextBox className="ux-expand" placeholder="Add item..."
+                     onEnter={ this.handleItemCreate.bind(this, column) }/>
           </div>
         </div>
       );
