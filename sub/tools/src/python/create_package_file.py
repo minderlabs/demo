@@ -13,9 +13,10 @@ with open('package.json') as input_file:
 del data['scripts']
 del data['devDependencies']
 
-del data['dependencies']['minder-core']
-del data['dependencies']['minder-graphql']
-del data['dependencies']['minder-ux']
+deps = data['dependencies']
+for lib in ['minder-core', 'minder-graphql', 'minder-ux']:
+    if lib in deps:
+        del deps[lib]
 
 if len(sys.argv) == 2:
     output_filename = sys.argv[1]

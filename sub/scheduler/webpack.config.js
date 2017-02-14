@@ -25,7 +25,7 @@ module.exports = _.merge(baseConfig, {
 
   entry: {
     scheduler: [
-      path.resolve(baseConfig.context, 'src/kue/main.js')
+      path.resolve(baseConfig.context, 'src/main.js')
     ]
   },
 

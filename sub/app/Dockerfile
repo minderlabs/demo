@@ -19,8 +19,7 @@ FROM node
 
 ENV HOME=/home/nx
 
-# Used by nginx-proxy and configures node server.
-ENV VIRTUAL_PORT=3000
+ENV PORT=3000
 
 ENV NODE_ENV=production
 
@@ -63,11 +62,7 @@ ADD src/server/data       $HOME/app/dist/data
 ADD src/server/public     $HOME/app/dist/public
 ADD src/server/views      $HOME/app/dist/views
 
-#
-# Exposed port for nginx-proxy (matches docker-compose.yml and docker cloud stackfile).
-#
-
-EXPOSE $VIRTUAL_PORT
+EXPOSE $PORT
 
 #
 # Switch to user.

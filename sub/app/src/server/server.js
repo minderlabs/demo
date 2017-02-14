@@ -205,7 +205,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 //
-// Routers.
+// Home page.
 //
 
 app.use(cookieParser());
@@ -281,7 +281,7 @@ app.use(loginRouter(firebase.userStore, {
   env
 }));
 
-app.use(adminRouter(clientManager, firebase));
+app.use('/admin', adminRouter(clientManager, firebase));
 
 app.use(clientRouter(authManager, clientManager, server));
 

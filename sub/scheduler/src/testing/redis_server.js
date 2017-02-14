@@ -4,12 +4,12 @@
 
 import RedisServer from 'redis-server';
 
-import { RedisOptions } from '../defs';
+import { RedisDefs } from '../defs';
 
 //
 // https://www.npmjs.com/package/redis-server
 //
-const server = new RedisServer(RedisOptions.PORT);
+const server = new RedisServer(RedisDefs.PORT);
 
 server.open((err) => {
   if (err) {

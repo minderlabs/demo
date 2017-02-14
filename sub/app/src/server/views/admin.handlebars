@@ -7,14 +7,20 @@
 
     <div class="site-window-container">
       <div class="site-window site-admin-window">
+
         <div class="site-section">
           <h1>Database</h1>
           <div>
-            <a href="https://console.firebase.google.com/project/minder-beta/database/data">Firebase</a>
+            <a target="MINDER_KUE" href="/admin/kue">Kue</a>
+            <a target="MINDER_KUBE" href="https://api.dev.k.minderlabs.com/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard">Kubernetes</a>
+            <a target="MINDER_FIREBASE" href="https://console.firebase.google.com/project/minder-beta/database/data">Firebase</a>
           </div>
-          <br/>
+        </div>
+
+        <div class="site-section">
           <div>
             <button onclick="reset()">Reset Cache</button>
+            <button onclick="schedule()">Test Scheduler</button>
           </div>
         </div>
 
@@ -44,12 +50,17 @@
             </tbody>
           </table>
         </div>
+
       </div>
     </div>
   </div>
 
   <script src="/assets/website.bundle.js"></script>
   <script>
+    function schedule() {
+      Site.post('/admin', { cmd: 'schedule.test' });
+    }
+
     function reset() {
       Site.post('/admin', { cmd: 'db.cache.reset' });
     }

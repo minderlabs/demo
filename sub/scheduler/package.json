@@ -18,14 +18,18 @@
   "dependencies": {
     "babel-preset-es2015": "^6.22.0",
     "babel-preset-stage-0": "^6.22.0",
+    "express": "^4.14.1",
     "kue": "^0.11.5",
     "kue-scheduler": "^0.7.0",
+    "kue-ui": "^0.1.0",
     "lodash": "^4.17.4",
     "redis": "^2.6.5",
     "redis-server": "^1.1.0"
   },
   "scripts": {
-    "redis-server": "BABEL_DISABLE_CACHE=1 babel-node src/redis/main.js",
-    "start": "BABEL_DISABLE_CACHE=1 babel-node src/kue/main.js"
+    "redis-server": "BABEL_DISABLE_CACHE=1 babel-node src/testing/redis_server.js",
+    "test": "BABEL_DISABLE_CACHE=1 babel-node src/testing/test_scheduler.js",
+    "ui": "BABEL_DISABLE_CACHE=1 babel-node src/testing/ui_server.js",
+    "start": "BABEL_DISABLE_CACHE=1 babel-node src/main.js"
   }
 }

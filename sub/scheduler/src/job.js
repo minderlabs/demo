@@ -9,20 +9,6 @@
  */
 export class Job {
 
-  // Custom namespace.
-  // NOTE: kue spreads its own metadata into the job.data param.
-  static NAMESPACE = '_DATA_';
-
-  /**
-   * Create namespaced data property.
-   * @param data
-   */
-  static data(data) {
-    return {
-      [Job.NAMESPACE]: data
-    };
-  }
-
   /**
    * Returns the processor registered with the queue.
    * @param {Job} job Job instance to register.
@@ -30,7 +16,7 @@ export class Job {
    */
   static processor(job) {
     return (kueJob, done) => {
-      let data = kueJob.data[Job.NAMESPACE];
+      let data = kueJob.data;
       console.log('Processing[%s:%s]: %s', kueJob.type, kueJob.id, JSON.stringify(data));
 
       // TODO(burdon): Error handling.

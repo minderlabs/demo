@@ -18,8 +18,7 @@ FROM node
 
 ENV HOME=/home/nx
 
-# Used by nginx-proxy and configures node server.
-ENV VIRTUAL_PORT=9000
+ENV PORT=9000
 
 ENV NODE_ENV=production
 
@@ -34,24 +33,22 @@ RUN mkdir -p $HOME
 RUN chown -R nx:nx $HOME
 
 #
-# Add sources.
-#
-
-ADD dist $HOME/app/dist
-
-#
 # Tools
 #
+
+ADD dist/package.json $HOME/app/package.json
 
 WORKDIR $HOME/app
 
 RUN npm install
 
 #
-# Exposed port for nginx-proxy (matches docker-compose.yml and docker cloud stackfile).
+# Add sources.
 #
 
-EXPOSE $VIRTUAL_PORT
+ADD dist $HOME/app/dist
+
+EXPOSE $PORT
 
 #
 # Switch to user.
