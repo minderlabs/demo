@@ -281,9 +281,11 @@ app.use(loginRouter(firebase.userStore, {
   env
 }));
 
-app.use('/admin', adminRouter(clientManager, firebase));
+app.use('/admin', adminRouter(clientManager, firebase, {
+  scheduler: (env === 'production')
+}));
 
-app.use(clientRouter(authManager, clientManager, server));
+app.use('/client', clientRouter(authManager, clientManager, server));
 
 app.use(appRouter(authManager, clientManager, {
   root: Const.ROOT_PATH,
@@ -306,7 +308,7 @@ app.use(appRouter(authManager, clientManager, {
 
 app.use('/botkit', botkitRouter(botkitManager));
 
-app.use(accountsRouter(new AccountManager()
+app.use('/accounts', accountsRouter(new AccountManager()
   .registerHandler('Slack', new SlackAccountHandler())));
 
 //

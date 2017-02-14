@@ -24,7 +24,7 @@ export const clientRouter = (authManager, clientManager, options) => {
   router.use(bodyParser.json());
 
   // Registers the client.
-  router.post('/client/register', async function(req, res) {
+  router.post('/register', async function(req, res) {
     let { clientId, socketId } = req.body;
 
     // Get current user.
@@ -54,7 +54,7 @@ export const clientRouter = (authManager, clientManager, options) => {
   });
 
   // Invalidate client.
-  router.post('/client/invalidate', function(req, res) {
+  router.post('/invalidate', function(req, res) {
     let { clientId } = req.body;
     clientManager.invalidate(clientId);
     res.send({});

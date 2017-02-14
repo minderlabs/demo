@@ -15,15 +15,20 @@ export const adminRouter = (clientManager, firebase, options) => {
   let router = express.Router();
 
   // Kue.
-  // Environment variables set by kubernetes deployment config.
   // TODO(burdon): Factor out config.
-  let queue = kue.createQueue({
-    redis: {
-      host: _.get(process.env, 'REDIS_KUE_SERVICE_HOST', '127.0.0.1'),
-      port: _.get(process.env, 'REDIS_KUE_SERVICE_PORT', 6379),
-      db: 0
-    }
-  });
+  // Environment variables set by kubernetes deployment config.
+  let queue = null;
+  if (options.scheduler) {
+    queue = kue.createQueue({
+      redis: {
+        host: _.get(process.env, 'REDIS_KUE_SERVICE_HOST', '127.0.0.1'),
+        port: _.get(process.env, 'REDIS_KUE_SERVICE_PORT', 6379),
+        db: 0
+      }
+    }).on('error', err => {
+      console.warn('Kue Error:', err.code);
+    });
+  }
 
   // JSON body.
   router.use(bodyParser.json());
@@ -46,7 +51,7 @@ export const adminRouter = (clientManager, firebase, options) => {
     console.log('Admin command: %s', cmd);
     switch (cmd) {
       case 'schedule.test': {
-        queue.create('test', {}).save();
+        queue && queue.create('test', {}).save();
         break;
       }
 
@@ -62,7 +67,9 @@ export const adminRouter = (clientManager, firebase, options) => {
   //
   // https://github.com/Automattic/kue#user-interface
   //
-  router.use('/kue', kue.app);
+  if (options.scheduler) {
+    router.use('/kue', kue.app);
+  }
 
   return router;
 };
