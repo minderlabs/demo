@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter
+  labels:
+    run: jupyter
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8888
+    targetPort: 8888
+  selector:
+    run: jupyter
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jupyter
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: jupyter
+    spec:
+      containers:
+      - name: jupyter
+        image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/jupyter:latest
+        #image: jupyter/scipy-notebook
+        env:
+        - name: GRANT_SUDO
+          value: "yes"
+        ports:
+        - containerPort: 8888
+        volumeMounts:
+        - name: jupyter-home
+          mountPath: /home/jovyan/work
+        securityContext:
+          privileged: true
+          runAsUser: 0
+      volumes:
+      - name: jupyter-home
+        awsElasticBlockStore:
+          volumeID: vol-05ab21f8443bf1bc5 # Must already exist.
+          fsType: ext4
