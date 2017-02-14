@@ -45,11 +45,11 @@ export const accountsRouter = (accountManager) => {
   accountManager.handlers.forEach((name, handler) => {
     let oauthHandler = handler.oauthRedirectHandler();
     if (oauthHandler) {
-      router.get('/accounts/' + name, oauthHandler);
+      router.get('/' + name, oauthHandler);
     }
   });
 
-  router.get('/accounts', function(req, res) {
+  router.get('/', function(req, res) {
     res.render('accounts', {
       accounts: accountManager.handlers
     });

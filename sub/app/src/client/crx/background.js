@@ -166,6 +166,7 @@ class BackgroundApp {
       this._authManager.authenticate().then(user => {
 
         // Only show if not dev.
+        // TODO(burdon): Option.
         if (!settings.server.startsWith('http://localhost')) {
           this._notification.show('Minder', 'Authentication succeeded.');
         }
@@ -174,7 +175,7 @@ class BackgroundApp {
         // Proxy Apollo requests.
         // http://dev.apollodata.com/core/network.html#custom-network-interface
         // See also ChromeNetworkInterface
-        // TODO(burdon): Logging (assign req
+        // TODO(burdon): Network logging.
         //
         this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
           return this._networkManager.networkInterface.query(gqlRequest).then(gqlResponse => {

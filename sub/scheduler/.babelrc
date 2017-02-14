@@ -1,0 +1,11 @@
+{
+  //
+  // http://babeljs.io/docs/usage/babelrc
+  // http://babeljs.io/docs/usage/options
+  //
+
+  "presets": [
+    "es2015",
+    "stage-0"
+  ]
+}

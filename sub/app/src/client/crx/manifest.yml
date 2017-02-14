@@ -36,7 +36,7 @@ manifest_version:   2
 
 name:               "Minder"
 short_name:         "Minder"
-version:            "0.1.1"                           # grunt version:crx:patch (uses version.json)
+version:            "0.1.1"                         # grunt version:crx:patch (uses version.json)
 author:             "Minder Labs"
 description:        "Automated intelligence."
 
