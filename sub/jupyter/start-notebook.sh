@@ -9,8 +9,8 @@
 set -e
 
 # Check that user jovyan owns the EBS mount point.
-if [ -O /home/jovyan/work ]; then
-  chown jovyan:users /home/jovyan/work
+if ! [ -O /home/jovyan/work ]; then
+  sudo chown jovyan:users /home/jovyan/work
 fi
 
 . /usr/local/bin/start.sh jupyter notebook $*
