@@ -137,8 +137,9 @@ export const getWrappedList = function(hoc) {
 const BasicItemFragment = gql`
   fragment BasicItemFragment on Item {
     namespace
-    id
+    fkey
     type
+    id
 
     labels
     title

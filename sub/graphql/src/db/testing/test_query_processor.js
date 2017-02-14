@@ -19,8 +19,8 @@ export class TestQueryProcessor extends QueryProcessor {
   static ITEMS = [
     {
       namespace: TestQueryProcessor.NAMESPACE,
-      id: 'T-1',
       type: 'Contact',
+      id: 'T-1',
       title: 'The Batman'
     }
   ];
@@ -38,11 +38,9 @@ export class TestQueryProcessor extends QueryProcessor {
   }
 
   queryItems(context, root, filter={}, offset=0, count=10) {
-    let items = _.map(TestQueryProcessor.ITEMS, item => {
-      return _.assign({}, item, {
-        modified: ID.timestamp()
-      });
-    });
+    let items = _.map(TestQueryProcessor.ITEMS, item => _.assign({}, item, {
+      modified: ID.timestamp()
+    }));
 
     return Promise.resolve(items);
   }
