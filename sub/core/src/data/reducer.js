@@ -6,6 +6,7 @@ import update from 'immutability-helper';
 
 import $$ from '../util/format';
 import Logger from '../util/logger';
+import { ID } from './id';
 
 const logger = Logger.get('reducer');
 
@@ -17,9 +18,19 @@ const logger = Logger.get('reducer');
 
 /**
  * { items: $remove: item }
+ * @returns new array.
  */
 update.extend('$remove', (item, items) => {
   return _.filter(items, i => i.id !== item.id);
+});
+
+/**
+ * { items: $replace: { id, item } }
+ * @returns new array.
+ */
+update.extend('$replace', (spec, items) => {
+  let { id, item } = spec;
+  return _.map(items, i => { return i.id === id ? item : i });
 });
 
 //
@@ -197,6 +208,7 @@ export class ListReducer extends Reducer {
 
   /**
    * Get the default list transformation.
+   * https://github.com/kolodny/immutability-helper
    *
    * @param matcher
    * @param context
@@ -215,30 +227,43 @@ export class ListReducer extends Reducer {
 
     // Path to items in result.
     let path = this._spec.query.path;
+    let items = _.get(previousResult, path);
 
-    // TODO(burdon): Is the root item needed?
-    // Determine if the mutated item matches the filter.
+    // Replace the item if it is a recent update to an external item.
+    let exists = _.findIndex(items, item => item.id === updatedItem.id) !== -1;
+    if (!exists && updatedItem.fkey) {
+      return {
+        [path]: {
+          $replace: {
+            id: _.find(items, item => item.namespace && ID.getForeignKey(item) === updatedItem.fkey).id,
+            item: updatedItem
+          }
+        }
+      };
+    }
+
+    // Remove the item if it doesn't match the current query.
+    // TODO(burdon): Is the root item needed? Remove this from matcher?
     let match = matcher.matchItem(context, {}, filter, updatedItem);
     if (!match) {
       return {
-        [path]: { $remove: updatedItem }
+        [path]: {
+          $remove: updatedItem
+        }
       };
     }
 
-    // Determine if the item matches and is new, otherwise remove it.
-    // NOTE: do nothing if it's just an update.
-    // https://github.com/kolodny/immutability-helper
-    let items = _.get(previousResult, path);
-    let insert = _.findIndex(items, item => item.id === updatedItem.id) === -1;
-    if (insert) {
-
-      // TODO(burdon): If fkey then remove referenced item.
-
+    // Insert the item if it doesn't already exist (but matches).
+    if (!exists) {
       // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
       return {
-        [path]: { $push: [ updatedItem ] }
+        [path]: {
+          $push: [ updatedItem ]
+        }
       };
     }
+
+    // Do nothing if it's just an update.
   }
 }
 

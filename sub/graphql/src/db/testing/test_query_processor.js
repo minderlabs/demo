@@ -11,6 +11,8 @@ import { ID, QueryProcessor } from 'minder-core';
  */
 export class TestQueryProcessor extends QueryProcessor {
 
+  // TODO(burdon): Use memjs (to share data with scheduler).
+
   static NAMESPACE = 'testing';
 
   // TODO(burdon): Test items (from randomizer).

@@ -53,8 +53,13 @@ export class Matcher {
       return false;
     }
 
-    // Could match IDs.
+    // Matches given IDs.
     if (filter.ids && _.indexOf(filter.ids, item.id) != -1) {
+      return true;
+    }
+
+    // Matches given foreign keys.
+    if (filter.fkeys && _.indexOf(filter.fkeys, item.fkey) != -1) {
       return true;
     }
 

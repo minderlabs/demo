@@ -28,6 +28,8 @@ class GoogleDriveClient {
     // TODO(madadam): This makes a transient Item that isn't written into the item store;
     // it's an Item wrapper around foreign data.
 
+    console.log('::::::::::::', file);
+
     let item = {
       namespace: GoogleDriveQueryProcessor.NAMESPACE,
       type: 'Document',

@@ -10,6 +10,9 @@ const webpack = require('webpack');
 
 const baseConfig = require('./webpack-base.config.js');
 
+// TODO(burdon): Migrate to v2.
+// https://webpack.js.org/guides/migrating/
+
 //
 // Webpack client configuration.
 //
@@ -20,7 +23,8 @@ module.exports = _.merge(baseConfig, {
 
   // Source map shows original source and line numbers (and works with hot loader).
   // https://webpack.github.io/docs/configuration.html#devtool
-  devtool: '#eval-source-map',
+//devtool: '#eval-source-map',
+  devtool: '#cheap-module-inline-source-map',
 
   entry: {
 

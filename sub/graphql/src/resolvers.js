@@ -221,11 +221,11 @@ export class Resolvers {
           return database.getItem(context, type, localItemId).then(item => {
 
             // If not found (i.e., insert).
-            // TODO(burdon): Check this is an insert (e.g., not a miss due to a bug?)
+            // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
             if (!item) {
               item = {
                 id: localItemId,
-                type
+                type: type
               };
             }
 

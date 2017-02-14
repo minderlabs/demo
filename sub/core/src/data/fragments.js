@@ -30,6 +30,7 @@ export const ValueFragment = gql`
 export const ItemFragment = gql`
   fragment ItemFragment on Item {
     namespace
+    fkey
     bucket
     type
     id

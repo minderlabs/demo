@@ -10,7 +10,7 @@ import gql from 'graphql-tag';
 import { QueryParser, Mutator, UpdateItemMutation } from 'minder-core';
 
 import { AppAction, ContextAction } from '../reducers';
-import { BasicSearchList, BasicListItemRenderer, CardSearchList } from '../framework/list_factory';
+import { BasicSearchList, BasicListItemRenderer, DebugListItemRenderer, CardSearchList } from '../framework/list_factory';
 import { TypeRegistry } from '../framework/type_registry';
 import { Card } from '../component/card';
 
@@ -54,6 +54,7 @@ class FolderView extends React.Component {
       default:
         list = <BasicSearchList filter={ filter }
                                 groupBy={ true }
+//                              itemRenderer={ DebugListItemRenderer }
                                 itemRenderer={ BasicListItemRenderer(typeRegistry) }
                                 onItemSelect={ this.handleItemSelect.bind(this) }
                                 onItemUpdate={ this.handleItemUpdate.bind(this) }/>;

@@ -136,12 +136,19 @@ export class Database extends ItemStore {
   }
 
   /**
+   * Search across all query providers and merge the result.
+   * Merge external items with items stored in the default store.
+   *
    * @returns {Promise}
    */
   _searchAll(context, root, filter={}, offset=0, count=10) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
-    // TODO(burdon): Move fan-out out of database?
+    // TODO(burdon): Unit test!
+
+    //
+    // Fan-out queries across all query providers.
+    //
     let promises = _.map(Array.from(this._queryProcessors.values()), processor => {
 
       // TODO(madadam): Pagination over the merged result set. Need to over-fetch from each provider.
@@ -157,53 +164,98 @@ export class Database extends ItemStore {
         });
     });
 
+    //
     // Join stored items with external items.
+    //
     return Promise.all(promises)
       .then(results => {
 
-        // Map stored item foreign keys.
-        let fkeys = new Map();
+        // Create a map of items that have foreign keys.
+        // TODO(burdon): Requires stable external keys (google drive!)
+        let itemsWithForeignKeys = new Map();
+
+        // First get items from the current query that may have external references.
         let result = _.find(results, result => result.namespace == Database.DEFAULT_NAMESPACE);
         _.each(result.items, item => {
           if (item.fkey) {
-            fkeys.set(item.fkey, item);
+            itemsWithForeignKeys.set(item.fkey, item);
           }
         });
 
-
-
-        // TODO(burdon): Unit test for test query joins.
-        // TODO(burdon): External items should have namespace prefix?
-        // TODO(burdon): Error handling for bad ID (getItems); react-router redirect.
-        // TODO(burdon): Update folder cache when mutate (e.g., add label?)
-
-
-
-        // Merge items.
-        // TODO(burdon): Better ranking, sorting, etc.
-        let items = [];
+        // Gather the set of foreign keys for external items.
+        let foreignKeys = [];
         _.each(results, result => {
-          _.each(result.items, item => {
-            if (result.namespace == Database.DEFAULT_NAMESPACE) {
-              items.push(item);
-            } else {
-              // TODO(burdon): Requires stable external keys.
+          if (result.namespace !== Database.DEFAULT_NAMESPACE) {
+            _.each(result.items, item => {
               let fkey = ID.getForeignKey(item);
-              let existing = fkeys.get(fkey);
-              if (existing) {
-                // TODO(burdon): Merge non-editable fields.
-                _.assign(existing, item);
-              } else {
-                // TODO(burdon): Check for matching stored items that are not in the results.
-                fkeys.set(fkey, item);
-                items.push(item);
+              if (!itemsWithForeignKeys.get(fkey)) {
+                foreignKeys.push(fkey);
               }
-            }
-          });
+            });
+          }
         });
 
-        return items;
+        // Load potentially matching items for external items.
+        let loading = [];
+        if (!_.isEmpty(foreignKeys)) {
+          loading.push(this._queryItemsWithForeignKeys(context, root, foreignKeys).then(items => {
+            _.each(items, item => {
+              console.assert(item.fkey);
+              itemsWithForeignKeys.set(item.fkey, item);
+            });
+          }));
+        }
+
+        // Wait for items to load...
+        return Promise.all(loading).then(() => {
+
+          // Merge external items with stored items.
+          _.each(results, result => {
+            _.each(result.items, item => {
+              if (result.namespace !== Database.DEFAULT_NAMESPACE) {
+                let existing = itemsWithForeignKeys.get(ID.getForeignKey(item));
+                if (existing) {
+                  // TODO(burdon): Better merge (e.g., replace title?)
+                  console.log('MERGING: ' + JSON.stringify(existing));
+                  _.defaults(existing, item);
+                }
+              }
+            });
+          });
+
+          // Flatten the results and gather external items.
+          // TODO(burdon): Better ranking, sorting, etc. And global rank across processors?
+          let items = [];
+          _.each(results, result => {
+            _.each(result.items, item => {
+              if (result.namespace === Database.DEFAULT_NAMESPACE) {
+                items.push(item);
+              } else {
+                // If an item already exists, then it will be added above.
+                let existing = itemsWithForeignKeys.get(ID.getForeignKey(item));
+                if (!existing) {
+                  items.push(item);
+                }
+              }
+            });
+          });
+
+          return items;
+        });
       });
+  }
+
+  /**
+   * Gets items that reference the given foreign keys.
+   *
+   * @returns {Promise}
+   * @private
+   */
+  _queryItemsWithForeignKeys(context, root, foreignKeys) {
+    let defaultProcessor = this._queryProcessors.get(Database.DEFAULT_NAMESPACE);
+    return defaultProcessor.queryItems(context, root, {
+      fkeys: foreignKeys
+    });
   }
 
   /**

@@ -102,8 +102,6 @@ export class WindowNavigator {
   }
 
   pushCanvas(item) {
-    console.log('>>>>>>>>>>>', this._serverProvider, this._serverProvider.value);
-
     let path = this._serverProvider.value + Path.canvas(ID.toGlobalId(item.type, item.id));
     window.open(path, 'MINDER');
   }
