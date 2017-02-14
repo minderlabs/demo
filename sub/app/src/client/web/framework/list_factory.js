@@ -216,6 +216,21 @@ export const BasicListItemRenderer = (typeRegistry) => (item) => {
   );
 };
 
+/**
+ * Debug.
+ */
+export const DebugListItemRenderer = (item) => {
+  return (
+    <ListItem item={ item } className="ux-column">
+      <ListItem.Favorite/>
+      <div>
+        <ListItem.Title select={ true }/>
+        <ListItem.Debug/>
+      </div>
+    </ListItem>
+  );
+};
+
 //-------------------------------------------------------------------------------------------------
 // Card List.
 //-------------------------------------------------------------------------------------------------

@@ -63,7 +63,6 @@ export class Resolvers {
 
       Item: {
         __resolveType(root) {
-          console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', JSON.stringify(root));
           console.assert(root.type, 'Invalid type: ' + TypeUtil.stringify(root));
 
           // The type property maps onto the GraphQL schema type name.
@@ -218,18 +217,15 @@ export class Resolvers {
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
           logger.log($$('UPDATE[%s:%s]: %o', type, localItemId, mutations));
 
-          // TODO(burdon): Validate type.
-
           // Get existing item (or undefined).
           return database.getItem(context, type, localItemId).then(item => {
 
             // If not found (i.e., insert).
-            // TODO(burdon): Check this is an insert (not a miss due to a bug).
-            if (!item.id) {
+            // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
+            if (!item) {
               item = {
                 id: localItemId,
-                type: type,
-                title: ''
+                type: type
               };
             }
 

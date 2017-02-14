@@ -37,20 +37,21 @@ export const clientRouter = (authManager, clientManager, options) => {
         console.log('New CRX client: ' + clientId);
       }
 
+      // Register the client.
       clientManager.register(userInfo.id, clientId, socketId);
+
+      // Send registration info.
+      res.send({
+        client: {
+          id: clientId
+        },
+        user: {
+          id: userInfo.id
+        }
+      });
     } else {
       res.status(401);
     }
-
-    // Send registration info.
-    res.send({
-      client: {
-        id: clientId
-      },
-      user: {
-        id: userInfo.id
-      }
-    });
   });
 
   // Invalidate client.

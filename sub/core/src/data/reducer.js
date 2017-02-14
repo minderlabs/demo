@@ -6,6 +6,7 @@ import update from 'immutability-helper';
 
 import $$ from '../util/format';
 import Logger from '../util/logger';
+import { ID } from './id';
 
 const logger = Logger.get('reducer');
 
@@ -197,6 +198,7 @@ export class ListReducer extends Reducer {
 
   /**
    * Get the default list transformation.
+   * https://github.com/kolodny/immutability-helper
    *
    * @param matcher
    * @param context
@@ -213,22 +215,43 @@ export class ListReducer extends Reducer {
       return reducer(matcher, context, filter, previousResult, updatedItem);
     }
 
-    // TODO(burdon): Is the root item needed?
-    // Determine if the mutated item matches the filter.
-    let match = matcher.matchItem(context, {}, filter, updatedItem);
-
-    // Determine if the item matches and is new, otherwise remove it.
-    // NOTE: do nothing if it's just an update.
-    // https://github.com/kolodny/immutability-helper
     let path = this._spec.query.path;
     let items = _.get(previousResult, path);
-    let insert = match && _.findIndex(items, item => item.id === updatedItem.id) === -1;
-    if (insert) {
-      // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
-      return { [path]: { $push: [ updatedItem ] } };
-    } else if (!match) {
-      return { [path]: { $remove: updatedItem } };
+    let exists = _.findIndex(items, item => item.id === updatedItem.id) !== -1;
+
+    console.log('!!!!!!!!!!!!!!!!!', exists, updatedItem, items);
+
+    // Replace the item if it is a recent update to an external item.
+    if (!exists && updatedItem.fkey) {
+      // TODO(burdon): Remove existing and insert in place.
+      let replace = _.find(items, item => item.namespace && ID.getForeignKey(item) === updatedItem.fkey);
+      console.assert(replace);
+      return {
+        [path]: {
+          $remove: replace,
+          $push: [ updatedItem ]
+        }
+      };
     }
+
+    // Remove the item if it doesn't match the current query.
+    // TODO(burdon): Is the root item needed?
+    let match = matcher.matchItem(context, {}, filter, updatedItem);
+    if (!match) {
+      return {
+        [path]: { $remove: updatedItem }
+      };
+    }
+
+    // Insert the item if it doesn't already exist (but matches).
+    if (!exists) {
+      // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
+      return {
+        [path]: { $push: [ updatedItem ] }
+      };
+    }
+
+    // Do nothing if it's just an update.
   }
 }
 

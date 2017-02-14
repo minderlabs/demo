@@ -234,10 +234,8 @@ export class List extends React.Component {
   */
 
   render() {
-    let { data, itemOrderModel, groupBy } = this.props;
+    let { itemClassName, data, itemOrderModel, groupBy } = this.props;
     let { items, itemRenderer } = this.state;
-
-    let itemClassName = 'ux-list-item ' + (this.props.itemClassName || '');
 
     //
     // Rows.
@@ -252,7 +250,7 @@ export class List extends React.Component {
 
       // Primary item.
       let listItem = (
-        <div key={ item.id } className={ itemClassName }>
+        <div key={ item.id } className={ DomUtil.className('ux-list-item', itemClassName) }>
           { itemRenderer(item) }
         </div>
       );

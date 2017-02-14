@@ -162,6 +162,7 @@ input FilterInput {
 
   # OR
   ids: [ID]
+  fkeys: [String]
 
   # MUST
   type: String

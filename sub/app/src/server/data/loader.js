@@ -53,6 +53,7 @@ export class DataLoader {
    * Setup data store.
    */
   init(whitelist, testing) {
+    console.log('Initializing database...');
     return this._database.queryItems(this._context, {}, { type: 'User' })
 
       .then(users => {
