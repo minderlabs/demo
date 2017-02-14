@@ -136,6 +136,7 @@ export const getWrappedList = function(hoc) {
 
 const BasicItemFragment = gql`
   fragment BasicItemFragment on Item {
+    namespace
     id
     type
 
@@ -152,9 +153,6 @@ const BasicSearchQuery = gql`
   query BasicSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
 
     search(filter: $filter, offset: $offset, count: $count) {
-      namespace
-      id
-
       ...BasicItemFragment
 
       # TODO(burdon): Generalize grouping?
@@ -243,16 +241,13 @@ const CardSearchQuery = gql`
   query CardSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
 
     search(filter: $filter, offset: $offset, count: $count) {
-      namespace
-      id
+      ...CardItemFragment
 
       ... on Task {
         tasks {
           ...TaskFragment
         }
       }
-      
-      ...CardItemFragment
     }
   }
 

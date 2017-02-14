@@ -468,6 +468,8 @@ type RootQuery {
 #===================================================================================================
 
 type RootMutation {
+
+  # Generic mutation.
   updateItem(itemId: ID!, mutations: [ObjectMutationInput]!): Item!
 }
 

@@ -42,6 +42,6 @@ export class TestQueryProcessor extends QueryProcessor {
       });
     });
 
-    return Promise.resolve(TestQueryProcessor.ITEMS);
+    return Promise.resolve(items);
   }
 }

@@ -109,16 +109,8 @@ export class Database extends ItemStore {
   getItems(context, type, itemIds) {
     logger.log($$('GET[%s]: [%s]', type, itemIds));
 
-    // TODO(burdon): Error if not found!
     let itemStore = this.getItemStore(type);
-    return itemStore.getItems(context, type, itemIds).then(items => {
-      console.log('>>>>>>>>>>>>', items);
-      if (!_.compact(items).length) {
-        console.warn('Invalid result: %s' % items);
-      }
-
-      return items;
-    });
+    return itemStore.getItems(context, type, itemIds);
   }
 
   /**
@@ -143,14 +135,13 @@ export class Database extends ItemStore {
       });
   }
 
-  // TODO(burdon): Move fan-out out of database.
-
   /**
    * @returns {Promise}
    */
   _searchAll(context, root, filter={}, offset=0, count=10) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
+    // TODO(burdon): Move fan-out out of database?
     let promises = _.map(Array.from(this._queryProcessors.values()), processor => {
 
       // TODO(madadam): Pagination over the merged result set. Need to over-fetch from each provider.
@@ -179,6 +170,15 @@ export class Database extends ItemStore {
           }
         });
 
+
+
+        // TODO(burdon): Unit test for test query joins.
+        // TODO(burdon): External items should have namespace prefix?
+        // TODO(burdon): Error handling for bad ID (getItems); react-router redirect.
+        // TODO(burdon): Update folder cache when mutate (e.g., add label?)
+
+
+
         // Merge items.
         // TODO(burdon): Better ranking, sorting, etc.
         let items = [];
@@ -194,7 +194,7 @@ export class Database extends ItemStore {
                 // TODO(burdon): Merge non-editable fields.
                 _.assign(existing, item);
               } else {
-                // TODO(burdon): Need to check for matching items that are not in the query.
+                // TODO(burdon): Check for matching stored items that are not in the results.
                 fkeys.set(fkey, item);
                 items.push(item);
               }

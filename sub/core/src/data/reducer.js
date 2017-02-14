@@ -213,21 +213,31 @@ export class ListReducer extends Reducer {
       return reducer(matcher, context, filter, previousResult, updatedItem);
     }
 
+    // Path to items in result.
+    let path = this._spec.query.path;
+
     // TODO(burdon): Is the root item needed?
     // Determine if the mutated item matches the filter.
     let match = matcher.matchItem(context, {}, filter, updatedItem);
+    if (!match) {
+      return {
+        [path]: { $remove: updatedItem }
+      };
+    }
 
     // Determine if the item matches and is new, otherwise remove it.
     // NOTE: do nothing if it's just an update.
     // https://github.com/kolodny/immutability-helper
-    let path = this._spec.query.path;
     let items = _.get(previousResult, path);
-    let insert = match && _.findIndex(items, item => item.id === updatedItem.id) === -1;
+    let insert = _.findIndex(items, item => item.id === updatedItem.id) === -1;
     if (insert) {
+
+      // TODO(burdon): If fkey then remove referenced item.
+
       // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
-      return { [path]: { $push: [ updatedItem ] } };
-    } else if (!match) {
-      return { [path]: { $remove: updatedItem } };
+      return {
+        [path]: { $push: [ updatedItem ] }
+      };
     }
   }
 }

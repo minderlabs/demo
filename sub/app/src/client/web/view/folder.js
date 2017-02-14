@@ -7,11 +7,9 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { QueryParser, Mutator, MutationUtil, TypeUtil, UpdateItemMutation } from 'minder-core';
-import { List, TextBox } from 'minder-ux';
+import { QueryParser, Mutator, UpdateItemMutation } from 'minder-core';
 
 import { AppAction, ContextAction } from '../reducers';
-
 import { BasicSearchList, BasicListItemRenderer, CardSearchList } from '../framework/list_factory';
 import { TypeRegistry } from '../framework/type_registry';
 import { Card } from '../component/card';
@@ -39,50 +37,9 @@ class FolderView extends React.Component {
     this.props.mutator.updateItem(item, mutations);
   }
 
-  handleItemCreate() {
-    let { user, group, filter } = this.props;
-
-    let title = _.trim(this.refs.text.value);
-    if (title) {
-      let mutations = [
-        MutationUtil.createFieldMutation('title', 'string', title)
-      ];
-
-      switch (type) {
-        case 'Project': {
-          _.concat(mutations, [
-            MutationUtil.createFieldMutation('group', 'id', group)
-          ]);
-          break;
-        }
-
-        case 'Task': {
-          _.concat(mutations, [
-            // TODO(burdon): Promote to all types.
-            MutationUtil.createFieldMutation('owner', 'id', user.id),
-            MutationUtil.createLabelMutation('_private')
-          ]);
-          break;
-        }
-      }
-
-      // TODO(burdon): If no type then hide create button.
-      let type = _.get(filter, 'type', 'Task');
-      this.props.mutator.createItem(type, mutations);
-
-      this.refs.text.value = '';
-      this.refs.text.focus();
-    }
-  }
-
   render() {
     let { typeRegistry, filter, listType } = this.props;
 
-    // TODO(burdon): Testing.
-//  listType = 'card';
-
-    // TODO(burdon): Get type from config.
-    // TODO(burdon): Factor out for performance.
     let list;
     switch (listType) {
       case 'card':
@@ -105,14 +62,6 @@ class FolderView extends React.Component {
     return (
       <div className="app-folder-view ux-column">
         { list }
-
-        {/*
-         TODO(burdon): (+) to add item (of specific type).
-        <div className="ux-section ux-toolbar">
-          <TextBox ref="text" className="ux-expand" onEnter={ this.handleItemCreate.bind(this) }/>
-          <i className="ux-icon ux-icon-add" onClick={ this.handleItemCreate.bind(this) }/>
-        </div>
-        */}
       </div>
     );
   }
