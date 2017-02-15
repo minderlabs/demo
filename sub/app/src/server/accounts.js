@@ -63,15 +63,16 @@ export const accountsRouter = (accountManager) => {
  * AccountHandler interface.
  */
 export class AccountHandler {
+
   /**
    * Display name for the accounts management page.
    */
-  name() { throw 'Not implemented'; }
+  name() { throw new Error('Not implemented'); }
 
   /**
    * Return a block of html for the /accounts management page.
    */
-  infoHtml() { throw 'Not implemented'; }
+  infoHtml() { throw new Error('Not implemented'); }
 
   /**
    * Express route handler for oauth redirects. If implemented, installed at /accounts/<service_name>.

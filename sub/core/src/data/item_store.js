@@ -25,7 +25,7 @@ export class QueryProcessor {
   }
 
   queryItems(context, root, filter = {}, offset = 0, count = 10) {
-    throw 'Not implemented';
+    throw new Error('Not implemented');
   }
 }
 
@@ -57,7 +57,7 @@ export class ItemStore extends QueryProcessor {
    * @param items
    */
   upsertItems(context, items) {
-    throw 'Not implemented';
+    throw new Error('Not implemented');
   }
 
   /**
@@ -68,7 +68,7 @@ export class ItemStore extends QueryProcessor {
    * @param itemIds
    */
   getItems(context, type, itemIds) {
-    throw 'Not implemented';
+    throw new Error('Not implemented');
   }
 
   /**
@@ -81,6 +81,6 @@ export class ItemStore extends QueryProcessor {
    * @param count
    */
   queryItems(context, root, filter={}, offset=0, count=10) {
-    throw 'Not implemented';
+    throw new Error('Not implemented');
   }
 }

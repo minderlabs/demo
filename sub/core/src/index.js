@@ -25,5 +25,5 @@ export * from './data/reducer';
 export * from './data/subscriptions';
 export * from './data/transforms';
 
-export $$ from './util/format';
 export Logger from './util/logger';
+export $$ from './util/format';

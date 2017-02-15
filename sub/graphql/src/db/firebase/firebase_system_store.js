@@ -93,7 +93,7 @@ export class FirebaseSystemStore extends ItemStore {
   }
 
   //
-  // ItemStore API.
+  // ItemStore interface.
   //
 
   upsertItems(context, items) {

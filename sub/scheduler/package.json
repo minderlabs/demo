@@ -23,6 +23,7 @@
     "kue-scheduler": "^0.7.0",
     "kue-ui": "^0.1.0",
     "lodash": "^4.17.4",
+    "minder-core": "0.1.0",
     "redis": "^2.6.5",
     "redis-server": "^1.1.0"
   },

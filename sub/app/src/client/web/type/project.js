@@ -45,7 +45,7 @@ export class ProjectCard extends React.Component {
       // Update existing.
       mutator.updateItem(item, mutations);
     } else {
-      throw 'Not implemented';
+      throw throw new Error('Not implemented');
     }
   }
 

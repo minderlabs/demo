@@ -32,8 +32,8 @@ export class RedisItemStore extends ItemStore {
 
   static ITEM_KEY = new Key('I:{{type}}:{{itemId}}');
 
-  constructor(client, matcher) {
-    super(matcher);
+  constructor(idGenerator, matcher, namespace, client) {
+    super(idGenerator, matcher, namespace);
     console.assert(client);
 
     this._client = client;
@@ -42,12 +42,23 @@ export class RedisItemStore extends ItemStore {
     });
   }
 
+  //
+  // ItemStore interface.
+  //
+
   upsertItems(context, items) {
+    throw new Error('Not implemented');
   }
 
   getItems(context, type, itemIds) {
+    throw new Error('Not implemented');
   }
 
+  //
+  // QueryProcessor interface.
+  //
+
   queryItems(context, root, filter={}, offset=0, count=10) {
+    throw new Error('Not implemented');
   }
 }

@@ -30,7 +30,8 @@ import { accountsRouter, AccountManager, SlackAccountHandler } from './accounts'
 import { loginRouter, AuthManager } from './auth';
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { clientRouter, ClientManager, SocketManager } from './client';
-import { DataLoader } from './data/loader';
+import { Loader } from './data/loader';
+import { TestData } from './data/testing';
 import { testingRouter } from './testing';
 import { loggingRouter } from './logger';
 
@@ -125,14 +126,9 @@ const database = new Database(idGenerator, matcher)
     clientManager.invalidateOthers();
   });
 
-if (testing) {
-  // TODO(burdon): Add test data.
-//  database.registerQueryProcessor(new MemcacheItemStore(idGenerator, matcher, memcache, 'testing'));
-}
-
 
 //
-// Google
+// External query processors.
 //
 
 database
@@ -154,24 +150,47 @@ database
 
 
 //
-// Data config and testing.
+// Data initialization.
 //
 
-let promises = [];
+let loader = new Loader(database);
 
-let loader = new DataLoader(database);
+let loading = Promise.all([
+  // Do in parallel.
+  loader.parse(require('./data/accounts.json'), Database.SYSTEM_NAMESPACE),
+  loader.parse(require('./data/startup.json')),
+  loader.parse(require('./data/demo.json'))
+]).then(() => {
+  // Then init once parsing (and database update) is done.
+  return loader.initGroup(Const.DEF_GROUP);
+});
 
-promises.push(
-  Promise.all([
-    // Do in parallel.
-    loader.parse(require('./data/accounts.json'), Database.SYSTEM_NAMESPACE),
-    loader.parse(require('./data/startup.json')),
-    loader.parse(require('./data/demo.json'))
-  ]).then(() => {
-    // Then init once parsing (and database update) is done.
-    return loader.init(testing);
-  })
-);
+
+//
+// Test data.
+//
+
+if (testing) {
+  loading.then(() => {
+
+    // Test data.
+    let itemStoreRandomizer = TestData.randomizer(database.getItemStore());
+    return Promise.all([
+      itemStoreRandomizer.generate('Task', 30, TestData.TaskFields(itemStoreRandomizer)),
+      itemStoreRandomizer.generate('Contact', 5)
+    ]).then(() => {
+
+      // Test external data.
+      const testItemStore = new MemcacheItemStore(idGenerator, matcher, memcache, 'testing');
+      database.registerQueryProcessor(testItemStore);
+
+      testItemStore.clear().then(() => {
+        let testItemStoreRandomizer = TestData.randomizer(testItemStore);
+        return testItemStoreRandomizer.generate('Contact', 5);
+      });
+    });
+  });
+}
 
 
 //
@@ -363,8 +382,7 @@ app.use(function(req, res) {
 // Start-up.
 //
 
-// TODO(burdon): Perform in order?
-Promise.all(promises).then(() => {
+loading.then(() => {
   logger.log('Starting minder-app-server');
 
   server.listen(port, host, () => {

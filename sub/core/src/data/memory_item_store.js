@@ -13,12 +13,18 @@ import { ItemStore } from './item_store';
  */
 export class MemoryItemStore extends ItemStore {
 
+  // TODO(burdon): Add namespace to items? Or add in database/resolver layer?
+
   constructor(idGenerator, matcher, namespace) {
     super(idGenerator, matcher, namespace);
 
     // Items by ID.
     this._items = new Map();
   }
+
+  //
+  // ItemStore interface.
+  //
 
   upsertItems(context, items) {
     console.assert(context && !_.isEmpty(items));

@@ -5,31 +5,112 @@
 import _ from 'lodash';
 import moment from 'moment';
 
-import { TypeUtil } from '../util/type';
 import { ItemStore } from './item_store';
 
 /**
  * Memcache store.
+ * Allows testing across containers (e.g., app-server, scheduler).
  */
 export class MemcacheItemStore extends ItemStore {
+
+  // TODO(burdon): Add namespace to items?
 
   constructor(idGenerator, matcher, memcache, namespace) {
     super(idGenerator, matcher, namespace);
     console.assert(memcache);
+
+    // https://github.com/alevy/memjs
+    // http://amitlevy.com/projects/memjs/#section-5
+    // NOTE: Stores {key x value}
     this._memcache = memcache;
   }
 
-  reset() {
-    this._memcache.flush((error, results) => {
-      console.log('Flushed: ' + JSON.stringify(results));
+  /**
+   * Each item is stored with it's namespace prefix.
+   * The naked namespace key is used to store a JSON array of item IDs (without the namespace).
+   * @param id
+   * @return {string}
+   */
+  key(id) {
+    return this._namespace + '/' + id;
+  }
+
+  clear() {
+    return new Promise((resolve, reject) => {
+      this._memcache.flush((error, results) => {
+        console.log('Flushed: ' + JSON.stringify(results));
+        error && reject() || resolve(results);
+      });
     });
   }
+
+  //
+  // Promise wrappers.
+  //
+
+  _getItem(itemId) {
+    return new Promise((resolve, reject) => {
+      this._memcache.get(this.key(itemId), (error, buffer) => {
+        if (error) {
+          reject();
+        } else {
+          let item = JSON.parse(buffer.toString());
+          if (item) {
+            _.defaults(item, {
+              namespace: this._namespace
+            });
+          }
+          resolve(item);
+        }
+      });
+    });
+  }
+
+  _setItem(item) {
+    return new Promise((resolve, reject) => {
+      this._memcache.set(this.key(item.id), JSON.stringify(item), (error, success) => {
+        error && reject() || resolve(item);
+      });
+    });
+  }
+
+  _getItems() {
+    return new Promise((resolve, reject) => {
+      this._memcache.get(this._namespace, (error, buffer) => {
+        // TODO(burdon): Buffer.
+        let itemIds = buffer ? JSON.parse(buffer.toString()) : [];
+        let promises = _.map(itemIds, itemId => this._getItem(itemId));
+        Promise.all(promises).then(items => {
+          resolve(items);
+        });
+      });
+    });
+  }
+
+  _addItemIds(itemIds) {
+    return new Promise((resolve, reject) => {
+      this._memcache.get(this._namespace, (error, buffer) => {
+        if (buffer) {
+          itemIds = _.concat(JSON.parse(buffer.toString()), itemIds);
+        }
+
+        // NOTE: This doesn't happen atomically, so could lose data.
+        this._memcache.set(this._namespace, JSON.stringify(itemIds), (error, success) => {
+          error && reject() || resolve(itemIds);
+        });
+      });
+    });
+  }
+
+  //
+  // ItemStore interface.
+  //
 
   upsertItems(context, items) {
     console.assert(context && items);
 
-    return Promise.resolve(_.map(items, (item) => {
-      item = TypeUtil.clone(item);
+    // Write items.
+    let promises = _.map(items, item => {
       console.assert(item.type);
 
       // TODO(burdon): Factor out to MutationProcessor (then remove idGenerator requirement).
@@ -41,18 +122,24 @@ export class MemcacheItemStore extends ItemStore {
       item.modified = moment().unix();
 
       // TODO(burdon): Enforce immutable properties (e.g., type).
-      this._items.set(item.id, item);
+      return this._setItem(item);
+    });
 
-      return item;
-    }));
+    // Write keys.
+    return Promise.all(promises).then(items => {
+      return this._addItemIds(_.map(items, item => item.id)).then(() => items);
+    });
   }
 
   getItems(context, type, itemIds) {
     console.assert(context && type && itemIds);
 
-    // Return clones of matching items.
-    let items = _.compact(_.map(itemIds, itemId => this._items.get(itemId)));
-    return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
+    // Read items.
+    let promises = _.map(itemIds, itemId => {
+      return this._getItem(itemId);
+    });
+
+    return Promise.all(promises).then(items => _.compact(items));
   }
 
   //
@@ -62,24 +149,19 @@ export class MemcacheItemStore extends ItemStore {
   queryItems(context, root, filter={}, offset=0, count=10) {
     console.assert(context && filter);
 
-    // Match items (cloning those that match).
-    let items = [];
-    this._items.forEach(item => {
-      if (this._matcher.matchItem(context, root, filter, item)) {
-        items.push(TypeUtil.clone(item));
+    // Get all items.
+    return this._getItems(items => {
+      let matching = _.filter(items, item => this._matcher.matchItem(context, root, filter, item));
+
+      // Sort.
+      let orderBy = filter.orderBy;
+      if (orderBy) {
+        console.assert(orderBy.field);
+        matching = _.orderBy(matching, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
       }
+
+      // Page.
+      return _.slice(matching, offset, offset + count);
     });
-
-    // Sort.
-    let orderBy = filter.orderBy;
-    if (orderBy) {
-      console.assert(orderBy.field);
-      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
-    }
-
-    // Page.
-    items = _.slice(items, offset, offset + count);
-
-    return Promise.resolve(items);
   }
 }
