@@ -5,7 +5,8 @@
 import _ from 'lodash';
 import moment from 'moment';
 
-import { Randomizer, TypeUtil } from 'minder-core';
+import { ID, Randomizer, TypeUtil } from 'minder-core';
+import { Database } from 'minder-graphql';
 
 import { Const } from '../../common/defs';
 
@@ -28,13 +29,17 @@ export class DataLoader {
   /**
    * Parse data file.
    * @param data JSON data file.
+   * @param namespace
    */
-  parse(data) {
+  parse(data, namespace=Database.DEFAULT_NAMESPACE) {
+    let parsedItems = [];
+
+    // Iterate each item by type.
     _.each(data, (items, type) => {
+      _.each(items, (item) => {
+        item.type = type;
 
-      // Iterate items per type.
-      this._database.upsertItems(this._context, _.map(items, (item) => {
-
+        // TODO(burdon): Factor out special type handling.
         // NOTE: The GraphQL schema defines filter as an input type.
         // In order to "store" the filter within the Folder's filter property, we need
         // to serialize it to a string (otherwise we need to create parallel output type defs).
@@ -42,33 +47,42 @@ export class DataLoader {
           item.filter = JSON.stringify(item.filter);
         }
 
-        return { type, ...item };
-      }));
+        parsedItems.push(item);
+      });
     });
 
-    return Promise.resolve();
+    return this._database.upsertItems(this._context, parsedItems, namespace);
   }
 
   /**
    * Setup data store.
    */
-  init(whitelist, testing) {
+  init(testing) {
     console.log('Initializing database...');
-    return this._database.queryItems(this._context, {}, { type: 'User' })
+    return this._database.queryItems(this._context, {}, {
+      namespace: Database.SYSTEM_NAMESPACE,
+      type: 'User'
+    })
 
       .then(users => {
+        // TODO(burdon): Query all groups and instantiate.
+
         // Get the group and add members.
-        // TODO(burdon): Whitelist.
-        return this._database.getItem(this._context, 'Group', Const.DEF_GROUP)
+        // TODO(burdon): Move whitelist to group-specific field (i.e., invite list).
+        return this._database.getItem(this._context, 'Group', Const.DEF_GROUP, Database.SYSTEM_NAMESPACE)
           .then(group => {
-            let members = _.get(whitelist, group.id);
+            console.assert(group, 'Invalid Group: ' + Const.DEF_GROUP);
+
+            // Add User IDs of whitelisted users.
             group.members = _.compact(_.map(users, user => {
-              if (_.indexOf(members, user.email) != -1) {
+              if (_.indexOf(group.whitelist, user.email) != -1) {
                 return user.id;
               }
             }));
 
-            return this._database.upsertItem(this._context, group);
+            // TODO(burdon): Need to rebuild on-the-fly as users login for the first time.
+            console.log('Group: %s[%s]: [%s]', group.id, ID.getGlobalId(group), group.members);
+            return this._database.upsertItem(this._context, group, Database.SYSTEM_NAMESPACE);
           });
       })
 

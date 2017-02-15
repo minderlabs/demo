@@ -34,10 +34,8 @@ const tests = (itemStore) => {
       expect(items).to.exist;
       expect(items.length).to.equal(1);
 
-      database.getItems(context, 'User', [items[0].id]).then(items => {
-        expect(items).to.exist;
-        expect(items[0].title).to.equal('Minder');
-
+      database.getItem(context, 'User', items[0].id).then(item => {
+        expect(item.title).to.equal('Minder');
         done();
       });
     });

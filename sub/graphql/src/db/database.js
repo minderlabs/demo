@@ -13,10 +13,27 @@ const logger = Logger.get('db');
  */
 export class Database extends ItemStore {
 
-  static DEFAULT_NAMESPACE = '*';
+  static DEFAULT_NAMESPACE = 'user.data';
+  static SYSTEM_NAMESPACE = 'system';
+
+  /**
+   * Different types are stored in different stores.
+   * @param type
+   * @return {*}
+   */
+  static getNamespaceForType(type) {
+    switch (type) {
+      case 'User':
+      case 'Group':
+        return Database.SYSTEM_NAMESPACE;
+
+      default:
+        return Database.DEFAULT_NAMESPACE;
+    }
+  }
 
   constructor(idGenerator, matcher) {
-    super(idGenerator, matcher);
+    super(idGenerator, matcher, '*');
 
     // ItemStores keyed by type.
     // TODO(burdon): Should be by domain?
@@ -30,34 +47,35 @@ export class Database extends ItemStore {
   }
 
   /**
-   * Register fan-out stores.
+   * Register item store for namespace.
    *
    * @param store
-   * @param type
    * @returns {Database}
    */
-  registerItemStore(store, type='*') {
-    console.assert(type && store);
-    console.assert(!this._stores.get(type), 'Already registered: ' + type);
-    this._stores.set(type, store);
+  registerItemStore(store) {
+    console.log('Registered ItemStore: ' + store.namespace);
+    console.assert(store && store.namespace);
+    console.assert(!this._stores.get(store.namespace), 'Already registered: ' + store.namespace);
+    this._stores.set(store.namespace, store);
     return this;
   }
 
   /**
+   * Register query processor for namespace.
    *
    * @param {QueryProcessor} processor
    * @return {Database}
    */
   registerQueryProcessor(processor) {
-    // TODO(burdon): Maintain order.
+    console.log('Registered QueryProcessor: ' + processor.namespace);
     console.assert(processor && processor.namespace);
     console.assert(!this._queryProcessors.get(processor.namespace), 'Already registered: ' + processor.namespace);
     this._queryProcessors.set(processor.namespace, processor);
     return this;
   }
 
-  getItemStore(type) {
-    return this._stores.get(type) || this._stores.get(Database.DEFAULT_NAMESPACE);
+  getItemStore(namespace=Database.DEFAULT_NAMESPACE) {
+    return this._stores.get(namespace);
   }
 
   // TODO(burdon): Evolve into mutation dispatcher to QueryRegistry.
@@ -72,14 +90,16 @@ export class Database extends ItemStore {
 
   //
   // Helper methods.
+  // TODO(burdon): Database shouldn't implement ItemStore.
+  // TODO(burdon): Passing namespace isn't right (instead get the store).
   //
 
-  getItem(context, type, itemId) {
-    return this.getItems(context, type, [itemId]).then(items => items[0]);
+  getItem(context, type, itemId, namespace) {
+    return this.getItems(context, type, [itemId], namespace).then(items => items[0]);
   }
 
-  upsertItem(context, item) {
-    return this.upsertItems(context, [item]).then(items => items[0]);
+  upsertItem(context, item, namespace) {
+    return this.upsertItems(context, [item], namespace).then(items => items[0]);
   }
 
   //
@@ -89,11 +109,12 @@ export class Database extends ItemStore {
   /**
    * @returns {Promise}
    */
-  upsertItems(context, items) {
+  upsertItems(context, items, namespace=Database.DEFAULT_NAMESPACE) {
     logger.log($$('UPSERT: %s', items.length > 1 ? TypeUtil.stringify(items) : JSON.stringify(items)));
 
+    // TODO(burdon): Security: check bucket/ACLs and namespace privilege.
     // TODO(burdon): Dispatch to store (check permissions).
-    let itemStore = this.getItemStore(Database.DEFAULT_NAMESPACE);
+    let itemStore = this.getItemStore(namespace);
     return itemStore.upsertItems(context, items).then(modifiedItems => {
 
       // Invalidate clients.
@@ -106,10 +127,10 @@ export class Database extends ItemStore {
   /**
    * @returns {Promise}
    */
-  getItems(context, type, itemIds) {
+  getItems(context, type, itemIds, namespace=Database.DEFAULT_NAMESPACE) {
     logger.log($$('GET[%s]: [%s]', type, itemIds));
 
-    let itemStore = this.getItemStore(type);
+    let itemStore = this.getItemStore(namespace);
     return itemStore.getItems(context, type, itemIds);
   }
 
@@ -119,7 +140,8 @@ export class Database extends ItemStore {
   queryItems(context, root, filter={}, offset=0, count=10) {
     logger.log($$('QUERY[%s:%s]: %O', offset, count, filter));
 
-    let itemStore = this.getItemStore(filter.type);
+    // TODO(burdon): Security?
+    let itemStore = this.getItemStore(filter.namespace);
     return itemStore.queryItems(context, root, filter, offset, count);
   }
 
@@ -175,7 +197,7 @@ export class Database extends ItemStore {
         let itemsWithForeignKeys = new Map();
 
         // First get items from the current query that may have external references.
-        let result = _.find(results, result => result.namespace == Database.DEFAULT_NAMESPACE);
+        let result = _.find(results, result => result.namespace === Database.DEFAULT_NAMESPACE);
         _.each(result.items, item => {
           if (item.fkey) {
             itemsWithForeignKeys.set(item.fkey, item);

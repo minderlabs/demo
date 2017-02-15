@@ -21,7 +21,7 @@ import { Cache } from './cache';
 export class FirebaseItemStore extends ItemStore {
 
   // Root database node.
-  static ROOT = 'items';
+  static ROOT = 'data';
 
   /**
    * Parses the root node of the data set, inserting items into the item store.
@@ -41,14 +41,15 @@ export class FirebaseItemStore extends ItemStore {
     itemStore.upsertItems({}, items);
   }
 
-  constructor(db, idGenerator, matcher) {
-    super(idGenerator, matcher);
+  constructor(db, idGenerator, matcher, namespace) {
+    super(idGenerator, matcher, namespace);
     console.assert(db);
 
     this._db = db;
 
     // TODO(burdon): Need to be able to reset cache.
-    this._cache = new Cache(this._db, FirebaseItemStore.ROOT, idGenerator, matcher, FirebaseItemStore.parseData);
+    this._cache = new Cache(
+      this._db, FirebaseItemStore.ROOT, idGenerator, matcher, namespace, FirebaseItemStore.parseData);
   }
 
   clearCache() {
@@ -60,7 +61,8 @@ export class FirebaseItemStore extends ItemStore {
   //
 
   upsertItems(context, items) {
-    // https://firebase.google.com/docs/database/web/read-and-write
+
+    // Write-through cache.
     _.each(items, item => {
       console.assert(item.type);
       if (!item.id) {
@@ -70,6 +72,7 @@ export class FirebaseItemStore extends ItemStore {
 
       item.modified = moment().unix();
 
+      // https://firebase.google.com/docs/database/web/read-and-write
       this._db.ref(FirebaseItemStore.ROOT + '/' + item.type + '/' + item.id).set(item);
     });
 

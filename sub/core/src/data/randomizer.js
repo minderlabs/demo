@@ -118,7 +118,9 @@ export class Randomizer {
 
       // Add user bucket.
       if (this._context.group && this._chance.bool({ likelihood: 20 })) {
-        item.bucket = this._chance.pickone(this._context.group.members);
+        if (!_.isEmpty(this._context.group.members)) {
+          item.bucket = this._chance.pickone(this._context.group.members);
+        }
       }
 
       items.push(item);

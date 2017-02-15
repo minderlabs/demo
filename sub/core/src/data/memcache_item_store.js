@@ -9,19 +9,24 @@ import { TypeUtil } from '../util/type';
 import { ItemStore } from './item_store';
 
 /**
- * In-memory database.
+ * Memcache store.
  */
-export class MemoryItemStore extends ItemStore {
+export class MemcacheItemStore extends ItemStore {
 
-  constructor(idGenerator, matcher, namespace) {
+  constructor(idGenerator, matcher, memcache, namespace) {
     super(idGenerator, matcher, namespace);
+    console.assert(memcache);
+    this._memcache = memcache;
+  }
 
-    // Items by ID.
-    this._items = new Map();
+  reset() {
+    this._memcache.flush((error, results) => {
+      console.log('Flushed: ' + JSON.stringify(results));
+    });
   }
 
   upsertItems(context, items) {
-    console.assert(context && !_.isEmpty(items));
+    console.assert(context && items);
 
     return Promise.resolve(_.map(items, (item) => {
       item = TypeUtil.clone(item);
@@ -43,7 +48,7 @@ export class MemoryItemStore extends ItemStore {
   }
 
   getItems(context, type, itemIds) {
-    console.assert(context && type);
+    console.assert(context && type && itemIds);
 
     // Return clones of matching items.
     let items = _.compact(_.map(itemIds, itemId => this._items.get(itemId)));

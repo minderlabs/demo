@@ -165,7 +165,7 @@ export const botkitRouter = (manager) => {
     .createWebhookEndpoints(router);
   // TODO(madadam): Enable token verification after fixing the bug in botkit that breaks this for
   // interactive message buttons.
-  //.createWebhookEndpoints(webserver, [process.env.slackVerificationToken]);
+  //.createWebhookEndpoints(webserver, [_.get(process.env, 'slackVerificationToken')]);
 
   // Enable CORS support for all routes.
   // TODO(madadam): needed?

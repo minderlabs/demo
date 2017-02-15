@@ -15,14 +15,15 @@ export class Cache {
     return key.replace('.', '_');
   }
 
-  constructor(db, root, idGenerator, matcher, parseData) {
-    console.assert(db && root && idGenerator && matcher && parseData);
+  constructor(db, root, idGenerator, matcher, namespace, parseData) {
+    console.assert(db && root && idGenerator && matcher && namespace && parseData);
 
     this._db = db;
     this._path = root;
     this._matcher = matcher;
     this._idGenerator = idGenerator;
     this._parseData = parseData;
+    this._namespace = namespace;
 
     // Cache.
     this._itemStore = null;
@@ -33,14 +34,13 @@ export class Cache {
    */
   updateCache() {
     // Reset.
-    this._itemStore = new MemoryItemStore(this._idGenerator, this._matcher);
+    this._itemStore = new MemoryItemStore(this._idGenerator, this._matcher, this._namespace);
 
     // https://firebase.google.com/docs/database/web/read-and-write#read_data_once
     // https://firebase.google.com/docs/reference/js/firebase.database.Reference#once
     // https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
     return this._db.ref(this._path).orderByKey().once('value').then(data => {
       this._parseData(this._itemStore, data);
-
       return this._itemStore;
     });
   }

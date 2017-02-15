@@ -142,7 +142,7 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
   }
 
   constructor(idGenerator, matcher, config) {
-    super(idGenerator, matcher);
+    super(idGenerator, matcher, GoogleDriveQueryProcessor.NAMESPACE);
 
     this._driveClient = new GoogleDriveClient(idGenerator, config);
   }
@@ -150,10 +150,6 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
   //
   // QueryProcessor API.
   //
-
-  get namespace() {
-    return GoogleDriveQueryProcessor.NAMESPACE;
-  }
 
   queryItems(context, root, filter={}, offset=0, count=10) {
     let driveQuery = GoogleDriveQueryProcessor.makeDriveQuery(filter.text);

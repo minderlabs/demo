@@ -12,13 +12,10 @@ import { Cache } from './cache';
 /**
  * User store.
  */
-export class FirebaseUserStore extends ItemStore {
+export class FirebaseSystemStore extends ItemStore {
 
   // Root database node.
-  static ROOT = 'users';
-
-  // TODO(burdon): Factor out type.
-  static TYPE = 'User';
+  static ROOT = 'system';
 
   /**
    * Parses the root node of the data set, inserting items into the item store.
@@ -27,21 +24,23 @@ export class FirebaseUserStore extends ItemStore {
    */
   static parseData(itemStore, data) {
     let items = [];
-    _.each(data.val(), (record, key) => {
-      items.push(FirebaseUserStore.recordToItem(key, record));
+    _.each(data.val(), (records, type) => {
+      _.each(records, (item, id) => {
+        items.push(item);
+      });
     });
 
     itemStore.upsertItems({}, items);
   }
 
   /**
-   * Converts firebase User records to items.
+   * Converts a firebase User record to a User item.
    */
-  static recordToItem(key, record) {
+  static userRecordToItem(key, record) {
     // TODO(madadam): Credentials isn't part of the schema; needs to be?
     return {
+      type:         'User',
       id:           key,
-      type:         FirebaseUserStore.TYPE,
       created:      record.created,
       modified:     record.modified,
       title:        record.profile.name,
@@ -50,18 +49,23 @@ export class FirebaseUserStore extends ItemStore {
     };
   }
 
-  constructor(db, idGenerator, matcher) {
-    super(idGenerator, matcher);
+  constructor(db, idGenerator, matcher, namespace) {
+    super(idGenerator, matcher, namespace);
     console.assert(db);
 
     this._db = db;
-    this._cache = new Cache(this._db, FirebaseUserStore.ROOT, idGenerator, matcher, FirebaseUserStore.parseData);
+    this._cache = new Cache(
+      this._db, FirebaseSystemStore.ROOT, idGenerator, matcher, namespace, FirebaseSystemStore.parseData);
   }
 
   clearCache() {
     return this._cache.getItemStore(true);
   }
 
+  /**
+   * Upsert Firebase User Account.
+   * @param data
+   */
   upsertUser(data) {
     let { user, credential } = data;
     let { uid, email, name } = user;
@@ -71,7 +75,6 @@ export class FirebaseUserStore extends ItemStore {
     // https://firebase.google.com/docs/database/web/read-and-write
     let record = {
       created: moment().unix(),
-      modified: moment().unix(),
 
       profile: {
         email,
@@ -86,15 +89,27 @@ export class FirebaseUserStore extends ItemStore {
       }
     };
 
-    this._db.ref(FirebaseUserStore.ROOT + '/' + uid).set(record);
-
-    this._cache.getItemStore()
-      .then(itemStore => itemStore.upsertItem({}, FirebaseUserStore.recordToItem(uid, record)));
+    this.upsertItem({}, FirebaseSystemStore.userRecordToItem(uid, record));
   }
 
   //
   // ItemStore API.
   //
+
+  upsertItems(context, items) {
+
+    // Write-through cache.
+    _.each(items, item => {
+      console.assert(item.type && item.id);
+
+      item.modified = moment().unix();
+
+      // https://firebase.google.com/docs/database/web/read-and-write
+      this._db.ref(FirebaseSystemStore.ROOT + '/' + item.type + '/' + item.id).set(item);
+    });
+
+    return this._cache.getItemStore().then(itemStore => itemStore.upsertItems(context, items));
+  }
 
   getItems(context, type, itemIds) {
     return this._cache.getItemStore().then(itemStore => itemStore.getItems(context, type, itemIds));

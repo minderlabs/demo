@@ -1,12 +1,4 @@
 {
-  "Group": [
-    {
-      "id": "minderlabs",
-      "alias": "minderlabs",
-      "title": "Minder Labs"
-    }
-  ],
-
   "Folder": [
     {
       "id": "folder_inbox",

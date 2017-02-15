@@ -15,6 +15,7 @@ export * from './data/fragments';
 export * from './data/id';
 export * from './data/item_store';
 export * from './data/matcher';
+export * from './data/memcache_item_store';
 export * from './data/memory_item_store';
 export * from './data/mutations';
 export * from './data/parser';

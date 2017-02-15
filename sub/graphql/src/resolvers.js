@@ -9,6 +9,7 @@ import { introspectionQuery } from 'graphql/utilities';
 
 import { $$, Logger, ID, Transforms, TypeUtil } from 'minder-core';
 
+import { Database } from './db/database';
 import Schema from './gql/schema.graphql';
 
 const logger = Logger.get('resolver');
@@ -81,7 +82,7 @@ export class Resolvers {
       Group: {
 
         members: (root, args, context) => {
-          return database.getItems(context, 'User', root.members);
+          return database.getItems(context, 'User', root.members, Database.SYSTEM_NAMESPACE);
         },
 
         projects: (root, args, context) => {
@@ -118,9 +119,10 @@ export class Resolvers {
           }));
         },
 
+        // TODO(burdon): Store in System database.
         group: (root, args, context) => {
           let { group } = root;
-          return database.getItem(context, 'Group', group);
+          return database.getItem(context, 'Group', group, Database.SYSTEM_NAMESPACE);
         },
 
         tasks: (root, args, context) => {
@@ -145,11 +147,11 @@ export class Resolvers {
         },
 
         owner: (root, args, context) => {
-          return root.owner && database.getItem(context, 'User', root.owner);
+          return root.owner && database.getItem(context, 'User', root.owner, Database.SYSTEM_NAMESPACE);
         },
 
         assignee: (root, args, context) => {
-          return root.assignee && database.getItem(context, 'User', root.assignee);
+          return root.assignee && database.getItem(context, 'User', root.assignee, Database.SYSTEM_NAMESPACE);
         }
       },
 
@@ -165,31 +167,27 @@ export class Resolvers {
 
           // TODO(burdon): Fails if not authenticated (no context).
           let { user: { id, email, name } } = context;
-
-          // TODO(burdon): Local/global ID (need to document to memo this).
-          // let { type, id:localUserId } = ID.fromGlobalId(userId);
-
-          // TODO(burdon): Can the resolver resolve this for us?
-          // return {
-          //   id,
-          //   user: ID.toGlobalId('User', id)
-          // };
-
-          return database.getItem(context, 'User', id).then(user => ({
+          return database.getItem(context, 'User', id, Database.SYSTEM_NAMESPACE).then(user => ({
             id,   // TODO(burdon): Global ID?
             user
           }));
         },
 
         folders: (root, args, context) => {
-          return database.queryItems(context, root, { type: 'Folder', orderBy: { field: 'order' } });
+          return database.queryItems(context, root, {
+            type: 'Folder',
+            orderBy: {
+              field: 'order'
+            }
+          });
         },
 
         item: (root, args, context) => {
           let { itemId } = args;
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
+          let namespace = Database.getNamespaceForType(type);
 
-          return database.getItem(context, type, localItemId);
+          return database.getItem(context, type, localItemId, namespace);
         },
 
         items: (root, args, context) => {
@@ -215,10 +213,11 @@ export class Resolvers {
         updateItem: (root, args, context) => {
           let { itemId, mutations } = args;
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
+          let namespace = Database.getNamespaceForType(type);
           logger.log($$('UPDATE[%s:%s]: %o', type, localItemId, mutations));
 
           // Get existing item (or undefined).
-          return database.getItem(context, type, localItemId).then(item => {
+          return database.getItem(context, type, localItemId, namespace).then(item => {
 
             // If not found (i.e., insert).
             // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
@@ -233,7 +232,7 @@ export class Resolvers {
             Transforms.applyObjectMutations(item, mutations);
 
             // Upsert item.
-            return database.upsertItem(context, item);
+            return database.upsertItem(context, item, namespace);
           });
         }
       }

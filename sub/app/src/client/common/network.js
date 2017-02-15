@@ -554,9 +554,9 @@ class NetworkLogger {
     if (_.get(this._options, 'debug', true)) {
       let url = HttpUtil.absoluteUrl(_.get(this._options, 'graphiql', '/graphiql'));
       logger.info('[' + requestId + ']: ' + url + '?' + HttpUtil.toUrlArgs({
-          query: print(request.query),
-          variables: JSON.stringify(request.variables)
-        }));
+        query: print(request.query),
+        variables: JSON.stringify(request.variables)
+      }));
     }
   }
 

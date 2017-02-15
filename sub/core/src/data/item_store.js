@@ -10,16 +10,18 @@ export class QueryProcessor {
   /**
    * @param idGenerator
    * @param matcher
+   * @param namespace
    */
-  constructor(idGenerator, matcher) {
-    console.assert(idGenerator && matcher);
+  constructor(idGenerator, matcher, namespace) {
+    console.assert(idGenerator && matcher && namespace);
 
     this._idGenerator = idGenerator;
-    this._matcher = matcher
+    this._matcher = matcher;
+    this._namespace = namespace;
   }
 
   get namespace() {
-    return '*';
+    return this._namespace;
   }
 
   queryItems(context, root, filter = {}, offset = 0, count = 10) {
@@ -32,11 +34,8 @@ export class QueryProcessor {
  */
 export class ItemStore extends QueryProcessor {
 
-  // TODO(burdon): Dispatch by domain not type.
-  // TODO(burdon): ID should contain type.
-
-  constructor(idGenerator, matcher) {
-    super(idGenerator, matcher);
+  constructor(idGenerator, matcher, namespace) {
+    super(idGenerator, matcher, namespace);
   }
 
   //

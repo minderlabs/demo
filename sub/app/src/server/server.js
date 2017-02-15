@@ -4,20 +4,21 @@
 
 import './config';
 
+import _ from 'lodash';
 import path from 'path';
 import http from 'http';
 import express from 'express';
 import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
+import memjs from 'memjs';
 
-import { IdGenerator, Matcher, MemoryItemStore, Logger } from 'minder-core';
+import { IdGenerator, Matcher, MemcacheItemStore, MemoryItemStore, Logger } from 'minder-core';
 import {
   Database,
   Firebase,
   GoogleDriveQueryProcessor,
   SlackQueryProcessor,
-  TestQueryProcessor,
   graphqlRouter
 } from 'minder-graphql';
 
@@ -40,9 +41,9 @@ const logger = Logger.get('main');
 // Error handling.
 //
 
-function handleError(err) {
-  console.error(new Date().toUTCString() + ':', err.message);
-  console.error(err.stack);
+function handleError(error) {
+  console.error('### ERROR: %s', error.message || error);
+  error.stack && console.error(error.stack);
 //process.exit(1)
 }
 
@@ -54,9 +55,16 @@ process.on('unhandledRejection', handleError);
 // Env.
 //
 
-const env = process.env['NODE_ENV'] || 'development';
+const Config = {
+
+  MEMCACHE_HOST: _.get(process.env, 'MEMCACHE_SERVICE_HOST', '127.0.0.1'),
+  MEMCACHE_PORT: _.get(process.env, 'MEMCACHE_SERVICE_PORT', '11211')
+};
+
+// TODO(burdon): Move to Config.
+const env = _.get(process.env, 'NODE_ENV', 'development');
 const host = (env === 'production') ? '0.0.0.0' : '127.0.0.1';
-const port = process.env['VIRTUAL_PORT'] || 3000;
+const port = _.get(process.env, 'PORT', 3000);
 
 const testing = (env !== 'production');
 
@@ -90,18 +98,23 @@ const firebase = new Firebase(idGenerator, matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const authManager = new AuthManager(firebase.admin, firebase.userStore);
+const memcache = memjs.Client.create(`${Config.MEMCACHE_HOST}:${Config.MEMCACHE_PORT}`, {
+  failoverTime: 60
+});
+
+const authManager = new AuthManager(firebase.admin, firebase.systemStore);
 
 
 //
 // Database.
 //
 
-const defaultItemStore = testing ? new MemoryItemStore(idGenerator, matcher) : firebase.itemStore;
+const defaultItemStore = testing ?
+  new MemoryItemStore(idGenerator, matcher, Database.DEFAULT_NAMESPACE) : firebase.itemStore;
 
 const database = new Database(idGenerator, matcher)
 
-  .registerItemStore(firebase.userStore, 'User')
+  .registerItemStore(firebase.systemStore)
   .registerItemStore(defaultItemStore)
 
   .registerQueryProcessor(defaultItemStore)
@@ -113,8 +126,10 @@ const database = new Database(idGenerator, matcher)
   });
 
 if (testing) {
-  database.registerQueryProcessor(new TestQueryProcessor(idGenerator, matcher));
+  // TODO(burdon): Add test data.
+//  database.registerQueryProcessor(new MemcacheItemStore(idGenerator, matcher, memcache, 'testing'));
 }
+
 
 //
 // Google
@@ -130,7 +145,7 @@ database
 
 const botkitManager = new BotKitManager({
   port,
-  redirectHost: process.env.OAUTH_REDIRECT_ROOT || 'http://localhost:' + port,
+  redirectHost: _.get(process.env, 'OAUTH_REDIRECT_ROOT', 'http://localhost:' + port),
   ...SlackConfig
 });
 
@@ -146,9 +161,17 @@ let promises = [];
 
 let loader = new DataLoader(database);
 
-promises.push(loader.parse(require('./data/startup.json')));
-promises.push(loader.parse(require('./data/demo.json')));
-promises.push(loader.init(require('./data/whitelist.json'), testing));
+promises.push(
+  Promise.all([
+    // Do in parallel.
+    loader.parse(require('./data/accounts.json'), Database.SYSTEM_NAMESPACE),
+    loader.parse(require('./data/startup.json')),
+    loader.parse(require('./data/demo.json'))
+  ]).then(() => {
+    // Then init once parsing (and database update) is done.
+    return loader.init(testing);
+  })
+);
 
 
 //
@@ -284,7 +307,7 @@ app.get('/graphiql', function(req, res) {
 // App.
 //
 
-app.use(loginRouter(firebase.userStore, {
+app.use('/user', loginRouter(firebase.systemStore, {
   env
 }));
 

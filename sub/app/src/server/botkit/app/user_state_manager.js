@@ -147,7 +147,7 @@ export class UserStateManager {
           name:     res.user.profile.real_name
         };
 
-        let jwtToken = jwt.sign(payload, process.env.jwtSecret);
+        let jwtToken = jwt.sign(payload, _.get(process.env, 'jwtSecret'));
         let userInfo = {
           id: userId, // Required for controller.storage.save.
           jwtToken: jwtToken,

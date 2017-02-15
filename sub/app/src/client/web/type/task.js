@@ -233,12 +233,6 @@ class TaskCanvasComponent extends React.Component {
     let { assigneeText, status } = this.state;
     let { project } = item;
 
-    // TODO(burdon): Provide query.
-    let userFilter = {
-      type: 'User',
-      text: assigneeText
-    };
-
     let levels = TASK_LEVELS.map(level =>
       <option key={ level.value } value={ level.value }>{ level.title }</option>);
 

@@ -8,7 +8,8 @@ import admin from 'firebase-admin';
 
 import { Logger } from 'minder-core';
 
-import { FirebaseUserStore } from './firebase_user_store';
+import { Database } from '../database';
+import { FirebaseSystemStore } from './firebase_system_store';
 import { FirebaseItemStore } from './firebase_item_store';
 
 const logger = Logger.get('firebase');
@@ -39,12 +40,12 @@ export class Firebase {
 
     this._db = admin.database();
 
-    this._userStore = new FirebaseUserStore(this._db, idGenerator, matcher);
-    this._itemStore = new FirebaseItemStore(this._db, idGenerator, matcher);
+    this._systemStore = new FirebaseSystemStore(this._db, idGenerator, matcher, Database.SYSTEM_NAMESPACE);
+    this._itemStore = new FirebaseItemStore(this._db, idGenerator, matcher, Database.DEFAULT_NAMESPACE);
   }
 
   clearCache() {
-    this._userStore.clearCache();
+    this._systemStore.clearCache();
     this._itemStore.clearCache();
   }
 
@@ -55,8 +56,8 @@ export class Firebase {
     return admin;
   }
 
-  get userStore() {
-    return this._userStore;
+  get systemStore() {
+    return this._systemStore;
   }
 
   get itemStore() {

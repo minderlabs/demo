@@ -154,7 +154,8 @@ input OrderByInput {
 
 input FilterInput {
 
-  # TODO(burdon): Add namespace (e.g., system for User, etc.)
+  # Data store namespace (e.g., system for User, etc.)
+  namespace: String
 
   # TODO(burdon): ID! (User/Group ID). Should be implicit in context? And validated in frontend Auth.
   # TODO(burdon): Motivate case, where Client wants to specify a particular bucket.

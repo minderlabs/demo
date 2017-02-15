@@ -20,12 +20,12 @@ export class AuthManager {
 
   /**
    * @param admin Firebase admin object.
-   * @param userStore Firebase user store.
+   * @param systemStore Firebase user store.
    */
-  constructor(admin, userStore) {
-    console.assert(admin && userStore);
+  constructor(admin, systemStore) {
+    console.assert(admin && systemStore);
     this._admin = admin;
-    this._userStore = userStore;
+    this._systemStore = systemStore;
   }
 
   /**
@@ -43,10 +43,11 @@ export class AuthManager {
         this._admin.auth().verifyIdToken(token)
           .then(decodedToken => {
             let { uid:id, name, email } = decodedToken;
+            console.assert(id, 'Invalid token: ' + JSON.stringify(decodedToken));
+
             // TODO(madadam): Empty context ok?
-            this._userStore.getItems({}, 'User', [id])
-              .then(users => {
-                let [ user ] = users;
+            this._systemStore.getItem({}, 'User', id)
+              .then(user => {
                 logger.log(`Got token for: ${email}`);
                 _.assign(user, { token });
                 resolve(user);
@@ -108,12 +109,12 @@ export class AuthManager {
 /**
  * Manage user authentication.
  *
- * @param userStore
+ * @param systemStore
  * @param options
- * @returns {core.Router|*}
+ * @returns {Router}
  */
-export const loginRouter = (userStore, options) => {
-  console.assert(userStore);
+export const loginRouter = (systemStore, options) => {
+  console.assert(systemStore);
 
   let router = express.Router();
 
@@ -124,20 +125,20 @@ export const loginRouter = (userStore, options) => {
   router.use(bodyParser.json());
 
   // Login page.
-  router.use('/user/login', function(req, res) {
+  router.use('/login', function(req, res) {
     // Firebase JS login.
     res.render('login');
   });
 
   // Logout page (javascript).
-  router.use('/user/logout', function(req, res) {
+  router.use('/logout', function(req, res) {
     // Firebase JS login.
     res.render('logout');
   });
 
-  // Register user.
-  router.post('/user/register', function(req, res) {
-    userStore.upsertUser(req.body);
+  // Handle user registration.
+  router.post('/register', function(req, res) {
+    systemStore.upsertUser(req.body);
     res.send({});
   });
 

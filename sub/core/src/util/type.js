@@ -95,6 +95,7 @@ export class TypeUtil {
    * @param func Returns a value or promise.
    * @return {Promise}
    */
+  // TODO(burdon): Move to async.
   static iterateWithPromises(collection, func) {
     let p = Promise.resolve();
 

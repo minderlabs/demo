@@ -42,7 +42,7 @@ export class App {
 
   constructor(controller) {
     this.controller = controller;
-    this.userStateManager = new UserStateManager(controller, process.env.apiBase);
+    this.userStateManager = new UserStateManager(controller, _.get(process.env, 'apiBase'));
 
     this.botManager = new BotManager(this.userStateManager);
     this.botManager.init(controller);

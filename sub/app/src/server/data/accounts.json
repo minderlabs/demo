@@ -1,0 +1,17 @@
+{
+  "Group": [
+    {
+      "id": "minderlabs",
+      "alias": "minderlabs",
+      "title": "Minder Labs",
+      "whitelist": [
+        "rich@minderlabs.com",
+        "adam@minderlabs.com",
+        "wendy@minderlabs.com",
+        "matt@carbonfive.com",
+        "alice.braintree@gmail.com",
+        "jeremyhfisher@gmail.com"
+      ]
+    }
+  ]
+}

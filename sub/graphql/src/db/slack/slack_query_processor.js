@@ -16,7 +16,7 @@ export class SlackQueryProcessor extends QueryProcessor {
   static NAMESPACE = 'slack.com';
 
   constructor(idGenerator, matcher, botManager) {
-    super(idGenerator, matcher);
+    super(idGenerator, matcher, SlackQueryProcessor.NAMESPACE);
     this.botManager = botManager;
   }
 
@@ -53,10 +53,6 @@ export class SlackQueryProcessor extends QueryProcessor {
   //
   // QueryProcessor API.
   //
-
-  get namespace() {
-    return SlackQueryProcessor.NAMESPACE;
-  }
 
   queryItems(context, root, filter={}, offset=0, count=10) {
     return this._search(filter.text);

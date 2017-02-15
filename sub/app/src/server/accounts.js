@@ -6,7 +6,7 @@ import express from 'express';
 
 
 // Sign-up buttons can start oauth flow that redirects back to /accounts/<service>, which delegates to the
-// service handler. After creating accounts (userStore?) and getting credentials from the service and
+// service handler. After creating accounts (systemStore?) and getting credentials from the service and
 // storing them in the UserStore, the handler can redirect back to /accounts.
 
 /**
