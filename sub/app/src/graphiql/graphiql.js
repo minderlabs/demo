@@ -64,7 +64,7 @@ function updateURL(update) {
 // https://raw.githubusercontent.com/graphql/graphiql/master/example/index.html
 //
 
-const defQuery = 'query { viewer { id } }';
+const defQuery = 'query { viewer { user { id } } }';
 
 ReactDOM.render(
   React.createElement(GraphiQL, {

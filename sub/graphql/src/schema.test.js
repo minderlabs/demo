@@ -33,7 +33,6 @@ import Schema from './gql/schema.graphql';
 const query = `
   query TestQuery { 
     viewer {
-      id
       user {
         id
         title
@@ -88,7 +87,6 @@ describe('GraphQL Mock Server:', () => {
         let { user: { id } } = context;
 
         return {
-          id,
           user: {
             id,
             type: 'User',
@@ -162,9 +160,6 @@ describe('GraphQL JS API:', () => {
           type: new GraphQLObjectType({
             name: 'Viewer',
             fields: {
-              id: {
-                type: new GraphQLNonNull(GraphQLID)
-              },
               user: {
                 type: new GraphQLObjectType({
                   name: 'User',
@@ -185,7 +180,6 @@ describe('GraphQL JS API:', () => {
             console.assert(id);
 
             return database.getItem(context, 'User', id).then(user => ({
-              id,
               user
             }));
           }

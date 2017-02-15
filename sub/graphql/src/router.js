@@ -24,9 +24,9 @@ const logger = Logger.get('gql');
  *
  * @param database
  * @param options
- *  {
- *    {Function(request)} resolverContext
- *  }
+ * {
+ *   {Function(request)} resolverContext
+ * }
  *
  * @returns {*}
  */
@@ -56,8 +56,9 @@ export const graphqlRouter = (database, options) => {
     router.use(options.graphql, graphqlLogger(options));
   }
 
-  // Bind server.
-  // TODO(burdon): Simulate errors?
+  // TODO(burdon): Factor out promise
+
+  // Bind server with async options.
   // https://github.com/graphql/express-graphql
   // http://dev.apollodata.com/tools/graphql-server/setup.html#options-function
   router.use(options.graphql, graphqlExpress(request => new Promise((resolve, reject) => {
@@ -73,12 +74,10 @@ export const graphqlRouter = (database, options) => {
       })
     };
 
-    // TODO(burdon): Error handling.
     // Provide the request context for resolvers (e.g., authenticated user).
-    // http://dev.apollodata.com/tools/graphql-server/setup.html
     // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
     if (options.context) {
-      options.context(request).then(context => {
+      return options.context(request).then(context => {
         console.assert(context);
         graphqlOptions.context = context;
         resolve(graphqlOptions);

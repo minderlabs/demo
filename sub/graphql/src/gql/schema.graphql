@@ -226,15 +226,6 @@ type Board {
   itemMeta: [ListItemMeta]    # Map of ID x meta values (i.e., map).
 }
 
-#
-# Root node.
-#
-
-type Viewer {
-  id: ID!
-  user: User!
-}
-
 #===================================================================================================
 # Item.
 # TODO(burdon): Move common fields into meta?
@@ -442,6 +433,15 @@ type User implements Item {
 }
 
 #===================================================================================================
+# Root node.
+#===================================================================================================
+
+type Viewer {
+  user: User!
+  group: Group!   # TODO(burdon): Multiple groups?
+}
+
+#===================================================================================================
 # Queries.
 # NOTE: Must only have Input types (since regular types might be recursive and therefore not serializable).
 # https://github.com/graphql/graphql-js/issues/312
@@ -480,6 +480,8 @@ type RootMutation {
 #===================================================================================================
 
 schema {
+
   query: RootQuery
+
   mutation: RootMutation
 }

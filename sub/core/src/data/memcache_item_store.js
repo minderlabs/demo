@@ -13,7 +13,10 @@ import { ItemStore } from './item_store';
  */
 export class MemcacheItemStore extends ItemStore {
 
-  // TODO(burdon): Add namespace to items?
+  static logError(error, reject) {
+    console.error('Memcache: %s:%s', error.syscall, error.code);
+    reject();
+  }
 
   constructor(idGenerator, matcher, memcache, namespace) {
     super(idGenerator, matcher, namespace);
@@ -38,8 +41,10 @@ export class MemcacheItemStore extends ItemStore {
   clear() {
     return new Promise((resolve, reject) => {
       this._memcache.flush((error, results) => {
-        console.log('Flushed: ' + JSON.stringify(results));
-        error && reject() || resolve(results);
+        if (error) { return MemcacheItemStore.logError(error, reject); }
+
+        console.log('Flushed memcache: ' + JSON.stringify(results));
+        resolve();
       });
     });
   }
@@ -51,17 +56,17 @@ export class MemcacheItemStore extends ItemStore {
   _getItem(itemId) {
     return new Promise((resolve, reject) => {
       this._memcache.get(this.key(itemId), (error, buffer) => {
-        if (error) {
-          reject();
-        } else {
-          let item = JSON.parse(buffer.toString());
-          if (item) {
-            _.defaults(item, {
-              namespace: this._namespace
-            });
-          }
-          resolve(item);
+        if (error) { return MemcacheItemStore.logError(error, reject); }
+
+        let item = JSON.parse(buffer.toString());
+        if (item) {
+          // TODO(burdon): Handle namespace outside of store?
+          _.defaults(item, {
+            namespace: this._namespace
+          });
         }
+
+        resolve(item);
       });
     });
   }
@@ -69,7 +74,8 @@ export class MemcacheItemStore extends ItemStore {
   _setItem(item) {
     return new Promise((resolve, reject) => {
       this._memcache.set(this.key(item.id), JSON.stringify(item), (error, success) => {
-        error && reject() || resolve(item);
+       if (error) { return MemcacheItemStore.logError(error, reject); }
+        resolve(item);
       });
     });
   }
@@ -77,6 +83,8 @@ export class MemcacheItemStore extends ItemStore {
   _getItems() {
     return new Promise((resolve, reject) => {
       this._memcache.get(this._namespace, (error, buffer) => {
+        if (error) { return MemcacheItemStore.logError(error, reject); }
+
         // TODO(burdon): Buffer.
         let itemIds = buffer ? JSON.parse(buffer.toString()) : [];
         let promises = _.map(itemIds, itemId => this._getItem(itemId));
@@ -90,13 +98,16 @@ export class MemcacheItemStore extends ItemStore {
   _addItemIds(itemIds) {
     return new Promise((resolve, reject) => {
       this._memcache.get(this._namespace, (error, buffer) => {
+        if (error) { return MemcacheItemStore.logError(error, reject); }
+
         if (buffer) {
           itemIds = _.concat(JSON.parse(buffer.toString()), itemIds);
         }
 
         // NOTE: This doesn't happen atomically, so could lose data.
         this._memcache.set(this._namespace, JSON.stringify(itemIds), (error, success) => {
-          error && reject() || resolve(itemIds);
+          if (error) { return MemcacheItemStore.logError(error, reject); }
+          resolve(itemIds);
         });
       });
     });

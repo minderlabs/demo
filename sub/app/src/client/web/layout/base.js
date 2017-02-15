@@ -149,8 +149,12 @@ const LayoutQuery = gql`
   query LayoutQuery($projectFilter: FilterInput) { 
 
     viewer {
-      id
       user {
+        id
+        title
+      }
+      group {
+        id
         title
       }
     }
@@ -213,7 +217,7 @@ export default compose(
       return {
         viewer,
         folders,
-        projects,
+        projects
       };
     }
   })

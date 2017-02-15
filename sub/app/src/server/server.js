@@ -43,9 +43,8 @@ const logger = Logger.get('main');
 //
 
 function handleError(error) {
-  console.error('### ERROR: %s', error.message || error);
-  error.stack && console.error(error.stack);
-//process.exit(1)
+  console.error('### ERROR: %s', error && error.message || error);
+  error && error.stack && console.error(error.stack);
 }
 
 process.on('uncaughtException', handleError);
@@ -87,8 +86,11 @@ const idGenerator = new IdGenerator(1000);
 const matcher = new Matcher();
 
 
-// TODO(burdon): Factor out const.
+//
+// Firebase
 // https://firebase.google.com/docs/database/admin/start
+//
+
 const firebase = new Firebase(idGenerator, matcher, {
 
   databaseURL: FirebaseConfig.databaseURL,
@@ -96,14 +98,21 @@ const firebase = new Firebase(idGenerator, matcher, {
   // Download JSON config.
   // https://console.firebase.google.com/project/minder-beta/settings/serviceaccounts/adminsdk
   // NOTE: Path must work for dev and prod (docker).
+  // TODO(burdon): Factor out const.
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const memcache = memjs.Client.create(`${Config.MEMCACHE_HOST}:${Config.MEMCACHE_PORT}`, {
-  failoverTime: 60
-});
-
 const authManager = new AuthManager(firebase.admin, firebase.systemStore);
+
+
+//
+// Memcache
+// https://github.com/alevy/memjs
+//
+
+// const memcache = memjs.Client.create(`${Config.MEMCACHE_HOST}:${Config.MEMCACHE_PORT}`, {
+//   failoverTime: 60
+// });
 
 
 //
@@ -181,13 +190,13 @@ if (testing) {
     ]).then(() => {
 
       // Test external data.
-      const testItemStore = new MemcacheItemStore(idGenerator, matcher, memcache, 'testing');
-      database.registerQueryProcessor(testItemStore);
-
-      testItemStore.clear().then(() => {
-        let testItemStoreRandomizer = TestData.randomizer(testItemStore);
-        return testItemStoreRandomizer.generate('Contact', 5);
-      });
+      // const testItemStore = new MemcacheItemStore(idGenerator, matcher, memcache, 'testing');
+      // database.registerQueryProcessor(testItemStore);
+      //
+      // testItemStore.clear().then(() => {
+      //   let testItemStoreRandomizer = TestData.randomizer(testItemStore);
+      //   return testItemStoreRandomizer.generate('Contact', 5);
+      // });
     });
   });
 }
@@ -288,7 +297,8 @@ app.use(graphqlRouter(database, {
       }
 
       return {
-        user: userInfo
+        user: userInfo,
+        group: 'minderlabs'
       };
     })
 }));

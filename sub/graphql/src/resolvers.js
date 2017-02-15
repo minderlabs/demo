@@ -165,12 +165,32 @@ export class Resolvers {
         viewer: (root, args, context) => {
           console.assert(context && context.user);
 
-          // TODO(burdon): Fails if not authenticated (no context).
-          let { user: { id, email, name } } = context;
-          return database.getItem(context, 'User', id, Database.SYSTEM_NAMESPACE).then(user => ({
-            id,   // TODO(burdon): Global ID?
-            user
-          }));
+          // Context includes the JWT token.
+          let { user: { id:userId } } = context;
+
+          // TODO(burdon): Get from header.
+          let groupId = ID.toGlobalId('Group', 'minderlabs');
+
+          // TODO(burdon): Fail if not authenticated (no context).
+          console.assert(userId);
+
+          // TODO(burdon): Async Util?
+          // Promise.all({
+          //   user: getItem(),
+          //   group: getItem()
+          // }).then(({ values: { user, group } }) => {});
+
+          return Promise.all([
+            database.getItem(context, 'User', userId, Database.SYSTEM_NAMESPACE),
+            database.getItem(context, 'Group', groupId, Database.SYSTEM_NAMESPACE)
+          ]).then(values => {
+            console.log('::::::::', values);
+            let [ user, group ] = values;
+            return {
+              user,
+              group
+            }
+          });
         },
 
         folders: (root, args, context) => {

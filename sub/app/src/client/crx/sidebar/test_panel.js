@@ -92,7 +92,9 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 const TestQuery = gql`
   query TestQuery {
     viewer {
-      id
+      user {
+        id 
+      }
     }
   }
 `;
