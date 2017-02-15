@@ -18,5 +18,7 @@ USER root
 # what user is it when start-notebook.sh is called?
 #COPY start-notebook.sh /usr/local/bin/
 
-USER $NB_USER
 COPY bashrc /home/jovyan/.bashrc
+RUN chown $NB_USER:users /home/$NB_USER/.bashrc
+
+USER $NB_USER
