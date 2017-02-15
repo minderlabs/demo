@@ -28,7 +28,7 @@ const logger = Logger.get('gql');
  *   {Function(request)} resolverContext
  * }
  *
- * @returns {*}
+ * @returns {Router}
  */
 export const graphqlRouter = (database, options) => {
   console.assert(database);
@@ -56,36 +56,32 @@ export const graphqlRouter = (database, options) => {
     router.use(options.graphql, graphqlLogger(options));
   }
 
-  // TODO(burdon): Factor out promise
-
+  //
   // Bind server with async options.
   // https://github.com/graphql/express-graphql
   // http://dev.apollodata.com/tools/graphql-server/setup.html#options-function
-  router.use(options.graphql, graphqlExpress(request => new Promise((resolve, reject) => {
+  //
+  router.use(options.graphql, graphqlExpress(request => {
 
     // http://dev.apollodata.com/tools/graphql-server/setup.html#graphqlOptions
     let graphqlOptions = {
-      schema: schema,
-
-      formatError: error => ({
-        message: error.message,
-        locations: error.locations,
-        stack: error.stack
-      })
+      formatError: error => _.pick(error, ['message', 'locations', 'stack']),
+      schema
     };
 
     // Provide the request context for resolvers (e.g., authenticated user).
     // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
-    if (options.context) {
-      return options.context(request).then(context => {
+    if (options.contextProvider) {
+      return options.contextProvider(request).then(context => {
         console.assert(context);
-        graphqlOptions.context = context;
-        resolve(graphqlOptions);
+        return _.defaults(graphqlOptions, {
+          context
+        });
       });
     } else {
-      resolve(graphqlOptions);
+      return Promise.resolve(graphqlOptions);
     }
-  })));
+  }));
 
   // http://dev.apollodata.com/tools/graphql-server/graphiql.html
   // TODO(madadam): Figure out how to inject context here too, for authentication headers.

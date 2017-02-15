@@ -33,23 +33,13 @@ export class SidePanel extends React.Component {
 
   onSelect(item) {
     let {  alias, link } = item;
-    this.context.navigator.push(
-      link || (alias && Path.folder(alias)) || Path.canvas(ID.getGlobalId(item)));
+    this.context.navigator.push(link || (alias && Path.folder(alias)) || Path.canvas(ID.getGlobalId(item)));
   }
 
   render() {
     let { folders, group, projects, typeRegistry } = this.props;
-    let itemRenderer = SidePanel.ItemRenderer(typeRegistry);
 
-    // TODO(burdon): List group items.
-    const items = [
-      {
-        id: group,
-        type: 'Group',
-        title: 'Minder Labs'
-      }
-    ];
-
+    // TODO(burdon): If debug set in config.
     const debugItems = [
       {
         id: 'testing',
@@ -59,25 +49,21 @@ export class SidePanel extends React.Component {
       }
     ];
 
+    const FolderList = (props) => (
+      <List items={ props.items }
+            itemRenderer={ SidePanel.ItemRenderer(typeRegistry) }
+            onItemSelect={ this.onSelect.bind(this) }/>
+    );
+
     return (
       <div className="app-sidepanel">
-        <List items={ folders }
-              itemRenderer={ itemRenderer } onItemSelect={ this.onSelect.bind(this) }/>
-
+        <FolderList items={ folders }/>
         <div className="app-divider"/>
-
-        <List items={ items }
-              itemRenderer={ itemRenderer } onItemSelect={ this.onSelect.bind(this) }/>
-
+        <FolderList items={ [ group ] }/>
         <div className="app-divider"/>
-
-        <List items={ projects }
-              itemRenderer={ itemRenderer } onItemSelect={ this.onSelect.bind(this) }/>
-
+        <FolderList items={ projects }/>
         <div className="app-divider"/>
-
-        <List items={ debugItems }
-              itemRenderer={ itemRenderer } onItemSelect={ this.onSelect.bind(this) }/>
+        <FolderList items={ debugItems }/>
       </div>
     );
   }

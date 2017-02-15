@@ -285,20 +285,22 @@ app.get('/home', async function(req, res) {
 app.use(graphqlRouter(database, {
   logging: true,
   pretty: false,
-  graphiql: false,    // Use custom below.
 
-  // TODO(burdon): Check authenticated.
+  // Use custom UX provided below.
+  graphiql: false,
+
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
-  context: req => authManager.getUserInfoFromHeader(req)
+  contextProvider: (request) => authManager.getUserInfoFromHeader(request)
     .then(userInfo => {
-      if (!userInfo) {
-        console.error('GraphQL request is not authenticated.');
-      }
+      // TODO(burdon): 401 handling.
+      console.assert(userInfo, 'GraphQL request is not authenticated.');
 
       return {
         user: userInfo,
-        group: 'minderlabs'
+
+        // TODO(burdon): Get from userInfo?
+        group: Const.DEF_GROUP
       };
     })
 }));
@@ -347,22 +349,21 @@ app.use('/admin', adminRouter(clientManager, firebase, {
 app.use('/client', clientRouter(authManager, clientManager, server));
 
 app.use(appRouter(authManager, clientManager, {
+
+  // App root path.
   root: Const.ROOT_PATH,
 
-  env,
+  //
+  assets: (env === 'production') ? __dirname : path.join(__dirname, '../../dist'),
 
-  // Additional config params.
+  // Client config.
   config: {
+    env,
     app: {
       name: Const.APP_NAME,
       version: Const.APP_VERSION,
-    },
-
-    group: Const.DEF_GROUP
-  },
-
-  // TODO(burdon): Clean this up with config.
-  assets: (env === 'production') ? __dirname : path.join(__dirname, '../../dist')
+    }
+  }
 }));
 
 app.use('/botkit', botkitRouter(botkitManager));

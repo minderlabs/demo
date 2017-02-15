@@ -54,27 +54,27 @@ export const appRouter = (authManager, clientManager, options) => {
       // Create the client (and socket).
       let client = clientManager.create(userInfo.id);
 
-      // App config.
+      // Client app config.
       let config = _.defaults({
         root: 'app-root',
         graphql: '/graphql',
         graphiql: '/graphiql',
 
-        env: options.env,
-
-        client: {
-          id: client.id
-        },
-
+        // Authenticated user.
         user: {
           id: userInfo.id
+        },
+
+        // Registration.
+        client: {
+          id: client.id
         }
       }, options.config);
 
       logger.log($$('Client options = %o', config));
       res.render('app', {
-        app: WEBPACK_BUNDLE[options.env],
-        config: config,
+        app: WEBPACK_BUNDLE[config.env],
+        config,
       });
     }
   });
@@ -82,10 +82,7 @@ export const appRouter = (authManager, clientManager, options) => {
   // Status
   router.get('/status', function(req, res) {
     res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify({
-      env: options.env,
-      version: Const.APP_VERSION
-    }, null, 2));
+    res.send(JSON.stringify(options.config, null, 2));
   });
 
   return router;

@@ -2,21 +2,22 @@
 // Copyright 2016 Minder Labs.
 //
 
-// NOTE: Must come first.
-import './config';
-
 import { DomUtil } from 'minder-core';
 
 import { WebBase } from './base';
-
 import { AppAction, AppReducer } from './reducers';
-
 import Application from './app';
+
+// TODO(burdon): ???????????????????????????
+// NOTE: Must come first.
+import './config';
 
 /**
  * Configuration (from server).
  */
 const config = _.defaultsDeep(window.config, {
+
+  // TODO(burdon): Set by server?
   debug: (window.config.env !== 'production'),
   app: {
     platform: DomUtil.isMobile() ? 'mobile': 'web'

@@ -56,6 +56,17 @@ https://github.com/minderlabs/demo/docs/kbase/apollo_sequence.png
 2). Apollo graphql(options(props)) maps component props to query variables.
 3). Apollo graphql(props(oldProps, data)) replaces the component's data property with custom
     properties (e.g., adding dispatcher).
+    
+Component properties come from:
+- Calling container (e.g., <Foo bar={ 100 }/>)
+- Redux mapStateToProps and mapStateToDispatch.
+- graphQL.props for query and mutation declarations (i.e., query data).
+
+GraphQL queries are called twice:
+- First when the query is loading (data.loading == true or data.error)
+  - Components should use data.loading to inspect the state.
+- Second when the query results arrive.
+
 
 ~~~~
 
@@ -69,12 +80,12 @@ https://github.com/minderlabs/demo/docs/kbase/apollo_sequence.png
      * https://github.com/markerikson/redux-ecosystem-links/blob/master/devtools.md#component-update-monitoring
      */
 
-    mapStateToProps = (state, ownProps) => {
-    }
+    // Map Redux state to properties.
+    mapStateToProps = (state, ownProps) => {}
 
     // Create function bindings to dispatch Redux actions.
     mapStateToDispatch = (dispatch, ownProps) => {
-    
+
         // Invoke Redux action.
         foo: (value) => { dispatch({ type: 'FOO', value }); }
         

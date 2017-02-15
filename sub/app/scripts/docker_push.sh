@@ -146,7 +146,7 @@ kubectl delete $(kubectl get pods -l run=$RUN_LABEL -o name)
 STATUS_URL="https://demo-dev.minderlabs.com/status"
 LOCAL_VERSION=$(cat "package.json" | jq '.version')
 
-until [ ${LOCAL_VERSION} = $(curl -s ${STATUS_URL} | jq '.version') ]; do
+until [ ${LOCAL_VERSION} = $(curl -s ${STATUS_URL} | jq '.app.version') ]; do
   echo "Waiting..."
   sleep 5
 done

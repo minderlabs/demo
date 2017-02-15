@@ -81,11 +81,23 @@ export class BaseLayout extends React.Component {
   }
 
   render() {
-    let { children, className, config, group, projects, viewer, folders, typeRegistry } = this.props;
+    let { children, className, config, typeRegistry } = this.props;
+    let { loading, viewer } = this.props; // Data.
 
-    let sidePanel = <SidePanel group={ group }
-                               projects={ projects }
-                               folders={ folders }
+    // TODO(burdon): Factor out.
+    if (loading) {
+      return (
+        <div className="ux-loading-bar">
+          <div className="ux-load-bar"></div>
+          <div className="ux-load-bar"></div>
+          <div className="ux-load-bar"></div>
+        </div>
+      );
+    }
+
+    let sidePanel = <SidePanel folders={ viewer.folders }
+                               group={ viewer.group }
+                               projects={ viewer.group.projects }
                                typeRegistry={ typeRegistry }/>;
 
     return (
@@ -100,7 +112,8 @@ export class BaseLayout extends React.Component {
             </div>
             <div>
               <ul className="ux-inline">
-                <li>{ viewer && viewer.user.title }</li>
+                <li>{ viewer.group.title }</li>
+                <li>{ viewer.user.title }</li>
                 <li><a href="/user/logout">Logout</a></li>
               </ul>
             </div>
@@ -122,54 +135,46 @@ export class BaseLayout extends React.Component {
           <div className="app-footer">
             <StatusBar ref="status" config={ config } onClick={ this.handleToolbarClick.bind(this) }/>
           </div>
-
-          {/* Debug sidebar */}
-          {/*
-          <div className="ux-debug">
-            <Monitor/>
-          </div>
-          */}
         </div>
       </div>
     );
   }
 }
 
-//
-// Queries
-//
-
-// The App container makes a query for metadata associated with each each folder (e.g., a filter) that can be displayed within the <FolderView>.
-// But the container queries are called (and rendered) in reverse order (i.e., ListView, FolderView, App).
-// 1). I agree with @sedubois that one of the powerful features of GraphQL is fragment composition (I'm also coming from Relay, where this is trivially supported)>
-// 2). The additional benefit is enabling child containers to be "well-formed" i.e., only rendered once their data requirements are satisfied (i.e., passed in as props); also, the child's rendering function doesn't have to handle "null" data (making the code simpler and more robust).
-// 3). Furthermore, the react-relay-router can block until these queries are satisfied, so that on error a different router path can be displayed. This also prevents render "flickering" i.e., the child component making a default invalid query, and then re-rendering once the parent's query loads and then reconfigures the child.
+//-------------------------------------------------------------------------------------------------
+// HOC.
+//-------------------------------------------------------------------------------------------------
 
 const LayoutQuery = gql`
-  query LayoutQuery($projectFilter: FilterInput) { 
+  query LayoutQuery { 
 
     viewer {
       user {
+        type
         id
         title
       }
-      group {
-        id
-        title
-      }
-    }
 
-    folders {
-      id
-      alias
-      title
-      icon
-    }
-    
-    projects: items(filter: $projectFilter) {
-      id
-      type
-      title
+      group {
+        type
+        id
+        title
+
+        projects {
+          type
+          id
+          type
+          title
+        }
+      }
+
+      folders {
+        type
+        id
+        alias
+        title
+        icon
+      }
     }
   }
 `;
@@ -178,6 +183,7 @@ const mapStateToProps = (state, ownProps) => {
   let appState = AppAction.getState(state);
   let { config, injector, user, group } = appState;
   let serverProvider = new PropertyProvider(appState, 'server');
+
   let queryRegistry = injector.get(QueryRegistry);
   let typeRegistry = injector.get(TypeRegistry);
 
@@ -186,6 +192,8 @@ const mapStateToProps = (state, ownProps) => {
     serverProvider,
     queryRegistry,
     typeRegistry,
+
+    // TODO(burdon): Provided by LayoutQuery.
     user,
     group
   };
@@ -203,23 +211,7 @@ export default compose(
   // Configure query (from redux state).
   // http://dev.apollodata.com/react/queries.html#graphql-options
   graphql(LayoutQuery, {
-    options: (props) => ({
-      // TODO(burdon): ACL for user.
-      variables: {
-        projectFilter: {
-          type: 'Project'
-        }
-      }
-    }),
-
-    props: ({ ownProps, data }) => {
-      let { viewer, folders, projects } = data;
-      return {
-        viewer,
-        folders,
-        projects
-      };
-    }
+    props: ({ ownProps, data }) => _.pick(data, ['loading', 'viewer'])
   })
 
 )(BaseLayout);

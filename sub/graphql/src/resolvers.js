@@ -26,6 +26,7 @@ export class Resolvers {
   //
   // Resolver Map
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-map
+  // https://dev-blog.apollodata.com/graphql-explained-5844742f195e#.vcfu43qao
   //
   // TODO(burdon): See args and return values (incl. promise).
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
@@ -156,41 +157,19 @@ export class Resolvers {
       },
 
       //
-      // Queries
-      // NOTE: root is undefined for root-level queries.
+      // Root Viewer.
       //
 
-      RootQuery: {
+      Viewer: {
 
-        viewer: (root, args, context) => {
-          console.assert(context && context.user);
-
-          // Context includes the JWT token.
+        user: (root, args, context) => {
           let { user: { id:userId } } = context;
+          return database.getItem(context, 'User', userId, Database.SYSTEM_NAMESPACE);
+        },
 
-          // TODO(burdon): Get from header.
-          let groupId = ID.toGlobalId('Group', 'minderlabs');
-
-          // TODO(burdon): Fail if not authenticated (no context).
-          console.assert(userId);
-
-          // TODO(burdon): Async Util?
-          // Promise.all({
-          //   user: getItem(),
-          //   group: getItem()
-          // }).then(({ values: { user, group } }) => {});
-
-          return Promise.all([
-            database.getItem(context, 'User', userId, Database.SYSTEM_NAMESPACE),
-            database.getItem(context, 'Group', groupId, Database.SYSTEM_NAMESPACE)
-          ]).then(values => {
-            console.log('::::::::', values);
-            let [ user, group ] = values;
-            return {
-              user,
-              group
-            }
-          });
+        group: (root, args, context) => {
+          // TODO(burdon): Lookup group.
+          return database.getItem(context, 'Group', 'minderlabs', Database.SYSTEM_NAMESPACE)
         },
 
         folders: (root, args, context) => {
@@ -200,10 +179,23 @@ export class Resolvers {
               field: 'order'
             }
           });
+        }
+      },
+
+      //
+      // Queries
+      // NOTE: root is undefined for root-level queries.
+      //
+
+      RootQuery: {
+
+        viewer: (root, args, context) => {
+          return {};
         },
 
         item: (root, args, context) => {
           let { itemId } = args;
+
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
           let namespace = Database.getNamespaceForType(type);
 

@@ -75,10 +75,12 @@ class FolderView extends React.Component {
 const FoldersQuery = gql`
   query FoldersQuery { 
 
-    folders {
-      id
-      alias
-      filter
+    viewer {
+      folders {
+        id
+        alias
+        filter
+      }
     }
   }
 `;
@@ -125,12 +127,12 @@ export default compose(
     // http://dev.apollodata.com/react/queries.html#graphql-props
     // http://dev.apollodata.com/react/queries.html#default-result-props
     props: ({ ownProps, data }) => {
-      let { folders } = data;
       let { filter } = ownProps;
+      let { viewer } = data;
 
       // Create list filter (if not overridden by text search above).
-      if (QueryParser.isEmpty(filter)) {
-        _.each(folders, folder => {
+      if (viewer && QueryParser.isEmpty(filter)) {
+        _.each(viewer.folders, folder => {
           if (folder.alias == ownProps.folder) {
             filter = JSON.parse(folder.filter);
             return false;

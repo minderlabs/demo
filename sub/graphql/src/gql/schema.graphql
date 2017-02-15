@@ -437,8 +437,15 @@ type User implements Item {
 #===================================================================================================
 
 type Viewer {
+
+  # Authenticated user.
   user: User!
-  group: Group!   # TODO(burdon): Multiple groups?
+
+  # TODO(burdon): Multiple groups?
+  group: Group!
+
+  # Folders.
+  folders: [Folder]!
 }
 
 #===================================================================================================
@@ -452,9 +459,6 @@ type RootQuery {
   # Current user.
   viewer: Viewer!
 
-  # Folders for current user.
-  folders: [Folder]!
-
   # Get specific.
   item(itemId: ID!): Item!
 
@@ -462,6 +466,7 @@ type RootQuery {
   items(filter: FilterInput, offset: Int, count: Int): [Item]!
 
   # Search.
+  # TODO(burdon): Document why different from items.
   search(filter: FilterInput, offset: Int, count: Int): [Item]!
 }
 
