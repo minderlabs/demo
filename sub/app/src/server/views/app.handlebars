@@ -2,7 +2,19 @@
   <link rel="stylesheet" href="/assets/{{ app }}.css">
 {{/section}}
 
-<div id="{{ config.root }}"></div>
+<div id="{{ config.root }}">
+
+  <div class="ux-loading-bar">
+    <div class="ux-load-bar"></div>
+    <div class="ux-load-bar"></div>
+    <div class="ux-load-bar"></div>
+  </div>
+
+  <div class="ux-loading-title">
+    <h1>minder</h1>
+  </div>
+
+</div>
 
 {{!-- Safestring syntax. --}}
 <script>

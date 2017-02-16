@@ -5,12 +5,9 @@
 // TODO(burdon): Not running karma/webpack.
 const expect = require('chai').expect;
 
-import * as fakeredis from 'fakeredis';
-
 import { IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
 
 import { Database } from './database';
-import { RedisItemStore } from './redis_item_store';
 
 const matcher = new Matcher();
 
@@ -99,11 +96,10 @@ const tests = (itemStore) => {
   });
 };
 
-describe('MemoryDatabase:',
-  () => tests(new MemoryItemStore(idGenerator, matcher)));
-
-// https://github.com/hdachev/fakeredis
 /*
+describe('MemoryDatabase:',
+  () => tests(new MemoryItemStore(idGenerator, matcher, 'test')));
+
 describe('RedisDatabase:',
   () => tests(new RedisItemStore(fakeredis.createClient(), matcher)));
 */

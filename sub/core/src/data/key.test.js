@@ -21,4 +21,11 @@ describe('Key:', () => {
     let values = KEY.fromKey(key);
     expect(_.isEqual(values, args)).to.equal(true);
   });
+
+  it('Create wildcard key.', () => {
+    const KEY = new Key('I:{{type}}:{{itemId}}');
+
+    expect(KEY.toKey()).to.equal('I:*:*');
+    expect(KEY.toKey({ type: 'User' })).to.equal('I:User:*');
+  });
 });

@@ -2,18 +2,16 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
+
 /**
- * Structured key.
+ * Multi-part key formatter and parser.
  *
  * Formats and parses structured keys.
  *
  * Example: new Key('I:{{type}}:{{itemId}}').toKey({type: 'User', itemId: '123'});
  */
 export class Key {
-
-  // TODO(burdon): Test.
-
-  // TODO(burdon): Simpler to provide parts and separator (with prefix name).
 
   // https://medium.com/@daffl/beyond-regex-writing-a-parser-in-javascript-8c9ed10576a6#.p781xntvx
   static REGEX = /\{{2}\s*((\w|\.)+)\s*\}{2}/g;
@@ -32,14 +30,12 @@ export class Key {
   /**
    * Uses pattern to format key from args.
    *
-   * @param {object} args
+   * @param {object} args Creates wildcard key if null or missing args.
    * @returns {string}
    */
-  toKey(args) {
-    console.assert(args);
-
+  toKey(args={}) {
     return this._pattern.replace(Key.REGEX, (match, group) => {
-      return args[group];
+      return _.get(args, group, '*');
     });
   }
 

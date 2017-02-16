@@ -150,7 +150,7 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      user: { id: 'a' }
+      userId: 'a'
     };
     let root = {};
 
@@ -175,7 +175,7 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      user: { id: 'a' }
+      userId: 'a'
     };
     let root = {
       id: 'b'

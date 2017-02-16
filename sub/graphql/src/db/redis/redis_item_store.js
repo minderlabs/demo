@@ -2,44 +2,45 @@
 // Copyright 2016 Minder Labs.
 //
 
-import 'redis';
+import bluebird from 'bluebird';
+import redis from 'redis';
 
-import { ItemStore } from 'minder-core';
+import { ItemStore, Key } from 'minder-core';
 
-import { Key } from '../util/key';
+// TODO(burdon): Promises
+// https://github.com/NodeRedis/node_redis#promises
+bluebird.promisifyAll(redis.RedisClient.prototype);
 
 /**
- * Redis ItemStore.
+ * Redis Item Store.
+ *
+ * Items are stored as JSON serialized strings by Key.
  *
  * https://github.com/NodeRedis/node_redis
+ * https://redis.io/commands
  */
 export class RedisItemStore extends ItemStore {
 
+  // TODO(burdon): PubSub.
+
   // https://github.com/NodeRedis/node_redis#rediscreateclient
   static client(options) {
+    let { db } = options;
     return redis.createClient({
-      db: options.db
+      db
     });
   }
 
-  // TODO(burdon): Promises
-  // https://github.com/NodeRedis/node_redis#promises
-
-  // TODO(burdon): Testing.
-  // https://github.com/hdachev/fakeredis
-
-  static DB = 10;
-
-  static ITEM_KEY = new Key('I:{{type}}:{{itemId}}');
+  static ITEM_KEY = new Key('I:{{bucketId}}:{{type}}:{{itemId}}');
 
   constructor(idGenerator, matcher, namespace, client) {
     super(idGenerator, matcher, namespace);
     console.assert(client);
-
     this._client = client;
-    this._client.on('error', (err) => {
-      console.log('Error: ' + err);
-    });
+  }
+
+  clear() {
+    this._client.flushdb();
   }
 
   //
@@ -59,6 +60,9 @@ export class RedisItemStore extends ItemStore {
   //
 
   queryItems(context, root, filter={}, offset=0, count=10) {
+    // Get all keys.
+    let items = this._client.keys(RedisItemStore.ITEM_KEY.toKey());
+
     throw new Error('Not implemented');
   }
 }

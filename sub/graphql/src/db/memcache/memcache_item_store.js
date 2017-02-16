@@ -5,7 +5,7 @@
 import _ from 'lodash';
 import moment from 'moment';
 
-import { ItemStore } from './item_store';
+import { ItemStore } from 'minder-core';
 
 /**
  * Memcache store.

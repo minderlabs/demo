@@ -75,7 +75,9 @@ export class Database extends ItemStore {
   }
 
   getItemStore(namespace=Database.DEFAULT_NAMESPACE) {
-    return this._stores.get(namespace);
+    let itemStore = this._stores.get(namespace);
+    console.assert(itemStore, 'Invalid namespace: ' + namespace);
+    return itemStore;
   }
 
   // TODO(burdon): Evolve into mutation dispatcher to QueryRegistry.

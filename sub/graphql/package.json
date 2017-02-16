@@ -46,6 +46,7 @@
     "webpack-node-externals": "^1.5.4"
   },
   "dependencies": {
+    "bluebird": "^3.4.7",
     "body-parser": "^1.15.2",
     "cheerio": "^0.22.0",
     "cookie-parser": "^1.4.3",

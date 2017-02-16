@@ -11,13 +11,13 @@ import express from 'express';
 import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
-import memjs from 'memjs';
 
-import { IdGenerator, Matcher, MemcacheItemStore, MemoryItemStore, Logger } from 'minder-core';
+import { IdGenerator, Matcher, MemoryItemStore, Logger } from 'minder-core';
 import {
   Database,
   Firebase,
   GoogleDriveQueryProcessor,
+  MemcacheItemStore,
   SlackQueryProcessor,
   graphqlRouter
 } from 'minder-graphql';
@@ -113,6 +113,7 @@ const authManager = new AuthManager(firebase.admin, firebase.systemStore);
 // https://github.com/alevy/memjs
 //
 
+// TODO(burdon): Util in MemcacheItemStore.
 // const memcache = memjs.Client.create(`${Config.MEMCACHE_HOST}:${Config.MEMCACHE_PORT}`, {
 //   failoverTime: 60
 // });

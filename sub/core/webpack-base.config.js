@@ -16,6 +16,7 @@ module.exports = {
 
   context: __dirname,
 
+  // NOTE: This module should only contain cross-platform (target) modules.
 //target: 'node',
 
   devtool: 'inline-source-map',
@@ -38,6 +39,12 @@ module.exports = {
     },
 
     loaders: [
+
+      // https://github.com/webpack/json-loader
+      {
+        test: /\.json$/,
+        loader: 'json-loader'
+      },
 
       // See .babelrc for the presets.
       // https://github.com/babel/babel-loader
