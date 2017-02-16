@@ -26,20 +26,16 @@ spec:
       containers:
       - name: jupyter
         image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/jupyter:latest
-        #image: jupyter/scipy-notebook
-        env:
-        - name: GRANT_SUDO
-          value: "yes"
         ports:
         - containerPort: 8888
         volumeMounts:
-        - name: jupyter-home
-          mountPath: /home/jovyan/work
-        securityContext:
-          privileged: true
-          runAsUser: 0
+        - name: notebook
+          mountPath: /notebook
+        #securityContext:
+        #  privileged: true
+        #  runAsUser: 0
       volumes:
-      - name: jupyter-home
+      - name: notebook
         awsElasticBlockStore:
-          volumeID: vol-05ab21f8443bf1bc5 # Must already exist.
+          volumeID: vol-0cf68d07c01618b60 # Must already exist.
           fsType: ext4

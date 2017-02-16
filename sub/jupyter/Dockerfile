@@ -3,22 +3,35 @@
 #
 
 #
-# Jupyter notebook and Python shell with modified script to support EBS volumes.
+# Jupyter notebook and python env with ML frameworks (tensorflow, theano, keras) and GPU support.
 #
 # To ssh into this container as user jovyan, do:
-# kubectl exec $(kc get pods -l run=jupyter -o name | sed -e 's/^pod\///') -ti -- su -l jovyan
+# kubectl exec $(kc get pods -l run=jupyter -o name | sed -e 's/^pod\///') -ti -- bash
 
-# NOTE: I've gotten spurious "authentication required" errors when pulling this image, I think
-# because on slower networks the docker hub requests time out. Only workaround is faster network?
-FROM jupyter/scipy-notebook
+FROM lukovkin/dockerfile-cuda-tensorflow-keras-jupyter
 
-USER root
+#RUN apt-get update && apt-get -yq upgrade \
+#  && apt-get install -yq \
+#    git \
+#    wget \
+#  && apt-get clean -y
 
-# FIXME: [FATAL tini (7)] Executing child process 'start-notebook.sh' failed: 'Permission denied'
-# what user is it when start-notebook.sh is called?
-#COPY start-notebook.sh /usr/local/bin/
+# Python installs.
+# Remove mks, install openblas (nomks), otherwise gensim fails.
+# 
+RUN source activate keras \
+  && conda install -y \
+  nomkl numpy scipy scikit-learn numexpr \
+  gensim \
+  ipywidgets \
+  'notebook=4.3'
 
-COPY bashrc /home/jovyan/.bashrc
-RUN chown $NB_USER:users /home/$NB_USER/.bashrc
+# Disable GPU for now
+ENV THEANO_FLAGS="mode=FAST_RUN,device=cpu,floatX=float32"
 
-USER $NB_USER
+# Install bleeding-edge Lasagne
+RUN source activate keras \
+  && pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
+
+COPY jupyter_notebook_config.py /root/.jupyter/
+COPY bashrc /root/.bashrc
