@@ -144,6 +144,7 @@ class CanvasComponent extends React.Component {
   }
 
   render() {
+    // TODO(burdon): Rename menu => buttons.
     let { item, debug, menu, children } = this.props;
     let { title, description } = this.state;
 

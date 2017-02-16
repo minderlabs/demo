@@ -214,9 +214,10 @@ export class Matcher {
       // Resolve magic variables.
       // TODO(burdon): These must provided to the client matcher (client and server).
       switch (ref) {
+        // TODO(burdon): Is this still necessary/useful?
         case '$USER_ID': {
-          console.assert(context.user);
-          inputValue = { id: context.user.id };
+          console.assert(context.userId);
+          inputValue = { id: context.userId };
           break;
         }
 

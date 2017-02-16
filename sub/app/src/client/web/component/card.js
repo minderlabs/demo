@@ -39,6 +39,7 @@ export class Card extends React.Component {
   render() {
     let { children, icon, item } = this.props;
     let { title, description } = item;
+
     let className = DomUtil.className('ux-card', 'ux-card-type-' + item.type.toLowerCase(), this.props.className);
 
     // TODO(burdon): Optionally show description.

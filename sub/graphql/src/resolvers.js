@@ -134,7 +134,6 @@ export class Resolvers {
 
       Task: {
 
-        // TODO(burdon): Better way to deal with defaults?
         status: (root, args, context) => {
           return root.status || 0
         },
@@ -148,7 +147,7 @@ export class Resolvers {
         },
 
         owner: (root, args, context) => {
-          return root.owner && database.getItem(context, 'User', root.owner, Database.SYSTEM_NAMESPACE);
+          return database.getItem(context, 'User', root.owner, Database.SYSTEM_NAMESPACE);
         },
 
         assignee: (root, args, context) => {
@@ -163,13 +162,13 @@ export class Resolvers {
       Viewer: {
 
         user: (root, args, context) => {
-          let { user: { id:userId } } = context;
+          let { userId } = context;
           return database.getItem(context, 'User', userId, Database.SYSTEM_NAMESPACE);
         },
 
         group: (root, args, context) => {
-          // TODO(burdon): Lookup group.
-          return database.getItem(context, 'Group', 'minderlabs', Database.SYSTEM_NAMESPACE)
+          let { groupId } = context;
+          return database.getItem(context, 'Group', groupId, Database.SYSTEM_NAMESPACE)
         },
 
         folders: (root, args, context) => {

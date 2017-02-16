@@ -37,7 +37,7 @@ export class SearchBar extends React.Component {
   }
 
   render() {
-    let { className, value } = this.props;
+    let { value, className } = this.props;
 
     return (
       <div className={ DomUtil.className(className, 'ux-search', 'ux-row') }>

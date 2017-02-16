@@ -30,7 +30,7 @@ export class ProjectCard extends React.Component {
     mutator: React.PropTypes.object.isRequired
   };
 
-  handlTaskAdd() {
+  handleTaskAdd() {
     this.refs.tasks.addItem();
   }
 
@@ -45,16 +45,16 @@ export class ProjectCard extends React.Component {
       // Update existing.
       mutator.updateItem(item, mutations);
     } else {
-      throw new Error('Not implemented');
+      throw new Error('Not implemented.');
     }
   }
 
   render() {
-    let { item } = this.props;
-    let { tasks } = item;
+    let { item:project } = this.props;
+    let { tasks } = project;
 
     return (
-      <Card ref="card" item={ item }>
+      <Card ref="card" item={ project }>
 
         <div className="ux-list-tasks">
           <div className="ux-scroll-container">
@@ -65,28 +65,10 @@ export class ProjectCard extends React.Component {
                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>
           </div>
           {/*
-          <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
+          <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }/>
           */}
         </div>
       </Card>
-    );
-  }
-}
-
-// TODO(burdon): Register different canvas types (different files: project_card, project_board, project_tasks).
-
-/**
- * Tasks canvas.
- * http://localhost:3000/app/project/tasks/UHJvamVjdC9kZW1v
- */
-class ProjectTasksCanvasComponent extends React.Component {
-
-  render() {
-    let { item:project={}, refetch, mutator } = this.props;
-
-    return (
-      <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch }>
-      </Canvas>
     );
   }
 }
@@ -125,12 +107,12 @@ class ProjectBoardCanvasComponent extends React.Component {
         }));
       },
 
-      columnMapper: (user) => (columns, item) => {
+      columnMapper: (userId) => (columns, item) => {
         let idx = _.findIndex(columns, column => column.value == _.get(item, 'status'));
         return (item.bucket) ? null : (idx != -1) && columns[idx].id;
       },
 
-      onCreateMutations: (user, column) => {
+      onCreateMutations: (userId, column) => {
         return [
           MutationUtil.createFieldMutation('status', 'int', column.value)
         ];
@@ -163,12 +145,12 @@ class ProjectBoardCanvasComponent extends React.Component {
         }, users);
       },
 
-      columnMapper: (user) => (columns, item) => {
+      columnMapper: (userId) => (columns, item) => {
         let idx = _.findIndex(columns, column => column.value == _.get(item, 'assignee.id'));
         return (item.bucket) ? null : (idx == -1) ? ProjectBoardCanvasComponent.COLUMN_ICEBOX : columns[idx].id;
       },
 
-      onCreateMutations: (user, column) => {
+      onCreateMutations: (userId, column) => {
         return (column.id != ProjectBoardCanvasComponent.COLUMN_ICEBOX) && [
           MutationUtil.createFieldMutation('assignee', 'id', column.value)
         ];
@@ -200,14 +182,14 @@ class ProjectBoardCanvasComponent extends React.Component {
         }];
       },
 
-      columnMapper: (user) => (columns, item) => {
+      columnMapper: (userId) => (columns, item) => {
         console.log(JSON.stringify(item));
-        return (item.bucket == user.id) ? 'private' : null;
+        return (item.bucket == userId) ? 'private' : null;
       },
 
-      onCreateMutations: (user, column) => {
+      onCreateMutations: (userId, column) => {
         return [
-          MutationUtil.createFieldMutation('bucket', 'id', user.id)
+          MutationUtil.createFieldMutation('bucket', 'id', userId)
         ];
       },
 
@@ -226,9 +208,8 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   static propTypes = {
     mutator: React.PropTypes.object.isRequired,
-    user: React.PropTypes.object.isRequired,
-    item: React.PropTypes.object,
-    board: React.PropTypes.string
+    userId: React.PropTypes.string.isRequired,
+    item: React.PropTypes.object
   };
 
   state = {
@@ -256,7 +237,7 @@ class ProjectBoardCanvasComponent extends React.Component {
   }
 
   handleItemUpdate(item, mutations, column) {
-    let { user, mutator } = this.props;
+    let { userId, mutator } = this.props;
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
@@ -268,7 +249,7 @@ class ProjectBoardCanvasComponent extends React.Component {
         [
           MutationUtil.createFieldMutation('project', 'id', project.id)
         ],
-        boardAdapter.onCreateMutations(user, column) || [],
+        boardAdapter.onCreateMutations(userId, column) || [],
         mutations
       ));
 
@@ -279,7 +260,7 @@ class ProjectBoardCanvasComponent extends React.Component {
   }
 
   handleItemDrop(column, item, changes) {
-    let { mutator, item:project } = this.props;
+    let { item:project, mutator } = this.props;
     let { boardAdapter, boardAlias } = this.state;
 
     // Update item for column.
@@ -345,9 +326,11 @@ class ProjectBoardCanvasComponent extends React.Component {
   }
 
   render() {
-    let { typeRegistry } = this.context;
-    let { user, item:project={}, refetch, mutator } = this.props;
+    // TODO(burdon): Move to base class?
+    if (this.props.loading) { return <div/>; } else if (this.props.error) { return <div>{ this.props.error }</div>; }
+    let { userId, item:project, refetch, mutator } = this.props;
     let { boardAdapter, boardAlias, itemOrderModel } = this.state;
+    let { typeRegistry } = this.context;  // TODO(burdon): Get from compose_item props.
 
     // All items for board.
     let items = _.get(project, 'tasks', []);
@@ -378,7 +361,7 @@ class ProjectBoardCanvasComponent extends React.Component {
         <Board item={ project }
                items={ items }
                columns={ boardAdapter.columns(project, board) }
-               columnMapper={ boardAdapter.columnMapper(user) }
+               columnMapper={ boardAdapter.columnMapper(userId) }
                itemRenderer={ Card.ItemRenderer(typeRegistry) }
                itemOrderModel={ itemOrderModel }
                onItemDrop={ this.handleItemDrop.bind(this) }

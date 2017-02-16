@@ -5,6 +5,8 @@
 import React from 'react';
 import { DragSource, DropTarget } from 'react-dnd';
 
+import { DomUtil } from 'minder-core';
+
 /**
  * Drag container wraps the list item.
  *
@@ -26,10 +28,8 @@ class ItemDragContainer extends React.Component {
   render() {
     let { children, order, connectDragSource, isDragging } = this.props;
 
-    let className = 'ux-drag-source' + (isDragging ? ' ux-dragging' : '');
-
     return connectDragSource(
-      <div className={ className }>
+      <div className={ DomUtil.className('ux-drag-source', isDragging && 'ux-dragging') }>
         <div className="ux-debug">{ order }</div>
 
         { children }
@@ -84,7 +84,7 @@ class ItemDropContainer extends React.Component {
   render() {
     let { children, order, connectDropTarget, isOver } = this.props;
 
-    let className = 'ux-drop-target' + (isOver ? ' ux-active' : '') + (children ? '' : ' ux-last');
+    let className = DomUtil.className('ux-drop-target', isOver && 'ux-active', !children && 'ux-last');
 
     return connectDropTarget(
       <div className={ className }>

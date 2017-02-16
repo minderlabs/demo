@@ -8,8 +8,6 @@ import { WebBase } from './base';
 import { AppAction, AppReducer } from './reducers';
 import Application from './app';
 
-// TODO(burdon): ???????????????????????????
-// NOTE: Must come first.
 import './config';
 
 /**
@@ -33,7 +31,7 @@ class WebApp extends WebBase {
     return {
 
       // Main app reducer.
-      [AppAction.namespace] : AppReducer(this._serverProvider, this._injector)
+      [AppAction.namespace] : AppReducer(this._config, this._injector)
     }
   }
 }

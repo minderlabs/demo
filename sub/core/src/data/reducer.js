@@ -127,10 +127,6 @@ class Reducer {
   constructor(spec) {
     console.assert(spec);
     this._spec = spec;
-
-    // TODO(burdon): Check when created and called. And when instantiated.
-    let queryName = this.query.definitions[0].name.value;
-    console.log('###### REDUCER [%s] ######', queryName);
   }
 
   get mutation() {

@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import { Async } from 'minder-core';
+import { Async, DomUtil } from 'minder-core';
 
 /**
  * Text box.
@@ -129,7 +129,7 @@ export class TextBox extends React.Component {
       <input ref="input"
              type="text"
              spellCheck={ false }
-             className={ _.join([className, 'ux-textbox'], ' ') }
+             className={ DomUtil.className('ux-textbox', className) }
              autoFocus={ autoFocus ? 'autoFocus' : '' }
              value={ value || '' }
              placeholder={ placeholder }

@@ -10,6 +10,8 @@ import moment from 'moment';
 
 import { $$, Logger, IdGenerator } from 'minder-core';
 
+import { Const } from '../common/defs';
+
 // TODO(burdon): Split up logger for each component.
 const logger = Logger.get('client');
 
@@ -47,6 +49,10 @@ export const clientRouter = (authManager, clientManager, options) => {
         },
         user: {
           id: userInfo.id
+        },
+        group: {
+          // TODO(burdon): Lookup.
+          id: Const.DEF_GROUP
         }
       });
     } else {

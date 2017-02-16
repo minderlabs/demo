@@ -28,7 +28,6 @@ class GroupCanvasComponent extends React.Component {
 
   static propTypes = {
     mutator: React.PropTypes.object.isRequired,
-    user: React.PropTypes.object.isRequired,
     item: propType(GroupFragment)
   };
 
@@ -57,9 +56,9 @@ class GroupCanvasComponent extends React.Component {
     mutator.createItem('Project', mutations);
   }
 
-  // TODO(burdon): Warning: Failed prop type: Cannot read property 'kind' of undefined
   render() {
-    let { item={}, mutator, refetch } = this.props;
+    if (this.props.loading) { return <div/>; }
+    let { item, mutator, refetch } = this.props;
 
     return (
       <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch }>

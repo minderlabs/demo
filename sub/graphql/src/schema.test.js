@@ -176,12 +176,8 @@ describe('GraphQL JS API:', () => {
             },
           }),
           resolve(node, args, context) {
-            let { user: { id, name } } = context;
-            console.assert(id);
-
-            return database.getItem(context, 'User', id).then(user => ({
-              user
-            }));
+            let { userId } = context;
+            return database.getItem(context, 'User', userId);
           }
         }
       }

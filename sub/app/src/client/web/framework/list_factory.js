@@ -23,14 +23,18 @@ import { AppAction } from '../reducers';
 
 // TODO(burdon): Document injector.
 const mapStateToProps = (state, ownProps) => {
-  let { injector, user } = AppAction.getState(state);
+  let { injector, userId } = AppAction.getState(state);
 
   return {
     // Provide for Mutator.graphql
     injector,
+
+    // Matcher's context (same as server).
     context: {
-      user: { id: user.id }
-    }
+      userId
+    },
+
+    userId
   }
 };
 
@@ -80,10 +84,12 @@ function composeList(reducer) {
       // Configure props passed to component.
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
-        let items = reducer.getItems(data);
         let { filter, count } = ownProps;
+        let { loading, error } = data;
+        let items = reducer.getItems(data);
 
         return {
+          loading,
           items,
 
           // Paging.

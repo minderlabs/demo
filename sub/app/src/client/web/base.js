@@ -14,7 +14,7 @@ import moment from 'moment';
 
 import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 
-import { AuthManager, ConnectionManager, NetworkManager } from '../common/network';
+import { ClientAuthManager, ConnectionManager, NetworkManager } from '../common/network';
 import { TypeRegistryFactory } from './framework/type_factory';
 import { Monitor } from './component/devtools';
 
@@ -27,7 +27,7 @@ export class Base {
 
   constructor(config) {
     console.assert(config);
-    this._serverProvider = config;
+    this._config = config;
 
     // Event bus propagates events (e.g., error messages) to components.
     this._eventHandler = new EventHandler();
@@ -51,7 +51,7 @@ export class Base {
       .then(() => this.initRouter())
       .then(() => this.postInit())
       .then(() => {
-        logger.log($$('Config = %o', this._serverProvider));
+        logger.log($$('Config = %o', this._config));
       });
   }
 
@@ -68,20 +68,23 @@ export class Base {
    */
   initErrorHandling() {
 
-    // TODO(burdon): Configure webpack so this isn't needed.
-    console.assert = (value) => {
-      if (!value) {
-        console.error(new Error().stack);
-        throw 'Invalid arg.';
+    // TODO(burdon): Define in webpack?
+    console.assert = (cond, message) => {
+      if (!cond) {
+        // NOTE: This is either caught by onerror or unhandledrejection below.
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+        throw new Error(message ? 'Assert: ' + message : 'Assert failed.');
       }
     };
 
-    window.addEventListener('error', (error) => {
+    // https://developer.mozilla.org/en-US/docs/Web/Events/error
+    window.onerror = (error) => {
+      logger.error(error);
       this._eventHandler.emit({
         type: 'error',
         message: error.message
       });
-    });
+    };
 
     // https://developer.mozilla.org/en-US/docs/Web/Events/unhandledrejection
     window.addEventListener('unhandledrejection', (event) => {
@@ -229,7 +232,7 @@ export class Base {
    * Access config
    */
   get config() {
-    return this._serverProvider;
+    return this._config;
   }
 
   /**
@@ -291,7 +294,7 @@ export class Base {
    * </Activity>
    */
   render(App) {
-    logger.log($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._serverProvider, 'env')));
+    logger.log($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._config, 'env')));
 
     // Construct app.
     const app = (
@@ -304,7 +307,7 @@ export class Base {
     );
 
     // Render app.
-    let root = document.getElementById(this._serverProvider.root);
+    let root = document.getElementById(this._config.root);
     ReactDOM.render(app, root);
     return root;
   }
@@ -323,14 +326,14 @@ export class WebBase extends Base {
   initNetwork() {
 
     // Wraps the Apollo network requests.
-    this._networkManager = new NetworkManager(this._serverProvider, this._eventHandler).init();
+    this._networkManager = new NetworkManager(this._config, this._eventHandler).init();
 
     // Manages the client connection and registration.
     this._connectionManager =
-      new ConnectionManager(this._serverProvider, this._networkManager, this._queryRegistry, this._eventHandler);
+      new ConnectionManager(this._config, this._networkManager, this._queryRegistry, this._eventHandler);
 
     // Manages OAuth.
-    this._authManager = new AuthManager(this._serverProvider, this._networkManager, this._connectionManager);
+    this._authManager = new ClientAuthManager(this._config, this._networkManager, this._connectionManager);
 
     // Trigger auth.
     return this._authManager.authenticate();

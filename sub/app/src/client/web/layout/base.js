@@ -181,7 +181,9 @@ const LayoutQuery = gql`
 
 const mapStateToProps = (state, ownProps) => {
   let appState = AppAction.getState(state);
-  let { config, injector, user, group } = appState;
+  let { config, injector } = appState;
+
+  // Late binding.
   let serverProvider = new PropertyProvider(appState, 'server');
 
   let queryRegistry = injector.get(QueryRegistry);
@@ -191,11 +193,7 @@ const mapStateToProps = (state, ownProps) => {
     config,
     serverProvider,
     queryRegistry,
-    typeRegistry,
-
-    // TODO(burdon): Provided by LayoutQuery.
-    user,
-    group
+    typeRegistry
   };
 };
 
@@ -211,7 +209,9 @@ export default compose(
   // Configure query (from redux state).
   // http://dev.apollodata.com/react/queries.html#graphql-options
   graphql(LayoutQuery, {
-    props: ({ ownProps, data }) => _.pick(data, ['loading', 'viewer'])
+    props: ({ ownProps, data }) => {
+      return _.pick(data, ['loading', 'error', 'viewer'])
+    }
   })
 
 )(BaseLayout);

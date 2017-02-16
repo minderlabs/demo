@@ -44,19 +44,17 @@ export class ContactCanvasComponent extends React.Component {
 
   static propTypes = {
     refetch: React.PropTypes.func.isRequired,
-    user: React.PropTypes.object.isRequired,
     item: propType(ContactFragment)
   };
 
   render() {
-    let { refetch, item } = this.props;
-    if (!item) {
-      return <div/>;
-    }
+    if (this.props.loading) { return <div/>; }
+    let { item, refetch } = this.props;
+    let { email } = item;
 
     return (
       <Canvas ref="canvas" item={ item } refetch={ refetch }>
-        <div>{ item.email }</div>
+        <div>{ email }</div>
       </Canvas>
     );
   }

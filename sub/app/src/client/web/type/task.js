@@ -144,7 +144,6 @@ class TaskCanvasComponent extends React.Component {
 
   static propTypes = {
     mutator: React.PropTypes.object.isRequired,
-    user: React.PropTypes.object.isRequired,
     item: propType(TaskFragment)
   };
 
@@ -229,15 +228,17 @@ class TaskCanvasComponent extends React.Component {
   }
 
   render() {
-    let { mutator, refetch, item={}, members } = this.props;
+    if (this.props.loading) { return <div/>; }
     let { assigneeText, status } = this.state;
-    let { project } = item;
+    let { item:task, mutator, refetch } = this.props;
+
+    let { project, tasks } = task;
 
     let levels = TASK_LEVELS.map(level =>
       <option key={ level.value } value={ level.value }>{ level.title }</option>);
 
     return (
-      <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
+      <Canvas ref="canvas" item={ task } mutator={ mutator } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
         <div className="app-type-task ux-column">
 
           <div className="ux-section ux-data">
@@ -245,19 +246,19 @@ class TaskCanvasComponent extends React.Component {
               <div className="ux-data-label">Project</div>
               <div className="ux-text">
                 { project &&
-                <Link to={ Path.canvas(ID.toGlobalId('Project', project.id)) }>{ _.get(project, 'title') }</Link>
+                <Link to={ Path.canvas(ID.toGlobalId('Project', project.id)) }>{ project.title }</Link>
                 }
               </div>
             </div>
 
             <div className="ux-data-row">
               <div className="ux-data-label">Owner</div>
-              <div className="ux-text">{ _.get(item, 'owner.title') }</div>
+              <div className="ux-text">{ task.owner.title }</div>
             </div>
 
             <div className="ux-data-row">
               <div className="ux-data-label">Assignee</div>
-              <MembersPicker value={ assigneeText }
+              <MembersPicker value={ assigneeText || '' }
                              onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
                              onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
             </div>
@@ -277,7 +278,7 @@ class TaskCanvasComponent extends React.Component {
             </div>
 
             <List ref="tasks"
-                  items={ item.tasks }
+                  items={ tasks }
                   itemRenderer={ TaskListItemRenderer }
                   onItemSelect={ this.handleTaskSelect.bind(this) }
                   onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
@@ -292,7 +293,6 @@ class TaskCanvasComponent extends React.Component {
 // HOC: Members Picker.
 //-------------------------------------------------------------------------------------------------
 
-// TODO(burdon): Require generic link query (e.g., Group -> Members).
 const MembersQuery = gql`
   query MembersQuery($itemId: ID!) {
     
@@ -310,22 +310,34 @@ const MembersQuery = gql`
 
 const MembersPicker = compose(
   connect((state, ownProps) => {
-    let { injector, user, group } = AppAction.getState(state);
+    let { groupId } = AppAction.getState(state);
+
     return {
-      matcher: injector.get(Matcher),
-      user,
-      group
+      groupId
     }
   }),
+
   graphql(MembersQuery, {
-    options: (props) => ({
-      variables: {
-        itemId: ID.toGlobalId('Group', props.group)
-      }
-    }),
-    props: ({ ownProps, data }) => ({
-      items: _.get(data, 'group.members')
-    })
+    options: (props) => {
+      let { groupId } = props;
+
+      return {
+        variables: {
+          itemId: ID.toGlobalId('Group', groupId)
+        }
+      };
+    },
+
+    props: ({ ownProps, data }) => {
+      let { loading, error, group={} } = data;
+      let { members:items } = group;
+
+      return {
+        loading,
+        error,
+        items
+      };
+    }
   })
 )(Picker);
 

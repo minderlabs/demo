@@ -12,9 +12,8 @@ import { Logger } from 'minder-core';
 Logger.setLevel({
 
   'main'      : Logger.Level.debug,
-
-  'db'        : Logger.Level.debug,
   'resolver'  : Logger.Level.debug,
   'gql'       : Logger.Level.debug,
+  'db'        : Logger.Level.info,
 
-}, Logger.Level.error);
+}, Logger.Level.warn);

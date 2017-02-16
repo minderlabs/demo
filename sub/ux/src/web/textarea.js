@@ -4,6 +4,8 @@
 
 import React from 'react';
 
+import { DomUtil } from 'minder-core';
+
 /**
  * Textarea.
  */
@@ -49,7 +51,7 @@ export class Textarea extends React.Component {
     let { value } = this.state;
 
     return (
-      <textarea className={ _.join([className, 'ux-textarea'], ' ') }
+      <textarea className={ DomUtil.className('ux-textarea', className) }
                 placeholder={ placeholder }
                 spellCheck={ false }
                 rows={ rows }

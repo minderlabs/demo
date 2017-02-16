@@ -16,21 +16,21 @@ import { TypeRegistry } from './type_registry';
  * NOTE: This is applied to the child container (e.g., TaskCardComponent).
  */
 const mapStateToProps = (state, ownProps) => {
-  let { injector, user } = AppAction.getState(state);
+  let { injector, userId } = AppAction.getState(state);
 
   return {
-    // TODO(burdon): Bind needed objects instead (e.g., Matcher, TypeRegistry).
     // Provide for Mutator.graphql
     injector,
 
+    // TODO(burdon): Get from injector?
     typeRegistry: injector.get(TypeRegistry),
 
     // Matcher's context (same as server).
     context: {
-      user: { id: user.id }
+      userId
     },
 
-    user
+    userId
   }
 };
 
@@ -42,6 +42,7 @@ const mapStateToProps = (state, ownProps) => {
  * }
  *
  * @param {ItemReducer} reducer
+ * @param containers Additional HOC containers.
  * @returns {React.Component} Item control.
  */
 export function composeItem(reducer, ...containers) {
@@ -57,11 +58,11 @@ export function composeItem(reducer, ...containers) {
     //
     graphql(reducer.query, {
 
-      // Map mproperties to query.
+      // Map properties to query.
       // http://dev.apollodata.com/react/queries.html#graphql-options
       options: (props) => {
-        let { context, itemId } = props;
-        let matcher = props.injector.get(Matcher);
+        let { itemId, context, injector } = props;
+        let matcher = injector.get(Matcher);
 
         return {
           variables: {
@@ -76,10 +77,17 @@ export function composeItem(reducer, ...containers) {
 
       // Map query result to component properties.
       // http://dev.apollodata.com/react/queries.html#graphql-props
-      props: ({ ownProps, data }) => ({
-        item: reducer.getItem(data),
-        refetch: data.refetch
-      })
+      props: ({ ownProps, data }) => {
+        let { loading, error, refetch } = data;
+        let item = reducer.getItem(data);
+
+        return {
+          loading,
+          error,
+          refetch,
+          item
+        }
+      }
     })
   ];
 

@@ -53,7 +53,7 @@ export class Database extends ItemStore {
    * @returns {Database}
    */
   registerItemStore(store) {
-    console.log('Registered ItemStore: ' + store.namespace);
+    logger.log('Registered ItemStore: ' + store.namespace);
     console.assert(store && store.namespace);
     console.assert(!this._stores.get(store.namespace), 'Already registered: ' + store.namespace);
     this._stores.set(store.namespace, store);
@@ -67,7 +67,7 @@ export class Database extends ItemStore {
    * @return {Database}
    */
   registerQueryProcessor(processor) {
-    console.log('Registered QueryProcessor: ' + processor.namespace);
+    logger.log('Registered QueryProcessor: ' + processor.namespace);
     console.assert(processor && processor.namespace);
     console.assert(!this._queryProcessors.get(processor.namespace), 'Already registered: ' + processor.namespace);
     this._queryProcessors.set(processor.namespace, processor);

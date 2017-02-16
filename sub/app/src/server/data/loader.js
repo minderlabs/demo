@@ -4,7 +4,6 @@
 
 import _ from 'lodash';
 
-import { ID } from 'minder-core';
 import { Database } from 'minder-graphql';
 
 /**
@@ -70,7 +69,6 @@ export class Loader {
           }));
 
           // TODO(burdon): Need to rebuild on-the-fly as users login for the first time.
-          console.log('Group: %s[%s]: [%s]', group.id, ID.getGlobalId(group), group.members);
           return this._database.upsertItem({}, group, Database.SYSTEM_NAMESPACE);
         });
     });

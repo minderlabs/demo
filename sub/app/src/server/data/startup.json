@@ -35,24 +35,6 @@
       }
     },
     {
-      "id": "folder_tasks",
-      "order": 2,
-      "alias": "tasks",
-      "title": "Tasks",
-      "icon": "assignment_turned_in",
-      "filter": {
-        "type": "Task",
-        "expr": {
-          "op": "OR",
-          "expr": [
-            { "ref": "$USER_ID", "field": "owner" },
-            { "ref": "$USER_ID", "field": "assignee" }
-          ]
-        },
-        "groupBy": false
-      }
-    },
-    {
       "id": "folder_favorites",
       "order": 3,
       "alias": "favorites",
@@ -71,6 +53,24 @@
       "icon": "assignment",
       "filter": {
         "type": "Project",
+        "groupBy": false
+      }
+    },
+    {
+      "id": "folder_tasks",
+      "order": 2,
+      "alias": "tasks",
+      "title": "Tasks",
+      "icon": "assignment_turned_in",
+      "filter": {
+        "type": "Task",
+        "expr": {
+          "op": "OR",
+          "expr": [
+            { "ref": "$USER_ID", "field": "owner" },
+            { "ref": "$USER_ID", "field": "assignee" }
+          ]
+        },
         "groupBy": false
       }
     },

@@ -107,8 +107,11 @@ export default compose(
 
   graphql(TestQuery, {
     props: ({ ownProps, data }) => {
-      let { viewer } = data;
+      let { loading, error, viewer } = data;
+
       return {
+        loading,
+        error,
         viewer
       };
     }

@@ -140,8 +140,7 @@ GraphQL queries are called twice:
             
             // Map query results to properties (and provide data functions).
             // http://dev.apollodata.com/react/queries.html#graphql-props
-            props: ({ ownProps, data }) => ({
-            
+            props: ({ ownProps, data }) => ({            
                 // Vars returned by the query.
                 // Best practice to map these onto props required by dumb component.
                 data,

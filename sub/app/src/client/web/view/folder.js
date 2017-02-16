@@ -21,10 +21,6 @@ import './folder.less';
  */
 class FolderView extends React.Component {
 
-  static propTypes = {
-    user: React.PropTypes.object.isRequired
-  };
-
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired
   };
@@ -86,7 +82,7 @@ const FoldersQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  let { config, injector, search, user, group } = AppAction.getState(state);
+  let { config, injector, search } = AppAction.getState(state);
   let { context } = ContextAction.getState(state);
 
   let typeRegistry = injector.get(TypeRegistry);
@@ -109,9 +105,7 @@ const mapStateToProps = (state, ownProps) => {
     listType,
     typeRegistry,
     filter,
-    search,
-    user,
-    group
+    search
   }
 };
 
@@ -127,8 +121,8 @@ export default compose(
     // http://dev.apollodata.com/react/queries.html#graphql-props
     // http://dev.apollodata.com/react/queries.html#default-result-props
     props: ({ ownProps, data }) => {
+      let { loading, error, viewer } = data;
       let { filter } = ownProps;
-      let { viewer } = data;
 
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {
@@ -141,6 +135,8 @@ export default compose(
       }
 
       return {
+        loading,
+        error,
         filter
       }
     }

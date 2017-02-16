@@ -47,16 +47,16 @@ class GoogleDriveClient {
 
   constructor(idGenerator, config) {
     this._idGenerator = idGenerator;
-    this._serverProvider = config;
+    this._config = config;
     this._drive = google.drive('v3');
   }
 
   _getOAuthClient(context) {
     // TODO(madadam): Avoid creating a new OAuth2 client every request. Just pass access token?
-    // If not, then cache the clients by context.user.id.
+    // If not, then cache the clients by context.userId.
     let oauth2Client = new google.auth.OAuth2(
-      this._serverProvider.clientId,
-      this._serverProvider.clientSecret
+      this._config.clientId,
+      this._config.clientSecret
     );
     oauth2Client.credentials = { access_token: this._getAccessToken(context) };
     return oauth2Client;

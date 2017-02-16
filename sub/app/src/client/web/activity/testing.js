@@ -51,8 +51,6 @@ class TestingActivity extends React.Component {
   render() {
     let { typeRegistry, items } = this.props;
 
-    const itemRenderer = Card.ItemRenderer(typeRegistry);
-
     return (
       <FullLayout>
         <div className="ux-toolbar">
@@ -71,7 +69,7 @@ class TestingActivity extends React.Component {
         <List ref="list"
               highlight={ false }
               items={ items }
-              itemRenderer={ itemRenderer }
+              itemRenderer={ Card.ItemRenderer(typeRegistry) }
               onItemUpdate={ this.onItemUpdate.bind(this) }/>
       </FullLayout>
     );
@@ -122,8 +120,11 @@ export default compose(
     }),
 
     props: ({ ownProps, data }) => {
-      let { items } = data;
+      let { loading, error, items } = data;
+
       return {
+        loading,
+        error,
         items
       };
     }

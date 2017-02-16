@@ -28,7 +28,6 @@ class UserCanvasComponent extends React.Component {
 
   static propTypes = {
     mutator: React.PropTypes.object.isRequired,
-    user: React.PropTypes.object.isRequired,
     item: propType(UserFragment)
   };
 
@@ -39,7 +38,7 @@ class UserCanvasComponent extends React.Component {
 
   // TODO(burdon): Factor out create/update (to task).
   handleItemUpdate(item, mutations) {
-    console.log(':::', item, mutations);
+    console.warn('Not implemented');
   }
 
   handleItemAdd() {
@@ -47,7 +46,9 @@ class UserCanvasComponent extends React.Component {
   }
 
   render() {
-    let { item={}, mutator, refetch } = this.props;
+    if (this.props.loading) { return <div/>; }
+    let { item, mutator, refetch } = this.props;
+    let { ownerTasks, assigneeTasks } = item;
 
     // TODO(burdon): List type styling.
 
@@ -60,7 +61,7 @@ class UserCanvasComponent extends React.Component {
             <i className="ux-icon" onClick={ this.handleItemAdd.bind(this) }>add</i>
           </div>
           <List ref="tasks"
-                items={ item.ownerTasks }
+                items={ ownerTasks }
                 itemRenderer={ TaskListItemRenderer }
                 onItemSelect={ this.handleItemSelect.bind(this) }
                 onItemUpdate={ this.handleItemUpdate.bind(this) }/>
@@ -68,7 +69,7 @@ class UserCanvasComponent extends React.Component {
           <div className="ux-section-header ux-row">
             <h3 className="ux-expand">Assigned</h3>
           </div>
-          <List items={ item.assigneeTasks }
+          <List items={ assigneeTasks }
                 itemRenderer={ TaskListItemRenderer }
                 onItemSelect={ this.handleItemSelect.bind(this) }
                 onItemUpdate={ this.handleItemUpdate.bind(this) }/>

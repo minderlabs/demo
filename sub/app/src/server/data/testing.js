@@ -6,48 +6,66 @@ import _ from 'lodash';
 import moment from 'moment';
 
 import { Randomizer, TypeUtil } from 'minder-core';
+import { Database } from 'minder-graphql';
 
 /**
  * Test data.
  */
 export class TestData {
 
-  static randomizer(itemStore) {
-    // TODO(burdon): Pass query registry into Randomizer.
-    return new Randomizer(itemStore, _.defaults({}, {
+  static randomizer(database, itemStore) {
+    const queryItems = (type) => database.queryItems({}, {}, {
+      namespace: Database.getNamespaceForType(type),
+      type
+    });
+
+    return new Randomizer(itemStore, queryItems, {
       created: moment().subtract(10, 'days').unix()
-    }));
+    });
   }
 
   static TaskFields = (randomizer) => ({
 
     status: () => randomizer.chance.natural({ min: 0, max: 3 }),
 
-    // TODO(burdon): Select User from project's Group.
+    // TODO(burdon): Select Users, Project from Group (spec group in context).
+
+    owner: {
+      type: 'User',
+      likelihood: 100
+    },
+
+    assignee: {
+      type: 'User',
+      likelihood: 50
+    },
+
     project: {
       type: 'Project',
-      likelihood: 0.75,
+      likelihood: 75,
 
       //
-      // Fantastically elaborate mechanism to create bi-directional links (add tasks to project).
+      // Create bi-directional links (add tasks to project).
       //
       onCreate: (randomizer, tasks) => {
         let mutatedProjects = {};
         return TypeUtil.iterateWithPromises(tasks, task => {
-
-          // Add to project.
           let projectId = task.project;
           if (projectId) {
-            return randomizer.queryCache({ ids: [projectId] }).then(projects => {
-              let project = projects[0];
+            return randomizer.queryCache('Project').then(projects => {
+              console.assert(projects);
+
+              // Add to tasks to project.
+              let project = _.find(projects, project => project.id === projectId);
               project.tasks = TypeUtil.maybeAppend(project.tasks, task.id);
-              mutatedProjects[project.id] = project;
+              mutatedProjects[projectId] = project;
             }).then(() => {
 
               // Create sub-tasks.
               if (randomizer.chance.bool({ likelihood: 30 })) {
                 randomizer.generate('Task', randomizer.chance.natural({ min: 1, max: 3 }), {
                   status: () => randomizer.chance.bool({ likelihood: 50 }) ? 0 : 3,
+                  owner: () => task.owner
                 }).then(tasks => {
 
                   // Add sub-tasks to parent task.
@@ -61,16 +79,6 @@ export class TestData {
           return randomizer.upsertItems(Object.values(mutatedProjects));
         });
       }
-    },
-
-    owner: {
-      type: 'User',
-      likelihood: 1.0
-    },
-
-    assignee: {
-      type: 'User',
-      likelihood: 0.5
     }
   });
 }

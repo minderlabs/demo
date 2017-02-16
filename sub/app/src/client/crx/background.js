@@ -8,7 +8,7 @@ Logger.setLevel({
 
 import { ChromeMessageChannelDispatcher, Listeners, TypeUtil } from 'minder-core';
 
-import { AuthManager, ConnectionManager, NetworkManager } from '../common/network';
+import { ClientAuthManager, ConnectionManager, NetworkManager } from '../common/network';
 import { ChromeNetworkInterface } from './util/network';
 import { Notification } from './util/notification';
 import { Settings } from './util/settings';
@@ -58,7 +58,7 @@ class BackgroundApp {
 
   constructor() {
     // Initial configuration (dynamically updated).
-    this._serverProvider = _.defaults({}, BackgroundApp.Config);
+    this._config = _.defaults({}, BackgroundApp.Config);
 
     // Dynamic settings.
     this._settings = new Settings(DefaultSettings);
@@ -72,9 +72,9 @@ class BackgroundApp {
     //
     // Network.
     //
-    this._networkManager = new NetworkManager(this._serverProvider);
-    this._connectionManager = new ConnectionManager(this._serverProvider, this._networkManager);
-    this._authManager = new AuthManager(this._serverProvider, this._networkManager, this._connectionManager);
+    this._networkManager = new NetworkManager(this._config);
+    this._connectionManager = new ConnectionManager(this._config, this._networkManager);
+    this._authManager = new ClientAuthManager(this._config, this._networkManager, this._connectionManager);
 
     //
     // Listen for settings updates (not called on first load).
@@ -82,8 +82,8 @@ class BackgroundApp {
     this._settings.onChange.addListener(settings => {
 
       // Check network settings (server) changes.
-      let restart = this._serverProvider.server != settings.server;
-      BackgroundApp.UpdateConfig(this._serverProvider, settings);
+      let restart = this._config.server != settings.server;
+      BackgroundApp.UpdateConfig(this._config, settings);
 
       if (restart) {
         this._networkManager.init();
@@ -106,14 +106,14 @@ class BackgroundApp {
       switch (request.command) {
 
         // On client startup.
-        // Send user ID from client registration.
+        // TODO(burdon): Registration might not have happened yet (esp. if server not responding).
         case BackgroundCommand.REGISTER: {
-          // TODO(burdon): Registration might not have happened yet (esp. if server not responding).
-          console.assert(this._authManager.currentUser);
-          return Promise.resolve({
-            user: this._authManager.currentUser,
-            server: this._serverProvider.server
-          });
+          let { server, user: { id:userId }, group: { id:groupId } } = this._config;
+          if (!server || !userId || !groupId) {
+            return Promise.reject('Client not registered.');
+          } else {
+            return Promise.resolve({ server, userId, groupId });
+          }
         }
 
         // Ping.
@@ -136,7 +136,7 @@ class BackgroundApp {
    * @returns {object}
    */
   get config() {
-    return this._serverProvider;
+    return this._config;
   }
 
   /**
@@ -157,7 +157,7 @@ class BackgroundApp {
 
     // Load the settings.
     this._settings.load().then(settings => {
-      BackgroundApp.UpdateConfig(this._serverProvider, settings);
+      BackgroundApp.UpdateConfig(this._config, settings);
 
       // Initialize the network manager.
       this._networkManager.init();

@@ -6,8 +6,9 @@ import _ from 'lodash';
 
 import { Chance } from 'chance';
 
-import Logger from '../util/logger';
 import { TypeUtil } from '../util/type';
+
+import Logger from '../util/logger';
 
 const logger = Logger.get('randomizer');
 
@@ -16,8 +17,9 @@ const logger = Logger.get('randomizer');
  */
 export class Randomizer {
 
-  // http://chancejs.com
-
+  /**
+   * Default property generators.
+   */
   static generators = {
 
     'Task': chance => {
@@ -48,17 +50,22 @@ export class Randomizer {
   /**
    *
    * @param itemStore
-   * @param context
-   * @param seed        A fixed seed guarantees consistent results for unit tests, etc.
+   * @param queryItems
+   * @param options
    */
-  constructor(itemStore, context={}, seed=1000) {
-    console.assert(itemStore);
+  constructor(itemStore, queryItems, options) {
+    console.assert(itemStore && queryItems);
 
-    // TODO(burdon): Need to fan out to User, etc.
     this._itemStore = itemStore;
-    this._context = context;
+    this._queryItems = queryItems;
+    this._options = _.defaults(options, {
+      seed: 1000
+    });
 
-    this._chance = new Chance(seed);
+    // http://chancejs.com
+    this._chance = new Chance(this._options.seed);
+
+    // Map of values by type.
     this._cache = new Map();
   }
 
@@ -68,24 +75,24 @@ export class Randomizer {
 
   /**
    * Query the itemStore or return a cached value.
-   * @param filter
+   * @param type
    * @return {Promise}
    */
-  queryCache(filter) {
-    let key = JSON.stringify(filter);
-    let result = this._cache.get(key);
+  queryCache(type) {
+    console.assert(type);
+    let result = this._cache.get(type);
     if (result) {
       return Promise.resolve(result);
     } else {
-      return this._itemStore.queryItems(this._context, {}, filter).then(values => {
-        this._cache.set(key, values);
+      return this._queryItems(type).then(values => {
+        this._cache.set(type, values);
         return values;
       });
     }
   }
 
   upsertItems(items) {
-    return this._itemStore.upsertItems(this._context, items);
+    return this._itemStore.upsertItems({}, items);
   }
 
   /**
@@ -116,13 +123,6 @@ export class Randomizer {
         ...Randomizer.generators[type](this._chance)
       };
 
-      // Add user bucket.
-      if (this._context.group && this._chance.bool({ likelihood: 20 })) {
-        if (!_.isEmpty(this._context.group.members)) {
-          item.bucket = this._chance.pickone(this._context.group.members);
-        }
-      }
-
       items.push(item);
 
       //
@@ -132,17 +132,18 @@ export class Randomizer {
       return TypeUtil.iterateWithPromises(fields, (spec, field) => {
 
         // Set literal value.
-        if (spec.likelihood === undefined || this._chance.bool({ likelihood: spec.likelihood * 100 })) {
+        if (spec.likelihood === undefined || this._chance.bool({ likelihood: spec.likelihood })) {
           // Direct value.
           if (_.isFunction(spec)) {
             item[field] = spec();
           } else {
             // Get items for generator's type.
-            return this.queryCache({ type: spec.type }).then(values => {
-//            console.log('GET[%s]: %d', spec.type, values.length);
+            return this.queryCache(spec.type).then(values => {
               if (values.length) {
                 let value = this._chance.pickone(values);
                 item[field] = value.id;
+              } else {
+                logger.warn('No values for: ' + JSON.stringify(spec.type));
               }
             });
           }
@@ -155,10 +156,10 @@ export class Randomizer {
 
         // TODO(burdon): Should happen before upsert.
         // Fake timestamps (so don't show up in inbox).
-        if (this._context.created) {
+        if (this._options.created) {
           _.each(items, item => {
-            item.created = this._context.created;
-            item.modified = this._context.created;
+            item.created = this._options.created;
+            item.modified = this._options.created;
           });
         }
 

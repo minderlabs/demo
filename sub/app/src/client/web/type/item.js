@@ -27,6 +27,7 @@ export class ItemCard extends React.Component {
 
   render() {
     let { item } = this.props;
+
     let className = 'ux-type-' + item.type.toLowerCase();
 
     return (
@@ -42,15 +43,12 @@ export class ItemCanvasComponent extends React.Component {
 
   static propTypes = {
     refetch: React.PropTypes.func.isRequired,
-    user: React.PropTypes.object.isRequired,
     item: propType(ItemFragment)
   };
 
   render() {
-    let { refetch, item } = this.props;
-    if (!item) {
-      return <div/>;
-    }
+    if (this.props.loading) { return <div/>; }
+    let { item, refetch } = this.props;
 
     return (
       <Canvas item={ item } refetch={ refetch }/>

@@ -30,11 +30,11 @@ export class AppAction {
   // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
   //
 
-  static register(server, user) {
+  static register(server, userId, groupId) {
     return {
       type: AppAction.ACTION.REGISTER,
       value: {
-        server, user
+        server, userId, groupId
       }
     };
   }
@@ -50,16 +50,15 @@ export class AppAction {
 export const AppReducer = (config, injector) => {
   console.assert(config);
 
-  // TODO(burdon): State should only pertain to actions (i.e., search).
-  // NOTE: We need the injector here since it can't be passed via React context to HOC containers.
-
   const initialState = {
-    injector: injector,     // TODO(burdon): Factor out?
+    // NOTE: Needed since can't be passed via React context to HOC containers.
+    injector: injector,
 
     config: config,
 
-    user: config.user,
-    group: config.group,      // TODO(burdon): Should be queried list.
+    // TODO(burdon): Create registration state.
+    userId: config.userId,
+    groupId: config.groupId,
 
     search: {
       text: ''
@@ -72,7 +71,7 @@ export const AppReducer = (config, injector) => {
     switch (action.type) {
       case AppAction.ACTION.REGISTER: {
         console.log('Registered: ' + JSON.stringify(action.value));
-        return _.assign(state, _.pick(action.value, ['server', 'user']));
+        return _.assign(state, _.pick(action.value, ['server', 'userId', 'groupId']));
       }
 
       // TODO(burdon): Get search query (not just text).

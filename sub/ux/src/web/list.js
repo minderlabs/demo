@@ -72,7 +72,7 @@ export class List extends React.Component {
 
     render() {
       let { item } = this.props;
-      let title = item && item.title;
+      let { title } = item;
 
       return (
         <div className="ux-row ux-data-row">
@@ -301,9 +301,11 @@ export class List extends React.Component {
       return listItem;
     });
 
-    let lastDrop = null;
+    let lastDropTarget = null;
     if (itemOrderModel) {
-      lastDrop = <ListItemDropTarget data={ data } order={ previousOrder + .5 } onDrop={ this.handleItemDrop.bind(this) }/>
+      lastDropTarget = <ListItemDropTarget data={ data }
+                                           order={ previousOrder + .5 }
+                                           onDrop={ this.handleItemDrop.bind(this) }/>
     }
 
     //
@@ -328,7 +330,7 @@ export class List extends React.Component {
     return (
       <div className={ className }>
         { rows }
-        { lastDrop }
+        { lastDropTarget }
         { editor }
       </div>
     );
@@ -489,13 +491,14 @@ export class ListItem extends React.Component {
   }
 
   render() {
+    let { children, className } = this.props;
+
     return (
-      <div className={ DomUtil.className('ux-row', 'ux-data-row', this.props.className) }>
-        { this.props.children }
+      <div className={ DomUtil.className('ux-row', 'ux-data-row', className) }>
+        { children }
       </div>
     );
   }
 }
 
-// TODO(burdon): Should be broader than List (i.e., on Canvas/Layout?)
 export const DragDropList = DragDropContext(HTML5Backend)(List);

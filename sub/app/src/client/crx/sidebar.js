@@ -34,13 +34,13 @@ const config = _.merge({
 
   app: {
     name: 'Minder',
-    version: '0.1.1',
+    version: '0.0.0',     // TODO(burdon): Get from manifest.
     platform: 'crx'
   },
 
   // Set by server registration with background page.
-  group: 'minderlabs',
-  user: {}
+  userId: null,
+  groupId: null
 
 }, HttpUtil.parseUrlArgs());
 
@@ -107,7 +107,7 @@ class SidebarApp extends Base {
     }).wait().then(response => {
       // TODO(burdon): Retry if not registered (server might not be responding).
       console.assert(response.server && response.user);
-      this.store.dispatch(AppAction.register(response.server, response.user));
+      this.store.dispatch(AppAction.register(response.server, response.userId, response.groupId));
     });
   }
 
@@ -137,7 +137,7 @@ class SidebarApp extends Base {
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace]: AppReducer(this._serverProvider, this._injector),
+      [AppAction.namespace]: AppReducer(this._config, this._injector),
 
       // Context.
       [ContextAction.namespace]: ContextReducer,

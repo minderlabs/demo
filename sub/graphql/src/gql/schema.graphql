@@ -247,9 +247,9 @@ interface Item {
   labels: [String]
 }
 
-#
+#===================================================================================================
 # Item Types.
-#
+#===================================================================================================
 
 type Contact implements Item {
   namespace: String
@@ -375,13 +375,13 @@ type Project implements Item {
   # TODO(burdon): Directives for links.
   tasks: [Task]!
 
-  # Sub-items.
-  # TODO(madadam): Rename -> items.
-  # TODO(burdon): Broken -- reimplement using SearchResult.
-  refs: [Item]
-
   # TODO(burdon): Map type (array of typed values).
   boards: [Board]
+
+  # Sub-items.
+  # TODO(madadam): Rename -> items.
+  # TODO(burdon): Reimplement using SearchResult.
+  refs: [Item]
 }
 
 type Task implements Item {
@@ -407,7 +407,7 @@ type Task implements Item {
   status: Int!
 
   # TODO(burdon): Promote to shared meta data for all items.
-  owner: User
+  owner: User!
   assignee: User
 }
 
@@ -424,16 +424,17 @@ type User implements Item {
   description: String
   labels: [String]
 
-  email: String
-
   contact: Contact
+
+  # TODO(burdon): Part of contact?
+  email: String
 
   # TODO(burdon): Remove (only query via project links).
   tasks(filter: FilterInput): [Task]!
 }
 
 #===================================================================================================
-# Root node.
+# Root Viewer for authenticated User.
 #===================================================================================================
 
 type Viewer {

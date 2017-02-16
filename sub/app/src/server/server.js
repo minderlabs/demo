@@ -47,7 +47,10 @@ function handleError(error) {
   error && error.stack && console.error(error.stack);
 }
 
+// https://nodejs.org/api/process.html#process_event_uncaughtexception
 process.on('uncaughtException', handleError);
+
+// https://nodejs.org/api/process.html#process_event_unhandledrejection
 process.on('unhandledRejection', handleError);
 
 
@@ -146,16 +149,19 @@ database
 
 //
 // Slack.
+// NOTE: Disabled for testing since slow startup.
 //
 
-const botkitManager = new BotKitManager({
+const botkitManager = testing ? null : new BotKitManager({
   port,
   redirectHost: _.get(process.env, 'OAUTH_REDIRECT_ROOT', 'http://localhost:' + port),
   ...SlackConfig
 });
 
-database
-  .registerQueryProcessor(new SlackQueryProcessor(idGenerator, matcher, botkitManager));
+if (botkitManager) {
+  database
+    .registerQueryProcessor(new SlackQueryProcessor(idGenerator, matcher, botkitManager));
+}
 
 
 //
@@ -182,8 +188,7 @@ let loading = Promise.all([
 if (testing) {
   loading.then(() => {
 
-    // Test data.
-    let itemStoreRandomizer = TestData.randomizer(database.getItemStore());
+    let itemStoreRandomizer = TestData.randomizer(database, database.getItemStore());
     return Promise.all([
       itemStoreRandomizer.generate('Task', 30, TestData.TaskFields(itemStoreRandomizer)),
       itemStoreRandomizer.generate('Contact', 5)
@@ -194,7 +199,7 @@ if (testing) {
       // database.registerQueryProcessor(testItemStore);
       //
       // testItemStore.clear().then(() => {
-      //   let testItemStoreRandomizer = TestData.randomizer(testItemStore);
+      //   let testItemStoreRandomizer = TestData.randomizer(database, testItemStore);
       //   return testItemStoreRandomizer.generate('Contact', 5);
       // });
     });
@@ -297,10 +302,10 @@ app.use(graphqlRouter(database, {
       console.assert(userInfo, 'GraphQL request is not authenticated.');
 
       return {
-        user: userInfo,
+        userId: userInfo.id,
 
         // TODO(burdon): Get from userInfo?
-        group: Const.DEF_GROUP
+        groupId: Const.DEF_GROUP
       };
     })
 }));
@@ -366,7 +371,9 @@ app.use(appRouter(authManager, clientManager, {
   }
 }));
 
-app.use('/botkit', botkitRouter(botkitManager));
+if (botkitManager) {
+  app.use('/botkit', botkitRouter(botkitManager));
+}
 
 app.use('/accounts', accountsRouter(new AccountManager()
   .registerHandler('Slack', new SlackAccountHandler())));
