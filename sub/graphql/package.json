@@ -67,7 +67,9 @@
   },
   "scripts": {
     "//": "http://x-team.com/2016/05/setting-up-javascript-testing-tools-for-es6",
+    "//": "NOTE: Restart after updates to dependent libs (i.e., minder-core)",
     "test": "BABEL_DISABLE_CACHE=1 mocha --require babel-polyfill --compilers js:babel-register \"src/**/*.test.js\"",
+    "test-watch": "BABEL_DISABLE_CACHE=1 mocha --watch --require babel-polyfill --compilers js:babel-register \"src/**/*.test.js\"",
     "update-schema": "BABEL_DISABLE_CACHE=1 babel-node ./tools/babel/update_schema.js"
   }
 }

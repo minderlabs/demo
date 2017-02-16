@@ -3,7 +3,6 @@
 //
 
 import _ from 'lodash';
-import moment from 'moment';
 
 import { TypeUtil } from '../util/type';
 import { ItemStore } from './item_store';
@@ -34,12 +33,7 @@ export class MemoryItemStore extends ItemStore {
       console.assert(item.type);
 
       // TODO(burdon): Factor out to MutationProcessor (then remove idGenerator requirement).
-      if (!item.id) {
-        item.id = this._idGenerator.createId();
-        item.created = moment().unix();
-      }
-
-      item.modified = moment().unix();
+      this._onUpdate(item);
 
       // TODO(burdon): Enforce immutable properties (e.g., type).
       this._items.set(item.id, item);

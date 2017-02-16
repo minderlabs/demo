@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+import moment from 'moment';
+
 /**
  * Base class for read-only stores.
  */
@@ -36,6 +38,23 @@ export class ItemStore extends QueryProcessor {
 
   constructor(idGenerator, matcher, namespace) {
     super(idGenerator, matcher, namespace);
+  }
+
+  /**
+   * Update the timestamps and set ID if create.
+   * @param item
+   * @return {*}
+   */
+  _onUpdate(item) {
+    let ts = moment().unix();
+
+    if (!item.id) {
+      item.id = this._idGenerator.createId();
+      item.created = ts;
+    }
+
+    item.modified = ts;
+    return item;
   }
 
   //

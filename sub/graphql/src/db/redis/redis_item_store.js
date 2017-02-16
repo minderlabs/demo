@@ -2,14 +2,15 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import bluebird from 'bluebird';
 import redis from 'redis';
 
 import { ItemStore, Key } from 'minder-core';
 
-// TODO(burdon): Promises
 // https://github.com/NodeRedis/node_redis#promises
 bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
 
 /**
  * Redis Item Store.
@@ -48,11 +49,33 @@ export class RedisItemStore extends ItemStore {
   //
 
   upsertItems(context, items) {
-    throw new Error('Not implemented');
+    return Promise.resolve(_.map(items, item => {
+      let { groupId:bucketId } = context;
+
+      this._onUpdate(item);
+
+      let { type, id:itemId } = item;
+      let key = RedisItemStore.ITEM_KEY.toKey({
+        bucketId, type, itemId
+      });
+
+      this._client.set(key, JSON.stringify(item));
+
+      return item;
+    }));
   }
 
   getItems(context, type, itemIds) {
-    throw new Error('Not implemented');
+    let { groupId:bucketId } = context;
+    let keys = _.map(itemIds, itemId => RedisItemStore.ITEM_KEY.toKey({
+      bucketId,
+      type,
+      itemId
+    }));
+
+    return this._client.mgetAsync(keys).then(items => _.map(items, item => {
+      return JSON.parse(item);
+    }));
   }
 
   //
@@ -60,9 +83,22 @@ export class RedisItemStore extends ItemStore {
   //
 
   queryItems(context, root, filter={}, offset=0, count=10) {
-    // Get all keys.
-    let items = this._client.keys(RedisItemStore.ITEM_KEY.toKey());
+    let { groupId, userId } = context;
 
-    throw new Error('Not implemented');
+    return Promise.all([
+      // Group keys.
+      this._client.keysAsync(RedisItemStore.ITEM_KEY.toKey({ bucketId: groupId })),
+
+      // User keys.
+      this._client.keysAsync(RedisItemStore.ITEM_KEY.toKey({ bucketId: userId }))
+    ]).then(sets => {
+      let keys = _.flatten(_.concat(sets));
+
+      return this._client.mgetAsync(keys).then(items => {
+        return _.filter(_.map(items, item => JSON.parse(item)), item => {
+          return this._matcher.matchItem(context, root, filter, item);
+        });
+      });
+    });
   }
 }
