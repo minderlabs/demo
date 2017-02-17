@@ -6,7 +6,7 @@ import _ from 'lodash';
 import bluebird from 'bluebird';
 import redis from 'redis';
 
-import { ItemStore, Key } from 'minder-core';
+import { ItemStore, Key, Matcher } from 'minder-core';
 
 // https://github.com/NodeRedis/node_redis#promises
 bluebird.promisifyAll(redis.RedisClient.prototype);
@@ -22,7 +22,7 @@ bluebird.promisifyAll(redis.Multi.prototype);
  */
 export class RedisItemStore extends ItemStore {
 
-  // TODO(burdon): PubSub.
+  // TODO(burdon): PubSub demo (and Mutation Processor).
 
   // https://github.com/NodeRedis/node_redis#rediscreateclient
   static client(options) {
@@ -32,6 +32,7 @@ export class RedisItemStore extends ItemStore {
     });
   }
 
+  // TODO(burdon): Namespace? Or in other data store?
   static ITEM_KEY = new Key('I:{{bucketId}}:{{type}}:{{itemId}}');
 
   constructor(idGenerator, matcher, namespace, client) {
@@ -67,6 +68,7 @@ export class RedisItemStore extends ItemStore {
 
   getItems(context, type, itemIds) {
     let { groupId:bucketId } = context;
+
     let keys = _.map(itemIds, itemId => RedisItemStore.ITEM_KEY.toKey({
       bucketId,
       type,
@@ -85,19 +87,35 @@ export class RedisItemStore extends ItemStore {
   queryItems(context, root, filter={}, offset=0, count=10) {
     let { groupId, userId } = context;
 
+    // Get all keys.
+    // TODO(burdon): Eventually get keys from Elasticsearch.
     return Promise.all([
+
       // Group keys.
+      // TODO(burdon): Multiple groups.
       this._client.keysAsync(RedisItemStore.ITEM_KEY.toKey({ bucketId: groupId })),
 
       // User keys.
       this._client.keysAsync(RedisItemStore.ITEM_KEY.toKey({ bucketId: userId }))
+
     ]).then(sets => {
       let keys = _.flatten(_.concat(sets));
 
+      // Get all items.
       return this._client.mgetAsync(keys).then(items => {
-        return _.filter(_.map(items, item => JSON.parse(item)), item => {
+
+        // Filter.
+        items = _.filter(_.map(items, item => JSON.parse(item)), item => {
           return this._matcher.matchItem(context, root, filter, item);
         });
+
+        // Sort.
+        items = Matcher.sortItems(items, filter);
+
+        // Page.
+        items = _.slice(items, offset, offset + count);
+
+        return items;
       });
     });
   }

@@ -15,7 +15,23 @@ import { TypeUtil } from '../util/type';
  */
 export class Matcher {
 
-  // TODO(burdon): Reorder args: context, root, item, ...
+  // TODO(burdon): Reorder args: context, root, item, filter, ...
+
+  /**
+   * Sort items.
+   * @param items
+   * @param filter
+   * @return {*}
+   */
+  static sortItems(items, filter) {
+    let orderBy = filter.orderBy;
+    if (orderBy) {
+      console.assert(orderBy.field);
+      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
+    }
+
+    return items;
+  }
 
   /**
    * Matches the items against the filter.

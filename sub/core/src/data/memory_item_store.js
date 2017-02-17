@@ -66,11 +66,7 @@ export class MemoryItemStore extends ItemStore {
     });
 
     // Sort.
-    let orderBy = filter.orderBy;
-    if (orderBy) {
-      console.assert(orderBy.field);
-      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
-    }
+    items = Matcher.sortItems(items, filter);
 
     // Page.
     items = _.slice(items, offset, offset + count);
