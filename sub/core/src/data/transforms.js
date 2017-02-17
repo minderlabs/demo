@@ -41,7 +41,7 @@ export class Transforms {
     // TODO(burdon): Unit tests.
     // TODO(burdon): mutation.values (see project.js)
     // TODO(burdon): Field dot paths (_.set/get).
-    // TODO(burdon): Introspect for type-checking.
+    // TODO(burdon): Introspect for type-checking (and field name setting).
 
     // Null.
     if (value === undefined) {

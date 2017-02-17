@@ -238,6 +238,8 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   handleItemUpdate(item, mutations, column) {
     let { userId, mutator } = this.props;
+    console.assert(userId);
+
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
@@ -247,6 +249,9 @@ class ProjectBoardCanvasComponent extends React.Component {
       // Create task (with custom and board-specific mutations.
       let taskId = mutator.createItem('Task', _.concat(
         [
+          // TODO(burdon): Move into mutator (default for item). Enforce on write.
+          MutationUtil.createFieldMutation('owner', 'id', userId),
+
           MutationUtil.createFieldMutation('project', 'id', project.id)
         ],
         boardAdapter.onCreateMutations(userId, column) || [],

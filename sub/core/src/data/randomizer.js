@@ -156,10 +156,11 @@ export class Randomizer {
 
         // TODO(burdon): Should happen before upsert.
         // Fake timestamps (so don't show up in inbox).
-        if (this._options.created) {
+        let created = this._options.created
+        if (created) {
           _.each(items, item => {
-            item.created = this._options.created;
-            item.modified = this._options.created;
+            item.created = created;
+            item.modified = created;
           });
         }
 

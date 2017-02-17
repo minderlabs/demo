@@ -60,10 +60,10 @@ export class List extends React.Component {
     handleSave() {
       let { item } = this.props;
       let title = this.refs.title.value;
-      let mutations = [
+
+      this.props.onSave && this.props.onSave(item, [
         MutationUtil.createFieldMutation('title', 'string', title)
-      ];
-      this.props.onSave && this.props.onSave(item, mutations);
+      ]);
     },
 
     handleCancel() {
@@ -72,7 +72,7 @@ export class List extends React.Component {
 
     render() {
       let { item } = this.props;
-      let { title } = item;
+      let { title } = item || {};
 
       return (
         <div className="ux-row ux-data-row">
@@ -95,9 +95,9 @@ export class List extends React.Component {
   // Context passed to ListItem and inline widgets.
   //
   static childContextTypes = {
-    mutator:      React.PropTypes.object,
-    onItemSelect: React.PropTypes.func,
-    onItemUpdate: React.PropTypes.func
+    mutator:            React.PropTypes.object,
+    onItemSelect:       React.PropTypes.func,
+    onItemUpdate:       React.PropTypes.func
   };
 
   static propTypes = {

@@ -61,6 +61,11 @@ class CanvasComponent extends React.Component {
 
   static propTypes = {
 
+    // From Redux.
+    // TODO(burdon): See Task List; create sub type of "config" for connection state.
+    groupId: React.PropTypes.string.isRequired,
+    userId: React.PropTypes.string.isRequired,
+
     // Root item (retrieved by type-specific GQL query).
     item: React.PropTypes.object.isRequired,
 
@@ -86,10 +91,23 @@ class CanvasComponent extends React.Component {
     queryRegistry: React.PropTypes.object.isRequired
   };
 
+  static childContextTypes = {
+    groupId: React.PropTypes.string,
+    userId: React.PropTypes.string,
+  };
+
   /**
    * State contains editable fields.
    */
   state = {};
+
+  getChildContext() {
+    let { groupId, userId } = this.props;
+
+    return {
+      groupId, userId
+    };
+  }
 
   /**
    * Auto-save when item chages.
@@ -190,5 +208,5 @@ class CanvasComponent extends React.Component {
 }
 
 export const Canvas = connect(
-  (state, ownProps) => _.pick(AppAction.getState(state), ['debug'])
+  (state, ownProps) => _.pick(AppAction.getState(state), ['debug', 'groupId', 'userId'])
 )(CanvasComponent);

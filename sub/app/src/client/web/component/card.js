@@ -29,7 +29,9 @@ export class Card extends React.Component {
   };
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired
+    navigator: React.PropTypes.object.isRequired,
+    groupId: React.PropTypes.string.isRequired,
+    userId: React.PropTypes.string.isRequired,
   };
 
   handleSelect(item) {

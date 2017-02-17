@@ -72,7 +72,8 @@ export class TaskCard extends React.Component {
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object
+    mutator: React.PropTypes.object,
+    userId: React.PropTypes.string.isRequired
   };
 
   static propTypes = {
@@ -88,8 +89,8 @@ export class TaskCard extends React.Component {
   }
 
   handleItemUpdate(item, mutations) {
-    let { mutator } = this.context;
-    console.assert(mutator);
+    let { userId, mutator } = this.context;
+    console.assert(mutator && userId);
 
     if (item) {
       // Update existing.
@@ -97,7 +98,12 @@ export class TaskCard extends React.Component {
     } else {
       // Create and add to parent.
       // TODO(burdon): Need to batch so that resolver can work?
-      let taskId = mutator.createItem('Task', mutations);
+      let taskId = mutator.createItem('Task', _.concat(
+        MutationUtil.createFieldMutation('owner', 'id', userId),
+        mutations
+      ));
+
+      // Update parent.
       mutator.updateItem(this.props.item, [
         MutationUtil.createSetMutation('tasks', 'id', taskId)
       ]);
@@ -105,7 +111,8 @@ export class TaskCard extends React.Component {
   }
 
   render() {
-    let { item, mutator } = this.props;
+    let { mutator } = this.context;
+    let { item } = this.props;
     let { assignee, tasks } = item;
 
     return (

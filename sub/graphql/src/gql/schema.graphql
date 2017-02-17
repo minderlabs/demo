@@ -407,8 +407,10 @@ type Task implements Item {
 
   status: Int!
 
-  # TODO(burdon): Promote to shared meta data for all items.
+  # TODO(burdon): Promote to shared meta data for all items (rename "creator"? enforce on write).
+  # TODO(burdon): Set automatically by mutator.
   owner: User!
+
   assignee: User
 }
 
