@@ -35,3 +35,4 @@ RUN source activate keras \
 
 COPY jupyter_notebook_config.py /root/.jupyter/
 COPY bashrc /root/.bashrc
+COPY vimrc /root/.vimrc

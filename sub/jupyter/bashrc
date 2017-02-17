@@ -147,4 +147,7 @@ alias gb='git branch -vv'
 alias gl='git log --graph --decorate --oneline'
 alias gp='git pull && git submodule update'
 
-export PATH=/opt/conda/bin:$PATH
+if [ -z "$SSH_AUTH_SOCK" ] ; then
+    eval `ssh-agent -s`
+    ssh-add $HOME/.ssh/jupyter-keypair.pem
+fi
