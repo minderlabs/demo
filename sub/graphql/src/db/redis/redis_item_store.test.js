@@ -17,6 +17,8 @@ bluebird.promisifyAll(fakeredis.Multi.prototype);
 
 describe('RedisItemStore:', () => {
 
+  // TODO(burdon): Factor out tests for MemoryItemStore.
+
   let idGenerator = new IdGenerator();
   let matcher = new Matcher();
   let client = fakeredis.createClient('test');
@@ -43,6 +45,8 @@ describe('RedisItemStore:', () => {
 
   it('Queries items.', (done) => {
     store.clear();
+
+    // TODO(burdon): Test group and private items.
 
     let items = [
       {

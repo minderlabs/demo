@@ -7,6 +7,7 @@ import { IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { connect } from 'react-redux'
 import { ApolloProvider } from 'react-apollo';
 
+import AdminActivity from './activity/admin';
 import CanvasActivity from './activity/canvas';
 import FinderActivity from './activity/finder';
 import TestingActivity from './activity/testing';
@@ -63,6 +64,7 @@ export class Application extends React.Component {
           <Route path={ Path.ROOT }>
             <IndexRedirect to={ Path.HOME }/>
 
+            <Route path={ Path.ADMIN } component={ AdminActivity }/>
             <Route path={ Path.TESTING } component={ TestingActivity }/>
 
             {/*

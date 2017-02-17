@@ -42,7 +42,13 @@ export class SidePanel extends React.Component {
     // TODO(burdon): If debug set in config.
     const debugItems = [
       {
-        id: 'testing',
+        id: 'folder-admin',
+        title: 'Admin',
+        icon: 'build',
+        link: Path.ADMIN
+      },
+      {
+        id: 'folder-testing',
         title: 'Testing',
         icon: 'bug_report',
         link: Path.TESTING

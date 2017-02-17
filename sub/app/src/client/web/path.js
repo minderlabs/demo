@@ -28,6 +28,7 @@ export class Path {
   static ROOT     = Const.ROOT_PATH;
   static HOME     = Const.ROOT_PATH + '/inbox';
   static TESTING  = Const.ROOT_PATH + '/testing';
+  static ADMIN    = Const.ROOT_PATH + '/admin';
 
   /**
    * Generates path for router.

@@ -8,7 +8,6 @@ import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { ItemFragment, ContactFragment, TaskFragment } from 'minder-core';
-
 import { List } from 'minder-ux';
 
 import { AppAction } from '../reducers';
@@ -26,22 +25,18 @@ class TestingActivity extends React.Component {
     typeRegistry: React.PropTypes.object.isRequired
   };
 
-  // TODO(burdon): Test toggle.
-  static customItemRenderer = (list, item) => {
-    return (
-      <div className="ux-row ux-data-row">
-        <i className="ux-icon">favorite_border</i>
-        <div className="ux-text">{ item.title }</div>
-      </div>
-    );
+  state = {
+    listType: 'card'
   };
 
   onAddItem() {
     this.refs.list.addItem();
   }
 
-  onChangeView(type) {
-    this.refs.list.itemRenderer = (type === 'card') && TestView.customItemRenderer;
+  onChangeView(listType) {
+    this.setState({
+      listType
+    })
   }
 
   onItemUpdate(item) {
@@ -50,6 +45,15 @@ class TestingActivity extends React.Component {
 
   render() {
     let { typeRegistry, items } = this.props;
+    let { listType } = this.state;
+
+    let itemRenderer = null;
+    switch (listType) {
+      case 'card': {
+        itemRenderer = Card.ItemRenderer(typeRegistry);
+        break;
+      }
+    }
 
     return (
       <FullLayout>
@@ -69,7 +73,7 @@ class TestingActivity extends React.Component {
         <List ref="list"
               highlight={ false }
               items={ items }
-              itemRenderer={ Card.ItemRenderer(typeRegistry) }
+              itemRenderer={ itemRenderer }
               onItemUpdate={ this.onItemUpdate.bind(this) }/>
       </FullLayout>
     );

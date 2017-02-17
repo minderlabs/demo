@@ -15,10 +15,20 @@ export class NavBar extends React.Component {
   // TODO(burdon): Show hide < > arrows (on mobile).
   // TODO(burdon): Current heading/breadcrumbs (in redux store).
 
+  static propTypes = {
+    search: React.PropTypes.bool
+  };
+
+  static defaultProps = {
+    search: true
+  };
+
   render() {
+    let { search } = this.props;
+
     return (
       <div className="ux-navbar">
-        <SearchView/>
+        { search && <SearchView/> || <div/> }
         <NavButtons/>
       </div>
     );

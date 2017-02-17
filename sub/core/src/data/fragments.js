@@ -61,6 +61,7 @@ export const GroupFragment = gql`
       type
       id
       title
+      email
     }
     projects {
       type

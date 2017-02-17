@@ -38,7 +38,14 @@ export class BaseLayout extends React.Component {
   static propTypes = {
     // Provided by redux.
     navigator: React.PropTypes.object.isRequired,
-    queryRegistry: React.PropTypes.object.isRequired
+    queryRegistry: React.PropTypes.object.isRequired,
+
+    search: React.PropTypes.bool,
+    className: React.PropTypes.string
+  };
+
+  static defaultProps = {
+    search: true
   };
 
   constructor() {
@@ -81,7 +88,7 @@ export class BaseLayout extends React.Component {
   }
 
   render() {
-    let { children, className, config, typeRegistry } = this.props;
+    let { children, search, className, config, typeRegistry } = this.props;
     let { loading, viewer } = this.props; // Data.
 
     // TODO(burdon): Factor out.
@@ -120,7 +127,7 @@ export class BaseLayout extends React.Component {
           </div>
 
           {/* Nav bar */}
-          <NavBar/>
+          <NavBar search={ search }/>
 
           {/* Sidebar */}
           <Sidebar ref="sidebar" sidebar={ sidePanel }>

@@ -335,6 +335,7 @@ type Group implements Item {
   description: String
   labels: [String]
 
+  whitelist: [String]
   members: [User]!
 
   # TODO(burdon): Shouldn't be part of Group. Instead link (since many-to-may).

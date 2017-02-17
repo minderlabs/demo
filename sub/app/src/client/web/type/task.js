@@ -72,7 +72,7 @@ export class TaskCard extends React.Component {
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
+    mutator: React.PropTypes.object
   };
 
   static propTypes = {
@@ -105,7 +105,7 @@ export class TaskCard extends React.Component {
   }
 
   render() {
-    let { item } = this.props;
+    let { item, mutator } = this.props;
     let { assignee, tasks } = item;
 
     return (
@@ -125,7 +125,9 @@ export class TaskCard extends React.Component {
                 onItemSelect={ this.handleItemSelect.bind(this) }
                 onItemUpdate={ this.handleItemUpdate.bind(this) }/>
 
+          { mutator &&
           <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
+          }
         </div>
 
       </Card>

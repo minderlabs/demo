@@ -49,6 +49,7 @@ class FinderActivity extends React.Component {
 
 const mapStateToProps = (state, ownProps) => {
   let { config } = AppAction.getState(state);
+
   return {
     config
   };

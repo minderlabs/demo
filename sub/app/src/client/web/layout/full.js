@@ -15,11 +15,19 @@ import './full.less';
  */
 export class FullLayout extends React.Component {
 
+  static propTypes = {
+    search: React.PropTypes.bool
+  };
+
+  static defaultProps = {
+    search: true
+  };
+
   render() {
-    let { children } = this.props;
+    let { children, search, className } = this.props;
 
     return (
-      <BaseLayout>
+      <BaseLayout search={ search } className={ className }>
         <div className="app-full-layout">
           { children }
         </div>
