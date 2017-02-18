@@ -91,17 +91,6 @@ export class BaseLayout extends React.Component {
     let { children, search, className, config, typeRegistry } = this.props;
     let { loading, viewer } = this.props; // Data.
 
-    // TODO(burdon): Factor out.
-    if (loading) {
-      return (
-        <div className="ux-loading-bar">
-          <div className="ux-load-bar"></div>
-          <div className="ux-load-bar"></div>
-          <div className="ux-load-bar"></div>
-        </div>
-      );
-    }
-
     let sidePanel = <SidePanel folders={ viewer.folders }
                                group={ viewer.group }
                                projects={ viewer.group.projects }
