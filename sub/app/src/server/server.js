@@ -40,6 +40,8 @@ const logger = Logger.get('main');
 
 //
 // Error handling.
+// https://nodejs.org/api/errors.html
+// https://www.joyent.com/node-js/production/design/errors (Really good general error handling article).
 //
 
 function handleError(error) {

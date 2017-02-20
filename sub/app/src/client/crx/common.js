@@ -27,7 +27,14 @@ export const SidebarCommand = {
  */
 export const BackgroundCommand = {
 
-  RESET:              'RESET',
+  CHANNEL:            'system',
+
+  // To Background page.
+  PING:               'PING',
   REGISTER:           'REGISTER',
-  PING:               'PING'
+  RECONNECT:          'RECONNECT',
+  SIGNOUT:            'SIGNOUT',
+
+  // To client.
+  FLUSH_CACHE:        'FLUSH_CACHE'
 };

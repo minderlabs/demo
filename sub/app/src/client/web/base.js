@@ -14,6 +14,7 @@ import moment from 'moment';
 
 import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 
+import { ErrorHandler } from '../common/errors';
 import { ClientAuthManager, ConnectionManager, NetworkManager } from '../common/network';
 import { TypeRegistryFactory } from './framework/type_factory';
 import { Monitor } from './component/devtools';
@@ -35,6 +36,9 @@ export class Base {
     // TODO(burdon): Experimental (replace with Apollo directives).
     // Manages Apollo query subscriptions.
     this._queryRegistry = new QueryRegistry();
+
+    // Errors.
+    ErrorHandler.handleErrors(this._eventHandler);
   }
 
   /**
@@ -43,8 +47,7 @@ export class Base {
    * @return {Promise}
    */
   init() {
-    return this.initErrorHandling()
-      .then(() => this.initInjector())
+    return this.initInjector()
       .then(() => this.initNetwork())
       .then(() => this.initApollo())
       .then(() => this.initReduxStore())

@@ -8,8 +8,6 @@ Logger.setLevel({
 
 import { createMemoryHistory } from 'react-router';
 
-import PreventParentScoll from 'prevent-parent-scroll';
-
 import {
   ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger, HttpUtil, Injector, KeyListener
 } from 'minder-core';
@@ -82,12 +80,12 @@ class SidebarApp extends Base {
     // Messages from Background Page.
     //
     this._router = new ChromeMessageChannelRouter();
-    this._systemChannel = new ChromeMessageChannel('system', this._router);
+    this._systemChannel = new ChromeMessageChannel(BackgroundCommand.CHANNEL, this._router);
     this._systemChannel.onMessage.addListener(message => {
       switch (message.command) {
 
         // Reset Apollo client (flush cache); e.g., Backend re-connected.
-        case BackgroundCommand.RESET: {
+        case BackgroundCommand.FLUSH_CACHE: {
           this.resetStore();
           break;
         }

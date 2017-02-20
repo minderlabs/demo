@@ -18,15 +18,13 @@ const logger = Logger.get('net');
 /**
  * Manages user authentication.
  * Uses Firebase (all authentication performed by client).
+ * https://firebase.google.com/docs/reference/node/firebase.auth.Auth
  *
  * https://console.firebase.google.com/project/minder-beta
  * 1). Create project (minder-beta)
  * 2). Configure Auth providers (e.g., Google)
  */
 export class ClientAuthManager {
-
-  // Force re-auth.
-  // https://firebase.google.com/docs/auth/web/manage-users#re-authenticate_a_user
 
   /**
    * @param config
@@ -50,6 +48,8 @@ export class ClientAuthManager {
     _.each(GoogleApiConfig.authScopes, scope => {
       this._provider.addScope(scope);
     });
+
+    this._unsubscribe = null;
   }
 
   get currentUser() {
@@ -62,18 +62,33 @@ export class ClientAuthManager {
    * @return {Promise}
    */
   authenticate() {
+    // TODO(burdon): Reentrant? Check doesn't register multiple callbacks.
+
     // TODO(burdon): Get Minder User ID (either from config or from server). (set the config object).
     return new Promise((resolve, reject) => {
       this._handleAuthStateChanges(registration => {
         // TODO(burdon): Store somewhere other than config?
         _.assign(this._config, {
-          clientId: registration.client.id,
-          userId:   registration.user.id,
-          groupId:  registration.group.id
+          clientId: registration.clientId,
+          userId:   registration.userId,
+          groupId:  registration.groupId
         });
 
         resolve(this._config.user);
       });
+    });
+  }
+
+  /**
+   * Sign-out and optionally reauthanticate.
+   * @param reauthenticate
+   */
+  signout(reauthenticate=true) {
+
+    // TODO(burdon): Re-authenticate?
+    // https://firebase.google.com/docs/auth/web/manage-users#re-authenticate_a_user
+    firebase.auth().signOut().then(() => {
+      return Promise.resolve(reauthenticate && this.authenticate());
     });
   }
 
@@ -83,12 +98,13 @@ export class ClientAuthManager {
    * @private
    */
   _handleAuthStateChanges(callback=undefined) {
+
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
     // NOTE: This is triggered immediately if auth is required.
     // https://firebase.google.com/docs/auth/web/manage-users
     // https://firebase.google.com/docs/reference/node/firebase.auth.Auth#onAuthStateChanged
-    firebase.auth().onAuthStateChanged(user => {
+    this._unsubscribe = firebase.auth().onAuthStateChanged(user => {
       if (user) {
         logger.log('Authenticated: ' + user.email);
 
@@ -101,7 +117,7 @@ export class ClientAuthManager {
           // Connect (or reconnect) client.
           Async.retry(attempt => {
             if (attempt > 0) {
-              logger.log('Retrying...');
+              logger.log('Retrying ' + attempt);
             }
 
             // Connect and get registration info.
@@ -295,7 +311,7 @@ export class ConnectionManager {
     // See clientRouter on server.
     let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
 
-    logger.log('Registering client: ' + url);
+    logger.log($$('Registering client (%s)', url));
     return new Promise((resolve, reject) => {
       $.ajax({
         url: url,
@@ -305,13 +321,11 @@ export class ConnectionManager {
         dataType: 'json',
         data: JSON.stringify(registration),
 
+        // TODO(burdon): Registration object.
         success: registration => {
-          if (!registration.client || !registration.user || !registration.group) {
-            reject('Invalid registration: ' + JSON.stringify(registration));
-          } else {
-            logger.log('Registered: ' + JSON.stringify(registration));
-            resolve(registration);
-          }
+          console.assert(registration.clientId);
+          logger.info('Registered: ' + JSON.stringify(registration));
+          resolve(registration);
         },
 
         error: error => {

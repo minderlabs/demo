@@ -8,6 +8,7 @@ Logger.setLevel({
 
 import { ChromeMessageChannelDispatcher, Listeners, TypeUtil } from 'minder-core';
 
+import { ErrorHandler } from '../common/errors';
 import { ClientAuthManager, ConnectionManager, NetworkManager } from '../common/network';
 import { ChromeNetworkInterface } from './util/network';
 import { Notification } from './util/notification';
@@ -69,6 +70,9 @@ class BackgroundApp {
     // Pop-ups.
     this._notification = new Notification();
 
+    // Error handler.
+    ErrorHandler.handleErrors();
+
     //
     // Network.
     //
@@ -91,7 +95,7 @@ class BackgroundApp {
 
         // Broadcast reset to all clients (to reset cache).
         this._systemChannel.postMessage(null, {
-          command: BackgroundCommand.RESET
+          command: BackgroundCommand.FLUSH_CACHE
         });
       }
 
@@ -101,18 +105,33 @@ class BackgroundApp {
     //
     // Handle system requests/responses.
     //
-    this._systemChannel = this._dispatcher.listen('system', request => {
+    this._systemChannel = this._dispatcher.listen(BackgroundCommand.CHANNEL, request => {
       console.log('System request: ' + TypeUtil.stringify(request));
       switch (request.command) {
 
+        // TODO(burdon): Send updated registration to clients?
+        case BackgroundCommand.RECONNECT: {
+          this._networkManager.init();
+          this._connectionManager.connect();
+          break;
+        }
+
+        // Invalidate auth.
+        // TODO(burdon): Triggers multiple reconnects (one more each time).
+        case BackgroundCommand.SIGNOUT: {
+          this._authManager.signout();
+          break;
+        }
+
         // On client startup.
         // TODO(burdon): Registration might not have happened yet (esp. if server not responding).
+        // TODO(burdon): Send retry error to client.
         case BackgroundCommand.REGISTER: {
-          let { server, user: { id:userId }, group: { id:groupId } } = this._config;
-          if (!server || !userId || !groupId) {
+          let { server, groupId, userId } = this._config;
+          if (!server || !groupId || !userId) {
             return Promise.reject('Client not registered.');
           } else {
-            return Promise.resolve({ server, userId, groupId });
+            return Promise.resolve({ server, groupId, userId });
           }
         }
 
@@ -122,6 +141,9 @@ class BackgroundApp {
             timestamp: new Date().getTime()
           });
         }
+
+        default:
+          return Promise.reject('Invalid command.');
       }
 
       return Promise.resolve();

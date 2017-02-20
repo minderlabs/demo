@@ -12,7 +12,6 @@ import { $$, Logger, IdGenerator } from 'minder-core';
 
 import { Const } from '../common/defs';
 
-// TODO(burdon): Split up logger for each component.
 const logger = Logger.get('client');
 
 /**
@@ -32,28 +31,21 @@ export const clientRouter = (authManager, clientManager, options) => {
     // Get current user.
     let userInfo = await authManager.getUserInfoFromHeader(req);
     if (userInfo) {
+
       // Assign client ID for CRX.
       if (!clientId) {
         let client = clientManager.create(userInfo.id);
         clientId = client.id;
-        console.log('New CRX client: ' + clientId);
       }
 
       // Register the client.
       clientManager.register(userInfo.id, clientId, socketId);
 
-      // Send registration info.
+      // Registration info.
       res.send({
-        client: {
-          id: clientId
-        },
-        user: {
-          id: userInfo.id
-        },
-        group: {
-          // TODO(burdon): Lookup.
-          id: Const.DEF_GROUP
-        }
+        clientId,
+        groupId: Const.DEF_GROUP,     // TODO(burdon): Groups.
+        userId: userInfo.id
       });
     } else {
       res.status(401);
@@ -117,7 +109,7 @@ export class ClientManager {
     };
 
     this._clients.set(client.id, client);
-    logger.log($$('CLIENT.CREATED[%s:%s]', client.id, userId));
+    logger.log($$('Created: %s', client.id));
 
     return client;
   }
@@ -136,7 +128,7 @@ export class ClientManager {
       if (userId != client.userId) {
         logger.error($$('Invalid user: %s', userId));
       } else {
-        logger.log($$('CLIENT.REGISTERED[%s:%s]', clientId, userId));
+        logger.log($$('Registered: %s', clientId));
         client.socketId = socketId;
         client.registered = moment();
       }
@@ -206,11 +198,11 @@ export class SocketManager {
     this._io = socketio(server);
 
     this._io.on('connection', (socket) => {
-      logger.log($$('SOCKET.CONNECTED[%s]', socket.id));
+      logger.log($$('Connected: %s', socket.id));
       this._sockets.set(socket.id, socket);
 
       socket.on('disconnect', () => {
-        logger.log($$('SOCKET.DISCONNECTED[%s]', socket.id));
+        logger.log($$('Disconnected: %s', socket.id));
         this._sockets.delete(socket.id);
         this._onDisconnect(socket.id);
       });

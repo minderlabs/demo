@@ -6,6 +6,7 @@ import _ from 'lodash';
 
 import { TypeUtil } from '../util/type';
 import { ItemStore } from './item_store';
+import { Matcher } from './matcher';
 
 /**
  * In-memory database.
