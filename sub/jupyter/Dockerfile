@@ -10,11 +10,11 @@
 
 FROM lukovkin/dockerfile-cuda-tensorflow-keras-jupyter
 
-#RUN apt-get update && apt-get -yq upgrade \
-#  && apt-get install -yq \
-#    git \
-#    wget \
-#  && apt-get clean -y
+RUN apt-get update \
+  && apt-get install -yq \
+    ssh \
+    wget \
+  && apt-get clean -y
 
 # Python installs.
 # Remove mks, install openblas (nomks), otherwise gensim fails.
