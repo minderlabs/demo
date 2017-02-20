@@ -33,6 +33,22 @@ ENV THEANO_FLAGS="mode=FAST_RUN,device=cpu,floatX=float32"
 RUN source activate keras \
   && pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
 
-COPY jupyter_notebook_config.py /root/.jupyter/
-COPY bashrc /root/.bashrc
-COPY vimrc /root/.vimrc
+ENV HOME=/root
+
+CMD ["start-notebook.sh"]
+COPY start-notebook.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/start-notebook.sh
+
+COPY jupyter_notebook_config.py $HOME/.jupyter/
+COPY bashrc $HOME/.bashrc
+COPY vimrc $HOME/.vimrc
+
+COPY requirements.txt $HOME/
+
+RUN mkdir -p $HOME/.ssh && mkdir -p $HOME/.aws && \
+  ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
+COPY config/.gitconfig $HOME/.gitconfig
+COPY config/jupyter-keypair.pem $HOME/.ssh/jupyter-keypair.pem
+RUN chmod 600 $HOME/.ssh/jupyter-keypair.pem
+COPY config/credentials $HOME/.aws/credentials

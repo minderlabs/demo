@@ -34,7 +34,8 @@ spec:
     spec:
       containers:
       - name: jupyter
-        image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/jupyter:latest
+        image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/jupyter:madadam
+        imagePullPolicy: Always
         ports:
         - containerPort: 8888
         env:
@@ -50,4 +51,5 @@ spec:
       - name: notebook
         awsElasticBlockStore:
           volumeID: vol-0cf68d07c01618b60 # Must already exist.
+          #volumeID: vol-0d4827e9a630af5b0 # jup2
           fsType: ext4

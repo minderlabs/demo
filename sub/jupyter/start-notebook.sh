@@ -1,16 +1,17 @@
 #!/bin/bash
 
-# Manage EBS mount permissions, and then start the notebook server.
-# The container needs to be run as root (via securityContext).
-
-# Based on:
-# https://github.com/jupyter/docker-stacks/blob/master/base-notebook/start-notebook.sh
+# Run post-deploy install, and then start the notebook.
 
 set -e
 
-# Check that user jovyan owns the EBS mount point.
-if ! [ -O /home/jovyan/work ]; then
-  sudo chown jovyan:users /home/jovyan/work
-fi
+cd /notebook
 
-. /usr/local/bin/start.sh jupyter notebook $*
+eval `ssh-agent -s`
+ssh-add $HOME/.ssh/jupyter-keypair.pem
+git clone git@github.com:minderlabs/research.git
+
+source activate keras
+
+pip install -r $HOME/requirements.txt
+
+jupyter notebook --no-browser --ip=0.0.0.0
