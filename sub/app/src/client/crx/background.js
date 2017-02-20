@@ -108,11 +108,11 @@ class BackgroundApp {
         // On client startup.
         // TODO(burdon): Registration might not have happened yet (esp. if server not responding).
         case BackgroundCommand.REGISTER: {
-          let { server, user: { id:userId }, group: { id:groupId } } = this._config;
-          if (!server || !userId || !groupId) {
+          let { server, group: { id:groupId }, user: { id:userId } } = this._config;
+          if (!server || !groupId || !userId) {
             return Promise.reject('Client not registered.');
           } else {
-            return Promise.resolve({ server, userId, groupId });
+            return Promise.resolve({ server, groupId, userId });
           }
         }
 

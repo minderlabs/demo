@@ -68,8 +68,8 @@ export class ClientAuthManager {
         // TODO(burdon): Store somewhere other than config?
         _.assign(this._config, {
           clientId: registration.client.id,
-          userId:   registration.user.id,
-          groupId:  registration.group.id
+          groupId:  registration.group.id,
+          userId:   registration.user.id
         });
 
         resolve(this._config.user);

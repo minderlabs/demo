@@ -39,8 +39,8 @@ const config = _.merge({
   },
 
   // Set by server registration with background page.
-  userId: null,
-  groupId: null
+  groupId: null,
+  userId: null
 
 }, HttpUtil.parseUrlArgs());
 
@@ -107,7 +107,7 @@ class SidebarApp extends Base {
     }).wait().then(response => {
       // TODO(burdon): Retry if not registered (server might not be responding).
       console.assert(response.server && response.user);
-      this.store.dispatch(AppAction.register(response.server, response.userId, response.groupId));
+      this.store.dispatch(AppAction.register(response.server, response.groupId, response.userId));
     });
   }
 

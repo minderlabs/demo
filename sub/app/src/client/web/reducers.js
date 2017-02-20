@@ -30,11 +30,11 @@ export class AppAction {
   // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
   //
 
-  static register(server, userId, groupId) {
+  static register(server, groupId, userId) {
     return {
       type: AppAction.ACTION.REGISTER,
       value: {
-        server, userId, groupId
+        server, groupId, userId
       }
     };
   }
@@ -57,8 +57,8 @@ export const AppReducer = (config, injector) => {
     config: config,
 
     // TODO(burdon): Create registration state.
-    userId: config.userId,
     groupId: config.groupId,
+    userId: config.userId,
 
     search: {
       text: ''
