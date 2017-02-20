@@ -7,11 +7,13 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { QueryParser, Mutator, UpdateItemMutation } from 'minder-core';
+import { IdGenerator, QueryParser, Mutator, UpdateItemMutation } from 'minder-core';
+import { ReactUtil } from 'minder-ux';
 
-import { AppAction, ContextAction } from '../reducers';
-import { BasicSearchList, BasicListItemRenderer, DebugListItemRenderer, CardSearchList } from '../framework/list_factory';
-import { TypeRegistry } from '../framework/type_registry';
+import { Const } from '../../../common/defs';
+import { AppAction, ContextAction } from '../../common/reducers';
+
+import { BasicSearchList, BasicListItemRenderer, CardSearchList } from '../framework/list_factory';
 import { Card } from '../component/card';
 
 import './folder.less';
@@ -22,7 +24,8 @@ import './folder.less';
 class FolderView extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired
+    navigator: React.PropTypes.object.isRequired,
+    typeRegistry: React.PropTypes.object.isRequired
   };
 
   handleItemSelect(item) {
@@ -34,33 +37,36 @@ class FolderView extends React.Component {
   }
 
   render() {
-    let { typeRegistry, filter, listType } = this.props;
+    return ReactUtil.render(this, () => {
+      let { typeRegistry } = this.context;
+      let { filter, listType } = this.props;
 
-    let list;
-    switch (listType) {
-      case 'card':
-        list = <CardSearchList filter={ filter }
-                               highlight={ false }
-                               itemRenderer={ Card.ItemRenderer(typeRegistry) }
-                               onItemSelect={ this.handleItemSelect.bind(this) }
-                               onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
-        break;
+      let list;
+      switch (listType) {
+        case 'card':
+          list = <CardSearchList filter={ filter }
+                                 highlight={ false }
+                                 className="ux-card-list"
+                                 itemRenderer={ Card.ItemRenderer(typeRegistry) }
+                                 onItemSelect={ this.handleItemSelect.bind(this) }
+                                 onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
+          break;
 
-      case 'list':
-      default:
-        list = <BasicSearchList filter={ filter }
-                                groupBy={ true }
-//                              itemRenderer={ DebugListItemRenderer }
-                                itemRenderer={ BasicListItemRenderer(typeRegistry) }
-                                onItemSelect={ this.handleItemSelect.bind(this) }
-                                onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
-    }
+        case 'list':
+        default:
+          list = <BasicSearchList filter={ filter }
+                                  groupBy={ true }
+                                  itemRenderer={ BasicListItemRenderer(typeRegistry) }
+                                  onItemSelect={ this.handleItemSelect.bind(this) }
+                                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
+      }
 
-    return (
-      <div className="app-folder-view ux-column">
-        { list }
-      </div>
-    );
+      return (
+        <div className="app-folder-view ux-column">
+          { list }
+        </div>
+      );
+    });
   }
 }
 
@@ -85,25 +91,22 @@ const mapStateToProps = (state, ownProps) => {
   let { config, injector, search } = AppAction.getState(state);
   let { context } = ContextAction.getState(state);
 
-  let typeRegistry = injector.get(TypeRegistry);
+  // TODO(burdon): Move to layout config.
+  let listType = _.get(config, 'app.platform') == Const.PLATFORM.CRX ? 'card' : 'list';
+
+  // Required by HOC.
+  let idGenerator = injector.get(IdGenerator);
+
+  // Construct filter (from sidebar context or searchbar).
   let queryParser = injector.get(QueryParser);
   let filter = queryParser.parse(search.text);
-
-  // TODO(burdon): Move to layout config.
-  let listType = _.get(config, 'app.platform') == 'crx' ? 'card' : 'list';
-
-  // Use contextual filter.
-  if (context && context.filter) {
+  if (context && context.filter && !search.text) {
     filter = context.filter
   }
 
   return {
-    // TODO(burdon): Wrap connect to provide injector for for Mutator.graphql
-    // AppAction.connect(mapStateToProps),
-    injector,
-
+    idGenerator,
     listType,
-    typeRegistry,
     filter,
     search
   }

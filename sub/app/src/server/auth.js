@@ -83,8 +83,8 @@ export class AuthManager {
     let match = auth && auth.match(/^Bearer (.+)$/);
     let token = match && match[1];
 
-    return this.getUserFromJWT(token).catch(ex => {
-      ex && logger.error(ex);
+    return this.getUserFromJWT(token).catch(error => {
+      error && logger.error(error);
       return null;
     });
   }
@@ -99,8 +99,8 @@ export class AuthManager {
     console.assert(req);
 
     let token = req.cookies && req.cookies[Const.AUTH_COOKIE];
-    return this.getUserFromJWT(token).catch(ex => {
-      ex && logger.error(ex);
+    return this.getUserFromJWT(token).catch(error => {
+      error && logger.error(error);
       return null;
     });
   }

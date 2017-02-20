@@ -138,7 +138,13 @@ class Reducer {
   }
 
   getResult(data) {
-    return _.get(data, this._spec.query.path);
+    if (data.error) {
+      // TODO(burdon): Apollo bug: shows "Error: Network error:"
+      // TODO(burdon): Throw (triggle error handler StatusBar).
+      console.error(data.error);
+    } else {
+      return _.get(data, this._spec.query.path);
+    }
   }
 
   /**
@@ -182,6 +188,7 @@ export class ListReducer extends Reducer {
    * @returns {*} Updated cache result.
    */
   reduceItems(matcher, context, filter, previousResult, action) {
+    console.assert(matcher && context && filter && previousResult && action);
     let result = previousResult;
 
     try {
@@ -195,8 +202,8 @@ export class ListReducer extends Reducer {
           result = this.doTransform(previousResult, transform);
         }
       }
-    } catch (ex) {
-      console.error('Reducer failed:', ex);
+    } catch(error) {
+      console.error('Reducer failed:', error);
     }
 
     return result;
@@ -290,6 +297,7 @@ export class ItemReducer extends Reducer {
    * @returns {*} Updated cache result.
    */
   reduceItem(matcher, context, previousResult, action) {
+    console.assert(matcher && context && previousResult && action);
     let result = previousResult;
 
     try {
@@ -303,8 +311,8 @@ export class ItemReducer extends Reducer {
           result = this.doTransform(previousResult, transform);
         }
       }
-    } catch (ex) {
-      console.error('Reducer failed:', ex);
+    } catch(error) {
+      console.error('Reducer failed:', error);
     }
 
     return result;

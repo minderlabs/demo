@@ -7,9 +7,10 @@ import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
 import { ItemFragment, ProjectBoardFragment, TaskFragment, UpdateItemMutation } from 'minder-core';
-import { Board, DragOrderModel, List } from 'minder-ux';
+import { Board, DragOrderModel, List, ReactUtil } from 'minder-ux';
 
-import { Path } from '../path';
+import { Path } from '../../common/path';
+
 import { composeItem } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
@@ -208,7 +209,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   static propTypes = {
     mutator: React.PropTypes.object.isRequired,
-    userId: React.PropTypes.string.isRequired,
+    registration: React.PropTypes.object.isRequired,
     item: React.PropTypes.object
   };
 
@@ -237,7 +238,7 @@ class ProjectBoardCanvasComponent extends React.Component {
   }
 
   handleItemUpdate(item, mutations, column) {
-    let { userId, mutator } = this.props;
+    let { registration: { userId }, mutator } = this.props;
     console.assert(userId);
 
     if (item) {
@@ -331,49 +332,49 @@ class ProjectBoardCanvasComponent extends React.Component {
   }
 
   render() {
-    // TODO(burdon): Move to base class?
-    if (this.props.loading) { return <div/>; } else if (this.props.error) { return <div>{ this.props.error }</div>; }
-    let { userId, item:project, refetch, mutator } = this.props;
-    let { boardAdapter, boardAlias, itemOrderModel } = this.state;
-    let { typeRegistry } = this.context;  // TODO(burdon): Get from compose_item props.
+    return ReactUtil.render(this, () => {
+      let { registration: { userId }, item:project, refetch, mutator } = this.props;
+      let { boardAdapter, boardAlias, itemOrderModel } = this.state;
+      let { typeRegistry } = this.context;  // TODO(burdon): Get from compose_item props.
 
-    // All items for board.
-    let items = _.get(project, 'tasks', []);
+      // All items for board.
+      let items = _.get(project, 'tasks', []);
 
-    // Get the appropriate board.
-    let board = _.find(_.get(project, 'boards'), board => board.alias == boardAlias);
-    itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
+      // Get the appropriate board.
+      let board = _.find(_.get(project, 'boards'), board => board.alias == boardAlias);
+      itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
 
-    // Memu items.
-    // TODO(burdon): List board types.
-    const Menu = (props) => {
+      // Memu items.
+      // TODO(burdon): List board types.
+      const Menu = (props) => {
+        return (
+          <div className="ux-bar">
+            <i className="ux-icon ux-icon-action" title="Status Board"
+               onClick={ this.handleSetBoardType.bind(this, 'status') }>assessment</i>
+            <i className="ux-icon ux-icon-action" title="Team Board"
+               onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
+            <i className="ux-icon ux-icon-action" title="Private Board"
+               onClick={ this.handleSetBoardType.bind(this, 'private') }>person</i>
+          </div>
+        );
+      };
+
       return (
-        <div className="ux-bar">
-          <i className="ux-icon ux-icon-action" title="Status Board"
-             onClick={ this.handleSetBoardType.bind(this, 'status') }>assessment</i>
-          <i className="ux-icon ux-icon-action" title="Team Board"
-             onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
-          <i className="ux-icon ux-icon-action" title="Private Board"
-             onClick={ this.handleSetBoardType.bind(this, 'private') }>person</i>
-        </div>
+        <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch }
+                onSave={ this.handleSave.bind(this) } menu={ <Menu/> }>
+
+          <Board item={ project }
+                 items={ items }
+                 columns={ boardAdapter.columns(project, board) }
+                 columnMapper={ boardAdapter.columnMapper(userId) }
+                 itemRenderer={ Card.ItemRenderer(typeRegistry) }
+                 itemOrderModel={ itemOrderModel }
+                 onItemDrop={ this.handleItemDrop.bind(this) }
+                 onItemSelect={ this.handleItemSelect.bind(this) }
+                 onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+        </Canvas>
       );
-    };
-
-    return (
-      <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch }
-              onSave={ this.handleSave.bind(this) } menu={ <Menu/> }>
-
-        <Board item={ project }
-               items={ items }
-               columns={ boardAdapter.columns(project, board) }
-               columnMapper={ boardAdapter.columnMapper(userId) }
-               itemRenderer={ Card.ItemRenderer(typeRegistry) }
-               itemOrderModel={ itemOrderModel }
-               onItemDrop={ this.handleItemDrop.bind(this) }
-               onItemSelect={ this.handleItemSelect.bind(this) }
-               onItemUpdate={ this.handleItemUpdate.bind(this) }/>
-      </Canvas>
-    );
+    });
   }
 }
 

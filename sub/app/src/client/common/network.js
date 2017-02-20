@@ -4,14 +4,13 @@
 
 import _ from 'lodash';
 import { print } from 'graphql-tag/printer';
+import { createNetworkInterface } from 'apollo-client';
 import * as firebase from 'firebase';
 import io from 'socket.io-client';
 
 import { Async, HttpUtil, Wrapper } from 'minder-core';
 
-import { createNetworkInterface } from 'apollo-client';
-
-import { FirebaseConfig, GoogleApiConfig } from '../../common/defs';
+import { Const, FirebaseConfig, GoogleApiConfig } from '../../common/defs';
 
 const logger = Logger.get('net');
 
@@ -52,29 +51,15 @@ export class ClientAuthManager {
     this._unsubscribe = null;
   }
 
-  get currentUser() {
-    return _.get(this._config, 'user', null);
-  }
-
   /**
    * Triggers authentication if necessary, and subscribes to auth changes.
    *
    * @return {Promise}
    */
   authenticate() {
-    // TODO(burdon): Reentrant? Check doesn't register multiple callbacks.
-
-    // TODO(burdon): Get Minder User ID (either from config or from server). (set the config object).
     return new Promise((resolve, reject) => {
       this._handleAuthStateChanges(registration => {
-        // TODO(burdon): Store somewhere other than config?
-        _.assign(this._config, {
-          clientId: registration.clientId,
-          userId:   registration.userId,
-          groupId:  registration.groupId
-        });
-
-        resolve(this._config.user);
+        resolve(registration);
       });
     });
   }
@@ -98,6 +83,10 @@ export class ClientAuthManager {
    * @private
    */
   _handleAuthStateChanges(callback=undefined) {
+    // TODO(burdon): Only call function once? If so, how to get first auth if already set.
+    if (this._unsubscribe) {
+      this._unsubscribe();
+    }
 
     // TODO(burdon): Handle errors.
     // Check for auth changes (e.g., expired).
@@ -143,7 +132,7 @@ export class ClientAuthManager {
    */
   _doAuth() {
     console.log('Authenticating...');
-    if (_.get(this._config, 'app.platform') == 'crx') {
+    if (_.get(this._config, 'app.platform') == Const.PLATFORM.CRX) {
       return this._doAuthChromeExtension();
     } else {
       return this._doAuthWebApp();
@@ -321,7 +310,6 @@ export class ConnectionManager {
         dataType: 'json',
         data: JSON.stringify(registration),
 
-        // TODO(burdon): Registration object.
         success: registration => {
           console.assert(registration.clientId);
           logger.info('Registered: ' + JSON.stringify(registration));

@@ -4,18 +4,19 @@
 
 import React from 'react';
 import { IndexRedirect, Redirect, Route, Router } from 'react-router'
-import { connect } from 'react-redux'
 import { ApolloProvider } from 'react-apollo';
+
+import { Path } from '../../common/path';
 
 import FinderActivity from '../../web/activity/finder';
 
-import { AppAction } from '../../web/reducers';
-import { Path } from '../../web/path';
-
 /**
- * Main Application Root component.
+ * The Application must be a pure React component since HOCs may cause the component to be re-rendered,
+ * which would trigger a Router warning.
+ *
+ * Activities are top-level components that set-up the context.
  */
-class Application extends React.Component {
+export class Application extends React.Component {
 
   static propTypes = {
     injector: React.PropTypes.object.isRequired,
@@ -23,18 +24,6 @@ class Application extends React.Component {
     history: React.PropTypes.object.isRequired,
     store: React.PropTypes.object.isRequired
   };
-
-  static childContextTypes = {
-    config: React.PropTypes.object,
-    injector: React.PropTypes.object,
-  };
-
-  getChildContext() {
-    return {
-      config: this.props.config,
-      injector: this.props.injector
-    };
-  }
 
   render() {
     let { client, store, history } = this.props;
@@ -58,12 +47,3 @@ class Application extends React.Component {
     );
   }
 }
-
-const mapStateToProps = (state, ownProps) => {
-  let { config } = AppAction.getState(state);
-  return {
-    config
-  };
-};
-
-export default connect(mapStateToProps)(Application);

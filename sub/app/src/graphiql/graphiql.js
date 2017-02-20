@@ -39,7 +39,7 @@ function graphQLFetcher(graphQLParams) {
   }).then(function(responseBody) {
     try {
       return JSON.parse(responseBody);
-    } catch (error) {
+    } catch(error) {
       return responseBody;
     }
   });

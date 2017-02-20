@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { Getter, Matcher, Mutator, ListReducer } from 'minder-core';
+import { IdGenerator, Matcher, Mutator, ListReducer } from 'minder-core';
 import {
   ItemFragment,
   ContactFragment,
@@ -19,22 +19,25 @@ import {
 
 import { List, ListItem } from 'minder-ux';
 
-import { AppAction } from '../reducers';
+import { AppAction } from '../../common/reducers';
 
-// TODO(burdon): Document injector.
 const mapStateToProps = (state, ownProps) => {
-  let { injector, userId } = AppAction.getState(state);
+  let { injector, registration } = AppAction.getState(state);
+
+  // Required by graphql HOC.
+  let idGenerator = injector.get(IdGenerator);
+  let matcher = injector.get(Matcher);
 
   return {
-    // Provide for Mutator.graphql
-    injector,
+    // Required by HOC.
+    idGenerator, matcher,
+
+    registration,
 
     // Matcher's context (same as server).
     context: {
-      userId
-    },
-
-    userId
+      userId: _.get(registration, 'userId')
+    }
   }
 };
 
@@ -64,9 +67,7 @@ function composeList(reducer) {
       // http://dev.apollodata.com/react/queries.html#graphql-options
       // http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient\.query
       options: (props) => {
-        let { filter, count } = props; //List.defaults(props);
-
-        let matcher = props.injector.get(Matcher);
+        let { matcher, filter, count } = props;
 
         // TODO(burdon): Generates a new callback each time rendered. Create property for class.
         // https://github.com/apollostack/apollo-client/blob/master/src/ApolloClient.ts
@@ -84,12 +85,18 @@ function composeList(reducer) {
       // Configure props passed to component.
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
-        let { filter, count } = ownProps;
-        let { loading, error } = data;
+        let { idGenerator, matcher, filter, count } = ownProps;
+        let { loading, error, refetch } = data;
+
         let items = reducer.getItems(data);
 
         return {
           loading,
+          error,
+          refetch,
+          idGenerator,
+          matcher,
+
           items,
 
           // Paging.
@@ -190,6 +197,7 @@ export const BasicSearchList = composeList(
 const CustomIcon = ListItem.createInlineComponent((props, context) => {
   let { item } = context;
   let { typeRegistry } = props;
+
   return (
     <ListItem.Icon icon={ item.iconUrl || typeRegistry.icon(item) }/>
   )
@@ -199,6 +207,7 @@ const CustomColumn = ListItem.createInlineComponent((props, context) => {
   let { item } = context;
   let { typeRegistry } = props;
   let column = typeRegistry.column(item);
+
   return (
     <div className="ux-noshrink">{ column }</div>
   );

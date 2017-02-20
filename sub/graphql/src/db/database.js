@@ -193,6 +193,8 @@ export class Database extends ItemStore {
     //
     return Promise.all(promises)
       .then(results => {
+        // Skip empty results (e.g., on error).
+        results = _.compact(results);
 
         // Create a map of items that have foreign keys.
         // TODO(burdon): Requires stable external keys (google drive!)

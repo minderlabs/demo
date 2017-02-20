@@ -1,17 +1,20 @@
 {{#section 'head'}}
-  <link rel="stylesheet" href="/assets/{{ app }}.css">
+  <link rel="stylesheet" href="/assets/{{ bundle }}.css">
 {{/section}}
 
 <div id="{{ config.root }}">
 
-  <div class="ux-loading-bar">
-    <div class="ux-load-bar"></div>
-    <div class="ux-load-bar"></div>
-    <div class="ux-load-bar"></div>
-  </div>
+  {{!-- Loader gets replaced when app loads. --}}
+  <div>
+    <div class="ux-loading-bar">
+      <div class="ux-load-bar"></div>
+      <div class="ux-load-bar"></div>
+      <div class="ux-load-bar"></div>
+    </div>
 
-  <div class="ux-loading-title">
-    <h1>minder</h1>
+    <div class="ux-loading-title">
+      <h1>minder</h1>
+    </div>
   </div>
 
 </div>
@@ -21,4 +24,4 @@
   window.config = {{{ toJSON config }}};
 </script>
 
-<script src="/assets/{{ app }}.bundle.js"></script>
+<script src="/assets/{{ bundle }}.bundle.js"></script>

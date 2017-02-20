@@ -7,7 +7,7 @@ import React from 'react';
 import { ID } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
-import { Path } from '../path';
+import { Path } from '../../common/path';
 
 import './sidepanel.less';
 
@@ -27,6 +27,10 @@ export class SidePanel extends React.Component {
     );
   };
 
+  static propTypes = {
+    typeRegistry: React.PropTypes.object.isRequired
+  };
+
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired
   };
@@ -37,16 +41,17 @@ export class SidePanel extends React.Component {
   }
 
   render() {
-    let { folders, group, projects, typeRegistry } = this.props;
+    let { typeRegistry, folders, group, projects } = this.props;
 
-    // TODO(burdon): If debug set in config.
-    const debugItems = [
+    const adminItems = [
+      // TODO(burdon): Admin ACL.
       {
         id: 'folder-admin',
         title: 'Admin',
         icon: 'build',
         link: Path.ADMIN
       },
+      // TODO(burdon): If debug set in config.
       {
         id: 'folder-testing',
         title: 'Testing',
@@ -69,7 +74,7 @@ export class SidePanel extends React.Component {
         <div className="app-divider"/>
         <FolderList items={ projects }/>
         <div className="app-divider"/>
-        <FolderList items={ debugItems }/>
+        <FolderList items={ adminItems }/>
       </div>
     );
   }

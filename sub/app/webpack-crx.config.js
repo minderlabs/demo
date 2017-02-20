@@ -58,7 +58,6 @@ module.exports = _.merge(baseConfig, {
     options: [
       path.resolve(baseConfig.context, 'src/client/crx/options.js')
     ]
-
   },
 
   output: {

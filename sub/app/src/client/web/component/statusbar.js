@@ -13,11 +13,12 @@ import './statusbar.less';
  */
 export class StatusBar extends React.Component {
 
-  // TODO(burdon): Pass in model?
+  static contextTypes = {
+    config: React.PropTypes.object.isRequired
+  };
 
   static propTypes = {
-    config: React.PropTypes.object.isRequired,
-    onClick: React.PropTypes.func
+    onAction: React.PropTypes.func.isRequired
   };
 
   constructor() {
@@ -66,7 +67,7 @@ export class StatusBar extends React.Component {
   }
 
   handleAction(icon) {
-    this.props.onClick && this.props.onClick(icon);
+    this.props.onAction(icon);
   }
 
   handleClickError() {
@@ -74,7 +75,7 @@ export class StatusBar extends React.Component {
   }
 
   render() {
-    let { config } = this.props;
+    let { config } = this.context;
     let { error, networkIn, networkOut } = this.state;
 
     // TODO(burdon): Move to config.

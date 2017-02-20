@@ -361,13 +361,14 @@ app.use(appRouter(authManager, clientManager, {
   // App root path.
   root: Const.ROOT_PATH,
 
-  //
+  // Webpack assets.
   assets: (env === 'production') ? __dirname : path.join(__dirname, '../../dist'),
 
   // Client config.
   config: {
     env,
     app: {
+      platform: Const.PLATFORM.WEB,
       name: Const.APP_NAME,
       version: Const.APP_VERSION,
     }

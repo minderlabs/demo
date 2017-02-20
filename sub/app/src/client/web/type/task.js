@@ -10,10 +10,11 @@ import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 
 import { ID, ItemFragment, TaskFragment, UpdateItemMutation, ItemReducer, Matcher, MutationUtil } from 'minder-core';
-import { List, ListItem, Picker } from 'minder-ux';
+import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
 
-import { AppAction } from '../reducers';
-import { Path } from '../path';
+import { Path } from '../../common/path';
+import { AppAction } from '../../common/reducers';
+
 import { composeItem } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
@@ -72,8 +73,8 @@ export class TaskCard extends React.Component {
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
+    registration: React.PropTypes.object,
     mutator: React.PropTypes.object,
-    userId: React.PropTypes.string.isRequired
   };
 
   static propTypes = {
@@ -89,8 +90,8 @@ export class TaskCard extends React.Component {
   }
 
   handleItemUpdate(item, mutations) {
-    let { userId, mutator } = this.context;
-    console.assert(mutator && userId);
+    let { registration, mutator } = this.context;
+    console.assert(registration && mutator);
 
     if (item) {
       // Update existing.
@@ -99,7 +100,7 @@ export class TaskCard extends React.Component {
       // Create and add to parent.
       // TODO(burdon): Need to batch so that resolver can work?
       let taskId = mutator.createItem('Task', _.concat(
-        MutationUtil.createFieldMutation('owner', 'id', userId),
+        MutationUtil.createFieldMutation('owner', 'id', registration.userId),
         mutations
       ));
 
@@ -111,34 +112,36 @@ export class TaskCard extends React.Component {
   }
 
   render() {
-    let { mutator } = this.context;
-    let { item } = this.props;
-    let { assignee, tasks } = item;
+    return ReactUtil.render(this, () => {
+      let { mutator } = this.context;
+      let { item } = this.props;
+      let { assignee, tasks } = item;
 
-    return (
-      <Card ref="card" item={ item }>
+      return (
+        <Card ref="card" item={ item }>
 
-        { assignee &&
-        <div>
-          <span className="ux-font-xsmall">Assigned: </span>
-          <span>{ assignee.title }</span>
-        </div>
-        }
-
-        <div className="ux-list-tasks">
-          <List ref="tasks"
-                items={ tasks }
-                itemRenderer={ TaskListItemRenderer }
-                onItemSelect={ this.handleItemSelect.bind(this) }
-                onItemUpdate={ this.handleItemUpdate.bind(this) }/>
-
-          { mutator &&
-          <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
+          { assignee &&
+          <div>
+            <span className="ux-font-xsmall">Assigned: </span>
+            <span>{ assignee.title }</span>
+          </div>
           }
-        </div>
 
-      </Card>
-    );
+          <div className="ux-list-tasks">
+            <List ref="tasks"
+                  items={ tasks }
+                  itemRenderer={ TaskListItemRenderer }
+                  onItemSelect={ this.handleItemSelect.bind(this) }
+                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+
+            { mutator &&
+            <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
+            }
+          </div>
+
+        </Card>
+      );
+    });
   }
 }
 
@@ -237,64 +240,64 @@ class TaskCanvasComponent extends React.Component {
   }
 
   render() {
-    if (this.props.loading) { return <div/>; }
-    let { assigneeText, status } = this.state;
-    let { item:task, mutator, refetch } = this.props;
+    return ReactUtil.render(this, () => {
+      let { assigneeText, status } = this.state;
+      let { item:task, mutator, refetch } = this.props;
+      let { project, tasks } = task;
 
-    let { project, tasks } = task;
+      const levels = TASK_LEVELS.map(level =>
+        <option key={ level.value } value={ level.value }>{ level.title }</option>);
 
-    let levels = TASK_LEVELS.map(level =>
-      <option key={ level.value } value={ level.value }>{ level.title }</option>);
+      return (
+        <Canvas ref="canvas" item={ task } mutator={ mutator } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
+          <div className="app-type-task ux-column">
 
-    return (
-      <Canvas ref="canvas" item={ task } mutator={ mutator } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
-        <div className="app-type-task ux-column">
+            <div className="ux-section ux-data">
+              <div className="ux-data-row">
+                <div className="ux-data-label">Project</div>
+                <div className="ux-text">
+                  { project &&
+                  <Link to={ Path.canvas(ID.toGlobalId('Project', project.id)) }>{ project.title }</Link>
+                  }
+                </div>
+              </div>
 
-          <div className="ux-section ux-data">
-            <div className="ux-data-row">
-              <div className="ux-data-label">Project</div>
-              <div className="ux-text">
-                { project &&
-                <Link to={ Path.canvas(ID.toGlobalId('Project', project.id)) }>{ project.title }</Link>
-                }
+              <div className="ux-data-row">
+                <div className="ux-data-label">Owner</div>
+                <div className="ux-text">{ task.owner.title }</div>
+              </div>
+
+              <div className="ux-data-row">
+                <div className="ux-data-label">Assignee</div>
+                <MembersPicker value={ assigneeText || '' }
+                               onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
+                               onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
+              </div>
+
+              <div className="ux-data-row">
+                <div className="ux-data-label">Status</div>
+                <select value={ status } onChange={ this.handleSetStatus.bind(this) }>
+                  { levels }
+                </select>
               </div>
             </div>
 
-            <div className="ux-data-row">
-              <div className="ux-data-label">Owner</div>
-              <div className="ux-text">{ task.owner.title }</div>
-            </div>
+            <div>
+              <div className="ux-section-header ux-row">
+                <h4 className="ux-expand ux-title">Sub Tasks</h4>
+                <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
+              </div>
 
-            <div className="ux-data-row">
-              <div className="ux-data-label">Assignee</div>
-              <MembersPicker value={ assigneeText || '' }
-                             onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
-                             onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
-            </div>
-
-            <div className="ux-data-row">
-              <div className="ux-data-label">Status</div>
-              <select value={ status } onChange={ this.handleSetStatus.bind(this) }>
-                { levels }
-              </select>
+              <List ref="tasks"
+                    items={ tasks }
+                    itemRenderer={ TaskListItemRenderer }
+                    onItemSelect={ this.handleTaskSelect.bind(this) }
+                    onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
             </div>
           </div>
-
-          <div>
-            <div className="ux-section-header ux-row">
-              <h4 className="ux-expand ux-title">Sub Tasks</h4>
-              <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
-            </div>
-
-            <List ref="tasks"
-                  items={ tasks }
-                  itemRenderer={ TaskListItemRenderer }
-                  onItemSelect={ this.handleTaskSelect.bind(this) }
-                  onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
-          </div>
-        </div>
-      </Canvas>
-    );
+        </Canvas>
+      );
+    });
   }
 }
 
@@ -319,7 +322,7 @@ const MembersQuery = gql`
 
 const MembersPicker = compose(
   connect((state, ownProps) => {
-    let { groupId } = AppAction.getState(state);
+    let { registration: { groupId } } = AppAction.getState(state);
 
     return {
       groupId

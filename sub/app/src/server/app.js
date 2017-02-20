@@ -30,7 +30,7 @@ const WEBPACK_BUNDLE = {
  * @param {AuthManager} authManager
  * @param {ClientManager} clientManager
  * @param options
- * @returns {core.Router|*}
+ * @returns {Router}
  */
 export const appRouter = (authManager, clientManager, options) => {
   console.assert(authManager && clientManager);
@@ -61,20 +61,17 @@ export const appRouter = (authManager, clientManager, options) => {
         graphiql: '/graphiql',
 
         // Authenticated user.
-        user: {
-          id: userInfo.id
-        },
-
-        // Registration.
-        client: {
-          id: client.id
+        registration: {
+          clientId: client.id,
+          groupId: Const.DEF_GROUP,
+          userId: userInfo.id
         }
       }, options.config);
 
       logger.log($$('Client options = %o', config));
       res.render('app', {
-        app: WEBPACK_BUNDLE[config.env],
-        config,
+        bundle: WEBPACK_BUNDLE[config.env],
+        config
       });
     }
   });

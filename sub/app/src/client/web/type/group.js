@@ -7,7 +7,7 @@ import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { GroupFragment, ItemFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
-import { List } from 'minder-ux';
+import { List, ReactUtil } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
@@ -57,34 +57,35 @@ class GroupCanvasComponent extends React.Component {
   }
 
   render() {
-    if (this.props.loading) { return <div/>; }
-    let { item, mutator, refetch } = this.props;
+    return ReactUtil.render(this, () => {
+      let { item, mutator, refetch } = this.props;
 
-    return (
-      <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch }>
-        <div className="app-type-group ux-column">
+      return (
+        <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch }>
+          <div className="app-type-group ux-column">
 
-          <div className="ux-column">
-            <div className="ux-section-header ux-row">
-              <h3 className="ux-expand">Members</h3>
+            <div className="ux-column">
+              <div className="ux-section-header ux-row">
+                <h3 className="ux-expand">Members</h3>
+              </div>
+              <List items={ item.members } onItemSelect={ this.handleItemSelect.bind(this) }/>
             </div>
-            <List items={ item.members } onItemSelect={ this.handleItemSelect.bind(this) }/>
-          </div>
 
-          <div className="ux-column">
-            <div className="ux-section-header ux-row">
-              <h3 className="ux-expand">Projects</h3>
-              <i className="ux-icon ux-icon-add" onClick={ this.handleProjectAdd.bind(this) }></i>
+            <div className="ux-column">
+              <div className="ux-section-header ux-row">
+                <h3 className="ux-expand">Projects</h3>
+                <i className="ux-icon ux-icon-add" onClick={ this.handleProjectAdd.bind(this) }></i>
+              </div>
+              <List ref="projects"
+                    items={ item.projects }
+                    onItemSelect={ this.handleItemSelect.bind(this) }
+                    onItemUpdate={ this.handleProjectSave.bind(this) }/>
             </div>
-            <List ref="projects"
-                  items={ item.projects }
-                  onItemSelect={ this.handleItemSelect.bind(this) }
-                  onItemUpdate={ this.handleProjectSave.bind(this) }/>
-          </div>
 
-        </div>
-      </Canvas>
-    );
+          </div>
+        </Canvas>
+      );
+    });
   }
 }
 

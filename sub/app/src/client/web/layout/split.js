@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import BaseLayout from '../layout/base';
+import BaseLayout from '../layout/layout';
 
 import './split.less';
 

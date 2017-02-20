@@ -23,15 +23,14 @@ export class Card extends React.Component {
   };
 
   static propTypes = {
+    item: React.PropTypes.object.isRequired,
     className: React.PropTypes.string,
-    icon: React.PropTypes.string,
-    item: React.PropTypes.object.isRequired
+    icon: React.PropTypes.string
   };
 
   static contextTypes = {
+    config: React.PropTypes.object.isRequired,
     navigator: React.PropTypes.object.isRequired,
-    groupId: React.PropTypes.string.isRequired,
-    userId: React.PropTypes.string.isRequired,
   };
 
   handleSelect(item) {
@@ -39,16 +38,11 @@ export class Card extends React.Component {
   }
 
   render() {
-    let { children, icon, item } = this.props;
+    let { children, className, icon, item } = this.props;
     let { title, description } = item;
 
-    let className = DomUtil.className('ux-card', 'ux-card-type-' + item.type.toLowerCase(), this.props.className);
-
-    // TODO(burdon): Optionally show description.
-    // TODO(burdon): Set icon via context's typeRegistry.
-
     return (
-      <div className={ className }>
+      <div className={ DomUtil.className('ux-card', 'ux-card-type-' + item.type.toLowerCase(), className) }>
         <div className="ux-card-header">
           <h1 className="ux-text-noselect ux-selector"
               onClick={ this.handleSelect.bind(this, item) }>{ title }</h1>

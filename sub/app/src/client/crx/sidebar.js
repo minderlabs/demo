@@ -12,40 +12,39 @@ import {
   ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger, HttpUtil, Injector, KeyListener
 } from 'minder-core';
 
-import { Base } from '../web/base';
-import { Path } from '../web/path';
-import { AppAction, AppReducer, ContextAction, ContextReducer } from '../web/reducers';
+import { Path } from '../common/path';
+import { BaseApp } from '../common/base_app';
+import { AppAction, AppReducer, ContextAction, ContextReducer } from '../common/reducers';
+
+import { Const } from '../../common/defs';
+
+import { TypeRegistryFactory } from '../web/framework/type_factory';
 
 import { BackgroundCommand, SidebarCommand, KeyToggleSidebar } from './common';
 import { ChromeNetworkInterface } from './util/network';
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
-
-import Application from './sidebar/app';
+import { Application } from './sidebar/app';
 
 //
 // Config passed from content script container.
-// TODO(burdon): Document config object.
 //
 const config = _.merge({
-  root: 'crx-root',
+  root: Const.DOM_ROOT,
+
+  // TODO(burdon): Build option (based on CRX ID?)
   env: 'development',
 
   app: {
-    name: 'Minder',
-    version: '0.0.0',     // TODO(burdon): Get from manifest.
-    platform: 'crx'
-  },
-
-  // Set by server registration with background page.
-  userId: null,
-  groupId: null
+    platform: Const.PLATFORM.CRX,
+    name: Const.APP_NAME
+  }
 
 }, HttpUtil.parseUrlArgs());
 
 /**
  * Main sidebar app.
  */
-class SidebarApp extends Base {
+class SidebarApp extends BaseApp {
 
   constructor(config) {
     super(config);
@@ -59,6 +58,7 @@ class SidebarApp extends Base {
     this._messenger = new WindowMessenger(config.channel)
       .attach(parent)
       .listen(message => {
+      console.log('Command: ' + JSON.stringify(message));
         switch (message.command) {
 
           // Updated visibility.
@@ -82,6 +82,7 @@ class SidebarApp extends Base {
     this._router = new ChromeMessageChannelRouter();
     this._systemChannel = new ChromeMessageChannel(BackgroundCommand.CHANNEL, this._router);
     this._systemChannel.onMessage.addListener(message => {
+      console.log('Command: ' + JSON.stringify(message));
       switch (message.command) {
 
         // Reset Apollo client (flush cache); e.g., Backend re-connected.
@@ -96,17 +97,25 @@ class SidebarApp extends Base {
     });
   }
 
-  postInit() {
-    this._router.connect();
-
-    // Register the client with the background page.
+  /**
+   * Register with BG page.
+   */
+  register() {
     return this._systemChannel.postMessage({
       command: BackgroundCommand.REGISTER
-    }).wait().then(response => {
-      // TODO(burdon): Retry if not registered (server might not be responding).
-      console.assert(response.server && response.user);
-      this.store.dispatch(AppAction.register(response.server, response.userId, response.groupId));
-    });
+    }).wait()
+      .then(response => {
+        console.assert(response.registration, response.server);
+        this.store.dispatch(AppAction.register(response.registration, response.server));
+      })
+      .catch(error => {
+        // TODO(burdon): Retry if not registered (server might not be responding).
+        console.error('Registration failed: ' + error);
+      });
+  }
+
+  postInit() {
+    this._router.connect();
   }
 
   initNetwork() {
@@ -127,6 +136,7 @@ class SidebarApp extends Base {
 
   get providers() {
     return [
+      Injector.provider(TypeRegistryFactory()),
       Injector.provider(this._messenger),
       Injector.provider(this._systemChannel, 'system-channel')
     ]
@@ -135,7 +145,7 @@ class SidebarApp extends Base {
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace]: AppReducer(this._config, this._injector),
+      [AppAction.namespace]: AppReducer(this._injector, this._config),
 
       // Context.
       [ContextAction.namespace]: ContextReducer,
@@ -152,9 +162,7 @@ class SidebarApp extends Base {
 const bootstrap = new SidebarApp(config);
 
 bootstrap.init().then(() => {
-
-  let root = bootstrap.render(Application);
-//bootstrap.render(TestApplication);
+  bootstrap.render(Application);
 
   // TODO(burdon): Dynamically set on scroll container (on mouseover?)
   // https://www.npmjs.com/package/prevent-parent-scroll
@@ -165,6 +173,7 @@ bootstrap.init().then(() => {
 
   // Trigger startup via Redux.
   bootstrap.store.dispatch(SidebarAction.initialized());
+  bootstrap.register();
 
   const keyBindings = new KeyListener()
     .listen(KeyToggleSidebar, () => bootstrap.store.dispatch(SidebarAction.toggleVisibility()));

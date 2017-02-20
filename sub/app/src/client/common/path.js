@@ -74,6 +74,7 @@ export class Navigator {
     this.dispatch = dispatch;
   }
 
+  // TODO(burdon): Prevent go back if at top.
   goBack() {
     this.dispatch(goBack());
   }

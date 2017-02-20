@@ -25,16 +25,19 @@ export class AppAction {
 
   //
   // Action creators.
-  // TODO(burdon): Use thunk to handle async request.
+  // Use thunk to handle async requests.
   // http://redux.js.org/docs/advanced/AsyncActions.html
   // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
   //
 
-  static register(server, userId, groupId) {
+  static register(registration, server=undefined) {
+    console.assert(registration);
+
     return {
       type: AppAction.ACTION.REGISTER,
       value: {
-        server, userId, groupId
+        server,
+        registration
       }
     };
   }
@@ -47,8 +50,14 @@ export class AppAction {
   }
 }
 
-export const AppReducer = (config, injector) => {
-  console.assert(config);
+/**
+ * @param injector
+ * @param config
+ * @param registration
+ * @constructor
+ */
+export const AppReducer = (injector, config, registration=undefined) => {
+  console.assert(injector && config);
 
   const initialState = {
     // NOTE: Needed since can't be passed via React context to HOC containers.
@@ -56,9 +65,7 @@ export const AppReducer = (config, injector) => {
 
     config: config,
 
-    // TODO(burdon): Create registration state.
-    userId: config.userId,
-    groupId: config.groupId,
+    registration,
 
     search: {
       text: ''
@@ -71,7 +78,7 @@ export const AppReducer = (config, injector) => {
     switch (action.type) {
       case AppAction.ACTION.REGISTER: {
         console.log('Registered: ' + JSON.stringify(action.value));
-        return _.assign(state, _.pick(action.value, ['server', 'userId', 'groupId']));
+        return _.assign(state, _.pick(action.value, ['registration', 'server']));
       }
 
       // TODO(burdon): Get search query (not just text).

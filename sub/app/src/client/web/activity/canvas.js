@@ -3,13 +3,16 @@
 //
 
 import React from 'react';
+import { connect } from 'react-redux';
+
+import { Const } from '../../../common/defs';
 
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
 import { CanvasContainer } from '../component/canvas';
-import { TypeRegistry } from '../framework/type_registry';
-
 import FolderView from '../view/folder';
+
+import { Activity } from './activity';
 
 /**
  * Canvas Activity.
@@ -27,23 +30,22 @@ class CanvasActivity extends React.Component {
     })
   };
 
-  static contextTypes = {
-    config: React.PropTypes.object.isRequired,
-    injector: React.PropTypes.object.isRequired
-  };
+  static childContextTypes = Activity.childContextTypes;
+
+  getChildContext() {
+    return Activity.getChildContext(this.props);
+  }
 
   render() {
-    let { config, injector } = this.context;
-    let { params } = this.props;
-    let { type, canvas, itemId } = params;
+    let { config, params: { type, canvas, itemId } } = this.props;
 
     let canvasComponent = (
-      <CanvasContainer typeRegistry={ injector.get(TypeRegistry) } type={ type } canvas={ canvas } itemId={ itemId }/>
+      <CanvasContainer type={ type } canvas={ canvas } itemId={ itemId }/>
     );
 
     // TODO(burdon): Layout based on form factor. Replace "expand" prop below with app state.
     let platform = _.get(config, 'app.platform');
-    if (platform === 'mobile' || platform === 'crx') {
+    if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {
       return (
         <FullLayout>
           { canvasComponent }
@@ -61,4 +63,4 @@ class CanvasActivity extends React.Component {
   }
 }
 
-export default CanvasActivity;
+export default connect(Activity.mapStateToProps, Activity.mapDispatchToProps)(CanvasActivity);

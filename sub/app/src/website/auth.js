@@ -73,7 +73,7 @@ export class Auth {
           firebase.auth().signInWithRedirect(this._provider);
         }
       })
-      .catch((error) => {
+      .catch(error => {
         console.error(error);
       });
   }

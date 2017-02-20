@@ -8,7 +8,7 @@ import { compose } from 'react-apollo';
 
 import { SearchBar } from 'minder-ux';
 
-import { AppAction } from '../reducers';
+import { AppAction } from '../../common/reducers';
 
 import './search.less';
 

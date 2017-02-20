@@ -4,7 +4,6 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { browserHistory } from 'react-router'
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-router-redux'
 import ReduxThunk from 'redux-thunk'
@@ -14,17 +13,16 @@ import moment from 'moment';
 
 import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 
-import { ErrorHandler } from '../common/errors';
-import { ClientAuthManager, ConnectionManager, NetworkManager } from '../common/network';
-import { TypeRegistryFactory } from './framework/type_factory';
-import { Monitor } from './component/devtools';
+import { ErrorHandler } from './errors';
+
+//import { Monitor } from './component/devtools';
 
 const logger = Logger.get('main');
 
 /**
  * Base class for all Minder (Apollo) apps.
  */
-export class Base {
+export class BaseApp {
 
   constructor(config) {
     console.assert(config);
@@ -112,10 +110,9 @@ export class Base {
       Injector.provider(new IdGenerator()),
       Injector.provider(new Matcher()),
       Injector.provider(new QueryParser()),
-      Injector.provider(TypeRegistryFactory())
     ], this.providers);
 
-    // TODO(burdon): Move to Redux.
+    // TODO(burdon): Move to Redux?
     this._injector = new Injector(providers);
 
     return Promise.resolve();
@@ -195,7 +192,7 @@ export class Base {
       // https://github.com/gaearon/redux-devtools
       // https://github.com/gaearon/redux-devtools/blob/master/docs/Walkthrough.md
       // TODO(burdon): Factor out.
-      Monitor.instrument()
+//    Monitor.instrument()
     );
 
     // http://redux.js.org/docs/api/createStore.html
@@ -313,41 +310,5 @@ export class Base {
     let root = document.getElementById(this._config.root);
     ReactDOM.render(app, root);
     return root;
-  }
-}
-
-/**
- * Base class for Web apps.
- */
-export class WebBase extends Base {
-
-  // TODO(burdon): Factor out.
-
-  /**
-   * Apollo network.
-   */
-  initNetwork() {
-
-    // Wraps the Apollo network requests.
-    this._networkManager = new NetworkManager(this._config, this._eventHandler).init();
-
-    // Manages the client connection and registration.
-    this._connectionManager =
-      new ConnectionManager(this._config, this._networkManager, this._queryRegistry, this._eventHandler);
-
-    // Manages OAuth.
-    this._authManager = new ClientAuthManager(this._config, this._networkManager, this._connectionManager);
-
-    // Trigger auth.
-    return this._authManager.authenticate();
-  }
-
-  get networkInterface() {
-    return this._networkManager.networkInterface;
-  }
-
-  get history() {
-    // https://github.com/ReactTraining/react-router/blob/master/docs/guides/Histories.md#browserhistory
-    return browserHistory;
   }
 }

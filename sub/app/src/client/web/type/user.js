@@ -7,7 +7,7 @@ import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { ItemFragment, UserFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
-import { List } from 'minder-ux';
+import { List, ReactUtil } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
@@ -46,36 +46,37 @@ class UserCanvasComponent extends React.Component {
   }
 
   render() {
-    if (this.props.loading) { return <div/>; }
-    let { item, mutator, refetch } = this.props;
-    let { ownerTasks, assigneeTasks } = item;
+    return ReactUtil.render(this, () => {
+      let { item, mutator, refetch } = this.props;
+      let { ownerTasks, assigneeTasks } = item;
 
-    // TODO(burdon): List type styling.
+      // TODO(burdon): List type styling.
 
-    return (
-      <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch }>
-        <div className="app-type-user ux-column">
+      return (
+        <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch }>
+          <div className="app-type-user ux-column">
 
-          <div className="ux-section-header ux-row">
-            <h3 className="ux-expand">Owner</h3>
-            <i className="ux-icon" onClick={ this.handleItemAdd.bind(this) }>add</i>
+            <div className="ux-section-header ux-row">
+              <h3 className="ux-expand">Owner</h3>
+              <i className="ux-icon" onClick={ this.handleItemAdd.bind(this) }>add</i>
+            </div>
+            <List ref="tasks"
+                  items={ ownerTasks }
+                  itemRenderer={ TaskListItemRenderer }
+                  onItemSelect={ this.handleItemSelect.bind(this) }
+                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+
+            <div className="ux-section-header ux-row">
+              <h3 className="ux-expand">Assigned</h3>
+            </div>
+            <List items={ assigneeTasks }
+                  itemRenderer={ TaskListItemRenderer }
+                  onItemSelect={ this.handleItemSelect.bind(this) }
+                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>
           </div>
-          <List ref="tasks"
-                items={ ownerTasks }
-                itemRenderer={ TaskListItemRenderer }
-                onItemSelect={ this.handleItemSelect.bind(this) }
-                onItemUpdate={ this.handleItemUpdate.bind(this) }/>
-
-          <div className="ux-section-header ux-row">
-            <h3 className="ux-expand">Assigned</h3>
-          </div>
-          <List items={ assigneeTasks }
-                itemRenderer={ TaskListItemRenderer }
-                onItemSelect={ this.handleItemSelect.bind(this) }
-                onItemUpdate={ this.handleItemUpdate.bind(this) }/>
-        </div>
-      </Canvas>
-    );
+        </Canvas>
+      );
+    });
   }
 }
 

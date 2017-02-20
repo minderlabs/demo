@@ -6,31 +6,30 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 
-import { Matcher, Mutator } from 'minder-core';
+import { IdGenerator, Matcher, Mutator } from 'minder-core';
 
-import { AppAction } from '../reducers';
-
-import { TypeRegistry } from './type_registry';
+import { AppAction } from '../../common/reducers';
 
 /**
  * NOTE: This is applied to the child container (e.g., TaskCardComponent).
  */
 const mapStateToProps = (state, ownProps) => {
-  let { injector, userId } = AppAction.getState(state);
+  let { injector, registration } = AppAction.getState(state);
+
+  // Required by graphql HOC.
+  let idGenerator = injector.get(IdGenerator);
+  let matcher = injector.get(Matcher);
 
   return {
-    // Provide for Mutator.graphql
-    injector,
+    // Required by HOC.
+    idGenerator, matcher,
 
-    // TODO(burdon): Get from injector?
-    typeRegistry: injector.get(TypeRegistry),
+    registration,
 
     // Matcher's context (same as server).
     context: {
-      userId
-    },
-
-    userId
+      userId: _.get(registration, 'userId')
+    }
   }
 };
 
@@ -61,8 +60,7 @@ export function composeItem(reducer, ...containers) {
       // Map properties to query.
       // http://dev.apollodata.com/react/queries.html#graphql-options
       options: (props) => {
-        let { itemId, context, injector } = props;
-        let matcher = injector.get(Matcher);
+        let { matcher, context, itemId } = props;
 
         return {
           variables: {
@@ -79,12 +77,14 @@ export function composeItem(reducer, ...containers) {
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
         let { loading, error, refetch } = data;
+
         let item = reducer.getItem(data);
 
         return {
           loading,
           error,
           refetch,
+
           item
         }
       }
@@ -96,7 +96,6 @@ export function composeItem(reducer, ...containers) {
     // GraphQL mutation.
     // Provides props.mutator.
     //
-    // TODO(burdon): Optional.
     args.push(Mutator.graphql(reducer.mutation));
   }
 

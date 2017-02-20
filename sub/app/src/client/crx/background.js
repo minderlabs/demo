@@ -8,6 +8,8 @@ Logger.setLevel({
 
 import { ChromeMessageChannelDispatcher, Listeners, TypeUtil } from 'minder-core';
 
+import { Const } from '../../common/defs';
+
 import { ErrorHandler } from '../common/errors';
 import { ClientAuthManager, ConnectionManager, NetworkManager } from '../common/network';
 import { ChromeNetworkInterface } from './util/network';
@@ -40,7 +42,7 @@ class BackgroundApp {
   static Config = {
     env: 'development',
     app: {
-      platform: 'crx'
+      platform: Const.PLATFORM.CRX
     }
   };
 
@@ -60,6 +62,9 @@ class BackgroundApp {
   constructor() {
     // Initial configuration (dynamically updated).
     this._config = _.defaults({}, BackgroundApp.Config);
+
+    // Registration state.
+    this._registration = null;
 
     // Dynamic settings.
     this._settings = new Settings(DefaultSettings);
@@ -109,6 +114,25 @@ class BackgroundApp {
       console.log('System request: ' + TypeUtil.stringify(request));
       switch (request.command) {
 
+        // Ping.
+        case BackgroundCommand.PING: {
+          return Promise.resolve({
+            timestamp: new Date().getTime()
+          });
+        }
+
+        // On client startup.
+        case BackgroundCommand.REGISTER: {
+          let { server } = this._config;
+          let registration = this._registration;
+          if (!registration) {
+            // TODO(burdon): Send retry error.
+            return Promise.reject('Client not registered.');
+          } else {
+            return Promise.resolve({ registration, server });
+          }
+        }
+
         // TODO(burdon): Send updated registration to clients?
         case BackgroundCommand.RECONNECT: {
           this._networkManager.init();
@@ -121,25 +145,6 @@ class BackgroundApp {
         case BackgroundCommand.SIGNOUT: {
           this._authManager.signout();
           break;
-        }
-
-        // On client startup.
-        // TODO(burdon): Registration might not have happened yet (esp. if server not responding).
-        // TODO(burdon): Send retry error to client.
-        case BackgroundCommand.REGISTER: {
-          let { server, groupId, userId } = this._config;
-          if (!server || !groupId || !userId) {
-            return Promise.reject('Client not registered.');
-          } else {
-            return Promise.resolve({ server, groupId, userId });
-          }
-        }
-
-        // Ping.
-        case BackgroundCommand.PING: {
-          return Promise.resolve({
-            timestamp: new Date().getTime()
-          });
         }
 
         default:
@@ -185,7 +190,9 @@ class BackgroundApp {
       this._networkManager.init();
 
       // Triggers popup.
-      this._authManager.authenticate().then(user => {
+      this._authManager.authenticate().then(registration => {
+        console.assert(registration && registration.userId);
+        this._registration = registration;
 
         // Only show if not dev.
         // TODO(burdon): Option.
@@ -204,9 +211,6 @@ class BackgroundApp {
             return gqlResponse;
           });
         });
-
-        // OK
-        console.log('Listening...');
       });
 
       // TODO(burdon): Notify scripts.

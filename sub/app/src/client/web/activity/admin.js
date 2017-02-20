@@ -10,9 +10,9 @@ import gql from 'graphql-tag';
 import { ItemFragment, GroupFragment } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
-import { AppAction } from '../reducers';
-import { TypeRegistry } from '../framework/type_registry';
 import { FullLayout } from '../layout/full';
+
+import { Activity } from './activity';
 
 import './admin.less';
 
@@ -21,6 +21,12 @@ import './admin.less';
  * For experimental features and components.
  */
 class AdminActivity extends React.Component {
+
+  static childContextTypes = Activity.childContextTypes;
+
+  getChildContext() {
+    return Activity.getChildContext(this.props);
+  }
 
   static ItemRenderer = (item) => (
     <ListItem item={ item }>
@@ -107,16 +113,9 @@ const AdminQuery = gql`
   ${GroupFragment}
 `;
 
-const mapStateToProps = (state, ownProps) => {
-  let { injector } = AppAction.getState(state);
-
-  return {
-    typeRegistry: injector.get(TypeRegistry)
-  };
-};
-
 export default compose(
-  connect(mapStateToProps),
+
+  connect(Activity.mapStateToProps, Activity.mapDispatchToProps),
 
   graphql(AdminQuery, {
     options: (props) => ({

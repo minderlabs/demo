@@ -4,19 +4,20 @@
 
 import React from 'react';
 import { IndexRedirect, Redirect, Route, Router } from 'react-router'
-import { connect } from 'react-redux'
 import { ApolloProvider } from 'react-apollo';
+
+import { Path } from '../common/path';
 
 import AdminActivity from './activity/admin';
 import CanvasActivity from './activity/canvas';
 import FinderActivity from './activity/finder';
 import TestingActivity from './activity/testing';
 
-import { AppAction } from './reducers';
-import { Path } from './path';
-
 /**
- * Main Application Root component.
+ * The Application must be a pure React component since HOCs may cause the component to be re-rendered,
+ * which would trigger a Router warning.
+ *
+ * Activities are top-level components that set-up the context.
  */
 export class Application extends React.Component {
 
@@ -27,29 +28,6 @@ export class Application extends React.Component {
     store: React.PropTypes.object.isRequired
   };
 
-  static childContextTypes = {
-    config: React.PropTypes.object,
-    injector: React.PropTypes.object
-  };
-
-  getChildContext() {
-    let { config, injector } = this.props;
-    return {
-      config,
-      injector
-    };
-  }
-
-  /**
-   * Render top-level application routes.
-   * Activities are top-level components that set-up the context.
-   *
-   * <Route>
-   *   <Activity>                 HOC providing context (injector, navigator, etc.)
-   *     <View/>                  Components.
-   *   </Activity>
-   * <Route>
-   */
   render() {
     let { client, store, history } = this.props;
 
@@ -89,12 +67,3 @@ export class Application extends React.Component {
     );
   }
 }
-
-const mapStateToProps = (state, ownProps) => {
-  let { config } = AppAction.getState(state);
-  return {
-    config
-  };
-};
-
-export default connect(mapStateToProps)(Application);

@@ -7,6 +7,7 @@ import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { ItemReducer, ItemFragment, ContactFragment, UpdateItemMutation } from 'minder-core';
+import { ReactUtil } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
@@ -48,15 +49,16 @@ export class ContactCanvasComponent extends React.Component {
   };
 
   render() {
-    if (this.props.loading) { return <div/>; }
-    let { item, refetch } = this.props;
-    let { email } = item;
+    return ReactUtil.render(this, () => {
+      let { item, refetch } = this.props;
+      let { email } = item;
 
-    return (
-      <Canvas ref="canvas" item={ item } refetch={ refetch }>
-        <div>{ email }</div>
-      </Canvas>
-    );
+      return (
+        <Canvas ref="canvas" item={ item } refetch={ refetch }>
+          <div>{ email }</div>
+        </Canvas>
+      );
+    });
   }
 }
 

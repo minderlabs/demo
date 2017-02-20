@@ -41,7 +41,6 @@ export class NavButtons extends React.Component {
     navigator: React.PropTypes.object.isRequired,
   };
 
-  // TODO(burdon): Prevent go back if at top.
   handleBack() {
     this.context.navigator.goBack();
   }
@@ -52,7 +51,7 @@ export class NavButtons extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="ux-navbar-buttons">
         <i className="ux-icon ux-icon-action" onClick={ this.handleBack.bind(this) }>arrow_back</i>
         <i className="ux-icon ux-icon-action" onClick={ this.handleForward.bind(this) }>arrow_forward</i>
       </div>

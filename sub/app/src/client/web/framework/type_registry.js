@@ -13,6 +13,8 @@ import { ItemCard, ItemCanvas } from '../type/item';
  */
 export class TypeRegistry {
 
+  // TODO(burdon): Move to minder-ux (with Card, Cavnas).
+
   /**
    * System singleton.
    * @param types Map of type specs.

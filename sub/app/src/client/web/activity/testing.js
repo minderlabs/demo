@@ -10,10 +10,10 @@ import gql from 'graphql-tag';
 import { ItemFragment, ContactFragment, TaskFragment } from 'minder-core';
 import { List } from 'minder-ux';
 
-import { AppAction } from '../reducers';
-import { TypeRegistry } from '../framework/type_registry';
 import { Card } from '../component/card';
 import { FullLayout } from '../layout/full';
+
+import { Activity } from './activity';
 
 /**
  * Testing Activity.
@@ -21,9 +21,11 @@ import { FullLayout } from '../layout/full';
  */
 class TestingActivity extends React.Component {
 
-  static propTypes = {
-    typeRegistry: React.PropTypes.object.isRequired
-  };
+  static childContextTypes = Activity.childContextTypes;
+
+  getChildContext() {
+    return Activity.getChildContext(this.props);
+  }
 
   state = {
     listType: 'card'
@@ -105,16 +107,9 @@ const TestQuery = gql`
   ${TaskFragment}
 `;
 
-const mapStateToProps = (state, ownProps) => {
-  let { injector } = AppAction.getState(state);
-
-  return {
-    typeRegistry: injector.get(TypeRegistry)
-  };
-};
-
 export default compose(
-  connect(mapStateToProps),
+
+  connect(Activity.mapStateToProps, Activity.mapDispatchToProps),
 
   graphql(TestQuery, {
     options: (props) => ({

@@ -5,12 +5,13 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { AppAction } from '../reducers';
+import { Const } from '../../../common/defs';
 
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
-
 import FolderView from '../view/folder';
+
+import { Activity } from './activity';
 
 /**
  * Finder Activity.
@@ -26,14 +27,19 @@ class FinderActivity extends React.Component {
     })
   };
 
+  static childContextTypes = Activity.childContextTypes;
+
+  getChildContext() {
+    return Activity.getChildContext(this.props);
+  }
+
   render() {
-    let { config, params } = this.props;
-    let { folder='inbox' } = params;
+    let { config, params: { folder='inbox' } } = this.props;
 
     let finder = <FolderView folder={ folder }/>;
 
     let platform = _.get(config, 'app.platform');
-    if (platform === 'mobile' || platform === 'crx') {
+    if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {
       return (
         <FullLayout>
           { finder }
@@ -47,12 +53,4 @@ class FinderActivity extends React.Component {
   }
 }
 
-const mapStateToProps = (state, ownProps) => {
-  let { config } = AppAction.getState(state);
-
-  return {
-    config
-  };
-};
-
-export default connect(mapStateToProps)(FinderActivity);
+export default connect(Activity.mapStateToProps, Activity.mapDispatchToProps)(FinderActivity);

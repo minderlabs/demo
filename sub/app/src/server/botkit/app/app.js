@@ -78,8 +78,8 @@ export class App {
         self.userStateManager.getUserState(message.user, bot).then(function(userState) {
           try {
             command.run(bot, message, userState);
-          } catch(err) {
-            console.log('Error running ' + command.name() + ': ' + err);
+          } catch(error) {
+            console.log('Error running ' + command.name() + ': ' + error);
             bot.reply(message, "Sorry, that didn't work.");
           }
         });
@@ -100,8 +100,8 @@ export class App {
         bot.reply(message, 'After selecting one or more items, you can take the following actions:\n' + usage);
       });
       try {
-      } catch (err) {
-        bot.reply(message, "ERROR: " + err); // FIXME
+      } catch(error) {
+        bot.reply(message, "ERROR: " + error); // FIXME
       }
     });
 

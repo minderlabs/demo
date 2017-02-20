@@ -59,11 +59,12 @@ export class Matcher {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item && filter);
 
-    // Bucket match (ACL filtering).
     // TODO(burdon): Filter should not include bucket (implicit in query).
-    if (item.bucket && item.bucket !== _.get(context, 'user.id')) {
+    if (item.bucket && item.bucket !== _.get(context, 'userId')) {
       return false;
     }
+
+    // Bucket match (ACL filtering).
     if (filter.bucket && item.bucket !== filter.bucket) {
       return false;
     }
@@ -227,23 +228,12 @@ export class Matcher {
 
     let ref = expr.ref;
     if (ref) {
-      // Resolve magic variables.
-      // TODO(burdon): These must provided to the client matcher (client and server).
-      switch (ref) {
-        // TODO(burdon): Is this still necessary/useful?
-        case '$USER_ID': {
-          console.assert(context.userId);
-          inputValue = { id: context.userId };
-          break;
-        }
-
-        default: {
-          // TODO(burdon): Note we could use the resolver's info attribute to enable to ref to reference ancestor nodes.
-          if (_.get(root, ref)) {
-            // TODO(madadam): Resolve other scalar types.
-            inputValue = { id: _.get(root, ref) };
-          }
-        }
+      // TODO(burdon): Resolve other scalar types.
+      // TODO(burdon): Implement magic variables (e.g., '$CONTEXT').
+      // TODO(burdon): Use the resolver's info attribute to enable to ref to reference ancestor nodes?
+      let value = _.get(root, ref);
+      if (value) {
+        inputValue = { id: value };
       }
     }
 

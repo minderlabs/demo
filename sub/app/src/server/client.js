@@ -146,6 +146,7 @@ export class ClientManager {
     } else {
       let socket = this._socketManager.getSocket(client.socketId);
       if (!socket) {
+        // TODO(burdon): Unregister client.
         logger.warn($$('Client not connected: %s', clientId));
       } else {
         logger.warn($$('Invalidating client: %s', clientId));

@@ -100,6 +100,7 @@ export const TaskFragment = gql`
       type
       id
       title
+      status
     }
   }
 `;
@@ -112,6 +113,7 @@ export const ProjectFragment = gql`
       type
       id
       title
+      status
     }
   }
 `;
@@ -147,12 +149,14 @@ export const UserFragment = gql`
       type
       id
       title
+      status
     }
 
     assigneeTasks: tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
       type
       id
       title
+      status
     }
   }
 `;

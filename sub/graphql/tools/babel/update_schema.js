@@ -41,7 +41,7 @@ if (!fs.existsSync(dist)) {
       fs.writeFileSync(filename, JSON.stringify(result, null, 2));
       console.log('Created: %s', filename);
     }
-  } catch(ex) {
-    console.log('ERROR', ex);
+  } catch(error) {
+    console.log('ERROR', error);
   }
 })();

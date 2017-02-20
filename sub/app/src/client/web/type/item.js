@@ -7,6 +7,7 @@ import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { ItemReducer, ItemFragment, UpdateItemMutation } from 'minder-core';
+import { ReactUtil } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
@@ -47,12 +48,13 @@ export class ItemCanvasComponent extends React.Component {
   };
 
   render() {
-    if (this.props.loading) { return <div/>; }
-    let { item, refetch } = this.props;
+    return ReactUtil.render(this, () => {
+      let { item, refetch } = this.props;
 
-    return (
-      <Canvas item={ item } refetch={ refetch }/>
-    );
+      return (
+        <Canvas item={ item } refetch={ refetch }/>
+      );
+    });
   }
 }
 

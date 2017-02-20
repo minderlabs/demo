@@ -4,7 +4,7 @@
 
 import { graphql } from 'react-apollo';
 
-import { ID, IdGenerator } from './id';
+import { ID } from './id';
 
 /**
  * Utils to create mutations.
@@ -117,17 +117,15 @@ export class Mutator {
         //
         // Injects a mutator instance into the wrapped components' properties.
         //
-        mutator: new Mutator(mutate, ownProps.injector.get(IdGenerator)),
+        mutator: new Mutator(mutate, ownProps.idGenerator),
       })
     });
   }
 
   /**
-   *
-   * @param mutate
+   * @param mutate Function provided by apollo.
    * @param idGenerator
    */
-  // TODO(burdon): Document.
   constructor(mutate, idGenerator) {
     console.assert(mutate && idGenerator);
 

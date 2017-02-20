@@ -3,12 +3,9 @@
 //
 
 import React from 'react';
-import { connect } from 'react-redux';
 
 import { MutationUtil, QueryRegistry, TypeUtil } from 'minder-core';
 import { Textarea, TextBox } from 'minder-ux';
-
-import { AppAction } from '../reducers';
 
 /**
  * Canvas container.
@@ -26,25 +23,18 @@ import { AppAction } from '../reducers';
 export class CanvasContainer extends React.Component {
 
   static propTypes = {
-    typeRegistry: React.PropTypes.object.isRequired,
     type: React.PropTypes.string.isRequired,
+    itemId: React.PropTypes.string.isRequired,
     canvas: React.PropTypes.string,
-    itemId: React.PropTypes.string.isRequired
   };
 
-  static childContextTypes = {
-    typeRegistry: React.PropTypes.object
+  static contextTypes = {
+    typeRegistry: React.PropTypes.object.isRequired,
   };
-
-  getChildContext() {
-    let { typeRegistry } = this.props;
-    return {
-      typeRegistry
-    };
-  }
 
   render() {
-    let { typeRegistry, itemId, canvas } = this.props;
+    let { typeRegistry } = this.context;
+    let { itemId, canvas } = this.props;
 
     return (
       <div className="ux-canvas-container">
@@ -57,14 +47,9 @@ export class CanvasContainer extends React.Component {
 /**
  * Canvas wrapper.
  */
-class CanvasComponent extends React.Component {
+export class Canvas extends React.Component {
 
   static propTypes = {
-
-    // From Redux.
-    // TODO(burdon): See Task List; create sub type of "config" for connection state.
-    groupId: React.PropTypes.string.isRequired,
-    userId: React.PropTypes.string.isRequired,
 
     // Root item (retrieved by type-specific GQL query).
     item: React.PropTypes.object.isRequired,
@@ -91,23 +76,10 @@ class CanvasComponent extends React.Component {
     queryRegistry: React.PropTypes.object.isRequired
   };
 
-  static childContextTypes = {
-    groupId: React.PropTypes.string,
-    userId: React.PropTypes.string,
-  };
-
   /**
    * State contains editable fields.
    */
   state = {};
-
-  getChildContext() {
-    let { groupId, userId } = this.props;
-
-    return {
-      groupId, userId
-    };
-  }
 
   /**
    * Auto-save when item chages.
@@ -170,7 +142,7 @@ class CanvasComponent extends React.Component {
     return (
       <div className="ux-canvas">
         <div>
-          <div className="ux-row">
+          <div className="ux-columns">
             <TextBox className="ux-expand ux-noborder ux-font-large"
                      value={ title }
                      onChange={ this.handlePropertyChange.bind(this, 'title') }/>
@@ -206,7 +178,3 @@ class CanvasComponent extends React.Component {
     )
   }
 }
-
-export const Canvas = connect(
-  (state, ownProps) => _.pick(AppAction.getState(state), ['debug', 'groupId', 'userId'])
-)(CanvasComponent);
