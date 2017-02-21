@@ -179,8 +179,7 @@ let loading = Promise.all([
   loader.parse(require('./data/startup.json')),
   loader.parse(require('./data/demo.json'))
 ]).then(() => {
-  // Then init once parsing (and database update) is done.
-  return loader.initGroup(Const.DEF_GROUP);
+  return loader.initGroups();
 });
 
 
@@ -189,9 +188,10 @@ let loading = Promise.all([
 //
 
 if (testing) {
-  loading.then(() => {
-
-    let itemStoreRandomizer = TestData.randomizer(database, database.getItemStore());
+  loading.then(groups => {
+    // TODO(burdon): Randomly select group for randomizer runs.
+    let context = { groupId: 'minderlabs' };
+    let itemStoreRandomizer = TestData.randomizer(database, database.getItemStore(), context);
     return Promise.all([
       itemStoreRandomizer.generate('Task', 30, TestData.TaskFields(itemStoreRandomizer)),
       itemStoreRandomizer.generate('Contact', 5)
@@ -299,17 +299,20 @@ app.use(graphqlRouter(database, {
 
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
-  contextProvider: (request) => authManager.getUserInfoFromHeader(request)
+  contextProvider: request => authManager.getUserInfoFromHeader(request)
     .then(userInfo => {
       // TODO(burdon): 401 handling.
       console.assert(userInfo, 'GraphQL request is not authenticated.');
 
-      return {
-        userId: userInfo.id,
-
-        // TODO(burdon): Get from userInfo?
-        groupId: Const.DEF_GROUP
-      };
+      let userId = userInfo.id;
+      return firebase.systemStore.getGroup(userId).then(group => {
+        // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
+        let groupId = group.id;
+        return {
+          groupId,
+          userId
+        }
+      });
     })
 }));
 
@@ -354,9 +357,9 @@ app.use('/admin', adminRouter(clientManager, firebase, {
   scheduler: (env === 'production')
 }));
 
-app.use('/client', clientRouter(authManager, clientManager, server));
+app.use('/client', clientRouter(authManager, clientManager, firebase.systemStore));
 
-app.use(appRouter(authManager, clientManager, {
+app.use(appRouter(authManager, clientManager, firebase.systemStore, {
 
   // App root path.
   root: Const.ROOT_PATH,
@@ -375,12 +378,12 @@ app.use(appRouter(authManager, clientManager, {
   }
 }));
 
+app.use('/accounts', accountsRouter(new AccountManager()
+  .registerHandler('Slack', new SlackAccountHandler())));
+
 if (botkitManager) {
   app.use('/botkit', botkitRouter(botkitManager));
 }
-
-app.use('/accounts', accountsRouter(new AccountManager()
-  .registerHandler('Slack', new SlackAccountHandler())));
 
 //
 // Catch-all (last).

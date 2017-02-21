@@ -39,36 +39,41 @@ class GroupCanvasComponent extends React.Component {
     this.refs.projects.addItem();
   }
 
-  handleProjectSave(item, mutations) {
-    let { mutator } = this.props;
+  handleProjectSave(project, mutations) {
+    let { item:group, mutator } = this.props;
 
     // TODO(burdon): Add project to group (link?)
     // Augment editor mutations.
-    mutations.push(
-      {
-        field: 'group',
-        value: {
-          id: item.id
+    if (project) {
+      console.warn('Updating group: ' + JSON.stringify(group));
+    } else {
+      // TODO(burdon): Add bucket.
+      mutations.push(
+        {
+          field: 'group',
+          value: {
+            id: group.id
+          }
         }
-      }
-    );
+      );
 
-    mutator.createItem('Project', mutations);
+      mutator.createItem('Project', mutations);
+    }
   }
 
   render() {
     return ReactUtil.render(this, () => {
-      let { item, mutator, refetch } = this.props;
+      let { item:group, mutator, refetch } = this.props;
 
       return (
-        <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch }>
+        <Canvas ref="canvas" item={ group } mutator={ mutator } refetch={ refetch }>
           <div className="app-type-group ux-column">
 
             <div className="ux-column">
               <div className="ux-section-header ux-row">
                 <h3 className="ux-expand">Members</h3>
               </div>
-              <List items={ item.members } onItemSelect={ this.handleItemSelect.bind(this) }/>
+              <List items={ group.members } onItemSelect={ this.handleItemSelect.bind(this) }/>
             </div>
 
             <div className="ux-column">
@@ -77,7 +82,7 @@ class GroupCanvasComponent extends React.Component {
                 <i className="ux-icon ux-icon-add" onClick={ this.handleProjectAdd.bind(this) }></i>
               </div>
               <List ref="projects"
-                    items={ item.projects }
+                    items={ group.projects }
                     onItemSelect={ this.handleItemSelect.bind(this) }
                     onItemUpdate={ this.handleProjectSave.bind(this) }/>
             </div>

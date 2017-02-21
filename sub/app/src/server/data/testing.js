@@ -13,8 +13,8 @@ import { Database } from 'minder-graphql';
  */
 export class TestData {
 
-  static randomizer(database, itemStore) {
-    const queryItems = (type) => database.queryItems({}, {}, {
+  static randomizer(database, itemStore, context={}) {
+    const queryItems = (type) => database.queryItems(context, {}, {
       namespace: Database.getNamespaceForType(type),
       type
     });

@@ -17,7 +17,7 @@ const logger = Logger.get('client');
 /**
  * Client endpoints.
  */
-export const clientRouter = (authManager, clientManager, options) => {
+export const clientRouter = (authManager, clientManager, systemStore, options={}) => {
   console.assert(authManager && clientManager);
   let router = express.Router();
 
@@ -31,21 +31,27 @@ export const clientRouter = (authManager, clientManager, options) => {
     // Get current user.
     let userInfo = await authManager.getUserInfoFromHeader(req);
     if (userInfo) {
+      let userId = userInfo.id;
 
       // Assign client ID for CRX.
       if (!clientId) {
-        let client = clientManager.create(userInfo.id);
+        let client = clientManager.create(userId);
         clientId = client.id;
       }
 
       // Register the client.
-      clientManager.register(userInfo.id, clientId, socketId);
+      clientManager.register(userId, clientId, socketId);
+
+      // Get group.
+      // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
+      let group = await systemStore.getGroup(userId);
+      let groupId = group.id;
 
       // Registration info.
       res.send({
         clientId,
-        groupId: Const.DEF_GROUP,     // TODO(burdon): Groups.
-        userId: userInfo.id
+        groupId,
+        userId
       });
     } else {
       res.status(401);

@@ -14,6 +14,8 @@ import { Cache } from './cache';
  */
 export class FirebaseSystemStore extends ItemStore {
 
+  // TODO(burdon): Use FirebaseItemStore (no cache).
+
   // Root database node.
   static ROOT = 'system';
 
@@ -90,6 +92,18 @@ export class FirebaseSystemStore extends ItemStore {
     };
 
     this.upsertItem({}, FirebaseSystemStore.userRecordToItem(uid, record));
+  }
+
+  /**
+   * Lookup group for user.
+   * @param userId
+   * @returns {Promise} Matching group (or null).
+   */
+  getGroup(userId) {
+    // TODO(burdon): Return matching groups.
+    return this.queryItems({}, {}, { type: 'Group' }).then(items => {
+      return _.find(items, item => _.indexOf(item.members, userId) != -1);
+    });
   }
 
   //

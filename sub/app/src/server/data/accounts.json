@@ -12,6 +12,13 @@
         "alice.braintree@gmail.com",
         "jeremyhfisher@gmail.com"
       ]
+    },
+    {
+      "id": "rb-private",
+      "title": "Private",
+      "whitelist": [
+        "rich.burdon@gmail.com"
+      ]
     }
   ]
 }

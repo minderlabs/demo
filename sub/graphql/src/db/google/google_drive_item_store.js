@@ -15,6 +15,7 @@ const logger = Logger.get('google.drive');
 class GoogleDriveClient {
 
   // TODO(burdon): Generalize client.
+  // TODO(burdon): Handle expiration: Query failed: Error: No access or refresh token is set.
 
   /**
    * Convert Drive result to a schema object Item.

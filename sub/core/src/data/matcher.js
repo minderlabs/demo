@@ -15,8 +15,6 @@ import { TypeUtil } from '../util/type';
  */
 export class Matcher {
 
-  // TODO(burdon): Reorder args: context, root, item, filter, ...
-
   /**
    * Sort items.
    * @param items
@@ -60,12 +58,12 @@ export class Matcher {
     console.assert(item && filter);
 
     // TODO(burdon): Filter should not include bucket (implicit in query).
-    if (item.bucket && item.bucket !== _.get(context, 'userId')) {
+    if (filter.bucket && item.bucket !== filter.bucket) {
       return false;
     }
 
     // Bucket match (ACL filtering).
-    if (filter.bucket && item.bucket !== filter.bucket) {
+    if (item.bucket && item.bucket !== _.get(context, 'userId') && item.bucket !== _.get(context, 'groupId')) {
       return false;
     }
 
@@ -225,15 +223,21 @@ export class Matcher {
     //
     // Substitute value for reference.
     //
-
     let ref = expr.ref;
     if (ref) {
-      // TODO(burdon): Resolve other scalar types.
-      // TODO(burdon): Implement magic variables (e.g., '$CONTEXT').
-      // TODO(burdon): Use the resolver's info attribute to enable to ref to reference ancestor nodes?
-      let value = _.get(root, ref);
-      if (value) {
+      // Resolve magic variables against context (e.g., $CONTEXT.userId).
+      let match = ref.match(/\$CONTEXT\.(.+)/);
+      if (match) {
+        let value = _.get(context, match[1]);
+        console.assert(value);
         inputValue = { id: value };
+      } else {
+        // TODO(burdon): Resolve other scalar types.
+        // TODO(burdon): Use the resolver's info attribute to enable to ref to reference ancestor nodes?
+        let value = _.get(root, ref);
+        if (value) {
+          inputValue = { id: value };
+        }
       }
     }
 

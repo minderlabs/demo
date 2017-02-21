@@ -67,8 +67,8 @@
         "expr": {
           "op": "OR",
           "expr": [
-            { "ref": "$USER_ID", "field": "owner" },
-            { "ref": "$USER_ID", "field": "assignee" }
+            { "ref": "$CONTEXT.userId", "field": "owner" },
+            { "ref": "$CONTEXT.userId", "field": "assignee" }
           ]
         },
         "groupBy": false

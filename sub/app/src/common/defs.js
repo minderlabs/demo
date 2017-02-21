@@ -55,9 +55,6 @@ export const Const = {
   // NOTE: Changed by grunt:version
   APP_VERSION: "0.1.6",
 
-  // TODO(burdon): Remove.
-  DEF_GROUP: 'minderlabs',
-
   AUTH_COOKIE: 'minder_auth_token',
 
   PLATFORM: {

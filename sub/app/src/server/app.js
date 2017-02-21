@@ -29,10 +29,11 @@ const WEBPACK_BUNDLE = {
  *
  * @param {AuthManager} authManager
  * @param {ClientManager} clientManager
+ * @param systemStore
  * @param options
  * @returns {Router}
  */
-export const appRouter = (authManager, clientManager, options) => {
+export const appRouter = (authManager, clientManager, systemStore, options) => {
   console.assert(authManager && clientManager);
   const router = express.Router();
 
@@ -51,8 +52,16 @@ export const appRouter = (authManager, clientManager, options) => {
       // TODO(burdon): Create Router object rather than hardcoding path.
       res.redirect('/');
     } else {
+      let userId = userInfo.id;
+
       // Create the client (and socket).
-      let client = clientManager.create(userInfo.id);
+      let client = clientManager.create(userId);
+      let clientId = client.id;
+
+      // Get group.
+      // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
+      let group = await systemStore.getGroup(userId);
+      let groupId = group.id;
 
       // Client app config.
       let config = _.defaults({
@@ -62,9 +71,9 @@ export const appRouter = (authManager, clientManager, options) => {
 
         // Authenticated user.
         registration: {
-          clientId: client.id,
-          groupId: Const.DEF_GROUP,
-          userId: userInfo.id
+          clientId,
+          groupId,
+          userId
         }
       }, options.config);
 

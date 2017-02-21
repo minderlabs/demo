@@ -89,11 +89,10 @@ export class Resolvers {
         projects: (root, args, context) => {
           let filter = {
             type: 'Project',
-            filter: {
-              expr: { field: "group", ref: "id" }
-            }
+            expr: { field: "group", ref: "id" }
           };
 
+          // TODO(burdon): Links.
           return database.queryItems(context, root, filter);
         }
       },
@@ -120,7 +119,6 @@ export class Resolvers {
           }));
         },
 
-        // TODO(burdon): Store in System database.
         group: (root, args, context) => {
           let { group } = root;
           return database.getItem(context, 'Group', group, Database.SYSTEM_NAMESPACE);
