@@ -126,7 +126,7 @@ export const loginRouter = (systemStore, options) => {
   // Login page.
   router.use('/login', function(req, res) {
     // Firebase JS login.
-    res.render('login');
+    res.render('login') ;
   });
 
   // Logout page (javascript).
@@ -141,7 +141,7 @@ export const loginRouter = (systemStore, options) => {
     logger.log('User registration: ' + JSON.stringify(_.pick(user, ['uid', 'email'])));
 
     res.send(JSON.stringify({
-      user: await systemStore.upsertUser(user, credential)
+      user: await systemStore.registerUser(user, credential)
     }));
   });
 
