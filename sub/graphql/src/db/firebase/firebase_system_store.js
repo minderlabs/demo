@@ -45,7 +45,7 @@ export class FirebaseSystemStore extends ItemStore {
       id:           key,
       created:      record.created,
       modified:     record.modified,
-      title:        record.profile.name,
+      title:        record.profile.displayName,
       email:        record.profile.email,
       credentials:  record.credentials
     };
@@ -66,11 +66,11 @@ export class FirebaseSystemStore extends ItemStore {
 
   /**
    * Upsert Firebase User Account.
-   * @param data
+   * @param user
+   * @param credential
    */
-  upsertUser(data) {
-    let { user, credential } = data;
-    let { uid, email, name } = user;
+  upsertUser(user, credential) {
+    let { uid, email, displayName } = user;
     let { accessToken, idToken, provider } = credential;
     console.assert(uid);
 
@@ -78,9 +78,11 @@ export class FirebaseSystemStore extends ItemStore {
     let record = {
       created: moment().unix(),
 
+      // Firebase user.
       profile: {
+        uid,
         email,
-        name
+        displayName
       },
 
       credentials: {
@@ -91,7 +93,10 @@ export class FirebaseSystemStore extends ItemStore {
       }
     };
 
-    this.upsertItem({}, FirebaseSystemStore.userRecordToItem(uid, record));
+    // TODO(burdon): Set active if in group?
+    let user = FirebaseSystemStore.userRecordToItem(uid, record);
+
+    return this.upsertItem({}, user);
   }
 
   /**

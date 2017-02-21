@@ -248,6 +248,54 @@ interface Item {
 }
 
 #===================================================================================================
+# System Types.
+#===================================================================================================
+
+type User implements Item {
+  namespace: String
+  fkey: String
+  bucket: ID
+  type: String!
+  id: ID!
+  alias: String
+  created: Timestamp!
+  modified: Timestamp!
+  title: String!
+  description: String
+  labels: [String]
+
+  active: Boolean
+
+  # TODO(burdon): Part of contact?
+  email: String
+
+  contact: Contact
+
+  # TODO(burdon): Remove (only query via project links).
+  tasks(filter: FilterInput): [Task]!
+}
+
+type Group implements Item {
+  namespace: String
+  fkey: String
+  bucket: ID
+  type: String!
+  id: ID!
+  alias: String
+  created: Timestamp!
+  modified: Timestamp!
+  title: String!
+  description: String
+  labels: [String]
+
+  whitelist: [String]
+  members: [User]!
+
+  # TODO(burdon): Shouldn't be part of Group. Instead link (since many-to-may).
+  projects: [Project]!
+}
+
+#===================================================================================================
 # Item Types.
 #===================================================================================================
 
@@ -322,26 +370,6 @@ type Folder implements Item {
   filter: String!
 }
 
-type Group implements Item {
-  namespace: String
-  fkey: String
-  bucket: ID
-  type: String!
-  id: ID!
-  alias: String
-  created: Timestamp!
-  modified: Timestamp!
-  title: String!
-  description: String
-  labels: [String]
-
-  whitelist: [String]
-  members: [User]!
-
-  # TODO(burdon): Shouldn't be part of Group. Instead link (since many-to-may).
-  projects: [Project]!
-}
-
 type Place implements Item {
   namespace: String
   fkey: String
@@ -412,28 +440,6 @@ type Task implements Item {
   owner: User!
 
   assignee: User
-}
-
-type User implements Item {
-  namespace: String
-  fkey: String
-  bucket: ID
-  type: String!
-  id: ID!
-  alias: String
-  created: Timestamp!
-  modified: Timestamp!
-  title: String!
-  description: String
-  labels: [String]
-
-  contact: Contact
-
-  # TODO(burdon): Part of contact?
-  email: String
-
-  # TODO(burdon): Remove (only query via project links).
-  tasks(filter: FilterInput): [Task]!
 }
 
 #===================================================================================================

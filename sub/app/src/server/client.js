@@ -29,7 +29,7 @@ export const clientRouter = (authManager, clientManager, systemStore, options={}
     let { clientId, socketId } = req.body;
 
     // Get current user.
-    let userInfo = await authManager.getUserInfoFromHeader(req);
+    let userInfo = await authManager.getUserFromHeader(req);
     if (userInfo) {
       let userId = userInfo.id;
 

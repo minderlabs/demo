@@ -12,6 +12,7 @@ import { Logger } from 'minder-core';
 Logger.setLevel({
 
   'main'      : Logger.Level.debug,
+  'auth'      : Logger.Level.debug,
   'client'    : Logger.Level.debug,
   'net'       : Logger.Level.debug,
   'resolver'  : Logger.Level.debug,

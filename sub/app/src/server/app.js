@@ -47,12 +47,12 @@ export const appRouter = (authManager, clientManager, systemStore, options) => {
   router.get(path, async function(req, res) {
 
     // TODO(burdon): Deprecate cookies? Do redirect from app?
-    let userInfo = await authManager.getUserInfoFromCookie(req);
-    if (!userInfo) {
+    let user = await authManager.getUserFromCookie(req);
+    if (!user) {
       // TODO(burdon): Create Router object rather than hardcoding path.
       res.redirect('/');
     } else {
-      let userId = userInfo.id;
+      let userId = user.id;
 
       // Create the client (and socket).
       let client = clientManager.create(userId);

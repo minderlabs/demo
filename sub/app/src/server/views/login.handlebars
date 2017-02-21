@@ -1,6 +1,12 @@
 {{#section 'head'}}
   <script src="/assets/website.bundle.js"></script>
   <script>
-    new Auth().login('/home');
+    new Auth().login().then(user => {
+      if (user.active) {
+        document.location.href = '/home';
+      } else {
+        document.location.href = '/welcome';
+      }
+    });
   </script>
 {{/section}}

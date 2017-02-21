@@ -30,38 +30,36 @@ export class AuthManager {
 
   /**
    * Decodes the JWT token.
+   * https://jwt.io/introduction
+   *
    * @param token
-   * @returns {Promise}
+   * @returns {Promise<Item>}
    */
   getUserFromJWT(token) {
-    return new Promise((resolve, reject) => {
-      if (!token) {
-        reject();
-      } else {
-        // Token set by apollo client's network interface middleware.
-        // https://jwt.io/introduction
-        this._admin.auth().verifyIdToken(token)
-          .then(decodedToken => {
-            let { uid:id, name, email } = decodedToken;
-            console.assert(id, 'Invalid token: ' + JSON.stringify(decodedToken));
+    console.assert(token);
 
-            // TODO(madadam): Empty context ok?
-            this._systemStore.getItem({}, 'User', id)
-              .then(user => {
-                logger.log(`Got token for: ${email}`);
-                _.assign(user, { token });
-                resolve(user);
-              })
-              .catch(error => {
-                logger.warn('Error getting user ${id}: ' + error);
-              });
+    // https://firebase.google.com/docs/auth/admin/verify-id-tokens#verify_id_tokens_using_the_firebase_admin_sdks
+    return this._admin.auth().verifyIdToken(token)
+      .then(decodedToken => {
+        let { uid:id, email } = decodedToken;
+        console.assert(id, 'Invalid token: ' + JSON.stringify(decodedToken));
+
+        this._systemStore.getItem({}, 'User', id)
+          .then(user => {
+            logger.log(`Got token for: ${email}`);
+
+            // TODO(burdon): Not part of user Item. Either create new class or return tuple.
+            _.assign(user, { token });
+
+            return user;
           })
           .catch(error => {
-            logger.warn('Invalid JWT (may have expired).');
-            reject();
+            logger.warn('Error getting user: ' + error);
           });
-      }
-    });
+      })
+      .catch(error => {
+        logger.warn('Invalid JWT (may have expired).');
+      });
   }
 
   /**
@@ -76,9 +74,10 @@ export class AuthManager {
    * @param req HTTP request object.
    * @returns {Promise}
    */
-  getUserInfoFromHeader(req) {
+  getUserFromHeader(req) {
     console.assert(req);
 
+    // Token set in apollo client's network interface middleware.
     let auth = req.headers && req.headers['authentication'];
     let match = auth && auth.match(/^Bearer (.+)$/);
     let token = match && match[1];
@@ -95,7 +94,7 @@ export class AuthManager {
    * @param req HTTP request object.
    * @returns {Promise}
    */
-  getUserInfoFromCookie(req) {
+  getUserFromCookie(req) {
     console.assert(req);
 
     let token = req.cookies && req.cookies[Const.AUTH_COOKIE];
@@ -137,9 +136,13 @@ export const loginRouter = (systemStore, options) => {
   });
 
   // Handle user registration.
-  router.post('/register', function(req, res) {
-    systemStore.upsertUser(req.body);
-    res.send({});
+  router.post('/register', async function(req, res) {
+    let { user, credential } = req.body;
+    logger.log('User registration: ' + JSON.stringify(_.pick(user, ['uid', 'email'])));
+
+    res.send(JSON.stringify({
+      user: await systemStore.upsertUser(user, credential)
+    }));
   });
 
   return router;

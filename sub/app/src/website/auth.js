@@ -20,62 +20,62 @@ export class Auth {
 
     // https://firebase.google.com/docs/auth/web/google-signin
     this._provider = new firebase.auth.GoogleAuthProvider();
-    _.each(GoogleApiConfig.authScopes, scope => { this._provider.addScope(scope); });
+    _.each(GoogleApiConfig.authScopes, scope => {
+      this._provider.addScope(scope);
+    });
   }
 
   /**
    * Login via Firebase.
-   * @param path
+   * @param onSuccess
    */
-  login(path) {
+  login(onSuccess) {
     console.log('OAuth Login');
 
-    // TODO(burdon): Document.
-    // Access Token: Determine authorization (short-lived).
-    // Refresh Token: Get new Access Token.
-
-    // TODO(burdon): Expiration? Getting JWT isn't complete?
-    // https://auth0.com/blog/refresh-tokens-what-are-they-and-when-to-use-them/
-
-    // NOTE: Always flows through here (first then after redirect).
-    firebase.auth().getRedirectResult()
+    // Redirect and get user credentials.
+    // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#getRedirectResult
+    return firebase.auth().getRedirectResult()
       .then(result => {
-
-        // TODO(burdon): Store Google Access Token.
-        if (result.credential) {
-          let token = result.credential.accessToken;
-          console.log('Access Token: %s', token);
+        let { user, credential } = result;
+        if (!user) {
+          // Redirect to Google if token has expired (results obtained by getRedirectResult above).
+          // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signInWithRedirect
+          return firebase.auth().signInWithRedirect(this._provider);
         }
 
-        // The signed-in user info.
-        let user = result.user;
-        if (user) {
-          // https://firebase.google.com/docs/reference/js/firebase.User#getToken
-          user.getToken().then(token => {
-            this.registerUser(result).then(() => {
+        // Get the JWT.
+        // Returns the current token or issues a new one if expire (short lived; lasts for about an hour).
+        // https://firebase.google.com/docs/reference/js/firebase.User#getToken
+        return user.getToken()
+          .then(jwt => {
 
-              // TODO(burdon): Do we need this?
-              // Se the auth cookie for server-side detection.
-              // https://github.com/js-cookie/js-cookie
-              Cookies.set(Const.AUTH_COOKIE, token, {
-//              path: '/',
-                domain: window.location.hostname,
-                expires: 1,       // 1 day.
-//              secure: true      // If served over HTTPS.
+            // TODO(burdon): Get the long lived refresh token?
+            // https://auth0.com/blog/refresh-tokens-what-are-they-and-when-to-use-them
+
+            // TODO(burdon): authManager.getUserInfoFromCookie (how to get server side auth?)
+            Auth.setCookie(jwt);
+
+            // Register the user.
+            return this.registerUser(user, credential)
+              .then(user => {
+                return user;
               });
-
-              // Redirect.
-              window.location.href = path;
-            });
           });
-        } else {
-          // Calls above.
-          firebase.auth().signInWithRedirect(this._provider);
-        }
       })
       .catch(error => {
         console.error(error);
       });
+  }
+
+  static setCookie(jwt) {
+    console.assert(jwt);
+
+    // Se the auth cookie for server-side detection.
+    // https://github.com/js-cookie/js-cookie
+    Cookies.set(Const.AUTH_COOKIE, jwt, {
+      domain: window.location.hostname,
+      expires: 1, // 1 day.
+    });
   }
 
   /**
@@ -86,15 +86,14 @@ export class Auth {
     console.log('OAuth Logout');
 
     // https://firebase.google.com/docs/auth/web/google-signin
-    firebase.auth().signOut().then(
-      function() {
+    firebase.auth().signOut()
+      .then(() => {
         // Remove the cookie.
         Cookies.remove(Const.AUTH_COOKIE);
 
         // Redirect.
         window.location.href = path;
-      },
-      function(error) {
+      }, error => {
         console.error(error);
       });
   }
@@ -102,14 +101,13 @@ export class Auth {
   /**
    * Upsers the logged in user to create a user record.
    *
-   * @param result
+   * @param user
+   * @param credential
    * @returns {Promise}
    */
-  registerUser(result) {
+  registerUser(user, credential) {
     return new Promise((resolve, reject) => {
-      let { credential, user } = result;
-      let { accessToken, idToken, provider } = credential;
-      let { uid, email, displayName:name } = user;
+      console.log('Registering user: ' + user.email);
 
       $.ajax({
         url: '/user/register',
@@ -117,21 +115,18 @@ export class Auth {
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         data: JSON.stringify({
-          credential: {
-            accessToken, idToken, provider,
-          },
-          user: {
-            uid, email, name
-          }
+          user,
+          credential
         }),
 
-        success: (response) => {
-          console.log('Registered user: [%s] %s', uid, email);
-          resolve()
+        success: response => {
+          let { user } = response;
+          console.log('Registered user: %s', JSON.stringify(_.pick(user, ['id', 'title', 'email'])));
+          resolve(user)
         },
 
-        error: (error) => {
-          console.error(error);
+        error: error => {
+          reject(error);
         }
       });
     });

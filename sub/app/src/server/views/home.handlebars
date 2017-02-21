@@ -14,6 +14,9 @@
             <img src="favicon.ico"/>
           </div>
 
+          <div>{{ message }}</div>
+
+          {{#if login}}
           <div class="site-buttonbar">
             <a href="/user/login">
               <button>Login</button>
@@ -23,6 +26,7 @@
               <button class="site-install-crx">Install Chrome Extension</button>
             </a>
           </div>
+          {{/if}}
         </div>
       </div>
     </div>

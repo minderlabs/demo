@@ -277,12 +277,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 
 app.get('/home', async function(req, res) {
-  let userInfo = await authManager.getUserInfoFromCookie(req);
-  if (!userInfo) {
-    res.render('home');
+  let user = await authManager.getUserFromCookie(req);
+  if (!user) {
+    res.render('home', {
+      login: true
+    });
   } else {
     res.redirect(Const.ROOT_PATH);
   }
+});
+
+app.get('/welcome', function(req, res) {
+  res.render('home', {});
 });
 
 
@@ -299,7 +305,7 @@ app.use(graphqlRouter(database, {
 
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
-  contextProvider: request => authManager.getUserInfoFromHeader(request)
+  contextProvider: request => authManager.getUserFromHeader(request)
     .then(userInfo => {
       // TODO(burdon): 401 handling.
       console.assert(userInfo, 'GraphQL request is not authenticated.');
@@ -327,9 +333,9 @@ let staticPath = (env === 'production' ?
 app.use('/node_modules', express.static(staticPath));
 
 app.get('/graphiql', function(req, res) {
-  return authManager.getUserInfoFromCookie(req)
-    .then(userInfo => {
-      if (!userInfo) {
+  return authManager.getUserFromCookie(req)
+    .then(user => {
+      if (!user) {
         return res.redirect('/home');
       }
 
@@ -337,7 +343,7 @@ app.get('/graphiql', function(req, res) {
         config: {
           headers: [{
             name: 'authentication',
-            value: `Bearer ${userInfo.token}`
+            value: `Bearer ${user.token}`
           }]
         }
       });
