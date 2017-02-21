@@ -46,7 +46,7 @@ export const SlackConfig = {
  */
 export const Const = {
 
-  ROOT_PATH: '/app',
+  APP_PATH: '/app',
 
   DOM_ROOT: 'app-root',
 

@@ -5,9 +5,11 @@
 import _ from 'lodash';
 import moment from 'moment';
 
-import { ItemStore } from 'minder-core';
+import { ItemStore, Logger } from 'minder-core';
 
 import { Cache } from './cache';
+
+const logger = Logger.get('system');
 
 /**
  * User store.
@@ -70,6 +72,7 @@ export class FirebaseSystemStore extends ItemStore {
    * @param credential
    * @returns {Promise<User>}
    */
+  // TODO(burdon): Move out of store.
   registerUser(user, credential) {
     let { uid, email, displayName } = user;
     let { accessToken, idToken, provider } = credential;
@@ -97,8 +100,6 @@ export class FirebaseSystemStore extends ItemStore {
 
     // Check if user is whitelisted.
     return this.getGroupByWhitelist(email).then(group => {
-      console.log('Group:', _.pick(group, ['id', 'members', 'whitelist']), group);
-
       let user = FirebaseSystemStore.userRecordToItem(uid, record);
 
       // Active if in group.
@@ -106,15 +107,15 @@ export class FirebaseSystemStore extends ItemStore {
 
       // TODO(burdon): Upsert each time?
       return this.upsertItem({}, user).then(user => {
-        if (group) {
-          let members = group.members || [];
-          if (_.findIndex(members, user.id) == -1) {
-            members.push(user.id);
-            group.members = members;
-            return this.upsertItem({}, group).then(group => {
-              return user;
-            });
-          }
+
+        // Add user to group.
+        if (group && _.findIndex(group.members, user.id) == -1) {
+          _.defaults(group, { members: [] });
+          group.members.push(user.id);
+          return this.upsertItem({}, group).then(group => {
+            logger.error('Joined group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+            return user;
+          });
         }
 
         return Promise.resolve(user);
@@ -128,14 +129,19 @@ export class FirebaseSystemStore extends ItemStore {
    * @returns {Promise} Matching group (or null).
    */
   getGroup(userId) {
-    // TODO(burdon): Return matching groups.
+    // TODO(burdon): Return multiple groups?
     return this.queryItems({}, {}, { type: 'Group' }).then(groups => {
       return _.find(groups, group => _.indexOf(group.members, userId) != -1);
     });
   }
 
+  /**
+   * Lookup group with whitelisted user.
+   * @param email
+   * @returns {*}
+   */
   getGroupByWhitelist(email) {
-    // TODO(burdon): Return matching groups.
+    // TODO(burdon): Return multiple groups?
     return this.queryItems({}, {}, { type: 'Group' }).then(groups => {
       return _.find(groups, group => _.indexOf(group.whitelist, email) != -1);
     });

@@ -13,13 +13,14 @@ import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
  */
 export class Auth {
 
-  // TODO(burdon): Enable offline.
-
   constructor() {
     firebase.initializeApp(FirebaseConfig);
 
     // https://firebase.google.com/docs/auth/web/google-signin
     this._provider = new firebase.auth.GoogleAuthProvider();
+
+    // Google default scopes.
+    // https://myaccount.google.com/permissions
     _.each(GoogleApiConfig.authScopes, scope => {
       this._provider.addScope(scope);
     });
@@ -27,9 +28,9 @@ export class Auth {
 
   /**
    * Login via Firebase.
-   * @param onSuccess
+   * @returns {Promise}
    */
-  login(onSuccess) {
+  login() {
     console.log('OAuth Login');
 
     // Redirect and get user credentials.
@@ -53,7 +54,12 @@ export class Auth {
             // https://auth0.com/blog/refresh-tokens-what-are-they-and-when-to-use-them
 
             // TODO(burdon): authManager.getUserInfoFromCookie (how to get server side auth?)
-            Auth.setCookie(jwt);
+            // Se the auth cookie for server-side detection.
+            // https://github.com/js-cookie/js-cookie
+            Cookies.set(Const.AUTH_COOKIE, jwt, {
+              domain: window.location.hostname,
+              expires: 1, // 1 day.
+            });
 
             // Register the user.
             return this.registerUser(user, credential)
@@ -67,32 +73,18 @@ export class Auth {
       });
   }
 
-  static setCookie(jwt) {
-    console.assert(jwt);
-
-    // Se the auth cookie for server-side detection.
-    // https://github.com/js-cookie/js-cookie
-    Cookies.set(Const.AUTH_COOKIE, jwt, {
-      domain: window.location.hostname,
-      expires: 1, // 1 day.
-    });
-  }
-
   /**
    * Logout Firebase app.
-   * @param path
+   * @returns {Promise}
    */
-  logout(path) {
+  logout() {
     console.log('OAuth Logout');
 
     // https://firebase.google.com/docs/auth/web/google-signin
-    firebase.auth().signOut()
+    return firebase.auth().signOut()
       .then(() => {
         // Remove the cookie.
         Cookies.remove(Const.AUTH_COOKIE);
-
-        // Redirect.
-        window.location.href = path;
       }, error => {
         console.error(error);
       });

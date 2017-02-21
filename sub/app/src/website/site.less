@@ -16,8 +16,21 @@ body {
   font-family: Roboto, sans-serif;
 }
 
-h1 {
-  margin: 8px 0;
+a {
+  color: darkblue;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+h1, h2, h3 {
+  margin: 16px 0 8px;
   font-weight: 100;
 }
 
@@ -123,4 +136,10 @@ button:hover {
   .site-install-crx {
     font-size: small;
   }
+}
+
+.site-json {
+  margin: 0;
+  color: darkcyan;
+  white-space: pre-wrap;
 }

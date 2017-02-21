@@ -29,9 +29,9 @@ export const clientRouter = (authManager, clientManager, systemStore, options={}
     let { clientId, socketId } = req.body;
 
     // Get current user.
-    let userInfo = await authManager.getUserFromHeader(req);
-    if (userInfo) {
-      let userId = userInfo.id;
+    let user = await authManager.getUserFromHeader(req);
+    if (user) {
+      let userId = user.id;
 
       // Assign client ID for CRX.
       if (!clientId) {

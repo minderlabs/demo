@@ -1,0 +1,34 @@
+{{#section 'head'}}
+  <link rel="stylesheet" href="/assets/website.css">
+{{/section}}
+
+<div class="site-container">
+  <div class="site-column">
+
+    <div class="site-window-container">
+      <div class="site-window site-admin-window">
+
+        <div class="site-section">
+          <h1>Profile</h1>
+
+          <h2>Links</h2>
+          <ul>
+            <li><a target="_blank"
+                   href="/home">Home</a></li>
+            <li><a target="_blank"
+                   href="https://myaccount.google.com/permissions">Google App Permissions</a> (Reset OAuth)</li>
+          </ul>
+
+          <h2>User</h2>
+          <pre class="site-json">{{{ toJSONPretty user }}}</pre>
+
+          <h2>Group</h2>
+          <pre class="site-json">{{{ toJSONPretty group }}}</pre>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/website.bundle.js"></script>
+</div>

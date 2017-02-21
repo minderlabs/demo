@@ -5,11 +5,14 @@
 import React from 'react';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
+import { Link } from 'react-router';
 
-import { DomUtil } from 'minder-core';
+import { DomUtil, ID } from 'minder-core';
 import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
+
+import { Path } from '../../common/path';
 
 import { NavBar } from '../component/navbar';
 import { SidePanel } from '../component/sidepanel';
@@ -87,11 +90,17 @@ export class BaseLayout extends React.Component {
               <div>
                 <ul className="ux-inline">
                   { _.get(config, 'app.platform') !== Const.PLATFORM.CRX &&
-                  <li>{ viewer.group.title }</li>
+                  <li>
+                    <Link to={ Path.canvas(ID.toGlobalId('Group', viewer.group.id)) }>{ viewer.group.title }</Link>
+                  </li>
                   }
 
-                  <li>{ viewer.user.title }</li>
-                  <li><a href="/user/logout">Logout</a></li>
+                  <li>
+                    <a target="MINDER_PROFILE" href="/user/profile">{ viewer.user.title }</a>
+                  </li>
+                  <li>
+                    <a href="/user/logout">Logout</a>
+                  </li>
                 </ul>
               </div>
             </div>

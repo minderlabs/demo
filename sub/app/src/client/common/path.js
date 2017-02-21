@@ -25,10 +25,10 @@ export class Path {
   // app/card/xxx       Card canvas Item xxx
   // app/board/xxx      Board canvas
 
-  static ROOT     = Const.ROOT_PATH;
-  static HOME     = Const.ROOT_PATH + '/inbox';
-  static TESTING  = Const.ROOT_PATH + '/testing';
-  static ADMIN    = Const.ROOT_PATH + '/admin';
+  static ROOT     = Const.APP_PATH;
+  static HOME     = Const.APP_PATH + '/inbox';
+  static TESTING  = Const.APP_PATH + '/testing';
+  static ADMIN    = Const.APP_PATH + '/admin';
 
   /**
    * Generates path for router.

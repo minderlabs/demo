@@ -12,7 +12,7 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { IdGenerator, Matcher, MemoryItemStore, Logger } from 'minder-core';
+import { IdGenerator, Matcher, MemoryItemStore, Logger, TypeUtil } from 'minder-core';
 import {
   Database,
   Firebase,
@@ -240,6 +240,10 @@ app.engine('handlebars', handlebars({
       return JSON.stringify(object);
     },
 
+    toJSONPretty: function(object) {
+      return TypeUtil.stringify(object, 2);
+    },
+
     time: function(object) {
       return object && object.fromNow();
     }
@@ -278,12 +282,12 @@ app.use(cookieParser());
 
 app.get('/home', async function(req, res) {
   let user = await authManager.getUserFromCookie(req);
-  if (!user) {
+  if (user) {
+    res.redirect(Const.APP_PATH);
+  } else {
     res.render('home', {
       login: true
     });
-  } else {
-    res.redirect(Const.ROOT_PATH);
   }
 });
 
@@ -306,11 +310,11 @@ app.use(graphqlRouter(database, {
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
   contextProvider: request => authManager.getUserFromHeader(request)
-    .then(userInfo => {
+    .then(user => {
       // TODO(burdon): 401 handling.
-      console.assert(userInfo, 'GraphQL request is not authenticated.');
+      console.assert(user, 'GraphQL request is not authenticated.');
 
-      let userId = userInfo.id;
+      let userId = user.id;
       return firebase.systemStore.getGroup(userId).then(group => {
         // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
         let groupId = group.id;
@@ -352,23 +356,27 @@ app.get('/graphiql', function(req, res) {
 
 
 //
-// App.
+// Admin.
 //
 
-app.use('/user', loginRouter(firebase.systemStore, {
-  env
-}));
-
+// TODO(burdon): Permissions.
 app.use('/admin', adminRouter(clientManager, firebase, {
   scheduler: (env === 'production')
 }));
+
+
+//
+// App.
+//
+
+app.use('/user', loginRouter(authManager, firebase.systemStore, { env }));
 
 app.use('/client', clientRouter(authManager, clientManager, firebase.systemStore));
 
 app.use(appRouter(authManager, clientManager, firebase.systemStore, {
 
   // App root path.
-  root: Const.ROOT_PATH,
+  root: Const.APP_PATH,
 
   // Webpack assets.
   assets: (env === 'production') ? __dirname : path.join(__dirname, '../../dist'),
@@ -418,6 +426,6 @@ loading.then(() => {
 
   server.listen(port, host, () => {
     let addr = server.address();
-    logger.log(`[${env}] http://${addr.address}:${addr.port}`);
+    logger.log(`http://${addr.address}:${addr.port} [${env}]`);
   });
 });

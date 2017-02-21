@@ -7,7 +7,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 
-import { Logger, IdGenerator } from 'minder-core';
+import { Logger } from 'minder-core';
 
 import { Const } from '../common/defs';
 
@@ -44,7 +44,7 @@ export class AuthManager {
         let { uid:id, email } = decodedToken;
         console.assert(id, 'Invalid token: ' + JSON.stringify(decodedToken));
 
-        this._systemStore.getItem({}, 'User', id)
+        return this._systemStore.getItem({}, 'User', id)
           .then(user => {
             logger.log(`Got token for: ${email}`);
 
@@ -52,9 +52,6 @@ export class AuthManager {
             _.assign(user, { token });
 
             return user;
-          })
-          .catch(error => {
-            logger.warn('Error getting user: ' + error);
           });
       })
       .catch(error => {
@@ -81,10 +78,12 @@ export class AuthManager {
     let auth = req.headers && req.headers['authentication'];
     let match = auth && auth.match(/^Bearer (.+)$/);
     let token = match && match[1];
+    if (!token) {
+      return Promise.resolve(null);
+    }
 
     return this.getUserFromJWT(token).catch(error => {
       error && logger.error(error);
-      return null;
     });
   }
 
@@ -98,9 +97,12 @@ export class AuthManager {
     console.assert(req);
 
     let token = req.cookies && req.cookies[Const.AUTH_COOKIE];
+    if (!token) {
+      return Promise.resolve(null);
+    }
+
     return this.getUserFromJWT(token).catch(error => {
       error && logger.error(error);
-      return null;
     });
   }
 }
@@ -112,7 +114,7 @@ export class AuthManager {
  * @param options
  * @returns {Router}
  */
-export const loginRouter = (systemStore, options) => {
+export const loginRouter = (authManager, systemStore, options) => {
   console.assert(systemStore);
 
   let router = express.Router();
@@ -138,11 +140,18 @@ export const loginRouter = (systemStore, options) => {
   // Handle user registration.
   router.post('/register', async function(req, res) {
     let { user, credential } = req.body;
-    logger.log('User registration: ' + JSON.stringify(_.pick(user, ['uid', 'email'])));
 
+    logger.log('User registration: ' + JSON.stringify(_.pick(user, ['uid', 'email', 'active'])));
     res.send(JSON.stringify({
       user: await systemStore.registerUser(user, credential)
     }));
+  });
+
+  // Profile page.
+  router.get('/profile', async function(req, res) {
+    let user = await authManager.getUserFromCookie(req);
+    let group = await systemStore.getGroup(user.id);
+    res.render('profile', { user, group });
   });
 
   return router;
