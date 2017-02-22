@@ -10,7 +10,7 @@ import { Injector } from 'minder-core';
 import { Const } from '../../common/defs';
 
 import { BaseApp } from '../common/base_app';
-import { AppAction, AppReducer } from '../common/reducers';
+import { AppAction, AppReducer, GlobalAppReducer } from '../common/reducers';
 import { ClientAuthManager, ConnectionManager, NetworkManager } from '../common/network';
 
 import { TypeRegistryFactory } from './framework/type_factory';
@@ -67,6 +67,10 @@ export class WebApp extends BaseApp {
     return [
       Injector.provider(TypeRegistryFactory())
     ]
+  }
+
+  get globalReducer() {
+    return GlobalAppReducer;
   }
 
   get reducers() {

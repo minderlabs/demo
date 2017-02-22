@@ -2,6 +2,43 @@
 // Copyright 2016 Minder Labs.
 //
 
+//-------------------------------------------------------------------------------------------------
+// Global.
+// The global reducer listens for Apollo query results and updates the App state.
+//-------------------------------------------------------------------------------------------------
+
+export const GlobalAppReducer = (state, action) => {
+  switch (action.type) {
+
+    //
+    // Listen for Apollo query results.
+    //
+    case 'APOLLO_QUERY_RESULT': {
+      let { queryId } = action;
+
+      // Find the query matching NavBar updates.
+      let query = state.apollo.queries[queryId];
+      if (_.get(query.metadata, 'subscription') == GlobalAppReducer.SUBSCRIPTION.NAVBAR_ITEM) {
+        let title = _.get(action, 'result.data.item.title');
+        if (title) {
+          return _.set(state, `${APP_NAMESPACE}.navbar.title`, title);
+        }
+      }
+      break;
+    }
+  }
+
+  return state;
+};
+
+GlobalAppReducer.SUBSCRIPTION = {
+  NAVBAR_ITEM: 'NAVBAR_ITEM'
+};
+
+//-------------------------------------------------------------------------------------------------
+// App.
+//-------------------------------------------------------------------------------------------------
+
 const APP_NAMESPACE = 'app';
 
 /**
@@ -9,9 +46,11 @@ const APP_NAMESPACE = 'app';
  */
 export class AppAction {
 
+  // TODO(burdon): Look for wrappers to make this simpler?
+
   static ACTION = {
-    REGISTER:   `${APP_NAMESPACE}/REGISTER`,
-    SEARCH:     `${APP_NAMESPACE}/SEARCH`
+    REGISTER:     `${APP_NAMESPACE}/REGISTER`,
+    SEARCH:       `${APP_NAMESPACE}/SEARCH`
   };
 
   static get namespace() {
@@ -32,7 +71,6 @@ export class AppAction {
 
   static register(registration, server=undefined) {
     console.assert(registration);
-
     return {
       type: AppAction.ACTION.REGISTER,
       value: {
@@ -69,15 +107,18 @@ export const AppReducer = (injector, config, registration=undefined) => {
 
     search: {
       text: ''
+    },
+
+    navbar: {
+      title: ''
     }
   };
 
   return (state=initialState, action) => {
 //  console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
-
     switch (action.type) {
+
       case AppAction.ACTION.REGISTER: {
-        console.log('Registered: ' + JSON.stringify(action.value));
         return _.assign(state, _.pick(action.value, ['registration', 'server']));
       }
 
@@ -90,6 +131,10 @@ export const AppReducer = (injector, config, registration=undefined) => {
     return state
   };
 };
+
+//-------------------------------------------------------------------------------------------------
+// Context.
+//-------------------------------------------------------------------------------------------------
 
 const CONTEXT_NAMESPACE = 'context';
 

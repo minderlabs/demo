@@ -138,9 +138,11 @@ export class Canvas extends React.Component {
     let { item, debug, menu, children } = this.props;
     let { title, description } = this.state;
 
-    // TODO(burdon): Canvas header (in navbar).
+    // TODO(burdon): Canvas header (in navbar); set navbar in redux state.
+
     return (
       <div className="ux-canvas">
+        {/*
         <div>
           <div className="ux-columns">
             <TextBox className="ux-expand ux-noborder ux-font-large"
@@ -164,6 +166,7 @@ export class Canvas extends React.Component {
                       onChange={ this.handlePropertyChange.bind(this, 'description') }/>
           </div>
         </div>
+        */}
 
         { debug &&
         <div className="ux-section ux-debug">

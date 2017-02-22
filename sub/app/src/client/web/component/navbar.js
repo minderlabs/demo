@@ -24,11 +24,16 @@ export class NavBar extends React.Component {
   };
 
   render() {
-    let { search } = this.props;
+    let { children, search } = this.props;
 
     return (
       <div className="ux-navbar">
         { search && <SearchView/> || <div/> }
+
+        <div>
+          { children }
+        </div>
+
         <NavButtons/>
       </div>
     );

@@ -8,10 +8,10 @@ import { compose, graphql } from 'react-apollo';
 
 import { IdGenerator, Matcher, Mutator } from 'minder-core';
 
-import { AppAction } from '../../common/reducers';
+import { AppAction, GlobalAppReducer } from '../../common/reducers';
 
 /**
- * NOTE: This is applied to the child container (e.g., TaskCardComponent).
+ * NOTE: This is applied to the child container..
  */
 const mapStateToProps = (state, ownProps) => {
   let { injector, registration } = AppAction.getState(state);
@@ -66,6 +66,9 @@ export function composeItem(reducer, ...containers) {
           variables: {
             itemId
           },
+
+          // Binding for glopbal reducer.
+          metadata: { subscription: GlobalAppReducer.SUBSCRIPTION.NAVBAR_ITEM },
 
           reducer: (previousResult, action) => {
             return reducer.reduceItem(matcher, context, previousResult, action);

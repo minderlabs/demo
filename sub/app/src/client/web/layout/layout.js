@@ -4,15 +4,16 @@
 
 import React from 'react';
 import { compose, graphql } from 'react-apollo';
-import gql from 'graphql-tag';
+import { connect } from 'react-redux';
 import { Link } from 'react-router';
+import gql from 'graphql-tag';
 
 import { DomUtil, ID } from 'minder-core';
 import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
-
 import { Path } from '../../common/path';
+import { AppAction } from '../../common/reducers';
 
 import { NavBar } from '../component/navbar';
 import { SidePanel } from '../component/sidepanel';
@@ -69,7 +70,7 @@ export class BaseLayout extends React.Component {
   render() {
     return ReactUtil.render(this, () => {
       let { config, typeRegistry } = this.context;
-      let { children, search, className } = this.props;
+      let { children, navbar, search, className } = this.props;
       let { viewer } = this.props; // Data.
 
       let sidePanel = <SidePanel typeRegistry={ typeRegistry }
@@ -106,7 +107,9 @@ export class BaseLayout extends React.Component {
             </div>
 
             {/* Nav bar */}
-            <NavBar search={ search }/>
+            <NavBar search={ search }>
+              <div>{ navbar.title }</div>
+            </NavBar>
 
             {/* Sidebar */}
             <Sidebar ref="sidebar" sidebar={ sidePanel }>
@@ -166,7 +169,21 @@ const LayoutQuery = gql`
   }
 `;
 
+const mapStateToProps = (state, ownProps) => {
+  let { navbar: { title } } = AppAction.getState(state);
+
+  // Updated by Apollo queries (esp. item_factory).
+  // See APOLLO_QUERY_RESULT in GlobalAppState reducer.
+  return {
+    navbar: {
+      title
+    }
+  }
+};
+
 export default compose(
+
+  connect(mapStateToProps),
 
   // Configure query (from redux state).
   // http://dev.apollodata.com/react/queries.html#graphql-options

@@ -5,6 +5,7 @@
 
 ## Ref
 
+- https://apollographql.slack.com
 - http://dev.apollodata.com/react/higher-order-components.html
 - http://dev.apollodata.com/core/apollo-client-api.html#apollo-client
 
@@ -68,8 +69,15 @@ GraphQL queries are called twice:
 - Second when the query results arrive.
 
 
-~~~~
+# Queries
 
+The graphql connector `graphql(Query, options)` passes options to the `watchQuery` API.
+
+- http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient.watchQuery
+
+# Example
+
+~~~~
     /**
      * Map Redux state onto component properties.
      * Called whenever the state is updated via a reducer.

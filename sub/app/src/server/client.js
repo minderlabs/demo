@@ -41,7 +41,7 @@ export const clientRouter = (authManager, clientManager, systemStore, options={}
       }
 
       // Register the client.
-      clientManager.register(userId, clientId, messageToken);
+      clientManager.register(clientId, userId, messageToken);
 
       // Get group.
       // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
@@ -63,7 +63,7 @@ export const clientRouter = (authManager, clientManager, systemStore, options={}
   router.post('/unregister', async function(req, res) {
     let { clientId } = req.body;
     let user = await authManager.getUserFromHeader(req);
-    clientManager.unregister(user.id, clientId);
+    clientManager.unregister(clientId, user && user.id);
     res.end();
   });
 
@@ -125,8 +125,8 @@ export class ClientManager {
    * Called by client on start-up.
    * NOTE: mobile devices requet ID here.
    */
-  register(userId, clientId, messageToken=undefined) {
-    console.assert(userId && clientId);
+  register(clientId, userId, messageToken=undefined) {
+    console.assert(clientId && userId);
 
     let client = this._clients.get(clientId);
     if (!client) {
@@ -144,11 +144,11 @@ export class ClientManager {
 
   /**
    * Called by web client on page unload.
-   * @param userId
    * @param clientId
+   * @param userId
    */
-  unregister(userId, clientId) {
-    console.assert(userId && clientId);
+  unregister(clientId, userId=undefined) {
+    console.assert(clientId);
 
     logger.log('UnRegistered: ' + clientId);
     this._clients.delete(clientId);

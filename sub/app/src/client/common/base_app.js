@@ -7,6 +7,7 @@ import ReactDOM from 'react-dom';
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-router-redux'
 import ReduxThunk from 'redux-thunk'
+import reduceReducers from 'reduce-reducers';
 import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
@@ -21,6 +22,10 @@ const logger = Logger.get('main');
 
 /**
  * Base class for all Minder (Apollo) apps.
+ *
+ * This is the App's top-level class hat configures the Injector, Apollo, Redux reducers, Router, etc.
+ * It also renders the App's top-level React component, which defines the react-router Routes.
+ *
  */
 export class BaseApp {
 
@@ -133,6 +138,7 @@ export class BaseApp {
     let networkInterface = this.networkInterface;
     console.assert(networkInterface);
 
+    // TODO(burdon): Subscriptions?
     // TODO(burdon): Custom resolvers.
     // http://dev.apollodata.com/react/cache-updates.html#cacheRedirect
 
@@ -144,8 +150,6 @@ export class BaseApp {
       addTypename: true,
       networkInterface
     });
-
-    // TODO(burdon): subscribe().
 
     return Promise.resolve();
   }
@@ -159,21 +163,38 @@ export class BaseApp {
    */
   initReduxStore() {
 
-    // State handlers.
-    // http://redux.js.org/docs/api/combineReducers.html
-    const reducers = combineReducers(_.merge({
+    // Redux Reducers (Action handlers.)
+    // NOTE: All reducers receive ALL application actions.
+    // http://redux.js.org/docs/basics/Reducers.html
 
+    // The Global reducer can access the entire state.
+    // We use this to listen for specific Apollo actions and update the app's state (e.g., NavBar).
+    // https://apollographql.slack.com/archives/general/p1487786940010712 (help from @pleunv).
+    let global = this.globalReducer;
+
+    // Combines system (Apollo, React Router) reducers with app-specific state reducers.
+    // http://redux.js.org/docs/api/combineReducers.html
+    let merged = combineReducers(_.merge(this.reducers, {
+
+      //
       // React Redux Router.
+      //
       routing: routerReducer,
 
+      //
       // Apollo framework reducer.
+      //
       apollo: this._apolloClient.reducer(),
 
-    }, this.reducers));
+    }));
+
+    // https://github.com/acdlite/reduce-reducers
+    // https://github.com/reactjs/redux/issues/749
+    let reducers = global ? reduceReducers(merged, global) : merged;
 
     // Enhance the store.
     // https://github.com/reactjs/redux/blob/master/docs/Glossary.md#store-enhancer
-    const enhancer = compose(
+    let enhancer = compose(
 
       // Redux-thunk (for asynchronous actions).
       // NOTE: The arg is passed as the third arg to the handler:
@@ -259,7 +280,14 @@ export class BaseApp {
   get history() {
     return null;
   }
-  
+
+  /**
+   * Global reducer for reduce-reducers.
+   */
+  get globalReducer() {
+    return null;
+  }
+
   /**
    * App-specific Redux reducers.
    */
