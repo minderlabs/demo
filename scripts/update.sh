@@ -9,9 +9,11 @@
 # https://facebook.github.io/react/warnings/refs-must-have-owner.html#multiple-copies-of-react
 #
 
-pushd sub/app
-npm-workspace install
-popd
+for module in "app" "scheduler"; do
+  pushd sub/$module
+  npm-workspace install
+  popd
+done
 
 #
 # Update GraphQL Schema.

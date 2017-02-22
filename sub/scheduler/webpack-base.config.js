@@ -41,17 +41,6 @@ module.exports = {
       root: path.join(__dirname, 'node_modules')
     },
 
-    noParse: [
-      // Important
-      // https://github.com/socketio/socket.io-client/issues/933
-      // Uncaught ReferenceError: require is not defined
-      'ws'
-    ],
-
-    externals: [
-      'ws'
-    ],
-
     loaders: [
 
       // https://github.com/webpack/json-loader

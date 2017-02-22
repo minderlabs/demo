@@ -22,14 +22,14 @@ import {
   graphqlRouter
 } from 'minder-graphql';
 
-import { Const, FirebaseConfig, GoogleApiConfig, SlackConfig } from '../common/defs';
+import { Const, FirebaseAppConfig, GoogleApiConfig, SlackConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
 import { accountsRouter, AccountManager, SlackAccountHandler } from './accounts';
 import { loginRouter, AuthManager } from './auth';
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
-import { clientRouter, ClientManager, SocketManager } from './client';
+import { clientRouter, ClientManager } from './client';
 import { Loader } from './data/loader';
 import { TestData } from './data/testing';
 import { testingRouter } from './testing';
@@ -82,11 +82,9 @@ const app = express();
 
 const server = http.Server(app);
 
-const socketManager = new SocketManager(server);
-
-const clientManager = new ClientManager(socketManager);
-
 const idGenerator = new IdGenerator(1000);
+
+const clientManager = new ClientManager(idGenerator);
 
 const matcher = new Matcher();
 
@@ -98,7 +96,7 @@ const matcher = new Matcher();
 
 const firebase = new Firebase(idGenerator, matcher, {
 
-  databaseURL: FirebaseConfig.databaseURL,
+  databaseURL: FirebaseAppConfig.databaseURL,
 
   // Download JSON config.
   // https://console.firebase.google.com/project/minder-beta/settings/serviceaccounts/adminsdk
@@ -230,7 +228,6 @@ app.engine('handlebars', handlebars({
   defaultLayout: 'main',
 
   helpers: {
-    // TODO(burdon): ???
     section: function(name, options) {
       if (!this.sections) { this.sections = {}; }
       this.sections[name] = options.fn(this);
@@ -242,6 +239,10 @@ app.engine('handlebars', handlebars({
 
     toJSONPretty: function(object) {
       return TypeUtil.stringify(object, 2);
+    },
+
+    short: function(object) {
+      return TypeUtil.short(object);
     },
 
     time: function(object) {

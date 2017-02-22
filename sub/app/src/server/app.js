@@ -55,7 +55,7 @@ export const appRouter = (authManager, clientManager, systemStore, options) => {
       let userId = user.id;
 
       // Create the client (and socket).
-      let client = clientManager.create(userId);
+      let client = clientManager.create(Const.PLATFORM.WEB, userId);
       let clientId = client.id;
 
       // Get group.
@@ -65,7 +65,8 @@ export const appRouter = (authManager, clientManager, systemStore, options) => {
 
       // Client app config.
       let config = _.defaults({
-        root: 'app-root',
+        root: Const.DOM_ROOT,
+
         graphql: '/graphql',
         graphiql: '/graphiql',
 

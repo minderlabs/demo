@@ -9,11 +9,18 @@
       <div class="site-window site-admin-window">
 
         <div class="site-section">
-          <h1>Database</h1>
+          <div class="site-header">
+            <h1>Database</h1>
+            <i onclick="refresh()" class="material-icons site-action">refresh</i>
+          </div>
+
           <div>
-            <a target="MINDER_KUE" href="/admin/kue">Kue</a>
-            <a target="MINDER_KUBE" href="https://api.dev.k.minderlabs.com/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard">Kubernetes</a>
-            <a target="MINDER_FIREBASE" href="https://console.firebase.google.com/project/minder-beta/database/data">Firebase</a>
+            <a class="site-button" target="MINDER_KUE"
+               href="/admin/kue">Kue</a>
+            <a class="site-button" target="MINDER_KUBE"
+               href="https://api.dev.k.minderlabs.com/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard">Kubernetes</a>
+            <a class="site-button" target="MINDER_FIREBASE"
+               href="https://console.firebase.google.com/project/minder-beta/database/data">Firebase</a>
           </div>
         </div>
 
@@ -29,18 +36,20 @@
           <table>
             <thead>
               <tr>
-                <th>User ID</th>
+                <th>Platform</th>
                 <th>Client ID</th>
-                <th>Socket ID</th>
+                <th>User ID</th>
+                <th>Message Token</th>
                 <th>Registered</th>
               </tr>
             </thead>
             <tbody>
             {{#each clients}}
               <tr>
-                <td class="site-data">{{ userId }}</td>
+                <td class="site-data">{{ platform }}</td>
                 <td class="site-data">{{ id }}</td>
-                <td class="site-data">{{ socketId }}</td>
+                <td class="site-data">{{ userId }}</td>
+                <td class="site-data">{{ short messageToken }}</td>
                 <td class="site-data site-expand">{{ time registered }}</td>
                 <td>
                   <button onclick="ping('{{ id }}')">Ping</button>
@@ -57,6 +66,10 @@
 
   <script src="/assets/website.bundle.js"></script>
   <script>
+    function refresh() {
+      document.location.reload();
+    }
+
     function schedule() {
       Site.post('/admin', { cmd: 'schedule.test' });
     }

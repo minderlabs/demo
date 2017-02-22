@@ -5,7 +5,7 @@
 import Cookies from 'js-cookie';
 import * as firebase from 'firebase';
 
-import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
+import { Const, FirebaseAppConfig, GoogleApiConfig } from '../common/defs';
 
 /**
  * Auth module.
@@ -14,7 +14,7 @@ import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
 export class Auth {
 
   constructor() {
-    firebase.initializeApp(FirebaseConfig);
+    firebase.initializeApp(FirebaseAppConfig);
 
     // https://firebase.google.com/docs/auth/web/google-signin
     this._provider = new firebase.auth.GoogleAuthProvider();

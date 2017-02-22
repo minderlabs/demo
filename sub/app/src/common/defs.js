@@ -3,15 +3,27 @@
 //
 
 /**
+ * Client configuration.
  * https://console.firebase.google.com/project/minder-beta/overview
- * https://console.firebase.google.com/project/minder-beta/authentication/users
+ * https://console.firebase.google.com/project/minder-beta/authentication/providers (Web Setup)
  */
-export const FirebaseConfig = {
+export const FirebaseAppConfig = {
   apiKey: 'AIzaSyDwDsz7hJWdH2CijLItaQW6HmL7H9uDFcI',
   authDomain: 'minder-beta.firebaseapp.com',
   databaseURL: 'https://minder-beta.firebaseio.com',
   storageBucket: 'minder-beta.appspot.com',
-  messagingSenderId: '189079594739'
+
+  // https://console.firebase.google.com/project/minder-beta/settings/cloudmessaging
+  messagingSenderId: '189079594739',
+};
+
+/**
+ * Server-side secrets.
+ */
+export const FirebaseServerConfig = {
+
+  // https://console.firebase.google.com/project/minder-beta/settings/cloudmessaging
+  messagingServerKey: 'AAAALAYFpvM:APA91bFAHRSZF-8_qyJQgkoBaWby3zbGe7KmKQj8Yc7WaEXcLXGECPkcEn8swKY8FZu6wScH6DZvn8DmvB1QUw3ENT_pahSbs6H4SPfBih1vmmexkiiMpvKdHEsjYOAJosMxuJkhuKK2lk2epcYvYPpLUS66i-2Zbg'
 };
 
 /**

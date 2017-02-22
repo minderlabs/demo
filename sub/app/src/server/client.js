@@ -2,15 +2,14 @@
 // Copyright 2016 Minder Labs.
 //
 
-import _ from 'lodash';
 import express from 'express';
 import bodyParser from 'body-parser';
-import socketio from 'socket.io';
 import moment from 'moment';
+import request from 'request';
 
-import { $$, Logger, IdGenerator } from 'minder-core';
+import { Logger } from 'minder-core';
 
-import { Const } from '../common/defs';
+import { FirebaseServerConfig } from '../common/defs';
 
 const logger = Logger.get('client');
 
@@ -26,7 +25,8 @@ export const clientRouter = (authManager, clientManager, systemStore, options={}
 
   // Registers the client.
   router.post('/register', async function(req, res) {
-    let { clientId, socketId } = req.body;
+    let { platform, clientId, messageToken } = req.body;
+    console.assert(platform);
 
     // Get current user.
     let user = await authManager.getUserFromHeader(req);
@@ -34,13 +34,14 @@ export const clientRouter = (authManager, clientManager, systemStore, options={}
       let userId = user.id;
 
       // Assign client ID for CRX.
+      // TODO(burdon): If web platform then assert.
       if (!clientId) {
-        let client = clientManager.create(userId);
+        let client = clientManager.create(platform, userId);
         clientId = client.id;
       }
 
       // Register the client.
-      clientManager.register(userId, clientId, socketId);
+      clientManager.register(userId, clientId, messageToken);
 
       // Get group.
       // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
@@ -58,11 +59,19 @@ export const clientRouter = (authManager, clientManager, systemStore, options={}
     }
   });
 
-  // Invalidate client.
-  router.post('/invalidate', function(req, res) {
+  // Unregister the client
+  router.post('/unregister', async function(req, res) {
     let { clientId } = req.body;
-    clientManager.invalidate(clientId);
-    res.send({});
+    let user = await authManager.getUserFromHeader(req);
+    clientManager.unregister(user.id, clientId);
+    res.end();
+  });
+
+  // Invalidate client.
+  router.post('/invalidate', async function(req, res) {
+    let { clientId } = req.body;
+    await clientManager.invalidate(clientId);
+    res.end();
   });
 
   return router;
@@ -72,50 +81,42 @@ export const clientRouter = (authManager, clientManager, systemStore, options={}
  * Manages client connections.
  *
  * Web:
- * 1). Client created (clientId set in config during app serving).
- * 2). Socked connected (gets socketId)
- * 3). Client registered (binds clientId to socketId).
+ * 1). Server creates client and passes to app config.
+ * 2). Client requests FCM token.
+ * 3). Client registers with server.
  *
- * TODO(burdon): Native GCM sequence? (Get clientId and socketId in registration).
+ * CRX:
+ * 1). BG page requests FCM token.
+ * 2). BG page registers with server.
+ * 3). Server creates client and returns config.
+ *
  */
 export class ClientManager {
 
-  // TODO(burdon): Injection?
-  static idGenerator = new IdGenerator();
-
-  constructor(socketManager) {
-    console.assert(socketManager);
-    this._socketManager = socketManager;
-
-    // Listen for disconnected clients.
-    this._socketManager.onDisconnect((socketId) => {
-      let client = _.find(this._clients, client => client.socketId === socketId);
-      if (!client) {
-        logger.warn($$('Invalid client: %s', socketId));
-      } else {
-        client.socketId = null;
-      }
-    });
+  constructor(idGenerator) {
+    this._idGenerator = idGenerator;
 
     // Map of clients indexed by ID.
+    // TODO(burdon): Expire web clients after 1 hour (force reconnect if client re-appears).
     this._clients = new Map();
   }
 
   /**
    * Called by page loader.
    */
-  create(userId) {
-    console.assert(userId);
+  create(platform, userId) {
+    console.assert(platform && userId);
 
     let client = {
-      id: ClientManager.idGenerator.createId(),   // TODO(burdon): Pass into constructor.
+      platform,
+      id: this._idGenerator.createId('C-'),
       userId: userId,
-      socketId: null,
+      messageToken: null,
       registered: null
     };
 
     this._clients.set(client.id, client);
-    logger.log($$('Created: %s', client.id));
+    logger.log('Created: ' + client.id);
 
     return client;
   }
@@ -124,21 +125,33 @@ export class ClientManager {
    * Called by client on start-up.
    * NOTE: mobile devices requet ID here.
    */
-  register(userId, clientId, socketId=undefined) {
+  register(userId, clientId, messageToken=undefined) {
     console.assert(userId && clientId);
 
     let client = this._clients.get(clientId);
     if (!client) {
-      logger.warn($$('Invalid client: %s', clientId));
+      logger.warn('Invalid client: ' + clientId);
     } else {
       if (userId != client.userId) {
-        logger.error($$('Invalid user: %s', userId));
+        logger.error('Invalid user: ' + userId);
       } else {
-        logger.log($$('Registered: %s', clientId));
-        client.socketId = socketId;
+        logger.log('Registered: ' + clientId);
+        client.messageToken = messageToken;
         client.registered = moment();
       }
     }
+  }
+
+  /**
+   * Called by web client on page unload.
+   * @param userId
+   * @param clientId
+   */
+  unregister(userId, clientId) {
+    console.assert(userId && clientId);
+
+    logger.log('UnRegistered: ' + clientId);
+    this._clients.delete(clientId);
   }
 
   /**
@@ -147,85 +160,64 @@ export class ClientManager {
    */
   invalidate(clientId) {
     let client = this._clients.get(clientId);
-    if (!client) {
-      logger.warn($$('Invalid client: %s', clientId));
-    } else {
-      let socket = this._socketManager.getSocket(client.socketId);
-      if (!socket) {
-        // TODO(burdon): Unregister client.
-        logger.warn($$('Client not connected: %s', clientId));
-      } else {
-        logger.warn($$('Invalidating client: %s', clientId));
-        socket.emit('invalidate', {
-          ts: moment().valueOf()
+    if (client && client.messageToken) {
+      logger.log('Invalidating: ' + clientId);
+      return new Promise((resolve, reject) => {
+
+        // NOTE: key x value pairs only.
+        // https://firebase.google.com/docs/cloud-messaging/http-server-ref#downstream-http-messages-json
+        let data = {
+          command: 'invalidate'
+        };
+
+        // Post authenticated request.
+        // https://firebase.google.com/docs/cloud-messaging/server#auth
+        // https://github.com/request/request#custom-http-headers
+        let options = {
+          url: 'https://fcm.googleapis.com/fcm/send',
+
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'key=' + FirebaseServerConfig.messagingServerKey
+          },
+
+          body: JSON.stringify({
+            to: client.messageToken,
+            data
+          })
+        };
+
+        request.post(options, (error, response, body) => {
+          if (error || response.statusCode != 200) {
+            // https://firebase.google.com/docs/cloud-messaging/server
+            logger.warn(`FCM error [${response.statusCode}]: ${error || response.statusMessage}`);
+          } else {
+            logger.log('Sent: ' + JSON.stringify(data));
+            resolve();
+          }
         });
-      }
+      });
     }
+
+    return Promise.reject('Invalid client: ' + clientId);
   }
 
   // TODO(burdon): Replace this and above with queryId, etc.
   invalidateOthers(clientId) {
-    this._clients.forEach((client) => {
+    let promises = [];
+    this._clients.forEach(client => {
       if (client.id != clientId) {
-        this.invalidate(client.id);
+        promises.push(this.invalidate(client.id));
       }
+    });
+
+    return Promise.all(promises).catch(() => {
+      console.warn('Invalidation failed.');
     });
   }
 
   // Admin.
   get clients() {
     return Array.from(this._clients.values());
-  }
-}
-
-/**
- * Manages socket connections.
- */
-export class SocketManager {
-
-  // TODO(burdon): Replace with Firebase (now GCM); rather than pusher.io
-  // https://firebase.google.com/docs/cloud-messaging
-
-  // TODO(burdon): Use JWT to secure connection?
-  // https://auth0.com/blog/auth-with-socket-io
-  // https://jwt.io
-
-  constructor(server) {
-    this._onDisconnect = null;
-
-    // Map of sockets by session ID.
-    this._sockets = new Map();
-
-    //
-    // Socket.io
-    // http://socket.io/get-started/chat
-    // https://www.npmjs.com/package/socket.io-client
-    //
-
-    this._io = socketio(server);
-
-    this._io.on('connection', (socket) => {
-      logger.log($$('Connected: %s', socket.id));
-      this._sockets.set(socket.id, socket);
-
-      socket.on('disconnect', () => {
-        logger.log($$('Disconnected: %s', socket.id));
-        this._sockets.delete(socket.id);
-        this._onDisconnect(socket.id);
-      });
-    });
-  }
-
-  onDisconnect(callback) {
-    this._onDisconnect = callback;
-  }
-
-  /**
-   * Get active socket for client.
-   * @param socketId
-   * @returns {Socket}
-   */
-  getSocket(socketId) {
-    return this._sockets.get(socketId);
   }
 }

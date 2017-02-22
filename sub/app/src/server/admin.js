@@ -36,7 +36,7 @@ export const adminRouter = (clientManager, firebase, options) => {
   //
   // Admin page.
   //
-  router.get('/', function(req, res) {
+  router.get('/', (req, res) => {
     res.render('admin', {
       clients: clientManager.clients
     });
@@ -45,7 +45,7 @@ export const adminRouter = (clientManager, firebase, options) => {
   //
   // Admin API.
   //
-  router.post('/', function(req, res) {
+  router.post('/', (req, res) => {
     let { cmd } = req.body;
 
     console.log('Admin command: %s', cmd);
@@ -69,6 +69,10 @@ export const adminRouter = (clientManager, firebase, options) => {
   //
   if (options.scheduler) {
     router.use('/kue', kue.app);
+  } else {
+    router.use('/kue', (req, res) => {
+      res.redirect('/admin');
+    });
   }
 
   return router;

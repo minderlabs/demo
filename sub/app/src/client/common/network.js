@@ -6,11 +6,10 @@ import _ from 'lodash';
 import { print } from 'graphql-tag/printer';
 import { createNetworkInterface } from 'apollo-client';
 import * as firebase from 'firebase';
-import io from 'socket.io-client';
 
 import { Async, HttpUtil, Wrapper } from 'minder-core';
 
-import { Const, FirebaseConfig, GoogleApiConfig } from '../../common/defs';
+import { Const, FirebaseAppConfig, GoogleApiConfig } from '../../common/defs';
 
 const logger = Logger.get('net');
 
@@ -40,7 +39,7 @@ export class ClientAuthManager {
     this._connectionManager = connectionManager;
 
     // https://console.firebase.google.com/project/minder-beta/overview
-    firebase.initializeApp(FirebaseConfig);
+    firebase.initializeApp(FirebaseAppConfig);
 
     // Google scopes.
     this._provider = new firebase.auth.GoogleAuthProvider();
@@ -246,10 +245,9 @@ export class ConnectionManager {
     this._networkManager = networkManager;
     this._queryRegistry = queryRegistry;
     this._eventHandler = eventHandler;
-
-    // TODO(burdon): Switch to Firebase Cloud Messaging (with auto-reconnect).
-    this._socket = config.socket && io();
   }
+
+  // TODO(burdon): Rationalize connect/disconnect register/unregister names.
 
   /**
    * Async connect
@@ -258,32 +256,74 @@ export class ConnectionManager {
   connect() {
     logger.log('Connecting...');
 
-    // TODO(burdon): Replace with FCM.
-    if (this._socket) {
-      return new Promise((resolve, reject) => {
-        // Wait for socket.io connection.
-        this._socket.on('connect', () => {
-          let socketId = this._socket.io.engine.id;
-          console.assert(socketId);
+    // TODO(burdon): Works with CRX?
 
-          this._doRegistration({ socketId })
-            .then(registration => {
-              // Listen for invalidations.
-              this._socket.on('invalidate', (data) => {
-                this._eventHandler && this._eventHandler.emit({ type: 'network.in' });
+    // https://github.com/firebase/quickstart-js/blob/master/messaging/index.html
 
-                // TODO(burdon): Invalidate specified queries.
-                this._queryRegistry && this._queryRegistry.invalidate();
-              });
+    // https://firebase.google.com/docs/cloud-messaging/js/receive#handle_messages_when_your_web_app_is_in_the_foreground
+    firebase.messaging().onMessage(payload => {
+      logger.log('### FCM ###', payload);
+      this._eventHandler && this._eventHandler.emit({ type: 'network.in' });
+      this._queryRegistry && this._queryRegistry.invalidate();
+    });
 
-              resolve(registration);
-            })
-            .catch(() => reject);
-        });
+    // TODO(burdon): Integrate with below.
+    // https://firebase.google.com/docs/cloud-messaging/js/client#monitor-token-refresh
+    firebase.messaging().onTokenRefresh(() => {
+      logger.warn('### REFRESH ###');
+    });
+
+    // https://firebase.google.com/docs/cloud-messaging/js/client#request_permission_to_receive_notifications
+    return firebase.messaging().requestPermission().then(() => {
+
+      // NOTE: Requires HTTPS (for Service workers); localhost supported for development.
+      // https://developers.google.com/web/fundamentals/getting-started/primers/service-workers#you_need_https
+      return firebase.messaging().getToken().then(messageToken => {
+        if (!messageToken) {
+          logger.warn('FCM Token expired.');
+        }
+
+        // Register token with server.
+        logger.log('FCM Enabled: ' + messageToken);
+        return this._doRegistration({ messageToken });
       });
-    } else {
+    }).catch(error => {
+      logger.warn('FCM Registration failed:', error);
       return this._doRegistration();
-    }
+    });
+  }
+
+  /**
+   * Unregisters the client.
+   * @param async Defaults to synchronous (since page may be unloading).
+   * @returns {Promise}
+   */
+  disconnect(async=false) {
+    return new Promise((resolve, reject) => {
+      let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/unregister');
+
+      // TODO(burdon): Factor out post.
+      $.ajax({
+        url: url,
+        type: 'POST',
+        async,
+        // TODO(burdon): Add client ID to header.
+        headers: this._networkManager.headers,              // JWT authentication token.
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: JSON.stringify({
+          clientId: _.get(this._config, 'registration.clientId', undefined)
+        }),
+
+        success: () => {
+          resolve();
+        },
+
+        error: error => {
+          reject(error);
+        }
+      });
+    });
   }
 
   /**
@@ -293,13 +333,14 @@ export class ConnectionManager {
    * @private
    */
   _doRegistration(registration=undefined) {
+    // TODO(burdon): If web platform then assert.
     registration = _.merge({}, registration, {
-      clientId: _.get(this._config, 'client.id', undefined)
+      platform: _.get(this._config, 'app.platform'),
+      clientId: _.get(this._config, 'registration.clientId', undefined)
     });
 
     // See clientRouter on server.
     let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
-
     logger.log($$('Registering client (%s)', url));
     return new Promise((resolve, reject) => {
       $.ajax({

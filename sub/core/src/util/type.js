@@ -10,6 +10,15 @@ import _ from 'lodash';
 export class TypeUtil {
 
   /**
+   * Short string
+   * @param value
+   * @returns {string}
+   */
+  static short(value) {
+    return value ? value.substring(0, 32) + '...' : '';
+  }
+
+  /**
    * Concise stringify.
    */
   static stringify = (json, indent) => JSON.stringify(json, (key, value) => {
@@ -17,7 +26,7 @@ export class TypeUtil {
       return `len(${value.length})`;
     }
     if (_.isString(value) && value.length > 32) {
-      return value.substring(0, 32) + '...';
+      return TypeUtil.short(value);
     }
     return value;
   }, indent);

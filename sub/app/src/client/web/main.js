@@ -54,6 +54,11 @@ export class WebApp extends BaseApp {
     })
   }
 
+  terminate() {
+    // Unregister client.
+    return this._connectionManager.disconnect();
+  }
+
   get registration() {
     return this._registration;
   }
@@ -98,6 +103,22 @@ if (module.hot && _.get(config, 'env') === 'hot') {
     bootstrap.render(App);
   });
 }
+
+//
+// CLean-up
+// https://developer.mozilla.org/en-US/docs/Web/Events/beforeunload
+//
+
+window.addEventListener('beforeunload', event => {
+  // Ask user (system message is used).
+  // TODO(burdon): Check for unsaved data.
+  if (false) {
+    event.returnValue = 'Leave minder?';
+  }
+});
+window.addEventListener('unload', () => {
+  bootstrap.terminate();
+});
 
 //
 // Start app.

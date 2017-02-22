@@ -112,13 +112,13 @@ export class IdGenerator {
    * Unique ID compatible with server.
    * @returns {string}
    */
-  createId() {
+  createId(prefix=undefined) {
     const s4 = () => {
       return Math.floor(this._random.floatBetween(1, 2) * 0x10000)
         .toString(16)
         .substring(1);
     };
 
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    return (prefix || '') + s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
   }
 }

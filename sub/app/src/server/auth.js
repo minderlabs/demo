@@ -110,6 +110,7 @@ export class AuthManager {
 /**
  * Manage user authentication.
  *
+ * @param authManager
  * @param systemStore
  * @param options
  * @returns {Router}
@@ -150,8 +151,12 @@ export const loginRouter = (authManager, systemStore, options) => {
   // Profile page.
   router.get('/profile', async function(req, res) {
     let user = await authManager.getUserFromCookie(req);
-    let group = await systemStore.getGroup(user.id);
-    res.render('profile', { user, group });
+    if (user) {
+      let group = await systemStore.getGroup(user.id);
+      res.render('profile', { user, group });
+    } else {
+      res.redirect('/home');
+    }
   });
 
   return router;

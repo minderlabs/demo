@@ -141,7 +141,7 @@ export class Mutator {
    * @return {string} Newly created item's ID.
    */
   createItem(type, mutations) {
-    let itemId = this._idGenerator.createId(type);
+    let itemId = this._idGenerator.createId();
     this._mutate({
       variables: {
         itemId: ID.toGlobalId(type, itemId),
