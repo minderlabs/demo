@@ -57,7 +57,7 @@ export class BaseApp {
       .then(() => this.initRouter())
       .then(() => this.postInit())
       .then(() => {
-        logger.log($$('Config = %o', this._config));
+        logger.info($$('Config = %o', this._config));
       });
   }
 
@@ -139,7 +139,8 @@ export class BaseApp {
     console.assert(networkInterface);
 
     // TODO(burdon): Subscriptions?
-    // TODO(burdon): Custom resolvers.
+
+    // TODO(burdon): Custom resolvers (for cache resolution -- and offline).
     // http://dev.apollodata.com/react/cache-updates.html#cacheRedirect
 
     // http://dev.apollodata.com/react/initialization.html
@@ -230,9 +231,8 @@ export class BaseApp {
     // Enhanced history that syncs navigation events with the store.
     this._reduxHistory = syncHistoryWithStore(this.history, this._store);
 
-    // TODO(burdon): Factor out logging.
     this.history.listen(location => {
-      logger.log($$('Router: %s', location.pathname));
+      logger.log('Router: ' + location.pathname);
     });
 
     return Promise.resolve();
@@ -322,7 +322,7 @@ export class BaseApp {
    * </Activity>
    */
   render(App) {
-    logger.log($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._config, 'env')));
+    logger.info($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._config, 'env')));
 
     // Construct app.
     const app = (

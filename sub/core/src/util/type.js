@@ -10,6 +10,20 @@ import _ from 'lodash';
 export class TypeUtil {
 
   /**
+   * Right-pad given string.,
+   * @param text
+   * @param length
+   */
+  static pad(text, length) {
+    let len = text ? text.length : 0;
+    if (len > length) {
+      text = text.substring(0, length - 3) + '...';
+      len = length;
+    }
+    return (text || '') + _.repeat(' ', length - len);
+  }
+
+  /**
    * Short string
    * @param value
    * @returns {string}

@@ -7,7 +7,7 @@ import { print } from 'graphql-tag/printer';
 import { createNetworkInterface } from 'apollo-client';
 import * as firebase from 'firebase';
 
-import { Async, HttpUtil, Wrapper } from 'minder-core';
+import { Async, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
 import { Const, FirebaseAppConfig, GoogleApiConfig } from '../../common/defs';
 
@@ -442,6 +442,8 @@ export class NetworkManager {
     /**
      * TODO(burdon): Paging bug when non-null text filter.
      * https://github.com/apollostack/apollo-client/issues/897
+     * https://github.com/apollographql/apollo-client/pull/906
+     * https://github.com/apollographql/apollo-client/pull/913
      * "There can only be one fragment named ItemFragment" (from server).
      */
     const fixFetchMoreBug = {
@@ -599,10 +601,10 @@ class NetworkLogger {
   logRequest(requestId, request) {
     logger.log($$('[_TS_] ===>>> [%s] %o', requestId, request.variables || {}));
 
-    // Show iGQL link.
+    // Show GiQL link.
     if (_.get(this._options, 'debug', true)) {
       let url = HttpUtil.absoluteUrl(_.get(this._options, 'graphiql', '/graphiql'));
-      logger.info('[' + requestId + ']: ' + url + '?' + HttpUtil.toUrlArgs({
+      logger.info('[' + TypeUtil.pad(requestId, 24) + ']: ' + url + '?' + HttpUtil.toUrlArgs({
         query: print(request.query),
         variables: JSON.stringify(request.variables)
       }));

@@ -11,9 +11,10 @@ export const GlobalAppReducer = (state, action) => {
   switch (action.type) {
 
     //
-    // Listen for Apollo query results.
+    // Listen for Apollo query results (and cached results).
     //
-    case 'APOLLO_QUERY_RESULT': {
+    case 'APOLLO_QUERY_RESULT':
+    case 'APOLLO_QUERY_RESULT_CLIENT': {
       let { queryId } = action;
 
       // Find the query matching NavBar updates.
