@@ -1,16 +1,15 @@
 {
   "Project": [
     {
-      "id": "demo",
-      "title": "Demo",
-      "description": "Demo project.",
+      "id": "demo-project",
+      "title": "Customer Pipeline",
       "group": "minderlabs"
     }
   ],
 
   "Contact": [
     {
-      "id": "contact_alice",
+      "id": "contact-alice",
       "title": "Alice Braintree",
       "email": "alice.braintree@gmail.com"
     }

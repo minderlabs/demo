@@ -5,37 +5,18 @@
 import _ from 'lodash';
 import moment from 'moment';
 
-import { ItemStore, Logger } from 'minder-core';
-
-import { Cache } from './cache';
+import { DelegateItemStore, Logger } from 'minder-core';
 
 const logger = Logger.get('system');
 
 /**
- * User store.
+ * System store (Users and Groups).
+ *
+ * NOTE: This depends on Firebase authentication (and user representation) but not the firebase store.
  */
-export class FirebaseSystemStore extends ItemStore {
+export class SystemStore extends DelegateItemStore {
 
-  // TODO(burdon): Use FirebaseItemStore (no cache).
-
-  // Root database node.
-  static ROOT = 'system';
-
-  /**
-   * Parses the root node of the data set, inserting items into the item store.
-   * @param itemStore
-   * @param data
-   */
-  static parseData(itemStore, data) {
-    let items = [];
-    _.each(data.val(), (records, type) => {
-      _.each(records, (item, id) => {
-        items.push(item);
-      });
-    });
-
-    itemStore.upsertItems({}, items);
-  }
+  // TODO(burdon): Rename AccountStore.
 
   /**
    * Converts a firebase User record to a User item.
@@ -53,17 +34,8 @@ export class FirebaseSystemStore extends ItemStore {
     };
   }
 
-  constructor(db, idGenerator, matcher, namespace) {
-    super(idGenerator, matcher, namespace);
-    console.assert(db);
-
-    this._db = db;
-    this._cache = new Cache(
-      this._db, FirebaseSystemStore.ROOT, idGenerator, matcher, namespace, FirebaseSystemStore.parseData);
-  }
-
-  clearCache() {
-    return this._cache.getItemStore(true);
+  constructor(itemStore) {
+    super(itemStore);
   }
 
   /**
@@ -72,7 +44,6 @@ export class FirebaseSystemStore extends ItemStore {
    * @param credential
    * @returns {Promise<User>}
    */
-  // TODO(burdon): Move out of store.
   registerUser(user, credential) {
     let { uid, email, displayName } = user;
     let { accessToken, idToken, provider } = credential;
@@ -100,10 +71,10 @@ export class FirebaseSystemStore extends ItemStore {
 
     // Check if user is whitelisted.
     return this.getGroupByWhitelist(email).then(group => {
-      let user = FirebaseSystemStore.userRecordToItem(uid, record);
+      let user = SystemStore.userRecordToItem(uid, record);
 
-      // Active if in group.
-      user.active = !!group;
+      // Active if whitelisted.
+      user.active = !_.isNil(group);
 
       // TODO(burdon): Upsert each time?
       return this.upsertItem({}, user).then(user => {
@@ -111,14 +82,16 @@ export class FirebaseSystemStore extends ItemStore {
         // Add user to group.
         if (group && _.findIndex(group.members, user.id) == -1) {
           _.defaults(group, { members: [] });
+
           group.members.push(user.id);
+
           return this.upsertItem({}, group).then(group => {
-            logger.error('Joined group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+            logger.info('Joined group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
             return user;
           });
         }
 
-        return Promise.resolve(user);
+        return user;
       });
     });
   }
@@ -136,41 +109,14 @@ export class FirebaseSystemStore extends ItemStore {
   }
 
   /**
-   * Lookup group with whitelisted user.
+   * Lookup group for whitelisted user email.
    * @param email
-   * @returns {*}
+   * @returns {Promise} Matching group (or null).
    */
   getGroupByWhitelist(email) {
     // TODO(burdon): Return multiple groups?
     return this.queryItems({}, {}, { type: 'Group' }).then(groups => {
       return _.find(groups, group => _.indexOf(group.whitelist, email) != -1);
     });
-  }
-
-  //
-  // ItemStore interface.
-  //
-
-  upsertItems(context, items) {
-
-    // Write-through cache.
-    _.each(items, item => {
-      console.assert(item.type && item.id);
-
-      item.modified = moment().unix();
-
-      // https://firebase.google.com/docs/database/web/read-and-write
-      this._db.ref(FirebaseSystemStore.ROOT + '/' + item.type + '/' + item.id).set(item);
-    });
-
-    return this._cache.getItemStore().then(itemStore => itemStore.upsertItems(context, items));
-  }
-
-  getItems(context, type, itemIds) {
-    return this._cache.getItemStore().then(itemStore => itemStore.getItems(context, type, itemIds));
-  }
-
-  queryItems(context, root, filter={}) {
-    return this._cache.getItemStore().then(itemStore => itemStore.queryItems(context, root, filter));
   }
 }

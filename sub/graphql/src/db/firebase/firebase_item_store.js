@@ -3,103 +3,68 @@
 //
 
 import _ from 'lodash';
-import moment from 'moment';
 
-import { ItemStore } from 'minder-core';
-
-import { Cache } from './cache';
+import { ItemStore, ItemStoreCache } from 'minder-core';
 
 /**
  * Item store.
  *
- * Database hierarchy:
+ * NAMESPACE:BUCKET:TYPE:ID => { Item }
  *
- *  items/
- *    TYPE/
- *      ID:Item
+ * Examples:
+ * accounts/  system/     User/     user-1
+ * data/      bucket-1/   Task/     task-1
+ * google/    bucket-2/   Contact/  contact-1
  */
 export class FirebaseItemStore extends ItemStore {
 
-  // Root database node.
-  static ROOT = 'data';
-
-  /**
-   * Parses the root node of the data set, inserting items into the item store.
-   * Flattens all items into a single map.
-   *
-   * @param itemStore
-   * @param data
-   */
-  static parseData(itemStore, data) {
-    let items = [];
-    _.each(data.val(), (records, type) => {
-      _.each(records, (item, id) => {
-        items.push(item);
-      });
-    });
-
-    itemStore.upsertItems({}, items);
-  }
+  // TODO(burdon): Items without a bucket are system items?
+  // TODO(burdon): Enforce in UI (i.e., add bucket from either group or user).
 
   constructor(db, idGenerator, matcher, namespace) {
-    super(idGenerator, matcher, namespace);
+    super(namespace);
     console.assert(db);
-
     this._db = db;
-    this._cache = new Cache(
-      this._db, FirebaseItemStore.ROOT, idGenerator, matcher, namespace, FirebaseItemStore.parseData);
+    this._cache = new ItemStoreCache(idGenerator, matcher);
   }
 
-  clearCache() {
-    return this._cache.getItemStore(true);
+  /**
+   * @returns {string} NAMESPACE:BUCKET:TYPE:ID
+   *
+   * https://firebase.google.com/docs/database/web/structure-data
+   * Keys must be UTF-8 encoded, can be a maximum of 768 bytes,
+   * and cannot contain ., $, #, [, ], /, or ASCII control characters 0-31 or 127.
+   */
+  key(item) {
+    console.assert(item.bucketId);
+    return `/${this.namespace}/${item.bucketId}/${item.type}/${item.id}`;
   }
 
-  //
-  // ItemStore API.
-  //
+  updateCache() {
+
+    // TODO(burdon): Is namespace part of the key?
+    // TODO(burdon): Implement cache and listen for updates.
+    // https://firebase.google.com/docs/database/web/read-and-write#read_data_once
+    // https://firebase.google.com/docs/reference/js/firebase.database.Reference#once
+    // https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
+    return this._db.ref(this._path).orderByKey().once('value');
+  }
 
   upsertItems(context, items) {
-
-    // Write-through cache.
+    // TODO(burdon): Update multiple items?
     _.each(items, item => {
-      console.assert(item.type);
-      if (!item.id) {
-        item.id = this._idGenerator.createId();
-        item.created = moment().unix();
-      }
 
-      item.modified = moment().unix();
-
+      // TODO(burdon): Does this call an update?
       // https://firebase.google.com/docs/database/web/read-and-write
-      this._db.ref(FirebaseItemStore.ROOT + '/' + item.type + '/' + item.id).set(item);
+      this._db.ref(this.key(item)).set(item);
     });
-
-    return this._cache.getItemStore()
-      .then(itemStore => itemStore.upsertItems(context, items));
   }
 
   getItems(context, type, itemIds) {
-    return this._cache.getItemStore()
-      .then(itemStore => itemStore.getItems(context, type, itemIds));
+    return this._cache.getItems(itemIds);
   }
 
-  queryItems(context, root, filter={}, offset=0, count=10) {
-    return this._cache.getItemStore()
-      .then(itemStore => itemStore.queryItems(context, root, filter))
-      .then(items => {
-        // Sort.
-        let orderBy = filter.orderBy;
-        if (orderBy) {
-          console.assert(orderBy.field);
-          items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
-        }
-
-        console.log(items.length + '::' + count);
-
-        // Page.
-        items = _.slice(items, offset, offset + count);
-
-        return items;
-      });
+  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+    return this._cache.queryItems(context, root, filter, offset, count);
   }
 }

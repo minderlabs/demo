@@ -139,7 +139,7 @@ export class Database extends ItemStore {
   /**
    * @returns {Promise}
    */
-  queryItems(context, root, filter={}, offset=0, count=10) {
+  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     logger.log($$('QUERY[%s:%s]: %O', offset, count, filter));
 
     // TODO(burdon): Security?
@@ -150,7 +150,7 @@ export class Database extends ItemStore {
   /**
    * @returns {Promise}
    */
-  search(context, root, filter={}, offset=0, count=10) {
+  search(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
     return this._searchAll(context, root, filter, offset, count)
@@ -165,7 +165,7 @@ export class Database extends ItemStore {
    *
    * @returns {Promise}
    */
-  _searchAll(context, root, filter={}, offset=0, count=10) {
+  _searchAll(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
     // TODO(burdon): Unit test!

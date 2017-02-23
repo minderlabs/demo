@@ -54,7 +54,7 @@ export class SlackQueryProcessor extends QueryProcessor {
   // QueryProcessor API.
   //
 
-  queryItems(context, root, filter={}, offset=0, count=10) {
+  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     return this._search(filter.text);
   }
 

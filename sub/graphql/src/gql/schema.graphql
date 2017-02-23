@@ -236,7 +236,7 @@ type Board {
 interface Item {
   namespace: String           # External namespace (query provider).
   fkey: String                # Foreign key.
-  bucket: ID
+  bucket: ID                  # ID of User or Group (null for system item).
   type: String!
   id: ID!
   alias: String               # Short-name for URLs (unique, human-readable).

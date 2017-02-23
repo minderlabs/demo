@@ -5,64 +5,33 @@
 import _ from 'lodash';
 
 import { TypeUtil } from '../util/type';
-import { ItemStore } from './item_store';
+
+import { ItemStore, QueryProcessor } from './item_store';
 import { Matcher } from './matcher';
 
 /**
- * In-memory database.
+ * Cache.
  */
-export class MemoryItemStore extends ItemStore {
+export class ItemStoreCache {
 
-  // TODO(burdon): Add namespace to items? Or add in database/resolver layer?
-
-  constructor(idGenerator, matcher, namespace) {
-    super(idGenerator, matcher, namespace);
+  constructor(idGenerator, matcher) {
+    console.assert(idGenerator && matcher);
+    this._idGenerator = idGenerator;
+    this._matcher = matcher;
 
     // Items by ID.
+    // TODO(burdon): Index by bucket also.
     this._items = new Map();
   }
 
-  //
-  // ItemStore interface.
-  //
-
-  upsertItems(context, items) {
-    console.assert(context && !_.isEmpty(items));
-
-    return Promise.resolve(_.map(items, (item) => {
-      item = TypeUtil.clone(item);
-      console.assert(item.type);
-
-      // TODO(burdon): Factor out to MutationProcessor (then remove idGenerator requirement).
-      this._onUpdate(item);
-
-      // TODO(burdon): Enforce immutable properties (e.g., type).
-      this._items.set(item.id, item);
-
-      return item;
-    }));
-  }
-
-  getItems(context, type, itemIds) {
-    console.assert(context && type);
-
-    // Return clones of matching items.
-    let items = _.compact(_.map(itemIds, itemId => this._items.get(itemId)));
-    return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
-  }
-
-  //
-  // QueryProcessor interface.
-  //
-
-  queryItems(context, root, filter={}, offset=0, count=10) {
+  queryItems(context, root, filter, offset, count) {
     console.assert(context && filter);
-
-    // Match items (cloning those that match).
     let items = [];
+
+    // Match items.
     this._items.forEach(item => {
       if (this._matcher.matchItem(context, root, filter, item)) {
-        items.push(TypeUtil.clone(item));
+        items.push(item);
       }
     });
 
@@ -72,6 +41,48 @@ export class MemoryItemStore extends ItemStore {
     // Page.
     items = _.slice(items, offset, offset + count);
 
-    return Promise.resolve(items);
+    // Clone items.
+    return _.map(items, item => TypeUtil.clone(item));
+  }
+
+  getItems(itemIds) {
+    console.assert(itemIds);
+    let items = _.compact(_.map(itemIds, itemId => this._items.get(itemId)));
+    return _.map(items, item => TypeUtil.clone(item));
+  }
+
+  upsertItems(items) {
+    console.assert(items);
+    return _.map(items, item => {
+      let clonedItem = ItemStore.onUpdate(this._idGenerator, TypeUtil.clone(item));
+      this._items.set(clonedItem.id, clonedItem);
+      return clonedItem;
+    });
+  }
+}
+
+/**
+ * In-memory database.
+ */
+export class MemoryItemStore extends ItemStore {
+
+  // TODO(burdon): Store by bucket? Use context?
+
+  constructor(idGenerator, matcher, namespace) {
+    super(namespace);
+
+    this._cache = new ItemStoreCache(idGenerator, matcher);
+  }
+
+  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+    return Promise.resolve(this._cache.queryItems(context, root, filter, offset, count));
+  }
+
+  getItems(context, type, itemIds) {
+    return Promise.resolve(this._cache.getItems(itemIds));
+  }
+
+  upsertItems(context, items) {
+    return Promise.resolve(this._cache.upsertItems(items));
   }
 }

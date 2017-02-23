@@ -5,20 +5,14 @@
 import moment from 'moment';
 
 /**
- * Base class for read-only stores.
+ * Abstract base class.
  */
 export class QueryProcessor {
 
-  /**
-   * @param idGenerator
-   * @param matcher
-   * @param namespace
-   */
-  constructor(idGenerator, matcher, namespace) {
-    console.assert(idGenerator && matcher && namespace);
+  static DEFAULT_COUNT = 20;
 
-    this._idGenerator = idGenerator;
-    this._matcher = matcher;
+  constructor(namespace) {
+    console.assert(namespace);
     this._namespace = namespace;
   }
 
@@ -26,30 +20,28 @@ export class QueryProcessor {
     return this._namespace;
   }
 
-  queryItems(context, root, filter = {}, offset = 0, count = 10) {
+  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     throw new Error('Not implemented');
   }
 }
 
 /**
- * Base class for type-specific stores.
+ * Abstract base class.
  */
 export class ItemStore extends QueryProcessor {
 
-  constructor(idGenerator, matcher, namespace) {
-    super(idGenerator, matcher, namespace);
-  }
-
   /**
    * Update the timestamps and set ID if create.
+   * @param idGenerator
    * @param item
    * @return {*}
    */
-  _onUpdate(item) {
-    let ts = moment().unix();
+  static onUpdate(idGenerator, item) {
+    console.assert(item.type);
 
+    let ts = moment().unix();
     if (!item.id) {
-      item.id = this._idGenerator.createId();
+      item.id = idGenerator.createId();
       item.created = ts;
     }
 
@@ -57,9 +49,9 @@ export class ItemStore extends QueryProcessor {
     return item;
   }
 
-  //
-  // Helper methods.
-  //
+  constructor(namespace) {
+    super(namespace);
+  }
 
   getItem(context, type, itemId) {
     return this.getItems(context, type, [itemId]).then(items => items[0]);
@@ -69,37 +61,34 @@ export class ItemStore extends QueryProcessor {
     return this.upsertItems(context, [item]).then(items => items[0]);
   }
 
-  /**
-   * Upsert the given items.
-   *
-   * @param context
-   * @param items
-   */
-  upsertItems(context, items) {
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * Retrieve the items by ID.
-   *
-   * @param context
-   * @param type
-   * @param itemIds
-   */
   getItems(context, type, itemIds) {
     throw new Error('Not implemented');
   }
 
-  /**
-   * Query items based on the supplied filter against the store's matcher.
-   *
-   * @param context
-   * @param root
-   * @param filter
-   * @param offset
-   * @param count
-   */
-  queryItems(context, root, filter={}, offset=0, count=10) {
+  upsertItems(context, items) {
     throw new Error('Not implemented');
+  }
+}
+
+/**
+ * Wraps another ItemStore.
+ */
+export class DelegateItemStore extends ItemStore {
+
+  constructor(itemStore) {
+    super(itemStore.namespace);
+    this._itemStore = itemStore;
+  }
+
+  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+    return this._itemStore.queryItems(context, root, filter, offset, count);
+  }
+
+  getItems(context, type, itemIds) {
+    return this._itemStore.getItems(context, type, itemIds);
+  }
+
+  upsertItem(context, item) {
+    return this._itemStore.upsertItems(context, items);
   }
 }

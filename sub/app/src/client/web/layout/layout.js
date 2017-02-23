@@ -9,7 +9,7 @@ import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { DomUtil, ID } from 'minder-core';
-import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
+import { ReactUtil, Sidebar, SidebarToggle, TextBox } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
 import { Path } from '../../common/path';
@@ -108,7 +108,7 @@ export class BaseLayout extends React.Component {
 
             {/* Nav bar */}
             <NavBar search={ search }>
-              <div>{ navbar.title }</div>
+              <TextBox value={ navbar.title } clickToEdit={ true }/>
             </NavBar>
 
             {/* Sidebar */}
