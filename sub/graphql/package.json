@@ -19,6 +19,7 @@
     "babel-register": "^6.18.0",
     "chai": "^3.5.0",
     "fakeredis": "^1.0.3",
+    "firebase-server": "^0.9.1",
     "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",
@@ -35,8 +36,10 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-verbose-reporter": "0.0.3",
     "karma-webpack": "^1.8.0",
+    "memcached-mock": "^0.1.0",
     "mocha": "^3.1.2",
     "mocha-webpack": "^0.7.0",
+    "mockfirebase": "^0.12.0",
     "simon": "^0.2.3",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
@@ -66,7 +69,6 @@
     "redis": "^2.6.3"
   },
   "scripts": {
-    "//": "http://x-team.com/2016/05/setting-up-javascript-testing-tools-for-es6",
     "//": "NOTE: Restart after updates to dependent libs (i.e., minder-core)",
     "test": "BABEL_DISABLE_CACHE=1 mocha --require babel-polyfill --compilers js:babel-register \"src/**/*.test.js\"",
     "test-watch": "BABEL_DISABLE_CACHE=1 mocha --watch --require babel-polyfill --compilers js:babel-register \"src/**/*.test.js\"",

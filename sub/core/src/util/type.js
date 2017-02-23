@@ -110,27 +110,6 @@ export class TypeUtil {
 
     return array;
   }
-
-  /**
-   * Iterates the collection sequentially calling the async function for each.
-   *
-   * @param collection Data to iterate.
-   * @param func Returns a value or promise.
-   * @return {Promise}
-   */
-  // TODO(burdon): Move to async.
-  static iterateWithPromises(collection, func) {
-    let p = Promise.resolve();
-
-    _.each(collection, (...args) => {
-      p = p.then(() => {
-        return Promise.resolve(func.apply(null, args));
-      });
-    });
-
-    // Resolve after each item in the sequence resolves.
-    return p;
-  }
 }
 
 /**

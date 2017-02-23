@@ -6,7 +6,7 @@ import _ from 'lodash';
 import bluebird from 'bluebird';
 import redis from 'redis';
 
-import { ItemStore, Key, Matcher } from 'minder-core';
+import { ItemStore, ItemUtil, Key, QueryProcessor } from 'minder-core';
 
 // https://github.com/NodeRedis/node_redis#promises
 bluebird.promisifyAll(redis.RedisClient.prototype);
@@ -32,11 +32,12 @@ export class RedisItemStore extends ItemStore {
     });
   }
 
-  // TODO(burdon): Namespace? Or in other data store?
-  static ITEM_KEY = new Key('I:{{bucketId}}:{{type}}:{{itemId}}');
+  constructor(idGenerator, matcher, client, namespace) {
+    super(namespace);
 
-  constructor(idGenerator, matcher, namespace, client) {
-    super(idGenerator, matcher, namespace);
+    this._key = new Key(`I:${namespace}:{{bucket}}:{{type}}:{{itemId}}`);
+    this._util = new ItemUtil(idGenerator, matcher);
+
     console.assert(client);
     this._client = client;
   }
@@ -46,77 +47,62 @@ export class RedisItemStore extends ItemStore {
   }
 
   //
-  // ItemStore interface.
-  //
-
-  upsertItems(context, items) {
-    return Promise.resolve(_.map(items, item => {
-      let { groupId:bucketId } = context;
-
-      this._onUpdate(item);
-
-      let { type, id:itemId } = item;
-      let key = RedisItemStore.ITEM_KEY.toKey({
-        bucketId, type, itemId
-      });
-
-      this._client.set(key, JSON.stringify(item));
-
-      return item;
-    }));
-  }
-
-  getItems(context, type, itemIds) {
-    let { groupId:bucketId } = context;
-
-    let keys = _.map(itemIds, itemId => RedisItemStore.ITEM_KEY.toKey({
-      bucketId,
-      type,
-      itemId
-    }));
-
-    return this._client.mgetAsync(keys).then(items => _.map(items, item => {
-      return JSON.parse(item);
-    }));
-  }
-
-  //
   // QueryProcessor interface.
   //
 
   queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     let { groupId, userId } = context;
 
+    // Gather results for each bucket.
+    let promises = [];
+
+    if (groupId) {
+      promises.push(this._client.keysAsync(this._key.toKey({ bucket: groupId })));
+    }
+
+    if (userId) {
+      promises.push(this._client.keysAsync(this._key.toKey({ bucket: userId })));
+    }
+
     // Get all keys.
     // TODO(burdon): Eventually get keys from Elasticsearch.
-    return Promise.all([
-
-      // Group keys.
-      // TODO(burdon): Multiple groups.
-      this._client.keysAsync(RedisItemStore.ITEM_KEY.toKey({ bucketId: groupId })),
-
-      // User keys.
-      this._client.keysAsync(RedisItemStore.ITEM_KEY.toKey({ bucketId: userId }))
-
-    ]).then(sets => {
+    return Promise.all(promises).then(sets => {
       let keys = _.flatten(_.concat(sets));
+      if (_.isEmpty(keys)) {
+        return [];
+      }
 
       // Get all items.
-      return this._client.mgetAsync(keys).then(items => {
-
-        // Filter.
-        items = _.filter(_.map(items, item => JSON.parse(item)), item => {
-          return this._matcher.matchItem(context, root, filter, item);
+      return this._client.mgetAsync(keys)
+        .then(values => {
+          let items = _.map(values, value => JSON.parse(value));
+          return this._util.filterItems(items, context, root, filter, offset, count)
         });
-
-        // Sort.
-        items = Matcher.sortItems(items, filter);
-
-        // Page.
-        items = _.slice(items, offset, offset + count);
-
-        return items;
-      });
     });
+  }
+
+  //
+  // ItemStore interface.
+  //
+
+  getItems(context, type, itemIds) {
+    let { groupId:bucket } = context;
+
+    let keys = _.map(itemIds, itemId => this._key.toKey({ bucket, type, itemId }));
+    return this._client.mgetAsync(keys).then(values => _.map(values, value => {
+      return JSON.parse(value);
+    }));
+  }
+
+  upsertItems(context, items) {
+    return Promise.resolve(_.map(items, item => {
+      this._util.onUpdate(item);
+
+      let { bucket, type, id:itemId } = item;
+      let key = this._key.toKey({ bucket, type, itemId });
+      this._client.set(key, JSON.stringify(item));
+
+      return item;
+    }));
   }
 }

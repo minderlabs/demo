@@ -38,6 +38,7 @@ export class Firebase {
     let app = admin.initializeApp(config);
     logger.log(`INITIALIZED: ${app.name}`);
 
+    // Server-side database.
     this._db = admin.database();
 
     this._systemStore = new SystemStore(this._db, idGenerator, matcher, Database.SYSTEM_NAMESPACE);

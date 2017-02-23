@@ -16,22 +16,6 @@ import { TypeUtil } from '../util/type';
 export class Matcher {
 
   /**
-   * Sort items.
-   * @param items
-   * @param filter
-   * @return {*}
-   */
-  static sortItems(items, filter) {
-    let orderBy = filter.orderBy;
-    if (orderBy) {
-      console.assert(orderBy.field);
-      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
-    }
-
-    return items;
-  }
-
-  /**
    * Matches the items against the filter.
    *
    * @param context
@@ -63,7 +47,10 @@ export class Matcher {
     }
 
     // Bucket match (ACL filtering).
-    if (item.bucket && item.bucket !== _.get(context, 'userId') && item.bucket !== _.get(context, 'groupId')) {
+    if (item.bucket &&
+        item.bucket !== _.get(context, 'userId') &&
+        item.bucket !== _.get(context, 'groupId')) {
+      console.log('NO');
       return false;
     }
 
@@ -85,7 +72,7 @@ export class Matcher {
     }
 
     // Type match.
-    if (filter.type && _.toLower(filter.type) != _.toLower(item.type)) {
+    if (filter.type && _.toLower(filter.type) !== _.toLower(item.type)) {
       return false;
     }
 

@@ -2,9 +2,11 @@
 // Copyright 2016 Minder Labs.
 //
 
+import { Async } from './async';
+
 describe('Async:', () => {
 
-  it('Promise chaining', (done) => {
+  it('Promise chaining.', (done) => {
 
     const page = 10;
     const fetch = (idx, n) => {
@@ -28,6 +30,31 @@ describe('Async:', () => {
     let count = 15;
     search(count).then(items => {
       expect(items.length).to.equal(count);
+      done();
+    });
+  });
+
+  it('iterateWithPromises', (done) => {
+    let values = [];
+
+    // Async function.
+    let f = (i) => {
+      values.push(i);
+
+      return Promise.resolve(i);
+    };
+
+    Async.iterateWithPromises(_.times(5), (i) => {
+      return f(i);
+
+    }).then((value) => {
+
+      // Last value.
+      expect(value).to.equal(4);
+
+      // Test done sequentially.
+      expect(values.length).to.equal(5);
+
       done();
     });
   });

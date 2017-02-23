@@ -2,7 +2,122 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import moment from 'moment';
+
+import { TypeUtil } from '../util/type';
+
+/**
+ * Wrapper for item filtering and sorting.
+ */
+export class ItemUtil {
+
+  /**
+   * Sort items.
+   * @param items
+   * @param filter
+   * @return {*}
+   */
+  static sortItems(items, filter) {
+    let orderBy = filter.orderBy;
+    if (orderBy) {
+      console.assert(orderBy.field);
+      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
+    }
+
+    return items;
+  }
+
+  constructor(idGenerator, matcher) {
+    console.assert(idGenerator && matcher);
+    this._idGenerator = idGenerator;
+    this._util = matcher;
+  }
+
+  /**
+   * Update the timestamps and set ID if create.
+   * @param item
+   * @return {*}
+   */
+  onUpdate(item) {
+    console.assert(item && item.type);
+
+    let ts = moment().unix();
+    if (!item.id) {
+      item.id = this._idGenerator.createId();
+      item.created = ts;
+    }
+
+    item.modified = ts;
+    return item;
+  }
+
+  /**
+   * Filter and sort list of items.
+   *
+   * @param itemIterator
+   * @param context
+   * @param root
+   * @param filter
+   * @param offset
+   * @param count
+   * @returns {Array}
+   */
+  filterItems(itemIterator, context, root, filter, offset, count) {
+    let items = [];
+
+    // Match items.
+    itemIterator.forEach(item => {
+      if (this._util.matchItem(context, root, filter, item)) {
+        items.push(item);
+      }
+    });
+
+    // Sort.
+    items = ItemUtil.sortItems(items, filter);
+
+    // Page.
+    items = _.slice(items, offset, offset + count);
+
+    return items;
+  }
+}
+
+/**
+ * Cache.
+ */
+export class ItemStoreCache {
+
+  constructor(idGenerator, matcher) {
+    console.assert(idGenerator && matcher);
+    this._util = new ItemUtil(idGenerator, matcher);
+
+    // Items by ID.
+    // TODO(burdon): Index by bucket also.
+    this._items = new Map();
+  }
+
+  queryItems(context, root, filter, offset, count) {
+    console.assert(context && filter);
+    let items = this._util.filterItems(this._items, context, root, filter, offset, count);
+    return _.map(items, item => TypeUtil.clone(item));
+  }
+
+  getItems(itemIds) {
+    console.assert(itemIds);
+    let items = _.compact(_.map(itemIds, itemId => this._items.get(itemId)));
+    return _.map(items, item => TypeUtil.clone(item));
+  }
+
+  upsertItems(items) {
+    console.assert(items);
+    return _.map(items, item => {
+      let clonedItem = this._util.onUpdate(TypeUtil.clone(item));
+      this._items.set(clonedItem.id, clonedItem);
+      return clonedItem;
+    });
+  }
+}
 
 /**
  * Abstract base class.
@@ -29,25 +144,6 @@ export class QueryProcessor {
  * Abstract base class.
  */
 export class ItemStore extends QueryProcessor {
-
-  /**
-   * Update the timestamps and set ID if create.
-   * @param idGenerator
-   * @param item
-   * @return {*}
-   */
-  static onUpdate(idGenerator, item) {
-    console.assert(item.type);
-
-    let ts = moment().unix();
-    if (!item.id) {
-      item.id = idGenerator.createId();
-      item.created = ts;
-    }
-
-    item.modified = ts;
-    return item;
-  }
 
   constructor(namespace) {
     super(namespace);

@@ -6,8 +6,7 @@ import _ from 'lodash';
 
 import { Chance } from 'chance';
 
-import { TypeUtil } from '../util/type';
-
+import { Async } from '../util/async';
 import Logger from '../util/logger';
 
 const logger = Logger.get('randomizer');
@@ -110,7 +109,7 @@ export class Randomizer {
     let items = [];
 
     // Each item is generates asynchronously (since it may look-up other items) so we gather the promises.
-    return TypeUtil.iterateWithPromises(_.times(n), i => {
+    return Async.iterateWithPromises(_.times(n), i => {
 
       //
       // Generate item.
@@ -129,7 +128,7 @@ export class Randomizer {
       // Iterate fields.
       //
 
-      return TypeUtil.iterateWithPromises(fields, (spec, field) => {
+      return Async.iterateWithPromises(fields, (spec, field) => {
 
         // Set literal value.
         if (spec.likelihood === undefined || this._chance.bool({ likelihood: spec.likelihood })) {
@@ -165,7 +164,7 @@ export class Randomizer {
         }
 
         // Post-create hook.
-        return TypeUtil.iterateWithPromises(fields, (spec, field) => {
+        return Async.iterateWithPromises(fields, (spec, field) => {
           if (spec.onCreate) {
             return spec.onCreate(this, items);
           }

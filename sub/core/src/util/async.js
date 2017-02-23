@@ -69,6 +69,26 @@ export class Async {
 
     return doRetry();
   }
+
+  /**
+   * Iterates the collection sequentially calling the async function for each.
+   *
+   * @param collection Data to iterate.
+   * @param func Returns a value or promise.
+   * @return {Promise}
+   */
+  static iterateWithPromises(collection, func) {
+    let p = Promise.resolve();
+
+    _.each(collection, (...args) => {
+      p = p.then(() => {
+        return Promise.resolve(func.apply(null, args));
+      });
+    });
+
+    // Resolve after each item in the sequence resolves.
+    return p;
+  }
 }
 
 /**

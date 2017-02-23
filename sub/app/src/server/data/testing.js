@@ -5,7 +5,7 @@
 import _ from 'lodash';
 import moment from 'moment';
 
-import { Randomizer, TypeUtil } from 'minder-core';
+import { Async, Randomizer, TypeUtil } from 'minder-core';
 import { Database } from 'minder-graphql';
 
 /**
@@ -49,7 +49,7 @@ export class TestData {
       //
       onCreate: (randomizer, tasks) => {
         let mutatedProjects = {};
-        return TypeUtil.iterateWithPromises(tasks, task => {
+        return Async.iterateWithPromises(tasks, task => {
           let projectId = task.project;
           if (projectId) {
             return randomizer.queryCache('Project').then(projects => {

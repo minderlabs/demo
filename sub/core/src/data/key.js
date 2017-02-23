@@ -34,7 +34,11 @@ export class Key {
    * @returns {string}
    */
   toKey(args={}) {
+    // Make sure no args are nil.
+    _.each(args, (value, arg) => console.assert(!_.isNil(value), 'Invalid arg: ' + arg));
     return this._pattern.replace(Key.REGEX, (match, group) => {
+      // Wildcard for args not-specified.
+      // TODO(burdon): '*' is Redis specific. Make this an option (otherwise assert).
       return _.get(args, group, '*');
     });
   }

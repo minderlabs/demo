@@ -14,6 +14,7 @@ export * from './util/chrome/messaging';
 export * from './data/fragments';
 export * from './data/id';
 export * from './data/item_store';
+export * from './data/item_store_tests';
 export * from './data/key';
 export * from './data/matcher';
 export * from './data/memory_item_store';
