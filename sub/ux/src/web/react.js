@@ -22,7 +22,7 @@ export class ReactUtil {
 
     if (loading) {
       return (
-        <div className="ux-loading"/>
+        <div className="ux-loading"><span/></div>
       );
     } else if (error) {
       console.error(error);
@@ -31,6 +31,7 @@ export class ReactUtil {
       );
     } else {
       try {
+        // Ready.
         return render();
       } catch(error) {
         // TODO(burdon): Log if prod and show standard error.

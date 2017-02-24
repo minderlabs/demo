@@ -17,7 +17,6 @@ import {
   Database,
   Firebase,
   GoogleDriveQueryProcessor,
-  MemcacheItemStore,
   SlackQueryProcessor,
   graphqlRouter
 } from 'minder-graphql';
@@ -60,6 +59,7 @@ process.on('unhandledRejection', handleError);
 // Env.
 //
 
+// TODO(burdon): Move to Config.
 const Config = {
 
   MEMCACHE_HOST: _.get(process.env, 'MEMCACHE_SERVICE_HOST', '127.0.0.1'),
@@ -109,22 +109,11 @@ const authManager = new AuthManager(firebase.admin, firebase.systemStore);
 
 
 //
-// Memcache
-// https://github.com/alevy/memjs
-//
-
-// TODO(burdon): Util in MemcacheItemStore.
-// const memcache = memjs.Client.create(`${Config.MEMCACHE_HOST}:${Config.MEMCACHE_PORT}`, {
-//   failoverTime: 60
-// });
-
-
-//
 // Database.
 //
 
 const defaultItemStore = testing ?
-  new MemoryItemStore(idGenerator, matcher, Database.DEFAULT_NAMESPACE) : firebase.itemStore;
+  new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER) : firebase.itemStore;
 
 const database = new Database(idGenerator, matcher)
 
@@ -173,7 +162,7 @@ let loader = new Loader(database);
 
 let loading = Promise.all([
   // Do in parallel.
-  loader.parse(require('./data/accounts.json'), Database.SYSTEM_NAMESPACE),
+  loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM),
   loader.parse(require('./data/startup.json')),
   loader.parse(require('./data/demo.json'))
 ]).then(() => {

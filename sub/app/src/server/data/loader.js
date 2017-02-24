@@ -21,7 +21,7 @@ export class Loader {
    * @param data JSON data file.
    * @param namespace
    */
-  parse(data, namespace = Database.DEFAULT_NAMESPACE) {
+  parse(data, namespace = Database.NAMESPACE.USER) {
     let parsedItems = [];
 
     // Iterate each item by type.
@@ -59,14 +59,17 @@ export class Loader {
    */
   initGroups() {
     return Promise.all([
+
       this._database.queryItems({}, {}, {
-        namespace: Database.SYSTEM_NAMESPACE,
+        namespace: Database.NAMESPACE.SYSTEM,
         type: 'Group'
       }),
+
       this._database.queryItems({}, {}, {
-        namespace: Database.SYSTEM_NAMESPACE,
+        namespace: Database.NAMESPACE.SYSTEM,
         type: 'User'
       })
+
     ]).then(([ groups, users ]) => {
 
       // Add User IDs of whitelisted users.
@@ -78,7 +81,7 @@ export class Loader {
         }))
       );
 
-      return this._database.upsertItems({}, groups, Database.SYSTEM_NAMESPACE);
+      return this._database.upsertItems({}, groups, Database.NAMESPACE.SYSTEM);
     });
   }
 }

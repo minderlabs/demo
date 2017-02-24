@@ -4,31 +4,54 @@
 
 import _ from 'lodash';
 
-import { $$, ID, Logger, ItemStore, TypeUtil } from 'minder-core';
+import { $$, ID, Logger, ItemStore, QueryProcessor, TypeUtil } from 'minder-core';
 
 const logger = Logger.get('db');
 
 /**
- * Base database implementation.
+ * Canonical Source of Truth for the data model design.
+ * - https://docs.google.com/document/d/1qMwaBb8jcip1zZipvFIM5SZDDE07ZL5Lpz0UtM1dH-I
+ *
+ * - Data Items are stored in different Namespaces.
+ *   - The "system" Namespace stores Group, User items, etc.
+ *   - The "user" Namespace stores all first-party user data.
+ *   - Other Namespaces (e.g., "google") store third-party data (which is synced externall and may be joined).
+ *
+ * - The canonical Global Item ID is "[namespace]/type/itemId".
+ *   - See ID.toGlobalId and ID.fromGlobalId
+ *   - The default namespace is "user" and is omitted.
+ *   - Global IDs are used for permalinks.
+ *   - The local ItemId is globally unique within the namespace (i.e., the type is a hint for GQL Item resolution).
+ *
+ * - Queries and Mutations can specify non-standard Namespaces.
+ *   - Special ACLs are applied to "system" Queries and Mutations.
+ *
+ * - User Items declare a Bucket which corresponds to a Group or User ID.
+ *   - The database key is: "NAMESPACE/BUCKET/TYPE/ITEM-ID"
+ *
+ * - Queries implicitely declare Buckets via the resolver context (which computes which buckets are accessible).
  */
 export class Database extends ItemStore {
 
-  static DEFAULT_NAMESPACE = 'user.data';
-  static SYSTEM_NAMESPACE = 'system';
+  static NAMESPACE = {
+    SYSTEM:   'system',
+    USER:     'user'
+  };
 
   /**
    * Different types are stored in different stores.
    * @param type
    * @return {*}
    */
+  // TODO(burdon): Remove.
   static getNamespaceForType(type) {
     switch (type) {
       case 'User':
       case 'Group':
-        return Database.SYSTEM_NAMESPACE;
+        return Database.NAMESPACE.SYSTEM;
 
       default:
-        return Database.DEFAULT_NAMESPACE;
+        return Database.NAMESPACE.USER;
     }
   }
 
@@ -74,7 +97,7 @@ export class Database extends ItemStore {
     return this;
   }
 
-  getItemStore(namespace=Database.DEFAULT_NAMESPACE) {
+  getItemStore(namespace=Database.NAMESPACE.USER) {
     let itemStore = this._stores.get(namespace);
     console.assert(itemStore, 'Invalid namespace: ' + namespace);
     return itemStore;
@@ -111,7 +134,7 @@ export class Database extends ItemStore {
   /**
    * @returns {Promise}
    */
-  upsertItems(context, items, namespace=Database.DEFAULT_NAMESPACE) {
+  upsertItems(context, items, namespace=Database.NAMESPACE.USER) {
     logger.log($$('UPSERT: %s', items.length > 1 ? TypeUtil.stringify(items) : JSON.stringify(items)));
 
     // TODO(burdon): Security: check bucket/ACLs and namespace privilege.
@@ -129,7 +152,7 @@ export class Database extends ItemStore {
   /**
    * @returns {Promise}
    */
-  getItems(context, type, itemIds, namespace=Database.DEFAULT_NAMESPACE) {
+  getItems(context, type, itemIds, namespace=Database.NAMESPACE.USER) {
     logger.log($$('GET[%s]: [%s]', type, itemIds));
 
     let itemStore = this.getItemStore(namespace);
@@ -201,7 +224,7 @@ export class Database extends ItemStore {
         let itemsWithForeignKeys = new Map();
 
         // First get items from the current query that may have external references.
-        let result = _.find(results, result => result.namespace === Database.DEFAULT_NAMESPACE);
+        let result = _.find(results, result => result.namespace === Database.NAMESPACE.USER);
         _.each(result.items, item => {
           if (item.fkey) {
             itemsWithForeignKeys.set(item.fkey, item);
@@ -211,7 +234,7 @@ export class Database extends ItemStore {
         // Gather the set of foreign keys for external items.
         let foreignKeys = [];
         _.each(results, result => {
-          if (result.namespace !== Database.DEFAULT_NAMESPACE) {
+          if (result.namespace !== Database.NAMESPACE.USER) {
             _.each(result.items, item => {
               let fkey = ID.getForeignKey(item);
               if (!itemsWithForeignKeys.get(fkey)) {
@@ -238,7 +261,7 @@ export class Database extends ItemStore {
           // Merge external items with stored items.
           _.each(results, result => {
             _.each(result.items, item => {
-              if (result.namespace !== Database.DEFAULT_NAMESPACE) {
+              if (result.namespace !== Database.NAMESPACE.USER) {
                 let existing = itemsWithForeignKeys.get(ID.getForeignKey(item));
                 if (existing) {
                   // TODO(burdon): Better merge (e.g., replace title?)
@@ -254,7 +277,7 @@ export class Database extends ItemStore {
           let items = [];
           _.each(results, result => {
             _.each(result.items, item => {
-              if (result.namespace === Database.DEFAULT_NAMESPACE) {
+              if (result.namespace === Database.NAMESPACE.USER) {
                 items.push(item);
               } else {
                 // If an item already exists, then it will be added above.
@@ -278,7 +301,7 @@ export class Database extends ItemStore {
    * @private
    */
   _queryItemsWithForeignKeys(context, root, foreignKeys) {
-    let defaultProcessor = this._queryProcessors.get(Database.DEFAULT_NAMESPACE);
+    let defaultProcessor = this._queryProcessors.get(Database.NAMESPACE.USER);
     return defaultProcessor.queryItems(context, root, {
       fkeys: foreignKeys
     });

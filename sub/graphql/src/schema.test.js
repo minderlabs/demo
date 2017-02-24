@@ -58,8 +58,8 @@ const matcher = new Matcher();
 
 function createDatabase() {
   return new Database(idGenerator, matcher)
-    .registerItemStore(new MemoryItemStore(idGenerator, matcher, Database.SYSTEM_NAMESPACE))
-    .registerItemStore(new MemoryItemStore(idGenerator, matcher, Database.DEFAULT_NAMESPACE));
+    .registerItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SYSTEM))
+    .registerItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER));
 }
 
 //
@@ -120,7 +120,7 @@ describe('GraphQL Executable Schema:', () => {
   let context = { userId: 'minder' };
 
   let database = createDatabase();
-  database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }], Database.SYSTEM_NAMESPACE);
+  database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }], Database.NAMESPACE.SYSTEM);
 
   // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
   let schema = makeExecutableSchema({
@@ -132,7 +132,7 @@ describe('GraphQL Executable Schema:', () => {
   });
 
   it('Query viewer', (done) => {
-    database.getItem(context, 'User', 'minder', Database.SYSTEM_NAMESPACE).then(item => {
+    database.getItem(context, 'User', 'minder', Database.NAMESPACE.SYSTEM).then(item => {
       expect(item.id).to.equal('minder');
 
       // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
@@ -157,7 +157,7 @@ describe('GraphQL JS API:', () => {
   let context = { userId: 'minder' };
 
   let database = createDatabase();
-  database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }], Database.SYSTEM_NAMESPACE);
+  database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }], Database.NAMESPACE.SYSTEM);
 
   let schema = new GraphQLSchema({
     query: new GraphQLObjectType({
@@ -185,7 +185,7 @@ describe('GraphQL JS API:', () => {
 
           resolve(root, args, context, info) {
             let { userId } = context;
-            return database.getItem(context, 'User', userId, Database.SYSTEM_NAMESPACE).then(user => {
+            return database.getItem(context, 'User', userId, Database.NAMESPACE.SYSTEM).then(user => {
               return {
                 user
               }

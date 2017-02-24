@@ -14,10 +14,30 @@ import { Database } from 'minder-graphql';
 export class TestData {
 
   static randomizer(database, itemStore, context={}) {
-    const queryItems = (type) => database.queryItems(context, {}, {
-      namespace: Database.getNamespaceForType(type),
-      type
-    });
+
+    /**
+     * Functor to query items.
+     * @param type
+     * @returns {Promise}
+     */
+    const queryItems = (type) => {
+      let namespace;
+      switch (type) {
+        case 'User':
+        case 'Group':
+          namespace = Database.NAMESPACE.SYSTEM;
+          break;
+
+        default:
+          namespace = Database.NAMESPACE.USER;
+      }
+
+      let filter = {
+        namespace, type
+      };
+
+      return database.queryItems(context, {}, filter);
+    };
 
     return new Randomizer(itemStore, queryItems, {
       created: moment().subtract(10, 'days').unix()

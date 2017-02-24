@@ -157,8 +157,8 @@ input FilterInput {
   # Data store namespace (e.g., system for User, etc.)
   namespace: String
 
+  # TODO(burdon): Part of ID? (bucket/itemId). Or part of Global ID? Need to tell resolver where to find things.
   # TODO(burdon): ID! (User/Group ID). Should be implicit in context? And validated in frontend Auth.
-  # TODO(burdon): Motivate case, where Client wants to specify a particular bucket.
   bucket: String
 
   # OR

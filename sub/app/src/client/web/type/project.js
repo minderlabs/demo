@@ -333,7 +333,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { registration: { userId }, item:project, refetch, mutator } = this.props;
+        let { registration: { userId }, item:project, refetch, mutator } = this.props;
       let { boardAdapter, boardAlias, itemOrderModel } = this.state;
       let { typeRegistry } = this.context;  // TODO(burdon): Get from compose_item props.
 

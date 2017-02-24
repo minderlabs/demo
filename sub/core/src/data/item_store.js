@@ -184,7 +184,7 @@ export class DelegateItemStore extends ItemStore {
     return this._itemStore.getItems(context, type, itemIds);
   }
 
-  upsertItem(context, item) {
+  upsertItems(context, items) {
     return this._itemStore.upsertItems(context, items);
   }
 }

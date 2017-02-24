@@ -9,8 +9,9 @@ import admin from 'firebase-admin';
 import { Logger } from 'minder-core';
 
 import { Database } from '../database';
-import { SystemStore } from './firebase_system_store';
+import { AccountStore } from './account_store';
 import { FirebaseItemStore } from './firebase_item_store';
+import { FirebaseSystemStore } from './firebase_system_store';
 
 const logger = Logger.get('firebase');
 
@@ -36,13 +37,17 @@ export class Firebase {
     // https://firebase.google.com/docs/admin/setup
     // https://firebase.google.com/docs/reference/admin/node/admin
     let app = admin.initializeApp(config);
-    logger.log(`INITIALIZED: ${app.name}`);
+    logger.log('Initialized: ' + app.name);
 
     // Server-side database.
     this._db = admin.database();
 
-    this._systemStore = new SystemStore(this._db, idGenerator, matcher, Database.SYSTEM_NAMESPACE);
-    this._itemStore = new FirebaseItemStore(this._db, idGenerator, matcher, Database.DEFAULT_NAMESPACE);
+    // User and Groups.
+    this._systemStore = new AccountStore(
+      new FirebaseSystemStore(idGenerator, matcher, this._db, Database.NAMESPACE.SYSTEM));
+
+    // Data items.
+    this._itemStore = new FirebaseItemStore(idGenerator, matcher, this._db, Database.NAMESPACE.USER);
   }
 
   clearCache() {

@@ -50,7 +50,6 @@ export class Matcher {
     if (item.bucket &&
         item.bucket !== _.get(context, 'userId') &&
         item.bucket !== _.get(context, 'groupId')) {
-      console.log('NO');
       return false;
     }
 

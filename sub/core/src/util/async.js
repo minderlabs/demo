@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
+
 /**
  * Async utils.
  */

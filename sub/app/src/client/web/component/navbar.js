@@ -30,7 +30,7 @@ export class NavBar extends React.Component {
       <div className="ux-navbar">
         { search && <SearchView/> || <div/> }
 
-        <div>
+        <div className="ux-title">
           { children }
         </div>
 

@@ -67,8 +67,10 @@ export function composeItem(reducer, ...containers) {
             itemId
           },
 
-          // Binding for glopbal reducer.
-          metadata: { subscription: GlobalAppReducer.SUBSCRIPTION.NAVBAR_ITEM },
+          // Binding for global reducer.
+          metadata: {
+            subscription: GlobalAppReducer.SUBSCRIPTION.NAVBAR_ITEM
+          },
 
           reducer: (previousResult, action) => {
             return reducer.reduceItem(matcher, context, previousResult, action);

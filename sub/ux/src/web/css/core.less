@@ -79,8 +79,24 @@
   }
 }
 
+//
+// Loading indicator.
+// NOTE: Inner span is necessary.
+//
+
 .ux-loading {
-  background-color: rebeccapurple;
+  display: block;
+  font-size: 0;               // Prevent space at top.
+}
+.ux-loading span {
+  display: inline-block;
+  padding: 2px 3px;
+  background: #EEE;
+  color: #666;
+}
+.ux-loading span:after {
+  content: 'Loading...';
+  font-size: 10px;
 }
 
 //

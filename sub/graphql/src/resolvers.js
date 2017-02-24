@@ -83,7 +83,7 @@ export class Resolvers {
       Group: {
 
         members: (root, args, context) => {
-          return database.getItems(context, 'User', root.members, Database.SYSTEM_NAMESPACE);
+          return database.getItems(context, 'User', root.members, Database.NAMESPACE.SYSTEM);
         },
 
         projects: (root, args, context) => {
@@ -121,7 +121,7 @@ export class Resolvers {
 
         group: (root, args, context) => {
           let { group } = root;
-          return database.getItem(context, 'Group', group, Database.SYSTEM_NAMESPACE);
+          return database.getItem(context, 'Group', group, Database.NAMESPACE.SYSTEM);
         },
 
         tasks: (root, args, context) => {
@@ -145,11 +145,11 @@ export class Resolvers {
         },
 
         owner: (root, args, context) => {
-          return database.getItem(context, 'User', root.owner, Database.SYSTEM_NAMESPACE);
+          return database.getItem(context, 'User', root.owner, Database.NAMESPACE.SYSTEM);
         },
 
         assignee: (root, args, context) => {
-          return root.assignee && database.getItem(context, 'User', root.assignee, Database.SYSTEM_NAMESPACE);
+          return root.assignee && database.getItem(context, 'User', root.assignee, Database.NAMESPACE.SYSTEM);
         }
       },
 
@@ -161,12 +161,12 @@ export class Resolvers {
 
         user: (root, args, context) => {
           let { userId } = context;
-          return database.getItem(context, 'User', userId, Database.SYSTEM_NAMESPACE);
+          return database.getItem(context, 'User', userId, Database.NAMESPACE.SYSTEM);
         },
 
         group: (root, args, context) => {
           let { groupId } = context;
-          return database.getItem(context, 'Group', groupId, Database.SYSTEM_NAMESPACE)
+          return database.getItem(context, 'Group', groupId, Database.NAMESPACE.SYSTEM)
         },
 
         folders: (root, args, context) => {

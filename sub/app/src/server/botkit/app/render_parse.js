@@ -6,6 +6,7 @@
 
 import { Defs, ItemUtil } from 'nx/data';
 
+// TODO(burdon): Broken.
 import { SlackItemSpecParser } from '../parser/parser';
 import { ItemRenderer } from '../renderer/renderer';
 
