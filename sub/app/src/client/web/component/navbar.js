@@ -27,7 +27,7 @@ export class NavBar extends React.Component {
     let { children, search } = this.props;
 
     return (
-      <div className="ux-navbar">
+      <nav className="ux-navbar">
         { search && <SearchView/> || <div/> }
 
         <div className="ux-title">
@@ -35,7 +35,7 @@ export class NavBar extends React.Component {
         </div>
 
         <NavButtons/>
-      </div>
+      </nav>
     );
   }
 }

@@ -121,7 +121,7 @@ export class TaskCard extends React.Component {
         <Card ref="card" item={ item }>
 
           { assignee &&
-          <div>
+          <div className="ux-card-section">
             <span className="ux-font-xsmall">Assigned: </span>
             <span>{ assignee.title }</span>
           </div>
@@ -129,6 +129,7 @@ export class TaskCard extends React.Component {
 
           <div className="ux-list-tasks">
             <List ref="tasks"
+                  className="ux-list-tasks"
                   items={ tasks }
                   itemRenderer={ TaskListItemRenderer }
                   onItemSelect={ this.handleItemSelect.bind(this) }
@@ -289,6 +290,7 @@ class TaskCanvasComponent extends React.Component {
               </div>
 
               <List ref="tasks"
+                    className="ux-list-tasks"
                     items={ tasks }
                     itemRenderer={ TaskListItemRenderer }
                     onItemSelect={ this.handleTaskSelect.bind(this) }

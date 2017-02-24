@@ -85,18 +85,26 @@
 //
 
 .ux-loading {
-  display: block;
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  justify-content: flex-end;
   font-size: 0;               // Prevent space at top.
 }
-.ux-loading span {
-  display: inline-block;
-  padding: 2px 3px;
-  background: #EEE;
-  color: #666;
-}
-.ux-loading span:after {
-  content: 'Loading...';
-  font-size: 10px;
+.ux-loading > div {
+  display: flex;
+  justify-content: flex-end;
+
+  span {
+    display: inline-block;
+    padding: 2px 4px;
+    background: #EEE;
+    color: #666;
+  }
+  span:after {
+    content: 'Loading...';
+    font-size: 10px;
+  }
 }
 
 //

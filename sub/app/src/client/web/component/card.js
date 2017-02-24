@@ -50,13 +50,13 @@ export class Card extends React.Component {
           { icon && <i className="ux-icon">{ icon }</i> }
         </div>
 
-        <div className="ux-card-body">
-          { description &&
+        { description &&
+        <div className="ux-card-section">
           <div className="ux-font-xsmall">{ description }</div>
-          }
-
-          { children }
         </div>
+        }
+
+        { children }
       </div>
     );
   }

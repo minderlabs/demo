@@ -22,7 +22,7 @@ export class ReactUtil {
 
     if (loading) {
       return (
-        <div className="ux-loading"><span/></div>
+        <div className="ux-loading"><div><span/></div></div>
       );
     } else if (error) {
       console.error(error);
