@@ -16,6 +16,7 @@ Logger.setLevel({
   'client'    : Logger.Level.debug,
   'net'       : Logger.Level.debug,
   'resolver'  : Logger.Level.debug,
+  'system'    : Logger.Level.debug,
   'gql'       : Logger.Level.debug,
   'db'        : Logger.Level.info,
 

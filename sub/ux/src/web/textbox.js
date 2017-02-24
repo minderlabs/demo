@@ -131,12 +131,22 @@ export class TextBox extends React.Component {
       case 13: {
         this.fireTextChange(true);
         this.props.onEnter && this.props.onEnter(this.value, event);
+        if (this.props.clickToEdit) {
+          this.setState({
+            readOnly: true
+          });
+        }
         break;
       }
 
       // ESCAPE
       case 27: {
         this.props.onCancel && this.props.onCancel(this.value, event);
+        if (this.props.clickToEdit) {
+          this.setState({
+            readOnly: true
+          });
+        }
         break;
       }
     }
@@ -150,6 +160,8 @@ export class TextBox extends React.Component {
     if (this.props.clickToEdit) {
       this.setState({
         readOnly: false
+      }, () => {
+        this.refs.input.focus();
       });
     }
   }

@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { DomUtil, ID } from 'minder-core';
+import { DomUtil, ID, IdGenerator, Mutator, MutationUtil, UpdateItemMutation } from 'minder-core';
 import { ReactUtil, Sidebar, SidebarToggle, TextBox } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -67,6 +67,16 @@ export class BaseLayout extends React.Component {
     }
   }
 
+  handleTitleUpdate(title) {
+    let { mutator, navbar } = this.props;
+    let { item } = navbar;
+    if (title != item.title) {
+      mutator.updateItem(item, [
+        MutationUtil.createFieldMutation('title', 'string', title)
+      ]);
+    }
+  }
+
   render() {
     return ReactUtil.render(this, () => {
       let { config, typeRegistry } = this.context;
@@ -108,7 +118,9 @@ export class BaseLayout extends React.Component {
 
             {/* Nav bar */}
             <NavBar search={ search }>
-              <TextBox value={ navbar.title } clickToEdit={ true }/>
+              <TextBox value={ _.get(navbar, 'item.title') }
+                       clickToEdit={ true }
+                       onEnter={ this.handleTitleUpdate.bind(this) }/>
             </NavBar>
 
             {/* Sidebar */}
@@ -169,14 +181,19 @@ const LayoutQuery = gql`
   }
 `;
 
+// TODO(burdon): Get item from state (ID and TITLE)
 const mapStateToProps = (state, ownProps) => {
-  let { navbar: { title } } = AppAction.getState(state);
+  let { injector, navbar: { item } } = AppAction.getState(state);
+
+  // Required by Mutator.
+  let idGenerator = injector.get(IdGenerator);
 
   // Updated by Apollo queries (esp. item_factory).
   // See APOLLO_QUERY_RESULT in GlobalAppState reducer.
   return {
+    idGenerator,
     navbar: {
-      title
+      item
     }
   }
 };
@@ -191,6 +208,8 @@ export default compose(
     props: ({ ownProps, data }) => {
       return _.pick(data, ['loading', 'error', 'viewer'])
     }
-  })
+  }),
+
+  Mutator.graphql(UpdateItemMutation)
 
 )(BaseLayout);

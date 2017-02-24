@@ -94,7 +94,7 @@ const mapStateToProps = (state, ownProps) => {
   // TODO(burdon): Move to layout config.
   let listType = _.get(config, 'app.platform') == Const.PLATFORM.CRX ? 'card' : 'list';
 
-  // Required by HOC.
+  // Required by Mutator.
   let idGenerator = injector.get(IdGenerator);
 
   // Construct filter (from sidebar context or searchbar).

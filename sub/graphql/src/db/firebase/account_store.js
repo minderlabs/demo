@@ -90,13 +90,12 @@ export class AccountStore extends DelegateItemStore {
       return this.upsertItem({}, user).then(user => {
 
         // Add user to group.
-        if (group && _.findIndex(group.members, user.id) == -1) {
+        if (group && _.indexOf(group.members, user.id) == -1) {
           _.defaults(group, { members: [] });
 
           group.members.push(user.id);
-
           return this.upsertItem(this._context, group).then(group => {
-            logger.info('Joined group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+            logger.info('Joined group: ' + JSON.stringify(_.pick(group, ['id', 'title', 'members'])));
             return user;
           });
         }
