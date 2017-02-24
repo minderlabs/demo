@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-kue
+  labels:
+    run: redis-kue
+spec:
+  ports:
+  - port: 6379
+    protocol: TCP
+  selector:
+    run: redis-kue
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis-kue
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: redis-kue
+    spec:
+      containers:
+      - name: redis-kue
+        image: redis
+        ports:
+        - containerPort: 6379
