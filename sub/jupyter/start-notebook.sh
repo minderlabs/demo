@@ -8,7 +8,11 @@ cd /notebook
 
 eval `ssh-agent -s`
 ssh-add $HOME/.ssh/jupyter-keypair.pem
-git clone git@github.com:minderlabs/research.git
+
+# Do not clone over existing directory, in case of restarts with persistent volume.
+if [ ! -d /notebook/research ]; then
+  git clone git@github.com:minderlabs/research.git
+fi
 
 source activate keras
 
