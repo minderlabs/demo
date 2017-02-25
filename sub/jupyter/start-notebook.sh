@@ -16,6 +16,11 @@ fi
 
 source activate keras
 
+# Install requirements from shared volumes mounted at runtime.
 pip install -r $HOME/requirements.txt
 
-jupyter notebook --no-browser --ip=0.0.0.0
+if [ -z $EXPERIMENT_ID ]; then
+  jupyter notebook --no-browser --ip=0.0.0.0
+else
+  python /notebook/research/scripts/run_training.py --eid $EXPERIMENT_ID
+fi

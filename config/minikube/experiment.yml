@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: exp-58b203c465433b049b429e12
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: exp-58b203c465433b049b429e12
+    spec:
+      containers:
+      - name: trainer
+        image: minderlabs/jupyter:madadam
+        #image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/jupyter:madadam
+        #imagePullPolicy: Always
+        ports:
+        - containerPort: 8888
+        env:
+          - name: EXPERIMENT_ID
+            value: "58b203c465433b049b429e12" # FIXME
