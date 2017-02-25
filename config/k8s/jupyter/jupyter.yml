@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter
+  labels:
+    run: jupyter
+    # TODO(madadam): Run behind an ALB for SSL termination, instead of having the notebook server
+    # terminate SSL with a self-signed cert. Old-style ELBs terminate SSL, but don't handle websockets,
+    # so the kernel can't connect. The kubernetes-ELB integration doesn't appear to support the
+    # new ALB type. (As of 2/17/17).
+    #annotations:
+    #service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:240980109537:certificate/531be120-a7e5-4cb2-ac70-6e9ea4e4d5a6
+    #service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8888
+    targetPort: 8888
+    protocol: TCP
+    #name: https
+  selector:
+    run: jupyter
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jupyter
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: jupyter
+    spec:
+      containers:
+      - name: jupyter
+        image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/jupyter:madadam
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8888
+        env:
+          - name: GEN_CERT
+            value: "yes"
+        volumeMounts:
+        - name: notebook
+          mountPath: /notebook
+        #securityContext:
+        #  privileged: true
+        #  runAsUser: 0
+      volumes:
+      - name: notebook
+        awsElasticBlockStore:
+          volumeID: vol-0cf68d07c01618b60 # Must already exist.
+          #volumeID: vol-0d4827e9a630af5b0 # jup2
+          fsType: ext4
