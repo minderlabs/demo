@@ -33,6 +33,8 @@ export const GlobalAppReducer = (state, action) => {
 };
 
 GlobalAppReducer.SUBSCRIPTION = {
+
+  // TODO(burdon): Rename FOCUSED_ITEM (not navbar depenendent).
   NAVBAR_ITEM: 'NAVBAR_ITEM'
 };
 

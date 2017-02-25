@@ -188,6 +188,7 @@ const mapStateToProps = (state, ownProps) => {
   // Required by Mutator.
   let idGenerator = injector.get(IdGenerator);
 
+  // TODO(burdon): Doesn't get mutation updates. Subscribe directly to item? (pass in to Layout).
   // Updated by Apollo queries (esp. item_factory).
   // See APOLLO_QUERY_RESULT in GlobalAppState reducer.
   return {

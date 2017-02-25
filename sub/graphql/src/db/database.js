@@ -33,6 +33,23 @@ const logger = Logger.get('db');
  */
 export class Database extends ItemStore {
 
+  // Multi-group support.
+  // TODO(burdon): UpdateItemMutation multiple items. Map create/update IDs. Namespace.
+  // TODO(burdon): Debug: list all items in cache; reset cache.
+
+  // TODO(burdon): ID with optional namespace.
+  // TODO(burdon): Path (optional namespace: e.g., for "system" namespace).
+  // TODO(burdon): Remove Database.getNamespaceForType: get namespace from ID (default to user).
+  // TODO(burdon): TestData/Randomizer set bucket. Set parent project.
+  // TODO(burdon): System store return namespace.
+  // TODO(burdon): Mutator take namespace.
+  // TODO(burdon): Clean-up Database QP dispatch; and remove ItemStore interface.
+  // TODO(burdon): UX add bucket from context. Add project to sub-tasks.
+  // TODO(burdon): Reject lookup if context doesn't allow bucket.
+
+  // TODO(burdon): Support multiple groups (context, itemstore).
+  // TODO(burdon): Mutator reducer listen for all.
+
   static NAMESPACE = {
     SYSTEM:   'system',
     USER:     'user'
