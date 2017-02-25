@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { DomUtil, ID, IdGenerator, Mutator, MutationUtil, UpdateItemMutation } from 'minder-core';
+import { DomUtil, ID, IdGenerator, Mutator, MutationUtil, UpdateItemsMutation } from 'minder-core';
 import { ReactUtil, Sidebar, SidebarToggle, TextBox } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -211,6 +211,6 @@ export default compose(
     }
   }),
 
-  Mutator.graphql(UpdateItemMutation)
+  Mutator.graphql(UpdateItemsMutation)
 
 )(BaseLayout);

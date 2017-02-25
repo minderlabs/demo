@@ -34,7 +34,7 @@ const logger = Logger.get('db');
 export class Database extends ItemStore {
 
   // Multi-group support.
-  // TODO(burdon): UpdateItemMutation multiple items. Map create/update IDs. Namespace.
+  // TODO(burdon): UpdateItemsMutation multiple items. Map create/update IDs. Namespace.
   // TODO(burdon): Debug: list all items in cache; reset cache.
 
   // TODO(burdon): ID with optional namespace.

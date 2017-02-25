@@ -57,7 +57,7 @@ export const graphqlLogger = (options={ pretty: false }) => {
 
         default: {
           // TODO(burdon): Get error?
-          logger.error(`### ERR[${res.statusCode}] ###`);
+          logger.error(`### ERROR[${res.statusCode}] ###`);
           _.each(json.errors, (err) => {
             logger.log(`> ${err.message}`);
           });

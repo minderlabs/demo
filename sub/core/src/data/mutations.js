@@ -144,8 +144,12 @@ export class Mutator {
     let itemId = this._idGenerator.createId();
     this._mutate({
       variables: {
-        itemId: ID.toGlobalId(type, itemId),
-        mutations
+        mutations: [
+          {
+            itemId: ID.toGlobalId(type, itemId),
+            mutations
+          }
+        ]
       }
     });
 
@@ -168,8 +172,12 @@ export class Mutator {
     } else {
       this._mutate({
         variables: {
-          itemId: ID.toGlobalId(item.type, item.id),
-          mutations
+          mutations: [
+            {
+              itemId: ID.toGlobalId(item.type, item.id),
+              mutations
+            }
+          ]
         }
       });
 

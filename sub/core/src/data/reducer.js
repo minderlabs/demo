@@ -273,7 +273,7 @@ export class ListReducer extends Reducer {
 /**
  * The item Reducer updates the cached item (which may have a complex shape).
  *
- * The Reducer is called on mutation. When the generic UpdateItemMutation response is received we need
+ * The Reducer is called on mutation. When the generic UpdateItemsMutation response is received we need
  * to tell Apollo how to stitch the result into the cached response. For item mutations, this is easy
  * since the ID is used to change the existing item. For adds and deletes, Apollo has no way of knowing
  * where the item should fit (e.g., for a flat list it depends on the sort order; for complex query shapes

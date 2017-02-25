@@ -6,7 +6,7 @@ import React from 'react';
 import gql from 'graphql-tag';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
-import { ItemFragment, ProjectBoardFragment, TaskFragment, UpdateItemMutation } from 'minder-core';
+import { ItemFragment, ProjectBoardFragment, TaskFragment, UpdateItemsMutation } from 'minder-core';
 import { Board, DragOrderModel, List, ReactUtil } from 'minder-ux';
 
 import { Path } from '../../common/path';
@@ -453,8 +453,8 @@ export const ProjectBoardCanvas = composeItem(
       path: 'item'
     },
     mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
+      type: UpdateItemsMutation,
+      path: 'upsertItems'
     },
     reducer: ProjectBoardReducer
   })

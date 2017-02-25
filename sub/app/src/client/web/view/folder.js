@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { IdGenerator, QueryParser, Mutator, UpdateItemMutation } from 'minder-core';
+import { IdGenerator, QueryParser, Mutator, UpdateItemsMutation } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -146,6 +146,6 @@ export default compose(
   }),
 
   // Mutator.
-  Mutator.graphql(UpdateItemMutation),
+  Mutator.graphql(UpdateItemsMutation),
 
 )(FolderView);

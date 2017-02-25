@@ -219,30 +219,39 @@ export class Resolvers {
 
       RootMutation: {
 
-        updateItem: (root, args, context) => {
-          let { itemId, mutations } = args;
-          let { type, id:localItemId } = ID.fromGlobalId(itemId);
-          let namespace = Database.getNamespaceForType(type);
-          logger.log($$('UPDATE[%s:%s]: %o', type, localItemId, mutations));
+        upsertItems: (root, args, context) => {
+          let { mutations:itemMutations } = args;
 
-          // Get existing item (or undefined).
-          return database.getItem(context, type, localItemId, namespace).then(item => {
+          // TODO(burdon): Transaction.
+          let promises = [];
+          _.each(itemMutations, mutation => {
+            let { itemId, mutations } = mutation;
+            let { type, id:localItemId } = ID.fromGlobalId(itemId);
+            let namespace = Database.getNamespaceForType(type);
+            logger.log($$('UPDATE[%s:%s]: %o', type, localItemId, mutations));
 
-            // If not found (i.e., insert).
-            // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
-            if (!item) {
-              item = {
-                id: localItemId,
-                type: type
-              };
-            }
+            // Get existing item (or undefined).
+            promises.push(database.getItem(context, type, localItemId, namespace).then(item => {
 
-            // Apply mutations.
-            Transforms.applyObjectMutations(item, mutations);
+              // If not found (i.e., insert).
+              // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
+              if (!item) {
+                item = {
+                  id: localItemId,
+                  type: type
+                };
+              }
 
-            // Upsert item.
-            return database.upsertItem(context, item, namespace);
+              // Apply mutations.
+              Transforms.applyObjectMutations(item, mutations);
+
+              // Upsert item.
+              return database.upsertItem(context, item, namespace);
+            }));
           });
+
+          // TODO(burdon): Should this happen in parallel?
+          return Promise.all(promises);
         }
       }
     };

@@ -501,10 +501,19 @@ type RootQuery {
 # Mutations.
 #===================================================================================================
 
+input ItemMutationInput {
+
+  # Item to mutate.
+  itemId: ID!
+
+  # Array of generic mutations.
+  mutations: [ObjectMutationInput]!
+}
+
 type RootMutation {
 
-  # Generic mutation.
-  updateItem(itemId: ID!, mutations: [ObjectMutationInput]!): Item!
+  # Generic mutations.
+  upsertItems(mutations: [ItemMutationInput]!): [Item]!
 }
 
 #===================================================================================================

@@ -169,18 +169,16 @@ export const UserFragment = gql`
 /**
  * Upsert item.
  */
-export const UpdateItemMutation = gql`
-  mutation UpdateItemMutation($itemId: ID!, $mutations: [ObjectMutationInput]!) {
-    updateItem(itemId: $itemId, mutations: $mutations) {
+export const UpdateItemsMutation = gql`
+  mutation UpdateItemsMutation($mutations: [ItemMutationInput]!) {
+    upsertItems(mutations: $mutations) {
       ...ItemFragment
       ...TaskFragment
       ...ProjectBoardFragment
     }
   }
   
-  ${ValueFragment}
   ${ItemFragment}
-
-  ${ProjectBoardFragment}
   ${TaskFragment}
+  ${ProjectBoardFragment}
 `;

@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 
-import { ID, ItemFragment, TaskFragment, UpdateItemMutation, ItemReducer, Matcher, MutationUtil } from 'minder-core';
+import { ID, ItemFragment, TaskFragment, UpdateItemsMutation, ItemReducer, Matcher, MutationUtil } from 'minder-core';
 import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
 
 import { Path } from '../../common/path';
@@ -417,8 +417,8 @@ export const TaskCanvas = composeItem(
       path: 'item'
     },
     mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
+      type: UpdateItemsMutation,
+      path: 'upsertItems'
     },
     reducer: TaskReducer
   })

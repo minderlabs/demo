@@ -6,7 +6,7 @@ import React from 'react';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { GroupFragment, ItemFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
+import { GroupFragment, ItemFragment, ItemReducer, UpdateItemsMutation } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
@@ -118,8 +118,8 @@ export const GroupCanvas = composeItem(
       path: 'item'
     },
     mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
+      type: UpdateItemsMutation,
+      path: 'upsertItems'
     }
   })
 )(GroupCanvasComponent);
