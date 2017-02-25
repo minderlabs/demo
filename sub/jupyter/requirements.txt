@@ -1,0 +1,7 @@
+# Assume the research git repo is already pulled.
+-e /notebook/research/ml_data
+-e /notebook/research/ml_util
+
+# Install research repo packages from github:
+# -e git+git@github.com:minderlabs/research.git@master#egg=ml_data&subdirectory=ml_data
+# -e git+git@github.com:minderlabs/research.git@master#egg=ml_util&subdirectory=ml_util

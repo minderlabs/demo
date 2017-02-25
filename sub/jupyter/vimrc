@@ -1,0 +1,17 @@
+set hidden
+set autoindent
+set sw=4
+set hls!
+set autoread
+
+set textwidth=98  
+set expandtab
+set redraw
+set wm=3
+set ic
+" set backupcopy
+set nobackup
+
+syntax on
+set background=dark
+colorscheme darkblue

@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter
+  labels:
+    run: jupyter
+spec:
+  ports:
+  - port: 8888
+    targetPort: 8888
+    protocol: TCP
+    #name: https
+  selector:
+    run: jupyter
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-research
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+  selector:
+    matchLabels:
+      volume: research
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jupyter
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: jupyter
+    spec:
+      containers:
+      - name: jupyter
+        image: minderlabs/jupyter:madadam
+        #image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/jupyter:madadam
+        #imagePullPolicy: Always
+        ports:
+        - containerPort: 8888
+        env:
+          - name: EXPERIMENT_ID
+            value: "123" # FIXME
+        volumeMounts:
+        - name: notebook-research
+          mountPath: /notebook/research
+      volumes:
+      - name: notebook-research
+        persistentVolumeClaim:
+          claimName: pvc-research

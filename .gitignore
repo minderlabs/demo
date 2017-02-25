@@ -2,6 +2,10 @@
 # Basic
 #
 
+.DS_Store
+
+*.sw[opn]
+
 node_modules/
 npm-debug.log*
 
