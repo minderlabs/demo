@@ -10,6 +10,15 @@ sudo chown root:admin minikube
 sudo mv minikube /usr/local/bin
 ```
 
+Start. Note that this edits your `~/.kube/config` and sets minikube as the default cluster
+using the equivalent of `kubectl config use-context minikube`.
+```
+minikube start
+
+# Optionally start the kubernetes dashboard.
+minikube dashboard
+```
+
 Test:
 ```
 kubectl run -it ubuntu --image=ubuntu:16.04 --restart=Never
@@ -25,11 +34,11 @@ alias minikube_on='eval "$(minikube docker-env)"'
 
 Useful commands:
 ```
+# SSH to the minikube host (i.e. virtualbox -- not any specific pod).
+minikube ssh
+
 # Switch kubernetes contexts to minikube.
 kubectl config use-context minikube
-
-# Start the kubernetes dashboard.
-minikube dashboard
 ```
 
 ### Mounting a volume from your local host
