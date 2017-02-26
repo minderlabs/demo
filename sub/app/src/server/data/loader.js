@@ -73,13 +73,13 @@ export class Loader {
     ]).then(([ groups, users ]) => {
 
       // Add User IDs of whitelisted users.
-      _.each(groups, group =>
+      _.each(groups, group => {
         group.members = _.compact(_.map(users, user => {
           if (_.indexOf(group.whitelist, user.email) != -1) {
             return user.id;
           }
-        }))
-      );
+        }));
+      });
 
       return this._database.upsertItems({}, groups, Database.NAMESPACE.SYSTEM);
     });

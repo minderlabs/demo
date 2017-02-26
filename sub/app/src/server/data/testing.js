@@ -111,7 +111,8 @@ export class TestGenerator {
       type: 'User'
     }).then(users => {
       return Promise.all(_.map(users, user => {
-        let { id:userId } = user;
+        let { id:userId, email } = user;
+        console.log('User: ' + email);
 
         // Lookup by Groups for User.
         // TODO(burdon): Should be enforced by store given context?
@@ -126,11 +127,11 @@ export class TestGenerator {
         }).then(groups => {
           return Promise.all(_.map(groups, group => {
             let { id:groupId } = group;
+            let context = { groupId, userId };
 
             // TODO(burdon): Factor out saving and applying links (not type specific).
-            // TODO(burdon): Random number of tasks.
-            let context = { groupId, userId };
-            return this._randomizer.generateItems(context, 'Task', 50).then(items => {
+            let num = this._randomizer.chance.natural({ min: 20, max: 30 });
+            return this._randomizer.generateItems(context, 'Task', num).then(items => {
               return this._itemStore.upsertItems(context, items).then(items => {
                 return this._randomizer.generateLinkMutations(context, items).then(itemMutations => {
                   return Promise.all(_.each(itemMutations, itemMutation => {

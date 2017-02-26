@@ -9,7 +9,7 @@ import admin from 'firebase-admin';
 import { Logger } from 'minder-core';
 
 import { Database } from '../database';
-import { SystemStore } from './system,_store';
+import { SystemStore } from './system_store';
 import { FirebaseItemStore } from './firebase_item_store';
 import { FirebaseSystemStore } from './firebase_system_store';
 
