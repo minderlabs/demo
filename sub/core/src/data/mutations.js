@@ -6,6 +6,52 @@ import { graphql } from 'react-apollo';
 
 import { ID } from './id';
 
+/*
+  Mutation transactions.
+
+  mutator.transaction()
+    .createItem({
+      ref: 'new_item',
+      mutations: []
+    })
+    .updateItem({
+      itemId: 'project-1',
+      mutations: [{
+        field: "tasks",
+        value: {
+          set: {
+            value: {
+              id: "${new_item}.id"  // Reference item created above.
+            }
+          }
+        }
+      }]
+    })
+    .commit();
+*/
+// TODO(burdon): Change API to support multiple item mutations.
+class Transaction {
+
+  constructor(namespace=undefined) {
+    this._namespace = namespace;
+    this._mutations = [];
+  }
+
+  createItem(mutation) {
+    this._mutations.push(mutation);
+    return this;
+  }
+
+  updateItem(mutation) {
+    this._mutations.push(mutation);
+    return this;
+  }
+
+  commit() {
+    // TODO(burdon): Iterate and update references.
+  }
+}
+
 /**
  * Utils to create mutations.
  */
@@ -37,11 +83,11 @@ export class MutationUtil {
     return {
       field,
       value: {
-        set: {
+        set: [{
           value: {
             [type]: value
           }
-        }
+        }]
       }
     };
   }

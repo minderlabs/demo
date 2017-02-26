@@ -9,7 +9,7 @@ import admin from 'firebase-admin';
 import { Logger } from 'minder-core';
 
 import { Database } from '../database';
-import { AccountStore } from './account_store';
+import { SystemStore } from './system,_store';
 import { FirebaseItemStore } from './firebase_item_store';
 import { FirebaseSystemStore } from './firebase_system_store';
 
@@ -43,7 +43,7 @@ export class Firebase {
     this._db = admin.database();
 
     // User and Groups.
-    this._systemStore = new AccountStore(
+    this._systemStore = new SystemStore(
       new FirebaseSystemStore(idGenerator, matcher, this._db, Database.NAMESPACE.SYSTEM));
 
     // Data items.

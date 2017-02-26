@@ -111,7 +111,7 @@ The graphql connector `graphql(Query, options)` passes options to the `watchQuer
     // GraphQL mutation.
     const Mutation = gql`
         mutation Mutation($foo: String) {
-            updateItem(foo: $foo) { ... }
+            upsertItems(foo: $foo) { ... }
         }
     `;
 

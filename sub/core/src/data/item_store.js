@@ -97,6 +97,10 @@ export class ItemStoreCache {
     this._items = new Map();
   }
 
+  toString() {
+    return `ItemStoreCache(${this._items.size})`;
+  }
+
   queryItems(context, root, filter, offset, count) {
     console.assert(context && filter);
     let items = this._util.filterItems(this._items, context, root, filter, offset, count);

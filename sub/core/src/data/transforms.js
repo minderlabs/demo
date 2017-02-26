@@ -4,11 +4,15 @@
 
 import _ from 'lodash';
 
+import { Matcher } from './matcher';
+
 /**
  * Schema transformations (client/server).
  * Depends on graphql schema definitions.
  */
 export class Transforms {
+
+  // TODO(burdon): Rename applyItemMutations.
 
   /**
    *
@@ -18,8 +22,8 @@ export class Transforms {
   static applyObjectMutations(object, mutations) {
     console.assert(object && mutations);
 
-    _.each(mutations, (delta) => {
-      Transforms.applyObjectMutation(object, delta);
+    _.each(mutations, mutation => {
+      Transforms.applyObjectMutation(object, mutation);
     });
 
     return object;
@@ -34,9 +38,7 @@ export class Transforms {
    */
   static applyObjectMutation(object, mutation) {
     console.assert(object && mutation);
-
-    let field = mutation.field;
-    let value = mutation.value;
+    let { field, value } = mutation;
 
     // TODO(burdon): Unit tests.
     // TODO(burdon): mutation.values (see project.js)
@@ -85,7 +87,7 @@ export class Transforms {
     if (value.null) {
       delete object[field];
     } else {
-      let scalar = Transforms.scalarValue(value);
+      let scalar = Matcher.scalarValue(value);
       console.assert(scalar !== undefined, 'Invalid value:', JSON.stringify(mutation));
       object[field] = scalar;
     }
@@ -111,7 +113,7 @@ export class Transforms {
     let predicate = mutation.predicate;
 
     // Find the object to mutate (the object in the array that matches the predicate).
-    let key = Transforms.scalarValue(predicate.value);
+    let key = Matcher.scalarValue(predicate.value);
     let idx = _.findIndex(map, v => _.get(v, predicate.key) == key);
 
     // NOTE: Must be object mutation (which mutates to object matching the predicate).
@@ -145,7 +147,7 @@ export class Transforms {
    */
   static applySetMutation(set, mutation) {
     // NOTE: non-scalar sets don't make sense.
-    let value = Transforms.scalarValue(mutation.value);
+    let value = Matcher.scalarValue(mutation.value);
     console.assert(value !== undefined);
 
     if (mutation.add == false) {
@@ -171,7 +173,7 @@ export class Transforms {
     let idx = Math.min(mutation.index, _.size(array) - 1);
 
     // TODO(burdon): Handle non scalar types?
-    let value = Transforms.scalarValue(mutation.value);
+    let value = Matcher.scalarValue(mutation.value);
     if (value === undefined) {
       array.splice(idx, 1)
     } else {
@@ -183,25 +185,5 @@ export class Transforms {
     }
 
     return array;
-  }
-
-  /**
-   * Get the scalar value if set.
-   *
-   * @param value
-   * @returns {undefined}
-   */
-  static scalarValue(value) {
-    let scalar = undefined;
-
-    const scalars = ['int', 'float', 'string', 'boolean', 'id', 'date'];
-    _.each(scalars, (s) => {
-      if (value[s] !== undefined) {
-        scalar = value[s];
-        return false;
-      }
-    });
-
-    return scalar;
   }
 }

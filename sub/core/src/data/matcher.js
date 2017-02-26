@@ -249,6 +249,9 @@ export class Matcher {
     //noinspection FallThroughInSwitchStatementJS
     switch (expr.comp) {
 
+      case 'IN':
+        return Matcher.isIn(fieldValue, inputValue, not);
+
       case 'GTE':
         eq = true;
       case 'GT':
@@ -268,7 +271,24 @@ export class Matcher {
   }
 
   // NOTE: See ValueInput in schema.
+  // TODO(burdon): Move to SchemaUtil.
   static SCALARS = ['id', 'timestamp', 'date', 'int', 'float', 'string', 'boolean'];
+
+  static scalarValue(inputValue) {
+    let value = undefined;
+    _.each(Matcher.SCALARS, field => {
+      if (inputValue[field] !== undefined) {
+        value = inputValue[field];
+        return false;
+      }
+    });
+
+    return value;
+  }
+
+  static isIn(fieldValue, inputValue, not) {
+    return (_.indexOf(fieldValue, Matcher.scalarValue(inputValue)) == -1) ? not : !not;
+  }
 
   static isEqualTo(fieldValue, inputValue, not) {
 

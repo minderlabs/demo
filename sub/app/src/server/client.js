@@ -211,8 +211,8 @@ export class ClientManager {
       }
     });
 
-    return Promise.all(promises).catch(() => {
-      console.warn('Invalidation failed.');
+    return Promise.all(promises).catch(error => {
+      console.warn('Invalidation failed:', error);
     });
   }
 

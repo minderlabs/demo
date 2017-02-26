@@ -1,9 +1,26 @@
 {
   "Project": [
     {
-      "id": "demo-project",
-      "title": "Customer Pipeline",
-      "group": "minderlabs"
+      "group": "minderlabs_com",
+      "title": "Eng Tasks"
+    },
+    {
+      "group": "minderlabs_com",
+      "title": "Customer Pipeline"
+    },
+
+    {
+      "group": "rich_burdon_gmail_com",
+      "title": "Rich Tasks"
+    },
+    {
+      "group": "rich_burdon_gmail_com",
+      "title": "Rich Notes"
+    },
+
+    {
+      "group": "madadam_gamil_com",
+      "title": "Adam Tasks"
     }
   ],
 

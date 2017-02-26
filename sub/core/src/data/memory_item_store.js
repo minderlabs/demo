@@ -17,6 +17,10 @@ export class MemoryItemStore extends ItemStore {
     this._cache = new ItemStoreCache(idGenerator, matcher);
   }
 
+  toString() {
+    return `MemoryItemStore(${this._cache})`;
+  }
+
   queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     return Promise.resolve(this._cache.queryItems(context, root, filter, offset, count));
   }

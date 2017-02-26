@@ -145,8 +145,33 @@ export class Database extends ItemStore {
   }
 
   //
-  // ItemStore API.
+  // QueryProcessor.
   //
+
+  /**
+   * @returns {Promise}
+   */
+  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+    logger.log($$('QUERY[%s:%s]: %O', offset, count, filter));
+
+    // TODO(burdon): Security?
+    let itemStore = this.getItemStore(filter.namespace);
+    return itemStore.queryItems(context, root, filter, offset, count);
+  }
+
+  //
+  // ItemStore.
+  //
+
+  /**
+   * @returns {Promise}
+   */
+  getItems(context, type, itemIds, namespace=Database.NAMESPACE.USER) {
+    logger.log($$('GET[%s]: [%s]', type, itemIds));
+
+    let itemStore = this.getItemStore(namespace);
+    return itemStore.getItems(context, type, itemIds);
+  }
 
   /**
    * @returns {Promise}
@@ -164,27 +189,6 @@ export class Database extends ItemStore {
 
       return modifiedItems;
     });
-  }
-
-  /**
-   * @returns {Promise}
-   */
-  getItems(context, type, itemIds, namespace=Database.NAMESPACE.USER) {
-    logger.log($$('GET[%s]: [%s]', type, itemIds));
-
-    let itemStore = this.getItemStore(namespace);
-    return itemStore.getItems(context, type, itemIds);
-  }
-
-  /**
-   * @returns {Promise}
-   */
-  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
-    logger.log($$('QUERY[%s:%s]: %O', offset, count, filter));
-
-    // TODO(burdon): Security?
-    let itemStore = this.getItemStore(filter.namespace);
-    return itemStore.queryItems(context, root, filter, offset, count);
   }
 
   /**

@@ -30,7 +30,7 @@ import { loginRouter, AuthManager } from './auth';
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { clientRouter, ClientManager } from './client';
 import { Loader } from './data/loader';
-import { TestData } from './data/testing';
+import { TestGenerator } from './data/testing';
 import { testingRouter } from './testing';
 import { loggingRouter } from './logger';
 
@@ -174,25 +174,9 @@ let loading = Promise.all([
 //
 
 if (testing) {
-  loading.then(groups => {
-    // TODO(burdon): Randomly select group for randomizer runs.
-    let context = { groupId: 'minderlabs' };
-    let itemStoreRandomizer = TestData.randomizer(database, database.getItemStore(), context);
-    return Promise.all([
-      itemStoreRandomizer.generate('Task', 30, TestData.TaskFields(itemStoreRandomizer)),
-      itemStoreRandomizer.generate('Contact', 5)
-    ]).then(() => {
 
-      // Test external data.
-      // const testItemStore = new MemcacheItemStore(idGenerator, matcher, memcache, 'testing');
-      // database.registerQueryProcessor(testItemStore);
-      //
-      // testItemStore.clear().then(() => {
-      //   let testItemStoreRandomizer = TestData.randomizer(database, testItemStore);
-      //   return testItemStoreRandomizer.generate('Contact', 5);
-      // });
-    });
-  });
+  // TODO(burdon): Caching + Dispatch ItemStore (Database => ItemStore)
+  loading.then(() => new TestGenerator(database).generate());
 }
 
 
