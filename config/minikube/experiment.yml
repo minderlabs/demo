@@ -1,21 +1,20 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: exp-58b203c465433b049b429e12
+  name: exp-58b326e86a78700052dc5331
 spec:
-  replicas: 1
+  parallelism: 1
   template:
     metadata:
       labels:
-        run: exp-58b203c465433b049b429e12
+        run: exp-58b326e86a78700052dc5331
     spec:
+      restartPolicy: OnFailure
       containers:
       - name: trainer
         image: minderlabs/jupyter:madadam
         #image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/jupyter:madadam
         #imagePullPolicy: Always
-        ports:
-        - containerPort: 8888
         env:
           - name: EXPERIMENT_ID
-            value: "58b203c465433b049b429e12" # FIXME
+            value: "58b326e86a78700052dc5331" # FIXME
