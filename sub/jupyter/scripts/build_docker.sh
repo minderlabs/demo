@@ -18,11 +18,12 @@ mkdir -p $CONFIG_DIR
 
 to_copy=(
   "$HOME/.ssh/jupyter-keypair.pem"
-  "$HOME/.aws/credentials"
-  "$HOME/.gitconfig" )
+  "$HOME/.aws"
+  "$HOME/.gitconfig" 
+  )
 
 for fname in "${to_copy[@]}"; do
-  cp $fname $CONFIG_DIR/
+  cp -a $fname $CONFIG_DIR/
 done
 
 case "$DOCKER_REPO" in
