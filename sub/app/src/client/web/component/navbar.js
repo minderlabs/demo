@@ -9,7 +9,7 @@ import SearchView from '../view/search';
 /**
  * App navigation
  */
-export class NavBar extends React.Component {
+export class Navbar extends React.Component {
 
   // TODO(burdon): Show/hide search view? Search "folder" overlay? (in full screen mode).
   // TODO(burdon): Show hide < > arrows (on mobile).

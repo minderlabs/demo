@@ -169,7 +169,7 @@ export class BaseApp {
     // http://redux.js.org/docs/basics/Reducers.html
 
     // The Global reducer can access the entire state.
-    // We use this to listen for specific Apollo actions and update the app's state (e.g., NavBar).
+    // We use this to listen for specific Apollo actions and update the app's state (e.g., Navbar).
     // https://apollographql.slack.com/archives/general/p1487786940010712 (help from @pleunv).
     let global = this.globalReducer;
 

@@ -8,7 +8,7 @@ import { MutationUtil, QueryRegistry, TypeUtil } from 'minder-core';
 
 import { ItemCanvasHeader } from '../type/item';
 
-import { NavBar } from '../component/navbar';
+import { Navbar } from '../component/navbar';
 
 /**
  * Canvas container.
@@ -50,7 +50,7 @@ export class CanvasContainer extends React.Component {
 /**
  * Canvas navbar,
  */
-export class CanvasNavBar extends React.Component {
+export class CanvasNavbar extends React.Component {
 
   static propTypes = {
     type: React.PropTypes.string.isRequired,
@@ -69,9 +69,9 @@ export class CanvasNavBar extends React.Component {
     let toolbar = typeRegistry.toolbar(itemId, canvas);
 
     return (
-      <NavBar>
+      <Navbar>
         <ItemCanvasHeader itemId={ itemId } toolbar={ toolbar }/>
-      </NavBar>
+      </Navbar>
     );
   }
 }

@@ -18,7 +18,7 @@ export const GlobalAppReducer = (state, action) => {
     case 'APOLLO_QUERY_RESULT_CLIENT': {
       let { queryId } = action;
 
-      // Find the query matching NavBar updates.
+      // Find the query matching Navbar updates.
       let query = state.apollo.queries[queryId];
       if (_.get(query.metadata, 'subscription') == GlobalAppReducer.SUBSCRIPTION.NAVBAR_ITEM) {
         let item = _.get(action, 'result.data.item');

@@ -6,7 +6,7 @@ import React from 'react';
 
 import { Const } from '../../../common/defs';
 
-import { NavBar } from '../component/navbar';
+import { Navbar } from '../component/navbar';
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
 import FolderView from '../view/folder';
@@ -36,7 +36,7 @@ class FinderActivity extends React.Component {
   render() {
     let { config, params: { folder='inbox' } } = this.props;
 
-    let navbar = <NavBar/>;
+    let navbar = <Navbar/>;
 
     let finder = <FolderView folder={ folder }/>;
 

@@ -9,7 +9,7 @@ import gql from 'graphql-tag';
 import { ItemFragment, ContactFragment, TaskFragment } from 'minder-core';
 import { List } from 'minder-ux';
 
-import { NavBar } from '../component/navbar';
+import { Navbar } from '../component/navbar';
 import { Card } from '../component/card';
 import { FullLayout } from '../layout/full';
 
@@ -58,7 +58,7 @@ class TestingActivity extends React.Component {
     }
 
     let navbar = (
-      <NavBar search={ false }>
+      <Navbar search={ false }>
         <div className="ux-toolbar">
           <div>
             <i className="ux-icon ux-icon-action"
@@ -69,7 +69,7 @@ class TestingActivity extends React.Component {
                onClick={ this.onChangeView.bind(this, 'card') }>view_module</i>
           </div>
         </div>
-      </NavBar>
+      </Navbar>
     );
 
     return (

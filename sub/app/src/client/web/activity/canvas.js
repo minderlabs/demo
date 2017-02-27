@@ -8,7 +8,7 @@ import { Const } from '../../../common/defs';
 
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
-import { CanvasContainer, CanvasNavBar } from '../component/canvas';
+import { CanvasContainer, CanvasNavbar } from '../component/canvas';
 import FolderView from '../view/folder';
 
 import { Activity } from './activity';
@@ -43,7 +43,7 @@ class CanvasActivity extends React.Component {
     );
 
     let navbar = (
-      <CanvasNavBar canvas={ canvas } type={ type } itemId={ itemId }/>
+      <CanvasNavbar canvas={ canvas } type={ type } itemId={ itemId }/>
     );
 
     // TODO(burdon): Layout based on form factor. Replace "expand" prop below with app state.
