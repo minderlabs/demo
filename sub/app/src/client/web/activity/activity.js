@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import { connect } from 'react-redux';
 
 import { EventHandler, PropertyProvider, QueryRegistry } from 'minder-core';
 
@@ -12,6 +13,46 @@ import { Navigator, WindowNavigator } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
 import { TypeRegistry } from '../../web/framework/type_registry';
+
+//-------------------------------------------------------------------------------------------------
+// Default Redux property providers for activities.
+// Each Activity has custom props.params provided by the redux-router.
+//-------------------------------------------------------------------------------------------------
+
+const mapStateToProps = (state, ownProps) => {
+  let appState = AppAction.getState(state);
+  let { config, registration, injector } = appState;
+
+  let typeRegistry = injector.get(TypeRegistry);
+  let queryRegistry = injector.get(QueryRegistry);
+  let eventHandler = injector.get(EventHandler);
+
+  let navigator = undefined;
+  if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
+    let serverProvider = new PropertyProvider(appState, 'server');
+    navigator = new WindowNavigator(serverProvider);
+  }
+
+  return {
+    config,
+    registration,
+    typeRegistry,
+    queryRegistry,
+    eventHandler,
+    navigator
+  };
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  let { navigator } = ownProps;
+  if (!navigator) {
+    navigator = new Navigator(dispatch);
+  }
+
+  return {
+    navigator
+  };
+};
 
 /**
  * Activity helper.
@@ -42,38 +83,8 @@ export class Activity {
     };
   }
 
-  static mapStateToProps = (state, ownProps) => {
-    let appState = AppAction.getState(state);
-    let { config, registration, injector } = appState;
-
-    let typeRegistry = injector.get(TypeRegistry);
-    let queryRegistry = injector.get(QueryRegistry);
-    let eventHandler = injector.get(EventHandler);
-
-    let navigator = undefined;
-    if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
-      let serverProvider = new PropertyProvider(appState, 'server');
-      navigator = new WindowNavigator(serverProvider);
-    }
-
-    return {
-      config,
-      registration,
-      typeRegistry,
-      queryRegistry,
-      eventHandler,
-      navigator
-    };
-  };
-
-  static mapDispatchToProps = (dispatch, ownProps) => {
-    let { navigator } = ownProps;
-    if (!navigator) {
-      navigator = new Navigator(dispatch);
-    }
-
-    return {
-      navigator
-    };
-  };
+  /**
+   * Connect properties for activities.
+   */
+  static connect = () => connect(mapStateToProps, mapDispatchToProps);
 }

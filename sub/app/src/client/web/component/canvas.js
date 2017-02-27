@@ -5,7 +5,10 @@
 import React from 'react';
 
 import { MutationUtil, QueryRegistry, TypeUtil } from 'minder-core';
-import { Textarea, TextBox } from 'minder-ux';
+
+import { ItemCanvasHeader } from '../type/item';
+
+import { NavBar } from '../component/navbar';
 
 /**
  * Canvas container.
@@ -45,6 +48,35 @@ export class CanvasContainer extends React.Component {
 }
 
 /**
+ * Canvas navbar,
+ */
+export class CanvasNavBar extends React.Component {
+
+  static propTypes = {
+    type: React.PropTypes.string.isRequired,
+    itemId: React.PropTypes.string.isRequired,
+    canvas: React.PropTypes.string,
+  };
+
+  static contextTypes = {
+    typeRegistry: React.PropTypes.object.isRequired,
+  };
+
+  render() {
+    let { typeRegistry } = this.context;
+    let { itemId, canvas } = this.props;
+
+    let toolbar = typeRegistry.toolbar(itemId, canvas);
+
+    return (
+      <NavBar>
+        <ItemCanvasHeader itemId={ itemId } toolbar={ toolbar }/>
+      </NavBar>
+    );
+  }
+}
+
+/**
  * Canvas wrapper.
  */
 export class Canvas extends React.Component {
@@ -62,10 +94,7 @@ export class Canvas extends React.Component {
 
     // TODO(burdon): Move to custom menu.
     // Get mutations from child component.
-    onSave: React.PropTypes.func,
-
-    // Custom menu component.
-    menu: React.PropTypes.object,
+    onSave: React.PropTypes.func
   };
 
   static defaultProps = {
@@ -134,31 +163,17 @@ export class Canvas extends React.Component {
   }
 
   render() {
-    // TODO(burdon): Rename menu => buttons.
-    let { item, debug, menu, children } = this.props;
+    // TODO(burdon): Rename menu => actionbar.
+    let { item, debug, children } = this.props;
     let { title, description } = this.state;
 
     // TODO(burdon): Canvas header (in navbar); set navbar in redux state.
+    // TODO(burdon): Option to show description.
 
     return (
       <div className="ux-canvas">
         {/*
         <div>
-          <div className="ux-columns">
-            <TextBox className="ux-expand ux-noborder ux-font-large"
-                     value={ title }
-                     onChange={ this.handlePropertyChange.bind(this, 'title') }/>
-
-            <div className="ux-canvas-menu-bar">
-              { menu }
-
-              <div className="ux-bar">
-                <i className="ux-icon ux-icon-action"
-                   onClick={ this.handleSave.bind(this) }>save</i>
-              </div>
-            </div>
-          </div>
-
           <div className="ux-row">
             <Textarea className="ux-expand ux-noborder ux-font-xsmall" rows="3"
                       placeholder="Notes"

@@ -253,14 +253,27 @@
   z-index: 999;
 
   // Title editor.
-  .ux-title {
-    input.ux-textbox {
-      background-color: white;
-      padding: 6px;
-      border: none;
-      border-radius: 4px;
-      text-align: center;
-      min-width: 300px;
+  .ux-header {
+
+    // TODO(burdon): Rationalize with searchbox
+
+    .ux-title {
+
+      margin: 0 8px;
+
+      div.ux-textbox {
+        justify-content: center;
+      }
+
+      input.ux-textbox {
+        margin: 0 16px;
+        border: none;
+        text-align: center;
+
+        background-color: white;
+        border-radius: 4px;
+        padding: 4px;
+      }
     }
   }
 

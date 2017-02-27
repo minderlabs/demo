@@ -6,8 +6,8 @@ import React from 'react';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ItemReducer, ItemFragment, UpdateItemsMutation } from 'minder-core';
-import { ReactUtil } from 'minder-ux';
+import { ItemReducer, ItemFragment, UpdateItemsMutation, MutationUtil } from 'minder-core';
+import { ReactUtil, TextBox } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
@@ -58,6 +58,54 @@ export class ItemCanvasComponent extends React.Component {
   }
 }
 
+/**
+ * Canvas Header.
+ */
+export class ItemCanvasHeaderComponent extends React.Component {
+
+  static propTypes = {
+    toolbar: React.PropTypes.object
+  };
+
+  handleUpdate(title) {
+    let { mutator, item } = this.props;
+
+    if (title != item.title) {
+      mutator.updateItem(item, [
+        MutationUtil.createFieldMutation('title', 'string', title)
+      ]);
+    }
+  }
+
+  render() {
+    return ReactUtil.render(this, () => {
+      let { item, toolbar } = this.props;
+      let { title } = item;
+
+      // TODO(burdon): Cancel button.
+
+      return (
+        <div className="ux-row ux-expand">
+
+          <div className="ux-navbar-buttons">
+            { toolbar }
+          </div>
+
+          <div className="ux-title ux-expand">
+            <TextBox value={ title }
+                     className="ux-expand"
+                     placeholder="Title"
+                     notEmpty={ true }
+                     clickToEdit={ true }
+                     onEnter={ this.handleUpdate.bind(this) }/>
+          </div>
+
+        </div>
+      );
+    }, false);
+  }
+}
+
 //
 // HOC.
 //
@@ -88,3 +136,16 @@ export const ItemCanvas = composeItem(
     }
   })
 )(ItemCanvasComponent);
+
+export const ItemCanvasHeader = composeItem(
+  new ItemReducer({
+    query: {
+      type: ItemQuery,
+      path: 'item'
+    },
+    mutation: {
+      type: UpdateItemsMutation,
+      path: 'upsertItems'
+    }
+  })
+)(ItemCanvasHeaderComponent);

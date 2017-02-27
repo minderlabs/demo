@@ -15,14 +15,18 @@ import './split.less';
  */
 export class SplitLayout extends React.Component {
 
+  static propTypes = {
+    navbar: React.PropTypes.object.isRequired,
+  };
+
   render() {
-    let { children, nav } = this.props;
+    let { navbar, children, finder } = this.props;
 
     return (
-      <BaseLayout>
+      <BaseLayout navbar={ navbar }>
         <div className="app-split-layout">
-          <div className="app-nav-panel">
-            { nav }
+          <div className="app-finder-panel">
+            { finder }
           </div>
           <div className="app-main-panel">
             { children }

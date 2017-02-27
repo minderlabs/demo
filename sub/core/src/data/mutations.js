@@ -149,12 +149,15 @@ export class MutationUtil {
  */
 export class Mutator {
 
+  // TODO(burdon): Only UpdateItemsMutation is valid here so don't require it to be passed in.
+  // TODO(burdon): Remove spec from reducer (make standard).
+  // TODO(burdon): Top-level Activity can provide mutator for entire stack (remove from HOC tree)?
+
   /**
    * Returns a standard mutation wrapper supplied to redux's combine() method.
    */
   static graphql(mutation) {
     console.assert(mutation);
-
     return graphql(mutation, {
       withRef: true,
 

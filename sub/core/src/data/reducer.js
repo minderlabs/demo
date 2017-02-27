@@ -190,9 +190,13 @@ export class ListReducer extends Reducer {
   reduceItems(matcher, context, filter, previousResult, action) {
     console.assert(matcher && context && filter && previousResult && action);
     let result = previousResult;
+    if (action.type !== 'APOLLO_MUTATION_RESULT') {
+      return result;
+    }
 
     try {
-      let updatedItem = this.getMutatedItem(action);
+      // TODO(burdon): Handle multiple.
+      let updatedItem = this.getMutatedItem(action)[0];
       if (updatedItem) {
         let queryName = this.query.definitions[0].name.value;
         logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
@@ -299,9 +303,13 @@ export class ItemReducer extends Reducer {
   reduceItem(matcher, context, previousResult, action) {
     console.assert(matcher && context && previousResult && action);
     let result = previousResult;
+    if (action.type !== 'APOLLO_MUTATION_RESULT') {
+      return result;
+    }
 
     try {
-      let updatedItem = this.getMutatedItem(action);
+      // TODO(burdon): Handle multiple.
+      let updatedItem = this.getMutatedItem(action)[0];
       if (updatedItem) {
         let queryName = this.query.definitions[0].name.value;
         logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));

@@ -157,7 +157,7 @@ class TaskCanvasComponent extends React.Component {
 
   static propTypes = {
     mutator: React.PropTypes.object.isRequired,
-    item: propType(TaskFragment)
+    item: React.PropTypes.object,
   };
 
   state = {};
@@ -265,7 +265,7 @@ class TaskCanvasComponent extends React.Component {
 
               <div className="ux-data-row">
                 <div className="ux-data-label">Owner</div>
-                <div className="ux-text">{ task.owner.title }</div>
+                <div className="ux-text">{ _.get(task, 'owner.title') }</div>
               </div>
 
               <div className="ux-data-row">
@@ -382,10 +382,13 @@ const TaskQuery = gql`
 
 const TaskReducer = (matcher, context, previousResult, updatedItem) => {
 
+  // TODO(burdon): Check is root.
+  console.log('???', previousResult.item.id + '::::' + JSON.stringify(updatedItem));
+
   // Check not root item.
   if (previousResult.item.id != updatedItem.id) {
     // TODO(burdon): Factor out pattern (see project.js)
-    let taskIdx = _.findIndex(previousResult.item.tasks, task => task.id == updatedItem.id);
+    let taskIdx = _.findIndex(previousResult.item.tasks, task => (task.id == updatedItem.id));
     if (taskIdx != -1) {
       // Update task.
       return {

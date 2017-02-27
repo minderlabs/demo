@@ -81,7 +81,6 @@ export const TaskFragment = gql`
     title
     description
 
-    status
     project {
       id
       title
@@ -94,6 +93,7 @@ export const TaskFragment = gql`
       id
       title
     }
+    status
 
     # TODO(burdon): Required for sub-task mutations.
     tasks {

@@ -4,12 +4,14 @@
 
 import React from 'react';
 import gql from 'graphql-tag';
+import { connect } from 'react-redux';
 
 import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
 import { ItemFragment, ProjectBoardFragment, TaskFragment, UpdateItemsMutation } from 'minder-core';
 import { Board, DragOrderModel, List, ReactUtil } from 'minder-ux';
 
 import { Path } from '../../common/path';
+import { AppAction } from '../../common/reducers';
 
 import { composeItem } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
@@ -214,9 +216,7 @@ class ProjectBoardCanvasComponent extends React.Component {
   };
 
   state = {
-    itemOrderModel: new DragOrderModel(),
-    boardAdapter: ProjectBoardCanvasComponent.boardAdapters['status'],
-    boardAlias: 'status'
+    itemOrderModel: new DragOrderModel()
   };
 
   getChildContext() {
@@ -226,11 +226,10 @@ class ProjectBoardCanvasComponent extends React.Component {
     };
   }
 
-  handleSetBoardType(boardAlias) {
-    this.setState({
-      boardAdapter: ProjectBoardCanvasComponent.boardAdapters[boardAlias],
-      boardAlias
-    });
+  get boardAdapter() {
+    let { boardAlias } = this.props;
+    console.assert(boardAlias);
+    return ProjectBoardCanvasComponent.boardAdapters[boardAlias];
   }
 
   handleItemSelect(item) {
@@ -245,7 +244,6 @@ class ProjectBoardCanvasComponent extends React.Component {
       mutator.updateItem(item, mutations);
     } else {
       let { item:project } = this.props;
-      let { boardAdapter } = this.state;
 
       // Create task (with custom and board-specific mutations.
       let taskId = mutator.createItem('Task', _.concat(
@@ -255,7 +253,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
           MutationUtil.createFieldMutation('project', 'id', project.id)
         ],
-        boardAdapter.onCreateMutations(userId, column) || [],
+        this.boardAdapter.onCreateMutations(userId, column) || [],
         mutations
       ));
 
@@ -266,11 +264,10 @@ class ProjectBoardCanvasComponent extends React.Component {
   }
 
   handleItemDrop(column, item, changes) {
-    let { item:project, mutator } = this.props;
-    let { boardAdapter, boardAlias } = this.state;
+    let { item:project, boardAlias, mutator } = this.props;
 
     // Update item for column.
-    let dropMutations = boardAdapter.onDropMutations(item, column);
+    let dropMutations = this.boardAdapter.onDropMutations(item, column);
     if (dropMutations) {
       mutator.updateItem(item, dropMutations);
     }
@@ -333,9 +330,9 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-        let { registration: { userId }, item:project, refetch, mutator } = this.props;
-      let { boardAdapter, boardAlias, itemOrderModel } = this.state;
-      let { typeRegistry } = this.context;  // TODO(burdon): Get from compose_item props.
+      let { registration: { userId }, item:project, refetch, boardAlias, mutator } = this.props;
+      let { itemOrderModel } = this.state;
+      let { typeRegistry } = this.context;
 
       // All items for board.
       let items = _.get(project, 'tasks', []);
@@ -344,29 +341,14 @@ class ProjectBoardCanvasComponent extends React.Component {
       let board = _.find(_.get(project, 'boards'), board => board.alias == boardAlias);
       itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
 
-      // Memu items.
-      // TODO(burdon): List board types.
-      const Menu = (props) => {
-        return (
-          <div className="ux-bar">
-            <i className="ux-icon ux-icon-action" title="Status Board"
-               onClick={ this.handleSetBoardType.bind(this, 'status') }>assessment</i>
-            <i className="ux-icon ux-icon-action" title="Team Board"
-               onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
-            <i className="ux-icon ux-icon-action" title="Private Board"
-               onClick={ this.handleSetBoardType.bind(this, 'private') }>person</i>
-          </div>
-        );
-      };
-
       return (
         <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch }
-                onSave={ this.handleSave.bind(this) } menu={ <Menu/> }>
+                onSave={ this.handleSave.bind(this) }>
 
           <Board item={ project }
                  items={ items }
-                 columns={ boardAdapter.columns(project, board) }
-                 columnMapper={ boardAdapter.columnMapper(userId) }
+                 columns={ this.boardAdapter.columns(project, board) }
+                 columnMapper={ this.boardAdapter.columnMapper(userId) }
                  itemRenderer={ Card.ItemRenderer(typeRegistry) }
                  itemOrderModel={ itemOrderModel }
                  onItemDrop={ this.handleItemDrop.bind(this) }
@@ -375,6 +357,29 @@ class ProjectBoardCanvasComponent extends React.Component {
         </Canvas>
       );
     });
+  }
+}
+
+/**
+ * Board toolbar
+ */
+export class ProjectCanvasToolbarComponent extends React.Component {
+
+  handleSetBoardType(boardAlias) {
+    this.props.setBoardAlias(boardAlias);
+  }
+
+  render() {
+    return (
+      <div>
+        <i className="ux-icon ux-icon-action" title="Status Board"
+           onClick={ this.handleSetBoardType.bind(this, 'status') }>assessment</i>
+        <i className="ux-icon ux-icon-action" title="Team Board"
+           onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
+        <i className="ux-icon ux-icon-action" title="Private Board"
+           onClick={ this.handleSetBoardType.bind(this, 'private') }>person</i>
+      </div>
+    );
   }
 }
 
@@ -457,5 +462,27 @@ export const ProjectBoardCanvas = composeItem(
       path: 'upsertItems'
     },
     reducer: ProjectBoardReducer
+  }), connect((state, ownProps) => {
+    let { canvas: { boardAlias='status' } } = AppAction.getState(state);
+
+    return {
+      boardAlias
+    };
   })
 )(ProjectBoardCanvasComponent);
+
+export const ProjectCanvasToolbar = connect(
+  (state, ownProps) => {
+  let { canvas: { boardAlias='status' } } = AppAction.getState(state);
+    return {
+      boardAlias
+    };
+  },
+  (dispatch, ownProps) => ({
+    setBoardAlias: boardAlias => {
+      dispatch(AppAction.setCanvasState({
+        boardAlias
+      }));
+    }
+  })
+)(ProjectCanvasToolbarComponent);

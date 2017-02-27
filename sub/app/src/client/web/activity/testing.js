@@ -3,13 +3,13 @@
 //
 
 import React from 'react';
-import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { ItemFragment, ContactFragment, TaskFragment } from 'minder-core';
 import { List } from 'minder-ux';
 
+import { NavBar } from '../component/navbar';
 import { Card } from '../component/card';
 import { FullLayout } from '../layout/full';
 
@@ -57,21 +57,23 @@ class TestingActivity extends React.Component {
       }
     }
 
-    return (
-      <FullLayout>
+    let navbar = (
+      <NavBar search={ false }>
         <div className="ux-toolbar">
           <div>
             <i className="ux-icon ux-icon-action"
                onClick={ this.onAddItem.bind(this, 'list') }>add</i>
-          </div>
-          <div>
             <i className="ux-icon ux-icon-action"
                onClick={ this.onChangeView.bind(this, 'list') }>view_list</i>
             <i className="ux-icon ux-icon-action"
                onClick={ this.onChangeView.bind(this, 'card') }>view_module</i>
           </div>
         </div>
+      </NavBar>
+    );
 
+    return (
+      <FullLayout navbar={ navbar }>
         <List ref="list"
               highlight={ false }
               items={ items }
@@ -109,7 +111,7 @@ const TestQuery = gql`
 
 export default compose(
 
-  connect(Activity.mapStateToProps, Activity.mapDispatchToProps),
+  Activity.connect(),
 
   graphql(TestQuery, {
     options: (props) => ({

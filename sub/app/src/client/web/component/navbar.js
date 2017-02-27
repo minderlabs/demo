@@ -23,14 +23,19 @@ export class NavBar extends React.Component {
     search: true
   };
 
+  static contextTypes = {
+    typeRegistry: React.PropTypes.object.isRequired,
+  };
+
   render() {
+    let { typeRegistry } = this.context;
     let { children, search } = this.props;
 
     return (
       <nav className="ux-navbar">
         { search && <SearchView/> || <div/> }
 
-        <div className="ux-title">
+        <div className="ux-header ux-expand">
           { children }
         </div>
 

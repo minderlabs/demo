@@ -3,13 +3,12 @@
 //
 
 import React from 'react';
-import { connect } from 'react-redux';
 
 import { Const } from '../../../common/defs';
 
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
-import { CanvasContainer } from '../component/canvas';
+import { CanvasContainer, CanvasNavBar } from '../component/canvas';
 import FolderView from '../view/folder';
 
 import { Activity } from './activity';
@@ -40,14 +39,18 @@ class CanvasActivity extends React.Component {
     let { config, params: { type, canvas, itemId } } = this.props;
 
     let canvasComponent = (
-      <CanvasContainer type={ type } canvas={ canvas } itemId={ itemId }/>
+      <CanvasContainer canvas={ canvas } type={ type } itemId={ itemId }/>
+    );
+
+    let navbar = (
+      <CanvasNavBar canvas={ canvas } type={ type } itemId={ itemId }/>
     );
 
     // TODO(burdon): Layout based on form factor. Replace "expand" prop below with app state.
     let platform = _.get(config, 'app.platform');
     if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {
       return (
-        <FullLayout>
+        <FullLayout navbar={ navbar }>
           { canvasComponent }
         </FullLayout>
       );
@@ -55,7 +58,7 @@ class CanvasActivity extends React.Component {
       // TODO(burdon): Get folder from state.
       let finder = <FolderView folder={ 'inbox' }/>;
       return (
-        <SplitLayout nav={ finder }>
+        <SplitLayout navbar={ navbar } finder={ finder }>
           { canvasComponent }
         </SplitLayout>
       );
@@ -63,4 +66,4 @@ class CanvasActivity extends React.Component {
   }
 }
 
-export default connect(Activity.mapStateToProps, Activity.mapDispatchToProps)(CanvasActivity);
+export default Activity.connect()(CanvasActivity);

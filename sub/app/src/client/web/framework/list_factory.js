@@ -51,6 +51,7 @@ const mapStateToProps = (state, ownProps) => {
  * @param {ListReducer} reducer Mutation reducer object.
  * @returns {React.Component} List control.
  */
+// TODO(burdon): Don't wrap compose. Just provide containers.
 function composeList(reducer) {
   console.assert(reducer);
   return compose(

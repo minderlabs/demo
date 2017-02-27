@@ -44,6 +44,7 @@ const mapStateToProps = (state, ownProps) => {
  * @param containers Additional HOC containers.
  * @returns {React.Component} Item control.
  */
+// TODO(burdon): Don't wrap compose. Just provide containers.
 export function composeItem(reducer, ...containers) {
   console.assert(reducer);
 
@@ -89,7 +90,6 @@ export function composeItem(reducer, ...containers) {
           loading,
           error,
           refetch,
-
           item
         }
       }
@@ -106,7 +106,7 @@ export function composeItem(reducer, ...containers) {
 
   // TODO(burdon): Deconstruct so that caller composes directly (helper -- don't obfuscate apollo).
   return compose(
-    ...args,
-    ...containers
+    ...containers,
+    ...args
   );
 }
