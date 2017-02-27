@@ -18,3 +18,5 @@ spec:
         env:
           - name: EXPERIMENT_ID
             value: "58b326e86a78700052dc5331" # FIXME
+          - name: GIT_HASH
+            value: "f47f0b4"
