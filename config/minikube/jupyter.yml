@@ -5,6 +5,7 @@ metadata:
   labels:
     run: jupyter
 spec:
+  type: NodePort
   ports:
   - port: 8888
     targetPort: 8888
@@ -46,8 +47,8 @@ spec:
         ports:
         - containerPort: 8888
         env:
-          - name: EXPERIMENT_ID
-            value: "123" # FIXME
+          #- name: EXPERIMENT_ID
+          #  value: "58b203c465433b049b429e12" # FIXME
         volumeMounts:
         - name: notebook-research
           mountPath: /notebook/research
