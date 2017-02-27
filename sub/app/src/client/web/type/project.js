@@ -418,6 +418,8 @@ const ProjectBoardQuery = gql`
 const ProjectBoardReducer = (matcher, context, previousResult, updatedItem) => {
   let { item:project } = previousResult;
 
+  // TODO(burdon): Check part of top-level project.tasks? (may be second mutation?)
+
   // Updated task.
   if (project.id == _.get(updatedItem, 'project.id')) {
     // TODO(burdon): Factor out pattern (see task also).
