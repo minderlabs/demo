@@ -52,7 +52,11 @@
 
   .ux-drop-target {
     .ux-drop-placeholder {
-      display: none;
+      _display: none;
+      height: 0;
+      -webkit-transition: height 0.2s;
+      -moz-transition: height 0.2s;
+      transition: height 0.2s;
 
       font-size: 12px;
       font-family: Monaco, monospace;
@@ -64,20 +68,20 @@
       }
     }
   }
+  .ux-drop-target.ux-active {
+    .ux-drop-placeholder {
+      display: flex;
+      height: 80px;
+
+      margin-bottom: 8px;
+      background-color: #EEE;
+      border-radius: 2px;
+    }
+  }
   .ux-drop-target.ux-last {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-  }
-  .ux-drop-target.ux-active {
-    .ux-drop-placeholder {
-      display: flex;
-      height: 40px;
-      margin-bottom: 4px;
-
-      background-color: white;
-      border: 3px dotted cornflowerblue;
-    }
   }
 }
 
