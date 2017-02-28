@@ -289,8 +289,21 @@
 
     padding-right: 8px;
 
-    .ux-icon {
-      font-size: @ux-font-medium;
+    > div {
+      display: flex;
+      justify-content: center;
+      background-color: #78a1c3;
+      padding: 3px;
+      border-radius: 2px;
+
+      .ux-icon {
+        color: royalblue;
+        font-size: @ux-font-medium;
+      }
+
+      .ux-icon.ux-icon-active {
+        color: #013b68;
+      }
     }
   }
 }
