@@ -34,6 +34,7 @@ const logger = Logger.get('db');
 export class Database {
 
   // Multi-group support.
+  // TODO(burdon): Remove composeItem
   // TODO(burdon): Mutator take namespace.
   // TODO(burdon): UpsertItemsMutation multiple items. Map create/update IDs. Set Namespace.
   // TODO(burdon): ID with optional namespace? (Otherwise client must specify in fn args -- can it alwasy know?)

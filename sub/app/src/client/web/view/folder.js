@@ -75,8 +75,7 @@ class FolderView extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 const FoldersQuery = gql`
-  query FoldersQuery { 
-
+  query FoldersQuery {
     viewer {
       folders {
         id
@@ -144,8 +143,5 @@ export default compose(
       }
     }
   }),
-
-  // Mutator.
-  Mutator.graphql(UpsertItemsMutation),
 
 )(FolderView);

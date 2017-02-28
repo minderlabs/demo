@@ -3,13 +3,14 @@
 //
 
 import React from 'react';
+import { compose } from 'react-apollo';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ItemFragment, UserFragment, ItemReducer, UpsertItemsMutation } from 'minder-core';
+import { ItemFragment, UserFragment, ItemReducer } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
-import { composeItem } from '../framework/item_factory';
+import { connectItemReducer } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { TaskListItemRenderer } from './task';
 
@@ -23,11 +24,11 @@ import { TaskListItemRenderer } from './task';
 class UserCanvasComponent extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired
+    navigator: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
-    mutator: React.PropTypes.object.isRequired,
     item: propType(UserFragment)
   };
 
@@ -46,13 +47,11 @@ class UserCanvasComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { item, mutator, refetch } = this.props;
+      let { item, refetch } = this.props;
       let { ownerTasks, assigneeTasks } = item;
 
-      // TODO(burdon): List type styling.
-
       return (
-        <Canvas ref="canvas" item={ item } mutator={ mutator } refetch={ refetch }>
+        <Canvas ref="canvas" item={ item } refetch={ refetch }>
           <div className="app-type-user ux-column">
 
             <div className="ux-section-header ux-row">
@@ -84,8 +83,7 @@ class UserCanvasComponent extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 const UserQuery = gql`
-  query UserQuery($itemId: ID!) { 
-    
+  query UserQuery($itemId: ID!) {
     item(itemId: $itemId) {
       ...ItemFragment
       ...UserFragment
@@ -96,15 +94,6 @@ const UserQuery = gql`
   ${UserFragment}  
 `;
 
-export const UserCanvas = composeItem(
-  new ItemReducer({
-    query: {
-      type: UserQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpsertItemsMutation,
-      path: 'upsertItems'
-    }
-  })
+export const UserCanvas = compose(
+  connectItemReducer(ItemReducer.graphql(UserQuery))
 )(UserCanvasComponent);

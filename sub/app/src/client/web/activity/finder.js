@@ -3,6 +3,9 @@
 //
 
 import React from 'react';
+import { compose } from 'react-apollo';
+
+import { Mutator } from 'minder-core';
 
 import { Const } from '../../../common/defs';
 
@@ -55,4 +58,7 @@ class FinderActivity extends React.Component {
   }
 }
 
-export default Activity.connect()(FinderActivity);
+export default compose(
+  Activity.connect(),
+  Mutator.graphql()
+)(FinderActivity);

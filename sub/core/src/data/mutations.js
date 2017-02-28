@@ -2,9 +2,30 @@
 // Copyright 2016 Minder Labs.
 //
 
+import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
 import { ID } from './id';
+import { ItemFragment, TaskFragment, ProjectBoardFragment } from './fragments';
+
+//
+// Generic mutation.
+// TODO(burdon): Extend fragments returned.
+//
+
+export const UpsertItemsMutation = gql`
+  mutation UpsertItemsMutation($mutations: [ItemMutationInput]!) {
+    upsertItems(mutations: $mutations) {
+      ...ItemFragment
+      ...TaskFragment
+      ...ProjectBoardFragment
+    }
+  }
+  
+  ${ItemFragment}
+  ${TaskFragment}
+  ${ProjectBoardFragment}
+`;
 
 /*
   Mutation transactions.
@@ -149,22 +170,18 @@ export class MutationUtil {
  */
 export class Mutator {
 
-  // TODO(burdon): Only UpsertItemsMutation is valid here so don't require it to be passed in.
-  // TODO(burdon): Remove spec from reducer (make standard).
-  // TODO(burdon): Top-level Activity can provide mutator for entire stack (remove from HOC tree)?
-
   /**
-   * Returns a standard mutation wrapper supplied to redux's combine() method.
+   * @return Standard mutation wrapper supplied to redux's combine() method.
    */
-  static graphql(mutation) {
-    console.assert(mutation);
-    return graphql(mutation, {
+  static graphql() {
+    return graphql(UpsertItemsMutation, {
       withRef: true,
 
       props: ({ ownProps, mutate }) => ({
 
         //
         // Injects a mutator instance into the wrapped components' properties.
+        // NOTE: idGenerator must previously have been injected into the properties.
         //
         mutator: new Mutator(mutate, ownProps.idGenerator),
       })

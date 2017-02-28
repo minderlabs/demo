@@ -5,7 +5,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { EventHandler, PropertyProvider, QueryRegistry } from 'minder-core';
+import { EventHandler, IdGenerator, PropertyProvider, QueryRegistry } from 'minder-core';
 
 import { Const } from '../../../common/defs';
 
@@ -23,9 +23,10 @@ const mapStateToProps = (state, ownProps) => {
   let appState = AppAction.getState(state);
   let { config, registration, injector } = appState;
 
-  let typeRegistry = injector.get(TypeRegistry);
+  let idGenerator   = injector.get(IdGenerator);
+  let typeRegistry  = injector.get(TypeRegistry);
   let queryRegistry = injector.get(QueryRegistry);
-  let eventHandler = injector.get(EventHandler);
+  let eventHandler  = injector.get(EventHandler);
 
   let navigator = undefined;
   if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
@@ -36,6 +37,8 @@ const mapStateToProps = (state, ownProps) => {
   return {
     config,
     registration,
+
+    idGenerator,
     typeRegistry,
     queryRegistry,
     eventHandler,
@@ -68,10 +71,11 @@ export class Activity {
     queryRegistry:  React.PropTypes.object,
     eventHandler:   React.PropTypes.object,
     navigator:      React.PropTypes.object,
+    mutator:        React.PropTypes.object
   };
 
   static getChildContext(props) {
-    let { config, registration, typeRegistry, queryRegistry, eventHandler, navigator } = props;
+    let { config, registration, typeRegistry, queryRegistry, eventHandler, navigator, mutator } = props;
 
     return {
       config,
@@ -79,7 +83,8 @@ export class Activity {
       typeRegistry,
       queryRegistry,
       eventHandler,
-      navigator
+      navigator,
+      mutator
     };
   }
 

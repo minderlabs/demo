@@ -119,10 +119,7 @@ function composeList(reducer) {
           }
         }
       }
-    }),
-
-    // Provides mutator property.
-    Mutator.graphql(reducer.mutation)
+    })
 
   )(List);
 }
@@ -182,16 +179,7 @@ const BasicSearchQuery = gql`
 `;
 
 export const BasicSearchList = composeList(
-  new ListReducer({
-    mutation: {
-      type: UpsertItemsMutation,
-      path: 'upsertItems'
-    },
-    query: {
-      type: BasicSearchQuery,
-      path: 'search'
-    }
-  })
+  new ListReducer(BasicSearchQuery)
 );
 
 const CustomIcon = ListItem.createInlineComponent((props, context) => {
@@ -270,7 +258,6 @@ const CardItemFragment = gql`
 
 const CardSearchQuery = gql`
   query CardSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
-
     search(filter: $filter, offset: $offset, count: $count) {
       ...CardItemFragment
 
@@ -286,14 +273,5 @@ const CardSearchQuery = gql`
 `;
 
 export const CardSearchList = composeList(
-  new ListReducer({
-    query: {
-      type: CardSearchQuery,
-      path: 'search'
-    },
-    mutation: {
-      type: UpsertItemsMutation,
-      path: 'upsertItems'
-    }
-  })
+  new ListReducer(CardSearchQuery)
 );

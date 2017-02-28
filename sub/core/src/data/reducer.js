@@ -2,13 +2,24 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
+import { graphql } from 'react-apollo';
 import update from 'immutability-helper';
 
 import $$ from '../util/format';
 import Logger from '../util/logger';
+
 import { ID } from './id';
+import { UpsertItemsMutation } from './mutations';
 
 const logger = Logger.get('reducer');
+
+//
+// Mutation defs.
+//
+
+const UpsertItemsMutationName = _.get(UpsertItemsMutation, 'definitions[0].name.value');
+const UpsertItemsMutationPath = _.get(UpsertItemsMutation, 'definitions[0].selectionSet.selections[0].name.value');
 
 //
 // Custom helper commands.
@@ -112,31 +123,21 @@ class Reducer {
   }
 
   /**
-   * @param spec Object of the form below.
-   *
-   * {
-   *   query: {
-   *     type: QueryType
-   *     path: {string} query_result_path              // Path to query root result.
-   *   },
-   *   mutation {
-   *     type: MutationType,
-   *     path: {string} mutation_action_data_path      // Path to mutation root result.
-   *   },
-   *   reducer: (matcher, context, previousResult, updatedItem) => {}
-   * }
+   * @param query GQL Query Type.
+   * @param reducer Custom reducer.
    */
-  constructor(spec) {
-    console.assert(spec);
-    this._spec = spec;
-  }
+  // TODO(burdon): Extend via inheritance.
+  constructor(query, reducer) {
+    console.assert(query);
+    this._query = query;
+    this._reducer = reducer;
 
-  get mutation() {
-    return this._spec.mutation.type;
+    // NOTE: Limited to single return root.
+    this._path = _.get(query, 'definitions[0].selectionSet.selections[0].name.value');
   }
 
   get query() {
-    return this._spec.query.type;
+    return this._query;
   }
 
   getResult(data) {
@@ -145,7 +146,7 @@ class Reducer {
       // TODO(burdon): Throw (triggle error handler StatusBar).
       console.error(data.error);
     } else {
-      return _.get(data, this._spec.query.path);
+      return _.get(data, this._path);
     }
   }
 
@@ -155,9 +156,9 @@ class Reducer {
    * @returns {Item}
    */
   getMutatedItem(action) {
-    let mutationName = this.mutation.definitions[0].name.value;
-    if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === mutationName) {
-      return _.get(action.result.data, this._spec.mutation.path);
+    // TODO(burdon): Const.
+    if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === UpsertItemsMutationName) {
+      return _.get(action.result.data, UpsertItemsMutationPath);
     }
   }
 
@@ -228,13 +229,13 @@ export class ListReducer extends Reducer {
   getTransform(matcher, context, filter, previousResult, updatedItem) {
 
     // Custom reducers are required when the list is not at the root of the result.
-    let reducer = this._spec.reducer;
+    let reducer = this._reducer;
     if (reducer) {
       return reducer(matcher, context, filter, previousResult, updatedItem);
     }
 
     // Path to items in result.
-    let path = this._spec.query.path;
+    let path = this._path;
     let items = _.get(previousResult, path);
 
     // Replace the item if it is a recent update to an external item.
@@ -285,6 +286,48 @@ export class ListReducer extends Reducer {
  * (like Group) it could be on one (or more) of the branches (e.g., Second member's tasks).
  */
 export class ItemReducer extends Reducer {
+
+  /**
+   * @param query
+   * @param customReducer
+   * @return standard mutation wrapper supplied to redux's combine() method.
+   */
+  static graphql(query, customReducer=undefined) {
+    let reducer = new ItemReducer(query, customReducer);
+
+    return graphql(query, {
+
+      // Map properties to query.
+      // http://dev.apollodata.com/react/queries.html#graphql-options
+      options: (props) => {
+        let { matcher, context, itemId } = props;
+
+        return {
+          variables: {
+            itemId
+          },
+
+          reducer: (previousResult, action) => {
+            return reducer.reduceItem(matcher, context, previousResult, action);
+          }
+        };
+      },
+
+      // Map query result to component properties.
+      // http://dev.apollodata.com/react/queries.html#graphql-props
+      props: ({ ownProps, data }) => {
+        let { loading, error, refetch } = data;
+        let item = reducer.getItem(data);
+
+        return {
+          loading,
+          error,
+          refetch,
+          item
+        }
+      }
+    })
+  }
 
   getItem(data) {
     return this.getResult(data);
@@ -338,7 +381,7 @@ export class ItemReducer extends Reducer {
    * @returns {*}
    */
   getTransform(matcher, context, previousResult, updatedItem) {
-    let reducer = this._spec.reducer;
+    let reducer = this._reducer;
     return reducer && reducer(matcher, context, previousResult, updatedItem);
   }
 }

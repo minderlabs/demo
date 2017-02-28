@@ -183,11 +183,6 @@ export default compose(
     props: ({ ownProps, data }) => {
       return _.pick(data, ['loading', 'error', 'viewer'])
     }
-  }),
-
-  //
-  // TODO(burdon): Move to Activity and provide for entire stack.
-  //
-  Mutator.graphql(UpsertItemsMutation)
+  })
 
 )(BaseLayout);

@@ -138,19 +138,10 @@ export class List extends React.Component {
   }
 
   getChildContext() {
-    let context = {
+    return {
       onItemSelect: this.handleItemSelect.bind(this),
       onItemUpdate: this.handleItemUpdate.bind(this)
     };
-
-    // Maybe set the mutator (don't overwrite if already set by higher context).
-    // E.g., if we're a sublist of a card that is itself part of a list in a canvas...
-    let { mutator } = this.props;
-    if (mutator) {
-      context.mutator = mutator;
-    }
-
-    return context;
   }
 
   set itemRenderer(itemRenderer) {
