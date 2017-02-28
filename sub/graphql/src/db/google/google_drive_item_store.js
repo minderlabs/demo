@@ -143,7 +143,7 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
   }
 
   constructor(idGenerator, matcher, config) {
-    super(idGenerator, matcher, GoogleDriveQueryProcessor.NAMESPACE);
+    super(GoogleDriveQueryProcessor.NAMESPACE);
 
     this._driveClient = new GoogleDriveClient(idGenerator, config);
   }

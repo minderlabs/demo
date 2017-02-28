@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { $$, ID, Logger, ItemStore, QueryProcessor, TypeUtil } from 'minder-core';
+import { $$, ID, Logger, ItemStore, ItemUtil, QueryProcessor, TypeUtil } from 'minder-core';
 
 const logger = Logger.get('db');
 
@@ -31,59 +31,67 @@ const logger = Logger.get('db');
  *
  * - Queries implicitely declare Buckets via the resolver context (which computes which buckets are accessible).
  */
-export class Database extends ItemStore {
+export class Database {
 
   // Multi-group support.
-  // TODO(burdon): UpdateItemsMutation multiple items. Map create/update IDs. Namespace.
-  // TODO(burdon): Debug: list all items in cache; reset cache.
-
-  // TODO(burdon): ID with optional namespace.
-  // TODO(burdon): Path (optional namespace: e.g., for "system" namespace).
-  // TODO(burdon): Remove Database.getNamespaceForType: get namespace from ID (default to user).
-  // TODO(burdon): TestData/Randomizer set bucket. Set parent project.
-  // TODO(burdon): System store return namespace.
   // TODO(burdon): Mutator take namespace.
-  // TODO(burdon): Clean-up Database QP dispatch; and remove ItemStore interface.
+  // TODO(burdon): UpsertItemsMutation multiple items. Map create/update IDs. Set Namespace.
+  // TODO(burdon): ID with optional namespace? (Otherwise client must specify in fn args -- can it alwasy know?)
+  // TODO(burdon): Path (optional namespace: e.g., for "system" namespace).
+  // TODO(burdon): System store return namespace.
+  // TODO(burdon): Remove Database.getNamespaceForType: get namespace from ID (default to user). Add namespace to mutation sig.
+
+  // TODO(burdon): TestData/Randomizer set bucket. Set parent project.
   // TODO(burdon): UX add bucket from context. Add project to sub-tasks.
   // TODO(burdon): Reject lookup if context doesn't allow bucket.
+  // TODO(burdon): Debug: list all items in cache; reset cache.
 
   // TODO(burdon): Support multiple groups (context, itemstore).
   // TODO(burdon): Mutator reducer listen for all.
 
   static NAMESPACE = {
     SYSTEM:   'system',
+    SETTINGS: 'settings',
     USER:     'user'
   };
 
-  /**
-   * Different types are stored in different stores.
-   * @param type
-   * @return {*}
-   */
-  // TODO(burdon): Remove.
-  static getNamespaceForType(type) {
-    switch (type) {
-      case 'User':
-      case 'Group':
-        return Database.NAMESPACE.SYSTEM;
+  static isExternalNamespace(namespace) {
+    console.assert(_.isString(namespace));
 
-      default:
-        return Database.NAMESPACE.USER;
+    switch (namespace) {
+      case Database.NAMESPACE.SYSTEM:
+      case Database.NAMESPACE.SETTINGS:
+      case Database.NAMESPACE.USER:
+        return false;
     }
+
+    return true;
   }
 
-  constructor(idGenerator, matcher) {
-    super(idGenerator, matcher, '*');
+  constructor() {
 
-    // ItemStores keyed by type.
-    // TODO(burdon): Should be by domain?
-    this._stores = new Map();
-
-    // SearchProviders Keyed by namespace.
+    // QueryProcessors by namespace.
     this._queryProcessors = new Map();
+
+    // ItemStores by namespace.
+    this._stores = new Map();
 
     // Callback.
     this._onMutation = null;
+  }
+
+  /**
+   * Register query processor for namespace.
+   *
+   * @param {QueryProcessor} processor
+   * @return {Database}
+   */
+  registerQueryProcessor(processor) {
+    logger.log('Registered QueryProcessor: ' + processor.namespace);
+    console.assert(processor && processor.namespace);
+    console.assert(!this._queryProcessors.get(processor.namespace), 'Already registered: ' + processor.namespace);
+    this._queryProcessors.set(processor.namespace, processor);
+    return this;
   }
 
   /**
@@ -101,22 +109,22 @@ export class Database extends ItemStore {
   }
 
   /**
-   * Register query processor for namespace.
-   *
-   * @param {QueryProcessor} processor
-   * @return {Database}
+   * @param namespace
+   * @return {ItemStore}
    */
-  registerQueryProcessor(processor) {
-    logger.log('Registered QueryProcessor: ' + processor.namespace);
-    console.assert(processor && processor.namespace);
-    console.assert(!this._queryProcessors.get(processor.namespace), 'Already registered: ' + processor.namespace);
-    this._queryProcessors.set(processor.namespace, processor);
-    return this;
+  getQueryProcessor(namespace=Database.NAMESPACE.USER) {
+    let queryProcessor = this._queryProcessors.get(namespace);
+    console.assert(queryProcessor, 'Invalid QueryProcessor namespace: ' + namespace);
+    return queryProcessor;
   }
 
+  /**
+   * @param namespace
+   * @return {ItemStore}
+   */
   getItemStore(namespace=Database.NAMESPACE.USER) {
     let itemStore = this._stores.get(namespace);
-    console.assert(itemStore, 'Invalid namespace: ' + namespace);
+    console.assert(itemStore, 'Invalid ItemStore namespace: ' + namespace);
     return itemStore;
   }
 
@@ -126,69 +134,8 @@ export class Database extends ItemStore {
     return this;
   }
 
-  handleMutation(context, items) {
+  fireMuationNotification(context, items) {
     this._onMutation && this._onMutation(context, items);
-  }
-
-  //
-  // Helper methods.
-  // TODO(burdon): Database shouldn't implement ItemStore.
-  // TODO(burdon): Passing namespace isn't right (instead get the store).
-  //
-
-  getItem(context, type, itemId, namespace) {
-    return this.getItems(context, type, [itemId], namespace).then(items => items[0]);
-  }
-
-  upsertItem(context, item, namespace) {
-    return this.upsertItems(context, [item], namespace).then(items => items[0]);
-  }
-
-  //
-  // QueryProcessor.
-  //
-
-  /**
-   * @returns {Promise}
-   */
-  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
-    logger.log($$('QUERY[%s:%s]: %O', offset, count, filter));
-
-    // TODO(burdon): Security?
-    let itemStore = this.getItemStore(filter.namespace);
-    return itemStore.queryItems(context, root, filter, offset, count);
-  }
-
-  //
-  // ItemStore.
-  //
-
-  /**
-   * @returns {Promise}
-   */
-  getItems(context, type, itemIds, namespace=Database.NAMESPACE.USER) {
-    logger.log($$('GET[%s]: [%s]', type, itemIds));
-
-    let itemStore = this.getItemStore(namespace);
-    return itemStore.getItems(context, type, itemIds);
-  }
-
-  /**
-   * @returns {Promise}
-   */
-  upsertItems(context, items, namespace=Database.NAMESPACE.USER) {
-    logger.log($$('UPSERT: %s', items.length > 1 ? TypeUtil.stringify(items) : JSON.stringify(items)));
-
-    // TODO(burdon): Security: check bucket/ACLs and namespace privilege.
-    // TODO(burdon): Dispatch to store (check permissions).
-    let itemStore = this.getItemStore(namespace);
-    return itemStore.upsertItems(context, items).then(modifiedItems => {
-
-      // Invalidate clients.
-      this.handleMutation(context, modifiedItems);
-
-      return modifiedItems;
-    });
   }
 
   /**
@@ -197,9 +144,18 @@ export class Database extends ItemStore {
   search(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
+    // TODO(madadam): TypeUtil or TypeRegistry.
+    const getGroupKey = item => {
+      switch (item.type) {
+        case 'Task': {
+          return item.project;
+        }
+      }
+    };
+
     return this._searchAll(context, root, filter, offset, count)
       .then(items => {
-        return filter.groupBy ? this._groupBy(items) : items;
+        return filter.groupBy ? ItemUtil.groupBy(items, getGroupKey) : items;
       });
   }
 
@@ -218,6 +174,9 @@ export class Database extends ItemStore {
     // Fan-out queries across all query providers.
     //
     let promises = _.map(Array.from(this._queryProcessors.values()), processor => {
+      if (filter.namespace && processor.namespace != filter.namespace) {
+        return Promise.resolve([]);
+      }
 
       // TODO(madadam): Pagination over the merged result set. Need to over-fetch from each provider.
       return processor.queryItems(context, root, filter, offset, count)
@@ -255,7 +214,7 @@ export class Database extends ItemStore {
         // Gather the set of foreign keys for external items.
         let foreignKeys = [];
         _.each(results, result => {
-          if (result.namespace !== Database.NAMESPACE.USER) {
+          if (result.namespace && Database.isExternalNamespace(result.namespace)) {
             _.each(result.items, item => {
               let fkey = ID.getForeignKey(item);
               if (!itemsWithForeignKeys.get(fkey)) {
@@ -268,7 +227,7 @@ export class Database extends ItemStore {
         // Load potentially matching items for external items.
         let loading = [];
         if (!_.isEmpty(foreignKeys)) {
-          loading.push(this._queryItemsWithForeignKeys(context, root, foreignKeys).then(items => {
+          loading.push(this._getItemsWithForeignKeys(context, root, foreignKeys).then(items => {
             _.each(items, item => {
               console.assert(item.fkey);
               itemsWithForeignKeys.set(item.fkey, item);
@@ -276,21 +235,23 @@ export class Database extends ItemStore {
           }));
         }
 
-        // Wait for items to load...
+        //
+        // Wait for items to load, then join items with external items.
+        //
         return Promise.all(loading).then(() => {
 
           // Merge external items with stored items.
           _.each(results, result => {
-            _.each(result.items, item => {
-              if (result.namespace !== Database.NAMESPACE.USER) {
+            if (result.namespace && Database.isExternalNamespace(result.namespace)) {
+              _.each(result.items, item => {
                 let existing = itemsWithForeignKeys.get(ID.getForeignKey(item));
                 if (existing) {
                   // TODO(burdon): Better merge (e.g., replace title?)
                   console.log('MERGING: ' + JSON.stringify(existing));
                   _.defaults(existing, item);
                 }
-              }
-            });
+              });
+            }
           });
 
           // Flatten the results and gather external items.
@@ -298,14 +259,15 @@ export class Database extends ItemStore {
           let items = [];
           _.each(results, result => {
             _.each(result.items, item => {
-              if (result.namespace === Database.NAMESPACE.USER) {
-                items.push(item);
-              } else {
+              if (result.namespace && Database.isExternalNamespace(result.namespace)) {
                 // If an item already exists, then it will be added above.
                 let existing = itemsWithForeignKeys.get(ID.getForeignKey(item));
                 if (!existing) {
                   items.push(item);
                 }
+              } else {
+                // Add regular item.
+                items.push(item);
               }
             });
           });
@@ -321,99 +283,10 @@ export class Database extends ItemStore {
    * @returns {Promise}
    * @private
    */
-  _queryItemsWithForeignKeys(context, root, foreignKeys) {
-    let defaultProcessor = this._queryProcessors.get(Database.NAMESPACE.USER);
-    return defaultProcessor.queryItems(context, root, {
+  _getItemsWithForeignKeys(context, root, foreignKeys) {
+    let queryProcessor = this._queryProcessors.get(Database.NAMESPACE.USER);
+    return queryProcessor.queryItems(context, root, {
       fkeys: foreignKeys
     });
-  }
-
-  /**
-   * Groups search results by common parents.
-   *
-   * @param items
-   * @returns {[Item]} ordered item results.
-   * @private
-   */
-  _groupBy(items) {
-
-    // TODO(burdon): Reimplement grouping using search items.
-    // Currently item.refs pollutes the apollo client cache (since depends on search context).
-
-    let itemsById = new Map();
-
-    //
-    // Create a map of items arrays indexed by common group item ID.
-    //
-
-    let groupedItems = new Map();
-    _.each(items, item => {
-      itemsById.set(item.id, item);
-      let groupItemId = Database.groupItemId(item);
-      if (groupItemId) {
-        TypeUtil.defaultMap(groupedItems, groupItemId, Array).push(item);
-      }
-    });
-
-    //
-    // Create groups.
-    //
-
-    let itemGroups = new Map();
-    groupedItems.forEach((items, groupItemId) => {
-      if (items.length > 1) {
-        // Check if grouped parent is actually part of the results.
-        let groupItem = itemsById.get(groupItemId);
-        if (!groupItem) {
-          // TODO(burdon): Look-up the item.
-          // TODO(burdon): Generalize for other types.
-          groupItem = {
-            id: groupItemId,
-            type: 'Project',
-            title: 'Project ' + groupItemId
-          };
-        }
-
-        groupItem.refs = items;
-        itemGroups.set(groupItemId, groupItem);
-      }
-    });
-
-    //
-    // Create the ordered results.
-    //
-
-    let results = [];
-    _.each(items, item => {
-      // Check if the item has already been listed (e.g., as part of a group).
-      if (itemsById.get(item.id)) {
-        // Get the group (either current item or parent of current item).
-        let group = itemGroups.get(item.id) || itemGroups.get(Database.groupItemId(item));
-        if (group) {
-          // Add group.
-          results.push(group);
-
-          // Remove each grouped item.
-          _.each(group.refs, item => { itemsById.delete(item.id); });
-        } else {
-          // Add plain item.
-          results.push(item);
-        }
-
-        // Don't use again.
-        itemsById.delete(item.id);
-      }
-    });
-
-    return results;
-  }
-
-  // TODO(madadam): TypeUtil or TypeRegistry.
-  static groupItemId(item) {
-    switch (item.type) {
-      case 'Task': {
-        return item.project;
-      }
-    }
   }
 }

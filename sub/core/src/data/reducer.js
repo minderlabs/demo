@@ -75,6 +75,8 @@ update.extend('$replace', (spec, items) => {
  */
 class Reducer {
 
+  // TODO(burdon): This depends specifically on UpsertItemsMutation.
+
   /**
    * Creates a reducer function that returns a list with the updated item either
    * appended or removed from the list based on the filter.
@@ -155,7 +157,6 @@ class Reducer {
   getMutatedItem(action) {
     let mutationName = this.mutation.definitions[0].name.value;
     if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === mutationName) {
-      // TODO(burdon): Must match mutation (make customizable).
       return _.get(action.result.data, this._spec.mutation.path);
     }
   }
@@ -277,7 +278,7 @@ export class ListReducer extends Reducer {
 /**
  * The item Reducer updates the cached item (which may have a complex shape).
  *
- * The Reducer is called on mutation. When the generic UpdateItemsMutation response is received we need
+ * The Reducer is called on mutation. When the generic UpsertItemsMutation response is received we need
  * to tell Apollo how to stitch the result into the cached response. For item mutations, this is easy
  * since the ID is used to change the existing item. For adds and deletes, Apollo has no way of knowing
  * where the item should fit (e.g., for a flat list it depends on the sort order; for complex query shapes

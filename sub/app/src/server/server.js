@@ -111,14 +111,21 @@ const authManager = new AuthManager(firebase.admin, firebase.systemStore);
 // Database.
 //
 
+const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SETTINGS, false);
+
 const defaultItemStore = testing ?
   new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER) : firebase.itemStore;
 
-const database = new Database(idGenerator, matcher)
+const database = new Database()
 
   .registerItemStore(firebase.systemStore)
+  .registerItemStore(settingsStore)
   .registerItemStore(defaultItemStore)
 
+  // TODO(burdon): Required for queryItems; implement simple Key range look-up for ItemStore (e.g., Type=*).
+  // TODO(burdon): Distinguish search from basic lookup.
+  .registerQueryProcessor(firebase.systemStore)
+  .registerQueryProcessor(settingsStore)
   .registerQueryProcessor(defaultItemStore)
 
   .onMutation(() => {
@@ -159,13 +166,21 @@ if (botkitManager) {
 
 let loader = new Loader(database);
 
+logger.log('Loading data...');
 let loading = Promise.all([
   // Do in parallel.
   loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM),
-  loader.parse(require('./data/startup.json')),
-  loader.parse(require('./data/demo.json'))
+  loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS),
+  loader.parse(require('./data/bootstrap.json'))
 ]).then(() => {
-  return loader.initGroups();
+  logger.log('Initializing groups...');
+  return loader.initGroups().then(() => {
+
+    if (testing) {
+      logger.log('Generating test data...');
+      return new TestGenerator(database).generate();
+    }
+  });
 });
 
 
@@ -173,11 +188,6 @@ let loading = Promise.all([
 // Test data.
 //
 
-if (testing) {
-
-  // TODO(burdon): Caching + Dispatch ItemStore (Database => ItemStore)
-  loading.then(() => new TestGenerator(database).generate());
-}
 
 
 //

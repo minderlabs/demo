@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { DomUtil, ID, IdGenerator, Mutator, UpdateItemsMutation } from 'minder-core';
+import { DomUtil, ID, IdGenerator, Mutator, UpsertItemsMutation } from 'minder-core';
 import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -188,6 +188,6 @@ export default compose(
   //
   // TODO(burdon): Move to Activity and provide for entire stack.
   //
-  Mutator.graphql(UpdateItemsMutation)
+  Mutator.graphql(UpsertItemsMutation)
 
 )(BaseLayout);

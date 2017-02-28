@@ -72,20 +72,8 @@ export class FirebaseItemStore extends ItemStore {
    * @param type
    * @returns {Array}
    */
-  getRootKeys(context, type=undefined) {
-    let { groupId, userId } = context;
-    let keys = [];
-
-    // TODO(burdon): Support multiple groups.
-    if (groupId) {
-      keys.push(this.key(_.compact([ groupId, type ])));
-    }
-
-    if (userId) {
-      keys.push(this.key(_.compact([ userId, type ])));
-    }
-
-    return keys;
+  getBucketKeys(context, type=undefined) {
+    return _.map(QueryProcessor.getBuckets(context), bucket => this.key(_.compact([ bucket, type ])));
   }
 
   /**
@@ -94,7 +82,7 @@ export class FirebaseItemStore extends ItemStore {
   queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
 
     // Gather results for all buckets.
-    let promises = _.map(this.getRootKeys(context), key => this.getValue(key));
+    let promises = _.map(this.getBucketKeys(context), key => this.getValue(key));
     return Promise.all(promises).then(buckets => {
       let items = [];
       _.each(buckets, typeMap => {
@@ -115,7 +103,7 @@ export class FirebaseItemStore extends ItemStore {
   getItems(context, type, itemIds) {
 
     // Gather results for each bucket.
-    let promises = _.map(this.getRootKeys(context, type), key => this.getValue(key));
+    let promises = _.map(this.getBucketKeys(context, type), key => this.getValue(key));
     return Promise.all(promises).then(buckets => {
       let items = [];
       _.each(buckets, itemMap => {

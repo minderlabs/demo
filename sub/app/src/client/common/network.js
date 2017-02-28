@@ -340,8 +340,9 @@ export class ConnectionManager {
     });
 
     // See clientRouter on server.
+    // TODO(burdon): URL const.
     let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
-    logger.log($$('Registering client (%s)', url));
+    logger.log(`Registering client [${url}]: ${JSON.stringify(registration)}`);
     return new Promise((resolve, reject) => {
       $.ajax({
         url: url,

@@ -51,7 +51,7 @@ export class Loader {
       });
     });
 
-    return this._database.upsertItems({}, parsedItems, namespace);
+    return this._database.getItemStore(namespace).upsertItems({}, parsedItems);
   }
 
   /**
@@ -59,17 +59,8 @@ export class Loader {
    */
   initGroups() {
     return Promise.all([
-
-      this._database.queryItems({}, {}, {
-        namespace: Database.NAMESPACE.SYSTEM,
-        type: 'Group'
-      }),
-
-      this._database.queryItems({}, {}, {
-        namespace: Database.NAMESPACE.SYSTEM,
-        type: 'User'
-      })
-
+      this._database.getItemStore(Database.NAMESPACE.SYSTEM).queryItems({}, {}, { type: 'Group' }),
+      this._database.getItemStore(Database.NAMESPACE.SYSTEM).queryItems({}, {}, { type: 'User'  })
     ]).then(([ groups, users ]) => {
 
       // Add User IDs of whitelisted users.
@@ -81,7 +72,7 @@ export class Loader {
         }));
       });
 
-      return this._database.upsertItems({}, groups, Database.NAMESPACE.SYSTEM);
+      return this._database.getItemStore(Database.NAMESPACE.SYSTEM).upsertItems({}, groups);
     });
   }
 }

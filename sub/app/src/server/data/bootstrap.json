@@ -26,6 +26,7 @@
 
   "Contact": [
     {
+      "bucket": "minderlabs_com",
       "id": "contact-alice",
       "title": "Alice Braintree",
       "email": "alice.braintree@gmail.com"

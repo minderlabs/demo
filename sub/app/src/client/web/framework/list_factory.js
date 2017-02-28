@@ -14,7 +14,7 @@ import {
   DocumentFragment,
   ProjectFragment,
   TaskFragment,
-  UpdateItemsMutation
+  UpsertItemsMutation
 } from 'minder-core';
 
 import { List, ListItem } from 'minder-ux';
@@ -166,7 +166,6 @@ const BasicItemFragment = gql`
 
 const BasicSearchQuery = gql`
   query BasicSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
-
     search(filter: $filter, offset: $offset, count: $count) {
       ...BasicItemFragment
 
@@ -185,7 +184,7 @@ const BasicSearchQuery = gql`
 export const BasicSearchList = composeList(
   new ListReducer({
     mutation: {
-      type: UpdateItemsMutation,
+      type: UpsertItemsMutation,
       path: 'upsertItems'
     },
     query: {
@@ -293,7 +292,7 @@ export const CardSearchList = composeList(
       path: 'search'
     },
     mutation: {
-      type: UpdateItemsMutation,
+      type: UpsertItemsMutation,
       path: 'upsertItems'
     }
   })

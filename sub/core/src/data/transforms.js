@@ -12,6 +12,7 @@ import { Matcher } from './matcher';
  */
 export class Transforms {
 
+  // TODO(burdon): Do basic validation (e.g., check scalars are not objects).
   // TODO(burdon): Rename applyItemMutations.
 
   /**

@@ -89,8 +89,7 @@ class TestingActivity extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 const TestQuery = gql`
-  query TestQuery($filter: FilterInput) { 
-
+  query TestQuery($filter: FilterInput) {
     items(filter: $filter) {
       ...ItemFragment
       ...ContactFragment

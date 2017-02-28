@@ -5,7 +5,7 @@
 // TODO(burdon): Not running karma/webpack.
 const expect = require('chai').expect;
 
-import { IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
+import { IdGenerator, ItemUtil, Matcher } from 'minder-core';
 
 import { Database } from './database';
 
@@ -20,18 +20,18 @@ const idGenerator = new IdGenerator(1000);
 
 const tests = (itemStore) => {
 
-  let database = new Database(idGenerator, matcher)
+  let database = new Database()
     .registerItemStore(itemStore);
 
   it('Create and get items.', (done) => {
     let context = {};
 
     // TODO(burdon): Test ID.
-    database.upsertItems(context, [{ type: 'User', title: 'Minder' }]).then(items => {
+    database.getItemStore().upsertItems(context, [{ type: 'User', title: 'Minder' }]).then(items => {
       expect(items).to.exist;
       expect(items.length).to.equal(1);
 
-      database.getItem(context, 'User', items[0].id).then(item => {
+      database.getItemStore().getItem(context, 'User', items[0].id).then(item => {
         expect(item.title).to.equal('Minder');
         done();
       });
@@ -87,7 +87,7 @@ const tests = (itemStore) => {
       }
     ];
 
-    let groupedItems = database._groupBy(items);
+    let groupedItems = ItemUtil.groupBy(items);
 
     expect(groupedItems).to.have.lengthOf(6);
     expect(groupedItems[0].id).to.equal('project-1');

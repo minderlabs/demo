@@ -6,7 +6,7 @@ import React from 'react';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ItemReducer, ItemFragment, UpdateItemsMutation, MutationUtil } from 'minder-core';
+import { ItemReducer, ItemFragment, UpsertItemsMutation, MutationUtil } from 'minder-core';
 import { ReactUtil, TextBox } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
@@ -131,7 +131,7 @@ export const ItemCanvas = composeItem(
       path: 'item'
     },
     mutation: {
-      type: UpdateItemsMutation,
+      type: UpsertItemsMutation,
       path: 'upsertItems'
     }
   })
@@ -144,7 +144,7 @@ export const ItemCanvasHeader = composeItem(
       path: 'item'
     },
     mutation: {
-      type: UpdateItemsMutation,
+      type: UpsertItemsMutation,
       path: 'upsertItems'
     }
   })

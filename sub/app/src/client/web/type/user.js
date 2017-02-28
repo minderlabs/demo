@@ -6,7 +6,7 @@ import React from 'react';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ItemFragment, UserFragment, ItemReducer, UpdateItemsMutation } from 'minder-core';
+import { ItemFragment, UserFragment, ItemReducer, UpsertItemsMutation } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
 import { composeItem } from '../framework/item_factory';
@@ -103,7 +103,7 @@ export const UserCanvas = composeItem(
       path: 'item'
     },
     mutation: {
-      type: UpdateItemsMutation,
+      type: UpsertItemsMutation,
       path: 'upsertItems'
     }
   })

@@ -41,12 +41,13 @@ export class Matcher {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item && filter);
 
-    // TODO(burdon): Filter should not include bucket (implicit in query).
-    if (filter.bucket && item.bucket !== filter.bucket) {
+    // TODO(burdon): Filter should not include bucket (implicit in query)?
+    if (filter.bucket && filter.bucket !== item.bucket) {
       return false;
     }
 
     // Bucket match (ACL filtering).
+    // TODO(burdon): Support multiple groups?
     if (item.bucket &&
         item.bucket !== _.get(context, 'userId') &&
         item.bucket !== _.get(context, 'groupId')) {

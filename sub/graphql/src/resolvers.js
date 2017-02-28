@@ -19,6 +19,21 @@ const logger = Logger.get('resolver');
  */
 export class Resolvers {
 
+  // TODO(burdon): Remove.
+  static getNamespaceForType(type) {
+    switch (type) {
+      case 'User':
+      case 'Group':
+        return Database.NAMESPACE.SYSTEM;
+
+      case 'Folder':
+        return Database.NAMESPACE.SETTINGS;
+
+      default:
+        return Database.NAMESPACE.USER;
+    }
+  }
+
   static get typeDefs() {
     return Schema;
   }
@@ -83,7 +98,7 @@ export class Resolvers {
       Group: {
 
         members: (root, args, context) => {
-          return database.getItems(context, 'User', root.members, Database.NAMESPACE.SYSTEM);
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItems(context, 'User', root.members);
         },
 
         projects: (root, args, context) => {
@@ -93,7 +108,7 @@ export class Resolvers {
           };
 
           // TODO(burdon): Links.
-          return database.queryItems(context, root, filter);
+          return database.getQueryProcessor(Database.NAMESPACE.USER).queryItems(context, root, filter);
         }
       },
 
@@ -102,7 +117,7 @@ export class Resolvers {
         // TODO(burdon): Generalize for filtered items (like queryItems). Can reference context and root node.
         tasks: (root, args, context) => {
           let { filter } = args || {};
-          return database.queryItems(context, root, filter);
+          return database.getItemStore().queryItems(context, root, filter);
         }
       },
 
@@ -121,12 +136,16 @@ export class Resolvers {
 
         group: (root, args, context) => {
           let { group } = root;
-          return database.getItem(context, 'Group', group, Database.NAMESPACE.SYSTEM);
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', group);
         },
 
         tasks: (root, args, context) => {
           let { tasks } = root;
-          return root.tasks && database.getItems(context, 'Task', tasks) || [];
+          if (tasks) {
+            return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', tasks);
+          } else {
+            return [];
+          }
         }
       },
 
@@ -137,19 +156,27 @@ export class Resolvers {
         },
 
         project: (root, args, context) => {
-          return root.project && database.getItem(context, 'Project', root.project);
+          if (root.project) {
+            return database.getItemStore(Database.NAMESPACE.USER).getItem(context, 'Project', root.project);
+          }
         },
 
         tasks: (root, args, context) => {
-          return root.tasks && database.getItems(context, 'Task', root.tasks) || [];
+          if (root.tasks) {
+            return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', root.tasks);
+          } else {
+            return [];
+          }
         },
 
         owner: (root, args, context) => {
-          return database.getItem(context, 'User', root.owner, Database.NAMESPACE.SYSTEM);
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', root.owner);
         },
 
         assignee: (root, args, context) => {
-          return root.assignee && database.getItem(context, 'User', root.assignee, Database.NAMESPACE.SYSTEM);
+          if (root.assignee) {
+            return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', root.assignee);
+          }
         }
       },
 
@@ -161,16 +188,16 @@ export class Resolvers {
 
         user: (root, args, context) => {
           let { userId } = context;
-          return database.getItem(context, 'User', userId, Database.NAMESPACE.SYSTEM);
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', userId);
         },
 
         group: (root, args, context) => {
           let { groupId } = context;
-          return database.getItem(context, 'Group', groupId, Database.NAMESPACE.SYSTEM)
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', groupId);
         },
 
         folders: (root, args, context) => {
-          return database.queryItems(context, root, {
+          return database.getQueryProcessor(Database.NAMESPACE.SETTINGS).queryItems(context, root, {
             type: 'Folder',
             orderBy: {
               field: 'order'
@@ -192,17 +219,19 @@ export class Resolvers {
 
         item: (root, args, context) => {
           let { itemId } = args;
-
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
-          let namespace = Database.getNamespaceForType(type);
 
-          return database.getItem(context, type, localItemId, namespace);
+          // TODO(burdon): Should be from args.
+          let namespace = Resolvers.getNamespaceForType(type);
+
+          return database.getItemStore(namespace).getItem(context, type, localItemId);
         },
 
         items: (root, args, context) => {
           let { filter, offset, count } = args;
+          let { namespace } = filter;
 
-          return database.queryItems(context, root, filter, offset, count);
+          return database.getQueryProcessor(namespace).queryItems(context, root, filter, offset, count);
         },
 
         search: (root, args, context) => {
@@ -227,11 +256,14 @@ export class Resolvers {
           _.each(itemMutations, mutation => {
             let { itemId, mutations } = mutation;
             let { type, id:localItemId } = ID.fromGlobalId(itemId);
-            let namespace = Database.getNamespaceForType(type);
+
+            // TODO(burdon): Should be from args.
+            let namespace = Resolvers.getNamespaceForType(type);
             logger.log($$('UPDATE[%s:%s]: %o', type, localItemId, mutations));
 
             // Get existing item (or undefined).
-            promises.push(database.getItem(context, type, localItemId, namespace).then(item => {
+            let itemStore = database.getItemStore(namespace);
+            promises.push(itemStore.getItem(context, type, localItemId).then(item => {
 
               // If not found (i.e., insert).
               // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
@@ -246,7 +278,13 @@ export class Resolvers {
               Transforms.applyObjectMutations(item, mutations);
 
               // Upsert item.
-              return database.upsertItem(context, item, namespace);
+              return itemStore.upsertItem(context, item)
+                .then(items => {
+                  // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
+                  database.fireMuationNotification(context, items);
+
+                  return items;
+                });
             }));
           });
 

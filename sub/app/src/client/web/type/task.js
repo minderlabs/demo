@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 
-import { ID, ItemFragment, TaskFragment, UpdateItemsMutation, ItemReducer, Matcher, MutationUtil } from 'minder-core';
+import { ID, ItemFragment, TaskFragment, UpsertItemsMutation, ItemReducer, Matcher, MutationUtil } from 'minder-core';
 import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
 
 import { Path } from '../../common/path';
@@ -90,8 +90,7 @@ export class TaskCard extends React.Component {
   }
 
   handleItemUpdate(item, mutations) {
-    let { registration, mutator } = this.context;
-    console.assert(registration && mutator);
+    let { registration: { groupId, userId }, mutator } = this.context;
 
     if (item) {
       // Update existing.
@@ -100,7 +99,8 @@ export class TaskCard extends React.Component {
       // Create and add to parent.
       // TODO(burdon): Need to batch so that resolver can work?
       let taskId = mutator.createItem('Task', _.concat(
-        MutationUtil.createFieldMutation('owner', 'id', registration.userId),
+        MutationUtil.createFieldMutation('bucket', 'id', groupId),
+        MutationUtil.createFieldMutation('owner', 'id', userId),
         mutations
       ));
 
@@ -209,6 +209,8 @@ class TaskCanvasComponent extends React.Component {
       mutator.updateItem(item, mutations);
     } else {
       // Add to parent.
+      mutations.push(MutationUtil.createFieldMutation('bucket', 'id', this.props.item.bucket));
+      mutations.push(MutationUtil.createFieldMutation('owner', 'id', this.props.item.owner.id));
       let taskId = mutator.createItem('Task', mutations);
       mutator.updateItem(this.props.item, [
         MutationUtil.createSetMutation('tasks', 'id', taskId)
@@ -220,7 +222,6 @@ class TaskCanvasComponent extends React.Component {
     let { item } = this.props;
 
     let mutations = [];
-
     if (!_.isEqual(_.get(this.state, 'status', 0), _.get(item, 'status'))) {
       mutations.push(MutationUtil.createFieldMutation('status', 'int', _.get(this.state, 'status')));
     }
@@ -254,47 +255,51 @@ class TaskCanvasComponent extends React.Component {
           <div className="app-type-task ux-column">
 
             <div className="ux-section ux-data">
-              <div className="ux-data-row">
-                <div className="ux-data-label">Project</div>
-                <div className="ux-text">
-                  { project &&
-                  <Link to={ Path.canvas(ID.toGlobalId('Project', project.id)) }>{ project.title }</Link>
-                  }
+              <div className="ux-section-body">
+                <div className="ux-data-row">
+                  <div className="ux-data-label">Project</div>
+                  <div className="ux-text">
+                    { project &&
+                    <Link to={ Path.canvas(ID.toGlobalId('Project', project.id)) }>{ project.title }</Link>
+                    }
+                  </div>
                 </div>
-              </div>
 
-              <div className="ux-data-row">
-                <div className="ux-data-label">Owner</div>
-                <div className="ux-text">{ _.get(task, 'owner.title') }</div>
-              </div>
+                <div className="ux-data-row">
+                  <div className="ux-data-label">Owner</div>
+                  <div className="ux-text">{ _.get(task, 'owner.title') }</div>
+                </div>
 
-              <div className="ux-data-row">
-                <div className="ux-data-label">Assignee</div>
-                <MembersPicker value={ assigneeText || '' }
-                               onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
-                               onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
-              </div>
+                <div className="ux-data-row">
+                  <div className="ux-data-label">Assignee</div>
+                  <MembersPicker value={ assigneeText || '' }
+                                 onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
+                                 onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
+                </div>
 
-              <div className="ux-data-row">
-                <div className="ux-data-label">Status</div>
-                <select value={ status } onChange={ this.handleSetStatus.bind(this) }>
-                  { levels }
-                </select>
+                <div className="ux-data-row">
+                  <div className="ux-data-label">Status</div>
+                  <select value={ status } onChange={ this.handleSetStatus.bind(this) }>
+                    { levels }
+                  </select>
+                </div>
               </div>
             </div>
 
-            <div>
+            <div className="ux-section">
               <div className="ux-section-header ux-row">
                 <h4 className="ux-expand ux-title">Sub Tasks</h4>
                 <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
               </div>
 
-              <List ref="tasks"
-                    className="ux-list-tasks"
-                    items={ tasks }
-                    itemRenderer={ TaskListItemRenderer }
-                    onItemSelect={ this.handleTaskSelect.bind(this) }
-                    onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
+              <div className="ux-section-body">
+                <List ref="tasks"
+                      className="ux-list-tasks"
+                      items={ tasks }
+                      itemRenderer={ TaskListItemRenderer }
+                      onItemSelect={ this.handleTaskSelect.bind(this) }
+                      onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
+              </div>
             </div>
           </div>
         </Canvas>
@@ -420,7 +425,7 @@ export const TaskCanvas = composeItem(
       path: 'item'
     },
     mutation: {
-      type: UpdateItemsMutation,
+      type: UpsertItemsMutation,
       path: 'upsertItems'
     },
     reducer: TaskReducer
