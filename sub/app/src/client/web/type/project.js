@@ -237,21 +237,18 @@ class ProjectBoardCanvasComponent extends React.Component {
     } else {
       let { item:project } = this.props;
 
-      // Create task (with custom and board-specific mutations.
-      let taskId = mutator.createItem('Task', _.concat(
-        [
-          // TODO(burdon): Move into mutator (default for item). Enforce on write.
+      mutator
+        .batch()
+        .createItem('Task', _.compact(_.concat(
           MutationUtil.createFieldMutation('owner', 'id', userId),
-
-          MutationUtil.createFieldMutation('project', 'id', project.id)
-        ],
-        this.boardAdapter.onCreateMutations(groupId, userId, column) || [],
-        mutations
-      ));
-
-      mutator.updateItem(project, [
-        MutationUtil.createSetMutation('tasks', 'id', taskId)
-      ]);
+          MutationUtil.createFieldMutation('project', 'id', project.id),
+          this.boardAdapter.onCreateMutations(groupId, userId, column),
+          mutations
+        )), 'task')
+        .updateItem(project, [
+          MutationUtil.createSetMutation('tasks', 'id', '${task}')
+        ])
+        .commit();
     }
   }
 

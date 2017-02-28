@@ -97,17 +97,17 @@ export class TaskCard extends React.Component {
       mutator.updateItem(item, mutations);
     } else {
       // Create and add to parent.
-      // TODO(burdon): Need to batch so that resolver can work?
-      let taskId = mutator.createItem('Task', _.concat(
-        MutationUtil.createFieldMutation('bucket', 'id', groupId),
-        MutationUtil.createFieldMutation('owner', 'id', userId),
-        mutations
-      ));
-
-      // Update parent.
-      mutator.updateItem(this.props.item, [
-        MutationUtil.createSetMutation('tasks', 'id', taskId)
-      ]);
+      mutator
+        .batch()
+        .createItem('Task', _.concat(
+          MutationUtil.createFieldMutation('bucket', 'id', groupId),
+          MutationUtil.createFieldMutation('owner', 'id', userId),
+          mutations
+        ), 'task')
+        .updateItem(this.props.item, [
+          MutationUtil.createSetMutation('tasks', 'id', '${task}')
+        ])
+        .commit();
     }
   }
 
@@ -204,17 +204,25 @@ class TaskCanvasComponent extends React.Component {
   handleTaskUpdate(item, mutations) {
     console.assert(mutations);
     let { mutator } = this.context;
+    let { registration: { groupId, userId } } = this.props;
 
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
-      // Add to parent.
-      mutations.push(MutationUtil.createFieldMutation('bucket', 'id', this.props.item.bucket));
-      mutations.push(MutationUtil.createFieldMutation('owner', 'id', this.props.item.owner.id));
-      let taskId = mutator.createItem('Task', mutations);
-      mutator.updateItem(this.props.item, [
-        MutationUtil.createSetMutation('tasks', 'id', taskId)
-      ]);
+      let { item:parent } = this.props;
+      let { bucket } = parent;
+
+      mutator
+        .batch()
+        .createItem('Task', _.concat(
+          MutationUtil.createFieldMutation('bucket', 'id', bucket),
+          MutationUtil.createFieldMutation('owner', 'id', userId),
+          mutations
+        ), 'task')
+        .updateItem(this.props.item, [
+          MutationUtil.createSetMutation('tasks', 'id', '${task}')
+        ])
+        .commit();
     }
   }
 

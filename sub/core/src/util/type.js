@@ -110,6 +110,26 @@ export class TypeUtil {
 
     return array;
   }
+
+  /**
+   * @param obj
+   * @param f
+   */
+  static traverse(obj, f) {
+    _.forIn(obj, (value, key) => {
+      f(value, key);
+      if (_.isArray(value)) {
+        value.forEach((el, i) => {
+          f(el, i);
+          if (_.isObject(el)) {
+            TypeUtil.traverse(el, f);
+          }
+        });
+      } else if (_.isObject(value)) {
+        TypeUtil.traverse(obj[key], f);
+      }
+    });
+  }
 }
 
 /**
