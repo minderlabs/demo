@@ -16,6 +16,7 @@ export class Transforms {
   // TODO(burdon): Rename applyItemMutations.
 
   /**
+   * Applies the mutations to the given object.
    *
    * @param object
    * @param mutations
