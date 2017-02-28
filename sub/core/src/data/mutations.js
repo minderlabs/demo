@@ -5,6 +5,8 @@
 import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
+import { TypeUtil } from '../util/type';
+
 import { ID } from './id';
 import { ItemFragment, TaskFragment, ProjectBoardFragment } from './fragments';
 
@@ -27,52 +29,6 @@ export const UpsertItemsMutation = gql`
   ${ProjectBoardFragment}
 `;
 
-/*
-  Mutation transactions.
-
-  mutator.transaction()
-    .createItem({
-      ref: 'new_item',
-      mutations: []
-    })
-    .updateItem({
-      itemId: 'project-1',
-      mutations: [{
-        field: "tasks",
-        value: {
-          set: {
-            value: {
-              id: "${new_item}.id"  // Reference item created above.
-            }
-          }
-        }
-      }]
-    })
-    .commit();
-*/
-// TODO(burdon): Change API to support multiple item mutations.
-class Transaction {
-
-  constructor(namespace=undefined) {
-    this._namespace = namespace;
-    this._mutations = [];
-  }
-
-  createItem(mutation) {
-    this._mutations.push(mutation);
-    return this;
-  }
-
-  updateItem(mutation) {
-    this._mutations.push(mutation);
-    return this;
-  }
-
-  commit() {
-    // TODO(burdon): Iterate and update references.
-  }
-}
-
 /**
  * Utils to create mutations.
  */
@@ -84,7 +40,7 @@ export class MutationUtil {
    * @param {Item} item
    * @return {[Mutation]}
    */
-  static clone(item) {
+  static cloneExternalItem(item) {
     // TODO(burdon): Introspect type map?
     return [
       MutationUtil.createFieldMutation('fkey', 'string', ID.getForeignKey(item)),
@@ -163,6 +119,60 @@ export class MutationUtil {
   }
 }
 
+class Batch {
+
+  constructor(mutator) {
+    console.assert(mutator);
+    this._mutator = mutator;
+    this._operations = [];
+  }
+
+  createItem(type, mutations, name=undefined) {
+    console.assert(type && mutations);
+    this._operations.push({
+      type, mutations, name
+    });
+    return this;
+  }
+
+  updateItem(item, mutations) {
+    console.assert(item && mutations);
+    this._operations.push({
+      item, mutations
+    });
+    return this;
+  }
+
+  commit() {
+    let created = new Map();
+    _.each(this._operations, operation => {
+      let { type, item, mutations, name } = operation;
+      if (type) {
+        // Create item.
+        let itemId = this._mutator.createItem(type, mutations);
+        if (name) {
+          created.set(name, itemId);
+        }
+      } else {
+        // Pre-process mutations.
+        TypeUtil.traverse(mutations, (value, key) => {
+          let id = _.get(value, 'value.id');
+          if (id) {
+            let match = id.match(/\$\{(.+)\}/);
+            if (match) {
+              id = created.get(match[1]);
+              _.set(value, 'value.id', id);
+            }
+          }
+        });
+
+        // Update item.
+        this._mutator.updateItem(item, mutations);
+      }
+    });
+  }
+}
+
 /**
  * Helper class that manages item mutations.
  * The Mutator is used directly by components to create and update items.
@@ -183,21 +193,51 @@ export class Mutator {
         // Injects a mutator instance into the wrapped components' properties.
         // NOTE: idGenerator must previously have been injected into the properties.
         //
-        mutator: new Mutator(mutate, ownProps.idGenerator),
+        mutator: new Mutator(ownProps.idGenerator, mutate)
       })
     });
   }
 
   /**
-   * @param mutate Function provided by apollo.
    * @param idGenerator
+   * @param mutate Function provided by apollo.
    */
-  constructor(mutate, idGenerator) {
-    console.assert(mutate && idGenerator);
-
-    this._mutate = mutate;
+  constructor(idGenerator, mutate) {
+    console.assert(idGenerator && mutate);
     this._idGenerator = idGenerator;
+    this._mutate = mutate;
   }
+
+  // TODO(burdon): Batch API (unit test).
+  // TODO(burdon): First-cut send multiple mutations operations; second-cut combine (affects optimistic result and reducer)?
+
+  /*
+    mutator.batch()
+      .createItem('Task', [{
+        field: 'title',
+        value: {
+          string: 'Task-1'
+        }
+      }], 'new_item')
+      .updateItem('project-1', [{
+        field: "tasks",
+        value: {
+          set: {
+            value: {
+              id: "${new_item}.id"  // Reference item created above.
+            }
+          }
+        }
+      }])
+      .commit();
+  */
+
+  batch() {
+    return new Batch(this);
+  }
+
+  // TODO(burdon): Optimistic response.
+  // http://dev.apollodata.com/react/mutations.html#optimistic-ui
 
   /**
    * Executes a create item mutation.
@@ -230,11 +270,12 @@ export class Mutator {
    * @return {string} Updated item's ID (NOTE: this will change if the item is being copied).
    */
   updateItem(item, mutations) {
+    // TODO(burdon): If external namespace (factor out from Database.isExternalNamespace0.
     if (item.namespace) {
       console.log('Cloning item: ' + JSON.stringify(item));
 
       // TODO(burdon): Replace cloned mutations with new mutation.
-      return this.createItem(item.type, _.concat(MutationUtil.clone(item), mutations));
+      return this.createItem(item.type, _.concat(MutationUtil.cloneExternalItem(item), mutations));
     } else {
       this._mutate({
         variables: {
