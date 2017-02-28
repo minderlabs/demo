@@ -45,10 +45,12 @@ COPY vimrc $HOME/.vimrc
 
 COPY requirements.txt $HOME/
 
-RUN mkdir -p $HOME/.ssh && mkdir -p $HOME/.aws && \
+RUN \
+  mkdir -p $HOME/.ssh && \
+  mkdir -p $HOME/.aws && \
   ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
 COPY config/.gitconfig $HOME/.gitconfig
 COPY config/jupyter-keypair.pem $HOME/.ssh/jupyter-keypair.pem
 RUN chmod 600 $HOME/.ssh/jupyter-keypair.pem
-COPY config/credentials $HOME/.aws/credentials
+COPY config/.aws/credentials $HOME/.aws/credentials
