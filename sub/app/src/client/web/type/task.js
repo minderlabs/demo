@@ -85,7 +85,8 @@ export class TaskCard extends React.Component {
   };
 
   static propTypes = {
-    item: propType(TaskFragment)
+    item: React.PropTypes.object
+//  item: propType(TaskFragment)
   };
 
   handlTaskAdd() {

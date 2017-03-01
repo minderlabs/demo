@@ -91,6 +91,15 @@ export class TypeUtil {
   }
 
   /**
+   * Flatten array that may contain arrays. Remove null/undefined values.
+   * @param values
+   * @returns {*}
+   */
+  static flattenArrays(values) {
+    return _.compact([].concat.apply([], values));
+  }
+
+  /**
    * Appends non-null values to array.
    * @param array
    * @param value Value or array of values.

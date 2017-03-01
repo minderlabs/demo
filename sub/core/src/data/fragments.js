@@ -85,6 +85,8 @@ export const TaskFragment = gql`
       id
       title
     }
+    topLevel
+
     owner {
       id
       title
@@ -93,6 +95,7 @@ export const TaskFragment = gql`
       id
       title
     }
+
     status
 
     # TODO(burdon): Required for sub-task mutations.

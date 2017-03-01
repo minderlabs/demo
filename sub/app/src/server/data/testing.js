@@ -64,6 +64,8 @@ export class TestGenerator {
         });
       },
 
+      topLevel: () => true,
+
       tasks: (item, context, randomizer) => {
         let { groupId, userId } = context;
         console.assert(groupId && userId);
@@ -73,10 +75,10 @@ export class TestGenerator {
           return database.getItemStore(Database.NAMESPACE.USER).upsertItems(context, _.times(num, i => ({
             type: 'Task',
             bucket: context.groupId,
-            owner: context.userId,
             title: randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) }),
-            status: randomizer.chance.bool() ? 0 : 3,
-            project: item.project
+            project: item.project,
+            owner: context.userId,
+            status: randomizer.chance.bool() ? 0 : 3
           }))).then(items => {
             return _.map(items, item => item.id);
           });

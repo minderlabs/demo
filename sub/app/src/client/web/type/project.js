@@ -156,10 +156,13 @@ class ProjectBoardCanvasComponent extends React.Component {
       },
 
       onCreateMutations: (groupId, userId, column) => {
-        return (column.id != ProjectBoardCanvasComponent.COLUMN_ICEBOX) && [
-          MutationUtil.createFieldMutation('bucket', 'id', groupId),
-          MutationUtil.createFieldMutation('assignee', 'id', column.value)
+        let mutations = [
+          MutationUtil.createFieldMutation('bucket', 'id', groupId)
         ];
+        if (column.id != ProjectBoardCanvasComponent.COLUMN_ICEBOX) {
+          mutations.push(MutationUtil.createFieldMutation('assignee', 'id', column.value));
+        }
+        return mutations;
       },
 
       onDropMutations: (item, column) => {
@@ -239,12 +242,13 @@ class ProjectBoardCanvasComponent extends React.Component {
 
       mutator
         .batch()
-        .createItem('Task', _.compact(_.concat(
+        .createItem('Task', [
           MutationUtil.createFieldMutation('owner', 'id', userId),
           MutationUtil.createFieldMutation('project', 'id', project.id),
+          MutationUtil.createFieldMutation('topLevel', 'boolean', true),
           this.boardAdapter.onCreateMutations(groupId, userId, column),
           mutations
-        )), 'task')
+        ], 'task')
         .updateItem(project, [
           MutationUtil.createSetMutation('tasks', 'id', '${task}')
         ])
@@ -415,26 +419,13 @@ const ProjectBoardQuery = gql`
   ${TaskFragment}  
 `;
 
-// TODO(burdon): Extend ItemReducer?
 const ProjectBoardReducer = (matcher, context, previousResult, updatedItem) => {
   let { item:project } = previousResult;
 
-  // Updated task.
-  if (project.id == _.get(updatedItem, 'project.id')) {
-    // TODO(burdon): Factor out pattern (see task also).
-    let taskIdx = _.findIndex(project.tasks, task => task.id == updatedItem.id);
-    if (taskIdx != -1) {
-      // Update task.
-      return {
-        item: {
-          tasks: {
-            [taskIdx]: {
-              $set: updatedItem
-            }
-          }
-        }
-      }
-    } else {
+  // Updated top-level task.
+  if (updatedItem.type == 'Task' && project.id == _.get(updatedItem, 'project.id') && updatedItem.topLevel) {
+    let taskIdx = _.findIndex(project.tasks, task => task.id === updatedItem.id);
+    if (taskIdx == -1) {
       // Append task.
       return {
         item: {
@@ -442,7 +433,7 @@ const ProjectBoardReducer = (matcher, context, previousResult, updatedItem) => {
             $push: [ updatedItem ]
           }
         }
-      }
+      };
     }
   }
 };

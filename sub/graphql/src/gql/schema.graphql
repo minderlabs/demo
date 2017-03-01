@@ -428,15 +428,15 @@ type Task implements Item {
 
   # TODO(burdon): Implement via links?
   project: Project
+  topLevel: Boolean
 
   # Sub-tasks.
   # TODO(burdon): Resolver should flatten the query to return the hierarchical set?
   tasks: [Task]!
 
-  status: Int!
-
   owner: User!
   assignee: User
+  status: Int!
 }
 
 #===================================================================================================

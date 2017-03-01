@@ -80,7 +80,7 @@ const app = express();
 
 const server = http.Server(app);
 
-const idGenerator = new IdGenerator(1000);
+const idGenerator = new IdGenerator(999);
 
 const clientManager = new ClientManager(idGenerator);
 
@@ -130,7 +130,7 @@ const database = new Database()
   .onMutation(() => {
     // Notify clients of changes.
     // TODO(burdon): Create notifier abstraction.
-    clientManager.invalidateOthers();
+    // clientManager.invalidateOthers();
   });
 
 

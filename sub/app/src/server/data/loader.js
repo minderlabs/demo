@@ -11,6 +11,8 @@ import { Database } from 'minder-graphql';
  */
 export class Loader {
 
+  // TODO(burdon): Use alias in JSON files and set ID directly.
+
   constructor(database) {
     console.assert(database);
     this._database = database;

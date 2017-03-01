@@ -9,7 +9,7 @@ import { TypeUtil } from '../util/type';
 import { Transforms } from './transforms';
 
 import { ID } from './id';
-import { ItemFragment, TaskFragment, ProjectBoardFragment } from './fragments';
+import { ItemFragment, TaskFragment, ProjectFragment, ProjectBoardFragment } from './fragments';
 
 //
 // Generic mutation.
@@ -21,12 +21,14 @@ export const UpsertItemsMutation = gql`
     upsertItems(mutations: $mutations) {
       ...ItemFragment
       ...TaskFragment
+      ...ProjectFragment
       ...ProjectBoardFragment
     }
   }
   
   ${ItemFragment}
   ${TaskFragment}
+  ${ProjectFragment}
   ${ProjectBoardFragment}
 `;
 
@@ -150,6 +152,7 @@ class Batch {
 
   createItem(type, mutations, name=undefined) {
     console.assert(type && mutations);
+    mutations = TypeUtil.flattenArrays(mutations);
     this._operations.push({
       type, mutations, name
     });
@@ -159,6 +162,7 @@ class Batch {
 
   updateItem(item, mutations) {
     console.assert(item && mutations);
+    mutations = TypeUtil.flattenArrays(mutations);
     this._operations.push({
       item, mutations
     });
@@ -182,7 +186,7 @@ class Batch {
         //
 
         item = this._mutator.createItem(type, mutations);
-        itemsById.set(item.id, item)
+        itemsById.set(item.id, item);
 
         if (name) {
           itemsByName.set(name, item);
@@ -250,6 +254,8 @@ export class Mutator {
     return new Batch(this);
   }
 
+  // TODO(burdon): Remove non batch operations.
+
   /**
    * Executes a create item mutation.
    *
@@ -258,10 +264,11 @@ export class Mutator {
    * @return {Item} Optimistic result.
    */
   createItem(type, mutations) {
-    let itemId = this._idGenerator.createId();
+    mutations = _.compact(_.concat(mutations));
 
     // Create optimistic result.
-    let item = Transforms.applyObjectMutations({ type, id: itemId }, mutations);
+    let itemId = this._idGenerator.createId();
+    let item = Transforms.applyObjectMutations({ __typename: type, type, id: itemId }, mutations);
 
     // Fire mutation.
     this._mutate({
@@ -294,6 +301,8 @@ export class Mutator {
    * @return {Item} Optimisitc result (NOTE: this will change if the item is being copied).
    */
   updateItem(item, mutations, itemMap=undefined) {
+    mutations = _.compact(_.concat(mutations));
+
     // TODO(burdon): If external namespace (factor out from Database.isExternalNamespace).
     if (item.namespace) {
       console.log('Cloning item: ' + JSON.stringify(item));
