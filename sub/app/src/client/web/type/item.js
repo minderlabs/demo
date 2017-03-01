@@ -64,6 +64,10 @@ export class ItemCanvasComponent extends React.Component {
  */
 export class ItemCanvasHeaderComponent extends React.Component {
 
+  static contextTypes = {
+    mutator: React.PropTypes.object.isRequired
+  };
+
   static propTypes = {
     toolbar: React.PropTypes.object
   };

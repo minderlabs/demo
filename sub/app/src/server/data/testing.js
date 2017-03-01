@@ -133,7 +133,7 @@ export class TestGenerator {
 
                 // Create Tasks for User.
                 promises.push(this._randomizer.generateItems(
-                  context, 'Task', this._randomizer.chance.natural({ min: 20, max: 30 }))
+                  context, 'Task', this._randomizer.chance.natural({ min: 20, max: 40 }))
                     .then(items => this.processItems(context, items)));
 
                 return Promise.all(promises);

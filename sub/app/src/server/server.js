@@ -60,7 +60,6 @@ process.on('unhandledRejection', handleError);
 
 // TODO(burdon): Move to Config.
 const Config = {
-
   MEMCACHE_HOST: _.get(process.env, 'MEMCACHE_SERVICE_HOST', '127.0.0.1'),
   MEMCACHE_PORT: _.get(process.env, 'MEMCACHE_SERVICE_PORT', '11211')
 };
@@ -182,12 +181,6 @@ let loading = Promise.all([
     }
   });
 });
-
-
-//
-// Test data.
-//
-
 
 
 //
