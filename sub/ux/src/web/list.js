@@ -52,30 +52,31 @@ export class List extends React.Component {
   /**
    * Inline editor.
    */
-  static DefaultEditor = React.createClass({
-
-    // TODO(burdon): Modularize to extend (list ListItem).
-    // TODO(burdon): Change to class.
+  static ItemEditor = React.createClass({
 
     handleSave() {
-      let { item } = this.props;
+      let { item, onSave } = this.props;
       let title = this.refs.title.value;
 
-      this.props.onSave && this.props.onSave(item, [
+      onSave(item, [
         MutationUtil.createFieldMutation('title', 'string', title)
       ]);
     },
 
     handleCancel() {
-      this.props.onCancel && this.props.onCancel();
+      let { onCancel } = this.props;
+
+      onCancel();
     },
 
     render() {
-      let { item } = this.props;
+      let { item, icon } = this.props;
       let { title } = item || {};
 
       return (
         <div className="ux-row ux-data-row">
+          { icon }
+
           <TextBox ref="title" className="ux-expand"
                    value={ title }
                    autoFocus={ true }
@@ -90,6 +91,12 @@ export class List extends React.Component {
       );
     }
   });
+
+  static DefaultItemEditor = (props) => {
+    return (
+      <List.ItemEditor { ...props }/>
+    );
+  };
 
   //
   // Context passed to ListItem and inline widgets.
@@ -120,13 +127,13 @@ export class List extends React.Component {
   static defaultProps = {
     highlight: true,
     itemRenderer: List.DefaultItemRenderer,
-    itemEditor: List.DefaultEditor
+    itemEditor: List.DefaultItemEditor
   };
 
   state = {
     items: this.props.items || [],
     itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
-    itemEditor: this.props.itemEditor,
+    itemEditor: this.props.itemEditor || List.DefaultItemEditor,
     showAdd: this.props.showAdd,
     editedItem: null
   };
@@ -307,7 +314,7 @@ export class List extends React.Component {
 
     let editor = null;
     if (this.state.showAdd) {
-      const Editor = List.DefaultEditor;
+      const Editor = this.state.itemEditor;
       editor = (
         <div className="ux-list-item ux-list-editor">
           <Editor item={ this.state.editedItem }

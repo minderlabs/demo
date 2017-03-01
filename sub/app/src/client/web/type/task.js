@@ -71,6 +71,13 @@ export const TaskListItemRenderer = (item) => {
  */
 export class TaskCard extends React.Component {
 
+  static TaskEditor = (props) => {
+    let icon = <i className="material-icons">check_box_outline_blank</i>;
+    return (
+      <List.ItemEditor icon={ icon } { ...props }/>
+    );
+  };
+
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
     registration: React.PropTypes.object,
@@ -102,6 +109,7 @@ export class TaskCard extends React.Component {
         .createItem('Task', _.concat(
           MutationUtil.createFieldMutation('bucket', 'id', groupId),
           MutationUtil.createFieldMutation('owner', 'id', userId),
+          MutationUtil.createFieldMutation('status', 'int', 0),
           mutations
         ), 'task')
         .updateItem(this.props.item, [
@@ -121,8 +129,8 @@ export class TaskCard extends React.Component {
         <Card ref="card" item={ item }>
 
           { assignee &&
-          <div className="ux-card-section">
-            <span className="ux-font-xsmall">Assigned: </span>
+          <div className="ux-card-section ux-font-xsmall">
+            <span>Assigned: </span>
             <span>{ assignee.title }</span>
           </div>
           }
@@ -132,11 +140,14 @@ export class TaskCard extends React.Component {
                   className="ux-list-tasks"
                   items={ tasks }
                   itemRenderer={ TaskListItemRenderer }
+                  itemEditor={ TaskCard.TaskEditor }
                   onItemSelect={ this.handleItemSelect.bind(this) }
                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>
 
             { mutator &&
-            <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
+            <div>
+              <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
+            </div>
             }
           </div>
 

@@ -7,7 +7,7 @@ import { compose } from 'react-apollo';
 import { connect } from 'react-redux';
 import gql from 'graphql-tag';
 
-import { ID, ItemReducer, MutationUtil } from 'minder-core';
+import { DomUtil, ID, ItemReducer, MutationUtil } from 'minder-core';
 import { ItemFragment, ProjectBoardFragment, TaskFragment } from 'minder-core';
 import { Board, DragOrderModel, List, ReactUtil } from 'minder-ux';
 
@@ -360,13 +360,19 @@ export class ProjectCanvasToolbarComponent extends React.Component {
   }
 
   render() {
+    let { boardAlias } = this.props;
+
+    function className(type) {
+      return DomUtil.className('ux-icon', 'ux-icon-action', (type === boardAlias) && 'ux-icon-active' );
+    }
+
     return (
       <div>
-        <i className="ux-icon ux-icon-action" title="Status Board"
+        <i className={ className('status') } title="Status Board"
            onClick={ this.handleSetBoardType.bind(this, 'status') }>assessment</i>
-        <i className="ux-icon ux-icon-action" title="Team Board"
+        <i className={ className('assignee') } title="Team Board"
            onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
-        <i className="ux-icon ux-icon-action" title="Private Board"
+        <i className={ className('private') } title="Private Board"
            onClick={ this.handleSetBoardType.bind(this, 'private') }>person</i>
       </div>
     );
