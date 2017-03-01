@@ -269,6 +269,7 @@ app.get('/home', async function(req, res) {
     res.redirect(Const.APP_PATH);
   } else {
     res.render('home', {
+      crxId: Const.CRX_ID,
       login: true
     });
   }

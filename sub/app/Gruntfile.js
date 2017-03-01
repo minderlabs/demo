@@ -84,8 +84,7 @@ module.exports = (grunt) => {
           },
           {
             src: [
-              'dist/crx/minder/minder.crx',
-              'dist/crx/minder/minder.zip'      // TODO(burdon): Remove when inline stall enabled.
+              'dist/crx/minder/minder.crx'
             ],
             dest: 'src/server/public/'
           }
