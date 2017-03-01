@@ -73,11 +73,15 @@ export class BaseLayout extends React.Component {
                                  group={ viewer.group }
                                  projects={ viewer.group.projects }/>;
 
+      let platform = _.get(config, 'app.platform');
+      let platformClassName = 'app-platform-' + platform;
+
       return (
         <div className="ux-fullscreen">
-          <div className={ DomUtil.className('ux-main-layout', 'app-base-layout', className) }>
+          <div className={ DomUtil.className('ux-main-layout', 'app-base-layout', platformClassName, className) }>
 
             {/* Header */}
+            { platform !== Const.PLATFORM.CRX &&
             <div className="ux-header ux-row">
               <div className="ux-row ux-expand">
                 <SidebarToggle sidebar={ () => this.refs.sidebar }/>
@@ -85,11 +89,9 @@ export class BaseLayout extends React.Component {
               </div>
               <div>
                 <ul className="ux-inline">
-                  { _.get(config, 'app.platform') !== Const.PLATFORM.CRX &&
                   <li>
                     <Link to={ Path.canvas(ID.toGlobalId('Group', viewer.group.id)) }>{ viewer.group.title }</Link>
                   </li>
-                  }
 
                   <li>
                     <a target="MINDER_PROFILE" href="/user/profile">{ viewer.user.title }</a>
@@ -100,6 +102,7 @@ export class BaseLayout extends React.Component {
                 </ul>
               </div>
             </div>
+            }
 
             {/* Nav bar */}
             { navbar }
@@ -183,11 +186,6 @@ export default compose(
     props: ({ ownProps, data }) => {
       return _.pick(data, ['loading', 'error', 'viewer'])
     }
-  }),
-
-  //
-  // TODO(burdon): Move to Activity and provide for entire stack.
-  //
-  Mutator.graphql(UpsertItemsMutation)
+  })
 
 )(BaseLayout);

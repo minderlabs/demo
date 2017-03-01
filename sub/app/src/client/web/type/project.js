@@ -3,17 +3,18 @@
 //
 
 import React from 'react';
-import gql from 'graphql-tag';
+import { compose } from 'react-apollo';
 import { connect } from 'react-redux';
+import gql from 'graphql-tag';
 
-import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
-import { ItemFragment, ProjectBoardFragment, TaskFragment, UpsertItemsMutation } from 'minder-core';
+import { DomUtil, ID, ItemReducer, MutationUtil } from 'minder-core';
+import { ItemFragment, ProjectBoardFragment, TaskFragment } from 'minder-core';
 import { Board, DragOrderModel, List, ReactUtil } from 'minder-ux';
 
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
-import { composeItem } from '../framework/item_factory';
+import { connectItemReducer } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -203,15 +204,11 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   static contextTypes = {
     typeRegistry: React.PropTypes.object.isRequired,
-    navigator: React.PropTypes.object.isRequired
-  };
-
-  static childContextTypes = {
-    mutator: React.PropTypes.object
+    navigator: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
-    mutator: React.PropTypes.object.isRequired,
     registration: React.PropTypes.object.isRequired,
     item: React.PropTypes.object
   };
@@ -219,13 +216,6 @@ class ProjectBoardCanvasComponent extends React.Component {
   state = {
     itemOrderModel: new DragOrderModel()
   };
-
-  getChildContext() {
-    let { mutator } = this.props;
-    return {
-      mutator
-    };
-  }
 
   get boardAdapter() {
     let { boardAlias } = this.props;
@@ -238,7 +228,8 @@ class ProjectBoardCanvasComponent extends React.Component {
   }
 
   handleItemUpdate(item, mutations, column) {
-    let { registration: { groupId, userId }, mutator } = this.props;
+    let { mutator } = this.context;
+    let { registration: { groupId, userId } } = this.props;
     console.assert(userId);
 
     if (item) {
@@ -246,26 +237,24 @@ class ProjectBoardCanvasComponent extends React.Component {
     } else {
       let { item:project } = this.props;
 
-      // Create task (with custom and board-specific mutations.
-      let taskId = mutator.createItem('Task', _.concat(
-        [
-          // TODO(burdon): Move into mutator (default for item). Enforce on write.
+      mutator
+        .batch()
+        .createItem('Task', _.compact(_.concat(
           MutationUtil.createFieldMutation('owner', 'id', userId),
-
-          MutationUtil.createFieldMutation('project', 'id', project.id)
-        ],
-        this.boardAdapter.onCreateMutations(groupId, userId, column) || [],
-        mutations
-      ));
-
-      mutator.updateItem(project, [
-        MutationUtil.createSetMutation('tasks', 'id', taskId)
-      ]);
+          MutationUtil.createFieldMutation('project', 'id', project.id),
+          this.boardAdapter.onCreateMutations(groupId, userId, column),
+          mutations
+        )), 'task')
+        .updateItem(project, [
+          MutationUtil.createSetMutation('tasks', 'id', '${task}')
+        ])
+        .commit();
     }
   }
 
   handleItemDrop(column, item, changes) {
-    let { item:project, boardAlias, mutator } = this.props;
+    let { mutator } = this.context;
+    let { item:project, boardAlias } = this.props;
 
     // Update item for column.
     let dropMutations = this.boardAdapter.onDropMutations(item, column);
@@ -331,9 +320,9 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { registration: { groupId, userId }, item:project, refetch, boardAlias, mutator } = this.props;
-      let { itemOrderModel } = this.state;
       let { typeRegistry } = this.context;
+      let { registration: { groupId, userId }, item:project, refetch, boardAlias } = this.props;
+      let { itemOrderModel } = this.state;
 
       // All items for board.
       let items = _.get(project, 'tasks', []);
@@ -343,7 +332,7 @@ class ProjectBoardCanvasComponent extends React.Component {
       itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
 
       return (
-        <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch }
+        <Canvas ref="canvas" item={ project } refetch={ refetch }
                 onSave={ this.handleSave.bind(this) } fields={{ description: false, debug: false }}>
 
           <Board item={ project }
@@ -371,13 +360,19 @@ export class ProjectCanvasToolbarComponent extends React.Component {
   }
 
   render() {
+    let { boardAlias } = this.props;
+
+    function className(type) {
+      return DomUtil.className('ux-icon', 'ux-icon-action', (type === boardAlias) && 'ux-icon-active' );
+    }
+
     return (
       <div>
-        <i className="ux-icon ux-icon-action" title="Status Board"
+        <i className={ className('status') } title="Status Board"
            onClick={ this.handleSetBoardType.bind(this, 'status') }>assessment</i>
-        <i className="ux-icon ux-icon-action" title="Team Board"
+        <i className={ className('assignee') } title="Team Board"
            onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
-        <i className="ux-icon ux-icon-action" title="Private Board"
+        <i className={ className('private') } title="Private Board"
            onClick={ this.handleSetBoardType.bind(this, 'private') }>person</i>
       </div>
     );
@@ -390,7 +385,6 @@ export class ProjectCanvasToolbarComponent extends React.Component {
 
 const ProjectBoardQuery = gql`
   query ProjectBoardQuery($itemId: ID!) {
-
     item(itemId: $itemId) {
       ...ItemFragment
 
@@ -421,6 +415,7 @@ const ProjectBoardQuery = gql`
   ${TaskFragment}  
 `;
 
+// TODO(burdon): Extend ItemReducer?
 const ProjectBoardReducer = (matcher, context, previousResult, updatedItem) => {
   let { item:project } = previousResult;
 
@@ -452,29 +447,22 @@ const ProjectBoardReducer = (matcher, context, previousResult, updatedItem) => {
   }
 };
 
-export const ProjectBoardCanvas = composeItem(
-  new ItemReducer({
-    query: {
-      type: ProjectBoardQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpsertItemsMutation,
-      path: 'upsertItems'
-    },
-    reducer: ProjectBoardReducer
-  }), connect((state, ownProps) => {
-    let { canvas: { boardAlias='status' } } = AppAction.getState(state);
+export const ProjectBoardCanvas = compose(
 
+  connect((state, ownProps) => {
+    let { canvas: { boardAlias='status' } } = AppAction.getState(state);
     return {
       boardAlias
     };
-  })
+  }),
+
+  connectItemReducer(ItemReducer.graphql(ProjectBoardQuery, ProjectBoardReducer))
+
 )(ProjectBoardCanvasComponent);
 
 export const ProjectCanvasToolbar = connect(
   (state, ownProps) => {
-  let { canvas: { boardAlias='status' } } = AppAction.getState(state);
+    let { canvas: { boardAlias='status' } } = AppAction.getState(state);
     return {
       boardAlias
     };

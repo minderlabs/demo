@@ -3,19 +3,19 @@
 //
 
 import React from 'react';
-import { propType } from 'graphql-anywhere';
-import gql from 'graphql-tag';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
+import { propType } from 'graphql-anywhere';
+import gql from 'graphql-tag';
 
-import { ID, ItemFragment, TaskFragment, UpsertItemsMutation, ItemReducer, Matcher, MutationUtil } from 'minder-core';
+import { ID, ItemFragment, TaskFragment, ItemReducer, MutationUtil } from 'minder-core';
 import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
 
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
-import { composeItem } from '../framework/item_factory';
+import { connectItemReducer } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -71,6 +71,13 @@ export const TaskListItemRenderer = (item) => {
  */
 export class TaskCard extends React.Component {
 
+  static TaskEditor = (props) => {
+    let icon = <i className="material-icons">check_box_outline_blank</i>;
+    return (
+      <List.ItemEditor icon={ icon } { ...props }/>
+    );
+  };
+
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
     registration: React.PropTypes.object,
@@ -97,17 +104,18 @@ export class TaskCard extends React.Component {
       mutator.updateItem(item, mutations);
     } else {
       // Create and add to parent.
-      // TODO(burdon): Need to batch so that resolver can work?
-      let taskId = mutator.createItem('Task', _.concat(
-        MutationUtil.createFieldMutation('bucket', 'id', groupId),
-        MutationUtil.createFieldMutation('owner', 'id', userId),
-        mutations
-      ));
-
-      // Update parent.
-      mutator.updateItem(this.props.item, [
-        MutationUtil.createSetMutation('tasks', 'id', taskId)
-      ]);
+      mutator
+        .batch()
+        .createItem('Task', _.concat(
+          MutationUtil.createFieldMutation('bucket', 'id', groupId),
+          MutationUtil.createFieldMutation('owner', 'id', userId),
+          MutationUtil.createFieldMutation('status', 'int', 0),
+          mutations
+        ), 'task')
+        .updateItem(this.props.item, [
+          MutationUtil.createSetMutation('tasks', 'id', '${task}')
+        ])
+        .commit();
     }
   }
 
@@ -121,8 +129,8 @@ export class TaskCard extends React.Component {
         <Card ref="card" item={ item }>
 
           { assignee &&
-          <div className="ux-card-section">
-            <span className="ux-font-xsmall">Assigned: </span>
+          <div className="ux-card-section ux-font-xsmall">
+            <span>Assigned: </span>
             <span>{ assignee.title }</span>
           </div>
           }
@@ -132,11 +140,14 @@ export class TaskCard extends React.Component {
                   className="ux-list-tasks"
                   items={ tasks }
                   itemRenderer={ TaskListItemRenderer }
+                  itemEditor={ TaskCard.TaskEditor }
                   onItemSelect={ this.handleItemSelect.bind(this) }
                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>
 
             { mutator &&
-            <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
+            <div>
+              <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
+            </div>
             }
           </div>
 
@@ -152,11 +163,11 @@ export class TaskCard extends React.Component {
 class TaskCanvasComponent extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired
+    navigator: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
-    mutator: React.PropTypes.object.isRequired,
     item: React.PropTypes.object,
   };
 
@@ -203,18 +214,26 @@ class TaskCanvasComponent extends React.Component {
 
   handleTaskUpdate(item, mutations) {
     console.assert(mutations);
+    let { mutator } = this.context;
+    let { registration: { groupId, userId } } = this.props;
 
-    let { mutator } = this.props;
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
-      // Add to parent.
-      mutations.push(MutationUtil.createFieldMutation('bucket', 'id', this.props.item.bucket));
-      mutations.push(MutationUtil.createFieldMutation('owner', 'id', this.props.item.owner.id));
-      let taskId = mutator.createItem('Task', mutations);
-      mutator.updateItem(this.props.item, [
-        MutationUtil.createSetMutation('tasks', 'id', taskId)
-      ]);
+      let { item:parent } = this.props;
+      let { bucket } = parent;
+
+      mutator
+        .batch()
+        .createItem('Task', _.concat(
+          MutationUtil.createFieldMutation('bucket', 'id', bucket),
+          MutationUtil.createFieldMutation('owner', 'id', userId),
+          mutations
+        ), 'task')
+        .updateItem(this.props.item, [
+          MutationUtil.createSetMutation('tasks', 'id', '${task}')
+        ])
+        .commit();
     }
   }
 
@@ -243,15 +262,16 @@ class TaskCanvasComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
+      let { mutator } = this.context;
       let { assigneeText, status } = this.state;
-      let { item:task, mutator, refetch } = this.props;
+      let { item:task, refetch } = this.props;
       let { project, tasks } = task;
 
       const levels = TASK_LEVELS.map(level =>
         <option key={ level.value } value={ level.value }>{ level.title }</option>);
 
       return (
-        <Canvas ref="canvas" item={ task } mutator={ mutator } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
+        <Canvas ref="canvas" item={ task } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
           <div className="app-type-task ux-column">
 
             <div className="ux-section ux-data">
@@ -292,7 +312,7 @@ class TaskCanvasComponent extends React.Component {
                 <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
               </div>
 
-              <div className="ux-section-body">
+              <div>
                 <List ref="tasks"
                       className="ux-list-tasks"
                       items={ tasks }
@@ -314,7 +334,6 @@ class TaskCanvasComponent extends React.Component {
 
 const MembersQuery = gql`
   query MembersQuery($itemId: ID!) {
-    
     group: item(itemId: $itemId) {
       ... on Group {
         members {
@@ -365,8 +384,7 @@ const MembersPicker = compose(
 //-------------------------------------------------------------------------------------------------
 
 const TaskQuery = gql`
-  query TaskQuery($itemId: ID!) { 
-    
+  query TaskQuery($itemId: ID!) {
     item(itemId: $itemId) {
       ...ItemFragment
       ...TaskFragment
@@ -385,10 +403,8 @@ const TaskQuery = gql`
   ${TaskFragment}  
 `;
 
+// TODO(burdon): Extend ItemReducer?
 const TaskReducer = (matcher, context, previousResult, updatedItem) => {
-
-  // TODO(burdon): Check is root.
-  console.log('???', previousResult.item.id + '::::' + JSON.stringify(updatedItem));
 
   // Check not root item.
   if (previousResult.item.id != updatedItem.id) {
@@ -418,16 +434,6 @@ const TaskReducer = (matcher, context, previousResult, updatedItem) => {
   }
 };
 
-export const TaskCanvas = composeItem(
-  new ItemReducer({
-    query: {
-      type: TaskQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpsertItemsMutation,
-      path: 'upsertItems'
-    },
-    reducer: TaskReducer
-  })
+export const TaskCanvas = compose(
+  connectItemReducer(ItemReducer.graphql(TaskQuery, TaskReducer))
 )(TaskCanvasComponent);

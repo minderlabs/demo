@@ -42,7 +42,7 @@ export class Card extends React.Component {
     let { title, description } = item;
 
     return (
-      <div className={ DomUtil.className('ux-card', 'ux-card-type-' + item.type.toLowerCase(), className) }>
+      <div className={ DomUtil.className('ux-card', 'ux-card-rounded', 'ux-card-type-' + item.type.toLowerCase(), className) }>
         <div className="ux-card-header">
           <h1 className="ux-text-noselect ux-selector"
               onClick={ this.handleSelect.bind(this, item) }>{ title }</h1>

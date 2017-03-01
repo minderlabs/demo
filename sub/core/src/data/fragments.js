@@ -160,25 +160,3 @@ export const UserFragment = gql`
     }
   }
 `;
-
-//
-// Mutation fragments.
-// TODO(burdon): Doc (fields that are returned from the server after the mutation).
-//
-
-/**
- * Upsert item.
- */
-export const UpsertItemsMutation = gql`
-  mutation UpsertItemsMutation($mutations: [ItemMutationInput]!) {
-    upsertItems(mutations: $mutations) {
-      ...ItemFragment
-      ...TaskFragment
-      ...ProjectBoardFragment
-    }
-  }
-  
-  ${ItemFragment}
-  ${TaskFragment}
-  ${ProjectBoardFragment}
-`;

@@ -4,7 +4,7 @@
 
 import gql from 'graphql-tag';
 
-import { UpsertItemsMutation } from './fragments';
+import { UpsertItemsMutation } from './mutations';
 import { ItemReducer, ListReducer } from './reducer';
 import { Matcher } from './matcher';
 
@@ -75,51 +75,31 @@ describe('Reducers:', () => {
     labels: ['_favorite']
   };
 
-  const listReducer = new ListReducer({
-    mutation: {
-      type: UpsertItemsMutation,
-      path: 'upsertItems'
-    },
-    query: {
-      type: TestListQuery,
-      path: 'items'
-    }
-  });
+  const listReducer = new ListReducer(TestListQuery);
 
-  const itemReducer = new ItemReducer({
-    query: {
-      type: TestItemQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpsertItemsMutation,
-      path: 'upsertItems'
-    },
-    reducer: (matcher, context, previousResult, item) => {
-      let match = matcher.matchItem(context, {}, filter, item);
+  const itemReducer = new ItemReducer(TestItemQuery, (matcher, context, previousResult, item) => {
+    let match = matcher.matchItem(context, {}, filter, item);
 
-      let idx = _.findIndex(_.get(previousResult, 'item.project.items'), i => i.id == item.id);
-
-      // Ignore if matches and already exists.
-      let change = (match && idx == -1) || (!match && idx != -1);
-      return change && {
-        item: {
-          project: {
-            items: {
-              $apply: (items) => {
-                if (idx == -1) {
-                  // Insert.
-                  return [...items, item];
-                } else {
-                  // Remove.
-                  return _.filter(items, i => i.id != item.id);
-                }
+    // Ignore if matches and already exists.
+    let idx = _.findIndex(_.get(previousResult, 'item.project.items'), i => i.id == item.id);
+    let change = (match && idx == -1) || (!match && idx != -1);
+    return change && {
+      item: {
+        project: {
+          items: {
+            $apply: (items) => {
+              if (idx == -1) {
+                // Insert.
+                return [...items, item];
+              } else {
+                // Remove.
+                return _.filter(items, i => i.id != item.id);
               }
             }
           }
         }
-      };
-    }
+      }
+    };
   });
 
   const context = {};

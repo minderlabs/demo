@@ -24,7 +24,7 @@ export class FullLayout extends React.Component {
 
     return (
       <BaseLayout navbar={ navbar } className={ className }>
-        <div className="app-full-layout">
+        <div className="app-layout app-full-layout">
           { children }
         </div>
       </BaseLayout>

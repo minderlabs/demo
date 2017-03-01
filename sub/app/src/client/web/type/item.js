@@ -3,13 +3,14 @@
 //
 
 import React from 'react';
+import { compose } from 'react-apollo';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ItemReducer, ItemFragment, UpsertItemsMutation, MutationUtil } from 'minder-core';
+import { ItemReducer, ItemFragment, MutationUtil } from 'minder-core';
 import { ReactUtil, TextBox } from 'minder-ux';
 
-import { composeItem } from '../framework/item_factory';
+import { connectItemReducer } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -68,7 +69,8 @@ export class ItemCanvasHeaderComponent extends React.Component {
   };
 
   handleUpdate(title) {
-    let { mutator, item } = this.props;
+    let { mutator } = this.context;
+    let { item } = this.props;
 
     if (title != item.title) {
       mutator.updateItem(item, [
@@ -114,8 +116,7 @@ export class ItemCanvasHeaderComponent extends React.Component {
  * Type-specific query.
  */
 const ItemQuery = gql`
-  query ItemQuery($itemId: ID!) { 
-    
+  query ItemQuery($itemId: ID!) {
     item(itemId: $itemId) {
       ...ItemFragment
     }
@@ -124,28 +125,10 @@ const ItemQuery = gql`
   ${ItemFragment}  
 `;
 
-export const ItemCanvas = composeItem(
-  new ItemReducer({
-    query: {
-      type: ItemQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpsertItemsMutation,
-      path: 'upsertItems'
-    }
-  })
+export const ItemCanvas = compose(
+  connectItemReducer(ItemReducer.graphql(ItemQuery))
 )(ItemCanvasComponent);
 
-export const ItemCanvasHeader = composeItem(
-  new ItemReducer({
-    query: {
-      type: ItemQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpsertItemsMutation,
-      path: 'upsertItems'
-    }
-  })
+export const ItemCanvasHeader = compose(
+  connectItemReducer(ItemReducer.graphql(ItemQuery))
 )(ItemCanvasHeaderComponent);

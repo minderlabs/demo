@@ -24,7 +24,7 @@ export class SplitLayout extends React.Component {
 
     return (
       <BaseLayout navbar={ navbar }>
-        <div className="app-split-layout">
+        <div className="app-layout app-split-layout">
           <div className="app-finder-panel">
             { finder }
           </div>

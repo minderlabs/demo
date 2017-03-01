@@ -25,4 +25,31 @@ describe('TypeUtil:', () => {
     expect(TypeUtil.isEmpty([1])).to.be.false;
     expect(TypeUtil.isEmpty({ foo: 1 })).to.be.false;
   });
+
+  it('traverse', () => {
+    let obj = {
+      a: {
+        b: {
+          c: [
+            {
+              value: { id: 100 }
+            },
+            {
+              value: { id: 200 }
+            }
+          ]
+        }
+      }
+    };
+
+    let x = [];
+    TypeUtil.traverse(obj, (value, key) => {
+      let id = _.get(value, 'value.id');
+      if (id) {
+        x.push(id);
+      }
+    });
+
+    expect(x).to.have.lengthOf(2);
+  });
 });
