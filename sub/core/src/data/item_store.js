@@ -34,7 +34,7 @@ export class QueryProcessor {
     return this._namespace;
   }
 
-  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     throw new Error('Not implemented');
   }
 }
@@ -83,7 +83,7 @@ export class DelegateItemStore extends ItemStore {
     this._itemStore = itemStore;
   }
 
-  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     return this._itemStore.queryItems(context, root, filter, offset, count);
   }
 
@@ -234,7 +234,7 @@ export class ItemUtil {
    * @returns {Array}
    */
   // TODO(burdon): Rename filter and sort.
-  filterItems(itemIterator, context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  filterItems(itemIterator, context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     let items = [];
 
     // Match items.

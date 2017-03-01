@@ -6,6 +6,23 @@ import { Async } from './async';
 
 describe('Async:', () => {
 
+  it('sanity', (done) => {
+
+    function multiply(value, n) {
+      return new Promise((resolve, reject) => {
+        resolve(value * n);
+      });
+    }
+
+    let values = [1, 2, 3];
+
+    Promise.all(_.map(values, value => multiply(value, 2)))
+      .then(results => {
+        expect(results).to.eql([2, 4, 6]);
+        done();
+      });
+  });
+
   it('Promise chaining.', (done) => {
 
     const page = 10;

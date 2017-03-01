@@ -10,7 +10,7 @@ import gql from 'graphql-tag';
 import { GroupFragment, ItemFragment, ItemReducer } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
-import { connectItemReducer } from '../framework/item_factory';
+import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 
 //-------------------------------------------------------------------------------------------------
@@ -113,5 +113,5 @@ const GroupQuery = gql`
 `;
 
 export const GroupCanvas = compose(
-  connectItemReducer(ItemReducer.graphql(GroupQuery))
+  connectReducer(ItemReducer.graphql(GroupQuery))
 )(GroupCanvasComponent);

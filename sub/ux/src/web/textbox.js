@@ -46,6 +46,7 @@ export class TextBox extends React.Component {
   };
 
   state = {
+    value: '',
     readOnly: false
   };
 
@@ -53,22 +54,6 @@ export class TextBox extends React.Component {
     super(...arguments);
 
     this._timeout = Async.timeout(this.props.delay);
-  }
-
-  // TODO(burdon): Factor out.
-  static diffValue(currentState, nextProps, properties) {
-    let newState = {};
-
-    _.each(properties, (propKey, stateKey) => {
-      let currentValue = _.get(currentState, stateKey);
-      let nextValue = _.get(nextProps, propKey);
-
-      if (currentValue != nextValue) {
-        _.set(newState, stateKey, nextValue);
-      }
-    });
-
-    return newState;
   }
 
   // TODO(burdon): Colors, pointer, etc.
@@ -82,10 +67,15 @@ export class TextBox extends React.Component {
    * https://facebook.github.io/react/docs/react-component.html#componentwillreceiveprops
    */
   componentWillReceiveProps(nextProps) {
-    this.setState(TextBox.diffValue(this.state, nextProps, {
-      value:      'value',
-      readOnly:   'clickToEdit'
-    }));
+    let state = {
+      readOnly: nextProps.clickToEdit
+    };
+
+    if (this.state.readOnly) {
+      state.value = nextProps.value || '';
+    }
+
+    this.setState(state);
   }
 
   get value() {
@@ -94,7 +84,7 @@ export class TextBox extends React.Component {
 
   set value(value) {
     this.setState({
-      value: value
+      value: value || ''
     }, () => {
       this.fireTextChange(true);
     });
@@ -135,24 +125,22 @@ export class TextBox extends React.Component {
           break;
         }
 
-        this.props.onEnter && this.props.onEnter(this.value, event);
-        if (this.props.clickToEdit) {
-          this.setState({
-            readOnly: true
-          });
-        }
+        this.setState({
+          readOnly: this.props.clickToEdit
+        }, () => {
+          this.props.onEnter && this.props.onEnter(this.value, this, event);
+        });
         break;
       }
 
       // ESCAPE
       case 27: {
-        this.props.onCancel && this.props.onCancel(this.props.value, event);
-        if (this.props.clickToEdit) {
-          this.setState({
-            value: this.props.value,
-            readOnly: true
-          });
-        }
+        this.setState({
+          value: this.props.value,
+          readOnly: this.props.clickToEdit
+        }, () => {
+          this.props.onCancel && this.props.onCancel(this.props.value, event);
+        });
         break;
       }
     }
@@ -176,17 +164,17 @@ export class TextBox extends React.Component {
     let { autoFocus, className, placeholder } = this.props;
     let { readOnly, value } = this.state;
 
-    // TODO(burdon): Buttons.
     if (readOnly) {
       return (
         <div className={ DomUtil.className('ux-textbox', 'ux-readonly', className) }
              onClick={ this.handleClickToEdit.bind(this) }>{ value }</div>
       );
     } else {
+      // TODO(burdon): Buttons.
       return (
         <input ref="input"
                type="text"
-               value={ value || '' }
+               value={ value }
                className={ DomUtil.className('ux-textbox', className) }
                spellCheck={ false }
                autoFocus={ autoFocus ? 'autoFocus' : '' }

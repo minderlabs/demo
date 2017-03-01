@@ -26,5 +26,7 @@ export * from './data/reducer';
 export * from './data/subscriptions';
 export * from './data/transforms';
 
+export * from './data/testing/test_item_store';
+
 export Logger from './util/logger';
 export $$ from './util/format';

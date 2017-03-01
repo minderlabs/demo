@@ -142,7 +142,7 @@ export class Database {
   /**
    * @returns {Promise}
    */
-  search(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  search(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
     // TODO(madadam): TypeUtil or TypeRegistry.
@@ -166,7 +166,7 @@ export class Database {
    *
    * @returns {Promise}
    */
-  _searchAll(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  _searchAll(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
     // TODO(burdon): Unit test!

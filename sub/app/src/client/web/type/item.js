@@ -10,7 +10,7 @@ import gql from 'graphql-tag';
 import { ItemReducer, ItemFragment, MutationUtil } from 'minder-core';
 import { ReactUtil, TextBox } from 'minder-ux';
 
-import { connectItemReducer } from '../framework/item_factory';
+import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -130,9 +130,9 @@ const ItemQuery = gql`
 `;
 
 export const ItemCanvas = compose(
-  connectItemReducer(ItemReducer.graphql(ItemQuery))
+  connectReducer(ItemReducer.graphql(ItemQuery))
 )(ItemCanvasComponent);
 
 export const ItemCanvasHeader = compose(
-  connectItemReducer(ItemReducer.graphql(ItemQuery))
+  connectReducer(ItemReducer.graphql(ItemQuery))
 )(ItemCanvasHeaderComponent);

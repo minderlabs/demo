@@ -152,6 +152,8 @@ export class BaseApp {
       networkInterface
     });
 
+    window.apollo = this._apolloClient;
+
     return Promise.resolve();
   }
 

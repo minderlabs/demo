@@ -152,7 +152,7 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
   // QueryProcessor API.
   //
 
-  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     let driveQuery = GoogleDriveQueryProcessor.makeDriveQuery(filter.text);
     if (!driveQuery) {
       return Promise.resolve([]);

@@ -10,7 +10,7 @@ import gql from 'graphql-tag';
 import { ItemReducer, ItemFragment, ContactFragment } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
-import { connectItemReducer } from '../framework/item_factory';
+import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -80,5 +80,5 @@ const ContactQuery = gql`
 `;
 
 export const ContactCanvas = compose(
-  connectItemReducer(ItemReducer.graphql(ContactQuery))
+  connectReducer(ItemReducer.graphql(ContactQuery))
 )(ContactCanvasComponent);

@@ -14,7 +14,7 @@ import { Board, DragOrderModel, List, ReactUtil } from 'minder-ux';
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
-import { connectItemReducer } from '../framework/item_factory';
+import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -245,7 +245,6 @@ class ProjectBoardCanvasComponent extends React.Component {
         .createItem('Task', [
           MutationUtil.createFieldMutation('owner', 'id', userId),
           MutationUtil.createFieldMutation('project', 'id', project.id),
-          MutationUtil.createFieldMutation('topLevel', 'boolean', true),
           this.boardAdapter.onCreateMutations(groupId, userId, column),
           mutations
         ], 'task')
@@ -267,6 +266,7 @@ class ProjectBoardCanvasComponent extends React.Component {
     }
 
     // Update item order.
+    // TODO(burdon): Use MutationUtil.
     mutator.updateItem(project, _.map(changes, change => ({
       field: 'boards',
       value: {
@@ -419,25 +419,6 @@ const ProjectBoardQuery = gql`
   ${TaskFragment}  
 `;
 
-const ProjectBoardReducer = (matcher, context, previousResult, updatedItem) => {
-  let { item:project } = previousResult;
-
-  // Updated top-level task.
-  if (updatedItem.type == 'Task' && project.id == _.get(updatedItem, 'project.id') && updatedItem.topLevel) {
-    let taskIdx = _.findIndex(project.tasks, task => task.id === updatedItem.id);
-    if (taskIdx == -1) {
-      // Append task.
-      return {
-        item: {
-          tasks: {
-            $push: [ updatedItem ]
-          }
-        }
-      };
-    }
-  }
-};
-
 export const ProjectBoardCanvas = compose(
 
   connect((state, ownProps) => {
@@ -447,7 +428,7 @@ export const ProjectBoardCanvas = compose(
     };
   }),
 
-  connectItemReducer(ItemReducer.graphql(ProjectBoardQuery, ProjectBoardReducer))
+  connectReducer(ItemReducer.graphql(ProjectBoardQuery))
 
 )(ProjectBoardCanvasComponent);
 

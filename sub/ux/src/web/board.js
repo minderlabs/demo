@@ -68,7 +68,9 @@ export class Board extends React.Component {
     this.props.onItemDrop && this.props.onItemDrop(column, item, changes);
   }
 
-  handleItemCreate(column, text) {
+  handleItemCreate(column, text, textbox) {
+    textbox.value = '';
+
     if (text) {
       this.props.onItemUpdate && this.props.onItemUpdate(null, [
         MutationUtil.createFieldMutation('title', 'string', text)
@@ -105,7 +107,8 @@ export class Board extends React.Component {
                         onItemSelect={ this.handleItemSelect.bind(this) }/>
 
           <div className="ux-toolbar">
-            <TextBox className="ux-expand" placeholder="Add Card..."
+            <TextBox className="ux-expand"
+                     placeholder="Add Card..."
                      onEnter={ this.handleItemCreate.bind(this, column) }/>
           </div>
         </div>

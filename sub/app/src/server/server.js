@@ -12,7 +12,7 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { IdGenerator, Matcher, MemoryItemStore, Logger, TypeUtil } from 'minder-core';
+import { IdGenerator, Matcher, MemoryItemStore, TestItemStore, Logger, TypeUtil } from 'minder-core';
 import {
   Database,
   Firebase,
@@ -113,7 +113,9 @@ const authManager = new AuthManager(firebase.admin, firebase.systemStore);
 const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SETTINGS, false);
 
 const defaultItemStore = testing ?
-  new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER) : firebase.itemStore;
+  new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), {
+    delay: 0 // TODO(burdon): Config.
+  }) : firebase.itemStore;
 
 const database = new Database()
 
@@ -127,7 +129,7 @@ const database = new Database()
   .registerQueryProcessor(settingsStore)
   .registerQueryProcessor(defaultItemStore)
 
-  .onMutation(() => {
+  .onMutation(items => {
     // Notify clients of changes.
     // TODO(burdon): Create notifier abstraction.
     // clientManager.invalidateOthers();

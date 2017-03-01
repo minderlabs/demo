@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+// TODO(burdon): Rename app_reducers.
+
 //-------------------------------------------------------------------------------------------------
 // Global.
 // The global reducer listens for Apollo query results and updates the App state.

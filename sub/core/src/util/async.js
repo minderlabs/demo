@@ -10,6 +10,19 @@ import _ from 'lodash';
 export class Async {
 
   /**
+   * Creates promise for timeout.
+   * @param ts
+   * @return {Promise}
+   */
+  static delay(ts) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve();
+      }, ts);
+    });
+  }
+
+  /**
    * Cancelable timeout function.
    * @param delay
    * @returns {function(*)}

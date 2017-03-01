@@ -52,7 +52,7 @@ const dragSpec = {
     let item = {
       id: props.data
     };
-    console.log('Drag: ' + JSON.stringify(item));
+//  console.log('Drag: ' + JSON.stringify(item));
     return item;
   }
 };
@@ -106,7 +106,7 @@ const dropSpec = {
   drop(props, monitor, connect) {
     let { data, order } = props;
     let item = monitor.getItem();
-    console.log('Drop: ' + JSON.stringify(item), data, order);
+//  console.log('Drop: ' + JSON.stringify(item), data, order);
     props.onDrop(item, data, order);
   }
 };
@@ -235,7 +235,7 @@ export class DragOrderModel {
    * @return [{ id, order }] Mutations applied for this change.
    */
   setOrder(items, itemId, listId, dropOrder) {
-    console.log('setOrder:', _.size(items), itemId, dropOrder);
+//  console.log('setOrder:', _.size(items), itemId, dropOrder);
 
     let changes = [];
     let sortedItems = this.getOrderedItems(items);

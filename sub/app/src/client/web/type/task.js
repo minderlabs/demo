@@ -15,7 +15,7 @@ import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
-import { connectItemReducer } from '../framework/item_factory';
+import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -404,37 +404,6 @@ const TaskQuery = gql`
   ${TaskFragment}  
 `;
 
-// TODO(burdon): Extend ItemReducer?
-const TaskReducer = (matcher, context, previousResult, updatedItem) => {
-
-  // Check not root item.
-  if (previousResult.item.id != updatedItem.id) {
-    // TODO(burdon): Factor out pattern (see project.js)
-    let taskIdx = _.findIndex(previousResult.item.tasks, task => (task.id == updatedItem.id));
-    if (taskIdx != -1) {
-      // Update task.
-      return {
-        item: {
-          tasks: {
-            [taskIdx]: {
-              $set: updatedItem
-            }
-          }
-        }
-      };
-    } else {
-      // Append task.
-      return {
-        item: {
-          tasks: {
-            $push: [ updatedItem ]
-          }
-        }
-      };
-    }
-  }
-};
-
 export const TaskCanvas = compose(
-  connectItemReducer(ItemReducer.graphql(TaskQuery, TaskReducer))
+  connectReducer(ItemReducer.graphql(TaskQuery))
 )(TaskCanvasComponent);
