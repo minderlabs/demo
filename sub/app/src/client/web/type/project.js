@@ -83,6 +83,7 @@ export class ProjectCard extends React.Component {
  */
 class ProjectBoardCanvasComponent extends React.Component {
 
+  // TODO(burdon): Rename unassigned.
   static COLUMN_ICEBOX = 'icebox';
 
   /**
@@ -146,7 +147,7 @@ class ProjectBoardCanvasComponent extends React.Component {
         return _.concat({
           id: ProjectBoardCanvasComponent.COLUMN_ICEBOX,
           value: ProjectBoardCanvasComponent.COLUMN_ICEBOX,
-          title: 'Icebox'
+          title: 'Unassigned'
         }, users);
       },
 

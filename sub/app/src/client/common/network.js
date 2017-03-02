@@ -93,9 +93,6 @@ export class ClientAuthManager {
     // https://firebase.google.com/docs/auth/web/manage-users
     // https://firebase.google.com/docs/reference/node/firebase.auth.Auth#onAuthStateChanged
     this._unsubscribe = firebase.auth().onAuthStateChanged(user => {
-
-      console.error('######## CHANGED #########', user);
-
       if (user) {
         logger.log('Authenticated: ' + user.email);
 
@@ -259,6 +256,8 @@ export class ConnectionManager {
     logger.log('Connecting...');
 
     // TODO(burdon): Works with CRX?
+    // https://developer.chrome.com/apps/gcm
+    // 3/1/17 Send support message: https://firebase.google.com/support/contact/troubleshooting
 
     // https://github.com/firebase/quickstart-js/blob/master/messaging/index.html
 
