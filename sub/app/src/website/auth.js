@@ -13,6 +13,9 @@ import { Const, FirebaseAppConfig, GoogleApiConfig } from '../common/defs';
  */
 export class Auth {
 
+  // TODO(burdon): Send email on first login?
+  // https://firebase.google.com/docs/auth/web/manage-users#send_a_user_a_verification_email
+
   constructor() {
     firebase.initializeApp(FirebaseAppConfig);
 

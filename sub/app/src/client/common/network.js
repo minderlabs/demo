@@ -99,13 +99,19 @@ export class ClientAuthManager {
       if (user) {
         logger.log('Authenticated: ' + user.email);
 
+        // TODO(burdon): Get on each call?
+        // http://stackoverflow.com/questions/38965681/when-to-refresh-expired-firebase3-web-token-for-api-request
+
         // https://firebase.google.com/docs/reference/js/firebase.User#getToken
         user.getToken().then(jwtToken => {
 
           // Update the network manager (sets header for graphql requests).
           this._networkManager.token = jwtToken;
 
+          //
+          // TODO(burdon): Rename register.
           // Connect (or reconnect) client.
+          //
           Async.retry(attempt => {
             if (attempt > 0) {
               logger.log('Retrying ' + attempt);
@@ -439,6 +445,7 @@ export class NetworkManager {
       applyMiddleware: ({ request, options }, next) => {
         // Set the JWT header.
         options.headers = _.defaults(options.headers, this.headers);
+
         next();
       }
     };
@@ -569,6 +576,7 @@ export class NetworkManager {
    * @returns {{authentication: string}}
    */
   get headers() {
+    // TODO(burdon): Async getToken here.
     console.assert(this._token, 'Not authenticated.');
     return {
       'authentication': 'Bearer ' + this._token

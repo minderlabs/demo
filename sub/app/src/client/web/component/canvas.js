@@ -190,7 +190,7 @@ export class Canvas extends React.Component {
         <div className="ux-section">
           <div className="ux-section-body">
             <div className="ux-row">
-              <Textarea className="ux-expand ux-noborder ux-font-xsmall" rows="3"
+              <Textarea className="ux-expand ux-noborder ux-font-xsmall" rows="4"
                         placeholder="Notes"
                         value={ _.get(this.state, 'description') }
                         onChange={ this.handlePropertyChange.bind(this, 'description') }/>
