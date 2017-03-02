@@ -14,6 +14,8 @@ import Schema from './gql/schema.graphql';
 
 const logger = Logger.get('resolver');
 
+const AuthError = new Error('Not authenticated.');
+
 /**
  * Resolver map.
  */
@@ -215,10 +217,20 @@ export class Resolvers {
       RootQuery: {
 
         viewer: (root, args, context) => {
+          let { userId } = context;
+          if (!userId) {
+            throw AuthError;
+          }
+
           return {};
         },
 
         item: (root, args, context) => {
+          let { userId } = context;
+          if (!userId) {
+            throw AuthError;
+          }
+
           let { itemId } = args;
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
 
@@ -229,6 +241,11 @@ export class Resolvers {
         },
 
         items: (root, args, context) => {
+          let { userId } = context;
+          if (!userId) {
+            throw AuthError;
+          }
+
           let { filter, offset, count } = args;
           let { namespace } = filter;
 
@@ -236,6 +253,11 @@ export class Resolvers {
         },
 
         search: (root, args, context) => {
+          let { userId } = context;
+          if (!userId) {
+            throw AuthError;
+          }
+
           let { filter, offset, count, groupBy } = args;
 
           return database.search(context, root, filter, offset, count, groupBy);
@@ -251,6 +273,11 @@ export class Resolvers {
       RootMutation: {
 
         upsertItems: (root, args, context) => {
+          let { userId } = context;
+          if (!userId) {
+            throw AuthError;
+          }
+
           let { mutations:itemMutations } = args;
 
           // TODO(burdon): Should be from Mutator args. (default to USER)? Does UX currently update Group/User?

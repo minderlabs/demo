@@ -38,13 +38,14 @@ export const graphqlLogger = (options={ pretty: false }) => {
     }
 
     // Monkey patch.
+    // TODO(burdon): Not efficient intercepting write?
     // https://github.com/axiomzen/express-interceptor/blob/master/index.js
     // http://stackoverflow.com/questions/19215042/express-logging-response-body
     let originalWrite = res.write;
     res.write = (data) => {
-      // TODO(burdon): Not efficient intercepting write.
       let json = JSON.parse(data);
       switch (res.statusCode) {
+
         case 200: {
           if (options.pretty) {
             logger.log($$(PRETTY_RES, moment().format(TS), stringify(json)));

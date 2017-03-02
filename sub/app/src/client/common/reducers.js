@@ -76,6 +76,9 @@ export class AppAction {
   // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
   //
 
+  /**
+   * Register client (after server connect).
+   */
   static register(registration, server=undefined) {
     console.assert(registration);
     return {
@@ -87,6 +90,9 @@ export class AppAction {
     };
   }
 
+  /**
+   * Set search state (preserved across navigation).
+   */
   static search(text) {
     return {
       type: AppAction.ACTION.SEARCH,
@@ -94,6 +100,9 @@ export class AppAction {
     };
   }
 
+  /**
+   * Set canvas state (e.g., current view).
+   */
   static setCanvasState(canvas) {
     return {
       type: AppAction.ACTION.CANVAS_STATE,

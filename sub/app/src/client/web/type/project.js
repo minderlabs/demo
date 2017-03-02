@@ -209,11 +209,11 @@ class ProjectBoardCanvasComponent extends React.Component {
   static contextTypes = {
     typeRegistry: React.PropTypes.object.isRequired,
     navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
+    mutator: React.PropTypes.object.isRequired,
+    registration: React.PropTypes.object.isRequired,
   };
 
   static propTypes = {
-    registration: React.PropTypes.object.isRequired,
     item: React.PropTypes.object
   };
 
@@ -236,8 +236,7 @@ class ProjectBoardCanvasComponent extends React.Component {
   }
 
   handleItemUpdate(item, mutations, column) {
-    let { mutator } = this.context;
-    let { registration: { groupId, userId } } = this.props;
+    let { mutator, registration: { groupId, userId } } = this.context;
     console.assert(userId);
 
     if (item) {
@@ -329,8 +328,8 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { typeRegistry } = this.context;
-      let { registration: { groupId, userId }, item:project, refetch, boardAlias } = this.props;
+      let { typeRegistry, registration: { groupId, userId } } = this.context;
+      let { item:project, refetch, boardAlias } = this.props;
       let { itemOrderModel } = this.state;
 
       // All items for board.

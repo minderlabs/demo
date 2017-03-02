@@ -27,14 +27,14 @@ const WEBPACK_BUNDLE = {
 /**
  * Sets-up serving the app (and related assets).
  *
- * @param {AuthManager} authManager
+ * @param {UserManager} userManager
  * @param {ClientManager} clientManager
  * @param systemStore
  * @param options
  * @returns {Router}
  */
-export const appRouter = (authManager, clientManager, systemStore, options) => {
-  console.assert(authManager && clientManager);
+export const appRouter = (userManager, clientManager, systemStore, options) => {
+  console.assert(userManager && clientManager);
   const router = express.Router();
 
   // Webpack assets.
@@ -47,7 +47,7 @@ export const appRouter = (authManager, clientManager, systemStore, options) => {
   router.get(path, async function(req, res) {
 
     // TODO(burdon): Deprecate cookies? Do redirect from app?
-    let user = await authManager.getUserFromCookie(req);
+    let user = await userManager.getUserFromCookie(req);
     if (!user) {
       // TODO(burdon): Create Router object rather than hardcoding path.
       res.redirect('/');

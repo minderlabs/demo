@@ -23,7 +23,6 @@ export class ErrorHandler {
 
     // https://developer.mozilla.org/en-US/docs/Web/Events/error
     window.onerror = (error) => {
-      console.error(error);
       eventHandler && eventHandler.emit({
         type: 'error',
         message: error.message

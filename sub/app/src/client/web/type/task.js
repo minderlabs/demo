@@ -80,8 +80,8 @@ export class TaskCard extends React.Component {
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
-    registration: React.PropTypes.object,
-    mutator: React.PropTypes.object,
+    mutator: React.PropTypes.object.isRequired,
+    registration: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -167,7 +167,8 @@ class TaskCanvasComponent extends React.Component {
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
+    mutator: React.PropTypes.object.isRequired,
+    registration: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -217,8 +218,7 @@ class TaskCanvasComponent extends React.Component {
 
   handleTaskUpdate(item, mutations) {
     console.assert(mutations);
-    let { mutator } = this.context;
-    let { registration: { groupId, userId } } = this.props;
+    let { registration: { groupId, userId }, mutator } = this.context;
 
     if (item) {
       mutator.updateItem(item, mutations);

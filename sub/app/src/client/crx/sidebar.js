@@ -173,6 +173,8 @@ bootstrap.init().then(() => {
 
   // Trigger startup via Redux.
   bootstrap.store.dispatch(SidebarAction.initialized());
+
+  // TODO(burdon): Retry?
   bootstrap.register();
 
   const keyBindings = new KeyListener()

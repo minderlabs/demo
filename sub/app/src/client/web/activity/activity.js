@@ -22,6 +22,7 @@ import { TypeRegistry } from '../../web/framework/type_registry';
 const mapStateToProps = (state, ownProps) => {
   let appState = AppAction.getState(state);
   let { config, registration, injector } = appState;
+  console.assert(registration, 'Not registered.');
 
   let idGenerator   = injector.get(IdGenerator);
   let typeRegistry  = injector.get(TypeRegistry);

@@ -11,7 +11,7 @@ import { ChromeMessageChannelDispatcher, Listeners, TypeUtil } from 'minder-core
 import { Const } from '../../common/defs';
 
 import { ErrorHandler } from '../common/errors';
-import { ClientAuthManager, ConnectionManager, NetworkManager } from '../common/network';
+import { AuthManager, ConnectionManager, NetworkManager } from '../common/network';
 import { ChromeNetworkInterface } from './util/network';
 import { Notification } from './util/notification';
 import { Settings } from './util/settings';
@@ -83,7 +83,7 @@ class BackgroundApp {
     //
     this._networkManager = new NetworkManager(this._config);
     this._connectionManager = new ConnectionManager(this._config, this._networkManager);
-    this._authManager = new ClientAuthManager(this._config, this._networkManager, this._connectionManager);
+    this._authManager = new AuthManager(this._config, this._networkManager, this._connectionManager);
 
     //
     // Listen for settings updates (not called on first load).

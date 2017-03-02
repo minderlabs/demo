@@ -16,7 +16,7 @@ const logger = Logger.get('auth');
 /**
  * Manage authentication.
  */
-export class AuthManager {
+export class UserManager {
 
   /**
    * @param admin Firebase admin object.
@@ -75,7 +75,7 @@ export class AuthManager {
     console.assert(req);
 
     // Token set in apollo client's network interface middleware.
-    let auth = req.headers && req.headers['authentication'];
+    let auth = _.get(req.headers, 'authentication');
     let match = auth && auth.match(/^Bearer (.+)$/);
     let token = match && match[1];
     if (!token) {
@@ -96,7 +96,8 @@ export class AuthManager {
   getUserFromCookie(req) {
     console.assert(req);
 
-    let token = req.cookies && req.cookies[Const.AUTH_COOKIE];
+    // Cookie set by auth script before app loads.
+    let token = _.get(req.cookies, Const.AUTH_COOKIE);
     if (!token) {
       return Promise.resolve(null);
     }
@@ -110,12 +111,12 @@ export class AuthManager {
 /**
  * Manage user authentication.
  *
- * @param authManager
+ * @param userManager
  * @param systemStore
  * @param options
  * @returns {Router}
  */
-export const loginRouter = (authManager, systemStore, options) => {
+export const loginRouter = (userManager, systemStore, options) => {
   console.assert(systemStore);
 
   let router = express.Router();
@@ -150,7 +151,7 @@ export const loginRouter = (authManager, systemStore, options) => {
 
   // Profile page.
   router.get('/profile', async function(req, res) {
-    let user = await authManager.getUserFromCookie(req);
+    let user = await userManager.getUserFromCookie(req);
     if (user) {
       let group = await systemStore.getGroup(user.id);
       res.render('profile', { user, group });

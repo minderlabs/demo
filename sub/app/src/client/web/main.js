@@ -11,7 +11,10 @@ import { Const } from '../../common/defs';
 
 import { BaseApp } from '../common/base_app';
 import { AppAction, AppReducer, GlobalAppReducer } from '../common/reducers';
-import { ClientAuthManager, ConnectionManager, NetworkManager } from '../common/network';
+import { AuthManager } from '../common/auth';
+import { ConnectionManager } from '../common/client';
+import { NetworkManager } from '../common/network';
+import { PushManager } from '../common/push';
 
 import { TypeRegistryFactory } from './framework/type_factory';
 import { Application } from './app';
@@ -40,27 +43,23 @@ export class WebApp extends BaseApp {
    */
   initNetwork() {
 
+    // Manages OAuth.
+    this._authManager = new AuthManager(this._config);
+
     // Wraps the Apollo network requests.
-    this._networkManager = new NetworkManager(this._config, this._eventHandler).init();
+    this._networkManager = new NetworkManager(this._config, this._authManager, this._eventHandler).init();
+
+    // FCM manager.
+    this._pushManager = new PushManager(this._config, this._queryRegistry, this._eventHandler);
 
     // Manages the client connection and registration.
     this._connectionManager =
-      new ConnectionManager(this._config, this._networkManager, this._queryRegistry, this._eventHandler);
-
-    // Manages OAuth.
-    this._authManager = new ClientAuthManager(this._config, this._networkManager, this._connectionManager);
-    return this._authManager.authenticate().then(registration => {
-      this._registration = registration;
-    })
+      new ConnectionManager(this._config, this._authManager, this._pushManager, this._eventHandler);
   }
 
   terminate() {
     // Unregister client.
-    return this._connectionManager.disconnect();
-  }
-
-  get registration() {
-    return this._registration;
+    return this._connectionManager.unregister();
   }
 
   get providers() {
@@ -76,7 +75,7 @@ export class WebApp extends BaseApp {
   get reducers() {
     return {
       // Main app reducer.
-      [AppAction.namespace]: AppReducer(this._injector, this._config, this._registration)
+      [AppAction.namespace]: AppReducer(this._injector, this._config)
     }
   }
 
@@ -87,6 +86,18 @@ export class WebApp extends BaseApp {
   get history() {
     // https://github.com/ReactTraining/react-router/blob/master/docs/guides/Histories.md#browserhistory
     return browserHistory;
+  }
+
+  postInit() {
+
+    // Register client.
+    return this._authManager.authenticate().then(user => {
+
+      // TODO(burdon): Retry?
+      return this._connectionManager.register().then(registration => {
+        this.store.dispatch(AppAction.register(registration));
+      });
+    });
   }
 }
 

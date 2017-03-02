@@ -16,8 +16,6 @@ import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryReg
 
 import { ErrorHandler } from './errors';
 
-//import { Monitor } from './component/devtools';
-
 const logger = Logger.get('main');
 
 /**
@@ -33,6 +31,7 @@ export class BaseApp {
     console.assert(config);
     this._config = config;
 
+    // TODO(burdon): Rename EventListener.
     // Event bus propagates events (e.g., error messages) to components.
     this._eventHandler = new EventHandler();
 
