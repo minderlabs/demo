@@ -83,7 +83,7 @@ eval "$(docker-machine env ${DOCKER_MACHINE})"
 #
 
 if [ $VERSION_BUMP -eq 1 ]; then
-  grunt version:web:patch
+  grunt version:app:patch
 fi
 
 #

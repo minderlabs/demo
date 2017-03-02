@@ -56,7 +56,7 @@ class BackgroundApp {
       graphiql: settings.server + '/graphiql'
     });
 
-    console.log('Config updated: ', JSON.stringify(config));
+    console.log('Config updated: ' + JSON.stringify(config));
   }
 
   constructor() {
@@ -127,6 +127,7 @@ class BackgroundApp {
           let registration = this._registration;
           if (!registration) {
             // TODO(burdon): Send retry error.
+            // TODO(burdon): Instead of client requesting -- send broadcast when connect happens.
             return Promise.reject('Client not registered.');
           } else {
             return Promise.resolve({ registration, server });

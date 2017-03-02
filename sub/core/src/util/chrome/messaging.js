@@ -290,14 +290,18 @@ export class ChromeMessageChannelDispatcher {
       let listener = this._listeners.get(header.channel);
       if (listener) {
         let result = listener(request);
-        if (result && result.then) {
+        if (result) {
           // Return result.
-          result.then(response => {
-            this._receiver.postMessage(client, response, {
-              id: header.id,
-              channel: header.channel
+          Promise.resolve(result)
+            .then(response => {
+              this._receiver.postMessage(client, response, {
+                id: header.id,
+                channel: header.channel
+              });
+            })
+            .catch(error => {
+              console.log('ERROR:', error);
             });
-          });
         }
       } else {
         // TODO(burdon): Buffer.
