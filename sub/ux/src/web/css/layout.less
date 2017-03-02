@@ -121,16 +121,16 @@
 }
 
 .ux-card-rounded {
-  border-radius: 4px;
+  border-radius: 2px;
 
   .ux-card-header {
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
   }
 
   .ux-card-body {
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
   }
 }
 
@@ -139,9 +139,13 @@
 //
 
 .ux-section {
-  padding: @ux-section-padding;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 
-//background-color: @ux-section-background;
+  margin: 4px 8px;
+  border: 1px solid #DDD;
+  border-radius: 4px;
 }
 .ux-section-header {
   padding: @ux-section-header-padding;
@@ -160,6 +164,9 @@
 .ux-section-header-dark {
   background-color: @ux-section-header-dark-background;
   color: @ux-section-header-dark-color;
+}
+.ux-section-body {
+  padding: 6px;
 }
 
 //
@@ -253,14 +260,27 @@
   z-index: 999;
 
   // Title editor.
-  .ux-title {
-    input.ux-textbox {
-      background-color: white;
-      padding: 6px;
-      border: none;
-      border-radius: 4px;
-      text-align: center;
-      min-width: 300px;
+  .ux-header {
+
+    // TODO(burdon): Rationalize with searchbox
+
+    .ux-title {
+
+      margin: 0 8px;
+
+      div.ux-textbox {
+        justify-content: center;
+      }
+
+      input.ux-textbox {
+        margin: 0 16px;
+        border: none;
+        text-align: center;
+
+        background-color: white;
+        border-radius: 4px;
+        padding: 4px;
+      }
     }
   }
 
@@ -269,8 +289,21 @@
 
     padding-right: 8px;
 
-    .ux-icon {
-      font-size: @ux-font-medium;
+    > div {
+      display: flex;
+      justify-content: center;
+      background-color: #78a1c3;
+      padding: 3px;
+      border-radius: 2px;
+
+      .ux-icon {
+        color: royalblue;
+        font-size: @ux-font-medium;
+      }
+
+      .ux-icon.ux-icon-active {
+        color: #013b68;
+      }
     }
   }
 }

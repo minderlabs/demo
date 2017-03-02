@@ -50,6 +50,9 @@ export class ID {
     return null;
   }
 
+  // TODO(burdon): ID: Namespace/Bucket/Type/ID.
+  // TODO(burdon): (All parts are neede for getItems lookups).
+
   /**
    * Converts a global ID.
    * @param globalId
@@ -91,7 +94,7 @@ export class ID {
    * @return {string}
    */
   static getForeignKey(item) {
-    console.assert(item && item.namespace && item.id);
+    console.assert(item && item.namespace && item.id, 'Cannot create FK: ' + JSON.stringify(item));
     return item.namespace + '/' + item.id;
   }
 }

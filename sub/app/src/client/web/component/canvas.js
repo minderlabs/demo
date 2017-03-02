@@ -5,7 +5,11 @@
 import React from 'react';
 
 import { MutationUtil, QueryRegistry, TypeUtil } from 'minder-core';
-import { Textarea, TextBox } from 'minder-ux';
+import { Textarea } from 'minder-ux';
+
+import { ItemCanvasHeader } from '../type/item';
+
+import { Navbar } from '../component/navbar';
 
 /**
  * Canvas container.
@@ -45,6 +49,35 @@ export class CanvasContainer extends React.Component {
 }
 
 /**
+ * Canvas navbar,
+ */
+export class CanvasNavbar extends React.Component {
+
+  static propTypes = {
+    type: React.PropTypes.string.isRequired,
+    itemId: React.PropTypes.string.isRequired,
+    canvas: React.PropTypes.string,
+  };
+
+  static contextTypes = {
+    typeRegistry: React.PropTypes.object.isRequired,
+  };
+
+  render() {
+    let { typeRegistry } = this.context;
+    let { itemId, canvas } = this.props;
+
+    let toolbar = typeRegistry.toolbar(itemId, canvas);
+
+    return (
+      <Navbar>
+        <ItemCanvasHeader itemId={ itemId } toolbar={ toolbar }/>
+      </Navbar>
+    );
+  }
+}
+
+/**
  * Canvas wrapper.
  */
 export class Canvas extends React.Component {
@@ -60,16 +93,19 @@ export class Canvas extends React.Component {
     // Read-only if not set.
     mutator: React.PropTypes.object,
 
-    // TODO(burdon): Move to custom menu.
     // Get mutations from child component.
     onSave: React.PropTypes.func,
 
-    // Custom menu component.
-    menu: React.PropTypes.object,
+    // Show description.
+    fields: React.PropTypes.object
   };
 
   static defaultProps = {
-    cid: QueryRegistry.createId()
+    cid: QueryRegistry.createId(),
+    fields: {
+      debug: true,
+      description: true
+    }
   };
 
   static contextTypes = {
@@ -109,11 +145,8 @@ export class Canvas extends React.Component {
    * Check for modified elements and submit mutation if necessary.
    */
   handleSave() {
-    let { mutator, item } = this.props;
-    if (!mutator) {
-      console.warn('Read-only canvas.');
-      return;
-    }
+    let { mutator } = this.context;
+    let { item } = this.props;
 
     let mutations = [];
 
@@ -134,49 +167,34 @@ export class Canvas extends React.Component {
   }
 
   render() {
-    // TODO(burdon): Rename menu => buttons.
-    let { item, debug, menu, children } = this.props;
-    let { title, description } = this.state;
-
-    // TODO(burdon): Canvas header (in navbar); set navbar in redux state.
+    let { item, fields, children } = this.props;
 
     return (
       <div className="ux-canvas">
-        {/*
-        <div>
-          <div className="ux-columns">
-            <TextBox className="ux-expand ux-noborder ux-font-large"
-                     value={ title }
-                     onChange={ this.handlePropertyChange.bind(this, 'title') }/>
-
-            <div className="ux-canvas-menu-bar">
-              { menu }
-
-              <div className="ux-bar">
-                <i className="ux-icon ux-icon-action"
-                   onClick={ this.handleSave.bind(this) }>save</i>
-              </div>
+        { fields['description'] &&
+        <div className="ux-section">
+          <div className="ux-section-body">
+            <div className="ux-row">
+              <Textarea className="ux-expand ux-noborder ux-font-xsmall" rows="3"
+                        placeholder="Notes"
+                        value={ _.get(this.state, 'description') }
+                        onChange={ this.handlePropertyChange.bind(this, 'description') }/>
             </div>
           </div>
-
-          <div className="ux-row">
-            <Textarea className="ux-expand ux-noborder ux-font-xsmall" rows="3"
-                      placeholder="Notes"
-                      value={ description }
-                      onChange={ this.handlePropertyChange.bind(this, 'description') }/>
-          </div>
-        </div>
-        */}
-
-        { debug &&
-        <div className="ux-section ux-debug">
-          { JSON.stringify(_.pick(item, 'bucket', 'type', 'id')) }
         </div>
         }
 
         <div className="ux-expand">
           { children }
         </div>
+
+        { fields['debug'] &&
+        <div className="ux-section ux-debug">
+          <div className="ux-section-body">
+            { JSON.stringify(_.pick(item, 'bucket', 'type', 'id')) }
+          </div>
+        </div>
+        }
       </div>
     )
   }

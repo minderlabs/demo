@@ -235,10 +235,10 @@ type Board {
 
 interface Item {
   namespace: String           # External namespace (query provider).
-  fkey: String                # Foreign key.
   bucket: ID                  # ID of User or Group (null for system item).
   type: String!
   id: ID!
+  fkey: String                # Foreign key.
   alias: String               # Short-name for URLs (unique, human-readable).
   created: Timestamp!
   modified: Timestamp!
@@ -253,10 +253,10 @@ interface Item {
 
 type User implements Item {
   namespace: String
-  fkey: String
   bucket: ID
   type: String!
   id: ID!
+  fkey: String
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -277,10 +277,10 @@ type User implements Item {
 
 type Group implements Item {
   namespace: String
-  fkey: String
   bucket: ID
   type: String!
   id: ID!
+  fkey: String
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -301,10 +301,10 @@ type Group implements Item {
 
 type Contact implements Item {
   namespace: String
-  fkey: String
   bucket: ID
   type: String!
   id: ID!
+  fkey: String
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -317,10 +317,10 @@ type Contact implements Item {
 
 type Document implements Item {
   namespace: String
-  fkey: String
   bucket: ID
   type: String!
   id: ID!
+  fkey: String
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -336,10 +336,10 @@ type Document implements Item {
 
 type Event implements Item {
   namespace: String
-  fkey: String
   bucket: ID
   type: String!
   id: ID!
+  fkey: String
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -353,10 +353,10 @@ type Event implements Item {
 
 type Folder implements Item {
   namespace: String
-  fkey: String
   bucket: ID
   type: String!
   id: ID!
+  fkey: String
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -372,10 +372,10 @@ type Folder implements Item {
 
 type Place implements Item {
   namespace: String
-  fkey: String
   bucket: ID
   type: String!
   id: ID!
+  fkey: String
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -388,10 +388,10 @@ type Place implements Item {
 
 type Project implements Item {
   namespace: String
-  fkey: String
   bucket: ID
   type: String!
   id: ID!
+  fkey: String
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -401,7 +401,7 @@ type Project implements Item {
 
   group: Group!
 
-  # TODO(burdon): Directives for links.
+  # TODO(burdon): Directives for links. Other items (e.g., Contacts board).
   tasks: [Task]!
 
   # TODO(burdon): Map type (array of typed values).
@@ -415,10 +415,10 @@ type Project implements Item {
 
 type Task implements Item {
   namespace: String
-  fkey: String
   bucket: ID
   type: String!
   id: ID!
+  fkey: String
   alias: String
   created: Timestamp!
   modified: Timestamp!
@@ -435,10 +435,7 @@ type Task implements Item {
 
   status: Int!
 
-  # TODO(burdon): Promote to shared meta data for all items (rename "creator"? enforce on write).
-  # TODO(burdon): Set automatically by mutator.
   owner: User!
-
   assignee: User
 }
 
@@ -487,6 +484,7 @@ type RootQuery {
   viewer: Viewer!
 
   # Get specific.
+  # TODO(burdon): Add namespace to ID?
   item(itemId: ID!): Item!
 
   # Query.
@@ -501,10 +499,22 @@ type RootQuery {
 # Mutations.
 #===================================================================================================
 
+input ItemMutationInput {
+
+  # TODO(burdon): Namespace.
+# namespace: String!
+
+  # Item to mutate.
+  itemId: ID!
+
+  # Array of generic mutations.
+  mutations: [ObjectMutationInput]!
+}
+
 type RootMutation {
 
-  # Generic mutation.
-  updateItem(itemId: ID!, mutations: [ObjectMutationInput]!): Item!
+  # Generic mutations.
+  upsertItems(mutations: [ItemMutationInput]!): [Item]!
 }
 
 #===================================================================================================

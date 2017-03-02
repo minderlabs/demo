@@ -3,13 +3,14 @@
 //
 
 import React from 'react';
+import { compose } from 'react-apollo';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ItemReducer, ItemFragment, UpdateItemMutation } from 'minder-core';
-import { ReactUtil } from 'minder-ux';
+import { ItemReducer, ItemFragment, MutationUtil } from 'minder-core';
+import { ReactUtil, TextBox } from 'minder-ux';
 
-import { composeItem } from '../framework/item_factory';
+import { connectItemReducer } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -58,6 +59,55 @@ export class ItemCanvasComponent extends React.Component {
   }
 }
 
+/**
+ * Canvas Header.
+ */
+export class ItemCanvasHeaderComponent extends React.Component {
+
+  static propTypes = {
+    toolbar: React.PropTypes.object
+  };
+
+  handleUpdate(title) {
+    let { mutator } = this.context;
+    let { item } = this.props;
+
+    if (title != item.title) {
+      mutator.updateItem(item, [
+        MutationUtil.createFieldMutation('title', 'string', title)
+      ]);
+    }
+  }
+
+  render() {
+    return ReactUtil.render(this, () => {
+      let { item, toolbar } = this.props;
+      let { title } = item;
+
+      // TODO(burdon): Cancel button.
+
+      return (
+        <div className="ux-row ux-expand">
+
+          <div className="ux-navbar-buttons">
+            { toolbar }
+          </div>
+
+          <div className="ux-title ux-expand">
+            <TextBox value={ title }
+                     className="ux-expand"
+                     placeholder="Title"
+                     notEmpty={ true }
+                     clickToEdit={ true }
+                     onEnter={ this.handleUpdate.bind(this) }/>
+          </div>
+
+        </div>
+      );
+    }, false);
+  }
+}
+
 //
 // HOC.
 //
@@ -66,8 +116,7 @@ export class ItemCanvasComponent extends React.Component {
  * Type-specific query.
  */
 const ItemQuery = gql`
-  query ItemQuery($itemId: ID!) { 
-    
+  query ItemQuery($itemId: ID!) {
     item(itemId: $itemId) {
       ...ItemFragment
     }
@@ -76,15 +125,10 @@ const ItemQuery = gql`
   ${ItemFragment}  
 `;
 
-export const ItemCanvas = composeItem(
-  new ItemReducer({
-    query: {
-      type: ItemQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    }
-  })
+export const ItemCanvas = compose(
+  connectItemReducer(ItemReducer.graphql(ItemQuery))
 )(ItemCanvasComponent);
+
+export const ItemCanvasHeader = compose(
+  connectItemReducer(ItemReducer.graphql(ItemQuery))
+)(ItemCanvasHeaderComponent);

@@ -30,7 +30,7 @@ import { loginRouter, AuthManager } from './auth';
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { clientRouter, ClientManager } from './client';
 import { Loader } from './data/loader';
-import { TestData } from './data/testing';
+import { TestGenerator } from './data/testing';
 import { testingRouter } from './testing';
 import { loggingRouter } from './logger';
 
@@ -53,7 +53,6 @@ process.on('uncaughtException', handleError);
 
 // https://nodejs.org/api/process.html#process_event_unhandledrejection
 process.on('unhandledRejection', handleError);
-
 
 //
 // Env.
@@ -112,14 +111,21 @@ const authManager = new AuthManager(firebase.admin, firebase.systemStore);
 // Database.
 //
 
+const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SETTINGS, false);
+
 const defaultItemStore = testing ?
   new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER) : firebase.itemStore;
 
-const database = new Database(idGenerator, matcher)
+const database = new Database()
 
   .registerItemStore(firebase.systemStore)
+  .registerItemStore(settingsStore)
   .registerItemStore(defaultItemStore)
 
+  // TODO(burdon): Required for queryItems; implement simple Key range look-up for ItemStore (e.g., Type=*).
+  // TODO(burdon): Distinguish search from basic lookup.
+  .registerQueryProcessor(firebase.systemStore)
+  .registerQueryProcessor(settingsStore)
   .registerQueryProcessor(defaultItemStore)
 
   .onMutation(() => {
@@ -160,13 +166,21 @@ if (botkitManager) {
 
 let loader = new Loader(database);
 
+logger.log('Loading data...');
 let loading = Promise.all([
   // Do in parallel.
   loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM),
-  loader.parse(require('./data/startup.json')),
-  loader.parse(require('./data/demo.json'))
+  loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS),
+  loader.parse(require('./data/bootstrap.json'))
 ]).then(() => {
-  return loader.initGroups();
+  logger.log('Initializing groups...');
+  return loader.initGroups().then(() => {
+
+    if (testing) {
+      logger.log('Generating test data...');
+      return new TestGenerator(database).generate();
+    }
+  });
 });
 
 
@@ -174,27 +188,6 @@ let loading = Promise.all([
 // Test data.
 //
 
-if (testing) {
-  loading.then(groups => {
-    // TODO(burdon): Randomly select group for randomizer runs.
-    let context = { groupId: 'minderlabs' };
-    let itemStoreRandomizer = TestData.randomizer(database, database.getItemStore(), context);
-    return Promise.all([
-      itemStoreRandomizer.generate('Task', 30, TestData.TaskFields(itemStoreRandomizer)),
-      itemStoreRandomizer.generate('Contact', 5)
-    ]).then(() => {
-
-      // Test external data.
-      // const testItemStore = new MemcacheItemStore(idGenerator, matcher, memcache, 'testing');
-      // database.registerQueryProcessor(testItemStore);
-      //
-      // testItemStore.clear().then(() => {
-      //   let testItemStoreRandomizer = TestData.randomizer(database, testItemStore);
-      //   return testItemStoreRandomizer.generate('Contact', 5);
-      // });
-    });
-  });
-}
 
 
 //

@@ -3,10 +3,13 @@
 //
 
 import React from 'react';
-import { connect } from 'react-redux';
+import { compose } from 'react-apollo';
+
+import { Mutator } from 'minder-core';
 
 import { Const } from '../../../common/defs';
 
+import { Navbar } from '../component/navbar';
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
 import FolderView from '../view/folder';
@@ -36,21 +39,26 @@ class FinderActivity extends React.Component {
   render() {
     let { config, params: { folder='inbox' } } = this.props;
 
+    let navbar = <Navbar/>;
+
     let finder = <FolderView folder={ folder }/>;
 
     let platform = _.get(config, 'app.platform');
     if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {
       return (
-        <FullLayout>
+        <FullLayout navbar={ navbar }>
           { finder }
         </FullLayout>
       )
     } else {
       return (
-        <SplitLayout nav={ finder }/>
+        <SplitLayout navbar={ navbar } finder={ finder }/>
       )
     }
   }
 }
 
-export default connect(Activity.mapStateToProps, Activity.mapDispatchToProps)(FinderActivity);
+export default compose(
+  Activity.connect(),
+  Mutator.graphql()
+)(FinderActivity);

@@ -90,4 +90,24 @@ export class TypeRegistry {
     // Default.
     return <ItemCanvas itemId={ itemId }/>;
   }
+
+  /**
+   * Canvas toolbar.
+   *
+   * @param itemId
+   * @param canvas
+   * @returns {*}
+   */
+  toolbar(itemId, canvas='def') {
+    console.assert(itemId);
+    let { type } = ID.fromGlobalId(itemId);
+    let spec = this._types.get(type);
+    if (spec) {
+      let factory = spec.toolbar;
+      return factory && factory(itemId);
+    }
+
+    // Default.
+    return <div/>;
+  }
 }

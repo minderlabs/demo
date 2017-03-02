@@ -4,6 +4,7 @@
 # Misc tools.
 #
 
+brew install hilite
 brew install jq
 brew install memcached
 brew install npm

@@ -9,7 +9,7 @@
   },
   "main": "src/index.js",
   "devDependencies": {
-    "babel-cli": "^6.16.0",
+    "babel-cli": "^6.23.0",
     "babel-core": "^6.17.0",
     "babel-loader": "^6.2.5",
     "babel-plugin-inline-import": "^2.0.4",
@@ -72,6 +72,7 @@
     "//": "NOTE: Restart after updates to dependent libs (i.e., minder-core)",
     "test": "BABEL_DISABLE_CACHE=1 mocha --require babel-polyfill --compilers js:babel-register \"src/**/*.test.js\"",
     "test-watch": "BABEL_DISABLE_CACHE=1 mocha --watch --require babel-polyfill --compilers js:babel-register \"src/**/*.test.js\"",
+    "firebase-admin": "BABEL_DISABLE_CACHE=1 babel-node ./src/db/firebase/firebase_admin.js",
     "update-schema": "BABEL_DISABLE_CACHE=1 babel-node ./tools/babel/update_schema.js"
   }
 }

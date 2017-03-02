@@ -11,13 +11,14 @@ export const GlobalAppReducer = (state, action) => {
   switch (action.type) {
 
     //
+    // TODO(burdon): Remove.
     // Listen for Apollo query results (and cached results).
     //
     case 'APOLLO_QUERY_RESULT':
     case 'APOLLO_QUERY_RESULT_CLIENT': {
       let { queryId } = action;
 
-      // Find the query matching NavBar updates.
+      // Find the query matching Navbar updates.
       let query = state.apollo.queries[queryId];
       if (_.get(query.metadata, 'subscription') == GlobalAppReducer.SUBSCRIPTION.NAVBAR_ITEM) {
         let item = _.get(action, 'result.data.item');
@@ -33,6 +34,8 @@ export const GlobalAppReducer = (state, action) => {
 };
 
 GlobalAppReducer.SUBSCRIPTION = {
+
+  // TODO(burdon): Rename FOCUSED_ITEM (not navbar depenendent).
   NAVBAR_ITEM: 'NAVBAR_ITEM'
 };
 
@@ -50,8 +53,9 @@ export class AppAction {
   // TODO(burdon): Look for wrappers to make this simpler?
 
   static ACTION = {
-    REGISTER:     `${APP_NAMESPACE}/REGISTER`,
-    SEARCH:       `${APP_NAMESPACE}/SEARCH`
+    REGISTER:       `${APP_NAMESPACE}/REGISTER`,
+    SEARCH:         `${APP_NAMESPACE}/SEARCH`,
+    CANVAS_STATE:   `${APP_NAMESPACE}/CANVAS_STATE`
   };
 
   static get namespace() {
@@ -87,6 +91,13 @@ export class AppAction {
       value: text
     };
   }
+
+  static setCanvasState(canvas) {
+    return {
+      type: AppAction.ACTION.CANVAS_STATE,
+      value: canvas
+    }
+  }
 }
 
 /**
@@ -102,16 +113,20 @@ export const AppReducer = (injector, config, registration=undefined) => {
     // NOTE: Needed since can't be passed via React context to HOC containers.
     injector: injector,
 
+    // Client config.
     config: config,
 
+    // Client registration.
     registration,
 
+    // Search bar.
     search: {
       text: ''
     },
 
-    navbar: {
-      title: ''
+    // Board type.
+    canvas: {
+      boardAlias: undefined
     }
   };
 
@@ -126,6 +141,10 @@ export const AppReducer = (injector, config, registration=undefined) => {
       // TODO(burdon): Get search query (not just text).
       case AppAction.ACTION.SEARCH: {
         return _.set(state, 'search.text', action.value);
+      }
+
+      case AppAction.ACTION.CANVAS_STATE: {
+        return _.set(state, 'canvas', action.value);
       }
     }
 

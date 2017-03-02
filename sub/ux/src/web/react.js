@@ -15,15 +15,20 @@ export class ReactUtil {
    *
    * @param cls
    * @param render
+   * @param showLoading
    * @return {Element}
    */
-  static render(cls, render) {
+  static render(cls, render, showLoading=true) {
     let { loading, error } = cls.props;
 
     if (loading) {
-      return (
-        <div className="ux-loading"><div><span/></div></div>
-      );
+      if (showLoading) {
+        return (
+          <div className="ux-loading"><div><span/></div></div>
+        );
+      } else {
+        return <div/>;
+      }
     } else if (error) {
       console.error(error);
       return (
@@ -32,7 +37,7 @@ export class ReactUtil {
     } else {
       try {
         // Ready.
-        return render();
+        return render(cls.props, cls.context);
       } catch(error) {
         // TODO(burdon): Log if prod and show standard error.
         let message = error.message || 'Error rendering.';

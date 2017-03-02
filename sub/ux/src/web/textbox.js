@@ -37,8 +37,8 @@ export class TextBox extends React.Component {
     onKeyDown:      React.PropTypes.func,
     placeholder:    React.PropTypes.string,
     value:          React.PropTypes.string,
-
-    clickToEdit:    React.PropTypes.bool
+    clickToEdit:    React.PropTypes.bool,
+    notEmpty:       React.PropTypes.bool
   };
 
   static defaultProps = {
@@ -130,6 +130,11 @@ export class TextBox extends React.Component {
       // ENTER
       case 13: {
         this.fireTextChange(true);
+        let text = this.value.trim();
+        if (this.props.notEmpty && !text) {
+          break;
+        }
+
         this.props.onEnter && this.props.onEnter(this.value, event);
         if (this.props.clickToEdit) {
           this.setState({
@@ -141,9 +146,10 @@ export class TextBox extends React.Component {
 
       // ESCAPE
       case 27: {
-        this.props.onCancel && this.props.onCancel(this.value, event);
+        this.props.onCancel && this.props.onCancel(this.props.value, event);
         if (this.props.clickToEdit) {
           this.setState({
+            value: this.props.value,
             readOnly: true
           });
         }
@@ -170,20 +176,26 @@ export class TextBox extends React.Component {
     let { autoFocus, className, placeholder } = this.props;
     let { readOnly, value } = this.state;
 
-    return (
-      readOnly ?
-        <div onClick={ this.handleClickToEdit.bind(this) }>{ value }</div> :
+    // TODO(burdon): Buttons.
+    if (readOnly) {
+      return (
+        <div className={ DomUtil.className('ux-textbox', 'ux-readonly', className) }
+             onClick={ this.handleClickToEdit.bind(this) }>{ value }</div>
+      );
+    } else {
+      return (
         <input ref="input"
                type="text"
-               spellCheck={ false }
-               className={ DomUtil.className('ux-textbox', className) }
-               autoFocus={ autoFocus ? 'autoFocus' : '' }
                value={ value || '' }
+               className={ DomUtil.className('ux-textbox', className) }
+               spellCheck={ false }
+               autoFocus={ autoFocus ? 'autoFocus' : '' }
                placeholder={ placeholder }
                onChange={ this.handleTextChange.bind(this) }
                onKeyDown={ this.handleKeyDown.bind(this) }
                onFocus={ this.handleFocusChange.bind(this, true) }
                onBlur={ this.handleFocusChange.bind(this, false) }/>
-    );
+      );
+    }
   }
 }

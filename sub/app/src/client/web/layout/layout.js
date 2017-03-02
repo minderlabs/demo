@@ -8,14 +8,13 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { DomUtil, ID, IdGenerator, Mutator, MutationUtil, UpdateItemMutation } from 'minder-core';
-import { ReactUtil, Sidebar, SidebarToggle, TextBox } from 'minder-ux';
+import { DomUtil, ID, IdGenerator, Mutator, UpsertItemsMutation } from 'minder-core';
+import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
-import { NavBar } from '../component/navbar';
 import { SidePanel } from '../component/sidepanel';
 import { StatusBar } from '../component/statusbar';
 
@@ -34,12 +33,8 @@ export class BaseLayout extends React.Component {
   };
 
   static propTypes = {
-    className: React.PropTypes.string,
-    search: React.PropTypes.bool
-  };
-
-  static defaultProps = {
-    search: true
+    navbar: React.PropTypes.object.isRequired,
+    className: React.PropTypes.string
   };
 
   constructor() {
@@ -67,20 +62,10 @@ export class BaseLayout extends React.Component {
     }
   }
 
-  handleTitleUpdate(title) {
-    let { mutator, navbar } = this.props;
-    let { item } = navbar;
-    if (title != item.title) {
-      mutator.updateItem(item, [
-        MutationUtil.createFieldMutation('title', 'string', title)
-      ]);
-    }
-  }
-
   render() {
     return ReactUtil.render(this, () => {
       let { config, typeRegistry } = this.context;
-      let { children, navbar, search, className } = this.props;
+      let { navbar, search, children, className } = this.props;
       let { viewer } = this.props; // Data.
 
       let sidePanel = <SidePanel typeRegistry={ typeRegistry }
@@ -88,11 +73,15 @@ export class BaseLayout extends React.Component {
                                  group={ viewer.group }
                                  projects={ viewer.group.projects }/>;
 
+      let platform = _.get(config, 'app.platform');
+      let platformClassName = 'app-platform-' + platform;
+
       return (
         <div className="ux-fullscreen">
-          <div className={ DomUtil.className('ux-main-layout', 'app-base-layout', className) }>
+          <div className={ DomUtil.className('ux-main-layout', 'app-base-layout', platformClassName, className) }>
 
             {/* Header */}
+            { platform !== Const.PLATFORM.CRX &&
             <div className="ux-header ux-row">
               <div className="ux-row ux-expand">
                 <SidebarToggle sidebar={ () => this.refs.sidebar }/>
@@ -100,11 +89,9 @@ export class BaseLayout extends React.Component {
               </div>
               <div>
                 <ul className="ux-inline">
-                  { _.get(config, 'app.platform') !== Const.PLATFORM.CRX &&
                   <li>
                     <Link to={ Path.canvas(ID.toGlobalId('Group', viewer.group.id)) }>{ viewer.group.title }</Link>
                   </li>
-                  }
 
                   <li>
                     <a target="MINDER_PROFILE" href="/user/profile">{ viewer.user.title }</a>
@@ -115,13 +102,10 @@ export class BaseLayout extends React.Component {
                 </ul>
               </div>
             </div>
+            }
 
             {/* Nav bar */}
-            <NavBar search={ search }>
-              <TextBox value={ _.get(navbar, 'item.title') }
-                       clickToEdit={ true }
-                       onEnter={ this.handleTitleUpdate.bind(this) }/>
-            </NavBar>
+            { navbar }
 
             {/* Sidebar */}
             <Sidebar ref="sidebar" sidebar={ sidePanel }>
@@ -181,20 +165,14 @@ const LayoutQuery = gql`
   }
 `;
 
-// TODO(burdon): Get item from state (ID and TITLE)
 const mapStateToProps = (state, ownProps) => {
-  let { injector, navbar: { item } } = AppAction.getState(state);
+  let { injector } = AppAction.getState(state);
 
   // Required by Mutator.
   let idGenerator = injector.get(IdGenerator);
 
-  // Updated by Apollo queries (esp. item_factory).
-  // See APOLLO_QUERY_RESULT in GlobalAppState reducer.
   return {
-    idGenerator,
-    navbar: {
-      item
-    }
+    idGenerator
   }
 };
 
@@ -208,8 +186,6 @@ export default compose(
     props: ({ ownProps, data }) => {
       return _.pick(data, ['loading', 'error', 'viewer'])
     }
-  }),
-
-  Mutator.graphql(UpdateItemMutation)
+  })
 
 )(BaseLayout);

@@ -81,7 +81,6 @@ export const TaskFragment = gql`
     title
     description
 
-    status
     project {
       id
       title
@@ -94,6 +93,7 @@ export const TaskFragment = gql`
       id
       title
     }
+    status
 
     # TODO(burdon): Required for sub-task mutations.
     tasks {
@@ -159,28 +159,4 @@ export const UserFragment = gql`
       status
     }
   }
-`;
-
-//
-// Mutation fragments.
-// TODO(burdon): Doc (fields that are returned from the server after the mutation).
-//
-
-/**
- * Upsert item.
- */
-export const UpdateItemMutation = gql`
-  mutation UpdateItemMutation($itemId: ID!, $mutations: [ObjectMutationInput]!) {
-    updateItem(itemId: $itemId, mutations: $mutations) {
-      ...ItemFragment
-      ...TaskFragment
-      ...ProjectBoardFragment
-    }
-  }
-  
-  ${ValueFragment}
-  ${ItemFragment}
-
-  ${ProjectBoardFragment}
-  ${TaskFragment}
 `;

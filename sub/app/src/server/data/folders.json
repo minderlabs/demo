@@ -7,6 +7,7 @@
       "title": "Inbox",
       "icon": "inbox",
       "filter": {
+        "namespace": "user",
         "matchAll": true,
         "expr": {
           "op": "AND",

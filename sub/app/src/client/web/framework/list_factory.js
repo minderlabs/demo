@@ -14,7 +14,7 @@ import {
   DocumentFragment,
   ProjectFragment,
   TaskFragment,
-  UpdateItemMutation
+  UpsertItemsMutation
 } from 'minder-core';
 
 import { List, ListItem } from 'minder-ux';
@@ -51,6 +51,7 @@ const mapStateToProps = (state, ownProps) => {
  * @param {ListReducer} reducer Mutation reducer object.
  * @returns {React.Component} List control.
  */
+// TODO(burdon): Don't wrap compose. Just provide containers.
 function composeList(reducer) {
   console.assert(reducer);
   return compose(
@@ -118,10 +119,7 @@ function composeList(reducer) {
           }
         }
       }
-    }),
-
-    // Provides mutator property.
-    Mutator.graphql(reducer.mutation)
+    })
 
   )(List);
 }
@@ -165,7 +163,6 @@ const BasicItemFragment = gql`
 
 const BasicSearchQuery = gql`
   query BasicSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
-
     search(filter: $filter, offset: $offset, count: $count) {
       ...BasicItemFragment
 
@@ -182,16 +179,7 @@ const BasicSearchQuery = gql`
 `;
 
 export const BasicSearchList = composeList(
-  new ListReducer({
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    },
-    query: {
-      type: BasicSearchQuery,
-      path: 'search'
-    }
-  })
+  new ListReducer(BasicSearchQuery)
 );
 
 const CustomIcon = ListItem.createInlineComponent((props, context) => {
@@ -270,7 +258,6 @@ const CardItemFragment = gql`
 
 const CardSearchQuery = gql`
   query CardSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
-
     search(filter: $filter, offset: $offset, count: $count) {
       ...CardItemFragment
 
@@ -286,14 +273,5 @@ const CardSearchQuery = gql`
 `;
 
 export const CardSearchList = composeList(
-  new ListReducer({
-    query: {
-      type: CardSearchQuery,
-      path: 'search'
-    },
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    }
-  })
+  new ListReducer(CardSearchQuery)
 );

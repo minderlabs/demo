@@ -3,102 +3,166 @@
 //
 
 import _ from 'lodash';
-import moment from 'moment';
 
-import { Async, Randomizer, TypeUtil } from 'minder-core';
+import { ID, MutationUtil, Randomizer, Transforms } from 'minder-core';
 import { Database } from 'minder-graphql';
 
 /**
  * Test data.
  */
-export class TestData {
+export class TestGenerator {
 
-  static randomizer(database, itemStore, context={}) {
+  // TODO(burdon): Created time (in past).
+  // TODO(burdon): Should create links (e.g., Project <===> Task.)
 
-    /**
-     * Functor to query items.
-     * @param type
-     * @returns {Promise}
-     */
-    const queryItems = (type) => {
-      let namespace;
-      switch (type) {
-        case 'User':
-        case 'Group':
-          namespace = Database.NAMESPACE.SYSTEM;
-          break;
+  /**
+   * Type Generators.
+   * @param database
+   * @constructor
+   */
+  static Generators = database => ({
 
-        default:
-          namespace = Database.NAMESPACE.USER;
-      }
+    // TODO(burdon): Return mutations (to multiple items)? Are IDs resolved?
+    // TODO(burdon): Create mutations with references (like client side mutator transaction).
 
-      let filter = {
-        namespace, type
-      };
+    'Task': {
 
-      return database.queryItems(context, {}, filter);
-    };
+      bucket: (item, context) => context.groupId,
 
-    return new Randomizer(itemStore, queryItems, {
-      created: moment().subtract(10, 'days').unix()
-    });
-  }
+      // TODO(burdon): Set owner for all types in Randomizer?
+      owner: (item, context) => context.userId,
 
-  static TaskFields = (randomizer) => ({
+      labels: (item, context, randomizer) =>
+        randomizer.chance.bool({ likelihood: 20 }) ? ['_favorite'] : [],
 
-    status: () => randomizer.chance.natural({ min: 0, max: 3 }),
+      title: (item, context, randomizer) =>
+        randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) }),
 
-    // TODO(burdon): Select Users, Project from Group (spec group in context).
+      description: (item, context, randomizer) =>
+        randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 10, max: 20 }) }),
 
-    owner: {
-      type: 'User',
-      likelihood: 100
-    },
+      status: (item, context, randomizer) => randomizer.chance.natural({ min: 0, max: 3 }),
 
-    assignee: {
-      type: 'User',
-      likelihood: 50
-    },
-
-    project: {
-      type: 'Project',
-      likelihood: 75,
-
-      //
-      // Create bi-directional links (add tasks to project).
-      //
-      onCreate: (randomizer, tasks) => {
-        let mutatedProjects = {};
-        return Async.iterateWithPromises(tasks, task => {
-          let projectId = task.project;
-          if (projectId) {
-            return randomizer.queryCache('Project').then(projects => {
-              console.assert(projects);
-
-              // Add to tasks to project.
-              let project = _.find(projects, project => project.id === projectId);
-              project.tasks = TypeUtil.maybeAppend(project.tasks, task.id);
-              mutatedProjects[projectId] = project;
-            }).then(() => {
-
-              // Create sub-tasks.
-              if (randomizer.chance.bool({ likelihood: 30 })) {
-                randomizer.generate('Task', randomizer.chance.natural({ min: 1, max: 3 }), {
-                  status: () => randomizer.chance.bool({ likelihood: 50 }) ? 0 : 3,
-                  owner: () => task.owner
-                }).then(tasks => {
-
-                  // Add sub-tasks to parent task.
-                  task.tasks = _.map(tasks, task => task.id);
-                  return randomizer.upsertItems([task]);
-                });
-              }
+      assignee: (item, context, randomizer) => {
+        if (randomizer.chance.bool()) {
+          let { groupId } = context;
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', groupId)
+            .then(group => {
+              console.assert(group);
+              return randomizer.chance.pickone(group.members);
             });
-          }
-        }).then(() => {
-          return randomizer.upsertItems(Object.values(mutatedProjects));
+        }
+      },
+
+      project: (item, context, randomizer) => {
+        return database.getQueryProcessor(Database.NAMESPACE.USER).queryItems(context, {}, {
+          type: 'Project'
+        }).then(projects => {
+          console.assert(!_.isEmpty(projects), 'No projects for: ' + JSON.stringify(context));
+          let project = randomizer.chance.pickone(projects);
+          return project.id;
         });
+      },
+
+      tasks: (item, context, randomizer) => {
+        let { groupId, userId } = context;
+        console.assert(groupId && userId);
+        let num = randomizer.chance.natural({ min: 0, max: 5 });
+        if (num) {
+          // TODO(burdon): Reuse generator? (but same project).
+          return database.getItemStore(Database.NAMESPACE.USER).upsertItems(context, _.times(num, i => ({
+            type: 'Task',
+            bucket: context.groupId,
+            owner: context.userId,
+            title: randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) }),
+            status: randomizer.chance.bool() ? 0 : 3,
+            project: item.project
+          }))).then(items => {
+            return _.map(items, item => item.id);
+          });
+        }
       }
     }
   });
+
+  /**
+   * Link Generators -- generate mutations.
+   */
+  static Linkers = {
+
+    'Task': (item, context) => {
+      return {
+        itemId: ID.toGlobalId('Project', item.project),
+        mutations: [
+          MutationUtil.createSetMutation('tasks', 'id', item.id)
+        ]
+      };
+    }
+  };
+
+  constructor(database) {
+    console.assert(database);
+    this._database = database;
+    this._randomizer = new Randomizer(TestGenerator.Generators(database), TestGenerator.Linkers);
+  }
+
+  /**
+   * Generate items for users.
+   */
+  generate() {
+    return this._database.getQueryProcessor(Database.NAMESPACE.SYSTEM)
+      .queryItems({}, {}, { type: 'User' })
+      .then(users => {
+        return Promise.all(_.map(users, user => {
+          let { id:userId, email } = user;
+
+          // Lookup by Groups for User.
+          // TODO(burdon): Should be enforced by store given context?
+          return this._database.getQueryProcessor(Database.NAMESPACE.SYSTEM)
+            .queryItems({ userId }, {}, {
+              type: 'Group',
+              expr: {
+                field: 'members', ref: '$CONTEXT.userId', comp: 'IN'
+              }
+            }).then(groups => {
+              return Promise.all(_.map(groups, group => {
+                let { id:groupId } = group;
+                let context = { groupId, userId };
+
+                let promises = [];
+
+                // Create Tasks for User.
+                promises.push(this._randomizer.generateItems(
+                  context, 'Task', this._randomizer.chance.natural({ min: 20, max: 30 }))
+                    .then(items => this.processItems(context, items)));
+
+                return Promise.all(promises);
+              }));
+            });
+        }));
+    });
+  }
+
+  /**
+   * Upsert created items, then generate links and upsert those.
+   */
+  processItems(context, items) {
+    let itemStore = this._database.getItemStore(Database.NAMESPACE.USER);
+
+    return itemStore.upsertItems(context, items).then(items => {
+
+      // Generate and save links.
+      return this._randomizer.generateLinkMutations(context, items).then(itemMutations => {
+
+        // Load and update items.
+        return Promise.all(_.each(itemMutations, itemMutation => {
+          let { type, id:itemId } = ID.fromGlobalId(itemMutation.itemId);
+          return itemStore.getItem(context, type, itemId).then(item => {
+            Transforms.applyObjectMutations(item, itemMutation.mutations);
+            return itemStore.upsertItem(context, item);
+          });
+        }));
+      })
+    })
+  }
 }

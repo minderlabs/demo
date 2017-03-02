@@ -43,6 +43,7 @@ module.exports = function(config) {
       // https://github.com/webpack/karma-webpack#alternative-usage
       // https://github.com/webpack-contrib/karma-webpack
       // https://webpack.github.io/docs/usage-with-karma.html
+      // TODO(burdon): Doesn't work.
       'src/webpack.tests.js': ['webpack', 'sourcemap']
     },
 

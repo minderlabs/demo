@@ -3,7 +3,6 @@
 //
 
 import React from 'react';
-import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
@@ -55,6 +54,8 @@ class AdminActivity extends React.Component {
     // TODO(burdon): Add to list.
     // TODO(burdon): Join whitelist with actual members.
 
+    let navbar = <div/>;
+
     let whitelist = null;
     if (groupId) {
       let group = _.find(groups, group => group.id == groupId);
@@ -69,7 +70,7 @@ class AdminActivity extends React.Component {
     }
 
     return (
-      <FullLayout search={ false }>
+      <FullLayout navbar={ navbar } search={ false }>
         <div className="ux-column app-admin">
           <h1>Groups</h1>
           <div className="ux-columns">
@@ -115,7 +116,7 @@ const AdminQuery = gql`
 
 export default compose(
 
-  connect(Activity.mapStateToProps, Activity.mapDispatchToProps),
+  Activity.connect(),
 
   graphql(AdminQuery, {
     options: (props) => ({

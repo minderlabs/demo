@@ -79,6 +79,8 @@ export class Async {
    * @param func Returns a value or promise.
    * @return {Promise}
    */
+  // TODO(burdon): Pass in ordered collection of promises.
+  // TODO(burdon): Return array of values from each promise.
   static iterateWithPromises(collection, func) {
     let p = Promise.resolve();
 

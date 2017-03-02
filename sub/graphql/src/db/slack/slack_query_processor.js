@@ -15,17 +15,18 @@ export class SlackQueryProcessor extends QueryProcessor {
 
   static NAMESPACE = 'slack.com';
 
-  constructor(idGenerator, matcher, botManager) {
-    super(idGenerator, matcher, SlackQueryProcessor.NAMESPACE);
-    this.botManager = botManager;
+  constructor(idGenerator, botManager) {
+    super(SlackQueryProcessor.NAMESPACE);
+    console.assert(idGenerator && botManager);
+    this._idGenerator = idGenerator;
+    this._botManager = botManager;
   }
 
   getBot() {
     // TODO(madadam): get bot by teamID, from context.user.credentials.slack.teamId
     // For demo, hard-code our Slack team:
     const botToken = 'xoxb-58769251330-HTpLu0jswjM8OmVLdKaDgJkC';
-
-    return this.botManager.getBot(botToken);
+    return this._botManager.getBot(botToken);
   }
 
   /**
@@ -59,11 +60,12 @@ export class SlackQueryProcessor extends QueryProcessor {
   }
 
   _search(query) {
-    let items = [];
     let bot = this.getBot();
     if (!bot || !query) {
-      return Promise.resolve(items);
+      return Promise.resolve([]);
     }
+
+    let items = [];
     const token = bot.config.incoming_webhook.token;
     return new Promise((resolve, reject) => {
       bot.api.search.all(

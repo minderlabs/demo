@@ -1,0 +1,35 @@
+{
+  "Project": [
+    {
+      "group": "minderlabs_com",
+      "title": "Eng Tasks"
+    },
+    {
+      "group": "minderlabs_com",
+      "title": "Funding Pipeline"
+    },
+
+    {
+      "group": "rich_burdon_gmail_com",
+      "title": "Rich's Tasks"
+    },
+    {
+      "group": "rich_burdon_gmail_com",
+      "title": "Rich's Notes"
+    },
+
+    {
+      "group": "madadam_gamil_com",
+      "title": "Adam's Tasks"
+    }
+  ],
+
+  "Contact": [
+    {
+      "bucket": "minderlabs_com",
+      "id": "contact-alice",
+      "title": "Alice Braintree",
+      "email": "alice.braintree@gmail.com"
+    }
+  ]
+}

@@ -57,9 +57,8 @@ const idGenerator = new IdGenerator(1000);
 const matcher = new Matcher();
 
 function createDatabase() {
-  return new Database(idGenerator, matcher)
-    .registerItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SYSTEM))
-    .registerItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER));
+  return new Database()
+    .registerItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SYSTEM, false));
 }
 
 //
@@ -75,6 +74,7 @@ function createDatabase() {
 // https://github.com/apollostack/graphql-tools
 //
 
+if (false)
 describe('GraphQL Mock Server:', () => {
   let context = { userId: 'minder' };
 
@@ -120,32 +120,37 @@ describe('GraphQL Executable Schema:', () => {
   let context = { userId: 'minder' };
 
   let database = createDatabase();
-  database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }], Database.NAMESPACE.SYSTEM);
 
   // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html
   let schema = makeExecutableSchema({
     typeDefs: Resolvers.typeDefs,
     resolvers: Resolvers.getResolvers(database),
     logger: {
-      log: (error) => console.log('Schema Error', error)
+      log: error => console.log('Schema Error', error)
     }
   });
 
-  it('Query viewer', (done) => {
-    database.getItem(context, 'User', 'minder', Database.NAMESPACE.SYSTEM).then(item => {
-      expect(item.id).to.equal('minder');
+  database.getItemStore(Database.NAMESPACE.SYSTEM)
+    .upsertItems(context, [
+      { id: 'minder', type: 'User', title: 'Minder' }
+    ])
+    .then(() => {
+      it('Query viewer', (done) => {
+        database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', 'minder').then(item => {
+          expect(item.id).to.equal('minder');
 
-      // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
-      graphql(schema, query, null, context).then(result => test(result, {
-        viewer: {
-          user: {
-            id: 'minder',
-            title: 'Minder'
-          }
-        }
-      }).then(done));
+          // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
+          graphql(schema, query, null, context).then(result => test(result, {
+            viewer: {
+              user: {
+                id: 'minder',
+                title: 'Minder'
+              }
+            }
+          }).then(done));
+        });
+      });
     });
-  });
 });
 
 //
@@ -157,7 +162,6 @@ describe('GraphQL JS API:', () => {
   let context = { userId: 'minder' };
 
   let database = createDatabase();
-  database.upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }], Database.NAMESPACE.SYSTEM);
 
   let schema = new GraphQLSchema({
     query: new GraphQLObjectType({
@@ -185,7 +189,7 @@ describe('GraphQL JS API:', () => {
 
           resolve(root, args, context, info) {
             let { userId } = context;
-            return database.getItem(context, 'User', userId, Database.NAMESPACE.SYSTEM).then(user => {
+            return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', userId).then(user => {
               return {
                 user
               }
@@ -196,24 +200,27 @@ describe('GraphQL JS API:', () => {
     })
   });
 
-  if (false) {
-    it('Generate JSON', (done) => {
-      graphql(schema, introspectionQuery).then((result) => {
-        console.log('SCHEMA:\n', JSON.stringify(result, 0, 2));
-        done();
-      })
-    });
-  }
-
-  it('Query viewer', (done) => {
-    // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
-    graphql(schema, query, null, context).then((result) => test(result, {
-      viewer: {
-        user: {
-          id: 'minder',
-          title: 'Minder'
-        }
-      }
-    })).then(done);
+  it('Generate JSON', (done) => {
+    graphql(schema, introspectionQuery).then(result => {
+//    console.log('SCHEMA:\n', JSON.stringify(result, 0, 2));
+      done();
+    })
   });
+
+  database.getItemStore(Database.NAMESPACE.SYSTEM)
+    .upsertItems(context, [{ id: 'minder', type: 'User', title: 'Minder' }])
+    .then(() => {
+
+      it('Query viewer', (done) => {
+        // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
+        graphql(schema, query, null, context).then(result => test(result, {
+          viewer: {
+            user: {
+              id: 'minder',
+              title: 'Minder'
+            }
+          }
+        })).then(done);
+      });
+    });
 });

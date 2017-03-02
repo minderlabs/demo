@@ -3,13 +3,14 @@
 //
 
 import React from 'react';
+import { compose } from 'react-apollo';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { ItemReducer, ItemFragment, ContactFragment, UpdateItemMutation } from 'minder-core';
+import { ItemReducer, ItemFragment, ContactFragment } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
-import { composeItem } from '../framework/item_factory';
+import { connectItemReducer } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -67,8 +68,7 @@ export class ContactCanvasComponent extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 const ContactQuery = gql`
-  query ContactQuery($itemId: ID!) { 
-    
+  query ContactQuery($itemId: ID!) {
     item(itemId: $itemId) {
       ...ItemFragment
       ...ContactFragment
@@ -79,15 +79,6 @@ const ContactQuery = gql`
   ${ContactFragment}  
 `;
 
-export const ContactCanvas = composeItem(
-  new ItemReducer({
-    query: {
-      type: ContactQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    }
-  })
+export const ContactCanvas = compose(
+  connectItemReducer(ItemReducer.graphql(ContactQuery))
 )(ContactCanvasComponent);

@@ -3,15 +3,18 @@
 //
 
 import React from 'react';
+import { compose } from 'react-apollo';
+import { connect } from 'react-redux';
 import gql from 'graphql-tag';
 
-import { ID, ItemReducer, MutationUtil, TypeUtil } from 'minder-core';
-import { ItemFragment, ProjectBoardFragment, TaskFragment, UpdateItemMutation } from 'minder-core';
+import { DomUtil, ID, ItemReducer, MutationUtil } from 'minder-core';
+import { ItemFragment, ProjectBoardFragment, TaskFragment } from 'minder-core';
 import { Board, DragOrderModel, List, ReactUtil } from 'minder-ux';
 
 import { Path } from '../../common/path';
+import { AppAction } from '../../common/reducers';
 
-import { composeItem } from '../framework/item_factory';
+import { connectItemReducer } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -85,7 +88,7 @@ class ProjectBoardCanvasComponent extends React.Component {
   /**
    * The board alias determines the layout of the board (columns, etc.)
    */
-  static boardAdapters = {
+  static BoardAdapters = {
 
     /**
      * Columns by status.
@@ -108,13 +111,14 @@ class ProjectBoardCanvasComponent extends React.Component {
         }));
       },
 
-      columnMapper: (userId) => (columns, item) => {
+      columnMapper: (groupId, userId) => (columns, item) => {
         let idx = _.findIndex(columns, column => column.value == _.get(item, 'status'));
-        return (item.bucket) ? null : (idx != -1) && columns[idx].id;
+        return (idx != -1) && columns[idx].id;
       },
 
-      onCreateMutations: (userId, column) => {
+      onCreateMutations: (groupId, userId, column) => {
         return [
+          MutationUtil.createFieldMutation('bucket', 'id', groupId),
           MutationUtil.createFieldMutation('status', 'int', column.value)
         ];
       },
@@ -146,13 +150,14 @@ class ProjectBoardCanvasComponent extends React.Component {
         }, users);
       },
 
-      columnMapper: (userId) => (columns, item) => {
+      columnMapper: (groupId, userId) => (columns, item) => {
         let idx = _.findIndex(columns, column => column.value == _.get(item, 'assignee.id'));
-        return (item.bucket) ? null : (idx == -1) ? ProjectBoardCanvasComponent.COLUMN_ICEBOX : columns[idx].id;
+        return (idx == -1) ? ProjectBoardCanvasComponent.COLUMN_ICEBOX : columns[idx].id;
       },
 
-      onCreateMutations: (userId, column) => {
+      onCreateMutations: (groupId, userId, column) => {
         return (column.id != ProjectBoardCanvasComponent.COLUMN_ICEBOX) && [
+          MutationUtil.createFieldMutation('bucket', 'id', groupId),
           MutationUtil.createFieldMutation('assignee', 'id', column.value)
         ];
       },
@@ -183,12 +188,11 @@ class ProjectBoardCanvasComponent extends React.Component {
         }];
       },
 
-      columnMapper: (userId) => (columns, item) => {
-        console.log(JSON.stringify(item));
+      columnMapper: (groupId, userId) => (columns, item) => {
         return (item.bucket == userId) ? 'private' : null;
       },
 
-      onCreateMutations: (userId, column) => {
+      onCreateMutations: (groupId, userId, column) => {
         return [
           MutationUtil.createFieldMutation('bucket', 'id', userId)
         ];
@@ -200,37 +204,23 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   static contextTypes = {
     typeRegistry: React.PropTypes.object.isRequired,
-    navigator: React.PropTypes.object.isRequired
-  };
-
-  static childContextTypes = {
-    mutator: React.PropTypes.object
+    navigator: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
-    mutator: React.PropTypes.object.isRequired,
     registration: React.PropTypes.object.isRequired,
     item: React.PropTypes.object
   };
 
   state = {
-    itemOrderModel: new DragOrderModel(),
-    boardAdapter: ProjectBoardCanvasComponent.boardAdapters['status'],
-    boardAlias: 'status'
+    itemOrderModel: new DragOrderModel()
   };
 
-  getChildContext() {
-    let { mutator } = this.props;
-    return {
-      mutator
-    };
-  }
-
-  handleSetBoardType(boardAlias) {
-    this.setState({
-      boardAdapter: ProjectBoardCanvasComponent.boardAdapters[boardAlias],
-      boardAlias
-    });
+  get boardAdapter() {
+    let { boardAlias } = this.props;
+    console.assert(boardAlias);
+    return ProjectBoardCanvasComponent.BoardAdapters[boardAlias];
   }
 
   handleItemSelect(item) {
@@ -238,39 +228,36 @@ class ProjectBoardCanvasComponent extends React.Component {
   }
 
   handleItemUpdate(item, mutations, column) {
-    let { registration: { userId }, mutator } = this.props;
+    let { mutator } = this.context;
+    let { registration: { groupId, userId } } = this.props;
     console.assert(userId);
 
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
       let { item:project } = this.props;
-      let { boardAdapter } = this.state;
 
-      // Create task (with custom and board-specific mutations.
-      let taskId = mutator.createItem('Task', _.concat(
-        [
-          // TODO(burdon): Move into mutator (default for item). Enforce on write.
+      mutator
+        .batch()
+        .createItem('Task', _.compact(_.concat(
           MutationUtil.createFieldMutation('owner', 'id', userId),
-
-          MutationUtil.createFieldMutation('project', 'id', project.id)
-        ],
-        boardAdapter.onCreateMutations(userId, column) || [],
-        mutations
-      ));
-
-      mutator.updateItem(project, [
-        MutationUtil.createSetMutation('tasks', 'id', taskId)
-      ]);
+          MutationUtil.createFieldMutation('project', 'id', project.id),
+          this.boardAdapter.onCreateMutations(groupId, userId, column),
+          mutations
+        )), 'task')
+        .updateItem(project, [
+          MutationUtil.createSetMutation('tasks', 'id', '${task}')
+        ])
+        .commit();
     }
   }
 
   handleItemDrop(column, item, changes) {
-    let { item:project, mutator } = this.props;
-    let { boardAdapter, boardAlias } = this.state;
+    let { mutator } = this.context;
+    let { item:project, boardAlias } = this.props;
 
     // Update item for column.
-    let dropMutations = boardAdapter.onDropMutations(item, column);
+    let dropMutations = this.boardAdapter.onDropMutations(item, column);
     if (dropMutations) {
       mutator.updateItem(item, dropMutations);
     }
@@ -333,9 +320,9 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-        let { registration: { userId }, item:project, refetch, mutator } = this.props;
-      let { boardAdapter, boardAlias, itemOrderModel } = this.state;
-      let { typeRegistry } = this.context;  // TODO(burdon): Get from compose_item props.
+      let { typeRegistry } = this.context;
+      let { registration: { groupId, userId }, item:project, refetch, boardAlias } = this.props;
+      let { itemOrderModel } = this.state;
 
       // All items for board.
       let items = _.get(project, 'tasks', []);
@@ -344,29 +331,14 @@ class ProjectBoardCanvasComponent extends React.Component {
       let board = _.find(_.get(project, 'boards'), board => board.alias == boardAlias);
       itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
 
-      // Memu items.
-      // TODO(burdon): List board types.
-      const Menu = (props) => {
-        return (
-          <div className="ux-bar">
-            <i className="ux-icon ux-icon-action" title="Status Board"
-               onClick={ this.handleSetBoardType.bind(this, 'status') }>assessment</i>
-            <i className="ux-icon ux-icon-action" title="Team Board"
-               onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
-            <i className="ux-icon ux-icon-action" title="Private Board"
-               onClick={ this.handleSetBoardType.bind(this, 'private') }>person</i>
-          </div>
-        );
-      };
-
       return (
-        <Canvas ref="canvas" item={ project } mutator={ mutator } refetch={ refetch }
-                onSave={ this.handleSave.bind(this) } menu={ <Menu/> }>
+        <Canvas ref="canvas" item={ project } refetch={ refetch }
+                onSave={ this.handleSave.bind(this) } fields={{ description: false, debug: false }}>
 
           <Board item={ project }
                  items={ items }
-                 columns={ boardAdapter.columns(project, board) }
-                 columnMapper={ boardAdapter.columnMapper(userId) }
+                 columns={ this.boardAdapter.columns(project, board) }
+                 columnMapper={ this.boardAdapter.columnMapper(groupId, userId) }
                  itemRenderer={ Card.ItemRenderer(typeRegistry) }
                  itemOrderModel={ itemOrderModel }
                  onItemDrop={ this.handleItemDrop.bind(this) }
@@ -378,13 +350,41 @@ class ProjectBoardCanvasComponent extends React.Component {
   }
 }
 
+/**
+ * Board toolbar
+ */
+export class ProjectCanvasToolbarComponent extends React.Component {
+
+  handleSetBoardType(boardAlias) {
+    this.props.setBoardAlias(boardAlias);
+  }
+
+  render() {
+    let { boardAlias } = this.props;
+
+    function className(type) {
+      return DomUtil.className('ux-icon', 'ux-icon-action', (type === boardAlias) && 'ux-icon-active' );
+    }
+
+    return (
+      <div>
+        <i className={ className('status') } title="Status Board"
+           onClick={ this.handleSetBoardType.bind(this, 'status') }>assessment</i>
+        <i className={ className('assignee') } title="Team Board"
+           onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
+        <i className={ className('private') } title="Private Board"
+           onClick={ this.handleSetBoardType.bind(this, 'private') }>person</i>
+      </div>
+    );
+  }
+}
+
 //-------------------------------------------------------------------------------------------------
 // HOC: ProjectBoardCanvas
 //-------------------------------------------------------------------------------------------------
 
 const ProjectBoardQuery = gql`
   query ProjectBoardQuery($itemId: ID!) {
-
     item(itemId: $itemId) {
       ...ItemFragment
 
@@ -415,6 +415,7 @@ const ProjectBoardQuery = gql`
   ${TaskFragment}  
 `;
 
+// TODO(burdon): Extend ItemReducer?
 const ProjectBoardReducer = (matcher, context, previousResult, updatedItem) => {
   let { item:project } = previousResult;
 
@@ -446,16 +447,31 @@ const ProjectBoardReducer = (matcher, context, previousResult, updatedItem) => {
   }
 };
 
-export const ProjectBoardCanvas = composeItem(
-  new ItemReducer({
-    query: {
-      type: ProjectBoardQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    },
-    reducer: ProjectBoardReducer
-  })
+export const ProjectBoardCanvas = compose(
+
+  connect((state, ownProps) => {
+    let { canvas: { boardAlias='status' } } = AppAction.getState(state);
+    return {
+      boardAlias
+    };
+  }),
+
+  connectItemReducer(ItemReducer.graphql(ProjectBoardQuery, ProjectBoardReducer))
+
 )(ProjectBoardCanvasComponent);
+
+export const ProjectCanvasToolbar = connect(
+  (state, ownProps) => {
+    let { canvas: { boardAlias='status' } } = AppAction.getState(state);
+    return {
+      boardAlias
+    };
+  },
+  (dispatch, ownProps) => ({
+    setBoardAlias: boardAlias => {
+      dispatch(AppAction.setCanvasState({
+        boardAlias
+      }));
+    }
+  })
+)(ProjectCanvasToolbarComponent);

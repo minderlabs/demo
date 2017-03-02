@@ -2,30 +2,72 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { ItemStoreCache, ItemStore, QueryProcessor } from './item_store';
+import _ from 'lodash';
+
+import { TypeUtil } from '../util/type';
+
+import { ItemUtil, ItemStore, QueryProcessor } from './item_store';
 
 /**
  * In-memory database.
  */
 export class MemoryItemStore extends ItemStore {
 
-  // TODO(burdon): Store by bucket? Use context?
+  constructor(idGenerator, matcher, namespace, buckets=true) {
+    super(namespace, buckets);
 
-  constructor(idGenerator, matcher, namespace) {
-    super(namespace);
+    // Helper for filtering and sorting items.
+    this._util = new ItemUtil(idGenerator, matcher);
 
-    this._cache = new ItemStoreCache(idGenerator, matcher);
+    // Item stored by key.
+    this._items = new Map();
+  }
+
+  toString() {
+    return `MemoryItemStore(${this._items.size})`;
+  }
+
+  key({ bucket, type, id }) {
+    console.assert(bucket || !this._buckets, 'Invalid bucket for item: ' + id);
+
+    return _.compact([bucket, type, id]).join('/');
+  }
+
+  getBucketKeys(context, type=undefined) {
+    if (this._buckets) {
+      return _.map(QueryProcessor.getBuckets(context), bucket => this.key({ bucket, type }));
+    } else {
+      return [this.key({ type })];
+    }
   }
 
   queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
-    return Promise.resolve(this._cache.queryItems(context, root, filter, offset, count));
+    console.assert(context && filter);
+
+    let items = this._util.filterItems(this._items, context, root, filter, offset, count);
+    return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
   }
 
   getItems(context, type, itemIds) {
-    return Promise.resolve(this._cache.getItems(itemIds));
+    console.assert(itemIds);
+
+    // Check all buckets.
+    let items = [];
+    _.each(this.getBucketKeys(context, type), key => {
+      TypeUtil.maybeAppend(items, _.compact(_.map(itemIds, itemId => this._items.get(key + '/' + itemId))));
+    });
+
+    return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
   }
 
   upsertItems(context, items) {
-    return Promise.resolve(this._cache.upsertItems(items));
+    console.assert(items);
+    return Promise.resolve(_.map(items, item => {
+      console.assert(!this._buckets || item.bucket, 'Invalid bucket: ' + JSON.stringify(item));
+      let clonedItem = this._util.onUpdate(TypeUtil.clone(item));
+      let key = this.key(clonedItem);
+      this._items.set(key, clonedItem);
+      return clonedItem;
+    }));
   }
 }

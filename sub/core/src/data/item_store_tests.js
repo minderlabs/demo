@@ -25,19 +25,19 @@ export const ItemStoreTests = storeFactory => {
       let items = [
         {
           bucket: 'test-bucket',
-          id: 'test-1',
-          type: 'Test',
-          title: 'Test-1'
+          id: 'task-1',
+          type: 'Task',
+          title: 'Task-1'
         },
         {
           bucket: 'test-bucket',
-          type: 'Test',
-          title: 'Test-2'
+          type: 'Task',
+          title: 'Task-2'
         },
         {
           bucket: 'test-bucket',
-          type: 'Test',
-          title: 'Test-3'
+          type: 'Task',
+          title: 'Task-3'
         }
       ];
 
@@ -50,7 +50,7 @@ export const ItemStoreTests = storeFactory => {
         .then(upsertedItems => {
           expect(upsertedItems).to.have.lengthOf(items.length);
           let filter = {
-            type: 'Test'
+            type: 'Task'
           };
 
           return itemStore.queryItems(context, root, filter).then(matchedItems => {
@@ -66,7 +66,7 @@ export const ItemStoreTests = storeFactory => {
           expect(upsertedItems).to.have.lengthOf(items.length);
           let itemIds = _.map(upsertedItems, item => item.id);
 
-          return itemStore.getItems(context, 'Test', itemIds).then(matchedItems => {
+          return itemStore.getItems(context, 'Task', itemIds).then(matchedItems => {
             expect(matchedItems).to.have.lengthOf(items.length);
             return upsertedItems;
           });

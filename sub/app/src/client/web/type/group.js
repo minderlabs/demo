@@ -3,13 +3,14 @@
 //
 
 import React from 'react';
+import { compose } from 'react-apollo';
 import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
-import { GroupFragment, ItemFragment, ItemReducer, UpdateItemMutation } from 'minder-core';
+import { GroupFragment, ItemFragment, ItemReducer } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
-import { composeItem } from '../framework/item_factory';
+import { connectItemReducer } from '../framework/item_factory';
 import { Canvas } from '../component/canvas';
 
 //-------------------------------------------------------------------------------------------------
@@ -23,11 +24,11 @@ import { Canvas } from '../component/canvas';
 class GroupCanvasComponent extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired
+    navigator: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
-    mutator: React.PropTypes.object.isRequired,
     item: propType(GroupFragment)
   };
 
@@ -40,7 +41,8 @@ class GroupCanvasComponent extends React.Component {
   }
 
   handleProjectSave(project, mutations) {
-    let { item:group, mutator } = this.props;
+    let { mutator } = this.context;
+    let { item:group } = this.props;
 
     // TODO(burdon): Add project to group (link?)
     // Augment editor mutations.
@@ -63,10 +65,10 @@ class GroupCanvasComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { item:group, mutator, refetch } = this.props;
+      let { item:group, refetch } = this.props;
 
       return (
-        <Canvas ref="canvas" item={ group } mutator={ mutator } refetch={ refetch }>
+        <Canvas ref="canvas" item={ group } refetch={ refetch }>
           <div className="app-type-group ux-column">
 
             <div className="ux-column">
@@ -98,8 +100,7 @@ class GroupCanvasComponent extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
-const GroupQuery = gql`
-
+const GroupQuery = gql`  
   query GroupQuery($itemId: ID!) {
     item(itemId: $itemId) {
       ...ItemFragment
@@ -111,15 +112,6 @@ const GroupQuery = gql`
   ${GroupFragment}  
 `;
 
-export const GroupCanvas = composeItem(
-  new ItemReducer({
-    query: {
-      type: GroupQuery,
-      path: 'item'
-    },
-    mutation: {
-      type: UpdateItemMutation,
-      path: 'updateItem'
-    }
-  })
+export const GroupCanvas = compose(
+  connectItemReducer(ItemReducer.graphql(GroupQuery))
 )(GroupCanvasComponent);

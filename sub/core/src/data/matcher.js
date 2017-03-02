@@ -41,12 +41,13 @@ export class Matcher {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item && filter);
 
-    // TODO(burdon): Filter should not include bucket (implicit in query).
-    if (filter.bucket && item.bucket !== filter.bucket) {
+    // TODO(burdon): Filter should not include bucket (implicit in query)?
+    if (filter.bucket && filter.bucket !== item.bucket) {
       return false;
     }
 
     // Bucket match (ACL filtering).
+    // TODO(burdon): Support multiple groups?
     if (item.bucket &&
         item.bucket !== _.get(context, 'userId') &&
         item.bucket !== _.get(context, 'groupId')) {
@@ -249,6 +250,9 @@ export class Matcher {
     //noinspection FallThroughInSwitchStatementJS
     switch (expr.comp) {
 
+      case 'IN':
+        return Matcher.isIn(fieldValue, inputValue, not);
+
       case 'GTE':
         eq = true;
       case 'GT':
@@ -268,7 +272,24 @@ export class Matcher {
   }
 
   // NOTE: See ValueInput in schema.
+  // TODO(burdon): Move to SchemaUtil.
   static SCALARS = ['id', 'timestamp', 'date', 'int', 'float', 'string', 'boolean'];
+
+  static scalarValue(inputValue) {
+    let value = undefined;
+    _.each(Matcher.SCALARS, field => {
+      if (inputValue[field] !== undefined) {
+        value = inputValue[field];
+        return false;
+      }
+    });
+
+    return value;
+  }
+
+  static isIn(fieldValue, inputValue, not) {
+    return (_.indexOf(fieldValue, Matcher.scalarValue(inputValue)) == -1) ? not : !not;
+  }
 
   static isEqualTo(fieldValue, inputValue, not) {
 

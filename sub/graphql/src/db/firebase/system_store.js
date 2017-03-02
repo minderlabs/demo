@@ -14,7 +14,7 @@ const logger = Logger.get('system');
  *
  * NOTE: This depends on Firebase authentication (and user representation) but not the firebase store.
  */
-export class AccountStore extends DelegateItemStore {
+export class SystemStore extends DelegateItemStore {
 
   /**
    * Make legal firebase key.
@@ -72,7 +72,7 @@ export class AccountStore extends DelegateItemStore {
 
       // OAuth credentials.
       credentials: {
-        [AccountStore.sanitizeKey(provider)]: {
+        [SystemStore.sanitizeKey(provider)]: {
           accessToken,
           idToken
         }
@@ -81,7 +81,7 @@ export class AccountStore extends DelegateItemStore {
 
     // Check if user is whitelisted.
     return this.getGroupByWhitelist(email).then(group => {
-      let user = AccountStore.userRecordToItem(uid, record);
+      let user = SystemStore.userRecordToItem(uid, record);
 
       // Active if whitelisted.
       user.active = !_.isNil(group);
@@ -111,7 +111,7 @@ export class AccountStore extends DelegateItemStore {
    * @returns {Promise} Matching group (or null).
    */
   getGroup(userId) {
-    // TODO(burdon): Return multiple groups?
+    // TODO(burdon): Return multiple groups.
     return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
       return _.find(groups, group => _.indexOf(group.members, userId) != -1);
     });

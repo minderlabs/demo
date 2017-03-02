@@ -6,12 +6,10 @@ import React from 'react';
 
 import { TypeRegistry } from '../framework/type_registry';
 
-import { ItemCard, ItemCanvas } from '../type/item';
-
 import { ContactCard, ContactCanvas } from '../type/contact';
 import { DocumentColumn } from '../type/document';
 import { GroupCanvas } from '../type/group';
-import { ProjectCard, ProjectBoardCanvas } from '../type/project';
+import { ProjectCard, ProjectBoardCanvas, ProjectCanvasToolbar } from '../type/project';
 import { TaskCard, TaskCanvas } from '../type/task';
 import { UserCanvas } from '../type/user';
 
@@ -43,8 +41,9 @@ export const TypeRegistryFactory = () => new TypeRegistry({
   Project: {
     icon: 'assignment',
     card: (item) => <ProjectCard item={ item }/>,
+    toolbar: (itemId) => <ProjectCanvasToolbar/>,
     canvas: {
-      def: (itemId) => <ProjectBoardCanvas itemId={ itemId }/>
+      def: (itemId) => <ProjectBoardCanvas itemId={ itemId }/>,
     }
   },
 

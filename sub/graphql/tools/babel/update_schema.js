@@ -42,6 +42,6 @@ if (!fs.existsSync(dist)) {
       console.log('Created: %s', filename);
     }
   } catch(error) {
-    console.log('ERROR', error);
+    console.log('Error Creating Schema:', error);
   }
 })();

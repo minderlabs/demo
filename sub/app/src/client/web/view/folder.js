@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { IdGenerator, QueryParser, Mutator, UpdateItemMutation } from 'minder-core';
+import { IdGenerator, QueryParser, Mutator, UpsertItemsMutation } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -75,8 +75,7 @@ class FolderView extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 const FoldersQuery = gql`
-  query FoldersQuery { 
-
+  query FoldersQuery {
     viewer {
       folders {
         id
@@ -144,8 +143,5 @@ export default compose(
       }
     }
   }),
-
-  // Mutator.
-  Mutator.graphql(UpdateItemMutation),
 
 )(FolderView);

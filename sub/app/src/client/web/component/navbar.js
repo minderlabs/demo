@@ -9,7 +9,7 @@ import SearchView from '../view/search';
 /**
  * App navigation
  */
-export class NavBar extends React.Component {
+export class Navbar extends React.Component {
 
   // TODO(burdon): Show/hide search view? Search "folder" overlay? (in full screen mode).
   // TODO(burdon): Show hide < > arrows (on mobile).
@@ -23,14 +23,19 @@ export class NavBar extends React.Component {
     search: true
   };
 
+  static contextTypes = {
+    typeRegistry: React.PropTypes.object.isRequired,
+  };
+
   render() {
+    let { typeRegistry } = this.context;
     let { children, search } = this.props;
 
     return (
       <nav className="ux-navbar">
         { search && <SearchView/> || <div/> }
 
-        <div className="ux-title">
+        <div className="ux-header ux-expand">
           { children }
         </div>
 
