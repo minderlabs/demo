@@ -53,21 +53,3 @@ export const connectReducer = (reducer) => {
     reducer
   );
 };
-
-/**
- * Redux and Apollo provide a withRef option to enable access to the contained component.
- * This cascades down through the connect() chain, so depending on how deeply nested the components are,
- * getWrappedInstance() needs to be called multiple times.
- *
- * @param hoc Higher-Order Component (Redux container).
- */
-export const getWrappedList = function(hoc) {
-
-  // TODO(burdon): Iterate layers.
-  // TODO(burdon): Move to minder-core. Document why it might be needed. (via refs?)
-
-  // https://github.com/apollostack/react-apollo/issues/118
-  // http://dev.apollodata.com/react/higher-order-components.html#with-ref
-  // https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options
-  return hoc.getWrappedInstance().getWrappedInstance().getWrappedInstance();
-};

@@ -19,7 +19,8 @@ export class Card extends React.Component {
    * @constructor
    */
   static ItemRenderer = (typeRegistry) => (item) => {
-    return typeRegistry.card(item)
+    let Card = typeRegistry.card(item.type);
+    return <Card item={ item }/>;
   };
 
   static propTypes = {

@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+import { expect } from 'chai';
+
 import { TypeUtil } from './type';
 
 describe('TypeUtil:', () => {

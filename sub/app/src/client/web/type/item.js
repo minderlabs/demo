@@ -69,8 +69,13 @@ export class ItemCanvasHeaderComponent extends React.Component {
   };
 
   static propTypes = {
+    onSave: React.PropTypes.func.isRequired,
     toolbar: React.PropTypes.object
   };
+
+  handleSave() {
+    this.props.onSave();
+  }
 
   handleUpdate(title) {
     let { mutator } = this.context;
@@ -88,10 +93,14 @@ export class ItemCanvasHeaderComponent extends React.Component {
       let { item, toolbar } = this.props;
       let { title } = item;
 
-      // TODO(burdon): Cancel button.
-
       return (
         <div className="ux-row ux-expand">
+
+          <div className="ux-navbar-buttons">
+            <div>
+              <i className="material-icons ux-icon ux-icon-action" onClick={ this.handleSave.bind(this) }>save</i>
+            </div>
+          </div>
 
           <div className="ux-navbar-buttons">
             { toolbar }

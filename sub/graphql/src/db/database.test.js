@@ -2,8 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-// TODO(burdon): Not running karma/webpack.
-const expect = require('chai').expect;
+import { expect } from 'chai';
 
 import { IdGenerator, ItemUtil, Matcher } from 'minder-core';
 

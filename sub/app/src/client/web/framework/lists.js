@@ -27,17 +27,22 @@ const CustomIcon = ListItem.createInlineComponent((props, context) => {
   let { typeRegistry } = props;
 
   return (
-    <ListItem.Icon icon={ item.iconUrl || typeRegistry.icon(item) }/>
+    <ListItem.Icon icon={ item.iconUrl || typeRegistry.icon(item.type) }/>
   )
 });
 
 const CustomColumn = ListItem.createInlineComponent((props, context) => {
   let { item } = context;
   let { typeRegistry } = props;
-  let column = typeRegistry.column(item);
+
+  let Column = typeRegistry.column(item.type);
 
   return (
-    <div className="ux-noshrink">{ column }</div>
+    <div className="ux-noshrink">
+      { Column &&
+        <Column item={ item }/>
+      }
+    </div>
   );
 });
 

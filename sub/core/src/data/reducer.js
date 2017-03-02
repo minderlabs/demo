@@ -363,6 +363,7 @@ export class ItemReducer extends Reducer {
 
     // Return HOC.
     return graphql(query, {
+      withRef: 'true',
 
       // Map properties to query.
       // http://dev.apollodata.com/react/queries.html#graphql-options

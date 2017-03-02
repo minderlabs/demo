@@ -28,7 +28,6 @@ export class Navbar extends React.Component {
   };
 
   render() {
-    let { typeRegistry } = this.context;
     let { children, search } = this.props;
 
     return (

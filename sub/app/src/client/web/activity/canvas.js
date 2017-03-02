@@ -38,15 +38,19 @@ class CanvasActivity extends React.Component {
     return Activity.getChildContext(this.props);
   }
 
+  handleSave() {
+    this.refs.canvas.save();
+  }
+
   render() {
     let { config, params: { type, canvas, itemId } } = this.props;
 
     let canvasComponent = (
-      <CanvasContainer canvas={ canvas } type={ type } itemId={ itemId }/>
+      <CanvasContainer ref="canvas" canvas={ canvas } type={ type } itemId={ itemId }/>
     );
 
     let navbar = (
-      <CanvasNavbar canvas={ canvas } type={ type } itemId={ itemId }/>
+      <CanvasNavbar onSave={ this.handleSave.bind(this) } canvas={ canvas } type={ type } itemId={ itemId }/>
     );
 
     // TODO(burdon): Layout based on form factor. Replace "expand" prop below with app state.

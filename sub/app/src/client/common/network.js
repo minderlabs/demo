@@ -93,6 +93,9 @@ export class ClientAuthManager {
     // https://firebase.google.com/docs/auth/web/manage-users
     // https://firebase.google.com/docs/reference/node/firebase.auth.Auth#onAuthStateChanged
     this._unsubscribe = firebase.auth().onAuthStateChanged(user => {
+
+      console.error('######## CHANGED #########', user);
+
       if (user) {
         logger.log('Authenticated: ' + user.email);
 

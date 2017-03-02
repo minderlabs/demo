@@ -9,7 +9,7 @@ import gql from 'graphql-tag';
 
 import { DomUtil, ID, ItemReducer, MutationUtil } from 'minder-core';
 import { ItemFragment, ProjectBoardFragment, TaskFragment } from 'minder-core';
-import { Board, DragOrderModel, List, ReactUtil } from 'minder-ux';
+import { Board, DragOrderModel, List, ReactUtil, connectWithRef } from 'minder-ux';
 
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
@@ -118,7 +118,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
       onCreateMutations: (groupId, userId, column) => {
         return [
-          MutationUtil.createFieldMutation('bucket', 'id', groupId),
+          MutationUtil.createFieldMutation('bucket', 'string', groupId),
           MutationUtil.createFieldMutation('status', 'int', column.value)
         ];
       },
@@ -157,7 +157,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
       onCreateMutations: (groupId, userId, column) => {
         let mutations = [
-          MutationUtil.createFieldMutation('bucket', 'id', groupId)
+          MutationUtil.createFieldMutation('bucket', 'string', groupId)
         ];
         if (column.id != ProjectBoardCanvasComponent.COLUMN_ICEBOX) {
           mutations.push(MutationUtil.createFieldMutation('assignee', 'id', column.value));
@@ -197,7 +197,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
       onCreateMutations: (groupId, userId, column) => {
         return [
-          MutationUtil.createFieldMutation('bucket', 'id', userId)
+          MutationUtil.createFieldMutation('bucket', 'string', userId)
         ];
       },
 
@@ -224,6 +224,10 @@ class ProjectBoardCanvasComponent extends React.Component {
     let { boardAlias } = this.props;
     console.assert(boardAlias);
     return ProjectBoardCanvasComponent.BoardAdapters[boardAlias];
+  }
+
+  get canvas() {
+    return this.refs.canvas;
   }
 
   handleItemSelect(item) {
@@ -421,14 +425,14 @@ const ProjectBoardQuery = gql`
 
 export const ProjectBoardCanvas = compose(
 
-  connect((state, ownProps) => {
+  connectReducer(ItemReducer.graphql(ProjectBoardQuery)),
+
+  connectWithRef((state, ownProps) => {
     let { canvas: { boardAlias='status' } } = AppAction.getState(state);
     return {
       boardAlias
     };
-  }),
-
-  connectReducer(ItemReducer.graphql(ProjectBoardQuery))
+  })
 
 )(ProjectBoardCanvasComponent);
 
