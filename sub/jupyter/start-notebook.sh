@@ -35,5 +35,5 @@ pip install -r $HOME/requirements.txt
 if [ -z $EXPERIMENT_ID ]; then
   jupyter notebook --no-browser --ip=0.0.0.0
 else
-  python $REPO_DIR/scripts/run_training.py --eid $EXPERIMENT_ID
+  python $REPO_DIR/scripts/run_experiment.py --eid $EXPERIMENT_ID
 fi
