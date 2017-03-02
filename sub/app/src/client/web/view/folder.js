@@ -7,13 +7,13 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { IdGenerator, QueryParser, Mutator, UpsertItemsMutation } from 'minder-core';
+import { IdGenerator, QueryParser } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
 import { AppAction, ContextAction } from '../../common/reducers';
 
-import { BasicSearchList, BasicListItemRenderer, CardSearchList } from '../framework/list_factory';
+import { BasicSearchList, CardSearchList, BasicListItemRenderer } from '../framework/lists';
 import { Card } from '../component/card';
 
 import './folder.less';

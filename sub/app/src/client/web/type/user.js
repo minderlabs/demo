@@ -10,7 +10,7 @@ import gql from 'graphql-tag';
 import { ItemFragment, UserFragment, ItemReducer } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
-import { connectItemReducer } from '../framework/item_factory';
+import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { TaskListItemRenderer } from './task';
 
@@ -95,5 +95,5 @@ const UserQuery = gql`
 `;
 
 export const UserCanvas = compose(
-  connectItemReducer(ItemReducer.graphql(UserQuery))
+  connectReducer(ItemReducer.graphql(UserQuery))
 )(UserCanvasComponent);

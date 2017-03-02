@@ -26,10 +26,10 @@ module.exports = _.merge(baseConfig, {
     __dirname: false,
 
     // http://webpack.github.io/docs/configuration.html#node
-    console: 'empty',
-    fs: 'empty',
-    net: 'empty',
-    tls: 'empty'
+    console:  'empty',
+    fs:       'empty',
+    net:      'empty',
+    tls:      'empty'
   },
 
   // Source map shows original source and line numbers (and works with hot loader).

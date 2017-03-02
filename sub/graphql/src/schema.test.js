@@ -2,7 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-const expect = require('chai').expect;
+import { expect } from 'chai';
 
 import {
   graphql,

@@ -15,7 +15,7 @@ import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
-import { connectItemReducer } from '../framework/item_factory';
+import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -99,6 +99,7 @@ export class TaskCard extends React.Component {
 
   handleItemUpdate(item, mutations) {
     let { registration: { groupId, userId }, mutator } = this.context;
+    let { item:task } = this.props;
 
     if (item) {
       // Update existing.
@@ -108,7 +109,8 @@ export class TaskCard extends React.Component {
       mutator
         .batch()
         .createItem('Task', _.concat(
-          MutationUtil.createFieldMutation('bucket', 'id', groupId),
+          MutationUtil.createFieldMutation('bucket', 'string', groupId),
+          MutationUtil.createFieldMutation('project', 'id', task.project),
           MutationUtil.createFieldMutation('owner', 'id', userId),
           MutationUtil.createFieldMutation('status', 'int', 0),
           mutations
@@ -123,11 +125,11 @@ export class TaskCard extends React.Component {
   render() {
     return ReactUtil.render(this, () => {
       let { mutator } = this.context;
-      let { item } = this.props;
-      let { assignee, tasks } = item;
+      let { item:task } = this.props;
+      let { assignee, tasks } = task;
 
       return (
-        <Card ref="card" item={ item }>
+        <Card ref="card" item={ task }>
 
           { assignee &&
           <div className="ux-card-section ux-font-xsmall">
@@ -186,8 +188,8 @@ class TaskCanvasComponent extends React.Component {
     }
   }
 
-  get values() {
-    return _.pick(this.state, ['assignee', 'status']);
+  get canvas() {
+    return this.refs.canvas;
   }
 
   handleSetItem(property, item) {
@@ -227,8 +229,10 @@ class TaskCanvasComponent extends React.Component {
       mutator
         .batch()
         .createItem('Task', _.concat(
-          MutationUtil.createFieldMutation('bucket', 'id', bucket),
+          MutationUtil.createFieldMutation('bucket', 'string', bucket),
+          MutationUtil.createFieldMutation('project', 'id', parent.project),
           MutationUtil.createFieldMutation('owner', 'id', userId),
+          MutationUtil.createFieldMutation('status', 'int', 0),
           mutations
         ), 'task')
         .updateItem(this.props.item, [
@@ -263,7 +267,6 @@ class TaskCanvasComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { mutator } = this.context;
       let { assigneeText, status } = this.state;
       let { item:task, refetch } = this.props;
       let { project, tasks } = task;
@@ -318,6 +321,7 @@ class TaskCanvasComponent extends React.Component {
                       className="ux-list-tasks"
                       items={ tasks }
                       itemRenderer={ TaskListItemRenderer }
+                      itemEditor={ TaskCard.TaskEditor }
                       onItemSelect={ this.handleTaskSelect.bind(this) }
                       onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
               </div>
@@ -404,37 +408,6 @@ const TaskQuery = gql`
   ${TaskFragment}  
 `;
 
-// TODO(burdon): Extend ItemReducer?
-const TaskReducer = (matcher, context, previousResult, updatedItem) => {
-
-  // Check not root item.
-  if (previousResult.item.id != updatedItem.id) {
-    // TODO(burdon): Factor out pattern (see project.js)
-    let taskIdx = _.findIndex(previousResult.item.tasks, task => (task.id == updatedItem.id));
-    if (taskIdx != -1) {
-      // Update task.
-      return {
-        item: {
-          tasks: {
-            [taskIdx]: {
-              $set: updatedItem
-            }
-          }
-        }
-      };
-    } else {
-      // Append task.
-      return {
-        item: {
-          tasks: {
-            $push: [ updatedItem ]
-          }
-        }
-      };
-    }
-  }
-};
-
 export const TaskCanvas = compose(
-  connectItemReducer(ItemReducer.graphql(TaskQuery, TaskReducer))
+  connectReducer(ItemReducer.graphql(TaskQuery))
 )(TaskCanvasComponent);

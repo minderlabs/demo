@@ -2,7 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { Mutator } from './mutations';
+import { expect } from 'chai';
 
 describe('Mutations:', () => {
 

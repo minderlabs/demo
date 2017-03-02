@@ -244,6 +244,7 @@ export class Resolvers {
 
       //
       // Mutations
+      // Apply ItemMutationInput
       // http://dev.apollodata.com/react/receiving-updates.html
       //
 
@@ -252,45 +253,56 @@ export class Resolvers {
         upsertItems: (root, args, context) => {
           let { mutations:itemMutations } = args;
 
-          // TODO(burdon): Transaction.
-          let promises = [];
-          _.each(itemMutations, mutation => {
-            let { itemId, mutations } = mutation;
-            let { type, id:localItemId } = ID.fromGlobalId(itemId);
+          // TODO(burdon): Should be from Mutator args. (default to USER)? Does UX currently update Group/User?
+//        let namespace = Resolvers.getNamespaceForType(type);
+          let namespace = Database.NAMESPACE.USER;
+          let itemStore = database.getItemStore(namespace);
 
-            // TODO(burdon): Should be from args.
-            let namespace = Resolvers.getNamespaceForType(type);
+          return Promise.all(_.map(itemMutations, itemMutation => {
+            let { itemId, mutations } = itemMutation;
+            let { type, id:localItemId } = ID.fromGlobalId(itemId);
             logger.log($$('UPDATE[%s:%s]: %o', type, localItemId, mutations));
 
-            // Get existing item (or undefined).
-            let itemStore = database.getItemStore(namespace);
-            promises.push(itemStore.getItem(context, type, localItemId).then(item => {
+            //
+            // Get and update item.
+            //
+            return itemStore.getItem(context, type, localItemId)
+              .then(item => {
 
-              // If not found (i.e., insert).
-              // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
-              if (!item) {
-                item = {
-                  id: localItemId,
-                  type: type
-                };
-              }
+                // If not found (i.e., insert).
+                // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
+                if (!item) {
+                  item = {
+                    id: localItemId,
+                    type: type
+                  };
+                }
 
-              // Apply mutations.
-              Transforms.applyObjectMutations(item, mutations);
+                //
+                // Apply mutations.
+                //
+                return Transforms.applyObjectMutations(item, mutations);
+              });
+          }))
 
-              // Upsert item.
-              return itemStore.upsertItem(context, item)
-                .then(items => {
-                  // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
-                  database.fireMuationNotification(context, items);
+            //
+            // Upsert items.
+            //
+            .then(results => {
+              let items = TypeUtil.flattenArrays(results);
+              return itemStore.upsertItems(context, items)
+            })
 
-                  return items;
-                });
-            }));
-          });
+            //
+            // Trigger notifications.
+            //
+            .then(items => {
+              // TODO(burdon): Pass clientId from context.
+              // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
+              database.fireMuationNotification(context, items);
 
-          // TODO(burdon): Should this happen in parallel?
-          return Promise.all(promises);
+              return items;
+            });
         }
       }
     };

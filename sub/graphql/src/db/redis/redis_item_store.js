@@ -50,7 +50,7 @@ export class RedisItemStore extends ItemStore {
   // QueryProcessor interface.
   //
 
-  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     let { groupId, userId } = context;
 
     // Gather results for each bucket.

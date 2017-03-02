@@ -13,13 +13,13 @@ import { Matcher } from './matcher';
 export class Transforms {
 
   // TODO(burdon): Do basic validation (e.g., check scalars are not objects).
-  // TODO(burdon): Rename applyItemMutations.
+  // TODO(burdon): Unit tests.
 
   /**
    * Applies the mutations to the given object.
    *
-   * @param object
-   * @param mutations
+   * @param {Item} object
+   * @param {ObjectMutationInput} mutations
    */
   static applyObjectMutations(object, mutations) {
     console.assert(object && mutations);
@@ -34,7 +34,7 @@ export class Transforms {
   /**
    * Update object.
    *
-   * @param object
+   * @param {Item} object
    * @param {ObjectMutationInput} mutation
    * @returns {*}
    */
@@ -42,7 +42,6 @@ export class Transforms {
     console.assert(object && mutation);
     let { field, value } = mutation;
 
-    // TODO(burdon): Unit tests.
     // TODO(burdon): mutation.values (see project.js)
     // TODO(burdon): Field dot paths (_.set/get).
     // TODO(burdon): Introspect for type-checking (and field name setting).

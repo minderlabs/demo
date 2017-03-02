@@ -85,7 +85,6 @@ export const TaskFragment = gql`
       id
       title
     }
-    topLevel
 
     owner {
       id

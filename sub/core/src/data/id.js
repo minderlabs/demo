@@ -51,6 +51,7 @@ export class ID {
   }
 
   // TODO(burdon): ID: Namespace/Bucket/Type/ID.
+  // TODO(burdon): NOTE: items may change buckets so don't include in ID. Instead db should have ID=>bucket index (ACLs).
   // TODO(burdon): (All parts are neede for getItems lookups).
 
   /**

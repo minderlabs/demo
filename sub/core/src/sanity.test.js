@@ -2,9 +2,11 @@
 // Copyright 2016 Minder Labs.
 //
 
+import { expect } from 'chai';
+
 describe('Sanity', () => {
 
   it('Is sane.', () => {
-    console.log('OK');
+    expect(true).to.be.true;
   });
 });

@@ -41,15 +41,15 @@ export class MemoryItemStore extends ItemStore {
     }
   }
 
-  queryItems(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
-    console.assert(context && filter);
+  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+    console.assert(context && root && filter);
 
     let items = this._util.filterItems(this._items, context, root, filter, offset, count);
     return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
   }
 
   getItems(context, type, itemIds) {
-    console.assert(itemIds);
+    console.assert(context && type && itemIds);
 
     // Check all buckets.
     let items = [];
@@ -61,7 +61,8 @@ export class MemoryItemStore extends ItemStore {
   }
 
   upsertItems(context, items) {
-    console.assert(items);
+    console.assert(context && items);
+
     return Promise.resolve(_.map(items, item => {
       console.assert(!this._buckets || item.bucket, 'Invalid bucket: ' + JSON.stringify(item));
       let clonedItem = this._util.onUpdate(TypeUtil.clone(item));

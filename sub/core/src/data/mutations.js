@@ -254,7 +254,7 @@ export class Mutator {
     return new Batch(this);
   }
 
-  // TODO(burdon): Remove non batch operations.
+  // TODO(burdon): Remove non-batch operations.
 
   /**
    * Executes a create item mutation.
@@ -268,7 +268,16 @@ export class Mutator {
 
     // Create optimistic result.
     let itemId = this._idGenerator.createId();
-    let item = Transforms.applyObjectMutations({ __typename: type, type, id: itemId }, mutations);
+    let item = Transforms.applyObjectMutations({
+      __typename: type,
+      type,
+      id: itemId
+    }, mutations);
+
+    // TODO(burdon): Look-up references (e.g., assignee).
+    // TODO(burdon): Pass query result to bacth for optimistic result.
+    // TODO(burdon): How to swap IDs (some values -- e.g., bucket -- are actual strings not references to objects!)
+    // TODO(burdon): Get type definitions?
 
     // Fire mutation.
     this._mutate({

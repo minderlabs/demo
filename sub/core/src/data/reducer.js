@@ -98,15 +98,16 @@ class Reducer {
    * @param updatedItem
    * @returns {function([Item])}
    */
-  // TODO(burdon): Use push/remove instead?
-  // TODO(burdon): Factor out with ListReducer class below.
+  // TODO(burdon): Make available to customer reducers (e.g., project, task).
   static listApplicator(matcher, context, filter, updatedItem) {
     return (items) => {
+      // TODO(burdon): Make sure matches.
       let taskIdx = _.findIndex(items, item => item.id == updatedItem.id);
       if (taskIdx == -1) {
         // Append.
         return [...items, updatedItem];
       } else {
+        // TODO(burdon): Use push/remove instead?
         return _.compact(_.map(items, item => {
           if (item.id == updatedItem.id) {
             // Remove if doesn't match filter.
@@ -174,8 +175,73 @@ class Reducer {
  */
 export class ListReducer extends Reducer {
 
-  getItems(data) {
-    return this.getResult(data);
+  /**
+   * @param query
+   * @param customReducer
+   * @return standard mutation wrapper supplied to redux's combine() method.
+   */
+  static graphql(query, customReducer=undefined) {
+    let listReducer = new ListReducer(query, customReducer);
+
+    // Return HOC.
+    return graphql(query, {
+      withRef: 'true',
+
+      // Configure query variables.
+      // http://dev.apollodata.com/react/queries.html#graphql-options
+      // http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient\.query
+      options: (props) => {
+        let { matcher, filter, count } = props;
+
+        // TODO(burdon): Generates a new callback each time rendered. Create property for class.
+        // https://github.com/apollostack/apollo-client/blob/master/src/ApolloClient.ts
+        return {
+          variables: {
+            filter, count, offset: 0
+          },
+
+          reducer: (previousResult, action) => {
+            return listReducer.reduceItems(matcher, props.context, filter, previousResult, action);
+          }
+        }
+      },
+
+      // Configure props passed to component.
+      // http://dev.apollodata.com/react/queries.html#graphql-props
+      props: ({ ownProps, data }) => {
+        let { matcher, filter, count } = ownProps;
+        let { loading, error, refetch } = data;
+
+        let items = listReducer.getResult(data);
+
+        return {
+          loading,
+          error,
+          refetch,
+          matcher,
+
+          items,
+
+          // Paging.
+          // TODO(burdon): Hook-up to UX.
+          // http://dev.apollodata.com/react/pagination.html
+          // http://dev.apollodata.com/react/cache-updates.html#fetchMore
+          fetchMoreItems: () => {
+            return data.fetchMore({
+              variables: {
+                filter, count, offset: items.length
+              },
+
+              updateQuery: (previousResult, { fetchMoreResult }) => {
+                return _.assign({}, previousResult, {
+                  items: [...previousResult.items, ...fetchMoreResult.data.items]
+                });
+              }
+            });
+          }
+        }
+      }
+    });
   }
 
   /**
@@ -197,7 +263,7 @@ export class ListReducer extends Reducer {
     }
 
     try {
-      // TODO(burdon): Handle multiple.
+      // TODO(burdon): Handle multiple items.
       let updatedItem = this.getMutatedItem(action)[0];
       if (updatedItem) {
         let queryName = this.query.definitions[0].name.value;
@@ -293,9 +359,11 @@ export class ItemReducer extends Reducer {
    * @return standard mutation wrapper supplied to redux's combine() method.
    */
   static graphql(query, customReducer=undefined) {
-    let reducer = new ItemReducer(query, customReducer);
+    let itemReducer = new ItemReducer(query, customReducer);
 
+    // Return HOC.
     return graphql(query, {
+      withRef: 'true',
 
       // Map properties to query.
       // http://dev.apollodata.com/react/queries.html#graphql-options
@@ -308,7 +376,7 @@ export class ItemReducer extends Reducer {
           },
 
           reducer: (previousResult, action) => {
-            return reducer.reduceItem(matcher, context, previousResult, action);
+            return itemReducer.reduceItem(matcher, context, previousResult, action);
           }
         };
       },
@@ -317,7 +385,7 @@ export class ItemReducer extends Reducer {
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
         let { loading, error, refetch } = data;
-        let item = reducer.getItem(data);
+        let item = itemReducer.getResult(data);
 
         return {
           loading,
@@ -327,10 +395,6 @@ export class ItemReducer extends Reducer {
         }
       }
     })
-  }
-
-  getItem(data) {
-    return this.getResult(data);
   }
 
   /**
@@ -352,7 +416,7 @@ export class ItemReducer extends Reducer {
     }
 
     try {
-      // TODO(burdon): Handle multiple.
+      // TODO(burdon): Handle multiple items.
       let updatedItem = this.getMutatedItem(action)[0];
       if (updatedItem) {
         let queryName = this.query.definitions[0].name.value;
