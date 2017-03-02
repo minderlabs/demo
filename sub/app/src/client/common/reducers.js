@@ -160,6 +160,7 @@ const CONTEXT_NAMESPACE = 'context';
 
 /**
  * Application context (e.g., current page for CRX, location, time, etc.)
+ * NOTE: This isn't limited to the CRX.
  */
 export class ContextAction {
 
@@ -196,6 +197,7 @@ export const ContextReducer = (state=ContextAction.initialState, action) => {
   switch (action.type) {
 
     case ContextAction.ACTION.UPDATE_CONTEXT: {
+      console.log('Context updated: ' + JSON.stringify(action.context));
       return _.assign({}, state, {
         context: action.context
       });

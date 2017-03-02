@@ -10,22 +10,14 @@ import { ChromeMessageChannel, ChromeMessageChannelRouter } from 'minder-core';
 import { BackgroundCommand } from './common';
 import { Settings } from './util/settings';
 
-import './options.less';
+import { DefaultSettings, Defs } from './common';
 
-import { DefaultSettings } from './common';
+import './options.less';
 
 /**
  * Options handler.
  */
 class Options extends React.Component {
-
-  // TODO(burdon): Constants.
-  static options = {
-    server: [
-      { value: 'http://localhost:3000',             title: 'localhost' },
-      { value: 'https://demo-dev.minderlabs.com',   title: 'https://demo-dev.minderlabs.com' }
-    ]
-  };
 
   state = {
     settings: {}
@@ -93,8 +85,9 @@ class Options extends React.Component {
             <select name="settings_server"
                     onChange={ this.onChangeValue.bind(this, 'server') }
                     value={ settings.server }>
-              { _.map(Options.options['server'], option =>
-                <option key={ option.value } value={ option.value }>{ option.title }</option>) }
+              { _.map(Defs.SERVER, (option, type) =>
+              <option key={ option.value } value={ option.value }>{ option.title }</option>)
+              }
             </select>
           </div>
 

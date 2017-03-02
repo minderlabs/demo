@@ -130,7 +130,6 @@ export class ClientAuthManager {
    * @private
    */
   _doAuth() {
-    console.log('Authenticating...');
     if (_.get(this._config, 'app.platform') == Const.PLATFORM.CRX) {
       return this._doAuthChromeExtension();
     } else {

@@ -2,12 +2,22 @@
 // Copyright 2017 Minder Labs.
 //
 
+export const Defs = {
+
+  SERVER: {
+    DEV:  { value: 'http://localhost:3000',             title: 'localhost' },
+    PROD: { value: 'https://demo-dev.minderlabs.com',   title: 'https://demo-dev.minderlabs.com' }
+  }
+};
+
 export const DefaultSettings = {
-  server: 'http://localhost:3000'
+
+  server: Defs.SERVER.PROD.title
 };
 
 export const KeyToggleSidebar = {
-  keyCode: 8,   // DELETE
+
+  keyCode: 8,         // DELETE
   metaKey: true
 };
 
