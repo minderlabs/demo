@@ -144,7 +144,7 @@ class Reducer {
   getResult(data) {
     if (data.error) {
       // TODO(burdon): Apollo bug: shows "Error: Network error:"
-      // TODO(burdon): Throw (triggle error handler StatusBar).
+      // TODO(burdon): Throw (trigger error handler StatusBar).
       console.error(data.error);
     } else {
       return _.get(data, this._path);

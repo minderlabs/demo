@@ -150,7 +150,6 @@ export class Canvas extends React.Component {
     let { item, onSave } = this.props;
     let mutations = TypeUtil.flattenArrays([ this.getMutations(), onSave() ]);
     if (!_.isEmpty(mutations)) {
-      console.log('Saving: ', mutations);
       mutator.updateItem(item, mutations);
     }
   }

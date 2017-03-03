@@ -36,7 +36,6 @@ export class Card extends React.Component {
 
   handleSelect(item) {
     this.context.navigator.pushCanvas(item);
-    console.log('>>>>  >>>>>', item.id, this.context.navigator);
   }
 
   render() {

@@ -149,7 +149,7 @@ database
 // NOTE: Disabled for testing since slow startup.
 //
 
-const botkitManager = testing ? null : new BotKitManager({
+const botkitManager = false && !testing && new BotKitManager({
   port,
   redirectHost: _.get(process.env, 'OAUTH_REDIRECT_ROOT', 'http://localhost:' + port),
   ...SlackConfig
@@ -171,15 +171,16 @@ logger.log('Loading data...');
 let loading = Promise.all([
   // Do in parallel.
   loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM),
-  loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS),
-  loader.parse(require('./data/bootstrap.json'))
+  loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS)
 ]).then(() => {
   logger.log('Initializing groups...');
   return loader.initGroups().then(() => {
 
     if (testing) {
       logger.log('Generating test data...');
-      return new TestGenerator(database).generate();
+      return loader.parse(require('./data/test.json')).then(() => {
+        return new TestGenerator(database).generate();
+      });
     }
   });
 });
