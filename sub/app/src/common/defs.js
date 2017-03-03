@@ -65,7 +65,7 @@ export const Const = {
   APP_NAME: 'minder',
 
   // NOTE: Changed by grunt:version
-  APP_VERSION: "0.1.6",
+  APP_VERSION: "0.1.8",
 
   AUTH_COOKIE: 'minder_auth_token',
 
@@ -73,5 +73,8 @@ export const Const = {
     WEB:    'web',
     CRX:    'crx',
     MOBILE: 'mobile'
-  }
+  },
+
+  // https://chrome.google.com/webstore/developer/edit/ofdkhkelcafdphpddfobhbbblgnloian
+  CRX_ID: 'ofdkhkelcafdphpddfobhbbblgnloian'
 };

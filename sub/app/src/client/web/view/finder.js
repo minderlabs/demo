@@ -7,21 +7,21 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { IdGenerator, QueryParser, Mutator, UpsertItemsMutation } from 'minder-core';
+import { IdGenerator, QueryParser } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
 import { AppAction, ContextAction } from '../../common/reducers';
 
-import { BasicSearchList, BasicListItemRenderer, CardSearchList } from '../framework/list_factory';
+import { BasicSearchList, CardSearchList, BasicListItemRenderer } from '../framework/lists';
 import { Card } from '../component/card';
 
-import './folder.less';
+import './finder.less';
 
 /**
- * Folder View.
+ * Finder.
  */
-class FolderView extends React.Component {
+class Finder extends React.Component {
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
@@ -44,25 +44,25 @@ class FolderView extends React.Component {
       let list;
       switch (listType) {
         case 'card':
+        default:
           list = <CardSearchList filter={ filter }
                                  highlight={ false }
                                  className="ux-card-list"
                                  itemRenderer={ Card.ItemRenderer(typeRegistry) }
-                                 onItemSelect={ this.handleItemSelect.bind(this) }
                                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
           break;
 
-        case 'list':
-        default:
+        case 'list2':
+//        default:
           list = <BasicSearchList filter={ filter }
-                                  groupBy={ true }
+                                  groupBy={ false }
                                   itemRenderer={ BasicListItemRenderer(typeRegistry) }
                                   onItemSelect={ this.handleItemSelect.bind(this) }
                                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
       }
 
       return (
-        <div className="app-folder-view ux-column">
+        <div className="app-finder ux-column">
           { list }
         </div>
       );
@@ -144,4 +144,4 @@ export default compose(
     }
   }),
 
-)(FolderView);
+)(Finder);

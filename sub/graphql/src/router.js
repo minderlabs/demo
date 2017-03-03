@@ -39,10 +39,18 @@ export const graphqlRouter = (database, options) => {
 
   // http://dev.apollodata.com/tools/graphql-tools/generate-schema.html#makeExecutableSchema
   const schema = makeExecutableSchema({
+
+    // Schema defs.
     typeDefs: Resolvers.typeDefs,
+
+    // Resolvers.
     resolvers: Resolvers.getResolvers(database),
+
+    // Log resolver errors.
     logger: {
-      log: error => logger.error('Schema Error', error)
+      log: (error) => {
+        logger.error('GraphQL Error: ' + (error.originalMessage || error.message))
+      }
     }
   });
 
@@ -51,9 +59,9 @@ export const graphqlRouter = (database, options) => {
   // JSON body.
   router.use(bodyParser.json());
 
-  // Logging.
+  // Add logging to path (must go first).
   if (options.logging) {
-    router.use(options.graphql, graphqlLogger(options));
+   router.use(options.graphql, graphqlLogger(options));
   }
 
   //
@@ -65,19 +73,37 @@ export const graphqlRouter = (database, options) => {
 
     // http://dev.apollodata.com/tools/graphql-server/setup.html#graphqlOptions
     let graphqlOptions = {
-      formatError: error => _.pick(error, ['message', 'locations', 'stack']),
-      schema
+
+      // http://dev.apollodata.com/tools/graphql-tools/errors.html#forbidUndefinedInResolve
+      schema,
+
+      // function used to format errors before returning them to clients.
+      // TODO(burdon): https://www.npmjs.com/package/graphql-apollo-errors
+      formatError: (error) => {
+
+        // NOTE: Don't leak server errors to client.
+        // TODO(burdon): How to send 401/500 error to client.
+        return error.message;
+      },
+
+      // Don't dump resolver exceptions (caught by logger above).
+      debug: false
     };
 
     // Provide the request context for resolvers (e.g., authenticated user).
     // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
     if (options.contextProvider) {
-      return options.contextProvider(request).then(context => {
-        console.assert(context);
-        return _.defaults(graphqlOptions, {
-          context
+      return options.contextProvider(request)
+        .then(context => {
+          console.assert(context);
+          return _.defaults(graphqlOptions, {
+            context
+          })
+        })
+        .catch(error => {
+          logger.error(error);
+          return graphqlOptions;
         });
-      });
     } else {
       return Promise.resolve(graphqlOptions);
     }

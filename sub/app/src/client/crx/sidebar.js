@@ -25,6 +25,8 @@ import { ChromeNetworkInterface } from './util/network';
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 import { Application } from './sidebar/app';
 
+// TODO(burdon): Catch errors (notify content script).
+
 //
 // Config passed from content script container.
 //
@@ -55,6 +57,7 @@ class SidebarApp extends BaseApp {
     //
     // Messages from Content Script.
     //
+
     this._messenger = new WindowMessenger(config.channel)
       .attach(parent)
       .listen(message => {
@@ -79,6 +82,7 @@ class SidebarApp extends BaseApp {
     //
     // Messages from Background Page.
     //
+
     this._router = new ChromeMessageChannelRouter();
     this._systemChannel = new ChromeMessageChannel(BackgroundCommand.CHANNEL, this._router);
     this._systemChannel.onMessage.addListener(message => {
@@ -97,10 +101,21 @@ class SidebarApp extends BaseApp {
     });
   }
 
+  initNetwork() {
+    this._networkInterface = new ChromeNetworkInterface(
+      new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this._router), this._eventHandler);
+
+    // TODO(burdon): Wait for connection.
+    return Promise.resolve();
+  }
+
   /**
    * Register with BG page.
    */
-  register() {
+  postInit() {
+    this._router.connect();
+
+    console.log('Registering...');
     return this._systemChannel.postMessage({
       command: BackgroundCommand.REGISTER
     }).wait()
@@ -112,18 +127,6 @@ class SidebarApp extends BaseApp {
         // TODO(burdon): Retry if not registered (server might not be responding).
         console.error('Registration failed: ' + error);
       });
-  }
-
-  postInit() {
-    this._router.connect();
-  }
-
-  initNetwork() {
-    this._networkInterface = new ChromeNetworkInterface(
-      new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this._router), this._eventHandler);
-
-    // TODO(burdon): Wait for connection.
-    return Promise.resolve();
   }
 
   get networkInterface() {
@@ -162,6 +165,7 @@ class SidebarApp extends BaseApp {
 const bootstrap = new SidebarApp(config);
 
 bootstrap.init().then(() => {
+
   bootstrap.render(Application);
 
   // TODO(burdon): Dynamically set on scroll container (on mouseover?)
@@ -173,7 +177,6 @@ bootstrap.init().then(() => {
 
   // Trigger startup via Redux.
   bootstrap.store.dispatch(SidebarAction.initialized());
-  bootstrap.register();
 
   const keyBindings = new KeyListener()
     .listen(KeyToggleSidebar, () => bootstrap.store.dispatch(SidebarAction.toggleVisibility()));

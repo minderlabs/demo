@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { $$, ID, Logger, ItemStore, ItemUtil, QueryProcessor, TypeUtil } from 'minder-core';
+import { $$, ID, ErrorUtil, Logger, ItemStore, ItemUtil, QueryProcessor } from 'minder-core';
 
 const logger = Logger.get('db');
 
@@ -142,7 +142,7 @@ export class Database {
   /**
    * @returns {Promise}
    */
-  search(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  search(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
     // TODO(madadam): TypeUtil or TypeRegistry.
@@ -166,7 +166,7 @@ export class Database {
    *
    * @returns {Promise}
    */
-  _searchAll(context, root, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  _searchAll(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
     // TODO(burdon): Unit test!
@@ -174,21 +174,21 @@ export class Database {
     //
     // Fan-out queries across all query providers.
     //
-    let promises = _.map(Array.from(this._queryProcessors.values()), processor => {
-      if (filter.namespace && processor.namespace != filter.namespace) {
+    let promises = _.map(Array.from(this._queryProcessors.values()), queryProcessor => {
+      if (filter.namespace && queryProcessor.namespace != filter.namespace) {
         return Promise.resolve([]);
       }
 
       // TODO(madadam): Pagination over the merged result set. Need to over-fetch from each provider.
-      return processor.queryItems(context, root, filter, offset, count)
+      return queryProcessor.queryItems(context, root, filter, offset, count)
         .then(items => {
           return {
-            namespace: processor.namespace,
+            namespace: queryProcessor.namespace,
             items
           };
         })
         .catch(error => {
-          console.warn('Query failed:', error);
+          logger.warn('Query failed: ' + ErrorUtil.message(error));
         });
     });
 

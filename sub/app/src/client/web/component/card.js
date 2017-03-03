@@ -19,7 +19,8 @@ export class Card extends React.Component {
    * @constructor
    */
   static ItemRenderer = (typeRegistry) => (item) => {
-    return typeRegistry.card(item)
+    let Card = typeRegistry.card(item.type);
+    return <Card item={ item }/>;
   };
 
   static propTypes = {
@@ -30,11 +31,12 @@ export class Card extends React.Component {
 
   static contextTypes = {
     config: React.PropTypes.object.isRequired,
-    navigator: React.PropTypes.object.isRequired,
+    navigator: React.PropTypes.object.isRequired
   };
 
   handleSelect(item) {
     this.context.navigator.pushCanvas(item);
+    console.log('>>>>  >>>>>', item.id, this.context.navigator);
   }
 
   render() {

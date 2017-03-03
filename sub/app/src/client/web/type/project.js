@@ -9,12 +9,12 @@ import gql from 'graphql-tag';
 
 import { DomUtil, ID, ItemReducer, MutationUtil } from 'minder-core';
 import { ItemFragment, ProjectBoardFragment, TaskFragment } from 'minder-core';
-import { Board, DragOrderModel, List, ReactUtil } from 'minder-ux';
+import { Board, DragOrderModel, List, ReactUtil, connectWithRef } from 'minder-ux';
 
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
-import { connectItemReducer } from '../framework/item_factory';
+import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -70,7 +70,7 @@ export class ProjectCard extends React.Component {
           </div>
           {/*
           <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }/>
-          */}
+           */}
         </div>
       </Card>
     );
@@ -83,6 +83,7 @@ export class ProjectCard extends React.Component {
  */
 class ProjectBoardCanvasComponent extends React.Component {
 
+  // TODO(burdon): Rename unassigned.
   static COLUMN_ICEBOX = 'icebox';
 
   /**
@@ -118,7 +119,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
       onCreateMutations: (groupId, userId, column) => {
         return [
-          MutationUtil.createFieldMutation('bucket', 'id', groupId),
+          MutationUtil.createFieldMutation('bucket', 'string', groupId),
           MutationUtil.createFieldMutation('status', 'int', column.value)
         ];
       },
@@ -146,7 +147,7 @@ class ProjectBoardCanvasComponent extends React.Component {
         return _.concat({
           id: ProjectBoardCanvasComponent.COLUMN_ICEBOX,
           value: ProjectBoardCanvasComponent.COLUMN_ICEBOX,
-          title: 'Icebox'
+          title: 'Unassigned'
         }, users);
       },
 
@@ -156,10 +157,13 @@ class ProjectBoardCanvasComponent extends React.Component {
       },
 
       onCreateMutations: (groupId, userId, column) => {
-        return (column.id != ProjectBoardCanvasComponent.COLUMN_ICEBOX) && [
-          MutationUtil.createFieldMutation('bucket', 'id', groupId),
-          MutationUtil.createFieldMutation('assignee', 'id', column.value)
+        let mutations = [
+          MutationUtil.createFieldMutation('bucket', 'string', groupId)
         ];
+        if (column.id != ProjectBoardCanvasComponent.COLUMN_ICEBOX) {
+          mutations.push(MutationUtil.createFieldMutation('assignee', 'id', column.value));
+        }
+        return mutations;
       },
 
       onDropMutations: (item, column) => {
@@ -194,7 +198,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
       onCreateMutations: (groupId, userId, column) => {
         return [
-          MutationUtil.createFieldMutation('bucket', 'id', userId)
+          MutationUtil.createFieldMutation('bucket', 'string', userId)
         ];
       },
 
@@ -205,11 +209,11 @@ class ProjectBoardCanvasComponent extends React.Component {
   static contextTypes = {
     typeRegistry: React.PropTypes.object.isRequired,
     navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
+    mutator: React.PropTypes.object.isRequired,
+    registration: React.PropTypes.object.isRequired,
   };
 
   static propTypes = {
-    registration: React.PropTypes.object.isRequired,
     item: React.PropTypes.object
   };
 
@@ -223,13 +227,16 @@ class ProjectBoardCanvasComponent extends React.Component {
     return ProjectBoardCanvasComponent.BoardAdapters[boardAlias];
   }
 
+  get canvas() {
+    return this.refs.canvas;
+  }
+
   handleItemSelect(item) {
     this.context.navigator.push(Path.canvas(ID.getGlobalId(item)));
   }
 
   handleItemUpdate(item, mutations, column) {
-    let { mutator } = this.context;
-    let { registration: { groupId, userId } } = this.props;
+    let { mutator, registration: { groupId, userId } } = this.context;
     console.assert(userId);
 
     if (item) {
@@ -239,12 +246,12 @@ class ProjectBoardCanvasComponent extends React.Component {
 
       mutator
         .batch()
-        .createItem('Task', _.compact(_.concat(
+        .createItem('Task', [
           MutationUtil.createFieldMutation('owner', 'id', userId),
           MutationUtil.createFieldMutation('project', 'id', project.id),
           this.boardAdapter.onCreateMutations(groupId, userId, column),
           mutations
-        )), 'task')
+        ], 'task')
         .updateItem(project, [
           MutationUtil.createSetMutation('tasks', 'id', '${task}')
         ])
@@ -263,6 +270,7 @@ class ProjectBoardCanvasComponent extends React.Component {
     }
 
     // Update item order.
+    // TODO(burdon): Use MutationUtil.
     mutator.updateItem(project, _.map(changes, change => ({
       field: 'boards',
       value: {
@@ -320,8 +328,8 @@ class ProjectBoardCanvasComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { typeRegistry } = this.context;
-      let { registration: { groupId, userId }, item:project, refetch, boardAlias } = this.props;
+      let { typeRegistry, registration: { groupId, userId } } = this.context;
+      let { item:project, refetch, boardAlias } = this.props;
       let { itemOrderModel } = this.state;
 
       // All items for board.
@@ -332,8 +340,11 @@ class ProjectBoardCanvasComponent extends React.Component {
       itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
 
       return (
-        <Canvas ref="canvas" item={ project } refetch={ refetch }
-                onSave={ this.handleSave.bind(this) } fields={{ description: false, debug: false }}>
+        <Canvas ref="canvas"
+                item={ project }
+                refetch={ refetch }
+                onSave={ this.handleSave.bind(this) }
+                fields={{ description: false, debug: false }}>
 
           <Board item={ project }
                  items={ items }
@@ -344,6 +355,7 @@ class ProjectBoardCanvasComponent extends React.Component {
                  onItemDrop={ this.handleItemDrop.bind(this) }
                  onItemSelect={ this.handleItemSelect.bind(this) }
                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+
         </Canvas>
       );
     });
@@ -415,48 +427,16 @@ const ProjectBoardQuery = gql`
   ${TaskFragment}  
 `;
 
-// TODO(burdon): Extend ItemReducer?
-const ProjectBoardReducer = (matcher, context, previousResult, updatedItem) => {
-  let { item:project } = previousResult;
-
-  // Updated task.
-  if (project.id == _.get(updatedItem, 'project.id')) {
-    // TODO(burdon): Factor out pattern (see task also).
-    let taskIdx = _.findIndex(project.tasks, task => task.id == updatedItem.id);
-    if (taskIdx != -1) {
-      // Update task.
-      return {
-        item: {
-          tasks: {
-            [taskIdx]: {
-              $set: updatedItem
-            }
-          }
-        }
-      }
-    } else {
-      // Append task.
-      return {
-        item: {
-          tasks: {
-            $push: [ updatedItem ]
-          }
-        }
-      }
-    }
-  }
-};
-
 export const ProjectBoardCanvas = compose(
 
-  connect((state, ownProps) => {
+  connectReducer(ItemReducer.graphql(ProjectBoardQuery)),
+
+  connectWithRef((state, ownProps) => {
     let { canvas: { boardAlias='status' } } = AppAction.getState(state);
     return {
       boardAlias
     };
-  }),
-
-  connectItemReducer(ItemReducer.graphql(ProjectBoardQuery, ProjectBoardReducer))
+  })
 
 )(ProjectBoardCanvasComponent);
 

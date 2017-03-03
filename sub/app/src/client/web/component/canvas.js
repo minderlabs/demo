@@ -4,18 +4,51 @@
 
 import React from 'react';
 
-import { MutationUtil, QueryRegistry, TypeUtil } from 'minder-core';
-import { Textarea } from 'minder-ux';
+import { ID, MutationUtil, QueryRegistry, TypeUtil } from 'minder-core';
+import { Textarea, getWrappedInstance } from 'minder-ux';
 
 import { ItemCanvasHeader } from '../type/item';
 
 import { Navbar } from '../component/navbar';
 
 /**
+ * Canvas navbar,
+ */
+export class CanvasNavbar extends React.Component {
+
+  static propTypes = {
+    onSave: React.PropTypes.func.isRequired,
+    type:   React.PropTypes.string.isRequired,
+    itemId: React.PropTypes.string.isRequired,
+    canvas: React.PropTypes.string,
+  };
+
+  static contextTypes = {
+    typeRegistry: React.PropTypes.object.isRequired,
+  };
+
+  render() {
+    let { typeRegistry } = this.context;
+    let { onSave, itemId } = this.props;
+
+    let { type } = ID.fromGlobalId(itemId);
+    let Toolbar = typeRegistry.toolbar(type);
+    let toolbar = Toolbar && <Toolbar/>;
+
+    // TODO(burdon): Save button.
+    return (
+      <Navbar>
+        <ItemCanvasHeader onSave={ onSave } itemId={ itemId } toolbar={ toolbar }/>
+      </Navbar>
+    );
+  }
+}
+
+/**
  * Canvas container.
  *
  * <CanvasContainer>                    Instantiated by activity with type-specific content.
- *   <ProjectCanvas/>                   Wraps the Canvas element (for consistent layout); provides the mutator.
+ *   <ProjectCanvas>                    Wraps the Canvas element (for consistent layout); provides the mutator.
  *     <Canvas>
  *       <div>{ customLayout }</div>
  *     </Canvas>
@@ -33,46 +66,25 @@ export class CanvasContainer extends React.Component {
   };
 
   static contextTypes = {
-    typeRegistry: React.PropTypes.object.isRequired,
+    typeRegistry: React.PropTypes.object.isRequired
   };
+
+  save() {
+    let component = getWrappedInstance(this.refs.canvas);
+    component.canvas.save();
+  }
 
   render() {
     let { typeRegistry } = this.context;
     let { itemId, canvas } = this.props;
+
+    let { type } = ID.fromGlobalId(itemId);
+    let Canvas = typeRegistry.canvas(type, canvas);
 
     return (
       <div className="ux-canvas-container">
-        { typeRegistry.canvas(itemId, canvas) }
+        <Canvas ref="canvas" itemId={ itemId }/>
       </div>
-    );
-  }
-}
-
-/**
- * Canvas navbar,
- */
-export class CanvasNavbar extends React.Component {
-
-  static propTypes = {
-    type: React.PropTypes.string.isRequired,
-    itemId: React.PropTypes.string.isRequired,
-    canvas: React.PropTypes.string,
-  };
-
-  static contextTypes = {
-    typeRegistry: React.PropTypes.object.isRequired,
-  };
-
-  render() {
-    let { typeRegistry } = this.context;
-    let { itemId, canvas } = this.props;
-
-    let toolbar = typeRegistry.toolbar(itemId, canvas);
-
-    return (
-      <Navbar>
-        <ItemCanvasHeader itemId={ itemId } toolbar={ toolbar }/>
-      </Navbar>
     );
   }
 }
@@ -87,14 +99,11 @@ export class Canvas extends React.Component {
     // Root item (retrieved by type-specific GQL query).
     item: React.PropTypes.object.isRequired,
 
+    // Callback to get mutated properties.
+    onSave: React.PropTypes.func.isRequired,
+
     // Type-specific GQL properties.
     refetch: React.PropTypes.func.isRequired,
-
-    // Read-only if not set.
-    mutator: React.PropTypes.object,
-
-    // Get mutations from child component.
-    onSave: React.PropTypes.func,
 
     // Show description.
     fields: React.PropTypes.object
@@ -109,7 +118,8 @@ export class Canvas extends React.Component {
   };
 
   static contextTypes = {
-    queryRegistry: React.PropTypes.object.isRequired
+    queryRegistry: React.PropTypes.object.isRequired,
+    mutator: React.PropTypes.object.isRequired
   };
 
   /**
@@ -130,40 +140,45 @@ export class Canvas extends React.Component {
     this.context.queryRegistry.register(this.props.cid, this.props.refetch);
   }
 
-  // TODO(burdon): Save (get mutations from child via prop).
   componentWillUnmount() {
+    this.save();
     this.context.queryRegistry.unregister(this.props.cid);
+  }
+
+  save() {
+    let { mutator } = this.context;
+    let { item, onSave } = this.props;
+    let mutations = TypeUtil.flattenArrays([ this.getMutations(), onSave() ]);
+    if (!_.isEmpty(mutations)) {
+      console.log('Saving: ', mutations);
+      mutator.updateItem(item, mutations);
+    }
+  }
+
+  /**
+   * Get mutations for fields.
+   */
+  getMutations() {
+    let { item, fields } = this.props;
+
+    let mutations = [];
+
+    // Determine which properties changed.
+    _.each(fields, (exists, field) => {
+      let value = _.get(this.state, field);
+      if (exists && !_.isEqual(value, _.get(item, field))) {
+        // TODO(burdon): Not just strings.
+        mutations.push(MutationUtil.createFieldMutation(field, 'string', value));
+      }
+    });
+
+    return mutations;
   }
 
   handlePropertyChange(property, value) {
     this.setState({
       [property]: value
     });
-  }
-
-  /**
-   * Check for modified elements and submit mutation if necessary.
-   */
-  handleSave() {
-    let { mutator } = this.context;
-    let { item } = this.props;
-
-    let mutations = [];
-
-    // Determine which properties changed.
-    _.each(['title', 'description'], property => {
-      let value = _.get(this.state, property);
-      if (!_.isEqual(value, _.get(item, property))) {
-        mutations.push(MutationUtil.createFieldMutation(property, 'string', value));
-      }
-    });
-
-    // Get type-specific mutations.
-    this.props.onSave && TypeUtil.maybeAppend(mutations, this.props.onSave());
-
-    if (mutations.length) {
-      mutator.updateItem(item, mutations);
-    }
   }
 
   render() {
@@ -175,7 +190,7 @@ export class Canvas extends React.Component {
         <div className="ux-section">
           <div className="ux-section-body">
             <div className="ux-row">
-              <Textarea className="ux-expand ux-noborder ux-font-xsmall" rows="3"
+              <Textarea className="ux-expand ux-noborder ux-font-xsmall" rows="4"
                         placeholder="Notes"
                         value={ _.get(this.state, 'description') }
                         onChange={ this.handlePropertyChange.bind(this, 'description') }/>
@@ -184,7 +199,7 @@ export class Canvas extends React.Component {
         </div>
         }
 
-        <div className="ux-expand">
+        <div className="ux-column ux-expand">
           { children }
         </div>
 

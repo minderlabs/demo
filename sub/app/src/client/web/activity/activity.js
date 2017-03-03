@@ -17,11 +17,16 @@ import { TypeRegistry } from '../../web/framework/type_registry';
 //-------------------------------------------------------------------------------------------------
 // Default Redux property providers for activities.
 // Each Activity has custom props.params provided by the redux-router.
+// https://github.com/reactjs/react-redux/blob/master/docs/api.md
 //-------------------------------------------------------------------------------------------------
 
+/**
+ * Extract state for downstream HOC wrappers.
+ */
 const mapStateToProps = (state, ownProps) => {
   let appState = AppAction.getState(state);
   let { config, registration, injector } = appState;
+  console.assert(registration, 'Not registered.');
 
   let idGenerator   = injector.get(IdGenerator);
   let typeRegistry  = injector.get(TypeRegistry);
@@ -30,8 +35,7 @@ const mapStateToProps = (state, ownProps) => {
 
   let navigator = undefined;
   if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
-    let serverProvider = new PropertyProvider(appState, 'server');
-    navigator = new WindowNavigator(serverProvider);
+    navigator = new WindowNavigator(new PropertyProvider(appState, 'server'));
   }
 
   return {
@@ -46,15 +50,22 @@ const mapStateToProps = (state, ownProps) => {
   };
 };
 
+/**
+ * Global dispatchers.
+ */
 const mapDispatchToProps = (dispatch, ownProps) => {
-  let { navigator } = ownProps;
-  if (!navigator) {
-    navigator = new Navigator(dispatch);
-  }
-
   return {
-    navigator
-  };
+    navigator: new Navigator(dispatch)
+  }
+};
+
+/**
+ * NOTE: mapDispatchToProps can't access state, so we merge here.
+ * https://github.com/reactjs/react-redux/issues/237
+ */
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  // TODO(burdon): Is this too expensive?
+  return _.assign({}, ownProps, dispatchProps, stateProps);
 };
 
 /**
@@ -91,5 +102,5 @@ export class Activity {
   /**
    * Connect properties for activities.
    */
-  static connect = () => connect(mapStateToProps, mapDispatchToProps);
+  static connect = () => connect(mapStateToProps, mapDispatchToProps, mergeProps);
 }

@@ -6,9 +6,10 @@ import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
 import { TypeUtil } from '../util/type';
+import { Transforms } from './transforms';
 
 import { ID } from './id';
-import { ItemFragment, TaskFragment, ProjectBoardFragment } from './fragments';
+import { ItemFragment, TaskFragment, ProjectFragment, ProjectBoardFragment } from './fragments';
 
 //
 // Generic mutation.
@@ -20,12 +21,14 @@ export const UpsertItemsMutation = gql`
     upsertItems(mutations: $mutations) {
       ...ItemFragment
       ...TaskFragment
+      ...ProjectFragment
       ...ProjectBoardFragment
     }
   }
   
   ${ItemFragment}
   ${TaskFragment}
+  ${ProjectFragment}
   ${ProjectBoardFragment}
 `;
 
@@ -119,6 +122,26 @@ export class MutationUtil {
   }
 }
 
+/*
+  mutator.batch()
+    .createItem('Task', [{
+      field: 'title',
+      value: {
+        string: 'Task-1'
+      }
+    }], 'new_item')
+    .updateItem('project-1', [{
+      field: "tasks",
+      value: {
+        set: {
+          value: {
+            id: "${new_item}.id"  // Reference item created above.
+          }
+        }
+      }
+    }])
+    .commit();
+*/
 class Batch {
 
   constructor(mutator) {
@@ -129,45 +152,64 @@ class Batch {
 
   createItem(type, mutations, name=undefined) {
     console.assert(type && mutations);
+    mutations = TypeUtil.flattenArrays(mutations);
     this._operations.push({
       type, mutations, name
     });
+
     return this;
   }
 
   updateItem(item, mutations) {
     console.assert(item && mutations);
+    mutations = TypeUtil.flattenArrays(mutations);
     this._operations.push({
       item, mutations
     });
+
     return this;
   }
 
   commit() {
-    let created = new Map();
+    // TODO(burdon): Actually batch mutations. (affects optimistic result and reducer)?
+
+    // Map of named items.
+    let itemsById = new Map();
+    let itemsByName = new Map();
+
+    // Process create and update mutations.
     _.each(this._operations, operation => {
       let { type, item, mutations, name } = operation;
       if (type) {
+        //
         // Create item.
-        let itemId = this._mutator.createItem(type, mutations);
+        //
+
+        item = this._mutator.createItem(type, mutations);
+        itemsById.set(item.id, item);
+
         if (name) {
-          created.set(name, itemId);
+          itemsByName.set(name, item);
         }
       } else {
-        // Pre-process mutations.
+        //
+        // Update item.
+        //
+
+        // Update references.
         TypeUtil.traverse(mutations, (value, key) => {
           let id = _.get(value, 'value.id');
           if (id) {
             let match = id.match(/\$\{(.+)\}/);
             if (match) {
-              id = created.get(match[1]);
-              _.set(value, 'value.id', id);
+              let created = itemsByName.get(match[1]);
+              _.set(value, 'value.id', created.id);
             }
           }
         });
 
         // Update item.
-        this._mutator.updateItem(item, mutations);
+        this._mutator.updateItem(item, mutations, itemsById);
       }
     });
   }
@@ -208,46 +250,36 @@ export class Mutator {
     this._mutate = mutate;
   }
 
-  // TODO(burdon): Batch API (unit test).
-  // TODO(burdon): First-cut send multiple mutations operations; second-cut combine (affects optimistic result and reducer)?
-
-  /*
-    mutator.batch()
-      .createItem('Task', [{
-        field: 'title',
-        value: {
-          string: 'Task-1'
-        }
-      }], 'new_item')
-      .updateItem('project-1', [{
-        field: "tasks",
-        value: {
-          set: {
-            value: {
-              id: "${new_item}.id"  // Reference item created above.
-            }
-          }
-        }
-      }])
-      .commit();
-  */
-
   batch() {
     return new Batch(this);
   }
 
-  // TODO(burdon): Optimistic response.
-  // http://dev.apollodata.com/react/mutations.html#optimistic-ui
+  // TODO(burdon): Remove non-batch operations.
 
   /**
    * Executes a create item mutation.
    *
-   * @param type
+   * @param {string} type
    * @param mutations
-   * @return {string} Newly created item's ID.
+   * @return {Item} Optimistic result.
    */
   createItem(type, mutations) {
+    mutations = _.compact(_.concat(mutations));
+
+    // Create optimistic result.
     let itemId = this._idGenerator.createId();
+    let item = Transforms.applyObjectMutations({
+      __typename: type,
+      type,
+      id: itemId
+    }, mutations);
+
+    // TODO(burdon): Look-up references (e.g., assignee).
+    // TODO(burdon): Pass query result to bacth for optimistic result.
+    // TODO(burdon): How to swap IDs (some values -- e.g., bucket -- are actual strings not references to objects!)
+    // TODO(burdon): Get type definitions?
+
+    // Fire mutation.
     this._mutate({
       variables: {
         mutations: [
@@ -255,28 +287,54 @@ export class Mutator {
             itemId: ID.toGlobalId(type, itemId),
             mutations
           }
-        ]
+        ],
+
+        // http://dev.apollodata.com/react/mutations.html#optimistic-ui
+        optimisticResponse: {
+          upsertItems: [
+            item
+          ]
+        }
       }
     });
 
-    return itemId;
+    return item;
   }
 
   /**
    * Executes an update item mutation.
    *
-   * @param item
+   * @param {Item} item
    * @param mutations
-   * @return {string} Updated item's ID (NOTE: this will change if the item is being copied).
+   * @param [itemMap] Optional map of cached items.
+   * @return {Item} Optimisitc result (NOTE: this will change if the item is being copied).
    */
-  updateItem(item, mutations) {
-    // TODO(burdon): If external namespace (factor out from Database.isExternalNamespace0.
+  updateItem(item, mutations, itemMap=undefined) {
+    mutations = _.compact(_.concat(mutations));
+
+    // TODO(burdon): If external namespace (factor out from Database.isExternalNamespace).
     if (item.namespace) {
       console.log('Cloning item: ' + JSON.stringify(item));
 
       // TODO(burdon): Replace cloned mutations with new mutation.
       return this.createItem(item.type, _.concat(MutationUtil.cloneExternalItem(item), mutations));
     } else {
+      // Create optimistic result.
+      Transforms.applyObjectMutations(item, mutations);
+
+      // Check for ID references to recently created items.
+      // TODO(burdon): Could eventually use schema?
+      if (itemMap) {
+        TypeUtil.traverse(item, (value, key, root) => {
+          if (_.isString(value)) {
+            let match = itemMap.get(value);
+            if (match) {
+              _.set(root, key, match);
+            }
+          }
+        });
+      }
+
       this._mutate({
         variables: {
           mutations: [
@@ -285,10 +343,17 @@ export class Mutator {
               mutations
             }
           ]
+        },
+
+        // http://dev.apollodata.com/react/mutations.html#optimistic-ui
+        optimisticResponse: {
+          upsertItems: [
+            item
+          ]
         }
       });
 
-      return item.id;
+      return item;
     }
   }
 }

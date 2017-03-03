@@ -91,6 +91,15 @@ export class TypeUtil {
   }
 
   /**
+   * Flatten array that may contain arrays. Remove null/undefined values.
+   * @param values
+   * @returns {*}
+   */
+  static flattenArrays(values) {
+    return _.compact([].concat.apply([], values));
+  }
+
+  /**
    * Appends non-null values to array.
    * @param array
    * @param value Value or array of values.
@@ -113,14 +122,14 @@ export class TypeUtil {
 
   /**
    * @param obj
-   * @param f
+   * @param f Function to call for each key x value. (value, key/index, root)
    */
   static traverse(obj, f) {
     _.forIn(obj, (value, key) => {
-      f(value, key);
+      f(value, key, obj);
       if (_.isArray(value)) {
         value.forEach((el, i) => {
-          f(el, i);
+          f(el, i, value);
           if (_.isObject(el)) {
             TypeUtil.traverse(el, f);
           }

@@ -16,8 +16,8 @@ const logger = Logger.get('client');
 /**
  * Client endpoints.
  */
-export const clientRouter = (authManager, clientManager, systemStore, options={}) => {
-  console.assert(authManager && clientManager);
+export const clientRouter = (userManager, clientManager, systemStore, options={}) => {
+  console.assert(userManager && clientManager);
   let router = express.Router();
 
   // JSON body.
@@ -29,7 +29,7 @@ export const clientRouter = (authManager, clientManager, systemStore, options={}
     console.assert(platform);
 
     // Get current user.
-    let user = await authManager.getUserFromHeader(req);
+    let user = await userManager.getUserFromHeader(req);
     if (user) {
       let userId = user.id;
 
@@ -62,7 +62,7 @@ export const clientRouter = (authManager, clientManager, systemStore, options={}
   // Unregister the client
   router.post('/unregister', async function(req, res) {
     let { clientId } = req.body;
-    let user = await authManager.getUserFromHeader(req);
+    let user = await userManager.getUserFromHeader(req);
     clientManager.unregister(clientId, user && user.id);
     res.end();
   });

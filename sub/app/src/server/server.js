@@ -12,7 +12,7 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { IdGenerator, Matcher, MemoryItemStore, Logger, TypeUtil } from 'minder-core';
+import { IdGenerator, Matcher, MemoryItemStore, TestItemStore, Logger, TypeUtil } from 'minder-core';
 import {
   Database,
   Firebase,
@@ -26,7 +26,7 @@ import { Const, FirebaseAppConfig, GoogleApiConfig, SlackConfig } from '../commo
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
 import { accountsRouter, AccountManager, SlackAccountHandler } from './accounts';
-import { loginRouter, AuthManager } from './auth';
+import { loginRouter, UserManager } from './user';
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { clientRouter, ClientManager } from './client';
 import { Loader } from './data/loader';
@@ -34,7 +34,7 @@ import { TestGenerator } from './data/testing';
 import { testingRouter } from './testing';
 import { loggingRouter } from './logger';
 
-const logger = Logger.get('main');
+const logger = Logger.get('server');
 
 
 //
@@ -44,8 +44,8 @@ const logger = Logger.get('main');
 //
 
 function handleError(error) {
-  console.error('### ERROR: %s', error && error.message || error);
-  error && error.stack && console.error(error.stack);
+  logger.error('### ERROR: %s', error && error.message || error);
+  error && error.stack && logger.error(error.stack);
 }
 
 // https://nodejs.org/api/process.html#process_event_uncaughtexception
@@ -60,7 +60,6 @@ process.on('unhandledRejection', handleError);
 
 // TODO(burdon): Move to Config.
 const Config = {
-
   MEMCACHE_HOST: _.get(process.env, 'MEMCACHE_SERVICE_HOST', '127.0.0.1'),
   MEMCACHE_PORT: _.get(process.env, 'MEMCACHE_SERVICE_PORT', '11211')
 };
@@ -81,7 +80,7 @@ const app = express();
 
 const server = http.Server(app);
 
-const idGenerator = new IdGenerator(1000);
+const idGenerator = new IdGenerator(999);
 
 const clientManager = new ClientManager(idGenerator);
 
@@ -104,7 +103,7 @@ const firebase = new Firebase(idGenerator, matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const authManager = new AuthManager(firebase.admin, firebase.systemStore);
+const userManager = new UserManager(firebase.admin, firebase.systemStore);
 
 
 //
@@ -114,7 +113,9 @@ const authManager = new AuthManager(firebase.admin, firebase.systemStore);
 const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SETTINGS, false);
 
 const defaultItemStore = testing ?
-  new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER) : firebase.itemStore;
+  new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), {
+    delay: 0 // TODO(burdon): Config.
+  }) : firebase.itemStore;
 
 const database = new Database()
 
@@ -128,10 +129,10 @@ const database = new Database()
   .registerQueryProcessor(settingsStore)
   .registerQueryProcessor(defaultItemStore)
 
-  .onMutation(() => {
+  .onMutation(items => {
     // Notify clients of changes.
     // TODO(burdon): Create notifier abstraction.
-    clientManager.invalidateOthers();
+    // clientManager.invalidateOthers();
   });
 
 
@@ -182,12 +183,6 @@ let loading = Promise.all([
     }
   });
 });
-
-
-//
-// Test data.
-//
-
 
 
 //
@@ -264,11 +259,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 
 app.get('/home', async function(req, res) {
-  let user = await authManager.getUserFromCookie(req);
+  let user = await userManager.getUserFromCookie(req);
   if (user) {
     res.redirect(Const.APP_PATH);
   } else {
     res.render('home', {
+      crxId: Const.CRX_ID,
       login: true
     });
   }
@@ -290,22 +286,25 @@ app.use(graphqlRouter(database, {
   // Use custom UX provided below.
   graphiql: false,
 
+  // TODO(burdon): Get clientId.
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
-  contextProvider: request => authManager.getUserFromHeader(request)
+  contextProvider: request => userManager.getUserFromHeader(request)
     .then(user => {
-      // TODO(burdon): 401 handling.
-      console.assert(user, 'GraphQL request is not authenticated.');
-
-      let userId = user.id;
-      return firebase.systemStore.getGroup(userId).then(group => {
-        // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
-        let groupId = group.id;
-        return {
-          groupId,
-          userId
-        }
-      });
+      if (!user) {
+        logger.warn('Invalid JWT in header.');
+        return Promise.resolve({});
+      } else {
+        let userId = user.id;
+        return firebase.systemStore.getGroup(userId).then(group => {
+          // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
+          let groupId = group.id;
+          return {
+            groupId,
+            userId
+          }
+        });
+      }
     })
 }));
 
@@ -320,7 +319,7 @@ let staticPath = (env === 'production' ?
 app.use('/node_modules', express.static(staticPath));
 
 app.get('/graphiql', function(req, res) {
-  return authManager.getUserFromCookie(req)
+  return userManager.getUserFromCookie(req)
     .then(user => {
       if (!user) {
         return res.redirect('/home');
@@ -352,11 +351,11 @@ app.use('/admin', adminRouter(clientManager, firebase, {
 // App.
 //
 
-app.use('/user', loginRouter(authManager, firebase.systemStore, { env }));
+app.use('/user', loginRouter(userManager, firebase.systemStore, { env }));
 
-app.use('/client', clientRouter(authManager, clientManager, firebase.systemStore));
+app.use('/client', clientRouter(userManager, clientManager, firebase.systemStore));
 
-app.use(appRouter(authManager, clientManager, firebase.systemStore, {
+app.use(appRouter(userManager, clientManager, firebase.systemStore, {
 
   // App root path.
   root: Const.APP_PATH,

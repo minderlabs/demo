@@ -14,6 +14,8 @@ import Schema from './gql/schema.graphql';
 
 const logger = Logger.get('resolver');
 
+const AuthError = new Error('Not authenticated.');
+
 /**
  * Resolver map.
  */
@@ -161,6 +163,7 @@ export class Resolvers {
           }
         },
 
+        // TODO(burdon): Links.
         tasks: (root, args, context) => {
           if (root.tasks) {
             return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', root.tasks);
@@ -214,10 +217,20 @@ export class Resolvers {
       RootQuery: {
 
         viewer: (root, args, context) => {
+          let { userId } = context;
+          if (!userId) {
+            throw AuthError;
+          }
+
           return {};
         },
 
         item: (root, args, context) => {
+          let { userId } = context;
+          if (!userId) {
+            throw AuthError;
+          }
+
           let { itemId } = args;
           let { type, id:localItemId } = ID.fromGlobalId(itemId);
 
@@ -227,7 +240,13 @@ export class Resolvers {
           return database.getItemStore(namespace).getItem(context, type, localItemId);
         },
 
+        // TODO(burdon): Document difference from search (no text index? i.e., move to ItemStore?)
         items: (root, args, context) => {
+          let { userId } = context;
+          if (!userId) {
+            throw AuthError;
+          }
+
           let { filter, offset, count } = args;
           let { namespace } = filter;
 
@@ -235,6 +254,11 @@ export class Resolvers {
         },
 
         search: (root, args, context) => {
+          let { userId } = context;
+          if (!userId) {
+            throw AuthError;
+          }
+
           let { filter, offset, count, groupBy } = args;
 
           return database.search(context, root, filter, offset, count, groupBy);
@@ -243,53 +267,70 @@ export class Resolvers {
 
       //
       // Mutations
+      // Apply ItemMutationInput
       // http://dev.apollodata.com/react/receiving-updates.html
       //
 
       RootMutation: {
 
         upsertItems: (root, args, context) => {
+          let { userId } = context;
+          if (!userId) {
+            throw AuthError;
+          }
+
           let { mutations:itemMutations } = args;
 
-          // TODO(burdon): Transaction.
-          let promises = [];
-          _.each(itemMutations, mutation => {
-            let { itemId, mutations } = mutation;
-            let { type, id:localItemId } = ID.fromGlobalId(itemId);
+          // TODO(burdon): Should be from Mutator args. (default to USER)? Does UX currently update Group/User?
+//        let namespace = Resolvers.getNamespaceForType(type);
+          let namespace = Database.NAMESPACE.USER;
+          let itemStore = database.getItemStore(namespace);
 
-            // TODO(burdon): Should be from args.
-            let namespace = Resolvers.getNamespaceForType(type);
+          return Promise.all(_.map(itemMutations, itemMutation => {
+            let { itemId, mutations } = itemMutation;
+            let { type, id:localItemId } = ID.fromGlobalId(itemId);
             logger.log($$('UPDATE[%s:%s]: %o', type, localItemId, mutations));
 
-            // Get existing item (or undefined).
-            let itemStore = database.getItemStore(namespace);
-            promises.push(itemStore.getItem(context, type, localItemId).then(item => {
+            //
+            // Get and update item.
+            //
+            return itemStore.getItem(context, type, localItemId)
+              .then(item => {
 
-              // If not found (i.e., insert).
-              // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
-              if (!item) {
-                item = {
-                  id: localItemId,
-                  type: type
-                };
-              }
+                // If not found (i.e., insert).
+                // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
+                if (!item) {
+                  item = {
+                    id: localItemId,
+                    type: type
+                  };
+                }
 
-              // Apply mutations.
-              Transforms.applyObjectMutations(item, mutations);
+                //
+                // Apply mutations.
+                //
+                return Transforms.applyObjectMutations(item, mutations);
+              });
+          }))
 
-              // Upsert item.
-              return itemStore.upsertItem(context, item)
-                .then(items => {
-                  // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
-                  database.fireMuationNotification(context, items);
+            //
+            // Upsert items.
+            //
+            .then(results => {
+              let items = TypeUtil.flattenArrays(results);
+              return itemStore.upsertItems(context, items)
+            })
 
-                  return items;
-                });
-            }));
-          });
+            //
+            // Trigger notifications.
+            //
+            .then(items => {
+              // TODO(burdon): Pass clientId from context.
+              // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
+              database.fireMuationNotification(context, items);
 
-          // TODO(burdon): Should this happen in parallel?
-          return Promise.all(promises);
+              return items;
+            });
         }
       }
     };

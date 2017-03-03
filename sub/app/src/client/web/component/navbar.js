@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import SearchView from '../view/search';
+import SearchPanel from '../view/search';
 
 /**
  * App navigation
@@ -28,12 +28,11 @@ export class Navbar extends React.Component {
   };
 
   render() {
-    let { typeRegistry } = this.context;
     let { children, search } = this.props;
 
     return (
       <nav className="ux-navbar">
-        { search && <SearchView/> || <div/> }
+        { search && <SearchPanel/> || <div/> }
 
         <div className="ux-header ux-expand">
           { children }

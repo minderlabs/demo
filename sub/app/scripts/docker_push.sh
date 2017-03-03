@@ -83,7 +83,7 @@ eval "$(docker-machine env ${DOCKER_MACHINE})"
 #
 
 if [ $VERSION_BUMP -eq 1 ]; then
-  grunt version:web:patch
+  grunt version:app:patch
 fi
 
 #
@@ -124,7 +124,12 @@ case "$DOCKER_REPO" in
     ;;
 esac
 
-# TODO(burdon): push scheduler.
+#
+# https://console.aws.amazon.com/iam/
+# NOTE: On error check ~/.aws/credentials matches IAM keys.
+# NOTE: Check also not clobbered by AWS_SECRET_ACCESS_KEY, etc.
+#
+
 docker push ${NAMESPACE}/${REPO}:${VERSION}
 
 #
@@ -141,6 +146,10 @@ kubectl delete $(kubectl get pods -l run=$RUN_LABEL -o name)
 # Check running version.
 # https://console.aws.amazon.com/ecs/home?region=us-east-1#/repositories/${TAG}#images;tagStatus=ALL
 # NOTE: kubectl replace -f demo.yml
+#
+# Dashboard
+# https://api.dev.k.minderlabs.com/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard
+# username=admin; password in ~/.kube/config
 #
 
 STATUS_URL="https://demo-dev.minderlabs.com/status"

@@ -4,13 +4,12 @@
 
 import React from 'react';
 import { compose } from 'react-apollo';
-import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { GroupFragment, ItemFragment, ItemReducer } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
-import { connectItemReducer } from '../framework/item_factory';
+import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 
 //-------------------------------------------------------------------------------------------------
@@ -29,7 +28,7 @@ class GroupCanvasComponent extends React.Component {
   };
 
   static propTypes = {
-    item: propType(GroupFragment)
+    item: React.PropTypes.object.isRequired
   };
 
   handleItemSelect(item) {
@@ -63,33 +62,38 @@ class GroupCanvasComponent extends React.Component {
     }
   }
 
+  handleSave() {
+    return [];
+  }
+
   render() {
     return ReactUtil.render(this, () => {
       let { item:group, refetch } = this.props;
 
       return (
-        <Canvas ref="canvas" item={ group } refetch={ refetch }>
-          <div className="app-type-group ux-column">
+        <Canvas ref="canvas"
+                item={ group }
+                refetch={ refetch }
+                onSave={ this.handleSave.bind(this)}>
 
-            <div className="ux-column">
-              <div className="ux-section-header ux-row">
-                <h3 className="ux-expand">Members</h3>
-              </div>
-              <List items={ group.members } onItemSelect={ this.handleItemSelect.bind(this) }/>
+          <div className="ux-column">
+            <div className="ux-section-header ux-row">
+              <h3 className="ux-expand">Members</h3>
             </div>
-
-            <div className="ux-column">
-              <div className="ux-section-header ux-row">
-                <h3 className="ux-expand">Projects</h3>
-                <i className="ux-icon ux-icon-add" onClick={ this.handleProjectAdd.bind(this) }></i>
-              </div>
-              <List ref="projects"
-                    items={ group.projects }
-                    onItemSelect={ this.handleItemSelect.bind(this) }
-                    onItemUpdate={ this.handleProjectSave.bind(this) }/>
-            </div>
-
+            <List items={ group.members } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
+
+          <div className="ux-column">
+            <div className="ux-section-header ux-row">
+              <h3 className="ux-expand">Projects</h3>
+              <i className="ux-icon ux-icon-add" onClick={ this.handleProjectAdd.bind(this) }></i>
+            </div>
+            <List ref="projects"
+                  items={ group.projects }
+                  onItemSelect={ this.handleItemSelect.bind(this) }
+                  onItemUpdate={ this.handleProjectSave.bind(this) }/>
+          </div>
+
         </Canvas>
       );
     });
@@ -113,5 +117,5 @@ const GroupQuery = gql`
 `;
 
 export const GroupCanvas = compose(
-  connectItemReducer(ItemReducer.graphql(GroupQuery))
+  connectReducer(ItemReducer.graphql(GroupQuery))
 )(GroupCanvasComponent);

@@ -12,7 +12,7 @@ import { Const } from '../../../common/defs';
 import { Navbar } from '../component/navbar';
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
-import FolderView from '../view/folder';
+import Finder from '../view/finder';
 
 import { Activity } from './activity';
 
@@ -41,7 +41,7 @@ class FinderActivity extends React.Component {
 
     let navbar = <Navbar/>;
 
-    let finder = <FolderView folder={ folder }/>;
+    let finder = <Finder folder={ folder }/>;
 
     let platform = _.get(config, 'app.platform');
     if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {

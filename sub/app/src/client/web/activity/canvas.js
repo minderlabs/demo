@@ -12,7 +12,7 @@ import { Const } from '../../../common/defs';
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
 import { CanvasContainer, CanvasNavbar } from '../component/canvas';
-import FolderView from '../view/folder';
+import Finder from '../view/finder';
 
 import { Activity } from './activity';
 
@@ -38,15 +38,19 @@ class CanvasActivity extends React.Component {
     return Activity.getChildContext(this.props);
   }
 
+  handleSave() {
+    this.refs.canvas.save();
+  }
+
   render() {
     let { config, params: { type, canvas, itemId } } = this.props;
 
     let canvasComponent = (
-      <CanvasContainer canvas={ canvas } type={ type } itemId={ itemId }/>
+      <CanvasContainer ref="canvas" canvas={ canvas } type={ type } itemId={ itemId }/>
     );
 
     let navbar = (
-      <CanvasNavbar canvas={ canvas } type={ type } itemId={ itemId }/>
+      <CanvasNavbar onSave={ this.handleSave.bind(this) } canvas={ canvas } type={ type } itemId={ itemId }/>
     );
 
     // TODO(burdon): Layout based on form factor. Replace "expand" prop below with app state.
@@ -58,8 +62,7 @@ class CanvasActivity extends React.Component {
         </FullLayout>
       );
     } else {
-      // TODO(burdon): Get folder from state.
-      let finder = <FolderView folder={ 'inbox' }/>;
+      let finder = <Finder folder={ 'inbox' }/>;
       return (
         <SplitLayout navbar={ navbar } finder={ finder }>
           { canvasComponent }

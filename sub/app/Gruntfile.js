@@ -31,26 +31,19 @@ module.exports = (grunt) => {
       }
     },
 
-    // Version: "grunt version:client:patch" (to inc version).
+    // Version: "grunt version:app:patch" (to inc version).
     version: {
       options: {
         // Match both ["version": "0.0.1"] and [__version__ = '0.0.1']
         prefix: '[^\\-]((version)|(VERSION))[\'"]?[_\\s]*[:=]\\s*[\'"]'
       },
-      web: {
+      app: {
         options: {
           release: 'patch'
         },
         src: [
           'package.json',
-          'src/common/defs.js'
-        ]
-      },
-      crx: {
-        options: {
-          release: 'patch'
-        },
-        src: [
+          'src/common/defs.js',
           'src/client/crx/manifest.yml'
         ]
       }
@@ -84,8 +77,7 @@ module.exports = (grunt) => {
           },
           {
             src: [
-              'dist/crx/minder/minder.crx',
-              'dist/crx/minder/minder.zip'      // TODO(burdon): Remove when inline stall enabled.
+              'dist/crx/minder/minder.crx'
             ],
             dest: 'src/server/public/'
           }

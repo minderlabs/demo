@@ -3,8 +3,7 @@
 //
 
 import _ from 'lodash';
-
-const expect = require('chai').expect;
+import { expect } from 'chai';
 
 /**
  * Standard tests for all ItemStore implementations

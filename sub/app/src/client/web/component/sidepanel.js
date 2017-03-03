@@ -21,7 +21,7 @@ export class SidePanel extends React.Component {
 
     return (
       <ListItem item={ item }>
-        <ListItem.Icon icon={ icon || typeRegistry.icon(item) }/>
+        <ListItem.Icon icon={ icon || typeRegistry.icon(item.type) }/>
         <ListItem.Title/>
       </ListItem>
     );

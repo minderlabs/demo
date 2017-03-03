@@ -20,45 +20,45 @@ export const TypeRegistryFactory = () => new TypeRegistry({
 
   Contact: {
     icon: 'contacts',
-    card: (item) => <ContactCard item={ item }/>,
+    card: ContactCard,
     canvas: {
-      def: (itemId) => <ContactCanvas itemId={ itemId }/>
+      def: ContactCanvas
     }
   },
 
   Document: {
     icon: 'insert_drive_file',
-    column: (item) => <DocumentColumn item={ item }/>
+    column: DocumentColumn
   },
 
   Group: {
     icon: 'group',
     canvas: {
-      def: (itemId) => <GroupCanvas itemId={ itemId }/>
+      def: GroupCanvas
     }
   },
 
   Project: {
     icon: 'assignment',
-    card: (item) => <ProjectCard item={ item }/>,
-    toolbar: (itemId) => <ProjectCanvasToolbar/>,
+    card: ProjectCard,
+    toolbar: ProjectCanvasToolbar,
     canvas: {
-      def: (itemId) => <ProjectBoardCanvas itemId={ itemId }/>,
+      def: ProjectBoardCanvas,
     }
   },
 
   Task: {
     icon: 'assignment_turned_in',
-    card: (item) => <TaskCard item={ item }/>,
+    card: TaskCard,
     canvas: {
-      def: (itemId) => <TaskCanvas itemId={ itemId }/>
+      def: TaskCanvas
     }
   },
 
   User: {
     icon: 'accessibility',
     canvas: {
-      def: (itemId) => <UserCanvas itemId={ itemId }/>
+      def: UserCanvas
     }
   }
 

@@ -4,13 +4,12 @@
 
 import React from 'react';
 import { compose } from 'react-apollo';
-import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { ItemReducer, ItemFragment, MutationUtil } from 'minder-core';
 import { ReactUtil, TextBox } from 'minder-ux';
 
-import { connectItemReducer } from '../framework/item_factory';
+import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -24,7 +23,7 @@ import { Card } from '../component/card';
 export class ItemCard extends React.Component {
 
   static propTypes = {
-    item: propType(ItemFragment).isRequired
+    item: React.PropTypes.object.isRequired
   };
 
   render() {
@@ -45,7 +44,7 @@ export class ItemCanvasComponent extends React.Component {
 
   static propTypes = {
     refetch: React.PropTypes.func.isRequired,
-    item: propType(ItemFragment)
+    item: React.PropTypes.object
   };
 
   render() {
@@ -64,9 +63,18 @@ export class ItemCanvasComponent extends React.Component {
  */
 export class ItemCanvasHeaderComponent extends React.Component {
 
+  static contextTypes = {
+    mutator: React.PropTypes.object.isRequired
+  };
+
   static propTypes = {
+    onSave: React.PropTypes.func.isRequired,
     toolbar: React.PropTypes.object
   };
+
+  handleSave() {
+    this.props.onSave();
+  }
 
   handleUpdate(title) {
     let { mutator } = this.context;
@@ -84,10 +92,14 @@ export class ItemCanvasHeaderComponent extends React.Component {
       let { item, toolbar } = this.props;
       let { title } = item;
 
-      // TODO(burdon): Cancel button.
-
       return (
         <div className="ux-row ux-expand">
+
+          <div className="ux-navbar-buttons">
+            <div>
+              <i className="material-icons ux-icon ux-icon-action" onClick={ this.handleSave.bind(this) }>save</i>
+            </div>
+          </div>
 
           <div className="ux-navbar-buttons">
             { toolbar }
@@ -126,9 +138,9 @@ const ItemQuery = gql`
 `;
 
 export const ItemCanvas = compose(
-  connectItemReducer(ItemReducer.graphql(ItemQuery))
+  connectReducer(ItemReducer.graphql(ItemQuery))
 )(ItemCanvasComponent);
 
 export const ItemCanvasHeader = compose(
-  connectItemReducer(ItemReducer.graphql(ItemQuery))
+  connectReducer(ItemReducer.graphql(ItemQuery))
 )(ItemCanvasHeaderComponent);

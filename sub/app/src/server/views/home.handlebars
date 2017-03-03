@@ -1,6 +1,9 @@
 {{#section 'head'}}
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poiret+One:400">
   <link rel="stylesheet" href="/assets/website.css">
+
+  {{!-- Chrome Extension. --}}
+  <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/{{ crxId }}">
 {{/section}}
 
 <div class="site-container">
@@ -22,9 +25,7 @@
               <button>Login</button>
             </a>
 
-            <a href="minder.zip">
-              <button class="site-install-crx">Install Chrome Extension</button>
-            </a>
+            <button class="site-install-crx" onclick="installCrx()">Install Chrome Extension</button>
           </div>
           {{/if}}
         </div>
@@ -42,5 +43,12 @@
   <script src="/assets/website.bundle.js"></script>
   <script>
     new Words().start(3, 30);
+
+    function installCrx() {
+      // https://developer.chrome.com/webstore/inline_installation
+      chrome.webstore.install('https://chrome.google.com/webstore/detail/{{ crxId }}',
+          () => { console.log('OK') },
+          error => { console.error(error) });
+    }
   </script>
 </div>

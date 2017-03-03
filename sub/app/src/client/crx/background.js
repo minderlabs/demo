@@ -6,12 +6,15 @@ Logger.setLevel({
   'net': Logger.Level.debug
 }, Logger.Level.info);
 
-import { ChromeMessageChannelDispatcher, Listeners, TypeUtil } from 'minder-core';
+import { ChromeMessageChannelDispatcher, EventHandler, Listeners, QueryRegistry, TypeUtil } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
 import { ErrorHandler } from '../common/errors';
-import { ClientAuthManager, ConnectionManager, NetworkManager } from '../common/network';
+import { AuthManager } from '../common/auth';
+import { ConnectionManager } from '../common/client';
+import { NetworkManager } from '../common/network';
+import { PushManager } from '../common/push';
 import { ChromeNetworkInterface } from './util/network';
 import { Notification } from './util/notification';
 import { Settings } from './util/settings';
@@ -56,15 +59,12 @@ class BackgroundApp {
       graphiql: settings.server + '/graphiql'
     });
 
-    console.log('Config updated: ', JSON.stringify(config));
+    console.log('Config updated: ' + JSON.stringify(config));
   }
 
   constructor() {
     // Initial configuration (dynamically updated).
     this._config = _.defaults({}, BackgroundApp.Config);
-
-    // Registration state.
-    this._registration = null;
 
     // Dynamic settings.
     this._settings = new Settings(DefaultSettings);
@@ -80,14 +80,21 @@ class BackgroundApp {
 
     //
     // Network.
+    // ConnectionManager => AuthManager =>
+    // NetworkManager => AuthManager.getToken()
     //
-    this._networkManager = new NetworkManager(this._config);
-    this._connectionManager = new ConnectionManager(this._config, this._networkManager);
-    this._authManager = new ClientAuthManager(this._config, this._networkManager, this._connectionManager);
+
+    this._eventHandler = new EventHandler();
+    this._queryRegistry = new QueryRegistry();
+    this._authManager = new AuthManager(this._config);
+    this._networkManager = new NetworkManager(this._config, this._authManager, this._eventHandler);
+    this._pushManager = new PushManager(this._config, this._queryRegistry, this._eventHandler);
+    this._connectionManager = new ConnectionManager(this._config, this._authManager, this._pushManager);
 
     //
     // Listen for settings updates (not called on first load).
     //
+
     this._settings.onChange.addListener(settings => {
 
       // Check network settings (server) changes.
@@ -110,6 +117,7 @@ class BackgroundApp {
     //
     // Handle system requests/responses.
     //
+
     this._systemChannel = this._dispatcher.listen(BackgroundCommand.CHANNEL, request => {
       console.log('System request: ' + TypeUtil.stringify(request));
       switch (request.command) {
@@ -124,9 +132,10 @@ class BackgroundApp {
         // On client startup.
         case BackgroundCommand.REGISTER: {
           let { server } = this._config;
-          let registration = this._registration;
+          let registration = this._connectionManager.registration;
           if (!registration) {
             // TODO(burdon): Send retry error.
+            // TODO(burdon): Instead of client requesting -- send broadcast when connect happens.
             return Promise.reject('Client not registered.');
           } else {
             return Promise.resolve({ registration, server });
@@ -135,9 +144,8 @@ class BackgroundApp {
 
         // TODO(burdon): Send updated registration to clients?
         case BackgroundCommand.RECONNECT: {
-          this._networkManager.init();
-          this._connectionManager.connect();
-          break;
+          this._networkManager.init(); // TODO(burdon): reset?
+          return this._connectionManager.connect();
         }
 
         // Invalidate auth.
@@ -190,25 +198,27 @@ class BackgroundApp {
       this._networkManager.init();
 
       // Triggers popup.
-      this._authManager.authenticate().then(registration => {
-        console.assert(registration && registration.userId);
-        this._registration = registration;
+      this._authManager.authenticate().then(user => {
 
-        // Only show if not dev.
-        // TODO(burdon): Option.
-        if (!settings.server.startsWith('http://localhost')) {
-          this._notification.show('Minder', 'Authentication succeeded.');
-        }
+        // Register with server.
+        this._connectionManager.register().then(registration => {
 
-        //
-        // Proxy Apollo requests.
-        // http://dev.apollodata.com/core/network.html#custom-network-interface
-        // See also ChromeNetworkInterface
-        // TODO(burdon): Network logging.
-        //
-        this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
-          return this._networkManager.networkInterface.query(gqlRequest).then(gqlResponse => {
-            return gqlResponse;
+          // Only show if not dev.
+          // TODO(burdon): Option.
+          if (!settings.server.startsWith('http://localhost')) {
+            this._notification.show('Minder', 'Authentication succeeded.');
+          }
+
+          //
+          // Proxy Apollo requests.
+          // http://dev.apollodata.com/core/network.html#custom-network-interface
+          // See also ChromeNetworkInterface
+          // TODO(burdon): Network logging.
+          //
+          this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
+            return this._networkManager.networkInterface.query(gqlRequest).then(gqlResponse => {
+              return gqlResponse;
+            });
           });
         });
       });

@@ -39,8 +39,8 @@ class ContentScript {
 
     // Frame elements.
     this.sidebar = new Frame('page/sidebar.html', 'sidebar/' + scriptId,
-      $('<div>').addClass('crx-sidebar').appendTo(container), () => {
-        console.log('Opening...');
+      $('<div>').addClass('crx-sidebar').appendTo(container),
+      () => {
         button.addClass('crx-bounce');
       });
 
@@ -140,12 +140,14 @@ class Frame {
     // Root node.
     this._root = root;
 
+    // Loading notifier.
+    this._onLoading = onLoading;
+
     // Lazily instantiated frame (loads content when created).
     this._frame = null;
 
     // Blocking promise (for initial message).
     this._blocking = null;
-    this._onLoading = onLoading;
 
     // iFrame messenger (valid after loaded).
     this._messenger = new WindowMessenger(channel, 'chrome-extension://' + chrome.runtime.id);
@@ -182,6 +184,7 @@ class Frame {
 
       // Resolve when sidebar has loaded (and the INITIALIZED message is received).
       return new Promise((resolve, reject) => {
+        console.log('Loading...');
         this._blocking = resolve;
         this._onLoading && this._onLoading();
       });

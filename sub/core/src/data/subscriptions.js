@@ -11,6 +11,8 @@ const logger = Logger.get('sub');
  */
 export class QueryRegistry {
 
+  // TODO(burdon): Move to minder-ux
+
   static createId() {
     return _.uniqueId('S-');
   }

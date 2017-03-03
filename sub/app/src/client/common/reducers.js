@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+// TODO(burdon): Rename app_reducers.
+
 //-------------------------------------------------------------------------------------------------
 // Global.
 // The global reducer listens for Apollo query results and updates the App state.
@@ -74,6 +76,9 @@ export class AppAction {
   // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
   //
 
+  /**
+   * Register client (after server connect).
+   */
   static register(registration, server=undefined) {
     console.assert(registration);
     return {
@@ -85,6 +90,9 @@ export class AppAction {
     };
   }
 
+  /**
+   * Set search state (preserved across navigation).
+   */
   static search(text) {
     return {
       type: AppAction.ACTION.SEARCH,
@@ -92,6 +100,9 @@ export class AppAction {
     };
   }
 
+  /**
+   * Set canvas state (e.g., current view).
+   */
   static setCanvasState(canvas) {
     return {
       type: AppAction.ACTION.CANVAS_STATE,
@@ -160,6 +171,7 @@ const CONTEXT_NAMESPACE = 'context';
 
 /**
  * Application context (e.g., current page for CRX, location, time, etc.)
+ * NOTE: This isn't limited to the CRX.
  */
 export class ContextAction {
 
@@ -196,6 +208,7 @@ export const ContextReducer = (state=ContextAction.initialState, action) => {
   switch (action.type) {
 
     case ContextAction.ACTION.UPDATE_CONTEXT: {
+      console.log('Context updated: ' + JSON.stringify(action.context));
       return _.assign({}, state, {
         context: action.context
       });

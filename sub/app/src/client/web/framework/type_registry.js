@@ -4,8 +4,6 @@
 
 import React from 'react';
 
-import { ID } from 'minder-core';
-
 import { ItemCard, ItemCanvas } from '../type/item';
 
 /**
@@ -13,40 +11,33 @@ import { ItemCard, ItemCanvas } from '../type/item';
  */
 export class TypeRegistry {
 
-  // TODO(burdon): Move to minder-ux (with Card, Cavnas).
-
   /**
    * System singleton.
    * @param types Map of type specs.
    */
   constructor(types) {
-    this._types = new Map();
-    _.each(types, (value, key) => {
-      this._types.set(key, value);
-    });
+    this._types = types;
   }
 
   /**
    * material-icons icon.
    *
-   * @param item
-   * @return {string}
+   * @param type Item type.
+   * @return {string} Icon name.
    */
-  icon(item) {
-    console.assert(item && item.type);
-    let spec = this._types.get(item.type);
-    return spec && spec.icon || '';
+  icon(type) {
+    console.assert(type);
+    return _.get(this._types, `${type}.icon`);
   }
 
   /**
    * Custom list column for list view.
    *
-   * @returns {React.Component}
+   * @param type Item type.
    */
-  column(item) {
-    console.assert(item && item.type);
-    let spec = this._types.get(item.type);
-    return spec && spec.column && spec.column(item) || null;
+  column(type) {
+    console.assert(type);
+    return _.get(this._types, `${type}.column`);
   }
 
   /**
@@ -54,60 +45,32 @@ export class TypeRegistry {
    * Cards are displayed inline in lists which retrieve the data items, therefore they are low-level
    * components which are passed the item object (contrast with canvas below).
    *
-   * @param item Data item.
-   * @return {*}
+   * @param type Item type.
    */
-  card(item) {
-    console.assert(item && item.type);
-    let spec = this._types.get(item.type);
-    if (spec) {
-      let factory = _.get(spec, 'card');
-      return factory && factory(item);
-    }
-
-    // Default.
-    return <ItemCard item={ item }/>;
+  card(type) {
+    console.assert(type);
+    return _.get(this._types, `${type}.card`, ItemCard);
   }
 
   /**
    * Canvas view.
    * Canvases declare their own HOC to retrieve data, hence only the root Item ID is supplied.
    *
-   * @param itemId Item ID used to parameterize HOC.
-   * @param canvas
-   * @returns {XML}
+   * @param type Item type.
+   * @param {string} canvas Canvas type.
    */
-  canvas(itemId, canvas='def') {
-    console.assert(itemId);
-    let { type } = ID.fromGlobalId(itemId);
-    let spec = this._types.get(type);
-    if (spec) {
-      // TODO(burdon): Default item canvas.
-      let factory = _.get(spec.canvas, canvas);
-      return factory && factory(itemId);
-    }
-
-    // Default.
-    return <ItemCanvas itemId={ itemId }/>;
+  canvas(type, canvas='def') {
+    console.assert(type);
+    return _.get(this._types, `${type}.canvas.${canvas}`, ItemCanvas);
   }
 
   /**
    * Canvas toolbar.
    *
-   * @param itemId
-   * @param canvas
-   * @returns {*}
+   * @param type Item type.
    */
-  toolbar(itemId, canvas='def') {
-    console.assert(itemId);
-    let { type } = ID.fromGlobalId(itemId);
-    let spec = this._types.get(type);
-    if (spec) {
-      let factory = spec.toolbar;
-      return factory && factory(itemId);
-    }
-
-    // Default.
-    return <div/>;
+  toolbar(type) {
+    console.assert(type);
+    return _.get(this._types, `${type}.toolbar`);
   }
 }
