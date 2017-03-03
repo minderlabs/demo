@@ -180,7 +180,7 @@ if (botkitManager) {
 // Data initialization.
 //
 
-let loader = new Loader(database);
+let loader = new Loader(database, testing);
 
 logger.log('Loading data...');
 let loading = Promise.all([

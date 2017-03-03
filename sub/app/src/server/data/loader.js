@@ -12,11 +12,14 @@ import { Resolvers } from 'minder-graphql';
  */
 export class Loader {
 
-  // TODO(burdon): Use alias in JSON files and set ID directly.
-
-  constructor(database) {
+  /**
+   * @param database
+   * @param testing If true use alias as ID.
+   */
+  constructor(database, testing=false) {
     console.assert(database);
     this._database = database;
+    this._testing = testing;
   }
 
   /**
@@ -34,6 +37,9 @@ export class Loader {
    */
   parseItems(itemsByType, namespace) {
 
+    // In testing use alias as ID (for test file ID resolution).
+    let itemsByAlias = new Map();
+
     // Iterate each item by type.
     let parsedItems = TypeUtil.flattenArrays(_.map(itemsByType, (items, type) => {
 
@@ -41,11 +47,28 @@ export class Loader {
       return _.map(items, (item) => {
         item.type = type;
 
+        // If testing, use alias as ID.
+        if (this._testing && item.alias) {
+          itemsByAlias.set(item.alias, item);
+          item.id = item.alias;
+        }
+
         // TODO(burdon): Factor out special type handling.
         // NOTE: The GraphQL schema defines filter as an input type.
         // In order to "store" the filter within the Folder's filter property, we need
         // to serialize it to a string (otherwise we need to create parallel output type defs).
         switch (type) {
+
+          case 'Group': {
+            item.bucket = item.id;
+            break;
+          }
+
+          case 'Project': {
+            item.bucket = item.group;
+            break;
+          }
+
           case 'Folder': {
             item.filter = JSON.stringify(item.filter);
             break;

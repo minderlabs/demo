@@ -2,6 +2,7 @@
   "Group": [
     {
       "id": "minderlabs_com",
+      "alias": "minderlabs_com",
       "title": "Minder Labs",
       "members": [
         "adam",

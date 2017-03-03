@@ -2,8 +2,6 @@
   "Items": {
     "Group": [
       {
-        "bucket": "minderlabs_com",
-        "id": "minderlabs_com",
         "alias": "minderlabs",
         "title": "Minder Labs",
         "whitelist": [
@@ -15,16 +13,14 @@
         ]
       },
       {
-        "bucket": "rich_burdon_gmail_com",
-        "id": "rich_burdon_gmail_com",
+        "alias": "rich_burdon_gmail_com",
         "title": "Private",
         "whitelist": [
           "rich.burdon@gmail.com"
         ]
       },
       {
-        "bucket": "madadam_gmail_com",
-        "id": "madadam_gmail_com",
+        "alias": "madadam_gmail_com",
         "title": "Private",
         "whitelist": [
           "madadam@gmail.com"
