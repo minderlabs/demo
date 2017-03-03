@@ -15,7 +15,7 @@ import './search.less';
 /**
  * Wrapper around the searchbar (connected to the Redux model).
  */
-class SearchView extends React.Component {
+class SearchPanel extends React.Component {
 
   handleSearch(text) {
     this.props.onSearch(text);
@@ -51,4 +51,4 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps)
-)(SearchView);
+)(SearchPanel);

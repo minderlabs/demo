@@ -70,7 +70,7 @@ export class ProjectCard extends React.Component {
           </div>
           {/*
           <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }/>
-          */}
+           */}
         </div>
       </Card>
     );
@@ -340,8 +340,11 @@ class ProjectBoardCanvasComponent extends React.Component {
       itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
 
       return (
-        <Canvas ref="canvas" item={ project } refetch={ refetch }
-                onSave={ this.handleSave.bind(this) } fields={{ description: false, debug: false }}>
+        <Canvas ref="canvas"
+                item={ project }
+                refetch={ refetch }
+                onSave={ this.handleSave.bind(this) }
+                fields={{ description: false, debug: false }}>
 
           <Board item={ project }
                  items={ items }
@@ -352,6 +355,7 @@ class ProjectBoardCanvasComponent extends React.Component {
                  onItemDrop={ this.handleItemDrop.bind(this) }
                  onItemSelect={ this.handleItemSelect.bind(this) }
                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+
         </Canvas>
       );
     });

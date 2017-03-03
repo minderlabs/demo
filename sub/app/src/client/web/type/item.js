@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { compose } from 'react-apollo';
-import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { ItemReducer, ItemFragment, MutationUtil } from 'minder-core';
@@ -24,7 +23,7 @@ import { Card } from '../component/card';
 export class ItemCard extends React.Component {
 
   static propTypes = {
-    item: propType(ItemFragment).isRequired
+    item: React.PropTypes.object.isRequired
   };
 
   render() {
@@ -45,7 +44,7 @@ export class ItemCanvasComponent extends React.Component {
 
   static propTypes = {
     refetch: React.PropTypes.func.isRequired,
-    item: propType(ItemFragment)
+    item: React.PropTypes.object
   };
 
   render() {

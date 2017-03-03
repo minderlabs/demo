@@ -53,8 +53,19 @@ export class WebApp extends BaseApp {
     this._pushManager = new PushManager(this._config, this._queryRegistry, this._eventHandler);
 
     // Manages the client connection and registration.
-    this._connectionManager =
-      new ConnectionManager(this._config, this._authManager, this._pushManager, this._eventHandler);
+    this._connectionManager = new ConnectionManager(this._config, this._authManager, this._pushManager);
+  }
+
+  postInit() {
+
+    // Register client.
+    return this._authManager.authenticate().then(user => {
+
+      // TODO(burdon): Retry?
+      return this._connectionManager.register().then(registration => {
+        this.store.dispatch(AppAction.register(registration));
+      });
+    });
   }
 
   terminate() {
@@ -86,18 +97,6 @@ export class WebApp extends BaseApp {
   get history() {
     // https://github.com/ReactTraining/react-router/blob/master/docs/guides/Histories.md#browserhistory
     return browserHistory;
-  }
-
-  postInit() {
-
-    // Register client.
-    return this._authManager.authenticate().then(user => {
-
-      // TODO(burdon): Retry?
-      return this._connectionManager.register().then(registration => {
-        this.store.dispatch(AppAction.register(registration));
-      });
-    });
   }
 }
 

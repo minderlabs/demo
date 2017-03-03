@@ -4,6 +4,8 @@
 
 import * as firebase from 'firebase';
 
+import { Const } from '../../common/defs';
+
 const logger = Logger.get('push');
 
 /**
@@ -19,7 +21,7 @@ export class PushManager {
    * @param {EventHandler} eventHandler
    */
   constructor(config, queryRegistry, eventHandler) {
-    console.assert(config && queryRegistry && eventHandler);
+    console.assert(config && queryRegistry);
     this._config = config;
     this._queryRegistry = queryRegistry;
     this._eventHandler = eventHandler;
@@ -33,9 +35,11 @@ export class PushManager {
     // TODO(burdon): CRX?
     // https://developer.chrome.com/apps/gcm
     // 3/1/17 Send support message: https://firebase.google.com/support/contact/troubleshooting
+    if (_.get(this._config, 'app.platform') === Const.PLATFORM.CRX) {
+      return Promise.resolve(null);
+    }
 
     // https://github.com/firebase/quickstart-js/blob/master/messaging/index.html
-
     // https://firebase.google.com/docs/cloud-messaging/js/receive#handle_messages_when_your_web_app_is_in_the_foreground
     firebase.messaging().onMessage(payload => {
       logger.info('Pushed: ' + JSON.stringify(payload));

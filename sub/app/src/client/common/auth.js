@@ -27,6 +27,7 @@ export class AuthManager {
    * @param {string} token JWT token.
    */
   static getHeaders(token) {
+    console.assert(token);
     return {
       'authentication': 'Bearer ' + token
     }

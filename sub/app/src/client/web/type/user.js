@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { compose } from 'react-apollo';
-import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { ItemFragment, UserFragment, ItemReducer } from 'minder-core';
@@ -12,7 +11,7 @@ import { List, ReactUtil } from 'minder-ux';
 
 import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
-import { TaskListItemRenderer } from './task';
+import { TaskCard, TaskListItemRenderer } from './task';
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -29,49 +28,57 @@ class UserCanvasComponent extends React.Component {
   };
 
   static propTypes = {
-    item: propType(UserFragment)
+    item: React.PropTypes.object
   };
 
   handleItemSelect(item) {
     this.context.navigator.pushCanvas(item);
   }
 
-  // TODO(burdon): Factor out create/update (to task).
   handleItemUpdate(item, mutations) {
-    console.warn('Not implemented');
+    console.warn('Not implemented.');
   }
 
-  handleItemAdd() {
-    this.refs.tasks.addItem();
+  handleSave() {
+    return [];
   }
 
   render() {
     return ReactUtil.render(this, () => {
-      let { item, refetch } = this.props;
-      let { ownerTasks, assigneeTasks } = item;
+      let { item:user, refetch } = this.props;
+      let { ownerTasks, assigneeTasks } = user;
 
       return (
-        <Canvas ref="canvas" item={ item } refetch={ refetch }>
-          <div className="app-type-user ux-column">
+        <Canvas ref="canvas"
+                item={ user }
+                refetch={ refetch }
+                onSave={ this.handleSave.bind(this)}>
 
+          <div className="ux-section">
             <div className="ux-section-header ux-row">
-              <h3 className="ux-expand">Owner</h3>
-              <i className="ux-icon" onClick={ this.handleItemAdd.bind(this) }>add</i>
+              <h3 className="ux-expand ux-title">Owner</h3>
             </div>
             <List ref="tasks"
+                  className="ux-list-tasks"
                   items={ ownerTasks }
                   itemRenderer={ TaskListItemRenderer }
-                  onItemSelect={ this.handleItemSelect.bind(this) }
-                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>
-
-            <div className="ux-section-header ux-row">
-              <h3 className="ux-expand">Assigned</h3>
-            </div>
-            <List items={ assigneeTasks }
-                  itemRenderer={ TaskListItemRenderer }
+                  itemEditor={ TaskCard.TaskEditor }
                   onItemSelect={ this.handleItemSelect.bind(this) }
                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>
           </div>
+
+          <div className="ux-section">
+            <div className="ux-section-header ux-row">
+              <h3 className="ux-expand ux-title">Assigned</h3>
+            </div>
+            <List items={ assigneeTasks }
+                  className="ux-list-tasks"
+                  itemRenderer={ TaskListItemRenderer }
+                  itemEditor={ TaskCard.TaskEditor }
+                  onItemSelect={ this.handleItemSelect.bind(this) }
+                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+          </div>
+
         </Canvas>
       );
     });

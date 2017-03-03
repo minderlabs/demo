@@ -5,9 +5,7 @@
 import _ from 'lodash';
 import google from 'googleapis';
 
-import { QueryProcessor, Logger } from 'minder-core';
-
-const logger = Logger.get('google.drive');
+import { ErrorUtil, QueryProcessor } from 'minder-core';
 
 /**
  * Google API client.
@@ -82,10 +80,9 @@ class GoogleDriveClient {
 
       this._drive.files.list(query, (err, response) => {
         if (err) {
-          logger.error('Query failed: ' + err);
-          reject(err);
+          reject(err.message);
         } else {
-          return resolve(response);
+          resolve(response);
         }
       });
     });
@@ -158,6 +155,8 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
       return Promise.resolve([]);
     }
 
-    return this._driveClient.search(context, driveQuery, count);
+    return this._driveClient.search(context, driveQuery, count).catch(error => {
+      throw ErrorUtil.error('Google Drive', error);
+    });
   }
 }

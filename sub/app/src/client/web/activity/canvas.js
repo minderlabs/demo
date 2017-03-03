@@ -12,7 +12,7 @@ import { Const } from '../../../common/defs';
 import { FullLayout } from '../layout/full';
 import { SplitLayout } from '../layout/split';
 import { CanvasContainer, CanvasNavbar } from '../component/canvas';
-import FolderView from '../view/folder';
+import Finder from '../view/finder';
 
 import { Activity } from './activity';
 
@@ -62,8 +62,7 @@ class CanvasActivity extends React.Component {
         </FullLayout>
       );
     } else {
-      // TODO(burdon): Get folder from state.
-      let finder = <FolderView folder={ 'inbox' }/>;
+      let finder = <Finder folder={ 'inbox' }/>;
       return (
         <SplitLayout navbar={ navbar } finder={ finder }>
           { canvasComponent }

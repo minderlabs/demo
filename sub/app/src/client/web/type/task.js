@@ -6,7 +6,6 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
-import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { ID, ItemFragment, TaskFragment, ItemReducer, MutationUtil } from 'minder-core';
@@ -85,8 +84,7 @@ export class TaskCard extends React.Component {
   };
 
   static propTypes = {
-    item: React.PropTypes.object
-//  item: propType(TaskFragment)
+    item: React.PropTypes.object.isRequired
   };
 
   handlTaskAdd() {
@@ -138,21 +136,19 @@ export class TaskCard extends React.Component {
           </div>
           }
 
-          <div className="ux-list-tasks">
-            <List ref="tasks"
-                  className="ux-list-tasks"
-                  items={ tasks }
-                  itemRenderer={ TaskListItemRenderer }
-                  itemEditor={ TaskCard.TaskEditor }
-                  onItemSelect={ this.handleItemSelect.bind(this) }
-                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+          <List ref="tasks"
+                className="ux-list-tasks"
+                items={ tasks }
+                itemRenderer={ TaskListItemRenderer }
+                itemEditor={ TaskCard.TaskEditor }
+                onItemSelect={ this.handleItemSelect.bind(this) }
+                onItemUpdate={ this.handleItemUpdate.bind(this) }/>
 
-            { mutator &&
-            <div>
-              <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
-            </div>
-            }
+          { mutator &&
+          <div className="ux-card-footer">
+            <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
           </div>
+          }
 
         </Card>
       );
@@ -242,6 +238,10 @@ class TaskCanvasComponent extends React.Component {
     }
   }
 
+  handleTaskAdd() {
+    this.refs.tasks.addItem();
+  }
+
   handleSave() {
     let { item } = this.props;
 
@@ -261,10 +261,6 @@ class TaskCanvasComponent extends React.Component {
     return mutations;
   }
 
-  handleTaskAdd() {
-    this.refs.tasks.addItem();
-  }
-
   render() {
     return ReactUtil.render(this, () => {
       let { assigneeText, status } = this.state;
@@ -275,58 +271,60 @@ class TaskCanvasComponent extends React.Component {
         <option key={ level.value } value={ level.value }>{ level.title }</option>);
 
       return (
-        <Canvas ref="canvas" item={ task } refetch={ refetch } onSave={ this.handleSave.bind(this)}>
-          <div className="app-type-task ux-column">
+        <Canvas ref="canvas"
+                item={ task }
+                refetch={ refetch }
+                onSave={ this.handleSave.bind(this)}>
 
-            <div className="ux-section ux-data">
-              <div className="ux-section-body">
-                <div className="ux-data-row">
-                  <div className="ux-data-label">Project</div>
-                  <div className="ux-text">
-                    { project &&
-                    <Link to={ Path.canvas(ID.toGlobalId('Project', project.id)) }>{ project.title }</Link>
-                    }
-                  </div>
-                </div>
-
-                <div className="ux-data-row">
-                  <div className="ux-data-label">Owner</div>
-                  <div className="ux-text">{ _.get(task, 'owner.title') }</div>
-                </div>
-
-                <div className="ux-data-row">
-                  <div className="ux-data-label">Assignee</div>
-                  <MembersPicker value={ assigneeText || '' }
-                                 onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
-                                 onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
-                </div>
-
-                <div className="ux-data-row">
-                  <div className="ux-data-label">Status</div>
-                  <select value={ status } onChange={ this.handleSetStatus.bind(this) }>
-                    { levels }
-                  </select>
+          <div className="ux-section ux-data">
+            <div className="ux-section-body">
+              <div className="ux-data-row">
+                <div className="ux-data-label">Project</div>
+                <div className="ux-text">
+                  { project &&
+                  <Link to={ Path.canvas(ID.toGlobalId('Project', project.id)) }>{ project.title }</Link>
+                  }
                 </div>
               </div>
-            </div>
 
-            <div className="ux-section">
-              <div className="ux-section-header ux-row">
-                <h4 className="ux-expand ux-title">Sub Tasks</h4>
-                <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
+              <div className="ux-data-row">
+                <div className="ux-data-label">Owner</div>
+                <div className="ux-text">{ _.get(task, 'owner.title') }</div>
               </div>
 
-              <div>
-                <List ref="tasks"
-                      className="ux-list-tasks"
-                      items={ tasks }
-                      itemRenderer={ TaskListItemRenderer }
-                      itemEditor={ TaskCard.TaskEditor }
-                      onItemSelect={ this.handleTaskSelect.bind(this) }
-                      onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
+              <div className="ux-data-row">
+                <div className="ux-data-label">Assignee</div>
+                <MembersPicker value={ assigneeText || '' }
+                               onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
+                               onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
+              </div>
+
+              <div className="ux-data-row">
+                <div className="ux-data-label">Status</div>
+                <select value={ status } onChange={ this.handleSetStatus.bind(this) }>
+                  { levels }
+                </select>
               </div>
             </div>
           </div>
+
+          <div className="ux-section">
+            <div className="ux-section-header ux-row">
+              <h4 className="ux-expand ux-title">Sub Tasks</h4>
+              <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
+            </div>
+
+            <div>
+              <List ref="tasks"
+                    className="ux-list-tasks"
+                    items={ tasks }
+                    itemRenderer={ TaskListItemRenderer }
+                    itemEditor={ TaskCard.TaskEditor }
+                    onItemSelect={ this.handleTaskSelect.bind(this) }
+                    onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
+            </div>
+          </div>
+
         </Canvas>
       );
     });

@@ -15,23 +15,23 @@ const logger = Logger.get('client');
  */
 export class ConnectionManager {
 
-  // TODO(burdon): Separate FCM (from gcm for CRX).
-  // TODO(burdon): Rationalize connect/disconnect register/unregister names.
-
   /**
    * Registers client (and push socket).
    *
    * @param {object} config
    * @param {AuthManager} authManager
    * @param {PushManager} pushManager
-   * @param {EventHandler} eventHandler
    */
-  constructor(config, authManager, pushManager, eventHandler) {
-    console.assert(config && authManager && pushManager && eventHandler);
+  constructor(config, authManager, pushManager) {
+    console.assert(config && authManager && pushManager);
     this._config = config;
     this._authManager = authManager;
     this._pushManager = pushManager;
-    this._eventHandler = eventHandler;
+    this._registration = null;
+  }
+
+  get registration() {
+    return this._registration;
   }
 
   /**
@@ -61,8 +61,10 @@ export class ConnectionManager {
           messageToken
         };
 
+        // TODO(burdon): Configure Retry (e.g., perpetual for CRX).
         return ConnectionManager.postJson(url, request, headers).then(registration => {
           logger.info('Registered client: ' + JSON.stringify(registration));
+          this._registration = registration;
           return registration;
         });
       });

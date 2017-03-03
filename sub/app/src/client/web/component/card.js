@@ -31,11 +31,12 @@ export class Card extends React.Component {
 
   static contextTypes = {
     config: React.PropTypes.object.isRequired,
-    navigator: React.PropTypes.object.isRequired,
+    navigator: React.PropTypes.object.isRequired
   };
 
   handleSelect(item) {
     this.context.navigator.pushCanvas(item);
+    console.log('>>>>  >>>>>', item.id, this.context.navigator);
   }
 
   render() {

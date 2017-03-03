@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { compose } from 'react-apollo';
-import { propType } from 'graphql-anywhere';
 import gql from 'graphql-tag';
 
 import { ItemReducer, ItemFragment, ContactFragment } from 'minder-core';
@@ -24,16 +23,18 @@ import { Card } from '../component/card';
 export class ContactCard extends React.Component {
 
   static propTypes = {
-    item: propType(ContactFragment).isRequired
+    item: React.PropTypes.object.isRequired
   };
 
   render() {
-    let { item } = this.props;
-    let { email } = item;
+    let { item:contact } = this.props;
+    let { email } = contact;
 
     return (
-      <Card ref="card" item={ item }>
-        <div>{ email }</div>
+      <Card ref="card" item={ contact }>
+        <div className="ux-card-section">
+          <div>{ email }</div>
+        </div>
       </Card>
     );
   }
@@ -46,17 +47,25 @@ export class ContactCanvasComponent extends React.Component {
 
   static propTypes = {
     refetch: React.PropTypes.func.isRequired,
-    item: propType(ContactFragment)
+    item: React.PropTypes.object
   };
 
   render() {
     return ReactUtil.render(this, () => {
-      let { item, refetch } = this.props;
-      let { email } = item;
+      let { item:contact, refetch } = this.props;
+      let { email } = contact;
 
       return (
-        <Canvas ref="canvas" item={ item } refetch={ refetch }>
-          <div>{ email }</div>
+        <Canvas ref="canvas"
+                item={ contact }
+                refetch={ refetch }>
+
+          <div className="ux-section">
+            <div className="ux-section-body ux-font-small">
+              <div>{ email }</div>
+            </div>
+          </div>
+
         </Canvas>
       );
     });

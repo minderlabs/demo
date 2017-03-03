@@ -61,7 +61,6 @@ export class TypeRegistry {
    */
   canvas(type, canvas='def') {
     console.assert(type);
-    console.log(this._types, `${type}.canvas.${canvas}`);
     return _.get(this._types, `${type}.canvas.${canvas}`, ItemCanvas);
   }
 

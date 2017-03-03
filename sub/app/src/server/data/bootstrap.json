@@ -26,8 +26,14 @@
 
   "Contact": [
     {
+      "bucket": "rich_burdon_gmail_com",
+      "id": "contact-alice-1",
+      "title": "Alice Braintree",
+      "email": "alice.braintree@gmail.com"
+    },
+    {
       "bucket": "minderlabs_com",
-      "id": "contact-alice",
+      "id": "contact-alice-2",
       "title": "Alice Braintree",
       "email": "alice.braintree@gmail.com"
     }

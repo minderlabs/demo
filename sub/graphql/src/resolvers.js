@@ -240,6 +240,7 @@ export class Resolvers {
           return database.getItemStore(namespace).getItem(context, type, localItemId);
         },
 
+        // TODO(burdon): Document difference from search (no text index? i.e., move to ItemStore?)
         items: (root, args, context) => {
           let { userId } = context;
           if (!userId) {

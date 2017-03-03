@@ -140,8 +140,8 @@ export class Canvas extends React.Component {
     this.context.queryRegistry.register(this.props.cid, this.props.refetch);
   }
 
-  // TODO(burdon): Save (get mutations from child via prop).
   componentWillUnmount() {
+    this.save();
     this.context.queryRegistry.unregister(this.props.cid);
   }
 
@@ -199,7 +199,7 @@ export class Canvas extends React.Component {
         </div>
         }
 
-        <div className="ux-expand">
+        <div className="ux-column ux-expand">
           { children }
         </div>
 

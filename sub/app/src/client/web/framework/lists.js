@@ -14,6 +14,7 @@ import {
   ListReducer
 } from 'minder-core';
 
+import { QueryRegistry } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
 import { connectReducer } from './connector';
@@ -78,11 +79,35 @@ export const DebugListItemRenderer = (item) => {
   );
 };
 
+/**
+ * Wraps basic List component adding subscriptions.
+ */
+class ListWrapper extends React.Component {
+
+  static defaultProps = {
+    cid: QueryRegistry.createId()
+  };
+
+  static contextTypes = {
+    queryRegistry: React.PropTypes.object.isRequired
+  };
+
+  componentWillMount() {
+    this.context.queryRegistry.register(this.props.cid, this.props.refetch);
+  }
+
+  componentWillUnmount() {
+    this.context.queryRegistry.unregister(this.props.cid);
+  }
+
+  render() {
+    return <List { ...this.props }/>
+  }
+}
+
 //-------------------------------------------------------------------------------------------------
 // Basic List.
 //-------------------------------------------------------------------------------------------------
-
-// TODO(burdon): Remove items query?
 
 const BasicItemFragment = gql`
   fragment BasicItemFragment on Item {
@@ -117,7 +142,7 @@ const BasicSearchQuery = gql`
   ${BasicItemFragment}
 `;
 
-export const BasicSearchList = connectReducer(ListReducer.graphql(BasicSearchQuery))(List);
+export const BasicSearchList = connectReducer(ListReducer.graphql(BasicSearchQuery))(ListWrapper);
 
 //-------------------------------------------------------------------------------------------------
 // Card List.
@@ -158,4 +183,4 @@ const CardSearchQuery = gql`
   ${CardItemFragment}
 `;
 
-export const CardSearchList = connectReducer(ListReducer.graphql(CardSearchQuery))(List);
+export const CardSearchList = connectReducer(ListReducer.graphql(CardSearchQuery))(ListWrapper);
