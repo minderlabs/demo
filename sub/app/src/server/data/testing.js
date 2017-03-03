@@ -4,8 +4,7 @@
 
 import _ from 'lodash';
 
-import { ID, MutationUtil, Randomizer, Transforms } from 'minder-core';
-import { Database } from 'minder-graphql';
+import { Database, ID, MutationUtil, Randomizer, Transforms } from 'minder-core';
 
 /**
  * Test data.

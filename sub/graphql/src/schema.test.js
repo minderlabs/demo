@@ -16,9 +16,8 @@ import {
 import { makeExecutableSchema, mockServer } from 'graphql-tools';
 import { introspectionQuery, printSchema } from 'graphql/utilities';
 
-import { IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
+import { Database, IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
 
-import { Database } from './db/database';
 import { Resolvers } from './resolvers';
 
 import Schema from './gql/schema.graphql';

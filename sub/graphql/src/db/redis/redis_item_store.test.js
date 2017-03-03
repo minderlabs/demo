@@ -2,6 +2,8 @@
 // Copyright 2017 Minder Labs.
 //
 
+import { expect } from 'chai';
+
 import bluebird from 'bluebird';
 import fakeredis from 'fakeredis';
 
@@ -19,7 +21,7 @@ const matcher = new Matcher();
 const client = fakeredis.createClient('test');
 
 describe('RedisItemStore:', () => {
-  ItemStoreTests(() => {
+  ItemStoreTests(expect, () => {
     return Promise.resolve(new RedisItemStore(idGenerator, matcher, client, 'testing'));
   });
 });

@@ -4,9 +4,10 @@
 
 import { expect } from 'chai';
 
-import { IdGenerator, ItemUtil, Matcher } from 'minder-core';
-
 import { Database } from './database';
+import { IdGenerator } from './id';
+import { ItemUtil } from './item_store';
+import { Matcher } from './matcher';
 
 const matcher = new Matcher();
 

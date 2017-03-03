@@ -12,9 +12,21 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { ErrorUtil, IdGenerator, Matcher, MemoryItemStore, TestItemStore, Logger, TypeUtil } from 'minder-core';
+import {
+  ErrorUtil,
+  Logger,
+  TypeUtil
+} from 'minder-core';
+
 import {
   Database,
+  IdGenerator,
+  Matcher,
+  MemoryItemStore,
+  TestItemStore,
+} from 'minder-core';
+
+import {
   Firebase,
   GoogleDriveQueryProcessor,
   SlackQueryProcessor,

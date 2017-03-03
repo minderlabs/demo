@@ -4,8 +4,8 @@
 
 import _ from 'lodash';
 
-import { ID, TypeUtil } from 'minder-core';
-import { Database } from 'minder-graphql';
+import { Database, ID, TypeUtil } from 'minder-core';
+import { Resolvers } from 'minder-graphql';
 
 /**
  * Loads start-up and test data.
@@ -76,7 +76,8 @@ export class Loader {
       }
     });
 
-    return this._database.processMutations({}, itemMutations, namespace);
+    let itemStore = this._database.getItemStore(namespace);
+    return Resolvers.processMutations(itemStore, {}, itemMutations);
   }
 
   /**

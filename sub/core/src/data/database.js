@@ -4,7 +4,14 @@
 
 import _ from 'lodash';
 
-import { $$, ID, ErrorUtil, Logger, ItemStore, ItemUtil, QueryProcessor, TypeUtil, Transforms } from 'minder-core';
+import { ErrorUtil } from '../util/error';
+import { TypeUtil } from '../util/type';
+
+import { ItemUtil, ItemStore, QueryProcessor } from './item_store';
+import { Transforms } from './transforms';
+
+import $$ from '../util/format';
+import Logger from '../util/logger';
 
 const logger = Logger.get('db');
 
@@ -40,6 +47,7 @@ export class Database {
   // TODO(burdon): Debug: list all items in cache; reset cache.
   // TODO(burdon): Support multiple groups (context, itemstore).
 
+  // TODO(burdon): Move to resolver.
   static NAMESPACE = {
     SYSTEM:   'system',
     SETTINGS: 'settings',
@@ -279,55 +287,5 @@ export class Database {
     return queryProcessor.queryItems(context, root, {
       fkeys: foreignKeys
     });
-  }
-
-  /**
-   * Processes the item mutations, creating and updating items.
-   *
-   * @param context
-   * @param itemMutations
-   * @param namespace
-   * @return {Promise<[{Item}]>}
-   */
-  processMutations(context, itemMutations, namespace) {
-    let itemStore = this.getItemStore(namespace);
-
-    return Promise.all(_.map(itemMutations, itemMutation => {
-      let { itemId, mutations } = itemMutation;
-
-      // TODO(burdon): Database should be pure (no leakage of global IDs)? Move out of Database.
-      let { type, id:localId } = ID.fromGlobalId(itemId);
-      logger.log($$('UPDATE[%s:%s]: %o', type, localId, mutations));
-
-      //
-      // Get and update item.
-      // TODO(burdon): Relies on getItem to return {} for not found.
-      //
-      return itemStore.getItem(context, type, localId)
-        .then(item => {
-
-          // If not found (i.e., insert).
-          // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
-          if (!item) {
-            item = {
-              id: localId,
-              type: type
-            };
-          }
-
-          //
-          // Apply mutations.
-          //
-          return Transforms.applyObjectMutations(item, mutations);
-        });
-    }))
-
-      //
-      // Upsert items.
-      //
-      .then(results => {
-        let items = TypeUtil.flattenArrays(results);
-        return itemStore.upsertItems(context, items)
-      });
   }
 }

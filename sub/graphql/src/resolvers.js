@@ -7,9 +7,8 @@ import _ from 'lodash';
 import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
-import { $$, Logger, ID, Transforms, TypeUtil } from 'minder-core';
+import { $$, Logger, Database, ID, Transforms, TypeUtil } from 'minder-core';
 
-import { Database } from './db/database';
 import Schema from './gql/schema.graphql';
 
 const logger = Logger.get('resolver');
@@ -281,8 +280,9 @@ export class Resolvers {
           }
 
           let { namespace=Database.NAMESPACE.USER, mutations:itemMutations } = args;
+          let itemStore = database.getItemStore(namespace);
 
-          return database.processMutations(context, itemMutations, namespace)
+          return Resolvers.processMutations(itemStore, context, itemMutations)
 
             //
             // Trigger notifications.
@@ -297,5 +297,54 @@ export class Resolvers {
         }
       }
     };
+  }
+
+
+  /**
+   * Processes the item mutations, creating and updating items.
+   *
+   * @param itemStore
+   * @param context
+   * @param itemMutations
+   * @return {Promise<[{Item}]>}
+   */
+  static processMutations(itemStore, context, itemMutations) {
+    console.assert(itemStore && context && itemMutations);
+
+    return Promise.all(_.map(itemMutations, itemMutation => {
+      let { itemId, mutations } = itemMutation;
+      let { type, id:localId } = ID.fromGlobalId(itemId);
+      logger.log($$('UPDATE[%s:%s]: %o', type, localId, mutations));
+
+      //
+      // Get and update item.
+      // TODO(burdon): Relies on getItem to return {} for not found.
+      //
+      return itemStore.getItem(context, type, localId)
+        .then(item => {
+
+          // If not found (i.e., insert).
+          // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
+          if (!item) {
+            item = {
+              id: localId,
+              type: type
+            };
+          }
+
+          //
+          // Apply mutations.
+          //
+          return Transforms.applyObjectMutations(item, mutations);
+        });
+    }))
+
+      //
+      // Upsert items.
+      //
+      .then(results => {
+        let items = TypeUtil.flattenArrays(results);
+        return itemStore.upsertItems(context, items)
+      });
   }
 }

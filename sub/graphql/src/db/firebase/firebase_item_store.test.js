@@ -2,6 +2,8 @@
 // Copyright 2017 Minder Labs.
 //
 
+import { expect } from 'chai';
+
 import path from 'path';
 import admin from 'firebase-admin';
 
@@ -31,7 +33,7 @@ const db = admin.database();
 describe('FirebaseItemStore:', function() {
   this.timeout(5000);
 
-  ItemStoreTests(() => {
+  ItemStoreTests(expect, () => {
     return new FirebaseItemStore(idGenerator, matcher, db, 'testing').clear();
   });
 });

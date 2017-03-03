@@ -46,7 +46,7 @@ export class Transforms {
     // TODO(burdon): Introspect for type-checking (and field name setting).
 
     // Null.
-    if (value.null || value === undefined) {
+    if (_.isNil(value) || value.null) {
       delete object[field];
       return object;
     }

@@ -3,13 +3,14 @@
 //
 
 import _ from 'lodash';
-import { expect } from 'chai';
 
 /**
  * Standard tests for all ItemStore implementations
+ *
+ * @param expect Chai expect (This module is exported so do not import chai.)
  * @param storeFactory
  */
-export const ItemStoreTests = storeFactory => {
+export const ItemStoreTests = (expect, storeFactory) => {
 
   it('Stores and retrieves items.', (done) => {
     storeFactory().then(itemStore => {
