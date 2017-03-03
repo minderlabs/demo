@@ -13,7 +13,6 @@ Logger.setLevel({
   'auth':       Logger.Level.debug,
   'client':     Logger.Level.debug,
   'push':       Logger.Level.debug,
-//'reducer':    Logger.Level.debug,
   'reg':        Logger.Level.debug
 
 }, Logger.Level.info);
