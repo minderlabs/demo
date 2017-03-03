@@ -59,11 +59,6 @@ export class Loader {
         // to serialize it to a string (otherwise we need to create parallel output type defs).
         switch (type) {
 
-          case 'Group': {
-            item.bucket = item.id;
-            break;
-          }
-
           case 'Project': {
             item.bucket = item.group;
             break;

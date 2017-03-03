@@ -10,22 +10,22 @@
         "title": "Funding Pipeline"
       },
       {
-        "group": "rich_burdon_gmail_com",
+        "group": "google_com_rich_burdon",
         "title": "Rich's Tasks"
       },
       {
-        "group": "rich_burdon_gmail_com",
+        "group": "google_com_rich_burdon",
         "title": "Rich's Notes"
       },
       {
-        "group": "madadam_gamil_com",
+        "group": "google_com_madadam",
         "title": "Adam's Tasks"
       }
     ],
 
     "Contact": [
       {
-        "bucket": "rich_burdon_gmail_com",
+        "bucket": "google_com_rich_burdon",
         "title": "Alice Braintree",
         "email": "alice.braintree@gmail.com"
       },

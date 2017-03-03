@@ -2,7 +2,7 @@
   "Items": {
     "Group": [
       {
-        "alias": "minderlabs",
+        "alias": "minderlabs_com",
         "title": "Minder Labs",
         "whitelist": [
           "rich@minderlabs.com",
@@ -13,14 +13,14 @@
         ]
       },
       {
-        "alias": "rich_burdon_gmail_com",
+        "alias": "google_com_rich_burdon",
         "title": "Private",
         "whitelist": [
           "rich.burdon@gmail.com"
         ]
       },
       {
-        "alias": "madadam_gmail_com",
+        "alias": "google_com_madadam",
         "title": "Private",
         "whitelist": [
           "madadam@gmail.com"
