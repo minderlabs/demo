@@ -50,6 +50,10 @@ export class ContactCanvasComponent extends React.Component {
     item: React.PropTypes.object
   };
 
+  handleSave() {
+    return [];
+  }
+
   render() {
     return ReactUtil.render(this, () => {
       let { item:contact, refetch } = this.props;
@@ -58,7 +62,8 @@ export class ContactCanvasComponent extends React.Component {
       return (
         <Canvas ref="canvas"
                 item={ contact }
-                refetch={ refetch }>
+                refetch={ refetch }
+                onSave={ this.handleSave.bind(this)}>
 
           <div className="ux-section">
             <div className="ux-section-body ux-font-small">
