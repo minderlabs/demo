@@ -49,6 +49,38 @@ export class SystemStore extends DelegateItemStore {
   }
 
   /**
+   * Get an existing user.
+   * @param userId
+   */
+  getUser(userId) {
+    return this.getItem(this._context, 'User', userId);
+  }
+
+  /**
+   * Lookup group for user.
+   * @param userId
+   * @returns {Promise} Matching group (or null).
+   */
+  getGroup(userId) {
+    // TODO(burdon): Return multiple groups.
+    return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
+      return _.find(groups, group => _.indexOf(group.members, userId) != -1);
+    });
+  }
+
+  /**
+   * Lookup group for whitelisted user email.
+   * @param email
+   * @returns {Promise} Matching group (or null).
+   */
+  getGroupByWhitelist(email) {
+    // TODO(burdon): Return multiple groups?
+    return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
+      return _.find(groups, group => _.indexOf(group.whitelist, email) != -1);
+    });
+  }
+
+  /**
    * Upsert Firebase User Account.
    * @param user
    * @param credential
@@ -102,30 +134,6 @@ export class SystemStore extends DelegateItemStore {
 
         return user;
       });
-    });
-  }
-
-  /**
-   * Lookup group for user.
-   * @param userId
-   * @returns {Promise} Matching group (or null).
-   */
-  getGroup(userId) {
-    // TODO(burdon): Return multiple groups.
-    return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
-      return _.find(groups, group => _.indexOf(group.members, userId) != -1);
-    });
-  }
-
-  /**
-   * Lookup group for whitelisted user email.
-   * @param email
-   * @returns {Promise} Matching group (or null).
-   */
-  getGroupByWhitelist(email) {
-    // TODO(burdon): Return multiple groups?
-    return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
-      return _.find(groups, group => _.indexOf(group.whitelist, email) != -1);
     });
   }
 }

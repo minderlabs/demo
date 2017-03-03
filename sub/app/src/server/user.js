@@ -142,11 +142,18 @@ export const loginRouter = (userManager, systemStore, options) => {
   // Handle user registration.
   router.post('/register', async function(req, res) {
     let { user, credential } = req.body;
-
     logger.log('User registration: ' + JSON.stringify(_.pick(user, ['uid', 'email', 'active'])));
-    res.send(JSON.stringify({
-      user: await systemStore.registerUser(user, credential)
-    }));
+
+    // If the credential is being set then register the user; otherwise check for an existing user.
+    if (credential) {
+      res.send(JSON.stringify({
+        user: await systemStore.registerUser(user, credential)
+      }));
+    } else {
+      res.send(JSON.stringify({
+        user: await systemStore.getUser(user.uid)
+      }));
+    }
   });
 
   // Profile page.
