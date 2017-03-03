@@ -1,41 +1,51 @@
 {
-  "Project": [
-    {
-      "group": "minderlabs_com",
-      "title": "Eng Tasks"
-    },
-    {
-      "group": "minderlabs_com",
-      "title": "Funding Pipeline"
-    },
+  "Items": {
+    "Project": [
+      {
+        "id": "project_1",
+        "bucket": "minderlabs_com",
+        "group": "minderlabs_com",
+        "title": "Eng Tasks"
+      },
+      {
+        "id": "project_2",
+        "bucket": "minderlabs_com",
+        "group": "minderlabs_com",
+        "title": "Funding Pipeline"
+      },
+      {
+        "id": "project_3",
+        "bucket": "rich_burdon_gmail_com",
+        "group": "rich_burdon_gmail_com",
+        "title": "Rich's Tasks"
+      },
+      {
+        "id": "project_4",
+        "bucket": "rich_burdon_gmail_com",
+        "group": "rich_burdon_gmail_com",
+        "title": "Rich's Notes"
+      },
+      {
+        "id": "project_5",
+        "bucket": "madadam_gamil_com",
+        "group": "madadam_gamil_com",
+        "title": "Adam's Tasks"
+      }
+    ],
 
-    {
-      "group": "rich_burdon_gmail_com",
-      "title": "Rich's Tasks"
-    },
-    {
-      "group": "rich_burdon_gmail_com",
-      "title": "Rich's Notes"
-    },
-
-    {
-      "group": "madadam_gamil_com",
-      "title": "Adam's Tasks"
-    }
-  ],
-
-  "Contact": [
-    {
-      "bucket": "rich_burdon_gmail_com",
-      "id": "contact-alice-1",
-      "title": "Alice Braintree",
-      "email": "alice.braintree@gmail.com"
-    },
-    {
-      "bucket": "minderlabs_com",
-      "id": "contact-alice-2",
-      "title": "Alice Braintree",
-      "email": "alice.braintree@gmail.com"
-    }
-  ]
+    "Contact": [
+      {
+        "bucket": "rich_burdon_gmail_com",
+        "id": "contact-alice-1",
+        "title": "Alice Braintree",
+        "email": "alice.braintree@gmail.com"
+      },
+      {
+        "bucket": "minderlabs_com",
+        "id": "contact-alice-2",
+        "title": "Alice Braintree",
+        "email": "alice.braintree@gmail.com"
+      }
+    ]
+  }
 }

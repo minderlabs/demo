@@ -85,7 +85,7 @@ export class RedisItemStore extends ItemStore {
   // ItemStore interface.
   //
 
-  getItems(context, type, itemIds) {
+  getItems(context, type, itemIds=[]) {
     let { groupId:bucket } = context;
 
     let keys = _.map(itemIds, itemId => this._key.toKey({ bucket, type, itemId }));

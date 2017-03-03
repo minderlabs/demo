@@ -64,7 +64,7 @@ export class ItemStore extends QueryProcessor {
     return this.upsertItems(context, [item]).then(items => items[0]);
   }
 
-  getItems(context, type, itemIds) {
+  getItems(context, type, itemIds=[]) {
     throw new Error('Not implemented');
   }
 
@@ -87,7 +87,7 @@ export class DelegateItemStore extends ItemStore {
     return this._itemStore.queryItems(context, root, filter, offset, count);
   }
 
-  getItems(context, type, itemIds) {
+  getItems(context, type, itemIds=[]) {
     return this._itemStore.getItems(context, type, itemIds);
   }
 

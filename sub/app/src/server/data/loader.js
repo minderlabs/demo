@@ -4,6 +4,7 @@
 
 import _ from 'lodash';
 
+import { ID, TypeUtil } from 'minder-core';
 import { Database } from 'minder-graphql';
 
 /**
@@ -23,12 +24,21 @@ export class Loader {
    * @param data JSON data file.
    * @param namespace
    */
-  parse(data, namespace = Database.NAMESPACE.USER) {
-    let parsedItems = [];
+  parse(data, namespace=Database.NAMESPACE.USER) {
+    return this.parseItems(_.get(data, 'Items'), namespace)
+      .then(() => this.parseMutations(_.get(data, 'Mutations'), namespace));
+  }
+
+  /**
+   * Parse item defs.
+   */
+  parseItems(itemsByType, namespace) {
 
     // Iterate each item by type.
-    _.each(data, (items, type) => {
-      _.each(items, (item) => {
+    let parsedItems = TypeUtil.flattenArrays(_.map(itemsByType, (items, type) => {
+
+      // Iterate items.
+      return _.map(items, (item) => {
         item.type = type;
 
         // TODO(burdon): Factor out special type handling.
@@ -40,20 +50,33 @@ export class Loader {
             item.filter = JSON.stringify(item.filter);
             break;
           }
-
-          // TODO(burdon): Set bucket; currently since context={} creating tasks fails since no accessible projects.
-          // TODO(burdon): Select Group for context of generating data.
-          case 'Project': {
-            item.bucket = item.group;
-            break;
-          }
         }
 
-        parsedItems.push(item);
+        return item;
       });
-    });
+    }));
 
     return this._database.getItemStore(namespace).upsertItems({}, parsedItems);
+  }
+
+  /**
+   * Parse item mutations.
+   */
+  parseMutations(itemMutations, namespace) {
+    if (!itemMutations) {
+      return Promise.resolve([]);
+    }
+
+    // Translate local IDs to remote IDs.
+    TypeUtil.traverse(itemMutations, (value, key, root) => {
+      if (key === '@itemId') {
+        delete root['@itemId'];
+        let { type, id:localId } = value;
+        root.itemId = ID.toGlobalId(type, localId);
+      }
+    });
+
+    return this._database.processMutations({}, itemMutations, namespace);
   }
 
   /**

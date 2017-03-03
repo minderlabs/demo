@@ -66,6 +66,28 @@ export const TaskListItemRenderer = (item) => {
 };
 
 /**
+ * Add mutations to the batch to create the new item and add it to the parent.
+ * @param batch
+ * @param userId
+ * @param parent
+ * @param mutations
+ * @return {Batch}
+ * @constructor
+ */
+const AddCreateSubTask = (batch, userId, parent, mutations) => {
+  return batch
+    .createItem('Task', _.concat(mutations, [
+      MutationUtil.createFieldMutation('bucket',  'string', parent.bucket),
+      MutationUtil.createFieldMutation('project', 'id',     parent.project.id),
+      MutationUtil.createFieldMutation('owner',   'id',     userId),
+      MutationUtil.createFieldMutation('status',  'int',    0),
+    ]), 'new_task')
+    .updateItem(parent, [
+      MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+    ])
+};
+
+/**
  * Card.
  */
 export class TaskCard extends React.Component {
@@ -91,32 +113,18 @@ export class TaskCard extends React.Component {
     this.refs.tasks.addItem();
   }
 
-  handleItemSelect(item) {
+  handleTaskSelect(item) {
     this.context.navigator.push(Path.canvas(ID.getGlobalId(item)));
   }
 
-  handleItemUpdate(item, mutations) {
-    let { registration: { groupId, userId }, mutator } = this.context;
-    let { item:task } = this.props;
+  handleTaskUpdate(item, mutations) {
+    let { registration: { userId }, mutator } = this.context;
 
     if (item) {
-      // Update existing.
       mutator.updateItem(item, mutations);
     } else {
-      // Create and add to parent.
-      mutator
-        .batch()
-        .createItem('Task', _.concat(
-          MutationUtil.createFieldMutation('bucket', 'string', groupId),
-          MutationUtil.createFieldMutation('project', 'id', task.project),
-          MutationUtil.createFieldMutation('owner', 'id', userId),
-          MutationUtil.createFieldMutation('status', 'int', 0),
-          mutations
-        ), 'task')
-        .updateItem(this.props.item, [
-          MutationUtil.createSetMutation('tasks', 'id', '${task}')
-        ])
-        .commit();
+      let { item:parent } = this.props;
+      AddCreateSubTask(mutator.batch(), userId, parent, mutations).commit();
     }
   }
 
@@ -141,8 +149,8 @@ export class TaskCard extends React.Component {
                 items={ tasks }
                 itemRenderer={ TaskListItemRenderer }
                 itemEditor={ TaskCard.TaskEditor }
-                onItemSelect={ this.handleItemSelect.bind(this) }
-                onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+                onItemSelect={ this.handleTaskSelect.bind(this) }
+                onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
 
           { mutator &&
           <div className="ux-card-footer">
@@ -214,27 +222,13 @@ class TaskCanvasComponent extends React.Component {
 
   handleTaskUpdate(item, mutations) {
     console.assert(mutations);
-    let { registration: { groupId, userId }, mutator } = this.context;
+    let { registration: { userId }, mutator } = this.context;
 
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
       let { item:parent } = this.props;
-      let { bucket } = parent;
-
-      mutator
-        .batch()
-        .createItem('Task', _.concat(
-          MutationUtil.createFieldMutation('bucket', 'string', bucket),
-          MutationUtil.createFieldMutation('project', 'id', parent.project),
-          MutationUtil.createFieldMutation('owner', 'id', userId),
-          MutationUtil.createFieldMutation('status', 'int', 0),
-          mutations
-        ), 'task')
-        .updateItem(this.props.item, [
-          MutationUtil.createSetMutation('tasks', 'id', '${task}')
-        ])
-        .commit();
+      AddCreateSubTask(mutator.batch(), userId, parent, mutations).commit();
     }
   }
 
@@ -314,15 +308,13 @@ class TaskCanvasComponent extends React.Component {
               <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }></i>
             </div>
 
-            <div>
-              <List ref="tasks"
-                    className="ux-list-tasks"
-                    items={ tasks }
-                    itemRenderer={ TaskListItemRenderer }
-                    itemEditor={ TaskCard.TaskEditor }
-                    onItemSelect={ this.handleTaskSelect.bind(this) }
-                    onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
-            </div>
+            <List ref="tasks"
+                  className="ux-list-tasks"
+                  items={ tasks }
+                  itemRenderer={ TaskListItemRenderer }
+                  itemEditor={ TaskCard.TaskEditor }
+                  onItemSelect={ this.handleTaskSelect.bind(this) }
+                  onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
           </div>
 
         </Canvas>

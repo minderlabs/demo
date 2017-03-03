@@ -104,6 +104,7 @@ export class Resolvers {
         },
 
         projects: (root, args, context) => {
+          // NOTE: Group is in the system store, so we don't reference user store items.
           let filter = {
             type: 'Project',
             expr: { field: "group", ref: "id" }
@@ -232,12 +233,12 @@ export class Resolvers {
           }
 
           let { itemId } = args;
-          let { type, id:localItemId } = ID.fromGlobalId(itemId);
+          let { type, id:localId } = ID.fromGlobalId(itemId);
 
-          // TODO(burdon): Should be from args.
+          // TODO(burdon): Should be from args or ID.
           let namespace = Resolvers.getNamespaceForType(type);
 
-          return database.getItemStore(namespace).getItem(context, type, localItemId);
+          return database.getItemStore(namespace).getItem(context, type, localId);
         },
 
         // TODO(burdon): Document difference from search (no text index? i.e., move to ItemStore?)
@@ -279,47 +280,9 @@ export class Resolvers {
             throw AuthError;
           }
 
-          let { mutations:itemMutations } = args;
+          let { namespace=Database.NAMESPACE.USER, mutations:itemMutations } = args;
 
-          // TODO(burdon): Should be from Mutator args. (default to USER)? Does UX currently update Group/User?
-//        let namespace = Resolvers.getNamespaceForType(type);
-          let namespace = Database.NAMESPACE.USER;
-          let itemStore = database.getItemStore(namespace);
-
-          return Promise.all(_.map(itemMutations, itemMutation => {
-            let { itemId, mutations } = itemMutation;
-            let { type, id:localItemId } = ID.fromGlobalId(itemId);
-            logger.log($$('UPDATE[%s:%s]: %o', type, localItemId, mutations));
-
-            //
-            // Get and update item.
-            //
-            return itemStore.getItem(context, type, localItemId)
-              .then(item => {
-
-                // If not found (i.e., insert).
-                // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
-                if (!item) {
-                  item = {
-                    id: localItemId,
-                    type: type
-                  };
-                }
-
-                //
-                // Apply mutations.
-                //
-                return Transforms.applyObjectMutations(item, mutations);
-              });
-          }))
-
-            //
-            // Upsert items.
-            //
-            .then(results => {
-              let items = TypeUtil.flattenArrays(results);
-              return itemStore.upsertItems(context, items)
-            })
+          return database.processMutations(context, itemMutations, namespace)
 
             //
             // Trigger notifications.

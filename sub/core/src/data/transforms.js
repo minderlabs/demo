@@ -42,12 +42,11 @@ export class Transforms {
     console.assert(object && mutation);
     let { field, value } = mutation;
 
-    // TODO(burdon): mutation.values (see project.js)
     // TODO(burdon): Field dot paths (_.set/get).
     // TODO(burdon): Introspect for type-checking (and field name setting).
 
     // Null.
-    if (value === undefined) {
+    if (value.null || value === undefined) {
       delete object[field];
       return object;
     }
@@ -84,16 +83,25 @@ export class Transforms {
       return object;
     }
 
-    // Scalars.
-    if (value.null) {
-      delete object[field];
-    } else {
-      let scalar = Matcher.scalarValue(value);
-      console.assert(scalar !== undefined, 'Invalid value:', JSON.stringify(mutation));
-      object[field] = scalar;
+    // Multiple scalar values.
+    // NOTE: This overwrites existing values.
+    if (value.values) {
+      object[field] = _.map(value.values, value => {
+        let scalar = Matcher.scalarValue(value.value);
+        console.assert(scalar !== undefined);
+        return scalar;
+      });
+      return object;
     }
 
-    return object;
+    // Scalars.
+    let scalar = Matcher.scalarValue(value);
+    if (scalar !== undefined) {
+      object[field] = scalar;
+      return object;
+    }
+
+    throw new Error('Invalid mutation: ' + JSON.stringify(mutation));
   }
 
   // TODO(burdon): When replacing an object value (for a set or array), distinguish between

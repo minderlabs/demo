@@ -356,6 +356,16 @@ export class ItemReducer extends Reducer {
   /**
    * @param query
    * @param customReducer
+   *
+   * Example:
+   * Reducer = (matcher, context, previousResult, updatedItem) => {
+   *   if (updatedItem.type == 'Task') {
+   *     return {
+   *       items:  $push: [ updatedItem ]
+   *     }
+   *   }
+   * }
+   *
    * @return standard mutation wrapper supplied to redux's combine() method.
    */
   static graphql(query, customReducer=undefined) {

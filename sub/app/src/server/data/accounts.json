@@ -1,32 +1,35 @@
 {
-  "Group": [
-    {
-      "id": "minderlabs_com",
-      "alias": "minderlabs",
-      "title": "Minder Labs",
-      "whitelist": [
-        "rich@minderlabs.com",
-        "adam@minderlabs.com",
-        "wendy@minderlabs.com",
-        "matt@carbonfive.com",
-        "alice.braintree@gmail.com"
-      ]
-    },
-
-    {
-      "id": "rich_burdon_gmail_com",
-      "title": "Private",
-      "whitelist": [
-        "rich.burdon@gmail.com"
-      ]
-    },
-
-    {
-      "id": "madadam_gmail_com",
-      "title": "Private",
-      "whitelist": [
-        "madadam@gmail.com"
-      ]
-    }
-  ]
+  "Items": {
+    "Group": [
+      {
+        "bucket": "minderlabs_com",
+        "id": "minderlabs_com",
+        "alias": "minderlabs",
+        "title": "Minder Labs",
+        "whitelist": [
+          "rich@minderlabs.com",
+          "adam@minderlabs.com",
+          "wendy@minderlabs.com",
+          "matt@carbonfive.com",
+          "alice.braintree@gmail.com"
+        ]
+      },
+      {
+        "bucket": "rich_burdon_gmail_com",
+        "id": "rich_burdon_gmail_com",
+        "title": "Private",
+        "whitelist": [
+          "rich.burdon@gmail.com"
+        ]
+      },
+      {
+        "bucket": "madadam_gmail_com",
+        "id": "madadam_gmail_com",
+        "title": "Private",
+        "whitelist": [
+          "madadam@gmail.com"
+        ]
+      }
+    ]
+  }
 }

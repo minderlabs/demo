@@ -48,7 +48,7 @@ export class MemoryItemStore extends ItemStore {
     return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
   }
 
-  getItems(context, type, itemIds) {
+  getItems(context, type, itemIds=[]) {
     console.assert(context && type && itemIds);
 
     // Check all buckets.

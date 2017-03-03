@@ -37,6 +37,8 @@ export const UpsertItemsMutation = gql`
  */
 export class MutationUtil {
 
+  // TODO(burdon): Util to turn object into array of mutations.
+
   /**
    * Create mutations to clone the given item.
    *
@@ -144,12 +146,25 @@ export class MutationUtil {
 */
 class Batch {
 
-  constructor(mutator) {
+  /**
+   * Batch is used to exec multiple mutations in one transaction.
+   * @param mutator
+   * @param namespace If defined, overrides the default namespace.
+   */
+  constructor(mutator, namespace=undefined) {
     console.assert(mutator);
     this._mutator = mutator;
+    this._namespace = namespace;
     this._operations = [];
   }
 
+  /**
+   * Creates new item in batch.
+   * @param type
+   * @param mutations
+   * @param name Optional name that can be referenced by subsequent updates below.
+   * @return {Batch}
+   */
   createItem(type, mutations, name=undefined) {
     console.assert(type && mutations);
     mutations = TypeUtil.flattenArrays(mutations);
@@ -160,6 +175,12 @@ class Batch {
     return this;
   }
 
+  /**
+   * Updates existing item in batch.
+   * @param item
+   * @param mutations Mutations can reference created items above via ${name}.
+   * @return {Batch}
+   */
   updateItem(item, mutations) {
     console.assert(item && mutations);
     mutations = TypeUtil.flattenArrays(mutations);
@@ -170,8 +191,11 @@ class Batch {
     return this;
   }
 
+  /**
+   * Submits the batch.
+   */
+  // TODO(burdon): Actually batch mutations. (affects optimistic result and reducer)?
   commit() {
-    // TODO(burdon): Actually batch mutations. (affects optimistic result and reducer)?
 
     // Map of named items.
     let itemsById = new Map();
@@ -185,7 +209,7 @@ class Batch {
         // Create item.
         //
 
-        item = this._mutator.createItem(type, mutations);
+        item = this._mutator.createItem(type, mutations, this._namespace);
         itemsById.set(item.id, item);
 
         if (name) {
@@ -209,7 +233,7 @@ class Batch {
         });
 
         // Update item.
-        this._mutator.updateItem(item, mutations, itemsById);
+        this._mutator.updateItem(item, mutations, this._namespace, itemsById);
       }
     });
   }
@@ -261,9 +285,10 @@ export class Mutator {
    *
    * @param {string} type
    * @param mutations
+   * @param namespace
    * @return {Item} Optimistic result.
    */
-  createItem(type, mutations) {
+  createItem(type, mutations, namespace=undefined) {
     mutations = _.compact(_.concat(mutations));
 
     // Create optimistic result.
@@ -282,19 +307,20 @@ export class Mutator {
     // Fire mutation.
     this._mutate({
       variables: {
+        namespace,
         mutations: [
           {
             itemId: ID.toGlobalId(type, itemId),
             mutations
           }
-        ],
+        ]
+      },
 
-        // http://dev.apollodata.com/react/mutations.html#optimistic-ui
-        optimisticResponse: {
-          upsertItems: [
-            item
-          ]
-        }
+      // http://dev.apollodata.com/react/mutations.html#optimistic-ui
+      optimisticResponse: {
+        upsertItems: [
+          item
+        ]
       }
     });
 
@@ -306,10 +332,11 @@ export class Mutator {
    *
    * @param {Item} item
    * @param mutations
+   * @param namespace
    * @param [itemMap] Optional map of cached items.
    * @return {Item} Optimisitc result (NOTE: this will change if the item is being copied).
    */
-  updateItem(item, mutations, itemMap=undefined) {
+  updateItem(item, mutations, namespace, itemMap=undefined) {
     mutations = _.compact(_.concat(mutations));
 
     // TODO(burdon): If external namespace (factor out from Database.isExternalNamespace).
@@ -337,6 +364,7 @@ export class Mutator {
 
       this._mutate({
         variables: {
+          namespace,
           mutations: [
             {
               itemId: ID.toGlobalId(item.type, item.id),

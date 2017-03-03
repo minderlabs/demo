@@ -1,90 +1,102 @@
 {
-  "Folder": [
-    {
-      "id": "folder_inbox",
-      "order": 1,
-      "alias": "inbox",
-      "title": "Inbox",
-      "icon": "inbox",
-      "filter": {
-        "namespace": "user",
-        "matchAll": true,
-        "expr": {
-          "op": "AND",
-          "expr": [
-            {
-              "comp": "NE",
-              "field": "type",
-              "value": {
-                "string": "Folder"
+  "Items": {
+    "Folder": [
+      {
+        "id": "folder_inbox",
+        "order": 1,
+        "alias": "inbox",
+        "title": "Inbox",
+        "icon": "inbox",
+        "filter": {
+          "namespace": "user",
+          "matchAll": true,
+          "expr": {
+            "op": "AND",
+            "expr": [
+              {
+                "comp": "NE",
+                "field": "type",
+                "value": {
+                  "string": "Folder"
+                }
+              },
+              {
+                "comp": "GT",
+                "field": "modified",
+                "value": {
+                  "timestamp": -100000
+                }
               }
-            },
-            {
-              "comp": "GT",
-              "field": "modified",
-              "value": {
-                "timestamp": -100000
+            ]
+          },
+          "orderBy": {
+            "field": "modified",
+            "order": "DESC"
+          },
+          "groupBy": false
+        }
+      },
+      {
+        "id": "folder_favorites",
+        "order": 3,
+        "alias": "favorites",
+        "title": "Favorites",
+        "icon": "star",
+        "filter": {
+          "labels": [
+            "_favorite"
+          ],
+          "groupBy": false
+        }
+      },
+      {
+        "id": "folder_projects",
+        "order": 4,
+        "alias": "projects",
+        "title": "Projects",
+        "icon": "assignment",
+        "filter": {
+          "type": "Project",
+          "groupBy": false
+        }
+      },
+      {
+        "id": "folder_tasks",
+        "order": 2,
+        "alias": "tasks",
+        "title": "Tasks",
+        "icon": "assignment_turned_in",
+        "filter": {
+          "type": "Task",
+          "expr": {
+            "op": "OR",
+            "expr": [
+              {
+                "ref": "$CONTEXT.userId",
+                "field": "owner"
+              },
+              {
+                "ref": "$CONTEXT.userId",
+                "field": "assignee"
               }
-            }
-          ]
-        },
-        "orderBy": {
-          "field": "modified",
-          "order": "DESC"
-        },
-        "groupBy": false
+            ]
+          },
+          "groupBy": false
+        }
+      },
+      {
+        "id": "folder_deleted",
+        "order": 5,
+        "alias": "deleted",
+        "title": "Deleted",
+        "icon": "delete",
+        "filter": {
+          "labels": [
+            "_deleted"
+          ],
+          "groupBy": false
+        }
       }
-    },
-    {
-      "id": "folder_favorites",
-      "order": 3,
-      "alias": "favorites",
-      "title": "Favorites",
-      "icon": "star",
-      "filter": {
-        "labels": ["_favorite"],
-        "groupBy": false
-      }
-    },
-    {
-      "id": "folder_projects",
-      "order": 4,
-      "alias": "projects",
-      "title": "Projects",
-      "icon": "assignment",
-      "filter": {
-        "type": "Project",
-        "groupBy": false
-      }
-    },
-    {
-      "id": "folder_tasks",
-      "order": 2,
-      "alias": "tasks",
-      "title": "Tasks",
-      "icon": "assignment_turned_in",
-      "filter": {
-        "type": "Task",
-        "expr": {
-          "op": "OR",
-          "expr": [
-            { "ref": "$CONTEXT.userId", "field": "owner" },
-            { "ref": "$CONTEXT.userId", "field": "assignee" }
-          ]
-        },
-        "groupBy": false
-      }
-    },
-    {
-      "id": "folder_deleted",
-      "order": 5,
-      "alias": "deleted",
-      "title": "Deleted",
-      "icon": "delete",
-      "filter": {
-        "labels": ["_deleted"],
-        "groupBy": false
-      }
-    }
-  ]
+    ]
+  }
 }

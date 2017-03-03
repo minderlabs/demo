@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { $$, ID, ErrorUtil, Logger, ItemStore, ItemUtil, QueryProcessor } from 'minder-core';
+import { $$, ID, ErrorUtil, Logger, ItemStore, ItemUtil, QueryProcessor, TypeUtil, Transforms } from 'minder-core';
 
 const logger = Logger.get('db');
 
@@ -34,21 +34,11 @@ const logger = Logger.get('db');
 export class Database {
 
   // Multi-group support.
-  // TODO(burdon): Remove composeItem
-  // TODO(burdon): Mutator take namespace.
-  // TODO(burdon): UpsertItemsMutation multiple items. Map create/update IDs. Set Namespace.
-  // TODO(burdon): ID with optional namespace? (Otherwise client must specify in fn args -- can it alwasy know?)
-  // TODO(burdon): Path (optional namespace: e.g., for "system" namespace).
-  // TODO(burdon): System store return namespace.
+  // TODO(burdon): Replace item with items (remove filter and require namespace).
   // TODO(burdon): Remove Database.getNamespaceForType: get namespace from ID (default to user). Add namespace to mutation sig.
-
-  // TODO(burdon): TestData/Randomizer set bucket. Set parent project.
-  // TODO(burdon): UX add bucket from context. Add project to sub-tasks.
-  // TODO(burdon): Reject lookup if context doesn't allow bucket.
+  // TODO(burdon): ACLs: Reject lookup if context doesn't allow bucket.
   // TODO(burdon): Debug: list all items in cache; reset cache.
-
   // TODO(burdon): Support multiple groups (context, itemstore).
-  // TODO(burdon): Mutator reducer listen for all.
 
   static NAMESPACE = {
     SYSTEM:   'system',
@@ -289,5 +279,55 @@ export class Database {
     return queryProcessor.queryItems(context, root, {
       fkeys: foreignKeys
     });
+  }
+
+  /**
+   * Processes the item mutations, creating and updating items.
+   *
+   * @param context
+   * @param itemMutations
+   * @param namespace
+   * @return {Promise<[{Item}]>}
+   */
+  processMutations(context, itemMutations, namespace) {
+    let itemStore = this.getItemStore(namespace);
+
+    return Promise.all(_.map(itemMutations, itemMutation => {
+      let { itemId, mutations } = itemMutation;
+
+      // TODO(burdon): Database should be pure (no leakage of global IDs)? Move out of Database.
+      let { type, id:localId } = ID.fromGlobalId(itemId);
+      logger.log($$('UPDATE[%s:%s]: %o', type, localId, mutations));
+
+      //
+      // Get and update item.
+      // TODO(burdon): Relies on getItem to return {} for not found.
+      //
+      return itemStore.getItem(context, type, localId)
+        .then(item => {
+
+          // If not found (i.e., insert).
+          // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
+          if (!item) {
+            item = {
+              id: localId,
+              type: type
+            };
+          }
+
+          //
+          // Apply mutations.
+          //
+          return Transforms.applyObjectMutations(item, mutations);
+        });
+    }))
+
+      //
+      // Upsert items.
+      //
+      .then(results => {
+        let items = TypeUtil.flattenArrays(results);
+        return itemStore.upsertItems(context, items)
+      });
   }
 }

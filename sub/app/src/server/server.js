@@ -12,7 +12,7 @@ import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
 
-import { IdGenerator, Matcher, MemoryItemStore, TestItemStore, Logger, TypeUtil } from 'minder-core';
+import { ErrorUtil, IdGenerator, Matcher, MemoryItemStore, TestItemStore, Logger, TypeUtil } from 'minder-core';
 import {
   Database,
   Firebase,
@@ -44,8 +44,11 @@ const logger = Logger.get('server');
 //
 
 function handleError(error) {
-  logger.error('### ERROR: %s', error && error.message || error);
-  error && error.stack && logger.error(error.stack);
+  if (error.stack) {
+    logger.error('UNCAUGHT: ' + error.stack);
+  } else {
+    logger.error('UNCAUGHT: ' + ErrorUtil.message(error));
+  }
 }
 
 // https://nodejs.org/api/process.html#process_event_uncaughtexception

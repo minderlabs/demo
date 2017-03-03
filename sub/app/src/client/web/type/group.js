@@ -6,7 +6,7 @@ import React from 'react';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { GroupFragment, ItemFragment, ItemReducer } from 'minder-core';
+import { GroupFragment, ItemFragment, ItemReducer, MutationUtil } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
 import { connectReducer } from '../framework/connector';
@@ -28,7 +28,7 @@ class GroupCanvasComponent extends React.Component {
   };
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired
+    item: React.PropTypes.object
   };
 
   handleItemSelect(item) {
@@ -43,22 +43,16 @@ class GroupCanvasComponent extends React.Component {
     let { mutator } = this.context;
     let { item:group } = this.props;
 
-    // TODO(burdon): Add project to group (link?)
-    // Augment editor mutations.
     if (project) {
-      console.warn('Updating group: ' + JSON.stringify(group));
+      console.warn('Not implemented.');
     } else {
-      // TODO(burdon): Add bucket.
-      mutations.push(
-        {
-          field: 'group',
-          value: {
-            id: group.id
-          }
-        }
-      );
-
-      mutator.createItem('Project', mutations);
+      mutator
+        .batch()
+        .createItem('Project', _.concat(mutations, [
+          MutationUtil.createFieldMutation('bucket', 'string', group.id),
+          MutationUtil.createFieldMutation('group', 'id', group.id)
+        ]), 'new_project')
+        .commit();
     }
   }
 
@@ -69,6 +63,7 @@ class GroupCanvasComponent extends React.Component {
   render() {
     return ReactUtil.render(this, () => {
       let { item:group, refetch } = this.props;
+      let { members, projects } = group;
 
       return (
         <Canvas ref="canvas"
@@ -76,20 +71,20 @@ class GroupCanvasComponent extends React.Component {
                 refetch={ refetch }
                 onSave={ this.handleSave.bind(this)}>
 
-          <div className="ux-column">
+          <div className="ux-section">
             <div className="ux-section-header ux-row">
-              <h3 className="ux-expand">Members</h3>
+              <h4 className="ux-expand ux-title">Mambers</h4>
             </div>
-            <List items={ group.members } onItemSelect={ this.handleItemSelect.bind(this) }/>
+            <List items={ members } onItemSelect={ this.handleItemSelect.bind(this) }/>
           </div>
 
-          <div className="ux-column">
+          <div className="ux-section">
             <div className="ux-section-header ux-row">
-              <h3 className="ux-expand">Projects</h3>
+              <h4 className="ux-expand ux-title">Projects</h4>
               <i className="ux-icon ux-icon-add" onClick={ this.handleProjectAdd.bind(this) }></i>
             </div>
             <List ref="projects"
-                  items={ group.projects }
+                  items={ projects }
                   onItemSelect={ this.handleItemSelect.bind(this) }
                   onItemUpdate={ this.handleProjectSave.bind(this) }/>
           </div>
@@ -104,6 +99,23 @@ class GroupCanvasComponent extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
+const GraphReducer = (matcher, context, previousResult, updatedItem) => {
+  let { item:group } = previousResult;
+
+  if (updatedItem.type === 'Project' && updatedItem.group === previousResult.id) {
+    let projectIdx = _.findIndex(group.projects, project => project.id == updatedItem.group);
+    if (projectIdx == -1) {
+      return {
+        item: {
+          projects: {
+            $push: [updatedItem]
+          }
+        }
+      }
+    }
+  }
+};
+
 const GroupQuery = gql`  
   query GroupQuery($itemId: ID!) {
     item(itemId: $itemId) {
@@ -117,5 +129,5 @@ const GroupQuery = gql`
 `;
 
 export const GroupCanvas = compose(
-  connectReducer(ItemReducer.graphql(GroupQuery))
+  connectReducer(ItemReducer.graphql(GroupQuery, GraphReducer))
 )(GroupCanvasComponent);

@@ -92,6 +92,15 @@ export class TestGenerator {
    */
   static Linkers = {
 
+    'Project': (item, context) => {
+      return {
+        itemId: ID.toGlobalId('Group', item.group),
+        mutations: [
+          MutationUtil.createSetMutation('projects', 'id', item.id)
+        ]
+      };
+    },
+
     'Task': (item, context) => {
       return {
         itemId: ID.toGlobalId('Project', item.project),
@@ -133,7 +142,9 @@ export class TestGenerator {
 
                 let promises = [];
 
+                //
                 // Create Tasks for User.
+                //
                 promises.push(this._randomizer.generateItems(
                   context, 'Task', this._randomizer.chance.natural({ min: 20, max: 40 }))
                     .then(items => this.processItems(context, items)));

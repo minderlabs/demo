@@ -46,10 +46,9 @@ export class ProjectCard extends React.Component {
     let { mutator } = this.context;
 
     if (item) {
-      // Update existing.
       mutator.updateItem(item, mutations);
     } else {
-      throw new Error('Not implemented.');
+      console.warn('Not implemented.');
     }
   }
 
@@ -193,7 +192,7 @@ class ProjectBoardCanvasComponent extends React.Component {
       },
 
       columnMapper: (groupId, userId) => (columns, item) => {
-        return (item.bucket == userId) ? 'private' : null;
+        return (item.bucket === userId) ? 'private' : null;
       },
 
       onCreateMutations: (groupId, userId, column) => {
@@ -247,13 +246,13 @@ class ProjectBoardCanvasComponent extends React.Component {
       mutator
         .batch()
         .createItem('Task', [
+          this.boardAdapter.onCreateMutations(groupId, userId, column),
           MutationUtil.createFieldMutation('owner', 'id', userId),
           MutationUtil.createFieldMutation('project', 'id', project.id),
-          this.boardAdapter.onCreateMutations(groupId, userId, column),
           mutations
-        ], 'task')
+        ], 'new_task')
         .updateItem(project, [
-          MutationUtil.createSetMutation('tasks', 'id', '${task}')
+          MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
         ])
         .commit();
     }
@@ -263,15 +262,16 @@ class ProjectBoardCanvasComponent extends React.Component {
     let { mutator } = this.context;
     let { item:project, boardAlias } = this.props;
 
+    // TODO(burdon): Batch.
     // Update item for column.
+    let batch = mutator.batch();
     let dropMutations = this.boardAdapter.onDropMutations(item, column);
     if (dropMutations) {
-      mutator.updateItem(item, dropMutations);
+      batch.updateItem(item, dropMutations);
     }
 
     // Update item order.
-    // TODO(burdon): Use MutationUtil.
-    mutator.updateItem(project, _.map(changes, change => ({
+    batch.updateItem(project, _.map(changes, change => ({
       field: 'boards',
       value: {
         map: [{
@@ -320,6 +320,8 @@ class ProjectBoardCanvasComponent extends React.Component {
         }]
       }
     })));
+
+    batch.commit();
   }
 
   handleSave() {
