@@ -44,7 +44,6 @@ class Finder extends React.Component {
       let list;
       switch (listType) {
         case 'card':
-        default:
           list = <CardSearchList filter={ filter }
                                  highlight={ false }
                                  className="ux-card-list"
@@ -52,8 +51,8 @@ class Finder extends React.Component {
                                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
           break;
 
-        case 'list2':
-//        default:
+        case 'list':
+        default:
           list = <BasicSearchList filter={ filter }
                                   groupBy={ false }
                                   itemRenderer={ BasicListItemRenderer(typeRegistry) }

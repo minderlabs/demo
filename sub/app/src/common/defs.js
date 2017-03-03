@@ -65,7 +65,7 @@ export const Const = {
   APP_NAME: 'minder',
 
   // NOTE: Changed by grunt:version
-  APP_VERSION: "0.1.8",
+  APP_VERSION: "0.1.9",
 
   AUTH_COOKIE: 'minder_auth_token',
 

@@ -65,7 +65,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
  */
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   // TODO(burdon): Is this too expensive?
-  return _.assign({}, ownProps, dispatchProps, stateProps);
+  return _.defaults({}, ownProps, dispatchProps, stateProps);
 };
 
 /**
