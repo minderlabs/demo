@@ -34,6 +34,15 @@ export class QueryProcessor {
     return this._namespace;
   }
 
+  /**
+   *
+   * @param context
+   * @param root
+   * @param filter
+   * @param offset
+   * @param count
+   * @return {Promise.<[Item]>} Retrieved items or [].
+   */
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     throw new Error('Not implemented');
   }
@@ -56,18 +65,44 @@ export class ItemStore extends QueryProcessor {
     this._buckets = buckets;
   }
 
+  /**
+   *
+   * @param context
+   * @param type
+   * @param itemId
+   * @return {Promise.<Item>} Item or null.
+   */
   getItem(context, type, itemId) {
     return this.getItems(context, type, [itemId]).then(items => items[0]);
   }
 
+  /**
+   *
+   * @param context
+   * @param item
+   * @return {Promise.<Item>} Updated item.
+   */
   upsertItem(context, item) {
     return this.upsertItems(context, [item]).then(items => items[0]);
   }
 
+  /**
+   *
+   * @param context
+   * @param type
+   * @param itemIds
+   * @return {Promise.<[Item]>} Retrieved items or [].
+   */
   getItems(context, type, itemIds=[]) {
     throw new Error('Not implemented');
   }
 
+  /**
+   *
+   * @param context
+   * @param items
+   * @return {Promise.<[Item]>} Updated items.
+   */
   upsertItems(context, items) {
     throw new Error('Not implemented');
   }

@@ -76,7 +76,7 @@ export class SystemStore extends DelegateItemStore {
     _.defaults(group, { members: [] }).members.push(user.id);
 
     return this.upsertItem(this._context, group).then(group => {
-      logger.log('Joined group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+      logger.log('User joined group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
       return user;
     });
   }
@@ -89,6 +89,7 @@ export class SystemStore extends DelegateItemStore {
     let { uid, email, displayName } = userInfo;
 
     return SystemStore.updateUser({
+      active: true,
       type: 'User',
       id: uid,
       title: displayName,
@@ -101,14 +102,13 @@ export class SystemStore extends DelegateItemStore {
    * NOTE: The GraphQL User definition is a projection of part of this data.
    * For example, credentials are not exposed through the GQL API.
    */
-  static updateUser(user, credential) {
-    console.assert(credential);
-    let { accessToken, idToken, provider } = credential;
-
-    _.set(user, `credentials.${SystemStore.sanitizeKey(provider)}`, {
-      accessToken,
-      idToken
-    });
+  static updateUser(user, credential=undefined) {
+    if (credential) {
+      let { accessToken, idToken, provider } = credential;
+      _.set(user, `credentials.${SystemStore.sanitizeKey(provider)}`, { accessToken, idToken });
+    } else {
+      user.active = false;
+    }
 
     return user;
   }
@@ -122,6 +122,9 @@ export class SystemStore extends DelegateItemStore {
    * 3). Existing user authenticates => update authentication record.
    * 4). Existing inactive user authenticates and is now whitelisted => activate user.
    * 5). Existing user is already authenticated => return record.
+   *
+   * Errors:
+   * A). User is authenticated but database record is missing.
    *
    * @param userInfo
    * @param credential
@@ -137,7 +140,7 @@ export class SystemStore extends DelegateItemStore {
     return this.getUser(uid).then(user => {
 
       if (!user) {
-        logger.log('Registering user: ' + JSON.stringify({ uid, email }));
+        logger.log('Registering user: ' + JSON.stringify({ uid, email, provider: credential.provider }));
         let user = SystemStore.createUser(userInfo, credential);
 
         //
@@ -147,7 +150,7 @@ export class SystemStore extends DelegateItemStore {
         return this.getGroupByWhitelist(email).then(group => {
 
           // Active if whitelisted.
-          user.active = !_.isEmpty(group);
+          user.active &= !_.isEmpty(group);
 
           // Create new user record.
           return this.upsertItem(this._context, user).then(user => {

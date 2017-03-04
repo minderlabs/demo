@@ -55,6 +55,7 @@ export class Auth {
           // Get the JWT.
           // Returns the current token or issues a new one if expire (short lived; lasts for about an hour).
           // https://firebase.google.com/docs/reference/js/firebase.User#getToken
+          console.log('Getting token...');
           return userInfo.getToken()
             .then(jwt => {
 
@@ -65,13 +66,14 @@ export class Auth {
 
                 // Credential is null if we've already been authenticated.
                 return this.registerUser(userInfo, credential).then(user => {
+                  console.log('Credentials: ' + JSON.stringify(_.pick(credential, ['provider'])));
 
                   // Set the auth cookie for server-side detection via AuthManager.getUserFromCookie().
                   // https://github.com/js-cookie/js-cookie
                   if (user.active) {
                     Cookies.set(Const.AUTH_COOKIE, jwt, {
                       domain: window.location.hostname,
-                      expires: 1, // 1 day.
+                      expires: 1 // 1 day.
                     });
                   }
 
