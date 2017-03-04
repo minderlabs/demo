@@ -3,7 +3,6 @@
 //
 
 import _ from 'lodash';
-import moment from 'moment';
 
 import { DelegateItemStore, Logger } from 'minder-core';
 
@@ -19,30 +18,13 @@ export class SystemStore extends DelegateItemStore {
   /**
    * Make legal firebase key.
    */
+  // TODO(burdon): Move to firebase.
   static sanitizeKey(str) {
     return str.replace(/\W+/g, '_');
   }
 
-  /**
-   * Converts a firebase User record to a User item.
-   */
-  static userRecordToItem(key, record) {
-    // TODO(madadam): Credentials isn't part of the schema; needs to be?
-    return {
-      type:         'User',
-      id:           key,
-      created:      record.created,
-      modified:     record.modified,
-      title:        record.profile.displayName,
-      email:        record.profile.email,
-      credentials:  record.credentials
-    };
-  }
-
   constructor(itemStore) {
     super(itemStore);
-
-    // TODO(burdon): Enforce all items have this bucket.
     this._context = {
       groupId: 'system'
     };
@@ -74,66 +56,151 @@ export class SystemStore extends DelegateItemStore {
    * @returns {Promise} Matching group (or null).
    */
   getGroupByWhitelist(email) {
-    // TODO(burdon): Return multiple groups?
+    // TODO(burdon): Return multiple groups.
     return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
       return _.find(groups, group => _.indexOf(group.whitelist, email) != -1);
     });
   }
 
   /**
-   * Upsert Firebase User Account.
+   * Checks if the user is a memeber of the group and if not adds it.
    * @param user
+   * @param group
+   * @return {*}
+   */
+  maybeAddUserToGroup(user, group) {
+    if (_.indexOf(group.members, user.id) != -1) {
+      return Promise.resolve(user);
+    }
+
+    _.defaults(group, { members: [] }).members.push(user.id);
+
+    return this.upsertItem(this._context, group).then(group => {
+      logger.log('Joined group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+      return user;
+    });
+  }
+
+  /**
+   * Converts a firebase User record to a User item.
+   */
+  static createUser(userInfo, credential) {
+    console.assert(userInfo);
+    let { uid, email, displayName } = userInfo;
+
+    return SystemStore.updateUser({
+      type: 'User',
+      id: uid,
+      title: displayName,
+      email: email
+    }, credential);
+  }
+
+  /**
+   * Update the user record's credentials.
+   * NOTE: The GraphQL User definition is a projection of part of this data.
+   * For example, credentials are not exposed through the GQL API.
+   */
+  static updateUser(user, credential) {
+    console.assert(credential);
+    let { accessToken, idToken, provider } = credential;
+
+    _.set(user, `credentials.${SystemStore.sanitizeKey(provider)}`, {
+      accessToken,
+      idToken
+    });
+
+    return user;
+  }
+
+  /**
+   * Upsert Firebase User Account.
+   *
+   * Cases:
+   * 1). New user is whitelisted in group => create active user.
+   * 2). New user is not whitelisted => create non-active user and send waitlist email.
+   * 3). Existing user authenticates => update authentication record.
+   * 4). Existing inactive user authenticates and is now whitelisted => activate user.
+   * 5). Existing user is already authenticated => return record.
+   *
+   * @param userInfo
    * @param credential
    * @returns {Promise<User>}
    */
-  registerUser(user, credential) {
-    let { uid, email, displayName } = user;
-    let { accessToken, idToken, provider } = credential;
-    console.assert(uid);
+  registerUser(userInfo, credential=undefined) {
+    let { uid, email } = userInfo;
+    console.assert(uid && email);
 
-    // https://firebase.google.com/docs/database/web/read-and-write
-    let record = {
-      created: moment().unix(),
+    //
+    // Check of existing user.
+    //
+    return this.getUser(uid).then(user => {
 
-      // Firebase user.
-      profile: {
-        uid,
-        email,
-        displayName
-      },
+      if (!user) {
+        logger.log('Registering user: ' + JSON.stringify({ uid, email }));
+        let user = SystemStore.createUser(userInfo, credential);
 
-      // OAuth credentials.
-      credentials: {
-        [SystemStore.sanitizeKey(provider)]: {
-          accessToken,
-          idToken
+        //
+        // New user.
+        // Check whitelisted in existing group (i.e., invited).
+        //
+        return this.getGroupByWhitelist(email).then(group => {
+
+          // Active if whitelisted.
+          user.active = !_.isEmpty(group);
+
+          // Create new user record.
+          return this.upsertItem(this._context, user).then(user => {
+
+            // Add user to group.
+            if (user.active) {
+
+              //
+              // 1). Update group.
+              //
+              return this.maybeAddUserToGroup(user, group);
+            } else {
+
+              //
+              // 2). Waitlist.
+              // TODO(burdon): Send waitlist email?
+              //
+              logger.log('User not whitelisted: ' + JSON.stringify({ uid, email }));
+              return user;
+            }
+          });
+        });
+      } else {
+
+        if (credential) {
+
+          //
+          // 4). If not active, check if now whitelisted.
+          //
+          let promise = (user.active) ? Promise.resolve(user) : this.getGroupByWhitelist(email).then(group => {
+
+            // Active if whitelisted.
+            user.active = !_.isEmpty(group);
+
+            return (user.active) ? this.maybeAddUserToGroup(user, group) : Promise.resolve(user);
+          });
+
+          //
+          // 3). Update existing user's credentials.
+          //
+          return promise.then(user => this.upsertItem(this._context, SystemStore.updateUser(user, credential)))
+            .then(user => {
+              logger.log('Updated credentials: ' + JSON.stringify({ user: email, provider: credential.provider }));
+              return user;
+            });
+        } else {
+
+          //
+          // 5). Get existing.
+          //
+          return user;
         }
       }
-    };
-
-    // Check if user is whitelisted.
-    return this.getGroupByWhitelist(email).then(group => {
-      let user = SystemStore.userRecordToItem(uid, record);
-
-      // Active if whitelisted.
-      user.active = !_.isNil(group);
-
-      // TODO(burdon): Upsert each time?
-      return this.upsertItem({}, user).then(user => {
-
-        // Add user to group.
-        if (group && _.indexOf(group.members, user.id) == -1) {
-          _.defaults(group, { members: [] });
-
-          group.members.push(user.id);
-          return this.upsertItem(this._context, group).then(group => {
-            logger.info('Joined group: ' + JSON.stringify(_.pick(group, ['id', 'title', 'members'])));
-            return user;
-          });
-        }
-
-        return user;
-      });
     });
   }
 }

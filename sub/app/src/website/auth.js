@@ -32,19 +32,30 @@ export class Auth {
 
   /**
    * Login via Firebase.
+   *
+   * Firebase issues a JWT once the user is authenticated and uses a Provider (e.g., Google) to actually
+   * perform the authentication and return OAuth credentials (for the requested scopes).
+   *
+   * The JWT is passed as a header by the client on all network requests. The JWT is short-lived (1 hour),
+   * so the client uses auth().getToken() on each network request -- and the token is seamlessly refreshed
+   * when it has expired.
+   *
+   * Additionally, we set a cookie so that our frontend server can recognize authenticated users.
+   *
    * @returns {Promise}
    */
   login() {
-    console.log('Authenticating...');
-
     return new Promise((resolve, reject) => {
-      firebase.auth().onAuthStateChanged(user => {
-        if (user) {
+
+      // Check if already logged in.
+      // https://firebase.google.com/docs/auth/web/manage-users#get_the_currently_signed-in_user
+      firebase.auth().onAuthStateChanged(userInfo => {
+        if (userInfo) {
 
           // Get the JWT.
           // Returns the current token or issues a new one if expire (short lived; lasts for about an hour).
           // https://firebase.google.com/docs/reference/js/firebase.User#getToken
-          return user.getToken()
+          return userInfo.getToken()
             .then(jwt => {
 
               // We're now authenticated, but need to register or check we are active.
@@ -53,14 +64,16 @@ export class Auth {
                 let { credential } = result;
 
                 // Credential is null if we've already been authenticated.
-                return this.registerUser(user, credential).then(user => {
+                return this.registerUser(userInfo, credential).then(user => {
 
                   // Set the auth cookie for server-side detection via AuthManager.getUserFromCookie().
                   // https://github.com/js-cookie/js-cookie
-                  Cookies.set(Const.AUTH_COOKIE, jwt, {
-                    domain: window.location.hostname,
-                    expires: 7, // 1 week.
-                  });
+                  if (user.active) {
+                    Cookies.set(Const.AUTH_COOKIE, jwt, {
+                      domain: window.location.hostname,
+                      expires: 1, // 1 day.
+                    });
+                  }
 
                   resolve(user);
                 });
@@ -70,6 +83,7 @@ export class Auth {
 
           // Redirect to Google if token has expired (results obtained by getRedirectResult above).
           // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signInWithRedirect
+          console.log('Redirecting to OAuth provider: ' + this._provider.providerId);
           return firebase.auth().signInWithRedirect(this._provider);
         }
       });
@@ -83,26 +97,23 @@ export class Auth {
   logout() {
     console.log('Logging out...');
 
+    // Logout and remove the cookie.
     // https://firebase.google.com/docs/auth/web/google-signin
-    return firebase.auth().signOut()
-      .then(() => {
-        // Remove the cookie.
-        Cookies.remove(Const.AUTH_COOKIE);
-      }, error => {
-        console.error(error);
-      });
+    return firebase.auth().signOut().then(() => {
+      Cookies.remove(Const.AUTH_COOKIE);
+    });
   }
 
   /**
    * Registers the user's credential if logged in by the provider or looks up an existing user.
    *
-   * @param user
+   * @param userInfo Firebase user record.
    * @param credential
    * @returns {Promise}
    */
-  registerUser(user, credential=undefined) {
+  registerUser(userInfo, credential=undefined) {
     return new Promise((resolve, reject) => {
-      console.log('Registering user: ' + user.email);
+      console.log('Registering user: ' + userInfo.email);
 
       $.ajax({
         url: '/user/register',
@@ -110,7 +121,7 @@ export class Auth {
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         data: JSON.stringify({
-          user,
+          userInfo,
           credential
         }),
 

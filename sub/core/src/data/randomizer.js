@@ -84,7 +84,7 @@ export class Randomizer {
     }))).then(itemMutations => {
       // Merge mutations.
       let mutationMap = new Map();
-      _.each(itemMutations, itemMutation => {
+      _.each(_.compact(itemMutations), itemMutation => {
         let currentItemMutation = mutationMap.get(itemMutation.itemId);
         if (currentItemMutation) {
           TypeUtil.maybeAppend(currentItemMutation.mutations, itemMutation.mutations)

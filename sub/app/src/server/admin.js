@@ -54,11 +54,6 @@ export const adminRouter = (clientManager, firebase, options) => {
         queue && queue.create('test', {}).save();
         break;
       }
-
-      case 'db.cache.reset': {
-        firebase.clearCache();
-        break;
-      }
     }
 
     res.send({});
