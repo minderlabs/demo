@@ -167,9 +167,12 @@ class ProjectBoardCanvasComponent extends React.Component {
         let mutations = [
           MutationUtil.createFieldMutation('bucket', 'string', groupId)
         ];
+
+        // TODO(burdon): Optimistic concurrency fail (need to patch from cache).
         if (column.id != ProjectBoardCanvasComponent.COLUMN_ICEBOX) {
           mutations.push(MutationUtil.createFieldMutation('assignee', 'id', column.value));
         }
+
         return mutations;
       },
 

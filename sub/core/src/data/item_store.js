@@ -247,13 +247,18 @@ export class ItemUtil {
   onUpdate(item) {
     console.assert(item && item.type, 'Invalid item: ' + JSON.stringify(item));
 
-    let ts = moment().unix();
+    // Client created items set the ID.
     if (!item.id) {
       item.id = this._idGenerator.createId();
-      item.created = ts;
     }
 
-    item.modified = ts;
+    // Standard metadata.
+    let ts = moment().unix();
+    _.defaults(item, {
+      created: ts,
+      modified: ts
+    });
+
     return item;
   }
 

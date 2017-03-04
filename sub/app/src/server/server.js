@@ -56,11 +56,7 @@ const logger = Logger.get('server');
 //
 
 function handleError(error) {
-  if (error.stack) {
-    logger.error('UNCAUGHT: ' + error.stack);
-  } else {
-    logger.error('UNCAUGHT: ' + ErrorUtil.message(error));
-  }
+  logger.error('UNCAUGHT: ' + ErrorUtil.stack(error));
 }
 
 // https://nodejs.org/api/process.html#process_event_uncaughtexception

@@ -21,6 +21,10 @@ export class ErrorUtil {
    * @param error
    */
   static message(error) {
-    return error instanceof Error ? error.message : error;
+    return error instanceof Error ? (error.originalMessage || error.message) : error;
+  }
+
+  static stack(error) {
+    return error.stack || ErrorUtil.message(error);
   }
 }

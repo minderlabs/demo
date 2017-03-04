@@ -46,7 +46,7 @@ export class Firebase {
       new FirebaseSystemStore(idGenerator, matcher, this._db, Database.NAMESPACE.SYSTEM));
 
     // Data items.
-    this._itemStore = new FirebaseItemStore(idGenerator, matcher, this._db, Database.NAMESPACE.USER);
+    this._itemStore = new FirebaseItemStore(idGenerator, matcher, this._db, Database.NAMESPACE.USER, true);
   }
 
   clearCache() {
