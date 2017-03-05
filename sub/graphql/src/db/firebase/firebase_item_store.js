@@ -140,9 +140,9 @@ export class FirebaseItemStore extends ItemStore {
 
       promises.push(new Promise((resolve, reject) => {
         let key = this.key(_.compact([ bucket, type, itemId ]));
-        let ref = this._db.ref(key);
 
         // https://firebase.google.com/docs/database/web/read-and-write
+        let ref = this._db.ref(key);
         ref.set(item, error => {
           if (error) { reject(); } else { resolve(item); }
         });

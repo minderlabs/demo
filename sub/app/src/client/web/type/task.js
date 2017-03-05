@@ -261,8 +261,8 @@ class TaskCanvasComponent extends React.Component {
       let { item:task, refetch } = this.props;
       let { project, tasks } = task;
 
-      console.log('::', task);
-//groupId={ project.group.id }
+      // TODO(burdon): Set group from project (remove groupId).
+      //groupId={ project.group.id }
 
       const levels = TASK_LEVELS.map(level =>
         <option key={ level.value } value={ level.value }>{ level.title }</option>);

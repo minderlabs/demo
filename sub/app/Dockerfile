@@ -57,7 +57,7 @@ RUN npm install
 # TODO(burdon): Currently just add all unbuilt assets.
 
 ADD dist                  $HOME/app/dist
-ADD src/server/conf       $HOME/app/dist/conf
+ADD src/common/conf       $HOME/app/dist/conf
 ADD src/server/data       $HOME/app/dist/data
 ADD src/server/public     $HOME/app/dist/public
 ADD src/server/views      $HOME/app/dist/views

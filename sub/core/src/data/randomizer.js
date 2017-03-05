@@ -61,7 +61,10 @@ export class Randomizer {
       let fields = this._generators[type];
       return Async.iterateWithPromises(fields, (fieldGenerator, field) => {
         return Promise.resolve(fieldGenerator(item, context, this)).then(value => {
-          _.set(item, field, value);
+          if (!_.isNil(value)) {
+            _.set(item, field, value);
+          }
+
           return item;
         });
       });

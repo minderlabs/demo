@@ -3,6 +3,7 @@
 //
 
 export * from './db/firebase/firebase';
+export * from './db/firebase/firebase_item_store';
 export * from './db/google/google_drive_item_store';
 export * from './db/redis/redis_item_store';
 export * from './db/slack/slack_query_processor';

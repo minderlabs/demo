@@ -85,7 +85,7 @@ export class TestGenerator {
           }))).then(items => {
             return _.map(items, item => item.id);
           });
-        }
+ran        }
       }
     }
   });

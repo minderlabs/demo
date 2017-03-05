@@ -114,7 +114,7 @@ const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credent
 let systemStore;
 let userDataStore;
 
-if (testing) {
+if (testing && false) {
   systemStore = new SystemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SYSTEM, false));
 
   userDataStore = new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), {
@@ -122,9 +122,9 @@ if (testing) {
   });
 } else {
   systemStore = new SystemStore(
-    new FirebaseItemStore(idGenerator, matcher, firebase._db, Database.NAMESPACE.SYSTEM, false));
+    new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.SYSTEM, false));
 
-  userDataStore = new FirebaseItemStore(idGenerator, matcher, firebase._db, Database.NAMESPACE.USER, true);
+  userDataStore = new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.USER, true);
 }
 
 const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SETTINGS, false);
