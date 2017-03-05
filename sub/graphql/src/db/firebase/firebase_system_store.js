@@ -19,7 +19,7 @@ import { FirebaseItemStore } from './firebase_item_store';
 export class FirebaseSystemStore extends FirebaseItemStore {
 
   constructor(idGenerator, matcher, db, namespace) {
-    super(idGenerator, matcher, db, namespace);
+    super(idGenerator, matcher, db, namespace, false);
   }
 
   /**

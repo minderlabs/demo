@@ -56,11 +56,7 @@ const logger = Logger.get('server');
 //
 
 function handleError(error) {
-  if (error.stack) {
-    logger.error('UNCAUGHT: ' + error.stack);
-  } else {
-    logger.error('UNCAUGHT: ' + ErrorUtil.message(error));
-  }
+  logger.error('UNCAUGHT: ' + ErrorUtil.stack(error));
 }
 
 // https://nodejs.org/api/process.html#process_event_uncaughtexception
@@ -118,7 +114,18 @@ const firebase = new Firebase(idGenerator, matcher, {
   credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
 });
 
-const userManager = new UserManager(firebase.admin, firebase.systemStore);
+// TODO(burdon): Separate itemstore, systemstore, firebase, etc. FB/memory implementation.
+// TODO(burdon): Sep instance for testing.
+// TODO(burdon): Rewrite alias as ID (and map items).
+
+const userDataStore = testing ?
+  new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), {
+    delay: 0 // TODO(burdon): Config.
+  }) : firebase.itemStore;
+
+const systemStore = firebase.systemStore;
+
+const userManager = new UserManager(firebase.admin, systemStore);
 
 
 //
@@ -127,22 +134,15 @@ const userManager = new UserManager(firebase.admin, firebase.systemStore);
 
 const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SETTINGS, false);
 
-const defaultItemStore = testing ?
-  new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), {
-    delay: 0 // TODO(burdon): Config.
-  }) : firebase.itemStore;
-
 const database = new Database()
 
-  .registerItemStore(firebase.systemStore)
+  .registerItemStore(systemStore)
   .registerItemStore(settingsStore)
-  .registerItemStore(defaultItemStore)
+  .registerItemStore(userDataStore)
 
-  // TODO(burdon): Required for queryItems; implement simple Key range look-up for ItemStore (e.g., Type=*).
-  // TODO(burdon): Distinguish search from basic lookup.
-  .registerQueryProcessor(firebase.systemStore)
+  .registerQueryProcessor(systemStore)
   .registerQueryProcessor(settingsStore)
-  .registerQueryProcessor(defaultItemStore)
+  .registerQueryProcessor(userDataStore)
 
   .onMutation(items => {
     // Notify clients of changes.
@@ -180,7 +180,7 @@ if (botkitManager) {
 // Data initialization.
 //
 
-let loader = new Loader(database);
+let loader = new Loader(database, testing);
 
 logger.log('Loading data...');
 let loading = Promise.all([

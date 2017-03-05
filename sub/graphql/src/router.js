@@ -9,7 +9,7 @@ import bodyParser from 'body-parser';
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 
-import { Logger } from 'minder-core';
+import { ErrorUtil, Logger } from 'minder-core';
 
 import { Resolvers } from './resolvers';
 import { graphqlLogger } from './util/logger';
@@ -46,10 +46,11 @@ export const graphqlRouter = (database, options) => {
     // Resolvers.
     resolvers: Resolvers.getResolvers(database),
 
-    // Log resolver errors.
+    // Log resolver errors (formatError returns message to client).
+    // https://github.com/graphql/graphql-js/pull/402
     logger: {
       log: (error) => {
-        logger.error('GraphQL Error: ' + (error.originalMessage || error.message))
+        logger.error('GraphQL Error: ' + ErrorUtil.stack(error));
       }
     }
   });
@@ -82,8 +83,10 @@ export const graphqlRouter = (database, options) => {
       formatError: (error) => {
 
         // NOTE: Don't leak server errors to client.
-        // TODO(burdon): How to send 401/500 error to client.
-        return error.message;
+        // TODO(burdon): How to send 401/500 error to client?
+        let message = 'Caught GraphQL Error: ' + ErrorUtil.message(error);
+        logger.log('Formatting error for client: ' + message);
+        return message;
       },
 
       // Don't dump resolver exceptions (caught by logger above).

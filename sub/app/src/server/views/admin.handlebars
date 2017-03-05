@@ -26,7 +26,6 @@
 
         <div class="site-section">
           <div>
-            <button onclick="reset()">Reset Cache</button>
             <button onclick="schedule()">Test Scheduler</button>
           </div>
         </div>
@@ -72,10 +71,6 @@
 
     function schedule() {
       Site.post('/admin', { cmd: 'schedule.test' });
-    }
-
-    function reset() {
-      Site.post('/admin', { cmd: 'db.cache.reset' });
     }
 
     function ping(clientId) {

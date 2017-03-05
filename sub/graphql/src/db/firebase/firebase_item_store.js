@@ -20,8 +20,8 @@ import { ItemStore, ItemUtil, QueryProcessor } from 'minder-core';
  */
 export class FirebaseItemStore extends ItemStore {
 
-  constructor(idGenerator, matcher, db, namespace) {
-    super(namespace);
+  constructor(idGenerator, matcher, db, namespace, buckets=false) {
+    super(namespace, buckets);
 
     this._util = new ItemUtil(idGenerator, matcher);
 
@@ -132,6 +132,7 @@ export class FirebaseItemStore extends ItemStore {
       // NOTE: Bucket is optional for some stores (e.g., system).
       let { bucket, type, id:itemId } = item;
       console.assert(type && itemId);
+      console.assert(this._buckets == !_.isNil(bucket), 'Invalid bucket: ' + bucket);
 
       promises.push(new Promise((resolve, reject) => {
         let key = this.key(_.compact([ bucket, type, itemId ]));
