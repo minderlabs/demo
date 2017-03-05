@@ -19,12 +19,13 @@ cd /notebook
 # Do not clone over existing directory, in case of restarts with persistent volume.
 if [ ! -d $REPO_DIR ]; then
   git clone $GIT_REPO
-  if [ ! -z $GIT_HASH ]; then
-    echo Checking out git hash $GIT_HASH
-    pushd $REPO_DIR
-    git checkout $GIT_HASH
-    popd
-  fi
+fi
+if [ ! -z $GIT_HASH ]; then
+  echo Checking out git hash $GIT_HASH
+  pushd $REPO_DIR
+  git checkout $GIT_HASH
+  git pull || true # ignore error return code, if not in a branch.
+  popd
 fi
 
 source activate keras
