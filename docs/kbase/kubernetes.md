@@ -277,6 +277,15 @@ kubectl create -f nginx-ingress.yml
     Good example [here](https://github.com/metral/k8s-nginx-proxy) of using a one-off pod running a simple image
     (busybox in this example) as a tunnel endpoint for running `kubectl exec`.
 
+* Viewing container logs. See `kubectl help logs` for more.
+    ```
+    # Stream logs for pod demo-1
+    kubectl logs -f demo-1
+
+    # Stream logs for container nginx within pod frontend-1
+    kubectl logs -f -c nginx frontend-1
+    ```
+
 * [kubectl for Docker users](http://kubernetes.io/docs/user-guide/docker-cli-to-kubectl/)
 
 * Convert docker-compose config files to k8s configs using [compose2kube](https://github.com/kelseyhightower/compose2kube]).
