@@ -20,8 +20,8 @@ import { ItemStore, ItemUtil, QueryProcessor } from 'minder-core';
  */
 export class FirebaseItemStore extends ItemStore {
 
-  constructor(idGenerator, matcher, db, namespace) {
-    super(namespace);
+  constructor(idGenerator, matcher, db, namespace, buckets=false) {
+    super(namespace, buckets);
 
     this._util = new ItemUtil(idGenerator, matcher);
 
@@ -40,17 +40,18 @@ export class FirebaseItemStore extends ItemStore {
   }
 
   /**
-   *
-   * @param key
-   * @returns {Promise}
+   * Return root keys for all buckets accessible to this user.
+   * Override if no buckets (i.e., system store).
+   * @param context
+   * @param type
+   * @returns {Array}
    */
-  getValue(key) {
-    return new Promise((resolve, reject) => {
-      // https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
-      this._db.ref(key).once('value', data => {
-        resolve(data.val());
-      });
-    });
+  getBucketKeys(context, type=undefined) {
+    if (this._buckets) {
+      return _.map(QueryProcessor.getBuckets(context), bucket => this.key(_.compact([bucket, type])));
+    } else {
+      return [this.key(_.compact([type]))];
+    }
   }
 
   /**
@@ -66,14 +67,17 @@ export class FirebaseItemStore extends ItemStore {
   }
 
   /**
-   * Return root keys for all buckets accessible to this user.
-   * Override if no buckets (i.e., system store).
-   * @param context
-   * @param type
-   * @returns {Array}
+   *
+   * @param key
+   * @returns {Promise}
    */
-  getBucketKeys(context, type=undefined) {
-    return _.map(QueryProcessor.getBuckets(context), bucket => this.key(_.compact([ bucket, type ])));
+  _getValue(key) {
+    return new Promise((resolve, reject) => {
+      // https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
+      this._db.ref(key).once('value', data => {
+        resolve(data.val());
+      });
+    });
   }
 
   /**
@@ -82,7 +86,7 @@ export class FirebaseItemStore extends ItemStore {
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
 
     // Gather results for all buckets.
-    let promises = _.map(this.getBucketKeys(context), key => this.getValue(key));
+    let promises = _.map(this.getBucketKeys(context), key => this._getValue(key));
     return Promise.all(promises).then(buckets => {
       let items = [];
       _.each(buckets, typeMap => {
@@ -104,7 +108,7 @@ export class FirebaseItemStore extends ItemStore {
 
     // Gather results for each bucket.
     // TODO(burdon): Maintain ID=>bucket index for ACL.
-    let promises = _.map(this.getBucketKeys(context, type), key => this.getValue(key));
+    let promises = _.map(this.getBucketKeys(context, type), key => this._getValue(key));
     return Promise.all(promises).then(buckets => {
       let items = [];
       _.each(buckets, itemMap => {

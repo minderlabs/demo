@@ -5,7 +5,8 @@
       if (user.active) {
         document.location.href = '/home';
       } else {
-        document.location.href = '/welcome';
+        // TODO(burdon): Show waitlist page.
+        document.location.href = '/user/logout';
       }
     });
   </script>

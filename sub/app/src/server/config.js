@@ -19,4 +19,4 @@ Logger.setLevel({
   'gql'       : Logger.Level.debug,
   'db'        : Logger.Level.info,
 
-}, Logger.Level.warn);
+}, Logger.Level.info);

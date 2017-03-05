@@ -78,30 +78,48 @@ export class StatusBar extends React.Component {
     let { config } = this.context;
     let { error, networkIn, networkOut } = this.state;
 
-    // TODO(burdon): Move to config.
-    const github = 'https://github.com/minderlabs/demo/issues?q=is%3Aissue+is%3Aopen+label%3Abug';
+    // TODO(burdon): Get all links from config.
+    const links = [
+      {
+        href: '/graphiql',
+        title: 'GraphiQL',
+        icon: 'language'
+      },
+      {
+        href: '/admin',
+        title: 'Admin console',
+        icon: 'graphic_eq'
+      },
+      {
+        href: '/accounts',
+        title: 'Accounts',      // TODO(burdon): Move to profile.
+        icon: 'apps'
+      },
+      {
+        href: 'https://console.firebase.google.com/project/minder-beta/database/data',
+        title: 'Firebase',
+        icon: 'cloud_circle'
+      },
+      {
+        href: 'https://github.com/minderlabs/demo/issues?q=is%3Aissue+is%3Aopen+label%3Abug',
+        title: 'Github issues',
+        icon: 'report_problem'
+      }
+    ];
 
     return (
       <div className="app-status-toolbar ux-toolbar">
         <div>
           <i className="ux-icon ux-icon-action" title="Debug info"
              onClick={ this.handleAction.bind(this, 'bug') }>bug_report</i>
-          <a href={ github } target="MINDER_GITHUB">
-            <i className="ux-icon ux-icon-action" title="Report Bug">report_problem</i>
-          </a>
-          <a href="/graphiql" target="MINDER_GRAPHIQL" title="GraphiQL">
-            <i className="ux-icon ux-icon-action" title="GraphiQL">language</i>
-          </a>
-          <a href="/admin" target="MINDER_ADMIN">
-            <i className="ux-icon ux-icon-action" title="Admin">graphic_eq</i>
-          </a>
 
-          <a href="https://console.firebase.google.com/project/minder-beta/database/data" target="MINDER_FIREBASE">
-            <i className="ux-icon ux-icon-action" title="Database">cloud_circle</i>
-          </a>
-          <a href="/accounts" target="MINDER_ACCOUNTS">
-            <i className="ux-icon ux-icon-action" title="Accounts">apps</i>
-          </a>
+          {
+            _.each(links, link => (
+            <a href={ link.href } target="MINDER_CONSOLE">
+              <i className="ux-icon ux-icon-action" title={ link.title }>{ link.icon }</i>
+            </a>
+            ))
+          }
         </div>
 
         <div className="app-status-info">{ config.app.version }</div>

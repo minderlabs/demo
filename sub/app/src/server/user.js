@@ -19,12 +19,12 @@ const logger = Logger.get('auth');
 export class UserManager {
 
   /**
-   * @param admin Firebase admin object.
-   * @param systemStore Firebase user store.
+   * @param firebase Firebase wrapper.
+   * @param systemStore The system store manages Users and Groups.
    */
-  constructor(admin, systemStore) {
-    console.assert(admin && systemStore);
-    this._admin = admin;
+  constructor(firebase, systemStore) {
+    console.assert(firebase && systemStore);
+    this._firebase = firebase;
     this._systemStore = systemStore;
   }
 
@@ -38,8 +38,7 @@ export class UserManager {
   getUserFromJWT(token) {
     console.assert(token);
 
-    // https://firebase.google.com/docs/auth/admin/verify-id-tokens#verify_id_tokens_using_the_firebase_admin_sdks
-    return this._admin.auth().verifyIdToken(token)
+    return this._firebase.verifyIdToken(token)
       .then(decodedToken => {
         let { uid:id, email } = decodedToken;
         console.assert(id, 'Invalid token: ' + JSON.stringify(decodedToken));

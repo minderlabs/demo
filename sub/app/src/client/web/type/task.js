@@ -261,6 +261,9 @@ class TaskCanvasComponent extends React.Component {
       let { item:task, refetch } = this.props;
       let { project, tasks } = task;
 
+      console.log('::', task);
+//groupId={ project.group.id }
+
       const levels = TASK_LEVELS.map(level =>
         <option key={ level.value } value={ level.value }>{ level.title }</option>);
 
@@ -288,7 +291,8 @@ class TaskCanvasComponent extends React.Component {
 
               <div className="ux-data-row">
                 <div className="ux-data-label">Assignee</div>
-                <MembersPicker value={ assigneeText || '' }
+                <MembersPicker
+                               value={ assigneeText || '' }
                                onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
                                onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
               </div>
@@ -343,6 +347,7 @@ const MembersQuery = gql`
 
 const MembersPicker = compose(
   connect((state, ownProps) => {
+    // TODO(burdon): Get from project.
     let { registration: { groupId } } = AppAction.getState(state);
 
     return {
@@ -352,6 +357,7 @@ const MembersPicker = compose(
 
   graphql(MembersQuery, {
     options: (props) => {
+      // TODO(burdon): Get from project.
       let { groupId } = props;
 
       return {

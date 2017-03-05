@@ -9,13 +9,11 @@ import path from 'path';
 import admin from 'firebase-admin';
 
 export const FirebaseAppConfig = {
-  databaseURL: 'https://minder-beta.firebaseio.com',
-  credential: admin.credential.cert(path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json'))
+  databaseURL: 'https://minder-qa.firebaseio.com',
+  credential: admin.credential.cert(path.join(__dirname, 'conf/minder-qa-e90e2fe651a3.json'))
 };
 
-admin.initializeApp(FirebaseAppConfig);
-
-const db = admin.database();
+const db = admin.initializeApp(FirebaseAppConfig).database();
 
 //
 // Data migration.

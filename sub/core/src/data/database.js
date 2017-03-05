@@ -82,14 +82,15 @@ export class Database {
   /**
    * Register query processor for namespace.
    *
-   * @param {QueryProcessor} processor
+   * @param {QueryProcessor} queryProcessor
    * @return {Database}
    */
-  registerQueryProcessor(processor) {
-    logger.log('Registered QueryProcessor: ' + processor.namespace);
-    console.assert(processor && processor.namespace);
-    console.assert(!this._queryProcessors.get(processor.namespace), 'Already registered: ' + processor.namespace);
-    this._queryProcessors.set(processor.namespace, processor);
+  registerQueryProcessor(queryProcessor) {
+    console.assert(queryProcessor);
+    logger.log('Registered QueryProcessor: ' + queryProcessor.namespace);
+    console.assert(queryProcessor && queryProcessor.namespace);
+    console.assert(!this._queryProcessors.get(queryProcessor.namespace), 'Already registered: ' + queryProcessor.namespace);
+    this._queryProcessors.set(queryProcessor.namespace, queryProcessor);
     return this;
   }
 
@@ -100,6 +101,7 @@ export class Database {
    * @returns {Database}
    */
   registerItemStore(store) {
+    console.assert(store);
     logger.log('Registered ItemStore: ' + store.namespace);
     console.assert(store && store.namespace);
     console.assert(!this._stores.get(store.namespace), 'Already registered: ' + store.namespace);
@@ -112,6 +114,7 @@ export class Database {
    * @return {ItemStore}
    */
   getQueryProcessor(namespace=Database.NAMESPACE.USER) {
+    console.assert(namespace);
     let queryProcessor = this._queryProcessors.get(namespace);
     console.assert(queryProcessor, 'Invalid QueryProcessor namespace: ' + namespace);
     return queryProcessor;
@@ -122,6 +125,7 @@ export class Database {
    * @return {ItemStore}
    */
   getItemStore(namespace=Database.NAMESPACE.USER) {
+    console.assert(namespace);
     let itemStore = this._stores.get(namespace);
     console.assert(itemStore, 'Invalid ItemStore namespace: ' + namespace);
     return itemStore;

@@ -20,15 +20,12 @@ const matcher = new Matcher();
 // End-to-end testing.
 // https://firebase.googleblog.com/2015/04/end-to-end-testing-with-firebase-server_16.html
 
-// TODO(burdon): Create testing account.
 export const FirebaseAppConfig = {
-  databaseURL: 'https://minder-beta.firebaseio.com',
-  credential: admin.credential.cert(path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json'))
+  databaseURL: 'https://minder-qa.firebaseio.com',
+  credential: admin.credential.cert(path.join(__dirname, 'conf/minder-qa-e90e2fe651a3.json'))
 };
 
-admin.initializeApp(FirebaseAppConfig);
-
-const db = admin.database();
+const db = admin.initializeApp(FirebaseAppConfig).database();
 
 describe('FirebaseItemStore:', function() {
   this.timeout(5000);

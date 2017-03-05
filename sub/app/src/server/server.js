@@ -23,11 +23,13 @@ import {
   IdGenerator,
   Matcher,
   MemoryItemStore,
+  SystemStore,
   TestItemStore,
 } from 'minder-core';
 
 import {
   Firebase,
+  FirebaseItemStore,
   GoogleDriveQueryProcessor,
   SlackQueryProcessor,
   graphqlRouter
@@ -107,42 +109,43 @@ const matcher = new Matcher();
 // https://firebase.google.com/docs/database/admin/start
 //
 
-const firebase = new Firebase(idGenerator, matcher, {
-
-  databaseURL: FirebaseAppConfig.databaseURL,
-
-  // Download JSON config.
-  // https://console.firebase.google.com/project/minder-beta/settings/serviceaccounts/adminsdk
-  // NOTE: Path must work for dev and prod (docker).
-  // TODO(burdon): Factor out const.
-  credentialPath: path.join(__dirname, 'conf/minder-beta-firebase-adminsdk-n6arv.json')
-});
-
-const userManager = new UserManager(firebase.admin, firebase.systemStore);
-
+const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credentialPath']));
 
 //
 // Database.
 //
 
+let systemStore;
+let userDataStore;
+
+if (testing) {
+  systemStore = new SystemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SYSTEM, false));
+
+  userDataStore = new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), {
+    delay: 0 // TODO(burdon): Config.
+  });
+} else {
+  systemStore = new SystemStore(
+    new FirebaseItemStore(idGenerator, matcher, firebase._db, Database.NAMESPACE.SYSTEM, false));
+
+  userDataStore = new FirebaseItemStore(idGenerator, matcher, firebase._db, Database.NAMESPACE.USER, true);
+}
+
 const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SETTINGS, false);
 
-const defaultItemStore = testing ?
-  new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), {
-    delay: 0 // TODO(burdon): Config.
-  }) : firebase.itemStore;
+const userManager = new UserManager(firebase, systemStore);
 
 const database = new Database()
 
-  .registerItemStore(firebase.systemStore)
+  .registerItemStore(systemStore)
   .registerItemStore(settingsStore)
-  .registerItemStore(defaultItemStore)
+  .registerItemStore(userDataStore)
 
   // TODO(burdon): Required for queryItems; implement simple Key range look-up for ItemStore (e.g., Type=*).
   // TODO(burdon): Distinguish search from basic lookup.
-  .registerQueryProcessor(firebase.systemStore)
+  .registerQueryProcessor(systemStore)
   .registerQueryProcessor(settingsStore)
-  .registerQueryProcessor(defaultItemStore)
+  .registerQueryProcessor(userDataStore)
 
   .onMutation(items => {
     // Notify clients of changes.
@@ -312,7 +315,7 @@ app.use(graphqlRouter(database, {
         return Promise.resolve({});
       } else {
         let userId = user.id;
-        return firebase.systemStore.getGroup(userId).then(group => {
+        return systemStore.getGroup(userId).then(group => {
           // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
           let groupId = group.id;
           return {
@@ -367,11 +370,11 @@ app.use('/admin', adminRouter(clientManager, firebase, {
 // App.
 //
 
-app.use('/user', loginRouter(userManager, firebase.systemStore, { env }));
+app.use('/user', loginRouter(userManager, systemStore, { env }));
 
-app.use('/client', clientRouter(userManager, clientManager, firebase.systemStore));
+app.use('/client', clientRouter(userManager, clientManager, systemStore));
 
-app.use(appRouter(userManager, clientManager, firebase.systemStore, {
+app.use(appRouter(userManager, clientManager, systemStore, {
 
   // App root path.
   root: Const.APP_PATH,
@@ -382,10 +385,16 @@ app.use(appRouter(userManager, clientManager, firebase.systemStore, {
   // Client config.
   config: {
     env,
+
     app: {
       platform: Const.PLATFORM.WEB,
       name: Const.APP_NAME,
       version: Const.APP_VERSION,
+    },
+
+    // Admin users only.
+    links: {
+      firebase: FirebaseAppConfig.databaseURL
     }
   }
 }));

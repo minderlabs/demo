@@ -120,6 +120,7 @@ export class TestGenerator {
    * Generate items for users.
    */
   generate() {
+
     return this._database.getQueryProcessor(Database.NAMESPACE.SYSTEM)
       .queryItems({}, {}, { type: 'User' })
       .then(users => {

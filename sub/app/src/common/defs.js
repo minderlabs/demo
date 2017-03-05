@@ -2,6 +2,8 @@
 // Copyright 2016 Minder Labs.
 //
 
+import path from 'path';
+
 /**
  * Client configuration.
  * https://console.firebase.google.com/project/minder-beta/overview
@@ -15,6 +17,25 @@ export const FirebaseAppConfig = {
 
   // https://console.firebase.google.com/project/minder-beta/settings/cloudmessaging
   messagingSenderId: '189079594739',
+
+  // Generated 3/4/17 (Create Key from Service Accounts: firebase-adminsdk).
+  // https://console.firebase.google.com/project/minder-beta/settings/serviceaccounts/adminsdk
+  // https://console.cloud.google.com/iam-admin/serviceaccounts/project?consoleUI=FIREBASE&project=minder-beta
+  credentialPath: path.join(__dirname, './conf/minder-beta-44ee54278556.json')
+};
+
+// TODO(burdon): Manage configs.
+export const FirebaseTestingAppConfig = {
+  apiKey: 'AIzaSyCY0hLfIzi7czDCZWpPn91h8phr5wm7uTI',
+  authDomain: 'minder-qa.firebaseapp.com',
+  databaseURL: 'https://minder-qa.firebaseio.com',
+  storageBucket: 'minder-qa.appspot.com',
+  messagingSenderId: '161622947109',
+
+  // Generated 3/4/17 (Create Key from Service Accounts: firebase-adminsdk).
+  // https://console.firebase.google.com/project/minder-qa/settings/serviceaccounts/adminsdk
+  // https://console.cloud.google.com/iam-admin/serviceaccounts/project?consoleUI=FIREBASE&project=minder-qa
+  credentialPath: path.join(__dirname, './conf/minder-qa-e90e2fe651a3.json')
 };
 
 /**

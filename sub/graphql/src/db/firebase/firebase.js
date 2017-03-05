@@ -6,11 +6,7 @@ import _ from 'lodash';
 
 import admin from 'firebase-admin';
 
-import { Database, Logger } from 'minder-core';
-
-import { SystemStore } from './system_store';
-import { FirebaseItemStore } from './firebase_item_store';
-import { FirebaseSystemStore } from './firebase_system_store';
+import { Logger } from 'minder-core';
 
 const logger = Logger.get('firebase');
 
@@ -24,48 +20,32 @@ const logger = Logger.get('firebase');
  */
 export class Firebase {
 
-  // TODO(burdon): Namespace (prod, qa, dev-rich, dev-adam).
-
-  constructor(idGenerator, matcher, config) {
-    console.assert(idGenerator && matcher);
-
-    _.assign(config, {
-      credential: admin.credential.cert(config.credentialPath)
-    });
+  /**
+   * Creates the Firebase singleton app and wraps utils.
+   *
+   * @param config
+   */
+  constructor(config) {
 
     // https://firebase.google.com/docs/admin/setup
     // https://firebase.google.com/docs/reference/admin/node/admin
-    let app = admin.initializeApp(config);
-    logger.log('Initialized: ' + app.name);
+    this._app = admin.initializeApp(_.defaults(config, {
+      credential: admin.credential.cert(config.credentialPath)
+    }));
 
-    // Server-side database.
-    this._db = admin.database();
-
-    // User and Groups.
-    this._systemStore = new SystemStore(
-      new FirebaseSystemStore(idGenerator, matcher, this._db, Database.NAMESPACE.SYSTEM));
-
-    // Data items.
-    this._itemStore = new FirebaseItemStore(idGenerator, matcher, this._db, Database.NAMESPACE.USER);
-  }
-
-  clearCache() {
-    this._systemStore.clearCache();
-    this._itemStore.clearCache();
+    logger.info('Initialized: ' + config.databaseURL);
   }
 
   /**
-   * NOTE: This must be a shared instance since it is initialized here.
+   * https://firebase.google.com/docs/auth/admin/verify-id-tokens#verify_id_tokens_using_the_firebase_admin_sdks
+   * @param token
+   * @return { uid, email }
    */
-  get admin() {
-    return admin;
+  verifyIdToken(token) {
+    return this._app.auth().verifyIdToken(token);
   }
 
-  get systemStore() {
-    return this._systemStore;
-  }
-
-  get itemStore() {
-    return this._itemStore;
+  get db() {
+    return this._app.database();
   }
 }

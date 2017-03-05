@@ -16,7 +16,7 @@ import { AppAction } from '../../common/reducers';
 
 const mapStateToProps = (state, ownProps) => {
   let { injector, registration } = AppAction.getState(state);
-  let { groupId, userId } = registration;
+  let { groupId, userId } = registration; // TODO(burdon): Remove groupId
 
   let matcher = injector.get(Matcher);
 

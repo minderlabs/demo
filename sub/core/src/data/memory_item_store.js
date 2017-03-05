@@ -33,10 +33,11 @@ export class MemoryItemStore extends ItemStore {
     return _.compact([bucket, type, id]).join('/');
   }
 
-  getBucketKeys(context, type=undefined) {
+  getBucketKeys(context, type) {
     if (this._buckets) {
       return _.map(QueryProcessor.getBuckets(context), bucket => this.key({ bucket, type }));
     } else {
+      console.assert(type);
       return [this.key({ type })];
     }
   }
@@ -44,7 +45,24 @@ export class MemoryItemStore extends ItemStore {
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     console.assert(context && root && filter);
 
-    let items = this._util.filterItems(this._items, context, root, filter, offset, count);
+    // Gather results for all buckets.
+    let bucketItems = [];
+    if (this._buckets) {
+      let keys = this.getBucketKeys(context);
+      this._items.forEach((item, key) => {
+        _.each(keys, k => {
+          if (key.startsWith(k)) {
+            bucketItems.push(item);
+            return false;
+          }
+        });
+      });
+    } else {
+      bucketItems = this._items;
+    }
+
+
+    let items = this._util.filterItems(bucketItems, context, root, filter, offset, count);
     return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
   }
 
@@ -64,6 +82,7 @@ export class MemoryItemStore extends ItemStore {
     console.assert(context && items);
 
     return Promise.resolve(_.map(items, item => {
+
       console.assert(!this._buckets || item.bucket, 'Invalid bucket: ' + JSON.stringify(item));
       let clonedItem = this._util.onUpdate(TypeUtil.clone(item));
       let key = this.key(clonedItem);
