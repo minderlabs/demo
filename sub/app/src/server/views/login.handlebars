@@ -1,8 +1,10 @@
 {{#section 'head'}}
   <script src="/assets/website.bundle.js"></script>
   <script>
+    console.log('Authenticating...');
     new Auth().login().then(user => {
-      if (user.active) {
+      console.log('Authenticated: ' + JSON.stringify(_.pick(user, ['id', 'email', 'active'])));
+      if (user && user.active) {
         document.location.href = '/home';
       } else {
         // TODO(burdon): Show waitlist page.

@@ -112,6 +112,10 @@ class ProjectBoardCanvasComponent extends React.Component {
       },
 
       columnMapper: (groupId, userId) => (columns, item) => {
+        if (item.bucket === userId) {
+          return -1;
+        }
+
         let idx = _.findIndex(columns, column => column.value == _.get(item, 'status'));
         return (idx != -1) && columns[idx].id;
       },
@@ -151,6 +155,10 @@ class ProjectBoardCanvasComponent extends React.Component {
       },
 
       columnMapper: (groupId, userId) => (columns, item) => {
+        if (item.bucket === userId) {
+          return -1;
+        }
+
         let idx = _.findIndex(columns, column => column.value == _.get(item, 'assignee.id'));
         return (idx == -1) ? ProjectBoardCanvasComponent.COLUMN_ICEBOX : columns[idx].id;
       },
@@ -159,9 +167,12 @@ class ProjectBoardCanvasComponent extends React.Component {
         let mutations = [
           MutationUtil.createFieldMutation('bucket', 'string', groupId)
         ];
+
+        // TODO(burdon): Optimistic concurrency fail (need to patch from cache).
         if (column.id != ProjectBoardCanvasComponent.COLUMN_ICEBOX) {
           mutations.push(MutationUtil.createFieldMutation('assignee', 'id', column.value));
         }
+
         return mutations;
       },
 
@@ -192,7 +203,7 @@ class ProjectBoardCanvasComponent extends React.Component {
       },
 
       columnMapper: (groupId, userId) => (columns, item) => {
-        return (item.bucket === userId) ? 'private' : null;
+        return (item.bucket === userId) ? 'private' : -1;
       },
 
       onCreateMutations: (groupId, userId, column) => {

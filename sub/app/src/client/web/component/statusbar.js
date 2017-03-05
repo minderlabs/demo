@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import { Async, DomUtil } from 'minder-core';
+import { Async, DomUtil, ErrorUtil } from 'minder-core';
 
 import './statusbar.less';
 
@@ -81,6 +81,16 @@ export class StatusBar extends React.Component {
     // TODO(burdon): Get all links from config.
     const links = [
       {
+        href: 'https://github.com/minderlabs/demo/issues?q=is%3Aissue+is%3Aopen+label%3Abug',
+        title: 'Github issues',
+        icon: 'report_problem'
+      },
+      {
+        href: 'https://console.firebase.google.com/project/minder-beta/database/data',
+        title: 'Firebase',
+        icon: 'cloud_circle'
+      },
+      {
         href: '/graphiql',
         title: 'GraphiQL',
         icon: 'language'
@@ -89,21 +99,6 @@ export class StatusBar extends React.Component {
         href: '/admin',
         title: 'Admin console',
         icon: 'graphic_eq'
-      },
-      {
-        href: '/accounts',
-        title: 'Accounts',      // TODO(burdon): Move to profile.
-        icon: 'apps'
-      },
-      {
-        href: 'https://console.firebase.google.com/project/minder-beta/database/data',
-        title: 'Firebase',
-        icon: 'cloud_circle'
-      },
-      {
-        href: 'https://github.com/minderlabs/demo/issues?q=is%3Aissue+is%3Aopen+label%3Abug',
-        title: 'Github issues',
-        icon: 'report_problem'
       }
     ];
 
@@ -114,8 +109,8 @@ export class StatusBar extends React.Component {
              onClick={ this.handleAction.bind(this, 'bug') }>bug_report</i>
 
           {
-            _.each(links, link => (
-            <a href={ link.href } target="MINDER_CONSOLE">
+            _.map(links, link => (
+            <a key={ link.href } href={ link.href } target="MINDER_CONSOLE">
               <i className="ux-icon ux-icon-action" title={ link.title }>{ link.icon }</i>
             </a>
             ))
@@ -131,7 +126,7 @@ export class StatusBar extends React.Component {
           <i className={ DomUtil.className('app-icon-network-in', 'ux-icon', networkIn && 'ux-icon-on') }></i>
           <i className={ DomUtil.className('app-icon-network-out', 'ux-icon', networkOut && 'ux-icon-on') }></i>
           <i className={ DomUtil.className('ux-icon-error', 'ux-icon', error && 'ux-icon-on') }
-             title={ error && error.message }
+             title={ ErrorUtil.message(error.message) }
              onClick={ this.handleClickError.bind(this, 'error') }></i>
         </div>
       </div>

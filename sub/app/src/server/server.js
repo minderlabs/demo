@@ -58,11 +58,7 @@ const logger = Logger.get('server');
 //
 
 function handleError(error) {
-  if (error.stack) {
-    logger.error('UNCAUGHT: ' + error.stack);
-  } else {
-    logger.error('UNCAUGHT: ' + ErrorUtil.message(error));
-  }
+  logger.error('UNCAUGHT: ' + ErrorUtil.stack(error));
 }
 
 // https://nodejs.org/api/process.html#process_event_uncaughtexception
@@ -143,6 +139,7 @@ const database = new Database()
 
   // TODO(burdon): Required for queryItems; implement simple Key range look-up for ItemStore (e.g., Type=*).
   // TODO(burdon): Distinguish search from basic lookup.
+
   .registerQueryProcessor(systemStore)
   .registerQueryProcessor(settingsStore)
   .registerQueryProcessor(userDataStore)
@@ -152,6 +149,15 @@ const database = new Database()
     // TODO(burdon): Create notifier abstraction.
     // clientManager.invalidateOthers();
   });
+
+
+//
+// OAuth accounts.
+// TODO(burdon): Reconcile with UserManager.
+//
+
+const accountManager = new AccountManager()
+  .registerHandler('Slack', new SlackAccountHandler());
 
 
 //
@@ -183,7 +189,7 @@ if (botkitManager) {
 // Data initialization.
 //
 
-let loader = new Loader(database);
+let loader = new Loader(database, testing);
 
 logger.log('Loading data...');
 let loading = Promise.all([
@@ -283,7 +289,7 @@ app.get('/home', async function(req, res) {
     res.redirect(Const.APP_PATH);
   } else {
     res.render('home', {
-      crxId: Const.CRX_ID,
+      crxUrl: Const.CRX_URL(Const.CRX_ID),
       login: true
     });
   }
@@ -370,7 +376,7 @@ app.use('/admin', adminRouter(clientManager, firebase, {
 // App.
 //
 
-app.use('/user', loginRouter(userManager, systemStore, { env }));
+app.use('/user', loginRouter(userManager, accountManager, systemStore, { env }));
 
 app.use('/client', clientRouter(userManager, clientManager, systemStore));
 
@@ -398,9 +404,6 @@ app.use(appRouter(userManager, clientManager, systemStore, {
     }
   }
 }));
-
-app.use('/accounts', accountsRouter(new AccountManager()
-  .registerHandler('Slack', new SlackAccountHandler())));
 
 if (botkitManager) {
   app.use('/botkit', botkitRouter(botkitManager));

@@ -111,12 +111,13 @@ export class UserManager {
  * Manage user authentication.
  *
  * @param userManager
+ * @param accountManager
  * @param systemStore
  * @param options
  * @returns {Router}
  */
-export const loginRouter = (userManager, systemStore, options) => {
-  console.assert(systemStore);
+export const loginRouter = (userManager, accountManager, systemStore, options) => {
+  console.assert(userManager && accountManager && systemStore);
 
   let router = express.Router();
 
@@ -140,11 +141,10 @@ export const loginRouter = (userManager, systemStore, options) => {
 
   // Handle user registration.
   router.post('/register', async function(req, res) {
-    let { user, credential } = req.body;
-
-    logger.log('User registration: ' + JSON.stringify(_.pick(user, ['uid', 'email', 'active'])));
+    let { userInfo, credential } = req.body;
+    // Update or register user.
     res.send(JSON.stringify({
-      user: await systemStore.registerUser(user, credential)
+      user: await systemStore.registerUser(userInfo, credential)
     }));
   });
 
@@ -153,7 +153,12 @@ export const loginRouter = (userManager, systemStore, options) => {
     let user = await userManager.getUserFromCookie(req);
     if (user) {
       let group = await systemStore.getGroup(user.id);
-      res.render('profile', { user, group });
+      res.render('profile', {
+        user,
+        groups: [ group ],
+        accounts: accountManager.handlers,
+        crxUrl: Const.CRX_URL(Const.CRX_ID)
+      });
     } else {
       res.redirect('/home');
     }

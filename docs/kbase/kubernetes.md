@@ -22,8 +22,8 @@ brew install kops
 
 * Create the kube configuration (form the prod-ops repo):
 
-```angular2html
-cp ${PROJECTS}/minderlabs/prod-ops/kube/configs/dev ~/.kube/config
+```
+mkdir -p ~/.kube && cp ${PROJECTS}/minderlabs/prod-ops/kube/config/dev ~/.kube/config
 ```
 
 * Optional: set up bash completion for kubectl: http://kubernetes.io/docs/getting-started-guides/kubectl

@@ -57,7 +57,11 @@ export class TestGenerator {
         return database.getQueryProcessor(Database.NAMESPACE.USER).queryItems(context, {}, {
           type: 'Project'
         }).then(projects => {
-          console.assert(!_.isEmpty(projects), 'No projects for: ' + JSON.stringify(context));
+          if (_.isEmpty(projects)) {
+            console.warn('No projects for: ' + JSON.stringify(context));
+            return null;
+          }
+
           let project = randomizer.chance.pickone(projects);
           return project.id;
         });
@@ -101,12 +105,14 @@ export class TestGenerator {
     },
 
     'Task': (item, context) => {
-      return {
-        itemId: ID.toGlobalId('Project', item.project),
-        mutations: [
-          MutationUtil.createSetMutation('tasks', 'id', item.id)
-        ]
-      };
+      if (item.project) {
+        return {
+          itemId: ID.toGlobalId('Project', item.project),
+          mutations: [
+            MutationUtil.createSetMutation('tasks', 'id', item.id)
+          ]
+        };
+      }
     }
   };
 

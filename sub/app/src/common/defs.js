@@ -97,5 +97,6 @@ export const Const = {
   },
 
   // https://chrome.google.com/webstore/developer/edit/ofdkhkelcafdphpddfobhbbblgnloian
-  CRX_ID: 'ofdkhkelcafdphpddfobhbbblgnloian'
+  CRX_ID: 'ofdkhkelcafdphpddfobhbbblgnloian',
+  CRX_URL: crxId => 'https://chrome.google.com/webstore/detail/' + crxId
 };

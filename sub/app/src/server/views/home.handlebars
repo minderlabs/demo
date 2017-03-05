@@ -3,7 +3,7 @@
   <link rel="stylesheet" href="/assets/website.css">
 
   {{!-- Chrome Extension. --}}
-  <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/{{ crxId }}">
+  <link rel="chrome-webstore-item" href="{{ crxUrl }}">
 {{/section}}
 
 <div class="site-container">
@@ -46,9 +46,7 @@
 
     function installCrx() {
       // https://developer.chrome.com/webstore/inline_installation
-      chrome.webstore.install('https://chrome.google.com/webstore/detail/{{ crxId }}',
-          () => { console.log('OK') },
-          error => { console.error(error) });
+      chrome.webstore.install('{{ crxUrl }}', () => { console.log('OK') }, error => { console.error(error) });
     }
   </script>
 </div>

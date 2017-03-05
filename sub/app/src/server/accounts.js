@@ -2,10 +2,8 @@
 // Copyright 2017 Minder Labs.
 //
 
-import express from 'express';
 
-
-// Sign-up buttons can start oauth flow that redirects back to /accounts/<service>, which delegates to the
+// Sign-up buttons can start OAuth flow that redirects back to /accounts/<service>, which delegates to the
 // service handler. After creating accounts (systemStore?) and getting credentials from the service and
 // storing them in the UserStore, the handler can redirect back to /accounts.
 
@@ -28,36 +26,6 @@ export class AccountManager {
     return this;
   }
 }
-
-
-/**
- * Router for '/accounts' paths. Root /accounts page iterates over AccountManager.accounts exposing
- * account.signUpButtons() if not already connected, or account.info() if connected.
- *
- * @param accountManager
- * @returns {core.Router|*}
- */
-export const accountsRouter = (accountManager) => {
-  console.assert(accountManager);
-
-  let router = express.Router();
-
-  accountManager.handlers.forEach((name, handler) => {
-    let oauthHandler = handler.oauthRedirectHandler();
-    if (oauthHandler) {
-      router.get('/' + name, oauthHandler);
-    }
-  });
-
-  router.get('/', function(req, res) {
-    res.render('accounts', {
-      accounts: accountManager.handlers
-    });
-  });
-
-  return router;
-};
-
 
 /**
  * AccountHandler interface.
