@@ -240,6 +240,26 @@ When we do this for real: thread with some benchmarks to guide setting instance 
 https://github.com/kubernetes/kubernetes/issues/21500
 (e.g. For 100-node cluster, master can use as little as 50M up to 900M depending on workload.)
 
+### Upgrading a cluster.
+
+See https://github.com/kubernetes/kops/blob/master/docs/upgrade.md for the latest info.
+
+In theory, this should work:
+```
+CLUSTER_NAME=research.k.minderlabs.com
+kops upgrade $CLUSTER_NAME
+```
+As of 2017.03.05, you also have to do:
+```
+kops update cluster $CLUSTER_NAME --yes
+kops rolling-update cluster $CLUSTER_NAME --yes
+```
+
+NOTE: This restarts the master instances. As of 2017.03.05, after that you need to reconfigure
+Route53 with the new IP address of the master for `api.$CLUSTER_NAME`.
+
+To check the current version, do `kubectl version` and look for the `Server Version` line.
+
 
 ## Ingress: Load balancing, reverse proxy, HTTPS termination.
 
