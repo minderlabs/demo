@@ -155,7 +155,7 @@ export const AppReducer = (injector, config, registration=undefined) => {
       case AppAction.ACTION.SEARCH: {
         // TODO(madadam): Add delay or only log final query -- now we send an event for every keystroke, it's overkill.
         let analytics = state.injector.get(Analytics.INJECTOR_KEY);
-        analytics.track('search', {text: action.value});
+        analytics && analytics.track('Search', {text: action.value});
         return _.set(state, 'search.text', action.value);
       }
 

@@ -238,7 +238,7 @@ export class BaseApp {
 
     this.history.listen(location => {
       logger.log('Router: ' + location.pathname);
-      this._analytics.pageview(location);
+      this._analytics && this._analytics.pageview(location);
     });
 
     return Promise.resolve();
