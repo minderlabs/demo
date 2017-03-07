@@ -52,12 +52,16 @@ class Options extends React.Component {
   onRegister() {
     return this._systemChannel.postMessage({
       command: BackgroundCommand.REGISTER_CLIENT
+    }).wait().then(response => {
+      this.onRefresh();
     });
   }
 
   onAuthenticate() {
     return this._systemChannel.postMessage({
       command: BackgroundCommand.AUTHENTICATE
+    }).wait().then(response => {
+      this.onRefresh();
     });
   }
 
@@ -117,7 +121,6 @@ class Options extends React.Component {
             <button onClick={ this.onReset.bind(this) }>Default Settings</button>
             <button onClick={ this.onAuthenticate.bind(this) }>Authenticate</button>
             <button onClick={ this.onRegister.bind(this) }>Register Client</button>
-            <button onClick={ this.onRefresh.bind(this) }>Refresh</button>
           </div>
 
           <div className="crx-section">
@@ -129,6 +132,8 @@ class Options extends React.Component {
             <pre>
               { JSON.stringify(chrome.extension.getBackgroundPage().app.config, null, 2) }
             </pre>
+
+            <button onClick={ this.onRefresh.bind(this) }>Refresh</button>
           </div>
         </div>
 

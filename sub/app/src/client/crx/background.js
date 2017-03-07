@@ -60,7 +60,6 @@ class BackgroundApp {
    * NOTE: Allows update of muliple config params from settings.
    */
   static UpdateConfig(config, settings) {
-    console.log('::::', JSON.stringify(settings, 0, 2));
     _.assign(config, settings, {
       graphql: settings.server + '/graphql',
       graphiql: settings.server + '/graphiql'
@@ -158,7 +157,7 @@ class BackgroundApp {
           }
         }
 
-        // TODO(burdon): Send updated registration to clients (factor out with onChange above).
+        // TODO(burdon): Factor out with onChange above.
         case BackgroundCommand.REGISTER_CLIENT: {
           this._networkManager.init();
           return this._connectionManager.register();
@@ -166,8 +165,7 @@ class BackgroundApp {
 
         // Invalidate auth.
         case BackgroundCommand.AUTHENTICATE: {
-          this._authManager.signout(true);
-          break;
+          return this._authManager.signout(true);
         }
 
         default: {

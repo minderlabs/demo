@@ -61,7 +61,7 @@ class SidebarApp extends BaseApp {
     this._messenger = new WindowMessenger(config.channel)
       .attach(parent)
       .listen(message => {
-      console.log('Command: ' + JSON.stringify(message));
+        console.log('Command: ' + JSON.stringify(message));
         switch (message.command) {
 
           // Updated visibility.
@@ -113,17 +113,20 @@ class SidebarApp extends BaseApp {
    * Register with BG page.
    */
   postInit() {
+    // Connect the message channel.
     this._router.connect();
 
-    // TODO(burdon): Retry.
+    // Register with the background page to obtain the CRX registration (userId, clientId) and server.
+    // TODO(burdon): Error handling and Retry.
     console.log('Registering with background page...');
     return this._systemChannel.postMessage({
       command: BackgroundCommand.REGISTER_APP
     }).wait()
-      .then(response => {
-        let { registration, server } = registration;
+      .then(({ registration, server }) => {
         console.assert(registration && server);
         console.log('Registered: ' + JSON.stringify(registration));
+
+        // Initialize the app.
         this.store.dispatch(AppAction.register(registration, server));
       });
   }
@@ -177,6 +180,6 @@ bootstrap.init().then(() => {
   // Trigger startup via Redux.
   bootstrap.store.dispatch(SidebarAction.initialized());
 
-  const keyBindings = new KeyListener()
+  new KeyListener()
     .listen(KeyToggleSidebar, () => bootstrap.store.dispatch(SidebarAction.toggleVisibility()));
 });

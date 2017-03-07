@@ -112,6 +112,8 @@ const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credent
 // Database.
 //
 
+const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SETTINGS, false);
+
 const userDataStore = testing ?
   // TODO(burdon): Config file for testing options.
   new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), { delay: 0 }) :
@@ -119,8 +121,6 @@ const userDataStore = testing ?
 
 const systemStore = new SystemStore(
   new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.SYSTEM, false));
-
-const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SETTINGS, false);
 
 const userManager = new UserManager(firebase, systemStore);
 

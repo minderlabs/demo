@@ -29,11 +29,15 @@ export const DefaultSettings = {
 
 /**
  * Keys
+ * Properties (other than "hint") should match the keydown event.
  */
-export const KeyToggleSidebar = {
+export const KeyCodes = {
 
-  keyCode: 8,         // DELETE
-  metaKey: true
+  TOGGLE: {
+    hint: '⌘-DEL',
+    keyCode: 8,
+    metaKey: true
+  }
 };
 
 /**
