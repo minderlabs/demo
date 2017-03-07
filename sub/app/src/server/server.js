@@ -116,7 +116,8 @@ let systemStore;
 let userDataStore;
 
 if (testing) {
-  // TODO(burdon): Add testing option for minder-qa instance.
+  // TODO(burdon): Don't use memory store for system store (loses user reg each restart).
+  // TODO(burdon): Add testing option for minder-qa instance; or use prod but no mutations in testing.
   systemStore = new SystemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SYSTEM, false));
 
   userDataStore = new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), {

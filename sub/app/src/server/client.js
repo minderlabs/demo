@@ -29,8 +29,7 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
     let user = await userManager.getUserFromHeader(req);
     if (!user) {
       logger.warn('Not authenticated.');
-      res.status(401).end();
-      return;
+      return res.status(401).end();
     }
 
     let clientId = req.headers[Const.HEADER.CLIENT_ID];
@@ -39,18 +38,18 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
     // Register the client (and create it if necessary).
     let client = clientManager.register(platform, clientId, user.id, messageToken);
     if (!client) {
-      return res.status(400).end();
+      return res.status(400).send({ message: 'Invalid client.' });
     }
 
     // Get group.
     // TODO(burdon): Remove.
-    let group = await systemStore.getGroup(userId);
+    let group = await systemStore.getGroup(user.id);
 
     // Registration info.
     res.send({
       userId: user.id,
       clientId: client.id,
-      groupId: ground.id   // TODO(burdon): Remove.
+      groupId: group.id   // TODO(burdon): Remove.
     });
   });
 
@@ -86,6 +85,7 @@ export class ClientManager {
     this._idGenerator = idGenerator;
 
     // Map of clients indexed by ID.
+    // TODO(burdon): Make persistent.
     // TODO(burdon): Expire web clients after 1 hour (force reconnect if client re-appears).
     this._clients = new Map();
   }
@@ -151,7 +151,7 @@ export class ClientManager {
 
       // Create the client.
       client = this.create(platform, userId);
-    } else if (client.userId == userId) {
+    } else if (client.userId != userId) {
       logger.error('Invalid user for client: ' + JSON.stringify({ clientId, userId }));
       return null;
     }
