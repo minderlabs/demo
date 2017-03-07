@@ -60,6 +60,7 @@ class BackgroundApp {
    * NOTE: Allows update of muliple config params from settings.
    */
   static UpdateConfig(config, settings) {
+    console.log('::::', JSON.stringify(settings, 0, 2));
     _.assign(config, settings, {
       graphql: settings.server + '/graphql',
       graphiql: settings.server + '/graphiql'
@@ -165,7 +166,6 @@ class BackgroundApp {
         }
 
         // Invalidate auth.
-        // TODO(burdon): Triggers multiple reconnects (one more each time).
         case BackgroundCommand.SIGNOUT: {
           this._authManager.signout(true);
           break;

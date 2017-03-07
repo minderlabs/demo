@@ -55,6 +55,7 @@ export const BackgroundCommand = {
   CHANNEL:            'system',
 
   // To Background page.
+  // TODO(burdon): Make more verbose (e.g., disambiguate register/reconnect).
   PING:               'PING',
   REGISTER:           'REGISTER',
   RECONNECT:          'RECONNECT',
