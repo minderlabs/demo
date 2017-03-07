@@ -14,7 +14,7 @@ import moment from 'moment';
 
 import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 
-import { GoogleAnalytics } from './analytics';
+import { Analytics, GoogleAnalytics } from './analytics';
 import { ErrorHandler } from './errors';
 
 const logger = Logger.get('main');
@@ -112,6 +112,7 @@ export class BaseApp {
    */
   initInjector() {
     let providers = _.concat([
+      Injector.provider(this._analytics, Analytics.INJECTOR_KEY),
       Injector.provider(this._eventHandler),
       Injector.provider(this._queryRegistry),
       Injector.provider(new IdGenerator()),

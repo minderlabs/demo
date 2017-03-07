@@ -257,9 +257,9 @@ export class Mutator {
 
         //
         // Injects a mutator instance into the wrapped components' properties.
-        // NOTE: idGenerator must previously have been injected into the properties.
+        // NOTE: dependencies must previously have been injected into the properties.
         //
-        mutator: new Mutator(ownProps.idGenerator, mutate)
+        mutator: new Mutator(ownProps.idGenerator, ownProps.analytics, mutate)
       })
     });
   }
@@ -268,9 +268,10 @@ export class Mutator {
    * @param idGenerator
    * @param mutate Function provided by apollo.
    */
-  constructor(idGenerator, mutate) {
+  constructor(idGenerator, analytics, mutate) {
     console.assert(idGenerator && mutate);
     this._idGenerator = idGenerator;
+    this._analytics = analytics;
     this._mutate = mutate;
   }
 
@@ -323,6 +324,8 @@ export class Mutator {
         ]
       }
     });
+
+    this._analytics.track('Create Item', {label: type});
 
     return item;
   }
@@ -380,6 +383,8 @@ export class Mutator {
           ]
         }
       });
+
+      this._analytics.track('Edit Item', {label: item.type});
 
       return item;
     }

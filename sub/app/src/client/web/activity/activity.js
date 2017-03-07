@@ -11,6 +11,7 @@ import { Const } from '../../../common/defs';
 
 import { Navigator, WindowNavigator } from '../../common/path';
 import { AppAction } from '../../common/reducers';
+import { Analytics } from '../../common/analytics';
 
 import { TypeRegistry } from '../../web/framework/type_registry';
 
@@ -28,6 +29,7 @@ const mapStateToProps = (state, ownProps) => {
   let { config, registration, injector } = appState;
   console.assert(registration, 'Not registered.');
 
+  let analytics     = injector.get(Analytics.INJECTOR_KEY);
   let idGenerator   = injector.get(IdGenerator);
   let typeRegistry  = injector.get(TypeRegistry);
   let queryRegistry = injector.get(QueryRegistry);
@@ -42,6 +44,7 @@ const mapStateToProps = (state, ownProps) => {
     config,
     registration,
 
+    analytics,
     idGenerator,
     typeRegistry,
     queryRegistry,

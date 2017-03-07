@@ -4,6 +4,8 @@
 
 // TODO(burdon): Rename app_reducers.
 
+import { Analytics } from './analytics'
+
 //-------------------------------------------------------------------------------------------------
 // Global.
 // The global reducer listens for Apollo query results and updates the App state.
@@ -151,6 +153,9 @@ export const AppReducer = (injector, config, registration=undefined) => {
 
       // TODO(burdon): Get search query (not just text).
       case AppAction.ACTION.SEARCH: {
+        // TODO(madadam): Add delay or only log final query -- now we send an event for every keystroke, it's overkill.
+        let analytics = state.injector.get(Analytics.INJECTOR_KEY);
+        analytics.track('search', {text: action.value});
         return _.set(state, 'search.text', action.value);
       }
 

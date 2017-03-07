@@ -39,10 +39,14 @@ export const FirebaseTestingAppConfig = {
 };
 
 /**
- * Google Analytics
+ * Analytics
  */
-export const GoogleAnalyticsConfig = {
-  trackingId: 'UA-82404502-2'
+export const AnalyticsConfig = {
+  // Google Analytics
+  googleAnalyticsTrackingId: 'UA-82404502-2',
+
+  // Segment Analytics
+  segmentWriteKey: 'zNgiIvbGonawzsamSbKQ9WlX0WgXcy2b'
 };
 
 /**
