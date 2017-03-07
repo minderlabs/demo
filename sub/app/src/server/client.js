@@ -33,33 +33,24 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
       return;
     }
 
-    let userId = user.id;
-
-    let { platform, messageToken } = req.body;
-    console.assert(platform);
-
-    // Assign client ID for CRX.
     let clientId = req.headers[Const.HEADER.CLIENT_ID];
-    if (!clientId) {
-      // Web clients are served with their client ID.
-      console.assert(platform !== Const.PLATFORM.WEB);
-      let client = clientManager.create(platform, userId);
-      clientId = client.id;
+    let { platform, messageToken } = req.body;
+
+    // Register the client (and create it if necessary).
+    let client = clientManager.register(platform, clientId, user.id, messageToken);
+    if (!client) {
+      return res.status(400).end();
     }
 
-    // Register the client.
-    clientManager.register(clientId, userId, messageToken);
-
     // Get group.
-    // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
+    // TODO(burdon): Remove.
     let group = await systemStore.getGroup(userId);
-    let groupId = group.id;
 
     // Registration info.
     res.send({
-      clientId,
-      userId,
-      groupId     // TODO(burdon): Remove.
+      userId: user.id,
+      clientId: client.id,
+      groupId: ground.id   // TODO(burdon): Remove.
     });
   });
 
@@ -111,6 +102,8 @@ export class ClientManager {
    */
   flush() {
     console.log('Flushing stale clients...');
+
+    // TODO(burdon): Flush clients with no activity in 30 days.
     this._clients.forEach((client, clientId) => {
       console.assert(client.created);
       let ago = moment().unix() - client.created;
@@ -122,7 +115,9 @@ export class ClientManager {
   }
 
   /**
-   * Called by page loader.
+   * Clients are created at different times for different platforms.
+   * Web: Created when the page is served.
+   * CRX: Created when the app registers.
    */
   create(platform, userId) {
     console.assert(platform && userId);
@@ -145,21 +140,27 @@ export class ClientManager {
    * Called by clients on start-up (and to refresh tokens, etc.)
    * NOTE: mobile devices requet ID here.
    */
-  register(clientId, userId, messageToken=undefined) {
+  register(platform, clientId, userId, messageToken=undefined) {
     console.assert(clientId && userId);
 
     let client = this._clients.get(clientId);
     if (!client) {
-      logger.warn('Invalid client: ' + clientId);
-    } else {
-      if (userId != client.userId) {
-        logger.error('Invalid user: ' + userId);
-      } else {
-        logger.log('Registered: ' + clientId);
-        client.messageToken = messageToken;
-        client.registered = moment().unix();
+      if (platform !== Const.PLATFORM.WEB) {
+        logger.warn('Invalid client for: ' + clientId);
       }
+
+      // Create the client.
+      client = this.create(platform, userId);
+    } else if (client.userId == userId) {
+      logger.error('Invalid user for client: ' + JSON.stringify({ clientId, userId }));
+      return null;
     }
+
+    // Register the client.
+    client.messageToken = messageToken;
+    client.registered = moment().unix();
+    logger.log('Registered: ' + clientId);
+    return client;
   }
 
   /**
