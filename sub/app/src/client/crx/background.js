@@ -147,35 +147,33 @@ class BackgroundApp {
         }
 
         // On client startup.
-        case BackgroundCommand.REGISTER: {
+        // TODO(burdon): Race condition (sidebar opens before BG page is connected).
+        case BackgroundCommand.REGISTER_APP: {
           let { server } = this._config;
           let registration = this._connectionManager.registration;
           if (!registration) {
-            // TODO(burdon): Send retry error.
-            // TODO(burdon): Instead of client requesting -- send broadcast when connect happens.
-            return Promise.reject('Client not registered.');
+            throw new Error('Not registered.');
           } else {
             return Promise.resolve({ registration, server });
           }
         }
 
         // TODO(burdon): Send updated registration to clients (factor out with onChange above).
-        case BackgroundCommand.RECONNECT: {
+        case BackgroundCommand.REGISTER_CLIENT: {
           this._networkManager.init();
           return this._connectionManager.register();
         }
 
         // Invalidate auth.
-        case BackgroundCommand.SIGNOUT: {
+        case BackgroundCommand.AUTHENTICATE: {
           this._authManager.signout(true);
           break;
         }
 
-        default:
-          return Promise.reject('Invalid command.');
+        default: {
+          throw new Error('Invalid command: ' + request.command);
+        }
       }
-
-      return Promise.resolve();
     });
 
     // Event listeners (for background state changes).

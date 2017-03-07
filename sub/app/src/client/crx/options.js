@@ -51,13 +51,13 @@ class Options extends React.Component {
 
   onRegister() {
     return this._systemChannel.postMessage({
-      command: BackgroundCommand.RECONNECT
+      command: BackgroundCommand.REGISTER_CLIENT
     });
   }
 
   onAuthenticate() {
     return this._systemChannel.postMessage({
-      command: BackgroundCommand.SIGNOUT
+      command: BackgroundCommand.AUTHENTICATE
     });
   }
 

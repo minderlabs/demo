@@ -115,17 +115,16 @@ class SidebarApp extends BaseApp {
   postInit() {
     this._router.connect();
 
-    console.log('Registering...');
+    // TODO(burdon): Retry.
+    console.log('Registering with background page...');
     return this._systemChannel.postMessage({
-      command: BackgroundCommand.REGISTER
+      command: BackgroundCommand.REGISTER_APP
     }).wait()
       .then(response => {
-        console.assert(response.registration, response.server);
-        this.store.dispatch(AppAction.register(response.registration, response.server));
-      })
-      .catch(error => {
-        // TODO(burdon): Retry if not registered (server might not be responding).
-        console.error('Registration failed: ' + error);
+        let { registration, server } = registration;
+        console.assert(registration && server);
+        console.log('Registered: ' + JSON.stringify(registration));
+        this.store.dispatch(AppAction.register(registration, server));
       });
   }
 

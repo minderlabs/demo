@@ -112,23 +112,13 @@ const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credent
 // Database.
 //
 
-let systemStore;
-let userDataStore;
+const userDataStore = testing ?
+  // TODO(burdon): Config file for testing options.
+  new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), { delay: 0 }) :
+  new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.USER, true);
 
-if (testing) {
-  // TODO(burdon): Add testing option for minder-qa instance.
-  systemStore = new SystemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SYSTEM, false));
-
-  userDataStore = new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), {
-    // TODO(burdon): Config file for testing options.
-    delay: 0
-  });
-} else {
-  systemStore = new SystemStore(
-    new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.SYSTEM, false));
-
-  userDataStore = new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.USER, true);
-}
+const systemStore = new SystemStore(
+  new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.SYSTEM, false));
 
 const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SETTINGS, false);
 
@@ -202,7 +192,8 @@ let loading = Promise.all([
   logger.log('Initializing groups...');
   return loader.initGroups().then(() => {
 
-    if (testing) {
+    // TODO(burdon): Use randomizer to generate test projects for non-admin groups.
+    if (testing && false) {
       logger.log('Generating test data...');
       return loader.parse(require('./data/test.json')).then(() => {
         return new TestGenerator(database).generate();

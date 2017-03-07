@@ -2,28 +2,10 @@
   "Items": {
     "Group": [
       {
-        "alias": "minderlabs_com",
-        "title": "Minder Labs",
+        "id": "minder-admin",
+        "title": "Minder Admin",
         "whitelist": [
-          "rich@minderlabs.com",
-          "adam@minderlabs.com",
-          "wendy@minderlabs.com",
-          "matt@carbonfive.com",
-          "alice.braintree@gmail.com"
-        ]
-      },
-      {
-        "alias": "google_com_rich_burdon",
-        "title": "Private",
-        "whitelist": [
-          "rich.burdon@gmail.com"
-        ]
-      },
-      {
-        "alias": "google_com_adam_b",
-        "title": "Private",
-        "whitelist": [
-          "adam.b@gmail.com"
+          "eng-admin@minderlabs.com"
         ]
       }
     ]

@@ -54,13 +54,14 @@ export const BackgroundCommand = {
 
   CHANNEL:            'system',
 
-  // To Background page.
-  // TODO(burdon): Make more verbose (e.g., disambiguate register/reconnect).
-  PING:               'PING',
-  REGISTER:           'REGISTER',
-  RECONNECT:          'RECONNECT',
-  SIGNOUT:            'SIGNOUT',
+  // From options.
+  AUTHENTICATE:       'AUTHENTICATE',
+  REGISTER_CLIENT:    'REGISTER_CLIENT',
 
-  // To client.
+  // From sidebar.
+  PING:               'PING',
+  REGISTER_APP:       'REGISTER_APP',
+
+  // To sidebar.
   FLUSH_CACHE:        'FLUSH_CACHE'
 };
