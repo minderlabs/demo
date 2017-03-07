@@ -29,7 +29,7 @@ export class AuthManager {
   static getHeaders(token) {
     console.assert(token);
     return {
-      'authentication': 'Bearer ' + token
+      [Const.HEADER.AUTHORIZATION]: 'Bearer ' + token
     }
   }
 
@@ -57,9 +57,10 @@ export class AuthManager {
 
   /**
    * Subscribe to auth change updates and trigger auth as needed.
+   * @param force If true, then trigger authentication if logged out.
    * @return {Promise<User>}
    */
-  authenticate() {
+  authenticate(force=false) {
     this._unsubscribe && this._unsubscribe();
 
     return new Promise((resolve, reject) => {
@@ -74,7 +75,10 @@ export class AuthManager {
           logger.log('Authenticated: ' + user.email);
           resolve(user);
         } else {
-          return this._doAuth();
+          // NOTE: This is called if the user logs out from elsewhere.
+          // So, by default we don't promt (unless CRX).
+          console.warn('User logged out.');
+          return force ? this._doAuth() : Promise.resolve(null);
         }
       });
     });

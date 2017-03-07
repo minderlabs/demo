@@ -124,13 +124,33 @@ i.site-action:hover {
   flex-direction: column;
   background-color: whitesmoke;
   box-shadow: 4px 4px 16px darkslategray;
+  overflow: hidden;
 }
 .site-admin-window {
-  min-width: 600px;
+  min-width: 1000px;
 }
 
 .site-section {
-  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 8px;
+}
+.site-section-expand {
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+.site-scroll-panel {
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+}
+.site-scroll-panel::-webkit-scrollbar {
+  width: 4px;
+}
+.site-scroll-panel::-webkit-scrollbar-thumb {
+  background-color: #666;
 }
 
 .site-row {
@@ -142,7 +162,7 @@ i.site-action:hover {
 
 .site-data {
   font-family: Monaco, monospace;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .site-expand {

@@ -7,7 +7,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 
-import { Logger } from 'minder-core';
+import { ErrorUtil, Logger } from 'minder-core';
 
 import { Const } from '../common/defs';
 
@@ -74,7 +74,8 @@ export class UserManager {
     console.assert(req);
 
     // Token set in apollo client's network interface middleware.
-    let auth = _.get(req.headers, 'authentication');
+    // NOTE: Express headers are lowercase.
+    let auth = _.get(req.headers, Const.HEADER.AUTHORIZATION.toLowerCase());
     let match = auth && auth.match(/^Bearer (.+)$/);
     let token = match && match[1];
     if (!token) {
@@ -82,7 +83,7 @@ export class UserManager {
     }
 
     return this.getUserFromJWT(token).catch(error => {
-      error && logger.error(error);
+      logger.error(ErrorUtil.message(error));
     });
   }
 
@@ -102,7 +103,7 @@ export class UserManager {
     }
 
     return this.getUserFromJWT(token).catch(error => {
-      error && logger.error(error);
+      logger.error(ErrorUtil.message(error));
     });
   }
 }
@@ -129,8 +130,11 @@ export const loginRouter = (userManager, accountManager, systemStore, options) =
 
   // Login page.
   router.use('/login', function(req, res) {
+    console.log(req.params);
+    let force = !!req.params.force;
+
     // Firebase JS login.
-    res.render('login') ;
+    res.render('login', { force }) ;
   });
 
   // Logout page (javascript).

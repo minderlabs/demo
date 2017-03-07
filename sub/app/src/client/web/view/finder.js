@@ -24,8 +24,9 @@ import './finder.less';
 class Finder extends React.Component {
 
   static contextTypes = {
+    typeRegistry: React.PropTypes.object.isRequired,
     navigator: React.PropTypes.object.isRequired,
-    typeRegistry: React.PropTypes.object.isRequired
+    mutator: React.PropTypes.object.isRequired
   };
 
   handleItemSelect(item) {
@@ -33,7 +34,7 @@ class Finder extends React.Component {
   }
 
   handleItemUpdate(item, mutations) {
-    this.props.mutator.updateItem(item, mutations);
+    this.context.mutator.updateItem(item, mutations);
   }
 
   render() {
@@ -90,7 +91,7 @@ const mapStateToProps = (state, ownProps) => {
   let { context } = ContextAction.getState(state);
 
   // TODO(burdon): Move to layout config.
-  let listType = _.get(config, 'app.platform') == Const.PLATFORM.CRX ? 'card' : 'list';
+  let listType = _.get(config, 'app.platform') === Const.PLATFORM.CRX ? 'card' : 'list';
 
   // Required by Mutator.
   let idGenerator = injector.get(IdGenerator);

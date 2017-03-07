@@ -13,8 +13,6 @@ import Schema from './gql/schema.graphql';
 
 const logger = Logger.get('resolver');
 
-const AuthError = new Error('Not authenticated.');
-
 /**
  * Resolver map.
  */
@@ -52,7 +50,14 @@ export class Resolvers {
   //
 
   /**
-   * Create the resolver map.
+   * GraphQL Resolvers.
+   *
+   * The context is set via the graphqlRouter's contextProvider.
+   *
+   * context: {
+   *   userId,
+   *   clientId
+   * }
    */
   static getResolvers(database) {
     return {
@@ -194,6 +199,7 @@ export class Resolvers {
           return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', userId);
         },
 
+        // TODO(burdon): Replace with "groups" and lookup without context.
         group: (root, args, context) => {
           let { groupId } = context;
           return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', groupId);
@@ -214,22 +220,18 @@ export class Resolvers {
       // NOTE: root is undefined for root-level queries.
       //
 
+      //const AuthError = new Error('Not authenticated.');
+
       RootQuery: {
 
         viewer: (root, args, context) => {
-          let { userId } = context;
-          if (!userId) {
-            throw AuthError;
-          }
+          Resolvers.checkAuthentication(context);
 
           return {};
         },
 
         item: (root, args, context) => {
-          let { userId } = context;
-          if (!userId) {
-            throw AuthError;
-          }
+          Resolvers.checkAuthentication(context);
 
           let { itemId } = args;
           let { type, id:localId } = ID.fromGlobalId(itemId);
@@ -242,10 +244,7 @@ export class Resolvers {
 
         // TODO(burdon): Document difference from search (no text index? i.e., move to ItemStore?)
         items: (root, args, context) => {
-          let { userId } = context;
-          if (!userId) {
-            throw AuthError;
-          }
+          Resolvers.checkAuthentication(context);
 
           let { filter, offset, count } = args;
           let { namespace } = filter;
@@ -254,10 +253,7 @@ export class Resolvers {
         },
 
         search: (root, args, context) => {
-          let { userId } = context;
-          if (!userId) {
-            throw AuthError;
-          }
+          Resolvers.checkAuthentication(context);
 
           let { filter, offset, count, groupBy } = args;
 
@@ -274,24 +270,19 @@ export class Resolvers {
       RootMutation: {
 
         upsertItems: (root, args, context) => {
-          let { userId } = context;
-          if (!userId) {
-            throw AuthError;
-          }
+          Resolvers.checkAuthentication(context);
 
           let { namespace=Database.NAMESPACE.USER, mutations:itemMutations } = args;
-          let itemStore = database.getItemStore(namespace);
 
+          let itemStore = database.getItemStore(namespace);
           return Resolvers.processMutations(itemStore, context, itemMutations)
 
             //
             // Trigger notifications.
             //
             .then(items => {
-              // TODO(burdon): Pass clientId from context.
               // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
-              database.fireMuationNotification(context, items);
-
+              database.fireMuationNotification(context, itemMutations, items);
               return items;
             });
         }
@@ -299,6 +290,15 @@ export class Resolvers {
     };
   }
 
+  static checkAuthentication(context) {
+    if (!context.userId) {
+      // NOTE: User may be inactive.
+      throw new Error('Not authenticated.');
+    }
+    if (!context.clientId) {
+      throw new Error('Invalid client.');
+    }
+  }
 
   /**
    * Processes the item mutations, creating and updating items.

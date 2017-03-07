@@ -14,12 +14,14 @@ import { ErrorHandler } from '../common/errors';
 import { AuthManager } from '../common/auth';
 import { ConnectionManager } from '../common/client';
 import { NetworkManager } from '../common/network';
-import { PushManager } from '../common/push';
+import { GoogleCloudMessenger } from '../common/cloud_messenger';
 import { ChromeNetworkInterface } from './util/network';
 import { Notification } from './util/notification';
 import { Settings } from './util/settings';
 
 import { BackgroundCommand, DefaultSettings } from './common';
+
+const logger = Logger.get('bg');
 
 /**
  * Background Page.
@@ -58,8 +60,6 @@ class BackgroundApp {
       graphql: settings.server + '/graphql',
       graphiql: settings.server + '/graphiql'
     });
-
-    console.log('Config updated: ' + JSON.stringify(config));
   }
 
   constructor() {
@@ -87,9 +87,13 @@ class BackgroundApp {
     this._eventHandler = new EventHandler();
     this._queryRegistry = new QueryRegistry();
     this._authManager = new AuthManager(this._config);
-    this._networkManager = new NetworkManager(this._config, this._authManager, this._eventHandler);
-    this._pushManager = new PushManager(this._config, this._queryRegistry, this._eventHandler);
-    this._connectionManager = new ConnectionManager(this._config, this._authManager, this._pushManager);
+
+    // TODO(burdon): Get clientId from settings.
+    this._cloudMessenger = new GoogleCloudMessenger(this._config, this._queryRegistry, this._eventHandler);
+    this._connectionManager = new ConnectionManager(this._config, this._authManager, this._cloudMessenger);
+
+    this._networkManager =
+      new NetworkManager(this._config, this._authManager, this._connectionManager, this._eventHandler);
 
     //
     // Listen for settings updates (not called on first load).
@@ -102,12 +106,20 @@ class BackgroundApp {
       BackgroundApp.UpdateConfig(this._config, settings);
 
       if (restart) {
+        // Reset cache.
         this._networkManager.init();
-        this._connectionManager.connect();
 
-        // Broadcast reset to all clients (to reset cache).
-        this._systemChannel.postMessage(null, {
-          command: BackgroundCommand.FLUSH_CACHE
+        // Re-register with server.
+        this._connectionManager.register().then(registration => {
+
+          // Save registration.
+          this._settings.set('registration', registration).then(() => {
+
+            // Broadcast reset to all clients (to reset cache).
+            this._systemChannel.postMessage(null, {
+              command: BackgroundCommand.FLUSH_CACHE
+            });
+          });
         });
       }
 
@@ -119,7 +131,7 @@ class BackgroundApp {
     //
 
     this._systemChannel = this._dispatcher.listen(BackgroundCommand.CHANNEL, request => {
-      console.log('System request: ' + TypeUtil.stringify(request));
+      logger.log('System request: ' + TypeUtil.stringify(request));
       switch (request.command) {
 
         // Ping.
@@ -190,7 +202,10 @@ class BackgroundApp {
    */
   init() {
 
-    // Load the settings.
+    //
+    // Load the settings into the configuration.
+    // NOTE: This included the clientId.
+    //
     this._settings.load().then(settings => {
       BackgroundApp.UpdateConfig(this._config, settings);
 
@@ -198,26 +213,28 @@ class BackgroundApp {
       this._networkManager.init();
 
       // Triggers popup.
-      this._authManager.authenticate().then(user => {
+      this._authManager.authenticate(true).then(user => {
 
         // Register with server.
         this._connectionManager.register().then(registration => {
+          logger.log('Registered: ' + JSON.stringify(registration));
 
-          // Only show if not dev.
-          // TODO(burdon): Option.
-          if (!settings.server.startsWith('http://localhost')) {
-            this._notification.show('Minder', 'Authentication succeeded.');
-          }
+          // Save registration.
+          this._settings.set('registration', registration).then(() => {
+            if (settings.notifications) {
+              this._notification.show('Minder', 'Authentication succeeded.');
+            }
 
-          //
-          // Proxy Apollo requests.
-          // http://dev.apollodata.com/core/network.html#custom-network-interface
-          // See also ChromeNetworkInterface
-          // TODO(burdon): Network logging.
-          //
-          this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
-            return this._networkManager.networkInterface.query(gqlRequest).then(gqlResponse => {
-              return gqlResponse;
+            //
+            // Proxy Apollo requests.
+            // http://dev.apollodata.com/core/network.html#custom-network-interface
+            // See also ChromeNetworkInterface
+            // TODO(burdon): Network logging.
+            //
+            this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
+              return this._networkManager.networkInterface.query(gqlRequest).then(gqlResponse => {
+                return gqlResponse;
+              });
             });
           });
         });
@@ -227,7 +244,7 @@ class BackgroundApp {
       // Listen for termination and inform scripts.
       // https://developer.chrome.com/extensions/runtime#event-onSuspend
       chrome.runtime.onSuspend.addListener(() => {
-        console.log('System going down...');
+        logger.log('System going down...');
       });
     });
 

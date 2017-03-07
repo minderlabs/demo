@@ -63,7 +63,7 @@ permissions:
   - notifications
   - storage
   - tabs
-  - gcm                                             # Cloud Messaging (FCM).
+  - gcm
 
   - "http://localhost/*"
   - "http://127.0.0.1/*"

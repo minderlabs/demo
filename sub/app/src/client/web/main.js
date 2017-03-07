@@ -14,7 +14,7 @@ import { AppAction, AppReducer, GlobalAppReducer } from '../common/reducers';
 import { AuthManager } from '../common/auth';
 import { ConnectionManager } from '../common/client';
 import { NetworkManager } from '../common/network';
-import { PushManager } from '../common/push';
+import { FirebaseCloudMessenger } from '../common/cloud_messenger';
 
 import { TypeRegistryFactory } from './framework/type_factory';
 import { Application } from './app';
@@ -46,14 +46,15 @@ export class WebApp extends BaseApp {
     // Manages OAuth.
     this._authManager = new AuthManager(this._config);
 
-    // Wraps the Apollo network requests.
-    this._networkManager = new NetworkManager(this._config, this._authManager, this._eventHandler).init();
-
     // FCM manager.
-    this._pushManager = new PushManager(this._config, this._queryRegistry, this._eventHandler);
+    this._cloudMessenger = new FirebaseCloudMessenger(this._config, this._queryRegistry, this._eventHandler);
 
     // Manages the client connection and registration.
-    this._connectionManager = new ConnectionManager(this._config, this._authManager, this._pushManager);
+    this._connectionManager = new ConnectionManager(this._config, this._authManager, this._cloudMessenger);
+
+    // Wraps the Apollo network requests.
+    this._networkManager =
+      new NetworkManager(this._config, this._authManager, this._connectionManager, this._eventHandler).init();
   }
 
   postInit() {

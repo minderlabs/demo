@@ -62,7 +62,21 @@ class Options extends React.Component {
   }
 
   onChangeValue(property, event) {
-    this._settings.set(property, event.target.value);
+    let { target } = event;
+
+    let value;
+    switch (target.type) {
+      case 'checkbox': {
+        value = target.checked;
+        break;
+      }
+
+      default: {
+        value = target.value;
+      }
+    }
+
+    this._settings.set(property, value);
   }
 
   render() {
@@ -75,7 +89,11 @@ class Options extends React.Component {
       <div>
         <div className="crx-panel crx-form">
           <div className="crx-section">
-            <label><input type="checkbox"/> Notifications</label>
+            <label>
+              <input type="checkbox"
+                     value={ settings.notifications }
+                     onChange={ this.onChangeValue.bind(this, 'notifications') }/> Notifications
+            </label>
           </div>
 
           <br/>
@@ -83,8 +101,8 @@ class Options extends React.Component {
             <h2>Debugging</h2>
             <label htmlFor="settings_server">Server</label>
             <select name="settings_server"
-                    onChange={ this.onChangeValue.bind(this, 'server') }
-                    value={ settings.server }>
+                    value={ settings.server }
+                    onChange={ this.onChangeValue.bind(this, 'server') }>
               { _.map(Defs.SERVER, (option, type) =>
               <option key={ option.value } value={ option.value }>{ option.title }</option>)
               }
@@ -99,7 +117,10 @@ class Options extends React.Component {
 
           <div className="crx-section">
             <pre>
-              { JSON.stringify(chrome.extension.getBackgroundPage().app.config, 0, 1) }
+              { JSON.stringify(settings, null, 2) }
+            </pre>
+            <pre>
+              { JSON.stringify(chrome.extension.getBackgroundPage().app.config, null, 2) }
             </pre>
           </div>
         </div>

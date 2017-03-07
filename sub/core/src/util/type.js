@@ -10,7 +10,7 @@ import _ from 'lodash';
 export class TypeUtil {
 
   /**
-   * Right-pad given string.,
+   * Right-pad given string.
    * @param text
    * @param length
    */
@@ -24,12 +24,24 @@ export class TypeUtil {
   }
 
   /**
-   * Short string
+   * Truncate string.
    * @param value
+   * @param len Max length (including ellipses).
    * @returns {string}
    */
-  static short(value) {
-    return value ? value.substring(0, 32) + '...' : '';
+  static truncate(value, len=32) {
+    if (!value) {
+      return '';
+    }
+
+    if (value.length > len) {
+      let mid = Math.floor(len / 2);
+      let left = value.substring(0, mid);
+      let right = value.substring(value.length - (mid - 3));
+      return left + '...' + right;
+    }
+
+    return value;
   }
 
   /**
@@ -39,8 +51,8 @@ export class TypeUtil {
     if (_.isArray(value)) {
       return `len(${value.length})`;
     }
-    if (_.isString(value) && value.length > 32) {
-      return TypeUtil.short(value);
+    if (_.isString(value)) {
+      return TypeUtil.truncate(value, 40);  // Preserve IDs.
     }
     return value;
   }, indent);

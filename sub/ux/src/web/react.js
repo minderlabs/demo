@@ -32,7 +32,7 @@ export class ReactUtil {
         return <div/>;
       }
     } else if (error) {
-      console.error(error);
+      // NOTE: NetworkLogger logs to the console.
       return (
         <div className="ux-error">{ String(error) }</div>
       );
