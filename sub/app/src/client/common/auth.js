@@ -76,7 +76,7 @@ export class AuthManager {
           resolve(user);
         } else {
           // NOTE: This is called if the user logs out from elsewhere.
-          // So, by default we don't promt (unless CRX).
+          // So, by default we don't prompt (unless CRX).
           logger.log('Signed out.');
           return force ? this._doAuth() : Promise.resolve(null);
         }
@@ -112,7 +112,7 @@ export class AuthManager {
   }
 
   /**
-   * Authenitcate the user (based on platform).
+   * Authenticate the user (based on platform).
    *
    * @return {Promise<User>}
    * @private

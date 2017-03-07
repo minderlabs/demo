@@ -31,10 +31,10 @@ class AnalyticsBase {
 
 export class GoogleAnalytics extends AnalyticsBase {
   constructor(config) {
-    ReactGA.initialize(GoogleAnalyticsConfig.trackingId);
+    // TODO(madadam): Add a client identifier, e.g. web, crx, mobile.
+    ReactGA.initialize(GoogleAnalyticsConfig.trackingId, {titleCase: false});
   }
 
-  // FIXME: where to call this -- after authentication, first time or every time?
   identify(userId) {
     ReactGA.set({userId});
   }
