@@ -8,7 +8,7 @@ import { ErrorUtil } from 'minder-core';
 
 import { GoogleApiConfig } from '../../common/defs';
 
-const logger = Logger.get('push');
+const logger = Logger.get('gcm');
 
 /**
  * Base class for Google Cloud Messaging.
@@ -101,7 +101,7 @@ export class FirebaseCloudMessenger extends CloudMessenger {
 
         // NOTE: Requires HTTPS (for Service workers); localhost supported for development.
         // https://developers.google.com/web/fundamentals/getting-started/primers/service-workers#you_need_https
-        console.log('Requesting token...');
+        logger.log('Requesting message token...');
         return firebase.messaging().getToken().then(messageToken => {
           if (!messageToken) {
             logger.warn('FCM Token expired.');
@@ -135,6 +135,17 @@ export class GoogleCloudMessenger extends CloudMessenger {
 
   constructor(config, queryRegistry, eventHandler) {
     super(config, queryRegistry, eventHandler);
+
+    // https://developer.chrome.com/apps/gcm#event-onMessage
+    chrome.gcm.onMessage.addListener(message => {
+      let { data, from, collapseKey } = message;
+
+      // Use collapseKey to prevent chatty pings.
+      // https://developers.google.com/cloud-messaging/chrome/client#collapsible_messages
+
+      // Max message size: 4K.
+      this.onMessage(data);
+    });
   }
 
   // TODO(burdon): Same server-side send? See ClientManager.
@@ -145,7 +156,7 @@ export class GoogleCloudMessenger extends CloudMessenger {
 
   connect() {
     return new Promise((resolve, reject) => {
-      console.log('Requesting token...');
+      logger.log('Requesting token...');
 
       // https://developers.google.com/cloud-messaging/chrome/client
       chrome.gcm.register([ String(GoogleApiConfig.projectNumber) ], messageToken => {
@@ -153,17 +164,6 @@ export class GoogleCloudMessenger extends CloudMessenger {
         // TODO(burdon): Handle errors.
         // https://developers.google.com/cloud-messaging/chrome/client#error_reference
         console.assert(!chrome.runtime.lastError);
-
-        // https://developer.chrome.com/apps/gcm#event-onMessage
-        chrome.gcm.onMessage.addListener(message => {
-          let { data, from, collapseKey } = message;
-
-          // Use collapseKey to prevent chatty pings.
-          // https://developers.google.com/cloud-messaging/chrome/client#collapsible_messages
-
-          // Max message size: 4K.
-          this.onMessage(data);
-        });
 
         resolve(messageToken);
       });

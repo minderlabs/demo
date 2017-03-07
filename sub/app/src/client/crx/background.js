@@ -3,7 +3,11 @@
 //
 
 Logger.setLevel({
-  'net': Logger.Level.debug
+  'bg':         Logger.Level.debug,
+  'auth':       Logger.Level.debug,
+  'client':     Logger.Level.debug,
+  'gcm':        Logger.Level.debug,
+  'net':        Logger.Level.info
 }, Logger.Level.info);
 
 import { ChromeMessageChannelDispatcher, EventHandler, Listeners, QueryRegistry, TypeUtil } from 'minder-core';
@@ -86,9 +90,9 @@ class BackgroundApp {
 
     this._eventHandler = new EventHandler();
     this._queryRegistry = new QueryRegistry();
+
     this._authManager = new AuthManager(this._config);
 
-    // TODO(burdon): Get clientId from settings.
     this._cloudMessenger = new GoogleCloudMessenger(this._config, this._queryRegistry, this._eventHandler);
     this._connectionManager = new ConnectionManager(this._config, this._authManager, this._cloudMessenger);
 
@@ -154,16 +158,16 @@ class BackgroundApp {
           }
         }
 
-        // TODO(burdon): Send updated registration to clients?
+        // TODO(burdon): Send updated registration to clients (factor out with onChange above).
         case BackgroundCommand.RECONNECT: {
-          this._networkManager.init(); // TODO(burdon): reset?
-          return this._connectionManager.connect();
+          this._networkManager.init();
+          return this._connectionManager.register();
         }
 
         // Invalidate auth.
         // TODO(burdon): Triggers multiple reconnects (one more each time).
         case BackgroundCommand.SIGNOUT: {
-          this._authManager.signout();
+          this._authManager.signout(true);
           break;
         }
 
@@ -208,6 +212,7 @@ class BackgroundApp {
     //
     this._settings.load().then(settings => {
       BackgroundApp.UpdateConfig(this._config, settings);
+      logger.info(JSON.stringify(this._config));
 
       // Initialize the network manager.
       this._networkManager.init();

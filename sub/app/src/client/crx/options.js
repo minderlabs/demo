@@ -116,9 +116,11 @@ class Options extends React.Component {
           </div>
 
           <div className="crx-section">
+            {/*
             <pre>
               { JSON.stringify(settings, null, 2) }
             </pre>
+            */}
             <pre>
               { JSON.stringify(chrome.extension.getBackgroundPage().app.config, null, 2) }
             </pre>
