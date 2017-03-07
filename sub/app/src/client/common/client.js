@@ -6,6 +6,8 @@ import _ from 'lodash';
 
 import { HttpUtil } from 'minder-core';
 
+import { Const } from '../../common/defs';
+
 import { AuthManager } from './auth';
 
 const logger = Logger.get('client');
@@ -16,58 +18,114 @@ const logger = Logger.get('client');
 export class ConnectionManager {
 
   /**
+   * Client ID header.
+   * @param {string} clientId
+   */
+  static getHeaders(clientId) {
+    console.assert(clientId);
+    return {
+      [Const.HEADER.CLIENT_ID]: clientId
+    };
+  }
+
+  /**
    * Registers client (and push socket).
    *
    * @param {object} config
    * @param {AuthManager} authManager
-   * @param {PushManager} pushManager
+   * @param {CloudMessenger} cloudMessenger
    */
-  constructor(config, authManager, pushManager) {
-    console.assert(config && authManager && pushManager);
+  constructor(config, authManager, cloudMessenger) {
+    console.assert(config && authManager && cloudMessenger);
     this._config = config;
     this._authManager = authManager;
-    this._pushManager = pushManager;
-    this._registration = null;
-  }
+    this._cloudMessenger = cloudMessenger;
 
-  get registration() {
-    return this._registration;
+    // The CRX token may be automatically refreshed (FCM).
+    this._cloudMessenger.onTokenUpdate(messageToken => {
+      logger.info('Token refreshed.');
+
+      // Get/refresh the auth token.
+      this._authManager.getToken().then(authToken => {
+
+        // Re-register the client.
+        this._doRegistration(authToken, messageToken);
+      })
+    });
   }
 
   /**
-   * Register client with server.
+   * Client registration (see clientRouter => ClientManager.register).
+   * NOTE: For client platform uniformity, the registration is stored in the config property.
+   * Web apps have the registration information set by the server on page load, whereas the CRX
+   * retrieves the registration when registering the client.
    *
-   * @return {Promise}
-   * @private
+   * {
+   *   userId,
+   *   groupId,       // TODO(burdon): Remove.
+   *   clientId
+   * }
+   */
+  get registration() {
+    return _.get(this._config, 'registration');
+  }
+
+  /**
+   * Register the client with the server.
+   * Web clients are served from the server, which configures registration properties (see appRouter).
+   * CRX and mobile clients must register to obtain this information (e.g., clientId).
+   * Clients also register their Cloud Messaging (FCM, GCM) tokens (which may need to be refreshed).
+   * Client must also provide the clientId to request headers.
+   *
+   * [ConnectionManager] ==> [ClientManager]
+   *
+   * @return {Promise<{Registration}>}
    */
   register() {
-    let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
-    logger.log(`Registering client... [${url}]`);
-
     // Get the auth token.
-    return this._authManager.getToken().then(token => {
-
-      // TODO(burdon): Add client ID to header.
-      let headers = AuthManager.getHeaders(token);
+    return this._authManager.getToken().then(authToken => {
 
       // Get the push channel token.
-      // TODO(burdon): Make configurable?
-      return this._pushManager.connect().then(messageToken => {
+      return this._cloudMessenger.connect().then(messageToken => {
+        console.log('Cloud Messenger connected.');
 
-        // TODO(burdon): If web platform then assert registration.
-        let request = {
-          platform: _.get(this._config, 'app.platform'),
-          clientId: _.get(this._config, 'registration.clientId', undefined),
-          messageToken
-        };
-
-        // TODO(burdon): Configure Retry (e.g., perpetual for CRX).
-        return ConnectionManager.postJson(url, request, headers).then(registration => {
-          logger.info('Registered client: ' + JSON.stringify(registration));
-          this._registration = registration;
-          return registration;
-        });
+        // Register the client.
+        return this._doRegistration(authToken, messageToken);
       });
+    });
+  }
+
+  /**
+   * @param authToken
+   * @param messageToken
+   * @return {Promise<{Registration}>}
+   * @private
+   */
+  _doRegistration(authToken, messageToken) {
+    let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
+
+    let platform = _.get(this._config, 'app.platform');
+    let clientId = _.get(this._config, 'registration.clientId');
+    if (!clientId && platform === Const.PLATFORM.WEB) {
+      console.assert(clientId);
+    }
+
+    let headers = AuthManager.getHeaders(authToken);
+    if (clientId) {
+      _.assign(headers, ConnectionManager.getHeaders(clientId));
+    }
+
+    let request = {
+      platform,
+      messageToken
+    };
+
+    // TODO(burdon): Configure Retry (perpetual with backoff for CRX?)
+    logger.log(`Registering client: ${clientId || platform} (${url})`);
+    return ConnectionManager.postJson(url, request, headers).then(registration => {
+      logger.info('Registered client: ' + JSON.stringify(registration));
+      _.set(this._config, 'registration', registration);
+      return registration;
     });
   }
 
@@ -78,19 +136,17 @@ export class ConnectionManager {
    * @returns {Promise}
    */
   unregister(async=false) {
-    let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/unregister');
+    if (!this.registration) {
+      return Promise.resolve();
+    }
 
-    // Get the auth token.
-    return this._authManager.getToken().then(token => {
+    return this._authManager.getToken().then(authToken => {
+      let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/unregister');
 
-      // TODO(burdon): Add client ID to header.
-      let headers = AuthManager.getHeaders(token);
+      let headers = _.merge(
+        AuthManager.getHeaders(authToken), ConnectionManager.getHeaders(this.registration.clientId));
 
-      let request = {
-        clientId: _.get(this._config, 'registration.clientId', undefined)
-      };
-
-      return ConnectionManager.postJson(url, request, headers, async);
+      return ConnectionManager.postJson(url, {}, headers, async);
     });
   }
 

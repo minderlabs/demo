@@ -8,7 +8,10 @@ import { createNetworkInterface } from 'apollo-client';
 
 import { HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
+import { Const } from '../../common/defs';
+
 import { AuthManager } from './auth';
+import { ConnectionManager } from './client';
 
 const logger = Logger.get('net');
 
@@ -17,19 +20,18 @@ const logger = Logger.get('net');
  */
 export class NetworkManager {
 
-  // NOTE: must be lowercase.
-  static HEADER_REQUEST_ID  = 'minder-request-id';
-
   /**
    *
    * @param {object }config
    * @param {AuthManager} authManager
+   * @param {ConnectionManager} connectionManager
    * @param {EventHandler} eventHandler
    */
-  constructor(config, authManager, eventHandler) {
-    console.assert(config && authManager && eventHandler);
+  constructor(config, authManager, connectionManager, eventHandler) {
+    console.assert(config && authManager && connectionManager && eventHandler);
     this._config = config;
     this._authManager = authManager;
+    this._connectionManager = connectionManager;
     this._eventHandler = eventHandler;
 
     // Log and match request/reponses.
@@ -75,10 +77,14 @@ export class NetworkManager {
      */
     const addHeaders = {
       applyMiddleware: ({ request, options }, next) => {
+        let registration = this._connectionManager.registration;
+        console.assert(registration);
 
         // Asynchronously add the JWT.
         this._authManager.getToken().then(token => {
-          options.headers = _.assign(options.headers, AuthManager.getHeaders(token));
+          options.headers = _.assign(options.headers,
+            AuthManager.getHeaders(token),
+            ConnectionManager.getHeaders(registration.clientId));
           next();
         });
       }
@@ -125,7 +131,7 @@ export class NetworkManager {
 
         // Add header to track response.
         options.headers = _.assign(options.headers, {
-          [NetworkManager.HEADER_REQUEST_ID]: requestId
+          [Const.HEADER.REQUEST_ID]: requestId
         });
 
         this._logger.logRequest(requestId, request);
@@ -142,38 +148,43 @@ export class NetworkManager {
     const logResponse = {
       applyAfterware: ({ response, options }, next) => {
 
+        // Clone the result to access body.
+        // https://github.com/apollostack/core-docs/issues/224
+        // https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
+        let clonedResponse = response.clone();
+
         // Match request.
-        const requestId = options.headers[NetworkManager.HEADER_REQUEST_ID];
+        const requestId = options.headers[Const.HEADER.REQUEST_ID];
         let removed = this._requestMap.delete(requestId);
         console.assert(removed, 'Request not found: %s', requestId);
 
-        if (response.ok) {
+        // Error handler.
+        const onError = errors => {
+          this._logger.logErrors(requestId, errors);
+          this._eventHandler.emit({
+            type: 'error',
+            message: NetworkLogger.stringify(errors)
+          });
+        };
 
-          // Clone the result to access body.
-          // https://github.com/apollostack/core-docs/issues/224
-          // https://developer.mozilla.org/en-US/docs/Web/API/Response/clone
-          response.clone().json()
-            .then(response => {
-
-              // Check GraphQL error.
-              if (response.errors) {
-                // GraphQL Error.
-                this._logger.logErrors(requestId, response.errors);
-                this._eventHandler.emit({
-                  type: 'error',
-                  message: NetworkLogger.stringify(response.errors)
-                });
-              } else {
-                this._logger.logResponse(requestId, response);
-              }
-            });
+        if (clonedResponse.ok) {
+          clonedResponse.json().then(payload => {
+            if (payload.errors) {
+              onError(payload.errors);
+            } else {
+              this._logger.logResponse(requestId, payload);
+            }
+          });
         } else {
-          // GraphQL Network Error.
-          response.clone().text().then(text => {
-            this._logger.logErrors(requestId, response.errors);
-            this._eventHandler.emit({
-              type: 'error',
-              message: NetworkLogger.stringify(response.errors)
+          // GraphQL Network Error (i.e., non-200 response).
+          clonedResponse.json().then(payload => {
+            onError(payload.errors);
+          }).catch(() => {
+            // Serious server error returns non JSON response.
+            clonedResponse.text().then(text => {
+              onError([{
+                message: text
+              }]);
             });
           });
         }
@@ -213,6 +224,13 @@ export class NetworkManager {
  */
 class NetworkLogger {
 
+  /**
+   * Server can return array of errors.
+   * See graphqlRouter's formatError option.
+   *
+   * @param errors
+   * @return {string}
+   */
   static stringify(errors) {
     return errors.map(error => error.message).join(' | ');
   }

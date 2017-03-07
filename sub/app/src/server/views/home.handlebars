@@ -21,10 +21,7 @@
 
           {{#if login}}
           <div class="site-buttonbar">
-            <a href="/user/login">
-              <button>Login</button>
-            </a>
-
+            <button onclick="login()">Login</button>
             <button class="site-install-crx" onclick="installCrx()">Install Chrome Extension</button>
           </div>
           {{/if}}
@@ -43,6 +40,14 @@
   <script src="/assets/website.bundle.js"></script>
   <script>
     new Words().start(3, 30);
+
+    function login() {
+      let url = '/user/login';
+      if (window.event.shiftKey) {
+        url += '?force';
+      }
+      document.location.href = url;
+    }
 
     function installCrx() {
       // https://developer.chrome.com/webstore/inline_installation

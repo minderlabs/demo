@@ -2,6 +2,7 @@
 // Copyright 2017 Minder Labs.
 //
 
+// TODO(burdon): Factor out.
 export const Defs = {
 
   SERVER: {
@@ -10,11 +11,25 @@ export const Defs = {
   }
 };
 
+/**
+ * Default settings.
+ * NOTE: Must specify value (since keys are used to load values into cache).
+ */
 export const DefaultSettings = {
 
-  server: Defs.SERVER.PROD.title
+  // Show notification messages.
+  notifications: false,
+
+  // App server (e.g., dev, prod).
+  server: Defs.SERVER.PROD.title,
+
+  // Client registration.
+  registration: {}
 };
 
+/**
+ * Keys
+ */
 export const KeyToggleSidebar = {
 
   keyCode: 8,         // DELETE

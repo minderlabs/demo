@@ -48,10 +48,16 @@ export const FirebaseServerConfig = {
 };
 
 /**
- * Web application credentials.
- * https://console.developers.google.com/apis/credentials/oauthclient/189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com?project=minder-beta
+ * Project Config: minder-beta
  */
 export const GoogleApiConfig = {
+
+  // https://console.cloud.google.com/iam-admin/settings/project?project=minder-beta
+  projectNumber: 189079594739,
+
+  // Created 11/28/16
+  // Web application credentials.
+  // https://console.developers.google.com/apis/credentials/oauthclient/189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com?project=minder-beta
   clientId: '189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com',
   clientSecret: 'WZypHT09Z8Fy8NHVKY3qmMFt',
 
@@ -79,22 +85,36 @@ export const SlackConfig = {
  */
 export const Const = {
 
-  APP_PATH: '/app',
+  PLATFORM: {
+    WEB:    'web',
+    CRX:    'crx',
+    MOBILE: 'mobile'
+  },
 
   DOM_ROOT: 'app-root',
+
+  APP_PATH: '/app',
 
   APP_NAME: 'minder',
 
   // NOTE: Changed by grunt:version
   APP_VERSION: "0.1.9",
 
-  AUTH_COOKIE: 'minder_auth_token',
+  // NOTE: Express lowercases headers.
+  HEADER: {
 
-  PLATFORM: {
-    WEB:    'web',
-    CRX:    'crx',
-    MOBILE: 'mobile'
+    // https://en.wikipedia.org/wiki/Basic_access_authentication
+    AUTHORIZATION: 'Authorization',
+
+    // Client ID set by server (Web) or on registration (CRX, mobile).
+    CLIENT_ID: 'minder-client',
+
+    // Use by Apollo network middleware to track request/response messages.
+    REQUEST_ID: 'minder-request'
   },
+
+  // Stores JWT set by client login script (auth.js).
+  AUTH_COOKIE: 'minder_auth_token',
 
   // https://chrome.google.com/webstore/developer/edit/ofdkhkelcafdphpddfobhbbblgnloian
   CRX_ID: 'ofdkhkelcafdphpddfobhbbblgnloian',

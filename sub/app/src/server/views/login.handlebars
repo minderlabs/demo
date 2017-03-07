@@ -1,15 +1,20 @@
 {{#section 'head'}}
   <script src="/assets/website.bundle.js"></script>
   <script>
-    console.log('Authenticating...');
-    new Auth().login().then(user => {
-      console.log('Authenticated: ' + JSON.stringify(_.pick(user, ['id', 'email', 'active'])));
-      if (user && user.active) {
-        document.location.href = '/home';
-      } else {
-        // TODO(burdon): Show waitlist page.
-        document.location.href = '/user/logout';
-      }
+    // TODO(burdon): Transpile for non-Chrome.
+    let auth = new Auth();
+    let promise = ({{ force }}) ? auth.logout() : Promise.resolve();
+    promise.then(() => {
+      console.log('Authenticating...');
+      auth.login().then(user => {
+        console.log('Authenticated: ' + JSON.stringify(_.pick(user, ['id', 'email', 'active'])));
+        if (user && user.active) {
+          document.location.href = '/home';
+        } else {
+          // TODO(burdon): Show waitlist page.
+          document.location.href = '/user/logout';
+        }
+      });
     });
   </script>
 {{/section}}

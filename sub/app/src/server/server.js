@@ -11,6 +11,7 @@ import express from 'express';
 import handlebars from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
+import moment from 'moment';
 
 import {
   ErrorUtil,
@@ -114,11 +115,13 @@ const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credent
 let systemStore;
 let userDataStore;
 
-if (testing && false) {
+if (testing) {
+  // TODO(burdon): Add testing option for minder-qa instance.
   systemStore = new SystemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.SYSTEM, false));
 
   userDataStore = new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), {
-    delay: 0 // TODO(burdon): Config.
+    // TODO(burdon): Config file for testing options.
+    delay: 0
   });
 } else {
   systemStore = new SystemStore(
@@ -137,17 +140,16 @@ const database = new Database()
   .registerItemStore(settingsStore)
   .registerItemStore(userDataStore)
 
-  // TODO(burdon): Required for queryItems; implement simple Key range look-up for ItemStore (e.g., Type=*).
-  // TODO(burdon): Distinguish search from basic lookup.
+  // TODO(burdon): Distinguish search from basic lookup (e.g., Key-range implemented by ItemStore).
 
   .registerQueryProcessor(systemStore)
   .registerQueryProcessor(settingsStore)
   .registerQueryProcessor(userDataStore)
 
-  .onMutation(items => {
+  .onMutation((context, itemMutations, items) => {
+    // TODO(burdon): QueryRegistry.
     // Notify clients of changes.
-    // TODO(burdon): Create notifier abstraction.
-    // clientManager.invalidateOthers();
+    clientManager.invalidateClients(context.clientId);
   });
 
 
@@ -244,11 +246,11 @@ app.engine('handlebars', handlebars({
     },
 
     short: function(object) {
-      return TypeUtil.short(object);
+      return TypeUtil.truncate(object, 24);
     },
 
     time: function(object) {
-      return object && object.fromNow();
+      return object && moment.unix(object).fromNow();
     }
   }
 }));
@@ -311,24 +313,24 @@ app.use(graphqlRouter(database, {
   // Use custom UX provided below.
   graphiql: false,
 
-  // TODO(burdon): Get clientId.
+  //
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
+  //
   contextProvider: request => userManager.getUserFromHeader(request)
     .then(user => {
+      let context = {
+        userId: user && user.active && user.id,
+        clientId: request.headers[Const.HEADER.CLIENT_ID]
+      };
+
       if (!user) {
-        logger.warn('Invalid JWT in header.');
-        return Promise.resolve({});
+        return Promise.resolve(context);
       } else {
-        let userId = user.id;
-        return systemStore.getGroup(userId).then(group => {
-          // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
-          let groupId = group.id;
-          return {
-            groupId,
-            userId
-          }
-        });
+        // TODO(burdon): Get groups.
+        return systemStore.getGroup(user.id).then(group => _.assign(context, {
+          groupId: group.id
+        }));
       }
     })
 }));
@@ -353,7 +355,7 @@ app.get('/graphiql', function(req, res) {
       res.render('graphiql', {
         config: {
           headers: [{
-            name: 'authentication',
+            name: Const.HEADER.AUTHORIZATION,
             value: `Bearer ${user.token}`
           }]
         }

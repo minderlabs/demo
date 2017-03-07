@@ -32,8 +32,6 @@ export class Settings {
     // https://developer.chrome.com/extensions/storage#event-onChanged
     chrome.storage.onChanged.addListener((changes, areaName) => {
       if (areaName == 'local') {
-        console.log('Updated: ' + JSON.stringify(changes));
-
         // Update changes.
         _.each(changes, (value, key) => {
           if (value.newValue) {
@@ -77,8 +75,10 @@ export class Settings {
    */
   reset() {
     this._values = {};
-    this._store.clear(() => {
-      chrome.storage.local.set(this._defaults);
+    return new Promise((resolve, reject) => {
+      this._store.clear(() => {
+        chrome.storage.local.set(this._defaults, resolve);
+      });
     });
   }
 
@@ -88,11 +88,13 @@ export class Settings {
    * @param value If undefined, removes the property.
    */
   set(property, value=undefined) {
-    if (value === undefined) {
-      chrome.storage.local.remove(property);
-    } else {
-      chrome.storage.local.set({ [property]: value });
-    }
+    return new Promise((resolve, reject) => {
+      if (value === undefined) {
+        chrome.storage.local.remove(property, resolve);
+      } else {
+        chrome.storage.local.set({ [property]: value }, resolve);
+      }
+    });
   }
 
   /**

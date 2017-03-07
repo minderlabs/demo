@@ -91,7 +91,7 @@ export class SystemStore extends DelegateItemStore {
     let { uid, email, displayName } = userInfo;
 
     return SystemStore.updateUser({
-      active: true,
+      active: !_.isNil(credential),
       type: 'User',
       id: uid,
       title: displayName,
@@ -126,7 +126,7 @@ export class SystemStore extends DelegateItemStore {
    * 5). Existing user is already authenticated => return record.
    *
    * Errors:
-   * A). User is authenticated but database record is missing.
+   * A). User is authenticated (JWT token still valid) but database record is missing (corrupt).
    *
    * @param userInfo
    * @param credential
@@ -151,10 +151,9 @@ export class SystemStore extends DelegateItemStore {
         // Check whitelisted in existing group (i.e., invited).
         //
         return this.getGroupByWhitelist(email).then(group => {
-
-          // Active if whitelisted.
-          if (user.active) {
-            user.active = !_.isNil(group);
+          if (!group) {
+            user.active = false;
+            logger.log('User not whitelisted: ' + JSON.stringify({ uid, email }));
           }
 
           // Create new user record.
@@ -171,15 +170,12 @@ export class SystemStore extends DelegateItemStore {
 
               //
               // 2). Waitlist.
-              // TODO(burdon): Send waitlist email?
               //
-              logger.log('User not whitelisted: ' + JSON.stringify({ uid, email }));
               return user;
             }
           });
         });
       } else {
-
         if (credential) {
 
           //

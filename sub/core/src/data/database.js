@@ -131,14 +131,19 @@ export class Database {
     return itemStore;
   }
 
-  // TODO(burdon): Evolve into mutation dispatcher to QueryRegistry.
   onMutation(callback) {
     this._onMutation = callback;
     return this;
   }
 
-  fireMuationNotification(context, items) {
-    this._onMutation && this._onMutation(context, items);
+  /**
+   * Trigger mutation notifications.
+   * @param context GraphQL request context.
+   * @param itemMutations
+   * @param items
+   */
+  fireMuationNotification(context, itemMutations, items) {
+    this._onMutation && this._onMutation(context, itemMutations, items);
   }
 
   /**

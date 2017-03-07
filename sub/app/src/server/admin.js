@@ -45,18 +45,30 @@ export const adminRouter = (clientManager, firebase, options) => {
   //
   // Admin API.
   //
+  // TODO(burdon): Auth.
   router.post('/', (req, res) => {
-    let { cmd } = req.body;
+    let { action, clientId } = req.body;
 
-    console.log('Admin command: %s', cmd);
-    switch (cmd) {
+    console.log('Admin command: %s', action);
+    switch (action) {
+
+      case 'client.flush': {
+        clientManager.flush();
+        break;
+      }
+
+      case 'client.invalidate': {
+        clientManager.invalidate(clientId);
+        break;
+      }
+
       case 'schedule.test': {
         queue && queue.create('test', {}).save();
         break;
       }
     }
 
-    res.send({});
+    res.end();
   });
 
   //

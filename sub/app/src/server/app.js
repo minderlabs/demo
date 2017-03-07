@@ -45,8 +45,6 @@ export const appRouter = (userManager, clientManager, systemStore, options) => {
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
   const path = new RegExp(options.root.replace('/', '\/') + '\/?(.*)');
   router.get(path, async function(req, res) {
-
-    // TODO(burdon): Deprecate cookies? Do redirect from app?
     let user = await userManager.getUserFromCookie(req);
     if (!user) {
       // TODO(burdon): Create Router object rather than hardcoding path.

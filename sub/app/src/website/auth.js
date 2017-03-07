@@ -64,10 +64,12 @@ export class Auth {
               return firebase.auth().getRedirectResult().then(result => {
                 let { credential } = result;
 
-                // Credential is null if we've already been authenticated.
+                // Credential is null if we've already been authenticated (i.e., JWT token is fresh).
                 return this.registerUser(userInfo, credential).then(user => {
                   console.log('Credentials: ' + JSON.stringify(_.pick(credential, ['provider'])));
 
+                  // TODO(burdon): Use express-session?
+                  // https://github.com/graphql/express-graphql#combining-with-other-express-middleware
                   // Set the auth cookie for server-side detection via AuthManager.getUserFromCookie().
                   // https://github.com/js-cookie/js-cookie
                   if (user.active) {
@@ -94,20 +96,24 @@ export class Auth {
 
   /**
    * Logout Firebase app.
+   * NOTE: This flashes the "login" popup.
+   *
    * @returns {Promise}
    */
   logout() {
-    console.log('Logging out...');
-
     // Logout and remove the cookie.
-    // https://firebase.google.com/docs/auth/web/google-signin
+    // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signOut
     return firebase.auth().signOut().then(() => {
+      console.log('Logged out.');
       Cookies.remove(Const.AUTH_COOKIE);
+    }, error => {
+      console.error(error);
     });
   }
 
   /**
    * Registers the user's credential if logged in by the provider or looks up an existing user.
+   * See loginRouter => UserManager.
    *
    * @param userInfo Firebase user record.
    * @param credential
