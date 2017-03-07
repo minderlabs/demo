@@ -40,11 +40,16 @@ export class UserManager {
 
     return this._firebase.verifyIdToken(token)
       .then(decodedToken => {
-        let { uid:id, email } = decodedToken;
-        console.assert(id, 'Invalid token: ' + JSON.stringify(decodedToken));
+        let { uid, email } = decodedToken;
+        console.assert(uid, 'Invalid token: ' + JSON.stringify(decodedToken));
 
-        return this._systemStore.getItem({}, 'User', id)
+        return this._systemStore.getItem({}, 'User', uid)
           .then(user => {
+            if (!user) {
+              logger.warn('Invalid UID: ' + uid);
+              return null;
+            }
+
             logger.log(`Got token for: ${email}`);
 
             // TODO(burdon): Not part of user Item. Either create new class or return tuple.
@@ -130,7 +135,6 @@ export const loginRouter = (userManager, accountManager, systemStore, options) =
 
   // Login page.
   router.use('/login', function(req, res) {
-    console.log(req.params);
     let force = !!req.params.force;
 
     // Firebase JS login.

@@ -77,7 +77,7 @@ export class AuthManager {
         } else {
           // NOTE: This is called if the user logs out from elsewhere.
           // So, by default we don't promt (unless CRX).
-          console.warn('User logged out.');
+          logger.log('Signed out.');
           return force ? this._doAuth() : Promise.resolve(null);
         }
       });
@@ -100,10 +100,15 @@ export class AuthManager {
    * @param reauthenticate
    */
   signout(reauthenticate=true) {
+    logger.log('Signing out...');
 
     // TODO(burdon): Re-authenticate?
     // https://firebase.google.com/docs/auth/web/manage-users#re-authenticate_a_user
-    firebase.auth().signOut();
+    firebase.auth().signOut().then(() => {
+      if (reauthenticate) {
+        return this.authenticate(true);
+      }
+    });
   }
 
   /**
@@ -113,6 +118,7 @@ export class AuthManager {
    * @private
    */
   _doAuth() {
+    logger.log('Authenticating...');
     if (_.get(this._config, 'app.platform') === Const.PLATFORM.CRX) {
       return this._doAuthChromeExtension();
     } else {
@@ -170,13 +176,12 @@ export class AuthManager {
       // https://developer.chrome.com/apps/identity#method-getAuthToken
       chrome.identity.getAuthToken(options, accessToken => {
         if (chrome.runtime.lastError) {
-          logger.error('Error getting access token:', chrome.runtime.lastError);
-          reject(chrome.runtime.lastError);
+          logger.error(chrome.runtime.lastError);
+          reject();
         }
 
         // NOTE: Get Google specific credentials (since CRX!)
         // https://firebase.google.com/docs/reference/js/firebase.auth.GoogleAuthProvider
-        logger.log('Retrieved access token:', accessToken);
         let credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
 
         // TODO(burdon): Error (regression in lib: revert to 3.6.5)

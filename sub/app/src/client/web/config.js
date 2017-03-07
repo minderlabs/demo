@@ -12,7 +12,6 @@ Logger.setLevel({
   'net':        Logger.Level.info,
   'auth':       Logger.Level.debug,
   'client':     Logger.Level.debug,
-  'push':       Logger.Level.debug,
-//'reducer':    Logger.Level.debug,
+  'gcm':        Logger.Level.debug
 
 }, Logger.Level.info);

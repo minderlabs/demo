@@ -87,7 +87,7 @@ export class ConnectionManager {
 
       // Get the push channel token.
       return this._cloudMessenger.connect().then(messageToken => {
-        console.log('Cloud Messenger connected.');
+        logger.log('Cloud Messenger connected.');
 
         // Register the client.
         return this._doRegistration(authToken, messageToken);

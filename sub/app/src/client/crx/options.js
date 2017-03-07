@@ -49,7 +49,7 @@ class Options extends React.Component {
     this._settings.reset();
   }
 
-  onReconnect() {
+  onRegister() {
     return this._systemChannel.postMessage({
       command: BackgroundCommand.RECONNECT
     });
@@ -77,6 +77,10 @@ class Options extends React.Component {
     }
 
     this._settings.set(property, value);
+  }
+
+  onRefresh() {
+    this.forceUpdate();
   }
 
   render() {
@@ -110,15 +114,18 @@ class Options extends React.Component {
           </div>
 
           <div className="crx-section">
-            <button onClick={ this.onReset.bind(this) }>Reset Options</button>
-            <button onClick={ this.onReconnect.bind(this) }>Reconnect</button>
+            <button onClick={ this.onReset.bind(this) }>Default Settings</button>
             <button onClick={ this.onAuthenticate.bind(this) }>Authenticate</button>
+            <button onClick={ this.onRegister.bind(this) }>Register Client</button>
+            <button onClick={ this.onRefresh.bind(this) }>Refresh</button>
           </div>
 
           <div className="crx-section">
+            {/*
             <pre>
               { JSON.stringify(settings, null, 2) }
             </pre>
+            */}
             <pre>
               { JSON.stringify(chrome.extension.getBackgroundPage().app.config, null, 2) }
             </pre>

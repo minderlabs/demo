@@ -47,8 +47,14 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
       clientId = client.id;
     }
 
+    // TODO(burdon): Since client store isn't persistent, CRX gets stuck with bad client ID.
+
     // Register the client.
-    clientManager.register(clientId, userId, messageToken);
+    let client = clientManager.register(clientId, userId, messageToken);
+    if (!client) {
+      res.status(400).send({ message: 'Invalid client.' });
+      return;
+    }
 
     // Get group.
     // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
@@ -95,6 +101,7 @@ export class ClientManager {
     this._idGenerator = idGenerator;
 
     // Map of clients indexed by ID.
+    // TODO(burdon): Make persistent.
     // TODO(burdon): Expire web clients after 1 hour (force reconnect if client re-appears).
     this._clients = new Map();
   }
@@ -151,15 +158,17 @@ export class ClientManager {
     let client = this._clients.get(clientId);
     if (!client) {
       logger.warn('Invalid client: ' + clientId);
-    } else {
-      if (userId != client.userId) {
-        logger.error('Invalid user: ' + userId);
-      } else {
-        logger.log('Registered: ' + clientId);
-        client.messageToken = messageToken;
-        client.registered = moment().unix();
-      }
+      return null;
     }
+    if (client.userId != userId) {
+      logger.warn('Invalid user for client: ' + JSON.stringify({ clientId, userId }));
+      return null;
+    }
+
+    logger.log('Registered: ' + clientId);
+    client.messageToken = messageToken;
+    client.registered = moment().unix();
+    return client;
   }
 
   /**
