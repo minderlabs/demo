@@ -29,11 +29,15 @@ export const DefaultSettings = {
 
 /**
  * Keys
+ * Properties (other than "hint") should match the keydown event.
  */
-export const KeyToggleSidebar = {
+export const KeyCodes = {
 
-  keyCode: 8,         // DELETE
-  metaKey: true
+  TOGGLE: {
+    hint: '⌘-DEL',
+    keyCode: 8,
+    metaKey: true
+  }
 };
 
 /**
@@ -54,13 +58,14 @@ export const BackgroundCommand = {
 
   CHANNEL:            'system',
 
-  // To Background page.
-  // TODO(burdon): Make more verbose (e.g., disambiguate register/reconnect).
-  PING:               'PING',
-  REGISTER:           'REGISTER',
-  RECONNECT:          'RECONNECT',
-  SIGNOUT:            'SIGNOUT',
+  // From options.
+  AUTHENTICATE:       'AUTHENTICATE',
+  REGISTER_CLIENT:    'REGISTER_CLIENT',
 
-  // To client.
+  // From sidebar.
+  PING:               'PING',
+  REGISTER_APP:       'REGISTER_APP',
+
+  // To sidebar.
   FLUSH_CACHE:        'FLUSH_CACHE'
 };

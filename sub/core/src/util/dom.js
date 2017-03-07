@@ -101,21 +101,30 @@ export class KeyListener {
     this._bindings = new Map();
 
     // Listen for key down events.
-    document.addEventListener('keydown', ev => {
+    document.addEventListener('keydown', event => {
       this._bindings.forEach((callback, spec) => {
-        let match = true;
-        _.each(spec, (value, key) => {
-          if (ev[key] != value) {
-            match = false;
-            return false;
-          }
-        });
 
-        match && callback();
+        // Match keys against event.
+        if (_.every(_.omit(spec, ['hint']), (value, key) => event[key] == value)) {
+
+          // let e = _.every(_.omit(spec, ['hint']), (value, key) => {
+          //   console.log(':::::::::::::', key, value, event[key]);
+          //   return event[key] == value;
+          // });
+          // console.log('>>>>>>>>>>', e);
+
+          callback();
+        }
       });
     });
   }
 
+  /**
+   * Properties (other than "hint") should match the keydown event.
+   * @param spec
+   * @param callback
+   * @returns {KeyListener}
+   */
   listen(spec, callback) {
     this._bindings.set(spec, callback);
     return this;

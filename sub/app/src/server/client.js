@@ -47,6 +47,7 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
 
     // Registration info.
     res.send({
+      timestamp: client.registered,
       userId: user.id,
       clientId: client.id,
       groupId: group.id   // TODO(burdon): Remove.
