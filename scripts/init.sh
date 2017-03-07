@@ -32,6 +32,7 @@ brew install python
 
 # Add to PATH: ~/Library/Python/2.7/bin
 pip install --upgrade --user awscli
+pip install --upgrade virtualenv
 
 #
 # Install NPM packages (>5 mins first time).

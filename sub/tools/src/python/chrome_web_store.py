@@ -13,21 +13,14 @@ from oauth2client.tools import run_flow
 from oauth2client.file import Storage
 
 
-CLIENT_ID = os.environ['CLIENT_ID']
-CLIENT_SECRET = os.environ['CLIENT_SECRET']
-
-CRX_ID = os.environ['CRX_ID']
-
 OAUTH_SCOPE = 'https://www.googleapis.com/auth/chromewebstore'
-UPLOAD_URL = 'https://www.googleapis.com/upload/chromewebstore/v1.1/items/%s' % CRX_ID
-PUBLISH_URL = 'https://www.googleapis.com/chromewebstore/v1.1/items/%s/publish' % CRX_ID
 
-DASHBOARD_URL = 'https://chrome.google.com/webstore/developer/edit/%s' % CRX_ID
+UPLOAD_URL = 'https://www.googleapis.com/upload/chromewebstore/v1.1/items/%s'
+PUBLISH_URL = 'https://www.googleapis.com/chromewebstore/v1.1/items/%s/publish'
+DASHBOARD_URL = 'https://chrome.google.com/webstore/developer/edit/%s'
 
 
-# TODO(burdon): Move to util?
-
-def get_token(flags):
+def get_token(client_id, client_secret, flags):
     """
     Gets the access token for the Webstore API.
     NOTE: The browser must already be open with the account that manages the Chrome Extension.
@@ -38,8 +31,8 @@ def get_token(flags):
     print
 
     # https://github.com/burnash/gspread/wiki/How-to-get-OAuth-access-token-in-console%3F
-    flow = OAuth2WebServerFlow(client_id=CLIENT_ID,
-                               client_secret=CLIENT_SECRET,
+    flow = OAuth2WebServerFlow(client_id=client_id,
+                               client_secret=client_secret,
                                scope=OAUTH_SCOPE,
                                redirect_uri='http://example.com/auth_return')
 
@@ -112,20 +105,29 @@ def main(argv):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         parents=[tools.argparser])
 
-    parser.add_argument('--file', required=True)
-    parser.add_argument('--publish', action='store_true')
+    parser.add_argument('--crx-id',         required=True)
+    parser.add_argument('--client-id',      required=True)
+    parser.add_argument('--client-secret',  required=True)
+    parser.add_argument('--file',           required=True)
+    parser.add_argument('--publish',        action='store_true')
+
+    print argv
 
     args = parser.parse_args(argv[1:])
 
+    print args
+    exit
+
+
     # Authenticate (open browser).
-    credentials = get_token(args)
+    credentials = get_token(args.client_id, args.client_secret, args)
 
     # Upload file.
-    upload(credentials.access_token, UPLOAD_URL, args.file)
+    upload(credentials.access_token, UPLOAD_URL % args.crx_id, args.file)
 
     # Publish CRX.
     if args.publish:
-        publish(credentials.access_token, PUBLISH_URL)
+        publish(credentials.access_token, PUBLISH_URL % args.crx_id)
 
 
 if __name__ == "__main__":

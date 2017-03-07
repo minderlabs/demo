@@ -1,9 +1,9 @@
 #!/bin/sh
 
-virtualenv virtual_env
+virtualenv venv
 
-source virtual_env/bin/activate
+source venv/bin/activate
 
 pip install --upgrade -r requirements.txt
 
-pip list
+pip list --format=columns
