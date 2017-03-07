@@ -62,6 +62,9 @@ export class WebApp extends BaseApp {
     // Register client.
     return this._authManager.authenticate().then(user => {
 
+      // FIXME this is firebase-specific, do we have our own concept of userId?
+      this._analytics.identify(user.uid);
+
       // TODO(burdon): Retry?
       return this._connectionManager.register().then(registration => {
         this.store.dispatch(AppAction.register(registration));

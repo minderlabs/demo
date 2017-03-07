@@ -14,6 +14,7 @@ import moment from 'moment';
 
 import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 
+import { GoogleAnalytics } from './analytics';
 import { ErrorHandler } from './errors';
 
 const logger = Logger.get('main');
@@ -38,6 +39,8 @@ export class BaseApp {
     // TODO(burdon): Experimental (replace with Apollo directives).
     // Manages Apollo query subscriptions.
     this._queryRegistry = new QueryRegistry();
+
+    this._analytics = new GoogleAnalytics(this._config);
 
     // Errors.
     ErrorHandler.handleErrors(this._eventHandler);
@@ -131,7 +134,7 @@ export class BaseApp {
   }
 
   /**
-   * Acpollo client.
+   * Apollo client.
    */
   initApollo() {
     let networkInterface = this.networkInterface;
@@ -234,6 +237,7 @@ export class BaseApp {
 
     this.history.listen(location => {
       logger.log('Router: ' + location.pathname);
+      this._analytics.pageview(location);
     });
 
     return Promise.resolve();

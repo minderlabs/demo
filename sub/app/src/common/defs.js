@@ -39,6 +39,13 @@ export const FirebaseTestingAppConfig = {
 };
 
 /**
+ * Google Analytics
+ */
+export const GoogleAnalyticsConfig = {
+  trackingId: 'UA-82404502-2'
+};
+
+/**
  * Server-side secrets.
  */
 export const FirebaseServerConfig = {
