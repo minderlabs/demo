@@ -10,11 +10,12 @@ Logger.setLevel({
   'net':        Logger.Level.info
 }, Logger.Level.info);
 
-import { ChromeMessageChannelDispatcher, EventHandler, Listeners, QueryRegistry, TypeUtil } from 'minder-core';
+import {
+  ChromeMessageChannelDispatcher, ErrorUtil, EventHandler, Listeners, QueryRegistry, TypeUtil
+} from 'minder-core';
 
 import { Const } from '../../common/defs';
 
-import { ErrorHandler } from '../common/errors';
 import { AuthManager } from '../common/auth';
 import { ConnectionManager } from '../common/client';
 import { NetworkManager } from '../common/network';
@@ -23,7 +24,7 @@ import { ChromeNetworkInterface } from './util/network';
 import { Notification } from './util/notification';
 import { Settings } from './util/settings';
 
-import { BackgroundCommand, DefaultSettings } from './common';
+import { SystemChannel, DefaultSettings } from './common';
 
 const logger = Logger.get('bg');
 
@@ -58,12 +59,17 @@ class BackgroundApp {
   /**
    * Updates the config from stored settings (which may change).
    * NOTE: Allows update of muliple config params from settings.
+   * @returns {boolean} true if reconnect is needed (e.g., server changed).
    */
   static UpdateConfig(config, settings) {
+    let restart = (config.server != settings.server);
+
     _.assign(config, settings, {
       graphql: settings.server + '/graphql',
       graphiql: settings.server + '/graphiql'
     });
+
+    return restart;
   }
 
   constructor() {
@@ -76,14 +82,17 @@ class BackgroundApp {
     // Listens for client connections.
     this._dispatcher = new ChromeMessageChannelDispatcher();
 
-    // Channel for system messages between components.
-    this._systemChannel;
-
-    // Pop-ups.
+    // Errors and notifications.
     this._notification = new Notification();
+    this._eventHandler = new EventHandler();
 
-    // Error handler.
-    ErrorHandler.handleErrors();
+    ErrorUtil.handleErrors(window, error => {
+      logger.error(error);
+      this._eventHandler.emit({
+        type: 'error',
+        message: ErrorUtil.message(error)
+      });
+    });
 
     //
     // Network.
@@ -91,7 +100,6 @@ class BackgroundApp {
     // NetworkManager => AuthManager.getToken()
     //
 
-    this._eventHandler = new EventHandler();
     this._queryRegistry = new QueryRegistry();
 
     this._authManager = new AuthManager(this._config);
@@ -102,8 +110,11 @@ class BackgroundApp {
     this._networkManager =
       new NetworkManager(this._config, this._authManager, this._connectionManager, this._eventHandler);
 
+    // Channel for system messages between components.
+    this._systemChannel = null;
+
     // Event listeners (for background state changes).
-    this.onChange = new Listeners();
+    this._onChange = new Listeners();
   }
 
   /**
@@ -115,18 +126,16 @@ class BackgroundApp {
   }
 
   /**
-   * On initialization we authenticate (get User ID from the server),
-   * and then connect (get the Client ID from the server).
-   *
-   * AuthManager.authenticate()
-   *   => firebase.auth().signInWithCredential()
-   *     => ConnectionManager.connect()
-   *       => ConnectionManager.register() => { client, user }
-   *
-   * Then start listening to client (context page) requests. The first request should be a 'REGISTER' command
-   * on the system channel. We return to the client the current user ID.
-   *
-   * NOTE: For the web runtime, this isn't necessary since both the User ID and Client ID are known ahead of time.
+   * Expose collection of listeners.
+   * @returns {Listeners}
+   */
+  get onChange() {
+    return this._onChange;
+  }
+
+  /**
+   * Authenticates and then registers the app.
+   * If successful, starts listening for system and graphql channel requests from other components.
    */
   init() {
 
@@ -134,84 +143,79 @@ class BackgroundApp {
     // Load the settings into the configuration.
     // NOTE: This included the clientId.
     //
-    this._settings.load().then(settings => {
-      BackgroundApp.UpdateConfig(this._config, settings);
-      logger.info(JSON.stringify(this._config));
+    return this._settings.load()
+      .then(settings => {
+        BackgroundApp.UpdateConfig(this._config, settings);
 
-      // Initialize the network manager.
-      this._networkManager.init();
+        // Initialize the network manager.
+        this._networkManager.init();
 
-      // Triggers popup.
-      this._authManager.authenticate(true).then(user => {
+        // Triggers popup.
+        return this._authManager.authenticate(true).then(user => {
 
-        // Register with server.
-        this._connectionManager.register().then(registration => {
-          logger.log('Registered: ' + JSON.stringify(registration));
-
-          // Save registration.
-          this._settings.set('registration', registration).then(() => {
-            if (settings.notifications) {
-              this._notification.show('Minder', 'Authentication succeeded.');
-            }
+          // Register with server.
+          return this.connect().then(registration => {
 
             //
-            // Proxy Apollo requests.
+            // Handle system requests from other components (e.g., sidebar).
+            //
+            this._systemChannel = this._dispatcher.listen(SystemChannel.CHANNEL, this.onSystemCommand.bind(this));
+
+            //
+            // Proxy GraphQL requests from other components (e.g., sidebar).
             // http://dev.apollodata.com/core/network.html#custom-network-interface
             // See also ChromeNetworkInterface
-            // TODO(burdon): Network logging.
             //
             this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, request => {
               return this._networkManager.networkInterface.query(request);
             });
 
             //
-            // Handle system message requests/responses.
-            //
-            this._systemChannel = this._dispatcher.listen(BackgroundCommand.CHANNEL, this.onSystemMessage.bind(this));
-
-            //
-            // Listen for settings updates (not called on first load).
+            // Listen for settings updates (e.g., from options page).
             //
             this._settings.onChange.addListener(settings => {
-
-              // Check network settings (server) changes.
-              let restart = this._config.server != settings.server;
-              BackgroundApp.UpdateConfig(this._config, settings);
-
-              // TODO(burdon): factor out function.
-              if (restart) {
-                // Reset cache.
-                this._networkManager.init();
-
-                // Re-register with server.
-                this._connectionManager.register().then(registration => {
-
-                  // Save registration.
-                  this._settings.set('registration', registration).then(() => {
-
-                    // Broadcast reset to all clients (to reset cache).
-                    this._systemChannel.postMessage(null, {
-                      command: BackgroundCommand.FLUSH_CACHE
-                    });
-                  });
-                });
+              let reconnect = BackgroundApp.UpdateConfig(this._config, settings);
+              if (reconnect) {
+                return this.connect();
               }
-
-              this.onChange.fireListeners();
             });
           });
         });
+      })
+      .then(() => {
+        return this;
       });
+  }
 
-      // TODO(burdon): Notify other components.
-      // Listen for termination and inform scripts.
-      // https://developer.chrome.com/extensions/runtime#event-onSuspend
-      chrome.runtime.onSuspend.addListener(() => {
-        logger.log('System going down...');
+  /**
+   *
+   * @returns {Promise.<{Registration}>}
+   */
+  connect() {
+    // Flush the cache.
+    this._networkManager.init();
+
+    // Re-register with server.
+    return this._connectionManager.register().then(registration => {
+      logger.log('Registered: ' + JSON.stringify(registration));
+      if (this._config.notifications) {
+        this._notification.show('Minder', 'Registered App.');
+      }
+
+      // Save registration.
+      this._settings.set('registration', registration).then(() => {
+
+        // Broadcast reset to all clients (to reset cache).
+        console.log('...');
+        this._systemChannel.postMessage(null, {
+          command: SystemChannel.FLUSH_CACHE
+        });
+
+        // Notify state changed.
+        this._onChange.fireListeners();
+        return registration;
       });
     });
-
-    return this;
   }
 
   /**
@@ -219,20 +223,19 @@ class BackgroundApp {
    * @param request
    * @returns {*}
    */
-  onSystemMessage(request) {
+  onSystemCommand(request) {
     logger.log('System request: ' + TypeUtil.stringify(request));
     switch (request.command) {
 
       // Ping.
-      case BackgroundCommand.PING: {
+      case SystemChannel.PING: {
         return Promise.resolve({
           timestamp: new Date().getTime()
         });
       }
 
-      // On client startup.
-      // TODO(burdon): Race condition (sidebar opens before BG page is connected).
-      case BackgroundCommand.REGISTER_APP: {
+      // On sidebar startup.
+      case SystemChannel.REQUEST_REGISTRATION: {
         let { server } = this._config;
         let registration = this._connectionManager.registration;
         if (!registration) {
@@ -242,15 +245,12 @@ class BackgroundApp {
         }
       }
 
-      // TODO(burdon): Factor out with onChange above.
-      case BackgroundCommand.REGISTER_CLIENT: {
-        this._networkManager.init();
-        return this._connectionManager.register();
+      case SystemChannel.AUTHENTICATE: {
+        return this._authManager.signout(true);
       }
 
-      // Invalidate auth.
-      case BackgroundCommand.AUTHENTICATE: {
-        return this._authManager.signout(true);
+      case SystemChannel.REGISTER_CLIENT: {
+        return this.connect();
       }
 
       default: {
@@ -260,4 +260,14 @@ class BackgroundApp {
   }
 }
 
-window.app = new BackgroundApp().init();
+window.app = new BackgroundApp();
+window.app.init().then(app => {
+  logger.info(JSON.stringify(app.config));
+
+  // Listen for termination and inform scripts.
+  // https://developer.chrome.com/extensions/runtime#event-onSuspend
+  chrome.runtime.onSuspend.addListener(() => {
+    // TODO(burdon): Notify other components.
+    logger.warn('System going down...');
+  });
+});

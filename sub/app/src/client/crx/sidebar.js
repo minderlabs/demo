@@ -2,14 +2,12 @@
 // Copyright 2017 Minder Labs.
 //
 
-Logger.setLevel({
-  'reducer': Logger.Level.debug,
-}, Logger.Level.info);
+Logger.setLevel({}, Logger.Level.info);
 
 import { createMemoryHistory } from 'react-router';
 
 import {
-  Async, ErrorUtil, HttpUtil, Injector, KeyListener,
+  Async, HttpUtil, Injector, KeyListener,
   ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger
 } from 'minder-core';
 
@@ -21,7 +19,7 @@ import { Const } from '../../common/defs';
 
 import { TypeRegistryFactory } from '../web/framework/type_factory';
 
-import { BackgroundCommand, SidebarCommand, KeyCodes } from './common';
+import { SystemChannel, SidebarCommand, KeyCodes } from './common';
 import { ChromeNetworkInterface } from './util/network';
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 import { Application } from './sidebar/app';
@@ -88,13 +86,13 @@ class SidebarApp extends BaseApp {
     //
 
     this._router = new ChromeMessageChannelRouter();
-    this._systemChannel = new ChromeMessageChannel(BackgroundCommand.CHANNEL, this._router);
+    this._systemChannel = new ChromeMessageChannel(SystemChannel.CHANNEL, this._router);
     this._systemChannel.onMessage.addListener(message => {
       console.log('Command: ' + JSON.stringify(message));
       switch (message.command) {
 
         // Reset Apollo client (flush cache); e.g., Backend re-connected.
-        case BackgroundCommand.FLUSH_CACHE: {
+        case SystemChannel.FLUSH_CACHE: {
           this.resetStore();
           break;
         }
@@ -122,10 +120,10 @@ class SidebarApp extends BaseApp {
 
     // Register with the background page to obtain the CRX registration (userId, clientId) and server.
     // NOTE: Retry in case background page hasn't registered with the server yet (race condition).
-    console.log('Registering with background page...');
+    console.log('Getting registration...');
     return Async.retry(() => {
       return this._systemChannel.postMessage({
-        command: BackgroundCommand.REGISTER_APP
+        command: SystemChannel.REQUEST_REGISTRATION
       }, true)
         .then(({ registration, server }) => {
           console.assert(registration && server);
@@ -152,7 +150,7 @@ class SidebarApp extends BaseApp {
     return [
       Injector.provider(TypeRegistryFactory()),
       Injector.provider(this._messenger),
-      Injector.provider(this._systemChannel, 'system-channel')
+      Injector.provider(this._systemChannel, SystemChannel.CHANNEL)
     ]
   }
 
