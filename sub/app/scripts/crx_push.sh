@@ -32,6 +32,29 @@ CRX_ID="ofdkhkelcafdphpddfobhbbblgnloian"
 #
 CRX_GROUP_ID="u32a9eaef58cd96cf309f9a48dfd49b9d"
 
+BUILD=1
+VERSION=0
+PUBLISH=1
+
+for i in "$@"
+do
+case $i in
+  --build)
+  BUILD=1
+  ;;
+
+  --version)
+  VERSION=1
+  shift
+  ;;
+
+  --publish)
+  PUBLISH=1
+  ;;
+esac
+done
+
+
 # TODO(burdon): Option to patch.
 #grunt version:crx:patch
 
