@@ -70,8 +70,7 @@ class ContentScript {
     // TODO(burdon): Use Redux actions to manage content script state.
     //
     const updateVisibility = (visible) => {
-      console.log('Toggle: ' + visible);
-      this.sidebar.messenger.sendMessage({
+      this.sidebar.messenger.postMessage({
         command: SidebarCommand.UPDATE_VISIBILITY,
         visible
       })
@@ -81,13 +80,25 @@ class ContentScript {
     // Listen for messages from the SidebarApp (frame).
     //
     this.sidebar.messenger.listen(message => {
+      console.log('Message: ' + message.command);
       switch (message.command) {
+
+        //
+        // Errors.
+        //
+        case SidebarCommand.ERROR: {
+          console.error('Sidebar Error: ' + message.message);
+          break;
+        }
 
         //
         // Sidebar loaded and is ready.
         //
         case SidebarCommand.INITIALIZED: {
-          this.sidebar.initialized().open().then(visible => updateVisibility(visible));
+          // Hack to give sidebar time to complete initial render.
+          setTimeout(() => {
+            this.sidebar.initialized().open().then(visible => updateVisibility(visible));
+          }, 500);
           break;
         }
 
@@ -107,6 +118,10 @@ class ContentScript {
           promise.then(visible => updateVisibility(visible));
           break;
         }
+
+        default: {
+          console.error('Unknown command: ' + message.command);
+        }
       }
     });
 
@@ -120,7 +135,7 @@ class ContentScript {
 
         // Send update to SidebarApp.
         const send = () => {
-          this.sidebar.messenger.sendMessage({
+          this.sidebar.messenger.postMessage({
             command: SidebarCommand.UPDATE_CONTEXT,
             context
           });

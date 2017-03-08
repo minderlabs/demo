@@ -123,6 +123,7 @@ export const AppReducer = (injector, config, registration=undefined) => {
   console.assert(injector && config);
 
   const initialState = {
+
     // NOTE: Needed since can't be passed via React context to HOC containers.
     injector: injector,
 

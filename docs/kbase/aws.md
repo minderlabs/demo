@@ -9,7 +9,7 @@
 pip install --upgrade --user awscli
 ```
 
-NOTE: This installs aws here: ~/Library/Python/2.7/bin (add to .bash_profile)
+NOTE: This installs aws here: ~/Library/Python/2.7/bin (add path to .bash_profile)
 
 ## Account setup
 
@@ -18,8 +18,8 @@ NOTE: This installs aws here: ~/Library/Python/2.7/bin (add to .bash_profile)
     * login password (the AWS console is at https://minderlabs.signin.aws.amazon.com/console)
     * Access credentials (access key and secret) for API access.
 
-1. Create a credentials file at `$HOME/.aws/credentials` as follows, using the access credentials
-   you received. If you have an existing credentials file, add this as a new profile:
+1. Create a credentials file at `$HOME/.aws/credential` using the downloaded access credentials.
+   NOTE: The credential secret is only available once when the IAM account is created.
 
 ```
 [minder]

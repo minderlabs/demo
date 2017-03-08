@@ -45,6 +45,7 @@ export const KeyCodes = {
  */
 export const SidebarCommand = {
 
+  ERROR:              'ERROR',                // Notify content script of errors in sidebar.
   INITIALIZED:        'INITIALIZED',          // Notify content script sidebar is initialized.
   SET_VISIBILITY:     'SET_VISIBILITY',       // Request sidebar visibility.
   UPDATE_VISIBILITY:  'UPDATE_VISIBILITY',    // Notify when sidebar visibilty changes.

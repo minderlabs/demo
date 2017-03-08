@@ -32,7 +32,7 @@ export class ChromeNetworkInterface {
    */
   query(gqlRequest) {
     this._eventHandler && this._eventHandler.emit({ type: 'network.out' });
-    return this._channel.postMessage(gqlRequest).wait().then(gqlResponse => {
+    return this._channel.postMessage(gqlRequest, true).then(gqlResponse => {
       this._eventHandler && this._eventHandler.emit({ type: 'network.in' });
       return gqlResponse;
     });

@@ -76,6 +76,9 @@ class BackgroundApp {
     // Listens for client connections.
     this._dispatcher = new ChromeMessageChannelDispatcher();
 
+    // Channel for system messages between components.
+    this._systemChannel;
+
     // Pop-ups.
     this._notification = new Notification();
 
@@ -98,81 +101,6 @@ class BackgroundApp {
 
     this._networkManager =
       new NetworkManager(this._config, this._authManager, this._connectionManager, this._eventHandler);
-
-    //
-    // Listen for settings updates (not called on first load).
-    //
-
-    this._settings.onChange.addListener(settings => {
-
-      // Check network settings (server) changes.
-      let restart = this._config.server != settings.server;
-      BackgroundApp.UpdateConfig(this._config, settings);
-
-      if (restart) {
-        // Reset cache.
-        this._networkManager.init();
-
-        // Re-register with server.
-        this._connectionManager.register().then(registration => {
-
-          // Save registration.
-          this._settings.set('registration', registration).then(() => {
-
-            // Broadcast reset to all clients (to reset cache).
-            this._systemChannel.postMessage(null, {
-              command: BackgroundCommand.FLUSH_CACHE
-            });
-          });
-        });
-      }
-
-      this.onChange.fireListeners();
-    });
-
-    //
-    // Handle system requests/responses.
-    //
-
-    this._systemChannel = this._dispatcher.listen(BackgroundCommand.CHANNEL, request => {
-      logger.log('System request: ' + TypeUtil.stringify(request));
-      switch (request.command) {
-
-        // Ping.
-        case BackgroundCommand.PING: {
-          return Promise.resolve({
-            timestamp: new Date().getTime()
-          });
-        }
-
-        // On client startup.
-        // TODO(burdon): Race condition (sidebar opens before BG page is connected).
-        case BackgroundCommand.REGISTER_APP: {
-          let { server } = this._config;
-          let registration = this._connectionManager.registration;
-          if (!registration) {
-            throw new Error('Not registered.');
-          } else {
-            return Promise.resolve({ registration, server });
-          }
-        }
-
-        // TODO(burdon): Factor out with onChange above.
-        case BackgroundCommand.REGISTER_CLIENT: {
-          this._networkManager.init();
-          return this._connectionManager.register();
-        }
-
-        // Invalidate auth.
-        case BackgroundCommand.AUTHENTICATE: {
-          return this._authManager.signout(true);
-        }
-
-        default: {
-          throw new Error('Invalid command: ' + request.command);
-        }
-      }
-    });
 
     // Event listeners (for background state changes).
     this.onChange = new Listeners();
@@ -234,16 +162,50 @@ class BackgroundApp {
             // See also ChromeNetworkInterface
             // TODO(burdon): Network logging.
             //
-            this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, gqlRequest => {
-              return this._networkManager.networkInterface.query(gqlRequest).then(gqlResponse => {
-                return gqlResponse;
-              });
+            this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, request => {
+              return this._networkManager.networkInterface.query(request);
+            });
+
+            //
+            // Handle system message requests/responses.
+            //
+            this._systemChannel = this._dispatcher.listen(BackgroundCommand.CHANNEL, this.onSystemMessage.bind(this));
+
+            //
+            // Listen for settings updates (not called on first load).
+            //
+            this._settings.onChange.addListener(settings => {
+
+              // Check network settings (server) changes.
+              let restart = this._config.server != settings.server;
+              BackgroundApp.UpdateConfig(this._config, settings);
+
+              // TODO(burdon): factor out function.
+              if (restart) {
+                // Reset cache.
+                this._networkManager.init();
+
+                // Re-register with server.
+                this._connectionManager.register().then(registration => {
+
+                  // Save registration.
+                  this._settings.set('registration', registration).then(() => {
+
+                    // Broadcast reset to all clients (to reset cache).
+                    this._systemChannel.postMessage(null, {
+                      command: BackgroundCommand.FLUSH_CACHE
+                    });
+                  });
+                });
+              }
+
+              this.onChange.fireListeners();
             });
           });
         });
       });
 
-      // TODO(burdon): Notify scripts.
+      // TODO(burdon): Notify other components.
       // Listen for termination and inform scripts.
       // https://developer.chrome.com/extensions/runtime#event-onSuspend
       chrome.runtime.onSuspend.addListener(() => {
@@ -252,6 +214,51 @@ class BackgroundApp {
     });
 
     return this;
+  }
+
+  /**
+   * Handle system message (from other components: sidebar, options, etc.)
+   * @param request
+   * @returns {*}
+   */
+  onSystemMessage(request) {
+    logger.log('System request: ' + TypeUtil.stringify(request));
+    switch (request.command) {
+
+      // Ping.
+      case BackgroundCommand.PING: {
+        return Promise.resolve({
+          timestamp: new Date().getTime()
+        });
+      }
+
+      // On client startup.
+      // TODO(burdon): Race condition (sidebar opens before BG page is connected).
+      case BackgroundCommand.REGISTER_APP: {
+        let { server } = this._config;
+        let registration = this._connectionManager.registration;
+        if (!registration) {
+          throw new Error('Not registered.');
+        } else {
+          return Promise.resolve({ registration, server });
+        }
+      }
+
+      // TODO(burdon): Factor out with onChange above.
+      case BackgroundCommand.REGISTER_CLIENT: {
+        this._networkManager.init();
+        return this._connectionManager.register();
+      }
+
+      // Invalidate auth.
+      case BackgroundCommand.AUTHENTICATE: {
+        return this._authManager.signout(true);
+      }
+
+      default: {
+        throw new Error('Invalid command: ' + request.command);
+      }
+    }
   }
 }
 

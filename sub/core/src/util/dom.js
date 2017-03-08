@@ -42,16 +42,18 @@ export class WindowMessenger {
     // TODO(burdon): Only listen for matching frameId!
     // Listen for inbound messages on this window.
     window.addEventListener('message', event => {
+      let { data } = event;
+
       if (origin && origin != event.origin) {
         return;
       }
 
       // Since we're listening on the window there may be many posters (e.g., different frames).
-      if (event.data.channel != this._channel) {
+      if (data.channel != this._channel) {
         return;
       }
 
-      this._onMessage && this._onMessage(event.data.message);
+      this._onMessage && this._onMessage(data.message);
     });
   }
 
@@ -79,8 +81,11 @@ export class WindowMessenger {
    * https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
    * @param message
    */
-  sendMessage(message) {
-    console.assert(this._frame);
+  postMessage(message) {
+    if (!this._frame) {
+      console.warn('Not attached: ' + JSON.stringify(message));
+      return;
+    }
 
     // NOTE: '*' could be intercepted by anything else on the page.
     // https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
@@ -106,13 +111,6 @@ export class KeyListener {
 
         // Match keys against event.
         if (_.every(_.omit(spec, ['hint']), (value, key) => event[key] == value)) {
-
-          // let e = _.every(_.omit(spec, ['hint']), (value, key) => {
-          //   console.log(':::::::::::::', key, value, event[key]);
-          //   return event[key] == value;
-          // });
-          // console.log('>>>>>>>>>>', e);
-
           callback();
         }
       });
@@ -126,6 +124,7 @@ export class KeyListener {
    * @returns {KeyListener}
    */
   listen(spec, callback) {
+    console.assert(spec && callback)
     this._bindings.set(spec, callback);
     return this;
   }

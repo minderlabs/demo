@@ -230,19 +230,24 @@ export class ChromeMessageChannel {
     this._channel = channel;
     this._router = router;
 
-    // Map of pending resolvers by ID.
+    // Map of pending Promises by ID.
     this._pending = new Map();
 
     // Listen for channel messages.
     this._router.listen(this._channel, message => {
       let { header, data } = message;
-      let resolver = this._pending.get(header.id);
-      if (resolver) {
-        // Notify caller waiting for async response.
-        resolver(data);
+      let { resolve, reject } = this._pending.get(header.id);
+
+      if (header.error) {
+        reject && reject(header.error);
       } else {
-        // Notify listeners.
-        this.onMessage.fireListeners(data);
+        if (resolve) {
+          // Notify caller waiting for async response.
+          resolve(data);
+        } else {
+          // Notify listeners.
+          this.onMessage.fireListeners(data);
+        }
       }
     });
 
@@ -251,30 +256,27 @@ export class ChromeMessageChannel {
   }
 
   /**
-   * Posts messages to the endpoint.
+   * Posts messages to the endpoint, optionally blocking until the response is received.
    *
-   * Optionally calling wait() on the returned value will return a promise that blocks
-   * until the response is received.
-   *
-   * postMessage({ message: 'hello' }).wait().then(reponse => { console.log(reponse); });
+   * postMessage({ message: 'hello' }, true).then(reponse => { console.log(reponse); });
    *
    * @param {object} data
-   * @return {object} Message receipt.
+   * @param {boolean} block If false then promise blocks
+   * @return {Promise} Message receipt.
    */
-  postMessage(data) {
-    let header = this._router.sender.postMessage(data, {
-      channel: this._channel
-    });
+  postMessage(data, block=false) {
+    return new Promise((resolve, reject) => {
+      let header = this._router.sender.postMessage(data, {
+        channel: this._channel
+      });
 
-    return {
-      // TODO(burdon): Stipulate timeout.
-      wait: () => {
-        return new Promise((resolve, reject) => {
-          // Wait for inbound message.
-          this._pending.set(header.id, resolve);
-        });
+      if (block) {
+        // TODO(burdon): Timeout?
+        this._pending.set(header.id, { resolve, reject });
+      } else {
+        resolve();
       }
-    }
+    });
   }
 }
 
@@ -284,6 +286,9 @@ export class ChromeMessageChannel {
 export class ChromeMessageChannelDispatcher {
 
   constructor() {
+
+    // Map of listeners indexed by channel.
+    this._listeners = new Map();
 
     // Message receiver.
     this._receiver = new ChromeMessageReceiver().listen((client, request, header) => {
@@ -306,11 +311,13 @@ export class ChromeMessageChannelDispatcher {
       } else {
         // TODO(burdon): Buffer.
         console.warn('No listener for channel: ' + header.channel);
+        this._receiver.postMessage(client, {}, {
+          id: header.id,
+          channel: header.channel,
+          error: 'No listener.'
+        });
       }
     });
-
-    // Map of listeners indexed by channel.
-    this._listeners = new Map();
   }
 
   /**

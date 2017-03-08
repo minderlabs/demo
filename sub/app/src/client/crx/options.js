@@ -52,7 +52,7 @@ class Options extends React.Component {
   onRegister() {
     return this._systemChannel.postMessage({
       command: BackgroundCommand.REGISTER_CLIENT
-    }).wait().then(response => {
+    }, true).then(response => {
       this.onRefresh();
     });
   }
@@ -60,7 +60,7 @@ class Options extends React.Component {
   onAuthenticate() {
     return this._systemChannel.postMessage({
       command: BackgroundCommand.AUTHENTICATE
-    }).wait().then(response => {
+    }, true).then(response => {
       this.onRefresh();
     });
   }
