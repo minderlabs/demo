@@ -34,9 +34,9 @@ export const DefaultSettings = {
 export const KeyCodes = {
 
   TOGGLE: {
-    hint: '⌘-DEL',
-    keyCode: 8,
-    metaKey: true
+    hint: '⌘-/',
+    metaKey: true,
+    keyCode: 191
   }
 };
 

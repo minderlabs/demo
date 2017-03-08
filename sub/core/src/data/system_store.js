@@ -17,10 +17,12 @@ const logger = Logger.get('system');
  */
 export class SystemStore extends DelegateItemStore {
 
+  // TODO(burdon): Namespace prefix Group/minderlabs_com/xxx, Group/system, etc.
+
   /**
    * Make legal firebase key.
    */
-  // TODO(burdon): Move to firebase.
+  // TODO(burdon): Move to util.
   static sanitizeKey(str) {
     return str.replace(/\W+/g, '_');
   }

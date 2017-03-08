@@ -67,8 +67,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
  * https://github.com/reactjs/react-redux/issues/237
  */
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  // TODO(burdon): Is this too expensive?
-  return _.defaults({}, ownProps, dispatchProps, stateProps);
+  return _.defaults({}, ownProps, stateProps, dispatchProps);
 };
 
 /**

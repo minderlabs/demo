@@ -170,8 +170,11 @@ export class AuthManager {
         scopes: GoogleApiConfig.authScopes
       };
 
-      // NOTE: Can only be accessed from background page.
-      // NOTE: This hangs if the manifest's oauth2 client_id is wronge (e.g., prod vs. dev).
+      // TODO(burdon): "For a good user experience..."
+      // https://developer.chrome.com/apps/identity#method-getAuthToken
+
+      // NOTE: Can only be accessed from the background page.
+      // NOTE: This hangs if the manifest's oauth2 client_id is wrong (e.g., prod vs. dev).
       // https://developer.chrome.com/apps/app_identity
       // https://developer.chrome.com/apps/identity#method-getAuthToken
       chrome.identity.getAuthToken(options, accessToken => {

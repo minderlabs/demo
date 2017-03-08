@@ -42,6 +42,11 @@ class Finder extends React.Component {
       let { typeRegistry } = this.context;
       let { filter, listType } = this.props;
 
+      // TODO(burdon): CRX debug.
+      let debug = (
+        <div className="ux-debug ux-font-xsmall">{ JSON.stringify(filter) }</div>
+      );
+
       let list;
       switch (listType) {
         case 'card':
@@ -64,6 +69,7 @@ class Finder extends React.Component {
       return (
         <div className="app-finder ux-column">
           { list }
+          { debug }
         </div>
       );
     });
@@ -88,6 +94,8 @@ const FoldersQuery = gql`
 
 const mapStateToProps = (state, ownProps) => {
   let { config, injector, search } = AppAction.getState(state);
+
+  // Current user context (e.g., host page).
   let { context } = ContextAction.getState(state);
 
   // TODO(burdon): Move to layout config.
