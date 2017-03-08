@@ -38,6 +38,8 @@ const scriptId = new Date().getTime();
  */
 class ContentScript {
 
+  // TODO(burdon): Remove jquery.
+
   static manifest = chrome.runtime.getManifest();
 
   constructor() {
@@ -49,19 +51,22 @@ class ContentScript {
 
     // Button to toggle sidebar.
     // Grabs focus so that pressing enter causes toggle.
-    let button = $('<button>').appendTo(container)
-//    .attr('autofocus', 'autofocus')
+    this.button = $('<button>').appendTo(container)
       .append($('<img>')
         .attr('title', KeyCodes.TOGGLE.hint)
         .attr('src', chrome.extension.getURL('img/icon_128.png')))
-      .click(() => { this.sidebar.toggle() });
+        .css('cursor', 'pointer')
+      .click(() => {
+        this.sidebar.toggle();
+        this.button.focus();
+      });
 
     // Frame elements.
     this.sidebar = new Frame(
       'page/sidebar.html',
       'sidebar/' + scriptId,
       $('<div>').addClass('crx-sidebar').appendTo(container),
-      () => { button.addClass('crx-bounce') });
+      () => { this.button.addClass('crx-bounce') });
 
     //
     // Notify sidebar of visibility.
@@ -116,6 +121,7 @@ class ContentScript {
           }
 
           promise.then(visible => updateVisibility(visible));
+          this.button.focus();
           break;
         }
 
@@ -157,6 +163,7 @@ class ContentScript {
     const keyBindings = new KeyListener()
       .listen(KeyCodes.TOGGLE, () => {
         this.sidebar.toggle().then(visible => updateVisibility(visible))
+        this.button.focus();
       });
   }
 }
