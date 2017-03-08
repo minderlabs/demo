@@ -140,8 +140,9 @@ content_scripts:
 #
 
 oauth2:
-  # CRX (Dev).
-  client_id: "189079594739-fmlffnn0o5ka1nej028t44lp2v6knon7.apps.googleusercontent.com"
+  # Match OAuth client IDs
+  # https://console.developers.google.com/apis/credentials?project=minder-beta
+  client_id: "189079594739-10gkom97s5dmmmjgkdaa57el6th3shko.apps.googleusercontent.com"
 
   # Default scopes (can be overridden in getAuthToken call (network.js)
   scopes:
