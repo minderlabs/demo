@@ -6,6 +6,7 @@
 h1 {
   font-family: "Poiret One";
   font-size: 80px;
+  opacity: .5;
 }
 
 /* Links */
@@ -33,7 +34,7 @@ a:hover {
 html,
 body {
   height: 100%;
-  background-color: #333;
+  background-color: #185588;
 }
 body {
   color: #fff;
