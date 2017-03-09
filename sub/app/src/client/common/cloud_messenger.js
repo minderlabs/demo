@@ -41,6 +41,7 @@ class CloudMessenger {
   }
 
   /**
+   * Register with the FCM/GCM server.
    * @return {Promise<pushToken>}
    */
   connect(onMessage) {
@@ -48,14 +49,14 @@ class CloudMessenger {
   }
 
   /**
-   *
+   * Unregister with the FMC/GCM server.
    */
   disconnect() {
     throw new Error('Not implemented.');
   }
 
   /**
-   *
+   * Message callback.
    * @param data
    */
   onMessage(data) {
@@ -148,9 +149,6 @@ export class GoogleCloudMessenger extends CloudMessenger {
     });
   }
 
-  // TODO(burdon): Same server-side send? See ClientManager.
-  // https://developers.google.com/cloud-messaging/downstream
-
   // TODO(burdon): Use for upstream messages (XMPP)?
   // https://developers.google.com/cloud-messaging/chrome/client#send_messages
 
@@ -160,10 +158,9 @@ export class GoogleCloudMessenger extends CloudMessenger {
 
       // https://developers.google.com/cloud-messaging/chrome/client
       chrome.gcm.register([ String(GoogleApiConfig.projectNumber) ], messageToken => {
-
-        // TODO(burdon): Handle errors.
-        // https://developers.google.com/cloud-messaging/chrome/client#error_reference
-        console.assert(!chrome.runtime.lastError);
+        if (chrome.runtime.lastError) {
+          throw new Error(chrome.runtime.lastError);
+        }
 
         resolve(messageToken);
       });

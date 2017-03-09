@@ -20,6 +20,12 @@ export const DefaultSettings = {
   // Show notification messages.
   notifications: false,
 
+  // Auto-open the sidebar if context changes.
+  autoopen: false,
+
+  // Navigate to web-app.
+  webapp: true,
+
   // App server (e.g., dev, prod).
   server: Defs.SERVER.PROD.title,
 
@@ -45,28 +51,28 @@ export const KeyCodes = {
  */
 export const SidebarCommand = {
 
-  ERROR:              'ERROR',                // Notify content script of errors in sidebar.
-  INITIALIZED:        'INITIALIZED',          // Notify content script sidebar is initialized.
-  SET_VISIBILITY:     'SET_VISIBILITY',       // Request sidebar visibility.
-  UPDATE_VISIBILITY:  'UPDATE_VISIBILITY',    // Notify when sidebar visibilty changes.
-  UPDATE_CONTEXT:     'UPDATE_CONTEXT'        // Update content script context.
+  ERROR:                  'ERROR',                // Notify content script of errors in sidebar.
+  INITIALIZED:            'INITIALIZED',          // Notify content script sidebar is initialized.
+  SET_VISIBILITY:         'SET_VISIBILITY',       // Request sidebar visibility.
+  UPDATE_VISIBILITY:      'UPDATE_VISIBILITY',    // Notify when sidebar visibilty changes.
+  UPDATE_CONTEXT:         'UPDATE_CONTEXT'        // Update content script context.
 };
 
 /**
  * Sidebar <==> Background Page commands.
  */
-export const BackgroundCommand = {
+export const SystemChannel = {
 
-  CHANNEL:            'system',
+  CHANNEL:                'system',
 
   // From options.
-  AUTHENTICATE:       'AUTHENTICATE',
-  REGISTER_CLIENT:    'REGISTER_CLIENT',
+  AUTHENTICATE:           'AUTHENTICATE',
+  REGISTER_CLIENT:        'REGISTER_CLIENT',
 
   // From sidebar.
-  PING:               'PING',
-  REGISTER_APP:       'REGISTER_APP',
+  PING:                   'PING',
+  REQUEST_REGISTRATION:   'REQUEST_REGISTRATION',
 
   // To sidebar.
-  FLUSH_CACHE:        'FLUSH_CACHE'
+  FLUSH_CACHE:            'FLUSH_CACHE'
 };

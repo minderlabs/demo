@@ -7,7 +7,7 @@ import ReactDOM from 'react-dom';
 
 import { ChromeMessageChannel, ChromeMessageChannelRouter } from 'minder-core';
 
-import { BackgroundCommand } from './common';
+import { SystemChannel } from './common';
 import { Settings } from './util/settings';
 
 import { DefaultSettings, Defs } from './common';
@@ -37,7 +37,7 @@ class Options extends React.Component {
     this._settings.load(true);
 
     // Message channel to background page.
-    this._systemChannel = new ChromeMessageChannel(BackgroundCommand.CHANNEL, new ChromeMessageChannelRouter());
+    this._systemChannel = new ChromeMessageChannel(SystemChannel.CHANNEL, new ChromeMessageChannelRouter());
 
     // TODO(burdon): Subscribe to changes from BG page (config and client state).
     chrome.extension.getBackgroundPage().app.onChange.addListener(() => {
@@ -51,7 +51,7 @@ class Options extends React.Component {
 
   onRegister() {
     return this._systemChannel.postMessage({
-      command: BackgroundCommand.REGISTER_CLIENT
+      command: SystemChannel.REGISTER_CLIENT
     }, true).then(response => {
       this.onRefresh();
     });
@@ -59,7 +59,7 @@ class Options extends React.Component {
 
   onAuthenticate() {
     return this._systemChannel.postMessage({
-      command: BackgroundCommand.AUTHENTICATE
+      command: SystemChannel.AUTHENTICATE
     }, true).then(response => {
       this.onRefresh();
     });
@@ -90,9 +90,6 @@ class Options extends React.Component {
   render() {
     let { settings } = this.state;
 
-    // TODO(burdon): Auto-open.
-    // TODO(burdon): Debug/logging option.
-
     return (
       <div>
         <div className="crx-panel crx-form">
@@ -100,14 +97,22 @@ class Options extends React.Component {
             <label>
               <input type="checkbox"
                      value={ settings.notifications }
-                     onChange={ this.onChangeValue.bind(this, 'notifications') }/> Notifications
+                     onChange={ this.onChangeValue.bind(this, 'notifications') }/> Desktop Notifications
+            </label>
+            <label>
+              <input type="checkbox"
+                     value={ settings.autoopen }
+                     onChange={ this.onChangeValue.bind(this, 'autoopen') }/> Auto-open Sidebar
+            </label>
+            <label>
+              <input type="checkbox"
+                     value={ settings.webapp }
+                     onChange={ this.onChangeValue.bind(this, 'webapp') }/> Navigate to Web App
             </label>
           </div>
 
-          <br/>
           <div className="crx-section">
             <h2>Debugging</h2>
-            <label htmlFor="settings_server">Server</label>
             <select name="settings_server"
                     value={ settings.server }
                     onChange={ this.onChangeValue.bind(this, 'server') }>
@@ -118,17 +123,12 @@ class Options extends React.Component {
           </div>
 
           <div className="crx-section">
-            <button onClick={ this.onReset.bind(this) }>Default Settings</button>
-            <button onClick={ this.onAuthenticate.bind(this) }>Authenticate</button>
-            <button onClick={ this.onRegister.bind(this) }>Register Client</button>
+            <button onClick={ this.onReset.bind(this) }>Reset Settings</button>
+            <button onClick={ this.onAuthenticate.bind(this) }>Re-authenticate</button>
+            <button onClick={ this.onRegister.bind(this) }>Re-register</button>
           </div>
 
-          <div className="crx-section">
-            {/*
-            <pre>
-              { JSON.stringify(settings, null, 2) }
-            </pre>
-            */}
+          <div>
             <pre>
               { JSON.stringify(chrome.extension.getBackgroundPage().app.config, null, 2) }
             </pre>

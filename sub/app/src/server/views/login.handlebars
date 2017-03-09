@@ -3,7 +3,7 @@
   <script>
     // TODO(burdon): Transpile for non-Chrome.
     let auth = new Auth();
-    let promise = ({{ force }}) ? auth.logout() : Promise.resolve();
+    let promise = ({{ force }}) ? auth.logout(true) : Promise.resolve();
     promise.then(() => {
       console.log('Authenticating...');
       auth.login().then(user => {

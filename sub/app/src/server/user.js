@@ -7,7 +7,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 
-import { ErrorUtil, Logger } from 'minder-core';
+import { ErrorUtil, NotAuthenticatedError, Logger } from 'minder-core';
 
 import { Const } from '../common/defs';
 
@@ -73,9 +73,10 @@ export class UserManager {
    * For server-side auth the client also set's a cookie.
    *
    * @param req HTTP request object.
+   * @param required If true then throw if null.
    * @returns {Promise}
    */
-  getUserFromHeader(req) {
+  getUserFromHeader(req, required) {
     console.assert(req);
 
     // Token set in apollo client's network interface middleware.
@@ -84,6 +85,9 @@ export class UserManager {
     let match = auth && auth.match(/^Bearer (.+)$/);
     let token = match && match[1];
     if (!token) {
+      if (required) {
+        throw NotAuthenticatedError();
+      }
       return Promise.resolve(null);
     }
 
@@ -96,14 +100,19 @@ export class UserManager {
    * Gets the user from the JWT token in a cookie set by the login client.
    *
    * @param req HTTP request object.
+   * @param required If true then throw if null.
    * @returns {Promise}
    */
-  getUserFromCookie(req) {
+  getUserFromCookie(req, required) {
     console.assert(req);
 
     // Cookie set by auth script before app loads.
     let token = _.get(req.cookies, Const.AUTH_COOKIE);
     if (!token) {
+      if (required) {
+        throw NotAuthenticatedError();
+      }
+
       return Promise.resolve(null);
     }
 
@@ -135,7 +144,7 @@ export const loginRouter = (userManager, accountManager, systemStore, options) =
 
   // Login page.
   router.use('/login', function(req, res) {
-    let force = !!req.params.force;
+    let force = !!req.query.force;
 
     // Firebase JS login.
     res.render('login', { force }) ;
@@ -148,28 +157,36 @@ export const loginRouter = (userManager, accountManager, systemStore, options) =
   });
 
   // Handle user registration.
-  router.post('/register', async function(req, res) {
+  router.post('/register', function(req, res, next) {
     let { userInfo, credential } = req.body;
+
     // Update or register user.
-    res.send(JSON.stringify({
-      user: await systemStore.registerUser(userInfo, credential)
-    }));
+    return systemStore.registerUser(userInfo, credential)
+      .then(user => {
+        res.send(JSON.stringify({ user }));
+      })
+      .catch(next);
   });
 
   // Profile page.
-  router.get('/profile', async function(req, res) {
-    let user = await userManager.getUserFromCookie(req);
-    if (user) {
-      let group = await systemStore.getGroup(user.id);
-      res.render('profile', {
-        user,
-        groups: [ group ],
-        accounts: accountManager.handlers,
-        crxUrl: Const.CRX_URL(Const.CRX_ID)
-      });
-    } else {
-      res.redirect('/home');
-    }
+  router.get('/profile', function(req, res, next) {
+    return userManager.getUserFromCookie(req)
+      .then(user => {
+        if (user) {
+          return systemStore.getGroup(user.id)
+            .then(group => {
+              res.render('profile', {
+                user,
+                groups: [ group ],
+                accounts: accountManager.handlers,
+                crxUrl: Const.CRX_URL(Const.CRX_ID)
+              });
+            })
+        } else {
+          res.redirect('/home');
+        }
+      })
+      .catch(next);
   });
 
   return router;

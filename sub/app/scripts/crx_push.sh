@@ -20,6 +20,9 @@ CRX_ID="ofdkhkelcafdphpddfobhbbblgnloian"
 # TODO(burdon): Document.
 #
 
+# TODO(burdon): Chrome Web Store API (metrics?)
+# https://console.developers.google.com/apis/api/chromewebstore.googleapis.com/overview?project=minder-beta&duration=PT1H
+
 # !!!
 # SUPPORT TICKET
 # https://developer.chrome.com/webstore/publish#set-up-group-publishing

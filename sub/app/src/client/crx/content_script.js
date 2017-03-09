@@ -15,6 +15,9 @@ const scriptId = new Date().getTime();
 /**
  * Content Script is loaaded on all pages declared in the manifest.
  *
+ * NOTE: The OAuth spec in the manifest must match the console credentials.
+ * NOTE: The content script is self-contained (does not reference minder-ux, to keep small etc.)
+ *
  * Lifecycle:
  * 0). On install, the background page attempts to authenticate and connect with the server,
  *     registering the CRX client.
@@ -25,7 +28,7 @@ const scriptId = new Date().getTime();
  * 5). The sidebar loading and initialization isn't instantaneous, so the icon is bounced to let the user
  *     know that something is happening.
  * 6). The sidebar app then sends a request to the background page to get the client registration info
- *     (userId, clientId, etc.)
+ *     (userId, clientId, etc.) NOTE: This may retry if the background page isn't currently registered.
  * 7). Once the registration is received, the sidebar app completes its initialization, renders the app, and
  *     then sends a ready message to the content script.
  *     NOTE: The sidebar configues its Apollo client network interface to proxy GraphQL requests via a
@@ -33,8 +36,6 @@ const scriptId = new Date().getTime();
  * 8). The content script then adds a CSS class to the frame container to make it visible.
  * 9). Subsequent toggles just show/hide the frame container. However, the content script sends open/close
  *     notifications to the sidebar (since otherwise it would not know its visibility state).
- *
- * NOTE: All CRX is self-container (does not reference minder-ux, etc.)
  */
 class ContentScript {
 
@@ -162,7 +163,7 @@ class ContentScript {
     // Shortcuts.
     const keyBindings = new KeyListener()
       .listen(KeyCodes.TOGGLE, () => {
-        this.sidebar.toggle().then(visible => updateVisibility(visible))
+        this.sidebar.toggle().then(visible => updateVisibility(visible));
         this.button.focus();
       });
   }

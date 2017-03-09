@@ -236,7 +236,7 @@ export class ChromeMessageChannel {
     // Listen for channel messages.
     this._router.listen(this._channel, message => {
       let { header, data } = message;
-      let { resolve, reject } = this._pending.get(header.id);
+      let { resolve, reject } = this._pending.get(header.id) || {};
 
       if (header.error) {
         reject && reject(header.error);
@@ -303,18 +303,15 @@ export class ChromeMessageChannelDispatcher {
                 id: header.id,
                 channel: header.channel
               });
-            })
-            .catch(error => {
-              console.log('ERROR:', error);
             });
         }
       } else {
-        // TODO(burdon): Buffer.
-        console.warn('No listener for channel: ' + header.channel);
+        // TODO(burdon): Buffer or retry?
+        console.warn('Listener not registered: ' + header.channel);
         this._receiver.postMessage(client, {}, {
           id: header.id,
           channel: header.channel,
-          error: 'No listener.'
+          error: 'Listener not registered.'
         });
       }
     });

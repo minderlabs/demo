@@ -6,7 +6,7 @@ const NAMESPACE = 'sidebar';
 
 import { WindowMessenger } from 'minder-core';
 
-import { BackgroundCommand, SidebarCommand } from '../common';
+import { SystemChannel, SidebarCommand } from '../common';
 
 /**
  * Sidebar Redux actions.
@@ -54,7 +54,7 @@ export class SidebarAction {
       });
 
       injector.get('system-channel')
-        .postMessage({ command: BackgroundCommand.PING }, true)
+        .postMessage({ command: SystemChannel.PING }, true)
         .then(response => {
           // Set received response.
           dispatch({

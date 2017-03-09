@@ -2,7 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-import _ from 'lodash';
 import express from 'express';
 import bodyParser from 'body-parser';
 import moment from 'moment';
@@ -24,42 +23,49 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
   // JSON body.
   router.use(bodyParser.json());
 
+  //
   // Registers the client.
-  router.post('/register', async function(req, res) {
-    let user = await userManager.getUserFromHeader(req);
-    if (!user) {
-      logger.warn('Not authenticated.');
-      return res.status(401).end();
-    }
+  //
+  router.post('/register', function(req, res, next) {
+    return userManager.getUserFromHeader(req, true)
+      .then(user => {
+        let { platform, messageToken } = req.body;
 
-    let clientId = req.headers[Const.HEADER.CLIENT_ID];
-    let { platform, messageToken } = req.body;
+        // Register the client (and create it if necessary).
+        let clientId = req.headers[Const.HEADER.CLIENT_ID];
+        let client = clientManager.register(user.id, platform, clientId, messageToken);
+        if (!client) {
+          return res.status(400).send({ message: 'Invalid client.' });
+        }
 
-    // Register the client (and create it if necessary).
-    let client = clientManager.register(platform, clientId, user.id, messageToken);
-    if (!client) {
-      return res.status(400).send({ message: 'Invalid client.' });
-    }
+        // Get group.
+        // TODO(burdon): Remove group.
+        return systemStore.getGroup(user.id)
+          .then(group => {
 
-    // Get group.
-    // TODO(burdon): Remove.
-    let group = await systemStore.getGroup(user.id);
-
-    // Registration info.
-    res.send({
-      timestamp: client.registered,
-      userId: user.id,
-      clientId: client.id,
-      groupId: group.id   // TODO(burdon): Remove.
-    });
+            // Registration info.
+            res.send({
+              timestamp: client.registered,
+              userId: user.id,
+              clientId: client.id,
+              groupId: group.id   // TODO(burdon): Remove group.
+            });
+          });
+      })
+      .catch(next);
   });
 
+  //
   // Unregisters the client.
-  router.post('/unregister', async function(req, res) {
-    let user = await userManager.getUserFromHeader(req);
-    let clientId = req.headers[Const.HEADER.CLIENT_ID];
-    clientManager.unregister(clientId, user && user.id);
-    res.end();
+  //
+  router.post('/unregister', function(req, res, next) {
+    return userManager.getUserFromHeader(req, true)
+      .then(user => {
+        let clientId = req.headers[Const.HEADER.CLIENT_ID];
+        clientManager.unregister(user.id, clientId);
+        res.end();
+      })
+      .catch(next);
   });
 
   return router;
@@ -86,7 +92,7 @@ export class ClientManager {
     this._idGenerator = idGenerator;
 
     // Map of clients indexed by ID.
-    // TODO(burdon): Make persistent.
+    // TODO(burdon): Persistence.
     // TODO(burdon): Expire web clients after 1 hour (force reconnect if client re-appears).
     this._clients = new Map();
   }
@@ -115,13 +121,18 @@ export class ClientManager {
     });
   }
 
+  // TODO(burdon): Make WEB AND CRX same? (i.e., don't server clientId). Web might also cache ID since service worker.
+
   /**
    * Clients are created at different times for different platforms.
    * Web: Created when the page is served.
    * CRX: Created when the app registers.
+   * @param userId
+   * @param platform
+   * @returns {Client}
    */
-  create(platform, userId) {
-    console.assert(platform && userId);
+  create(userId, platform) {
+    console.assert(userId && platform, JSON.stringify({ userId, platform }));
 
     let client = {
       id: this._idGenerator.createId('C-'),
@@ -140,18 +151,24 @@ export class ClientManager {
   /**
    * Called by clients on start-up (and to refresh tokens, etc.)
    * NOTE: mobile devices requet ID here.
+   * @param userId
+   * @param platform
+   * @param clientId
+   * @param messageToken
+   * @returns {Client}
    */
-  register(platform, clientId, userId, messageToken=undefined) {
-    console.assert(clientId && userId);
+  register(userId, platform, clientId, messageToken=undefined) {
+    console.assert(userId && platform, JSON.stringify({ userId, platform, clientId }));
 
-    let client = this._clients.get(clientId);
+    let client = clientId && this._clients.get(clientId);
     if (!client) {
+      // Web clients should have been created on page load.
       if (platform !== Const.PLATFORM.WEB) {
-        logger.warn('Invalid client for: ' + clientId);
+        logger.warn('Invalid client: ' + clientId);
       }
 
       // Create the client.
-      client = this.create(platform, userId);
+      client = this.create(userId, platform);
     } else if (client.userId != userId) {
       logger.error('Invalid user for client: ' + JSON.stringify({ clientId, userId }));
       return null;
@@ -166,11 +183,11 @@ export class ClientManager {
 
   /**
    * Called by web client on page unload.
-   * @param clientId
    * @param userId
+   * @param clientId
    */
-  unregister(clientId, userId=undefined) {
-    console.assert(clientId);
+  unregister(userId, clientId) {
+    console.assert(userId && clientId, JSON.stringify({ userId, clientId }));
 
     logger.log('UnRegistered: ' + clientId);
     this._clients.delete(clientId);

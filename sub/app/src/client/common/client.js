@@ -86,6 +86,7 @@ export class ConnectionManager {
     return this._authManager.getToken().then(authToken => {
 
       // Get the push channel token.
+      // TODO(burdon): Store the message token.
       return this._cloudMessenger.connect().then(messageToken => {
         logger.log('Cloud Messenger connected.');
 

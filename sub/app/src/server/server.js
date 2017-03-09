@@ -15,6 +15,7 @@ import moment from 'moment';
 
 import {
   ErrorUtil,
+  NotAuthenticatedError,
   Logger,
   TypeUtil
 } from 'minder-core';
@@ -54,19 +55,12 @@ const logger = Logger.get('server');
 
 //
 // Error handling.
-// https://nodejs.org/api/errors.html
-// https://www.joyent.com/node-js/production/design/errors (Really good general error handling article).
 //
 
-function handleError(error) {
-  logger.error('UNCAUGHT: ' + ErrorUtil.stack(error));
-}
+ErrorUtil.handleErrors(process, error => {
+  logger.error(ErrorUtil.stack(error))
+});
 
-// https://nodejs.org/api/process.html#process_event_uncaughtexception
-process.on('uncaughtException', handleError);
-
-// https://nodejs.org/api/process.html#process_event_unhandledrejection
-process.on('unhandledRejection', handleError);
 
 //
 // Env.
@@ -195,7 +189,7 @@ let loading = Promise.all([
     // TODO(burdon): Use randomizer to generate test projects for non-admin groups.
     if (testing && false) {
       logger.log('Generating test data...');
-      return loader.parse(require('./data/test.json')).then(() => {
+      return loader.parse(require('./data/testing.json')).then(() => {
         return new TestGenerator(database).generate();
       });
     }
@@ -276,16 +270,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cookieParser());
 
-app.get('/home', async function(req, res) {
-  let user = await userManager.getUserFromCookie(req);
-  if (user) {
-    res.redirect(Const.APP_PATH);
-  } else {
-    res.render('home', {
-      crxUrl: Const.CRX_URL(Const.CRX_ID),
-      login: true
-    });
-  }
+app.get('/home', function(req, res, next) {
+  return userManager.getUserFromCookie(req)
+    .then(user => {
+      if (user) {
+        res.redirect(Const.APP_PATH);
+      } else {
+        res.render('home', {
+          crxUrl: Const.CRX_URL(Const.CRX_ID),
+          login: true
+        });
+      }
+    })
+    .catch(next);
 });
 
 app.get('/welcome', function(req, res) {
@@ -329,10 +326,11 @@ app.use(graphqlRouter(database, {
 
 //
 // Custom GraphiQL.
+// TODO(burdon): Move to Util (how to use handlebars in external lib?)
 //
 
-let staticPath = (env === 'production' ?
-    path.join(__dirname, '../node_modules') : path.join(__dirname, '../../node_modules'));
+let staticPath = (env === 'production') ?
+    path.join(__dirname, '../node_modules') : path.join(__dirname, '../../node_modules');
 
 app.use('/node_modules', express.static(staticPath));
 
@@ -357,21 +355,30 @@ app.get('/graphiql', function(req, res) {
 
 //
 // Admin.
+// TODO(burdon): SECURITY: Permissions!
 //
 
-// TODO(burdon): Permissions.
 app.use('/admin', adminRouter(clientManager, firebase, {
   scheduler: (env === 'production')
 }));
 
 
 //
-// App.
+// App services.
 //
 
 app.use('/user', loginRouter(userManager, accountManager, systemStore, { env }));
 
 app.use('/client', clientRouter(userManager, clientManager, systemStore));
+
+if (botkitManager) {
+  app.use('/botkit', botkitRouter(botkitManager));
+}
+
+
+//
+// Web App.
+//
 
 app.use(appRouter(userManager, clientManager, systemStore, {
 
@@ -398,25 +405,63 @@ app.use(appRouter(userManager, clientManager, systemStore, {
   }
 }));
 
-if (botkitManager) {
-  app.use('/botkit', botkitRouter(botkitManager));
-}
 
 //
 // Catch-all (last).
 //
 
+app.use('/foo', function(req, res, next) {
+  return new Promise((resolve, reject) => {
+
+    console.log(req.query);
+
+    if (req.query.error) {
+      throw new Error('!!!');
+    }
+
+    res.send('HI');
+    resolve();
+  }).catch(next);
+});
+
 app.use('/', function(req, res) {
   res.redirect('/home');
 });
 
-// Default redirect.
+
+//
+// File not found.
+//
+
 app.use(function(req, res) {
   logger.log(`[404]: ${req.path}`);
+  res.status(404).end();
+});
 
-  // TODO(burdon): Don't redirect if resource request (e.g., robots.txt, favicon.ico, etc.)
-//res.redirect('/home');
-  res.status = 404;
+
+//
+// Error handling (e.g., uncaught exceptions).
+// https://expressjs.com/en/guide/error-handling.html
+//
+// NOTE: Must be last.
+// NOTE: Async functions must call next() for subsequent middleware to be called.
+//
+// app.use(function(req, res, next) {
+//   return new Promise((resolve, reject) => {
+//     res.end();
+//   }).catch(next);
+// });
+//
+// https://strongloop.com/strongblog/async-error-handling-expressjs-es7-promises-generators/
+//
+
+app.use(function(error, req, res, next) {
+  if (error === NotAuthenticated) {
+    return res.status(401).end();
+  }
+
+  logger.error(error.stack);
+  res.status(500).end();
 });
 
 

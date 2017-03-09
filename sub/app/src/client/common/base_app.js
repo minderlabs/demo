@@ -12,10 +12,8 @@ import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
 
-import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
-
+import { ErrorUtil, EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 import { Analytics, GoogleAnalytics } from './analytics';
-import { ErrorHandler } from './errors';
 
 const logger = Logger.get('main');
 
@@ -42,8 +40,13 @@ export class BaseApp {
 
     this._analytics = new GoogleAnalytics(this._config);
 
-    // Errors.
-    ErrorHandler.handleErrors(this._eventHandler);
+    ErrorUtil.handleErrors(window, error => {
+      logger.error(error);
+      this._eventHandler.emit({
+        type: 'error',
+        message: ErrorUtil.message(error)
+      });
+    });
   }
 
   /**
