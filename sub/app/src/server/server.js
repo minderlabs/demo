@@ -330,7 +330,8 @@ app.use(graphqlRouter(database, {
 //
 
 let staticPath = (env === 'production') ?
-    path.join(__dirname, '../node_modules') : path.join(__dirname, '../../node_modules');
+  path.join(__dirname, '../node_modules') :
+  path.join(__dirname, '../../node_modules');
 
 app.use('/node_modules', express.static(staticPath));
 

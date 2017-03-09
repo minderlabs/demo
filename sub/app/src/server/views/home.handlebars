@@ -36,22 +36,22 @@
     </div>
 
   </div>
-
-  <script src="/assets/website.bundle.js"></script>
-  <script>
-    new Words().start(3, 30);
-
-    function login() {
-      let url = '/user/login';
-      if (window.event.shiftKey) {
-        url += '?force';
-      }
-      document.location.href = url;
-    }
-
-    function installCrx() {
-      // https://developer.chrome.com/webstore/inline_installation
-      chrome.webstore.install('{{ crxUrl }}', () => { console.log('OK') }, error => { console.error(error) });
-    }
-  </script>
 </div>
+
+<script src="/assets/website.bundle.js"></script>
+<script>
+  new Words().start(3, 30);
+
+  function login() {
+    let url = '/user/login';
+    if (window.event.shiftKey) {
+      url += '?force';
+    }
+    document.location.href = url;
+  }
+
+  function installCrx() {
+    // https://developer.chrome.com/webstore/inline_installation
+    chrome.webstore.install('{{ crxUrl }}', () => { console.log('OK') }, error => { console.error(error) });
+  }
+</script>
