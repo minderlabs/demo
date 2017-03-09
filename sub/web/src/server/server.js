@@ -9,6 +9,10 @@ import handlebars from 'express-handlebars';
 import http from 'http';
 import path from 'path';
 
+const env = _.get(process.env, 'NODE_ENV', 'development');
+
+const rootdir = _.get(process.env, 'NODE_ROOT_DIR', __dirname);
+
 const app = express();
 
 //
@@ -16,8 +20,8 @@ const app = express();
 //
 app.engine('handlebars', handlebars({
   defaultLayout: 'main',
-  layoutsDir: path.join(__dirname, '/views/layouts'),
-  partialsDir: path.join(__dirname, '/views/partials'),
+  layoutsDir: path.join(rootdir, '/views/layouts'),
+  partialsDir: path.join(rootdir, '/views/partials'),
   helpers: {
     section: function(name, options) {
       if (!this.sections) {
@@ -28,13 +32,15 @@ app.engine('handlebars', handlebars({
   }
 }));
 
-app.use('/node_modules', express.static(path.join(__dirname, '../../node_modules')));
-
-app.use(favicon(path.join(__dirname, 'public/favicon.ico')));
-app.use(express.static(path.join(__dirname, 'public')));
-
 app.set('view engine', 'handlebars');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(rootdir, 'views'));
+
+app.use('/node_modules', express.static(path.join(rootdir, '../../node_modules')));
+
+app.use('/assets', express.static((env === 'production') ? rootdir : path.join(rootdir, '../../dist')));
+
+app.use(favicon(path.join(rootdir, 'public/favicon.ico')));
+app.use(express.static(path.join(rootdir, 'public')));
 
 app.get('/', function(req, res) {
   res.render('home', {});
