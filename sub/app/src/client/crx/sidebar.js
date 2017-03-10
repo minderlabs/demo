@@ -12,16 +12,16 @@ import {
   ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger, HttpUtil, Injector, KeyListener
 } from 'minder-core';
 
+import { Const } from '../../common/defs';
+
 import { Path } from '../common/path';
 import { BaseApp } from '../common/base_app';
+import { ChromeNetworkInterface } from '../common/network';
 import { AppAction, AppReducer, ContextAction, ContextReducer } from '../common/reducers';
-
-import { Const } from '../../common/defs';
 
 import { TypeRegistryFactory } from '../web/framework/type_factory';
 
 import { BackgroundCommand, SidebarCommand, KeyToggleSidebar } from './common';
-import { ChromeNetworkInterface } from './util/network';
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 import { Application } from './sidebar/app';
 

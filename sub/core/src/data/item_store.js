@@ -7,6 +7,10 @@ import moment from 'moment';
 
 import { TypeUtil } from '../util/type';
 
+import { ID } from './id';
+import { Transforms } from './transforms';
+
+
 /**
  * Abstract base class.
  *
@@ -105,6 +109,54 @@ export class ItemStore extends QueryProcessor {
    */
   upsertItems(context, items) {
     throw new Error('Not implemented');
+  }
+
+  /**
+   * Processes the item mutations, creating and updating items.
+   *
+   * @param itemStore
+   * @param context
+   * @param itemMutations
+   * @return {Promise<[{Item}]>}
+   */
+  static applyMutations(itemStore, context, itemMutations) {
+    console.assert(itemStore && context && itemMutations);
+
+    return Promise.all(_.map(itemMutations, itemMutation => {
+      let { itemId, mutations } = itemMutation;
+
+      let { type, id:localId } = ID.fromGlobalId(itemId);
+
+      //
+      // Get and update item.
+      // TODO(burdon): Relies on getItem to return {} for not found.
+      //
+      return itemStore.getItem(context, type, localId)
+        .then(item => {
+
+          // If not found (i.e., insert).
+          // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
+          if (!item) {
+            item = {
+              id: localId,
+              type: type
+            };
+          }
+
+          //
+          // Apply mutations.
+          //
+          return Transforms.applyObjectMutations(item, mutations);
+        });
+    }))
+
+      //
+      // Upsert items.
+      //
+      .then(results => {
+        let items = TypeUtil.flattenArrays(results);
+        return itemStore.upsertItems(context, items)
+      });
   }
 }
 

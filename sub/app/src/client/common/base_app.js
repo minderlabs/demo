@@ -174,8 +174,8 @@ export class BaseApp {
       }
     });
 
-    // TODO(burdon): Create test object for globals.
-    window.apollo = this._apolloClient;
+    // TODO(burdon): Create global test object.
+    _.set(window, 'minder.apollo', this._apolloClient);
 
     return Promise.resolve();
   }

@@ -51,7 +51,8 @@ export class Database {
   static NAMESPACE = {
     SYSTEM:   'system',
     SETTINGS: 'settings',
-    USER:     'user'
+    USER:     'user',
+    LOCAL:    'local'
   };
 
   static isExternalNamespace(namespace) {

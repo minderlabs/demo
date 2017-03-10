@@ -5,7 +5,7 @@
 import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
-const ItemsQuery = gql`
+export const ItemsQuery = gql`
   query ItemsQuery($filter: FilterInput, $offset: Int, $count: Int) {
     items(filter: $filter, offset: $offset, count: $count) {
       id

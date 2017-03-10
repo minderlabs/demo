@@ -6,7 +6,8 @@ import _ from 'lodash';
 import { print } from 'graphql-tag/printer';
 import { createNetworkInterface } from 'apollo-client';
 
-import { HttpUtil, TypeUtil, Wrapper } from 'minder-core';
+import { UpsertItemsMutation, ItemsQuery, ItemStore, MemoryItemStore } from 'minder-core';
+import { Database, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -196,7 +197,7 @@ export class NetworkManager {
     // https://github.com/apollographql/apollo-client/blob/a86acf25df5eaf0fdaab264fd16c2ed22657e65c/test/customResolvers.ts
 
     // Create HTTPFetchNetworkInterface
-    this._networkInterface = createNetworkInterface({
+    let networkInterface = createNetworkInterface({
       uri: this._config.graphql
     })
       .use([
@@ -207,6 +208,10 @@ export class NetworkManager {
       .useAfter([
         logResponse
       ]);
+
+    // Intercept LOCAL namespace.
+    let itemStore = new MemoryItemStore();
+    this._networkInterface = InterceptorNetworkInterface.createNetworkInterface(itemStore, networkInterface);
 
     return this;
   }
@@ -267,5 +272,111 @@ class NetworkLogger {
 
   logErrors(requestId, errors) {
     logger.error($$('GraphQL Error [%s]: %s', requestId, NetworkLogger.stringify(errors)));
+  }
+}
+
+/**
+ * Implements the Apollo NetworkInterface to proxy requests to the background page.
+ *
+ * http://dev.apollodata.com/core/network.html#custom-network-interface
+ */
+export class ChromeNetworkInterface { // extends NetworkInterface {
+
+  // TODO(burdon): Move to minder-core.
+
+  static CHANNEL = 'apollo';
+
+  /**
+   * Creates the network interface with the given Chrome channel (to the BG page).
+   *
+   * @param channel
+   * @param eventHandler
+   */
+  constructor(channel, eventHandler=undefined) {
+    console.assert(channel);
+    this._channel = channel;
+    this._eventHandler = eventHandler;
+  }
+
+
+  /**
+   * Proxy request through the message sender.
+   *
+   * @param {GraphQLRequest} gqlRequest
+   * @return {Promise<GraphQLResult>}
+   */
+  query(gqlRequest) {
+    this._eventHandler && this._eventHandler.emit({ type: 'network.out' });
+    return this._channel.postMessage(gqlRequest).wait().then(gqlResponse => {
+      this._eventHandler && this._eventHandler.emit({ type: 'network.in' });
+      return gqlResponse;
+    });
+  }
+}
+
+/**
+ *
+ */
+export class InterceptorNetworkInterface {
+
+  // TODO(burdon): Extend NetworkInterface.
+  // https://github.com/apollographql/apollo-client/issues/1403
+  // https://github.com/apollographql/apollo-client/blob/master/src/transport/networkInterface.ts
+
+  /**
+   * Monkey patch existing interface.
+   * @param itemStore
+   * @param networkInterface
+   * @returns {*}
+   */
+  static createNetworkInterface(itemStore, networkInterface) {
+    console.assert(cache && networkInterface);
+
+    let originalQuery = networkInterface.query.bind(networkInterface);
+
+    // ExecutionResult { data, errors }
+    // https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js
+    networkInterface.query = (request) => {
+      let { operationName, query, variables } = request;
+
+      // TODO(burdon): Factor out.
+      const ItemsQueryName = _.get(ItemsQuery, 'definitions[0].name.value');
+      const UpsertItemsMutationName = _.get(UpsertItemsMutation, 'definitions[0].name.value');
+
+      //
+      // Intercept LOCAL namespace.
+      //
+
+      switch (operationName) {
+        case ItemsQueryName: {
+          let { filter } = variables;
+          let { namespace } = filter;
+          if (namespace == Database.NAMESPACE.LOCAL) {
+            return itemStore.queryItems({}, {}, filter).then(items => ({
+              data: {
+                items
+              }
+            }));
+          }
+          break;
+        }
+
+        case UpsertItemsMutationName: {
+          let { namespace, mutations } = variables;
+          if (namespace == Database.NAMESPACE.LOCAL) {
+            return ItemStore.applyMutations(itemStore, {}, mutations).then(items => ({
+              data: {
+                items
+              }
+            }));
+          }
+          break;
+        }
+      }
+
+      return originalQuery(request);
+    };
+
+    return networkInterface;
   }
 }
