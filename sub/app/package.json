@@ -60,7 +60,8 @@
     "webpack-dev-server": "^1.16.2",
     "webpack-hot-middleware": "^2.13.2",
     "webpack-link": "^0.2.0",
-    "webpack-node-externals": "^1.5.4"
+    "webpack-node-externals": "^1.5.4",
+    "webpack-notifier": "^1.5.0"
   },
   "dependencies": {
     "apollo-client": "^0.6.0",

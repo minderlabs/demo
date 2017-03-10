@@ -24,4 +24,5 @@ dist/
 .idea/codeStyleSettings.xml
 .idea/copyright/
 
-virtual_env/
+venv/
+creds.data

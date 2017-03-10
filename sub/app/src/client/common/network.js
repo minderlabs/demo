@@ -56,22 +56,6 @@ export class NetworkManager {
     // Logging.
     this._logger = new NetworkLogger(this._config);
 
-    // Create the interface.
-    // http://dev.apollodata.com/core/network.html
-    // http://dev.apollodata.com/core/apollo-client-api.html#createNetworkInterface
-    this._networkInterface = createNetworkInterface({
-      uri: this._config.graphql
-    });
-
-    // TODO(burdon): Configure batching via options.
-    // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
-
-    // TODO(burdon): Currently catching network errors as unhandled promises (see main.js)
-    // https://github.com/apollostack/apollo-client/issues/657 [Added comment]
-    // https://github.com/apollostack/apollo-client/issues/891
-    // https://github.com/apollostack/apollo-client/pull/950
-    // https://github.com/apollostack/react-apollo/issues/345
-
     /**
      * Add headers for execution context (e.g., JWT Authentication header).
      */
@@ -100,9 +84,11 @@ export class NetworkManager {
     const fixFetchMoreBug = {
       applyMiddleware: ({ request, options }, next) => {
 
-        // Remove duplicate fragment.
+        // Map of definitions by name.
         let definitions = {};
-        request.query.definitions = _.filter(request.query.definitions, (definition) => {
+
+        // Remove duplicate fragment.
+        request.query.definitions = _.filter(request.query.definitions, definition => {
           let name = definition.name.value;
           if (definitions[name]) {
             logger.warn('SKIPPING: %s', name);
@@ -194,9 +180,25 @@ export class NetworkManager {
     };
 
     //
+    // Create the interface (and middleware).
+    // http://dev.apollodata.com/core/network.html
+    // http://dev.apollodata.com/core/apollo-client-api.html#createNetworkInterface
     // http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
+    // https://github.com/apollographql/apollo-client/blob/master/src/transport/networkInterface.ts
     //
-    this._networkInterface
+
+    // TODO(burdon): Subscriptions (esp. BG page); create directive. (SubscriptionNetworkInterface)
+
+    // TODO(burdon): Configure batching via options.
+    // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
+
+    // TODO(burdon): Testing (mockNetworkInterface).
+    // https://github.com/apollographql/apollo-client/blob/a86acf25df5eaf0fdaab264fd16c2ed22657e65c/test/customResolvers.ts
+
+    // Create HTTPFetchNetworkInterface
+    this._networkInterface = createNetworkInterface({
+      uri: this._config.graphql
+    })
       .use([
         addHeaders,
         fixFetchMoreBug,
@@ -242,6 +244,9 @@ class NetworkLogger {
     console.assert(options);
     this._options = options;
   }
+
+  // TODO(burdon): printRequest
+  // https://github.com/apollographql/apollo-client/blob/master/src/transport/networkInterface.ts
 
   logRequest(requestId, request) {
     logger.log($$('[_TS_] ===>>> [%s] %o', requestId, request.variables || {}));

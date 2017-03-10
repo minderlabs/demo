@@ -130,7 +130,6 @@ export const loginRouter = (userManager, accountManager, systemStore, options) =
 
   // Login page.
   router.use('/login', function(req, res) {
-    console.log(req.params);
     let force = !!req.params.force;
 
     // Firebase JS login.

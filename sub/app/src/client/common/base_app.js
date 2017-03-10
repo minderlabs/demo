@@ -134,23 +134,47 @@ export class BaseApp {
    * Acpollo client.
    */
   initApollo() {
-    let networkInterface = this.networkInterface;
-    console.assert(networkInterface);
+    console.assert(this.networkInterface);
 
-    // TODO(burdon): Subscriptions?
-
-    // TODO(burdon): Custom resolvers (for cache resolution -- and offline).
-    // http://dev.apollodata.com/react/cache-updates.html#cacheRedirect
-
+    //
     // http://dev.apollodata.com/react/initialization.html
+    // http://dev.apollodata.com/core/apollo-client-api.html#apollo-client
     // https://github.com/apollostack/apollo-client/blob/6b6e8ded1e0f83cb134d2261a3cf7d2d9416400f/src/ApolloClient.ts
+    //
+
     this._apolloClient = new ApolloClient({
+
+      // http://dev.apollodata.com/react/cache-updates.html
       dataIdFromObject: ID.dataIdFromObject,
-      queryDeduplication: true,
       addTypename: true,
-      networkInterface
+
+      // http://dev.apollodata.com/core/network.html#query-deduplication
+      queryDeduplication: true,
+
+      // http://dev.apollodata.com/core/network.html
+      networkInterface: this.networkInterface,
+
+      // https://github.com/apollographql/apollo-client-devtools
+      // https://chrome.google.com/webstore/detail/apollo-client-developer-t/jdkknkkbebbapilgoeccciglkfbmbnfm
+      connectToDevTools: true,
+
+      // Custom resolver (items are resolved from the cache.
+      // http://dev.apollodata.com/react/cache-updates.html#cacheRedirect
+      // https://github.com/apollographql/apollo-client/blob/a86acf25df5eaf0fdaab264fd16c2ed22657e65c/test/customResolvers.ts
+      // https://github.com/apollographql/apollo-client/blob/6b6e8ded1e0f83cb134d2261a3cf7d2d9416400f/src/data/storeUtils.ts
+      customResolvers: {
+        Query: {
+          item: (_, args) => {
+            return {
+              type: 'id',
+              id: args['itemId']  // GraphQL query-soecific.
+            };
+          }
+        }
+      }
     });
 
+    // TODO(burdon): Create test object for globals.
     window.apollo = this._apolloClient;
 
     return Promise.resolve();

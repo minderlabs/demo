@@ -1,3 +1,3 @@
 <component name="DependencyValidationManager">
-  <scope name="Sources" pattern="file[minder-demo]:sub//*" />
+  <scope name="Sources" pattern="file[minder-demo]:sub//*&amp;&amp;!file[minder-demo]:sub//node_modules//*&amp;&amp;!file[minder-demo]:sub//dist//*" />
 </component>
