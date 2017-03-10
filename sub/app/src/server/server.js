@@ -189,7 +189,7 @@ let loading = Promise.all([
     // TODO(burdon): Use randomizer to generate test projects for non-admin groups.
     if (testing && false) {
       logger.log('Generating test data...');
-      return loader.parse(require('./data/test.json')).then(() => {
+      return loader.parse(require('./data/testing.json')).then(() => {
         return new TestGenerator(database).generate();
       });
     }
