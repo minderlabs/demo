@@ -12,9 +12,7 @@ import ApolloClient from 'apollo-client';
 
 import moment from 'moment';
 
-import { EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
-
-import { ErrorHandler } from './errors';
+import { ErrorUtil, EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 
 const logger = Logger.get('main');
 
@@ -39,8 +37,13 @@ export class BaseApp {
     // Manages Apollo query subscriptions.
     this._queryRegistry = new QueryRegistry();
 
-    // Errors.
-    ErrorHandler.handleErrors(this._eventHandler);
+    ErrorUtil.handleErrors(window, error => {
+      logger.error(error);
+      this._eventHandler.emit({
+        type: 'error',
+        message: ErrorUtil.message(error)
+      });
+    });
   }
 
   /**

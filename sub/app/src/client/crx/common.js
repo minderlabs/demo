@@ -20,6 +20,12 @@ export const DefaultSettings = {
   // Show notification messages.
   notifications: false,
 
+  // Auto-open the sidebar if context changes.
+  autoopen: false,
+
+  // Navigate to web-app.
+  webapp: true,
+
   // App server (e.g., dev, prod).
   server: Defs.SERVER.PROD.title,
 
@@ -29,11 +35,15 @@ export const DefaultSettings = {
 
 /**
  * Keys
+ * Properties (other than "hint") should match the keydown event.
  */
-export const KeyToggleSidebar = {
+export const KeyCodes = {
 
-  keyCode: 8,         // DELETE
-  metaKey: true
+  TOGGLE: {
+    hint: '⌘-/',
+    metaKey: true,
+    keyCode: 191
+  }
 };
 
 /**
@@ -41,25 +51,28 @@ export const KeyToggleSidebar = {
  */
 export const SidebarCommand = {
 
-  INITIALIZED:        'INITIALIZED',          // Notify content script sidebar is initialized.
-  SET_VISIBILITY:     'SET_VISIBILITY',       // Request sidebar visibility.
-  UPDATE_VISIBILITY:  'UPDATE_VISIBILITY',    // Notify when sidebar visibilty changes.
-  UPDATE_CONTEXT:     'UPDATE_CONTEXT'        // Update content script context.
+  ERROR:                  'ERROR',                // Notify content script of errors in sidebar.
+  INITIALIZED:            'INITIALIZED',          // Notify content script sidebar is initialized.
+  SET_VISIBILITY:         'SET_VISIBILITY',       // Request sidebar visibility.
+  UPDATE_VISIBILITY:      'UPDATE_VISIBILITY',    // Notify when sidebar visibilty changes.
+  UPDATE_CONTEXT:         'UPDATE_CONTEXT'        // Update content script context.
 };
 
 /**
  * Sidebar <==> Background Page commands.
  */
-export const BackgroundCommand = {
+export const SystemChannel = {
 
-  CHANNEL:            'system',
+  CHANNEL:                'system',
 
-  // To Background page.
-  PING:               'PING',
-  REGISTER:           'REGISTER',
-  RECONNECT:          'RECONNECT',
-  SIGNOUT:            'SIGNOUT',
+  // From options.
+  AUTHENTICATE:           'AUTHENTICATE',
+  REGISTER_CLIENT:        'REGISTER_CLIENT',
 
-  // To client.
-  FLUSH_CACHE:        'FLUSH_CACHE'
+  // From sidebar.
+  PING:                   'PING',
+  REQUEST_REGISTRATION:   'REQUEST_REGISTRATION',
+
+  // To sidebar.
+  FLUSH_CACHE:            'FLUSH_CACHE'
 };

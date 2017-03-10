@@ -36,7 +36,7 @@ manifest_version:   2
 
 name:               "Minder"
 short_name:         "Minder"
-version:            "0.1.9"                         # grunt version:crx:patch (uses version.json)
+version:            "0.1.10"                         # grunt version:crx:patch (uses version.json)
 author:             "Minder Labs"
 description:        "Automated intelligence."
 
@@ -44,11 +44,13 @@ icons:
   128: "img/icon_128.png"
 
 
-# TODO(burdon): Create consistent key (for dev and prod).
+# The key ensures that the development and production insance have the same CRX_ID: ofdkhkelcafdphpddfobhbbblgnloian
+# It's important to have a consistent key for OAuth.
 # https://developer.chrome.com/extensions/manifest/key
-# ~/Library/Application Support/Google/Chrome/Default/Extensions
-# key: ""
+# https://developer.chrome.com/apps/app_identity#copy_key
+# ~/Library/Application Support/Google/Chrome/Default/Extensions (select the profile with the install published app).
 
+key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv9GnZhQDH73nz/WXaO2WDpMTpYuFwUqcRPiW+HIjPq4K1s2pWkTJMhTd7fy+QLj5p6rN5dGJypErFV5SSFy+f3NhqpDnr3UHjAGzVWDouXsTvOCjjAiCr1C+4075vBup5ocxXckgstQrSo3Au7JocM6BHMMD2nkhs7apEsx3o7Cb3riOY7Lo1txjfmeKhA5zkGHzBj+tYUdp+lC8hFVH0bMg1ju3vvuNk7Vghj01Sg8z9GgNV9Wl1PORdND0PiavWKnVBFYuCknjYBXga+7o4wux+vtH9FVMmZQ++RKrhzgsAW2F+NpDKuCjdVIHj/WYIWCuHCjD9t5XB75K0SyCbwIDAQAB"
 
 #
 # Permissions.
@@ -58,7 +60,7 @@ icons:
 permissions:
   - background
   - contextMenus
-  - identity
+  - identity              # Required for OAuth.
   - management
   - notifications
   - storage
@@ -76,6 +78,7 @@ permissions:
 
 #
 # https://developer.chrome.com/extensions/optionsV2
+# NOTE: set open_in_tab true to debug.
 #
 
 options_ui:
@@ -131,8 +134,6 @@ content_scripts:
 
 
 #
-# OAuth2
-# Client ID generated in console:
 # https://console.developers.google.com/apis/credentials?project=minder-beta
 # https://developer.chrome.com/apps/app_identity#update_manifest
 # https://developers.google.com/identity/protocols/googlescopes
@@ -140,8 +141,11 @@ content_scripts:
 #
 
 oauth2:
-  # CRX (Dev).
-  client_id: "189079594739-fmlffnn0o5ka1nej028t44lp2v6knon7.apps.googleusercontent.com"
+
+  # Create OAuth Client ID; Type: "Chrome App" (3/8/17)
+  # NOTE: Requires consistent CRX ID (see key property above).
+  # https://console.developers.google.com/apis/credentials?project=minder-beta
+  client_id: "189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com"
 
   # Default scopes (can be overridden in getAuthToken call (network.js)
   scopes:
@@ -160,6 +164,7 @@ oauth2:
 # https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
 #
 
+# TODO(burdon): Sort.
 content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://minderlabs.com https://apis.google.com; object-src 'self'"
 
 

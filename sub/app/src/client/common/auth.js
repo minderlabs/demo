@@ -77,7 +77,7 @@ export class AuthManager {
         } else {
           // NOTE: This is called if the user logs out from elsewhere.
           // So, by default we don't promt (unless CRX).
-          console.warn('User logged out.');
+          logger.log('Signed out.');
           return force ? this._doAuth() : Promise.resolve(null);
         }
       });
@@ -100,10 +100,34 @@ export class AuthManager {
    * @param reauthenticate
    */
   signout(reauthenticate=true) {
+    logger.log('Signing out...');
 
-    // TODO(burdon): Re-authenticate?
-    // https://firebase.google.com/docs/auth/web/manage-users#re-authenticate_a_user
-    firebase.auth().signOut();
+    chrome.identity.getAuthToken({
+      // Don't force login if already expired.
+      interactive: false
+    }, accessToken => {
+      if (chrome.runtime.lastError) {
+        throw new Error(chrome.runtime.lastError);
+      }
+
+      // Remove cached token if present.
+      return new Promise((resolve, reject) => {
+        if (!accessToken) {
+          resolve();
+        } else {
+          chrome.identity.removeCachedAuthToken({ token: accessToken }, () => {
+            if (chrome.runtime.lastError) {
+              throw new Error(chrome.runtime.lastError);
+            }
+
+            resolve();
+          });
+        }
+      }).then(() => {
+        // Automatically re-authenticates (triggers onAuthStateChanged above).
+        return firebase.auth().signOut();
+      });
+    });
   }
 
   /**
@@ -127,7 +151,7 @@ export class AuthManager {
    * @private
    */
   _doAuthWebApp() {
-    logger.log('Authenticate Web app...');
+    logger.log('Authenticating Web app...');
 
     // NOTE: Triggers state change above.
     // https://firebase.google.com/docs/reference/js/firebase.auth.Auth.html#signInWithPopup
@@ -154,42 +178,37 @@ export class AuthManager {
    * @private
    */
   _doAuthChromeExtension() {
-    logger.log('Authenticate CRX app...');
+    logger.log('Authenticating CRX app...');
 
     return new Promise((resolve, reject) => {
 
-      // NOTE: The OAuth2 token uses the scopes defined in the manifest (can be overridden below).
-      let options = {
-        interactive: true,
-        scopes: GoogleApiConfig.authScopes
-      };
+      // TODO(burdon): "For a good user experience..."
+      // https://developer.chrome.com/apps/identity#method-getAuthToken
 
-      // NOTE: Can only be accessed from background page.
-      // NOTE: This hangs if the manifest's oauth2 client_id is wronge (e.g., prod vs. dev).
+      // NOTE: The OAuth2 token uses the scopes defined in the manifest (can be overridden below).
+      // NOTE: Can only be accessed from the background page.
+      // NOTE: This hangs if the manifest's oauth2 client_id is wrong (e.g., prod vs. dev).
       // https://developer.chrome.com/apps/app_identity
       // https://developer.chrome.com/apps/identity#method-getAuthToken
-      chrome.identity.getAuthToken(options, accessToken => {
+      // ERROR: OAuth2 request failed: Service responded with error: 'bad client id: UNSUPPORTED'
+      // => OAuth2 Credentials don't match CRX ID (must be Type: Chrome App).
+      chrome.identity.getAuthToken({
+
+        // Open Google login page if token has expired; if false, then fail.
+        interactive: true,
+
+        // Scopes matching the manifest.
+        scopes: GoogleApiConfig.authScopes
+
+      }, accessToken => {
         if (chrome.runtime.lastError) {
-          logger.error('Error getting access token:', chrome.runtime.lastError);
-          reject(chrome.runtime.lastError);
+          throw new Error(chrome.runtime.lastError);
         }
 
-        // NOTE: Get Google specific credentials (since CRX!)
+        // NOTE: Get Google specific credentials (for CRX.)
         // https://firebase.google.com/docs/reference/js/firebase.auth.GoogleAuthProvider
-        logger.log('Retrieved access token:', accessToken);
-        let credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
-
-        // TODO(burdon): Error (regression in lib: revert to 3.6.5)
-        // npm install --save --save-exact firebase@3.6.5
-        // [burdon 1/25/17] https://github.com/firebase/quickstart-js/issues/98 [ANSWERED]
-        // [burdon 1/25/17] https://github.com/firebase/firebase-chrome-extension/issues/4
-        // http://stackoverflow.com/questions/37865434/firebase-auth-with-facebook-oauth-credential-from-google-extension [6/22/16]
-        // Sign-in failed: {"code":"auth/internal-error","message":"{\"error\":{\"errors\":[{\"domain\":\"global\",
-        // \"reason\":\"invalid\",\"message\":\"INVALID_REQUEST_URI\"}],\"code\":400,\"message\":\"INVALID_REQUEST_URI\"}}"}
-
-        // NOTE: If the manifest's oauth2 client_id doesn't match,
-        // the auth promt happens but then the signin method doesn't return.
         // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signInWithCredential
+        let credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
         firebase.auth().signInWithCredential(credential)
           .then(result => {
             let user = firebase.auth().currentUser;

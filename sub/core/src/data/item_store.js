@@ -30,7 +30,7 @@ export class QueryProcessor {
    * @param namespace Namespace in filter and get/set operations routes to the specified QueryProcessor/ItemStore.
    */
   constructor(namespace) {
-    console.assert(_.isString(namespace));
+    console.assert(_.isString(namespace), 'Invalid namespace: ' + namespace);
     this._namespace = namespace;
   }
 

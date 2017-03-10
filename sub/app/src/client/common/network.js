@@ -210,8 +210,12 @@ export class NetworkManager {
       ]);
 
     // Intercept LOCAL namespace.
-    let itemStore = new MemoryItemStore();
+    /*
+    let itemStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.LOCAL);
     this._networkInterface = InterceptorNetworkInterface.createNetworkInterface(itemStore, networkInterface);
+    */
+
+    this._networkInterface = networkInterface;
 
     return this;
   }
@@ -330,7 +334,7 @@ export class InterceptorNetworkInterface {
    * @returns {*}
    */
   static createNetworkInterface(itemStore, networkInterface) {
-    console.assert(cache && networkInterface);
+    console.assert(itemStore && networkInterface);
 
     let originalQuery = networkInterface.query.bind(networkInterface);
 
@@ -351,7 +355,7 @@ export class InterceptorNetworkInterface {
         case ItemsQueryName: {
           let { filter } = variables;
           let { namespace } = filter;
-          if (namespace == Database.NAMESPACE.LOCAL) {
+          if (namespace == itemStore.namespace) {
             return itemStore.queryItems({}, {}, filter).then(items => ({
               data: {
                 items
@@ -363,7 +367,7 @@ export class InterceptorNetworkInterface {
 
         case UpsertItemsMutationName: {
           let { namespace, mutations } = variables;
-          if (namespace == Database.NAMESPACE.LOCAL) {
+          if (namespace == itemStore.namespace) {
             return ItemStore.applyMutations(itemStore, {}, mutations).then(items => ({
               data: {
                 items

@@ -2,14 +2,13 @@
 // Copyright 2017 Minder Labs.
 //
 
-Logger.setLevel({
-  'reducer': Logger.Level.debug,
-}, Logger.Level.info);
+Logger.setLevel({}, Logger.Level.info);
 
 import { createMemoryHistory } from 'react-router';
 
 import {
-  ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger, HttpUtil, Injector, KeyListener
+  Async, HttpUtil, Injector, KeyListener,
+  ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger
 } from 'minder-core';
 
 import { Const } from '../../common/defs';
@@ -22,6 +21,7 @@ import { AppAction, AppReducer, ContextAction, ContextReducer } from '../common/
 import { TypeRegistryFactory } from '../web/framework/type_factory';
 
 import { BackgroundCommand, SidebarCommand, KeyToggleSidebar } from './common';
+
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 import { Application } from './sidebar/app';
 
@@ -61,21 +61,24 @@ class SidebarApp extends BaseApp {
     this._messenger = new WindowMessenger(config.channel)
       .attach(parent)
       .listen(message => {
-      console.log('Command: ' + JSON.stringify(message));
+        console.log('Command: ' + JSON.stringify(message));
         switch (message.command) {
 
           // Updated visibility.
-          case SidebarCommand.UPDATE_VISIBILITY:
+          case SidebarCommand.UPDATE_VISIBILITY: {
             this.store.dispatch(SidebarAction.updateVisibility(message.visible));
             break;
+          }
 
           // Updated context from Content Script.
-          case SidebarCommand.UPDATE_CONTEXT:
+          case SidebarCommand.UPDATE_CONTEXT: {
             this.store.dispatch(ContextAction.updateContext(message.context));
             break;
+          }
 
-          default:
+          default: {
             console.warn('Invalid command: ' + JSON.stringify(message));
+          }
         }
       });
 
@@ -84,19 +87,20 @@ class SidebarApp extends BaseApp {
     //
 
     this._router = new ChromeMessageChannelRouter();
-    this._systemChannel = new ChromeMessageChannel(BackgroundCommand.CHANNEL, this._router);
+    this._systemChannel = new ChromeMessageChannel(SystemChannel.CHANNEL, this._router);
     this._systemChannel.onMessage.addListener(message => {
       console.log('Command: ' + JSON.stringify(message));
       switch (message.command) {
 
         // Reset Apollo client (flush cache); e.g., Backend re-connected.
-        case BackgroundCommand.FLUSH_CACHE: {
+        case SystemChannel.FLUSH_CACHE: {
           this.resetStore();
           break;
         }
 
-        default:
+        default: {
           console.warn('Invalid command: ' + JSON.stringify(message));
+        }
       }
     });
   }
@@ -105,7 +109,6 @@ class SidebarApp extends BaseApp {
     this._networkInterface = new ChromeNetworkInterface(
       new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this._router), this._eventHandler);
 
-    // TODO(burdon): Wait for connection.
     return Promise.resolve();
   }
 
@@ -113,20 +116,27 @@ class SidebarApp extends BaseApp {
    * Register with BG page.
    */
   postInit() {
+    // Connect the message channel.
     this._router.connect();
 
-    console.log('Registering...');
-    return this._systemChannel.postMessage({
-      command: BackgroundCommand.REGISTER
-    }).wait()
-      .then(response => {
-        console.assert(response.registration, response.server);
-        this.store.dispatch(AppAction.register(response.registration, response.server));
-      })
-      .catch(error => {
-        // TODO(burdon): Retry if not registered (server might not be responding).
-        console.error('Registration failed: ' + error);
-      });
+    // Register with the background page to obtain the CRX registration (userId, clientId) and server.
+    // NOTE: Retry in case background page hasn't registered with the server yet (race condition).
+    console.log('Getting registration...');
+    return Async.retry(() => {
+      return this._systemChannel.postMessage({
+        command: SystemChannel.REQUEST_REGISTRATION
+      }, true)
+        .then(({ registration, server }) => {
+          console.assert(registration && server);
+          console.log('Registered: ' + JSON.stringify(registration));
+
+          // Initialize the app.
+          this.store.dispatch(AppAction.register(registration, server));
+
+          // Notify the content script.
+          this._messenger.postMessage({ command: SidebarCommand.INITIALIZED });
+        });
+    });
   }
 
   get networkInterface() {
@@ -141,7 +151,7 @@ class SidebarApp extends BaseApp {
     return [
       Injector.provider(TypeRegistryFactory()),
       Injector.provider(this._messenger),
-      Injector.provider(this._systemChannel, 'system-channel')
+      Injector.provider(this._systemChannel, SystemChannel.CHANNEL)
     ]
   }
 
@@ -175,9 +185,6 @@ bootstrap.init().then(() => {
   preventParentScroll.start();
   */
 
-  // Trigger startup via Redux.
-  bootstrap.store.dispatch(SidebarAction.initialized());
-
-  const keyBindings = new KeyListener()
-    .listen(KeyToggleSidebar, () => bootstrap.store.dispatch(SidebarAction.toggleVisibility()));
+  new KeyListener()
+    .listen(KeyCodes.TOGGLE, () => bootstrap.store.dispatch(SidebarAction.toggleVisibility()));
 });

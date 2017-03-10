@@ -13,7 +13,7 @@ import { AppAction } from '../../common/reducers';
 import './search.less';
 
 /**
- * Wrapper around the searchbar (connected to the Redux model).
+ * Wrapper around the searchbar (connected to the Redux store).
  */
 class SearchPanel extends React.Component {
 

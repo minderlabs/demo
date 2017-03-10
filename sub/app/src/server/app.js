@@ -40,48 +40,50 @@ export const appRouter = (userManager, clientManager, systemStore, options) => {
   // Webpack assets.
   router.use('/assets', express.static(options.assets));
 
-  // Client.
   // Path: /\/app\/(.*)/
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
   const path = new RegExp(options.root.replace('/', '\/') + '\/?(.*)');
-  router.get(path, async function(req, res) {
-    let user = await userManager.getUserFromCookie(req);
-    if (!user) {
-      // TODO(burdon): Create Router object rather than hardcoding path.
-      res.redirect('/');
-    } else {
-      let userId = user.id;
 
-      // Create the client (and socket).
-      let client = clientManager.create(Const.PLATFORM.WEB, userId);
-      let clientId = client.id;
+  // Web app.
+  router.get(path, function(req, res, next) {
+    return userManager.getUserFromCookie(req)
+      .then(user => {
+        if (!user) {
+          // TODO(burdon): Create Router object rather than hardcoding path.
+          res.redirect('/');
+        } else {
+          // Create the client.
+          // TODO(burdon): Client should register (might store ID -- esp. if has worker, etc.)
+          let client = clientManager.create(user.id, Const.PLATFORM.WEB);
 
-      // Get group.
-      // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
-      let group = await systemStore.getGroup(userId);
-      let groupId = group.id;
+          // Get group.
+          // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
+          return systemStore.getGroup(user.id)
+            .then(group => {
+              // Client app config.
+              let config = _.defaults({
+                root: Const.DOM_ROOT,
 
-      // Client app config.
-      let config = _.defaults({
-        root: Const.DOM_ROOT,
+                graphql: '/graphql',
+                graphiql: '/graphiql',
 
-        graphql: '/graphql',
-        graphiql: '/graphiql',
+                // Authenticated user.
+                registration: {
+                  userId:   user.id,
+                  groupId:  group.id,    // TODO(burdon): Remove.
+                  clientId: client.id
+                }
+              }, options.config);
 
-        // Authenticated user.
-        registration: {
-          clientId,
-          groupId,
-          userId
+              logger.log($$('Client options = %o', config));
+              res.render('app', {
+                bundle: WEBPACK_BUNDLE[config.env],
+                config
+              });
+            });
         }
-      }, options.config);
-
-      logger.log($$('Client options = %o', config));
-      res.render('app', {
-        bundle: WEBPACK_BUNDLE[config.env],
-        config
-      });
-    }
+      })
+      .catch(next);
   });
 
   // Status

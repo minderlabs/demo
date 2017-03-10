@@ -6,7 +6,7 @@ const NAMESPACE = 'sidebar';
 
 import { WindowMessenger } from 'minder-core';
 
-import { BackgroundCommand, SidebarCommand } from '../common';
+import { SystemChannel, SidebarCommand } from '../common';
 
 /**
  * Sidebar Redux actions.
@@ -24,7 +24,6 @@ export class SidebarAction {
   }
 
   static initalState = {
-    initializeed: false,
     timestamp: null,            // TS from background page ping.
     open: false,
     events: []
@@ -43,19 +42,6 @@ export class SidebarAction {
   //
 
   /**
-   * App is initialized.
-   */
-  static initialized() {
-    return (dispatch, getState, injector) => {
-      injector.get(WindowMessenger).sendMessage({ command: SidebarCommand.INITIALIZED });
-
-      dispatch({
-        type: SidebarAction.ACTION.INITIALIZED
-      })
-    };
-  }
-
-  /**
    * Ping the background page.
    * @param value
    */
@@ -68,8 +54,7 @@ export class SidebarAction {
       });
 
       injector.get('system-channel')
-        .postMessage({ command: BackgroundCommand.PING })
-        .wait()
+        .postMessage({ command: SystemChannel.PING }, true)
         .then(response => {
           // Set received response.
           dispatch({
@@ -86,8 +71,8 @@ export class SidebarAction {
    */
   static toggleVisibility(open=undefined) {
     return (dispatch, getState, injector) => {
-      injector.get(WindowMessenger).sendMessage({ command: SidebarCommand.SET_VISIBILITY, open });
-    }
+      injector.get(WindowMessenger).postMessage({ command: SidebarCommand.SET_VISIBILITY, open });
+    };
   }
 
   /**
@@ -109,12 +94,6 @@ export const SidebarReducer = (state=SidebarAction.initalState, action) => {
 //console.log('SidebarReducer[%s]: %s', JSON.stringify(state, 0, 2), JSON.stringify(action));
 
   switch (action.type) {
-
-    case SidebarAction.ACTION.INITIALIZED: {
-      return _.assign({}, state, {
-        initialized: true
-      });
-    }
 
     case SidebarAction.ACTION.PING: {
       return _.assign({}, state, {
