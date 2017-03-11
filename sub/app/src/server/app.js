@@ -77,6 +77,8 @@ export const appRouter = (userManager, clientManager, systemStore, options) => {
               }, options.config);
 
               logger.log($$('Client options = %o', config));
+
+              // Render page.
               res.render('app', {
                 bundle: WEBPACK_BUNDLE[config.env],
                 config

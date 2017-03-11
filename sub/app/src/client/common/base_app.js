@@ -37,13 +37,15 @@ export class BaseApp {
     // Manages Apollo query subscriptions.
     this._queryRegistry = new QueryRegistry();
 
-    ErrorUtil.handleErrors(window, error => {
-      logger.error(error);
-      this._eventHandler.emit({
-        type: 'error',
-        message: ErrorUtil.message(error)
+    if (!config.debug) {
+      ErrorUtil.handleErrors(window, error => {
+        logger.error(error);
+        this._eventHandler.emit({
+          type: 'error',
+          message: ErrorUtil.message(error)
+        });
       });
-    });
+    }
   }
 
   /**

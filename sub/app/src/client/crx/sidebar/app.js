@@ -15,7 +15,7 @@ import { AppAction, AppReducer, ContextAction, ContextReducer } from '../../comm
 import { TypeRegistryFactory } from '../../web/framework/type_factory';
 
 import { SystemChannel, SidebarCommand } from '../common';
-import { SidebarAction } from '../sidebar/reducers';
+import { SidebarAction, SidebarReducer } from '../sidebar/reducers';
 
 import FinderActivity from '../../web/activity/finder';
 

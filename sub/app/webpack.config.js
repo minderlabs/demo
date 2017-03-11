@@ -47,7 +47,7 @@ module.exports = _.merge(baseConfig, {
 
     // Testing sidebar in web page.
     hot_sidebar: [
-      path.resolve(baseConfig.context, 'src/client/crx/testing/test_sidebar.js'),
+      path.resolve(baseConfig.context, 'src/client/crx/sidebar_test.js'),
 
       'webpack/hot/dev-server',
       'webpack-hot-middleware/client'

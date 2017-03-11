@@ -198,7 +198,7 @@ let loading = Promise.all([
 // NOTE: Must come first.
 //
 
-if (env === 'hot') {
+if (env.startsWith('hot')) {
   app.use(hotRouter());
 }
 

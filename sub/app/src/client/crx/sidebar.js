@@ -25,24 +25,6 @@ import { BackgroundCommand, SidebarCommand, KeyToggleSidebar } from './common';
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 import { Application } from './sidebar/app';
 
-// TODO(burdon): Catch errors (notify content script).
-
-//
-// Config passed from content script container.
-//
-const config = _.merge({
-  root: Const.DOM_ROOT,
-
-  // TODO(burdon): Build option (based on CRX ID?)
-  env: 'development',
-
-  app: {
-    platform: Const.PLATFORM.CRX,
-    name: Const.APP_NAME
-  }
-
-}, HttpUtil.parseUrlArgs());
-
 /**
  * Main sidebar app.
  */
@@ -168,13 +150,26 @@ class SidebarApp extends BaseApp {
 }
 
 //
-// Root application.
+// Config passed from content script container.
 //
-const bootstrap = new SidebarApp(config);
 
-bootstrap.init().then(() => {
+const config = _.merge({
+  root: Const.DOM_ROOT,
 
-  bootstrap.render(Application);
+  // TODO(burdon): Build option (based on CRX ID?)
+  env: 'development',
+
+  app: {
+    platform: Const.PLATFORM.CRX,
+    name: Const.APP_NAME
+  }
+
+}, HttpUtil.parseUrlArgs());
+
+const app = new SidebarApp(config);
+
+app.init().then(() => {
+  app.render(Application);
 
   // TODO(burdon): Dynamically set on scroll container (on mouseover?)
   // https://www.npmjs.com/package/prevent-parent-scroll
@@ -184,5 +179,5 @@ bootstrap.init().then(() => {
   */
 
   new KeyListener()
-    .listen(KeyCodes.TOGGLE, () => bootstrap.store.dispatch(SidebarAction.toggleVisibility()));
+    .listen(KeyCodes.TOGGLE, () => app.store.dispatch(SidebarAction.toggleVisibility()));
 });
