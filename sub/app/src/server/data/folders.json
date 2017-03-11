@@ -96,6 +96,20 @@
           ],
           "groupBy": false
         }
+      },
+
+      {
+        "//": "=== TESTING ONLY ===",
+
+        "id": "folder-local",
+        "order": 999,
+        "alias": "local",
+        "title": "Local Items",
+        "icon": "bug_report",
+        "filter": {
+          "namespace": "local",
+          "type": "Task"
+        }
       }
     ]
   }

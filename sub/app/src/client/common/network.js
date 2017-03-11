@@ -6,8 +6,7 @@ import _ from 'lodash';
 import { print } from 'graphql-tag/printer';
 import { createNetworkInterface } from 'apollo-client';
 
-import { UpsertItemsMutation, ItemsQuery, ItemStore, MemoryItemStore } from 'minder-core';
-import { Database, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
+import { UpsertItemsMutation, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -47,9 +46,10 @@ export class NetworkManager {
   /**
    * Initializes the network manager.
    * May be called multiple times -- e.g., after config has changed.
+   * @param {ItemStore} localItemStore
    * @returns {NetworkManager}
    */
-  init() {
+  init(localItemStore=undefined) {
     // Reset stats.
     this._requestCount = 0;
     this._requestMap.clear();
@@ -209,13 +209,11 @@ export class NetworkManager {
         logResponse
       ]);
 
-    // Intercept LOCAL namespace.
-    /*
-    let itemStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.LOCAL);
-    this._networkInterface = InterceptorNetworkInterface.createNetworkInterface(itemStore, networkInterface);
-    */
-
-    this._networkInterface = networkInterface;
+    if (localItemStore) {
+      this._networkInterface = InterceptorNetworkInterface.createNetworkInterface(localItemStore, networkInterface);
+    } else {
+      this._networkInterface = networkInterface;
+    }
 
     return this;
   }
@@ -319,7 +317,7 @@ export class ChromeNetworkInterface { // extends NetworkInterface {
 }
 
 /**
- *
+ * Wrap NetworkInterface to handle local queries and mutations.
  */
 export class InterceptorNetworkInterface {
 
@@ -341,38 +339,43 @@ export class InterceptorNetworkInterface {
     // ExecutionResult { data, errors }
     // https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js
     networkInterface.query = (request) => {
-      let { operationName, query, variables } = request;
+      let { operationName, query, variables={} } = request;
 
       // TODO(burdon): Factor out.
-      const ItemsQueryName = _.get(ItemsQuery, 'definitions[0].name.value');
       const UpsertItemsMutationName = _.get(UpsertItemsMutation, 'definitions[0].name.value');
 
-      //
-      // Intercept LOCAL namespace.
-      //
-
       switch (operationName) {
-        case ItemsQueryName: {
-          let { filter } = variables;
-          let { namespace } = filter;
-          if (namespace == itemStore.namespace) {
-            return itemStore.queryItems({}, {}, filter).then(items => ({
+
+        // TODO(burdon): Determine namespace from item when creating mutator !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        // Mutations.
+        case UpsertItemsMutationName: {
+          let { namespace, mutations } = variables;
+          if (namespace === itemStore.namespace) {
+            logger.info('Local mutations: ' + TypeUtil.stringify(mutations));
+            return ItemStore.applyMutations(itemStore, {}, mutations).then(items => ({
               data: {
-                items
+                items: items
               }
             }));
           }
           break;
         }
 
-        case UpsertItemsMutationName: {
-          let { namespace, mutations } = variables;
-          if (namespace == itemStore.namespace) {
-            return ItemStore.applyMutations(itemStore, {}, mutations).then(items => ({
-              data: {
-                items
-              }
-            }));
+        // Queries.
+        // TODO(burdon): Plugin or generalize queries (like mutations).
+        default: {
+          let { filter } = variables;
+          if (filter) {
+            let { namespace } = filter;
+            if (namespace === itemStore.namespace) {
+              logger.info('Local query: ' + TypeUtil.stringify(filter));
+              return itemStore.queryItems({}, {}, filter).then(items => ({
+                data: {
+                  search: items
+                }
+              }));
+            }
           }
           break;
         }

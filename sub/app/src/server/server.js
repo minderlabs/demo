@@ -58,7 +58,7 @@ const logger = Logger.get('server');
 //
 
 ErrorUtil.handleErrors(process, error => {
-  logger.error(ErrorUtil.stack(error))
+  logger.error(error);
 });
 
 

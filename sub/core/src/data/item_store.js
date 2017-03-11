@@ -124,7 +124,6 @@ export class ItemStore extends QueryProcessor {
 
     return Promise.all(_.map(itemMutations, itemMutation => {
       let { itemId, mutations } = itemMutation;
-
       let { type, id:localId } = ID.fromGlobalId(itemId);
 
       //

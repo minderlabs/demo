@@ -485,15 +485,12 @@ type RootQuery {
   viewer: Viewer!
 
   # Get specific.
-  # TODO(burdon): Add namespace to ID?
+  # TODO(burdon): Namespace.
+  # TODO(burdon): Return multiple items.
+  # TODO(burdon): Add basic ItemStore key-range lookup.
   item(itemId: ID!): Item!
 
-  # Query.
-  # TODO(burdon): Replace with ItemStore method (e.g., Bucket/Type/ID?)
-  items(filter: FilterInput, offset: Int, count: Int): [Item]!
-
   # Search.
-  # TODO(burdon): Document why different from items.
   search(filter: FilterInput, offset: Int, count: Int): [Item]!
 }
 

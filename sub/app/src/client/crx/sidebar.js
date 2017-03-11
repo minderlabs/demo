@@ -108,8 +108,6 @@ class SidebarApp extends BaseApp {
   initNetwork() {
     this._networkInterface = new ChromeNetworkInterface(
       new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this._router), this._eventHandler);
-
-    return Promise.resolve();
   }
 
   /**

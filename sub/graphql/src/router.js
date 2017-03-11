@@ -51,7 +51,7 @@ export const graphqlRouter = (database, options) => {
     // https://github.com/graphql/graphql-js/pull/402
     logger: {
       log: (error) => {
-        logger.error('GraphQL Error: ' + ErrorUtil.stack(error));
+        logger.error('GraphQL Error: ' + error);
       }
     }
   });

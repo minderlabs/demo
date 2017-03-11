@@ -62,6 +62,7 @@ export class Database {
       case Database.NAMESPACE.SYSTEM:
       case Database.NAMESPACE.SETTINGS:
       case Database.NAMESPACE.USER:
+      case Database.NAMESPACE.LOCAL:
         return false;
     }
 
@@ -214,11 +215,13 @@ export class Database {
 
         // First get items from the current query that may have external references.
         let result = _.find(results, result => result.namespace === Database.NAMESPACE.USER);
-        _.each(result.items, item => {
-          if (item.fkey) {
-            itemsWithForeignKeys.set(item.fkey, item);
-          }
-        });
+        if (result) {
+          _.each(result.items, item => {
+            if (item.fkey) {
+              itemsWithForeignKeys.set(item.fkey, item);
+            }
+          });
+        }
 
         // Gather the set of foreign keys for external items.
         let foreignKeys = [];

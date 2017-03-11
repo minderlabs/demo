@@ -230,6 +230,7 @@ export class Resolvers {
           return {};
         },
 
+        // TODO(burdon): items
         item: (root, args, context) => {
           Resolvers.checkAuthentication(context);
 
@@ -240,16 +241,6 @@ export class Resolvers {
           let namespace = Resolvers.getNamespaceForType(type);
 
           return database.getItemStore(namespace).getItem(context, type, localId);
-        },
-
-        // TODO(burdon): Document difference from search (no text index? i.e., move to ItemStore?)
-        items: (root, args, context) => {
-          Resolvers.checkAuthentication(context);
-
-          let { filter, offset, count } = args;
-          let { namespace } = filter;
-
-          return database.getQueryProcessor(namespace).queryItems(context, root, filter, offset, count);
         },
 
         search: (root, args, context) => {
@@ -272,20 +263,19 @@ export class Resolvers {
         upsertItems: (root, args, context) => {
           Resolvers.checkAuthentication(context);
 
-          let { namespace=Database.NAMESPACE.USER, mutations:itemMutations } = args;
-
-          // TODO(burdon): Translate local to remote IDs.
+          let { namespace=Database.NAMESPACE.USER, mutations } = args;
+          let { type, id:localId } = ID.fromGlobalId(itemId);
           logger.log($$('UPDATE[%s:%s]: %o', type, localId, mutations));
 
           let itemStore = database.getItemStore(namespace);
-          return ItemStore.applyMutations(itemStore, context, itemMutations)
+          return ItemStore.applyMutations(itemStore, context, mutations)
 
             //
             // Trigger notifications.
             //
             .then(items => {
               // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
-              database.fireMuationNotification(context, itemMutations, items);
+              database.fireMuationNotification(context, mutations, items);
               return items;
             });
         }

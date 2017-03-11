@@ -5,7 +5,7 @@
 import { DomUtil } from 'minder-core';
 import { browserHistory } from 'react-router'
 
-import { Injector } from 'minder-core';
+import { Database, Injector, IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -52,9 +52,16 @@ export class WebApp extends BaseApp {
     // Manages the client connection and registration.
     this._connectionManager = new ConnectionManager(this._config, this._authManager, this._cloudMessenger);
 
-    // Wraps the Apollo network requests.
+    // Local transient items.
+    // TODO(burdon): Only for testing and background page.
+    let idGenerator = this._injector.get(IdGenerator);
+    let matcher = this._injector.get(Matcher);
+    this._itemStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.LOCAL, false);
+
+    // Apollo network requests.
     this._networkManager =
-      new NetworkManager(this._config, this._authManager, this._connectionManager, this._eventHandler).init();
+      new NetworkManager(this._config, this._authManager, this._connectionManager, this._eventHandler)
+        .init(this._itemStore);
   }
 
   postInit() {
@@ -72,6 +79,10 @@ export class WebApp extends BaseApp {
   terminate() {
     // Unregister client.
     return this._connectionManager.unregister();
+  }
+
+  get itemStore() {
+    return this._itemStore;
   }
 
   get providers() {
@@ -101,7 +112,7 @@ export class WebApp extends BaseApp {
   }
 }
 
-const bootstrap = new WebApp(config);
+const app = new WebApp(config);
 
 //
 // React Hot Loader (3)
@@ -115,7 +126,7 @@ if (module.hot && _.get(config, 'env') === 'hot') {
   // List modules that can be dynamically reloaded.
   module.hot.accept('./app', () => {
     const App = require('./app').default;
-    bootstrap.render(App);
+    app.render(App);
   });
 }
 
@@ -132,13 +143,26 @@ window.addEventListener('beforeunload', event => {
   }
 });
 window.addEventListener('unload', () => {
-  bootstrap.terminate();
+  app.terminate();
 });
 
 //
 // Start app.
 //
 
-bootstrap.init().then(() => {
-  bootstrap.render(Application);
+app.init().then(() => {
+
+  // TODO(burdon): Testing.
+  app.itemStore.upsertItems({}, [
+    {
+      id: 'I-1',
+      type: 'Task',
+      title: 'Test 1'
+    }
+  ]);
+
+  app.render(Application);
 });
+
+// Debugging.
+_.set(window, 'minder', app);
