@@ -7,11 +7,13 @@ import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { ItemReducer, ItemFragment, ContactFragment } from 'minder-core';
-import { ReactUtil } from 'minder-ux';
+import { List, ReactUtil } from 'minder-ux';
 
 import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
+
+import { TaskListItemRenderer } from './task';
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -22,18 +24,56 @@ import { Card } from '../component/card';
  */
 export class ContactCard extends React.Component {
 
+  static contextTypes = {
+    mutator: React.PropTypes.object.isRequired
+  };
+
   static propTypes = {
     item: React.PropTypes.object.isRequired
   };
 
+  handleTaskAdd() {
+    this.refs.tasks.addItem();
+  }
+
+  handleItemUpdate(item, mutations) {
+    let { mutator } = this.context;
+
+    if (item) {
+      mutator.updateItem(item, mutations);
+    } else {
+      // TODO(burdon): Add task to contact.
+      console.log(mutations);
+      console.warn('Not implemented.');
+    }
+  }
+
   render() {
     let { item:contact } = this.props;
-    let { email } = contact;
+    let { email, tasks } = contact;
 
     return (
       <Card ref="card" item={ contact }>
         <div className="ux-card-section">
           <div>{ email }</div>
+        </div>
+
+        { !_.isEmpty(tasks) &&
+          <div className="ux-card-section">
+            <h3>Tasks</h3>
+          </div>
+        }
+        <div className="ux-list-tasks">
+          <div className="ux-scroll-container">
+            <List ref="tasks"
+                  items={ tasks }
+                  itemRenderer={ TaskListItemRenderer }
+                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+          </div>
+
+          <div className="ux-card-footer">
+            <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }/>
+          </div>
         </div>
       </Card>
     );
@@ -70,7 +110,6 @@ export class ContactCanvasComponent extends React.Component {
               <div>{ email }</div>
             </div>
           </div>
-
         </Canvas>
       );
     });

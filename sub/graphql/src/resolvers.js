@@ -188,6 +188,18 @@ export class Resolvers {
         }
       },
 
+      Contact: {
+
+        // TODO(burdon): Links.
+        tasks: (root, args, context) => {
+          if (root.tasks) {
+            return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', root.tasks);
+          } else {
+            return [];
+          }
+        }
+      },
+
       //
       // Root Viewer.
       //

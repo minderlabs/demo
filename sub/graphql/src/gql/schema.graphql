@@ -315,6 +315,9 @@ type Contact implements Item {
   labels: [String]
 
   email: String
+
+  # TODO(burdon): Implement as links.
+  tasks: [Task]!
 }
 
 type Document implements Item {
