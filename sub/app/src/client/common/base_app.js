@@ -52,6 +52,7 @@ export class BaseApp {
    * @return {Promise}
    */
   init() {
+    logger.log('Initializing...');
     return this.initInjector()
       .then(() => this.initNetwork())
       .then(() => this.initApollo())

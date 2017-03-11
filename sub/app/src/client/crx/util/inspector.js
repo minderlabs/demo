@@ -104,31 +104,40 @@ export class TestInspector extends Inspector {
     return $('#content')[0];
   }
 
+  /*
+   * <div id="content">
+   *   <div email="__EMAIL__">__NAME__</div>
+   */
   inspect(mutations) {
     let context = null;
 
-    /*
-      <div id="content">
-        <div>TEXT</div>
-      </div>
-     */
-
     _.each(mutations, mutation => {
-      let text = $(mutation.target).text();
+      let root = $(mutation.target).find('> div');
+      if (root[0]) {
+        let name = root.text();
+        let email = root.attr('email');
 
-      // TODO(burdon): Determine if person.
-      if (text) {
-        context = {
-          item: {
+        // Determine type.
+        let item = null;
+        if (email) {
+          item = {
             type: 'Person',
-            title: text
-          },
-          filter: {
-            text: text
+            title: name,
+            email: email
           }
-        };
+        }
 
-        return false;
+        if (name) {
+          context = {
+            item,
+            filter: {
+              type: item && item.type,
+              text: email || name
+            }
+          };
+
+          return false;
+        }
       }
     });
 
@@ -148,33 +157,37 @@ export class GoogleInboxInspector extends Inspector {
   }
 
   getRootNode() {
+    // TODO(burdon): Load dynamic rules from server.
     return $('.yDSKFc')[0];
   }
 
+  /*
+   * <div data-item-id="#gmail:thread-f:1557184509751026059">
+   *   <div role="list">
+   *     <div data-msg-id="#msg-f:1557184509751026059">
+   *       <div role="heading">
+   *         <div email="__EMAIL__">__NAME__</div>
+   */
   inspect(mutations) {
     let context = null;
-
-    /*
-      <div data-item-id="#gmail:thread-f:1557184509751026059">
-        <div role="list">
-          <div data-msg-id="#msg-f:1557184509751026059">
-            <div role="heading">
-              <div email="">Name</div>
-     */
 
     _.each(mutations, mutation => {
 
       // TODO(burdon): Get closest parent for thread ID.
       let root = $(mutation.target).find('div[data-msg-id] div[email]:first');
       if (root[0]) {
+        let name = root.text();
+        let email = root.attr('email');
+
         context = {
           item: {
             type: 'Person',
-            title: root.text(),
-            email: root.attr('email')
+            title: name,
+            email: email
           },
           filter: {
-            text: root.text()
+            type: 'Person',
+            text: email
           }
         };
 

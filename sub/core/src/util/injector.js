@@ -14,7 +14,7 @@ export class Injector {
    * @returns {{}}
    */
   static provider(instance, key=undefined) {
-    console.assert(_.isObject(instance));
+    console.assert(_.isObject(instance), 'Invalid provider: ', { instance, key });
 
     if (!key) {
       key = instance.constructor.name;

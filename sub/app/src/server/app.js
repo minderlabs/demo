@@ -18,10 +18,11 @@ const logger = Logger.get('app');
 //
 
 const WEBPACK_BUNDLE = {
-  "test":         "test",
-  "development":  "main",
-  "production":   "main",
-  "hot":          "hot"
+  "test":           "test",
+  "development":    "main",
+  "production":     "main",
+  "hot":            "hot",
+  "hot_sidebar":    "hot_sidebar"
 };
 
 /**
