@@ -58,7 +58,7 @@ const logger = Logger.get('server');
 //
 
 ErrorUtil.handleErrors(process, error => {
-  logger.error(ErrorUtil.stack(error))
+  logger.error(error);
 });
 
 
@@ -185,13 +185,9 @@ let loading = Promise.all([
 ]).then(() => {
   logger.log('Initializing groups...');
   return loader.initGroups().then(() => {
-
-    // TODO(burdon): Use randomizer to generate test projects for non-admin groups.
-    if (testing && false) {
+    if (testing) {
       logger.log('Generating test data...');
-      return loader.parse(require('./data/testing.json')).then(() => {
-        return new TestGenerator(database).generate();
-      });
+      return new TestGenerator(database).generate();
     }
   });
 });

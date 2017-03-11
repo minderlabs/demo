@@ -235,13 +235,14 @@ export class List extends React.Component {
     let { itemClassName, data, itemOrderModel, groupBy } = this.props;
     let { items, itemRenderer } = this.state;
 
-    //
-    // Rows.
-    //
-
+    // Sort items by order model.
     if (itemOrderModel) {
       items = itemOrderModel.getOrderedItems(items);
     }
+
+    //
+    // Rows.
+    //
 
     let previousOrder = 0;
     let rows = _.map(items, item => {

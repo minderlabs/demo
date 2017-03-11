@@ -133,7 +133,7 @@ class Reducer {
     this._query = query;
     this._reducer = reducer;
 
-    // NOTE: Limited to single return root.
+    // NOTE: Limited to single return root (for lists, this is typically the "items" root).
     this._path = _.get(query, 'definitions[0].selectionSet.selections[0].name.value');
   }
 
@@ -141,13 +141,13 @@ class Reducer {
     return this._query;
   }
 
-  getResult(data) {
+  getResult(data, defValue) {
     if (data.error) {
       // TODO(burdon): Apollo bug: shows "Error: Network error:"
       // TODO(burdon): Throw (trigger error handler StatusBar).
       console.error(data.error);
     } else {
-      return _.get(data, this._path);
+      return _.get(data, this._path, defValue);
     }
   }
 
@@ -176,6 +176,8 @@ class Reducer {
 export class ListReducer extends Reducer {
 
   /**
+   * Creates HOC for list query.
+   *
    * @param query
    * @param customReducer
    * @return standard mutation wrapper supplied to redux's combine() method.
@@ -212,7 +214,15 @@ export class ListReducer extends Reducer {
         let { matcher, filter, count } = ownProps;
         let { loading, error, refetch } = data;
 
-        let items = listReducer.getResult(data);
+        // Get query result.
+        let items = listReducer.getResult(data, []);
+
+        // TODO(burdon): Prepend context.
+        // items.unshift({
+        //   id: '___X',
+        //   type: 'Task',
+        //   title: 'Context Item'
+        // });
 
         return {
           loading,
@@ -354,6 +364,8 @@ export class ListReducer extends Reducer {
 export class ItemReducer extends Reducer {
 
   /**
+   * Creates HOC for item query.
+   *
    * @param query
    * @param customReducer
    *

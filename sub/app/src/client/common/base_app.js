@@ -53,7 +53,10 @@ export class BaseApp {
    */
   init() {
     logger.log('Initializing...');
-    return this.initInjector()
+
+    // Invoke sequentially.
+    return Promise.resolve()
+      .then(() => this.initInjector())
       .then(() => this.initNetwork())
       .then(() => this.initApollo())
       .then(() => this.initReduxStore())
@@ -61,6 +64,7 @@ export class BaseApp {
       .then(() => this.postInit())
       .then(() => {
         logger.info($$('Config = %o', this._config));
+        return this;
       });
   }
 
@@ -68,45 +72,7 @@ export class BaseApp {
    *
    * @return {Promise.<T>}
    */
-  postInit() {
-    return Promise.resolve();
-  }
-
-  /**
-   * Global error handling.
-   */
-  initErrorHandling() {
-
-    // TODO(burdon): Define in webpack?
-    console.assert = (cond, message) => {
-      if (!cond) {
-        // NOTE: This is either caught by onerror or unhandledrejection below.
-        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
-        throw new Error(message ? 'Assert: ' + message : 'Assert failed.');
-      }
-    };
-
-    // https://developer.mozilla.org/en-US/docs/Web/Events/error
-    window.onerror = (error) => {
-      logger.error(error);
-      this._eventHandler.emit({
-        type: 'error',
-        message: error.message
-      });
-    };
-
-    // https://developer.mozilla.org/en-US/docs/Web/Events/unhandledrejection
-    window.addEventListener('unhandledrejection', (event) => {
-      let message = event.reason ? String(event.reason) : 'Uncaught promise';
-      logger.error(message);
-      this._eventHandler.emit({
-        type: 'error',
-        message
-      });
-    });
-
-    return Promise.resolve();
-  }
+  postInit() {}
 
   /**
    * Injectors.
@@ -122,42 +88,57 @@ export class BaseApp {
 
     // TODO(burdon): Move to Redux?
     this._injector = new Injector(providers);
-
-    return Promise.resolve();
   }
 
   /**
    * Initialize the Apollo network interface.
    * @return {Promise}
    */
-  initNetwork() {
-    return Promise.resolve();
-  }
+  initNetwork() {}
 
   /**
    * Acpollo client.
    */
   initApollo() {
-    let networkInterface = this.networkInterface;
-    console.assert(networkInterface);
+    console.assert(this.networkInterface);
 
-    // TODO(burdon): Subscriptions?
-
-    // TODO(burdon): Custom resolvers (for cache resolution -- and offline).
-    // http://dev.apollodata.com/react/cache-updates.html#cacheRedirect
-
+    //
     // http://dev.apollodata.com/react/initialization.html
+    // http://dev.apollodata.com/core/apollo-client-api.html#apollo-client
     // https://github.com/apollostack/apollo-client/blob/6b6e8ded1e0f83cb134d2261a3cf7d2d9416400f/src/ApolloClient.ts
+    //
+
     this._apolloClient = new ApolloClient({
+
+      // http://dev.apollodata.com/react/cache-updates.html
       dataIdFromObject: ID.dataIdFromObject,
-      queryDeduplication: true,
       addTypename: true,
-      networkInterface
+
+      // http://dev.apollodata.com/core/network.html#query-deduplication
+      queryDeduplication: true,
+
+      // http://dev.apollodata.com/core/network.html
+      networkInterface: this.networkInterface,
+
+      // https://github.com/apollographql/apollo-client-devtools
+      // https://chrome.google.com/webstore/detail/apollo-client-developer-t/jdkknkkbebbapilgoeccciglkfbmbnfm
+      connectToDevTools: true,
+
+      // Custom resolver (items are resolved from the cache.
+      // http://dev.apollodata.com/react/cache-updates.html#cacheRedirect
+      // https://github.com/apollographql/apollo-client/blob/a86acf25df5eaf0fdaab264fd16c2ed22657e65c/test/customResolvers.ts
+      // https://github.com/apollographql/apollo-client/blob/6b6e8ded1e0f83cb134d2261a3cf7d2d9416400f/src/data/storeUtils.ts
+      customResolvers: {
+        Query: {
+          item: (_, args) => {
+            return {
+              type: 'id',
+              id: args['itemId']  // GraphQL query-soecific.
+            };
+          }
+        }
+      }
     });
-
-    window.apollo = this._apolloClient;
-
-    return Promise.resolve();
   }
 
   /**
@@ -224,8 +205,6 @@ export class BaseApp {
 
     // http://redux.js.org/docs/api/createStore.html
     this._store = createStore(reducers, enhancer);
-
-    return Promise.resolve();
   }
 
   /**
@@ -239,8 +218,6 @@ export class BaseApp {
     this.history.listen(location => {
       logger.log('Router: ' + location.pathname);
     });
-
-    return Promise.resolve();
   }
 
   /**
@@ -262,7 +239,7 @@ export class BaseApp {
   }
 
   /**
-   * Access the store (for dispatching actions).
+   * Redux store (for dispatching actions).
    */
   get store() {
     return this._store;
@@ -276,6 +253,14 @@ export class BaseApp {
    * Returns the Apollo network interface.
    */
   get networkInterface() {
+    return null;
+  }
+
+  /**
+   * Local item store.
+   * @returns {ItemStore}
+   */
+  get itemStore() {
     return null;
   }
 
@@ -334,8 +319,8 @@ export class BaseApp {
       // TODO(burdon): Get injector from store?
       <App
         injector={ this._injector }
-        client={ this._apolloClient }
         history={ this._reduxHistory }
+        client={ this._apolloClient }
         store={ this._store }/>
     );
 

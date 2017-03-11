@@ -24,6 +24,16 @@ export class TestGenerator {
     // TODO(burdon): Return mutations (to multiple items)? Are IDs resolved?
     // TODO(burdon): Create mutations with references (like client side mutator transaction).
 
+    'Project': {
+
+      bucket: (item, context) => context.groupId,
+
+      group: (item, context) => context.groupId,
+
+      title: (item, context, randomizer) =>
+        randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) }),
+    },
+
     'Task': {
 
       bucket: (item, context) => context.groupId,
@@ -85,7 +95,7 @@ export class TestGenerator {
           }))).then(items => {
             return _.map(items, item => item.id);
           });
-ran        }
+        }
       }
     }
   });
@@ -126,7 +136,7 @@ ran        }
    * Generate items for users.
    */
   generate() {
-
+    // Generate for each user.
     return this._database.getQueryProcessor(Database.NAMESPACE.SYSTEM)
       .queryItems({}, {}, { type: 'User' })
       .then(users => {
@@ -139,49 +149,63 @@ ran        }
             .queryItems({ userId }, {}, {
               type: 'Group',
               expr: {
-                field: 'members', ref: '$CONTEXT.userId', comp: 'IN'
+                field: 'members',
+                ref: '$CONTEXT.userId',
+                comp: 'IN'
               }
             }).then(groups => {
               return Promise.all(_.map(groups, group => {
                 let { id:groupId } = group;
                 let context = { groupId, userId };
 
-                let promises = [];
-
                 //
-                // Create Tasks for User.
+                // Generate data items for each user.
                 //
-                promises.push(this._randomizer.generateItems(
-                  context, 'Task', this._randomizer.chance.natural({ min: 20, max: 40 }))
-                    .then(items => this.processItems(context, items)));
-
-                return Promise.all(promises);
+                return Promise.resolve()
+                  .then(() =>
+                    this.generateItems(context, 'Project', 1))
+                  .then(() =>
+                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 20, max: 40 })));
               }));
             });
         }));
     });
   }
 
-  /**
-   * Upsert created items, then generate links and upsert those.
-   */
-  processItems(context, items) {
-    let itemStore = this._database.getItemStore(Database.NAMESPACE.USER);
+  generateItems(context, type, count) {
+    const getStore = type => {
+      switch (type) {
+        case 'Group':
+          return this._database.getItemStore(Database.NAMESPACE.SYSTEM);
+        default:
+          return this._database.getItemStore(Database.NAMESPACE.USER);
+      }
+    };
 
-    return itemStore.upsertItems(context, items).then(items => {
+    // Generate items.
+    return this._randomizer.generateItems(context, type, count)
+      .then(items => {
 
-      // Generate and save links.
-      return this._randomizer.generateLinkMutations(context, items).then(itemMutations => {
+        // Upsert items.
+        return getStore(type).upsertItems(context, items).then(items => {
 
-        // Load and update items.
-        return Promise.all(_.each(itemMutations, itemMutation => {
-          let { type, id:itemId } = ID.fromGlobalId(itemMutation.itemId);
-          return itemStore.getItem(context, type, itemId).then(item => {
-            Transforms.applyObjectMutations(item, itemMutation.mutations);
-            return itemStore.upsertItem(context, item);
-          });
-        }));
-      })
-    })
+          // Generate and save links.
+          return this._randomizer.generateLinkMutations(context, items).then(itemMutations => {
+
+            // Load and update items.
+            return Promise.all(_.each(itemMutations, itemMutation => {
+              let { type, id:itemId } = ID.fromGlobalId(itemMutation.itemId);
+
+              let itemStore = getStore(type);
+              return itemStore.getItem(context, type, itemId).then(item => {
+                console.assert(item);
+
+                Transforms.applyObjectMutations(item, itemMutation.mutations);
+                return itemStore.upsertItem(context, item);
+              });
+            }));
+          })
+        });
+      });
   }
 }

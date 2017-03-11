@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { print } from 'graphql-tag/printer';
 import { createNetworkInterface } from 'apollo-client';
 
-import { HttpUtil, TypeUtil, Wrapper } from 'minder-core';
+import { UpsertItemsMutation, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -46,31 +46,16 @@ export class NetworkManager {
   /**
    * Initializes the network manager.
    * May be called multiple times -- e.g., after config has changed.
+   * @param {ItemStore} localItemStore
    * @returns {NetworkManager}
    */
-  init() {
+  init(localItemStore=undefined) {
     // Reset stats.
     this._requestCount = 0;
     this._requestMap.clear();
 
     // Logging.
     this._logger = new NetworkLogger(this._config);
-
-    // Create the interface.
-    // http://dev.apollodata.com/core/network.html
-    // http://dev.apollodata.com/core/apollo-client-api.html#createNetworkInterface
-    this._networkInterface = createNetworkInterface({
-      uri: this._config.graphql
-    });
-
-    // TODO(burdon): Configure batching via options.
-    // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
-
-    // TODO(burdon): Currently catching network errors as unhandled promises (see main.js)
-    // https://github.com/apollostack/apollo-client/issues/657 [Added comment]
-    // https://github.com/apollostack/apollo-client/issues/891
-    // https://github.com/apollostack/apollo-client/pull/950
-    // https://github.com/apollostack/react-apollo/issues/345
 
     /**
      * Add headers for execution context (e.g., JWT Authentication header).
@@ -100,9 +85,11 @@ export class NetworkManager {
     const fixFetchMoreBug = {
       applyMiddleware: ({ request, options }, next) => {
 
-        // Remove duplicate fragment.
+        // Map of definitions by name.
         let definitions = {};
-        request.query.definitions = _.filter(request.query.definitions, (definition) => {
+
+        // Remove duplicate fragment.
+        request.query.definitions = _.filter(request.query.definitions, definition => {
           let name = definition.name.value;
           if (definitions[name]) {
             logger.warn('SKIPPING: %s', name);
@@ -194,9 +181,25 @@ export class NetworkManager {
     };
 
     //
+    // Create the interface (and middleware).
+    // http://dev.apollodata.com/core/network.html
+    // http://dev.apollodata.com/core/apollo-client-api.html#createNetworkInterface
     // http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
+    // https://github.com/apollographql/apollo-client/blob/master/src/transport/networkInterface.ts
     //
-    this._networkInterface
+
+    // TODO(burdon): Subscriptions (esp. BG page); create directive. (SubscriptionNetworkInterface)
+
+    // TODO(burdon): Configure batching via options.
+    // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
+
+    // TODO(burdon): Testing (mockNetworkInterface).
+    // https://github.com/apollographql/apollo-client/blob/a86acf25df5eaf0fdaab264fd16c2ed22657e65c/test/customResolvers.ts
+
+    // Create HTTPFetchNetworkInterface
+    let networkInterface = createNetworkInterface({
+      uri: this._config.graphql
+    })
       .use([
         addHeaders,
         fixFetchMoreBug,
@@ -205,6 +208,12 @@ export class NetworkManager {
       .useAfter([
         logResponse
       ]);
+
+    if (localItemStore) {
+      this._networkInterface = CachingNetworkInterface.createNetworkInterface(localItemStore, networkInterface);
+    } else {
+      this._networkInterface = networkInterface;
+    }
 
     return this;
   }
@@ -243,6 +252,9 @@ class NetworkLogger {
     this._options = options;
   }
 
+  // TODO(burdon): printRequest
+  // https://github.com/apollographql/apollo-client/blob/master/src/transport/networkInterface.ts
+
   logRequest(requestId, request) {
     logger.log($$('[_TS_] ===>>> [%s] %o', requestId, request.variables || {}));
 
@@ -262,5 +274,118 @@ class NetworkLogger {
 
   logErrors(requestId, errors) {
     logger.error($$('GraphQL Error [%s]: %s', requestId, NetworkLogger.stringify(errors)));
+  }
+}
+
+/**
+ * Implements the Apollo NetworkInterface to proxy requests to the background page.
+ *
+ * http://dev.apollodata.com/core/network.html#custom-network-interface
+ */
+export class ChromeNetworkInterface { // extends NetworkInterface {
+
+  // TODO(burdon): Move to minder-core.
+
+  static CHANNEL = 'apollo';
+
+  /**
+   * Creates the network interface with the given Chrome channel (to the BG page).
+   *
+   * @param channel
+   * @param eventHandler
+   */
+  constructor(channel, eventHandler=undefined) {
+    console.assert(channel);
+    this._channel = channel;
+    this._eventHandler = eventHandler;
+  }
+
+
+  /**
+   * Proxy request through the message sender.
+   *
+   * @param {GraphQLRequest} gqlRequest
+   * @return {Promise<GraphQLResult>}
+   */
+  query(gqlRequest) {
+    this._eventHandler && this._eventHandler.emit({ type: 'network.out' });
+    return this._channel.postMessage(gqlRequest).wait().then(gqlResponse => {
+      this._eventHandler && this._eventHandler.emit({ type: 'network.in' });
+      return gqlResponse;
+    });
+  }
+}
+
+/**
+ * Implements caching layer for NetworkInterface.
+ */
+export class CachingNetworkInterface { // extends NetworkInterface {
+
+  // TODO(burdon): Currently just intercepts local namespace. Should join results from server for other NS.
+
+  // TODO(burdon): Extend NetworkInterface.
+  // https://github.com/apollographql/apollo-client/issues/1403
+  // https://github.com/apollographql/apollo-client/blob/master/src/transport/networkInterface.ts
+
+  /**
+   * Monkey patch existing interface.
+   * @param itemStore
+   * @param networkInterface
+   * @returns {*}
+   */
+  static createNetworkInterface(itemStore, networkInterface) {
+    console.assert(itemStore && networkInterface);
+
+    let originalQuery = networkInterface.query.bind(networkInterface);
+
+    // ExecutionResult { data, errors }
+    // https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js
+    networkInterface.query = (request) => {
+      let { operationName, query, variables={} } = request;
+
+      // TODO(burdon): Factor out.
+      const UpsertItemsMutationName = _.get(UpsertItemsMutation, 'definitions[0].name.value');
+
+      switch (operationName) {
+
+        // TODO(burdon): Determine namespace from item when creating mutator !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        // Mutations.
+        case UpsertItemsMutationName: {
+          let { namespace, mutations } = variables;
+          if (namespace === itemStore.namespace) {
+            logger.info('Local mutations: ' + TypeUtil.stringify(mutations));
+            return ItemStore.applyMutations(itemStore, {}, mutations).then(items => ({
+              data: {
+                items: items
+              }
+            }));
+          }
+          break;
+        }
+
+        // Queries.
+        // TODO(burdon): Plugin or generalize queries (like mutations).
+        default: {
+          let { filter } = variables;
+          if (filter) {
+            let { namespace } = filter;
+            if (namespace === itemStore.namespace) {
+              logger.info('Local query: ' + TypeUtil.stringify(filter));
+              return itemStore.queryItems({}, {}, filter).then(items => ({
+                data: {
+                  search: items
+                }
+              }));
+            }
+          }
+          break;
+        }
+      }
+
+      return originalQuery(request);
+    };
+
+    return networkInterface;
   }
 }

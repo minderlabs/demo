@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
-import { $$, Logger, Database, ID, Transforms, TypeUtil } from 'minder-core';
+import { $$, Logger, Database, ID, ItemStore, TypeUtil } from 'minder-core';
 
 import Schema from './gql/schema.graphql';
 
@@ -230,6 +230,7 @@ export class Resolvers {
           return {};
         },
 
+        // TODO(burdon): items
         item: (root, args, context) => {
           Resolvers.checkAuthentication(context);
 
@@ -240,16 +241,6 @@ export class Resolvers {
           let namespace = Resolvers.getNamespaceForType(type);
 
           return database.getItemStore(namespace).getItem(context, type, localId);
-        },
-
-        // TODO(burdon): Document difference from search (no text index? i.e., move to ItemStore?)
-        items: (root, args, context) => {
-          Resolvers.checkAuthentication(context);
-
-          let { filter, offset, count } = args;
-          let { namespace } = filter;
-
-          return database.getQueryProcessor(namespace).queryItems(context, root, filter, offset, count);
         },
 
         search: (root, args, context) => {
@@ -272,17 +263,19 @@ export class Resolvers {
         upsertItems: (root, args, context) => {
           Resolvers.checkAuthentication(context);
 
-          let { namespace=Database.NAMESPACE.USER, mutations:itemMutations } = args;
+          let { namespace=Database.NAMESPACE.USER, mutations } = args;
+          let { type, id:localId } = ID.fromGlobalId(itemId);
+          logger.log($$('UPDATE[%s:%s]: %o', type, localId, mutations));
 
           let itemStore = database.getItemStore(namespace);
-          return Resolvers.processMutations(itemStore, context, itemMutations)
+          return ItemStore.applyMutations(itemStore, context, mutations)
 
             //
             // Trigger notifications.
             //
             .then(items => {
               // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
-              database.fireMuationNotification(context, itemMutations, items);
+              database.fireMuationNotification(context, mutations, items);
               return items;
             });
         }
@@ -290,6 +283,7 @@ export class Resolvers {
     };
   }
 
+  // TODO(burdon): Obsolete? NotAuthenticatedError.
   static checkAuthentication(context) {
     if (!context.userId) {
       // NOTE: User may be inactive.
@@ -298,53 +292,5 @@ export class Resolvers {
     if (!context.clientId) {
       throw new Error('Invalid client.');
     }
-  }
-
-  /**
-   * Processes the item mutations, creating and updating items.
-   *
-   * @param itemStore
-   * @param context
-   * @param itemMutations
-   * @return {Promise<[{Item}]>}
-   */
-  static processMutations(itemStore, context, itemMutations) {
-    console.assert(itemStore && context && itemMutations);
-
-    return Promise.all(_.map(itemMutations, itemMutation => {
-      let { itemId, mutations } = itemMutation;
-      let { type, id:localId } = ID.fromGlobalId(itemId);
-      logger.log($$('UPDATE[%s:%s]: %o', type, localId, mutations));
-
-      //
-      // Get and update item.
-      // TODO(burdon): Relies on getItem to return {} for not found.
-      //
-      return itemStore.getItem(context, type, localId)
-        .then(item => {
-
-          // If not found (i.e., insert).
-          // TODO(burdon): Check this is an insert (not a miss due to a bug); use version?
-          if (!item) {
-            item = {
-              id: localId,
-              type: type
-            };
-          }
-
-          //
-          // Apply mutations.
-          //
-          return Transforms.applyObjectMutations(item, mutations);
-        });
-    }))
-
-      //
-      // Upsert items.
-      //
-      .then(results => {
-        let items = TypeUtil.flattenArrays(results);
-        return itemStore.upsertItems(context, items)
-      });
   }
 }

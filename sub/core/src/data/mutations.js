@@ -122,6 +122,8 @@ export class MutationUtil {
   static createDeleteMutation(set=true) {
     return MutationUtil.createLabelMutation('_deleted', set);
   }
+
+
 }
 
 /*

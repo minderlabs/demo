@@ -82,8 +82,8 @@ export class MemoryItemStore extends ItemStore {
     console.assert(context && items);
 
     return Promise.resolve(_.map(items, item => {
-
       console.assert(!this._buckets || item.bucket, 'Invalid bucket: ' + JSON.stringify(item));
+
       let clonedItem = this._util.onUpdate(TypeUtil.clone(item));
       let key = this.key(clonedItem);
       this._items.set(key, clonedItem);

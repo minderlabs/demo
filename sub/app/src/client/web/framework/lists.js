@@ -4,6 +4,7 @@
 
 import React from 'react';
 import gql from 'graphql-tag';
+import { graphql } from 'react-apollo';
 
 import {
   ItemFragment,
@@ -184,3 +185,68 @@ const CardSearchQuery = gql`
 `;
 
 export const CardSearchList = connectReducer(ListReducer.graphql(CardSearchQuery))(ListWrapper);
+
+//-------------------------------------------------------------------------------------------------
+// Simple List.
+// TODO(burdon): Obsolete: replace with above.
+//-------------------------------------------------------------------------------------------------
+
+export const SimpleSearchQuery = gql`
+  query SimpleSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
+    search(filter: $filter, offset: $offset, count: $count) {
+      id
+      type      
+      title
+    }
+  }
+`;
+
+export const ItemsQueryWrapper = graphql(SimpleSearchQuery, {
+
+  // http://dev.apollodata.com/react/queries.html#graphql-options
+  options: (props) => {
+    let { filter, count } = props;
+
+    return {
+      variables: {
+        filter, count, offset: 0
+      }
+    }
+  },
+
+  // http://dev.apollodata.com/react/queries.html#graphql-props-option
+  props: ({ ownProps, data }) => {
+    let { search:items } = data;
+    let { filter, count } = ownProps;
+
+    return {
+      // Result.
+      items,
+
+      // Called when variables are updated.
+      refetch: (filter) => {
+        data.refetch({
+          filter
+        });
+      },
+
+      // Paging.
+      // http://dev.apollodata.com/react/pagination.html
+      // http://dev.apollodata.com/react/cache-updates.html#fetchMore
+      fetchMoreItems: () => {
+        return data.fetchMore({
+          variables: {
+            filter, count, offset: items.length
+          },
+
+          // TODO(burdon): Use update({ $push }).
+          updateQuery: (previousResult, { fetchMoreResult }) => {
+            return _.assign({}, previousResult, {
+              search: [...previousResult.search, ...fetchMoreResult.data.search]
+            });
+          }
+        });
+      }
+    }
+  }
+});

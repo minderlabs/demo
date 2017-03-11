@@ -10,10 +10,10 @@ import { Async, Injector, ChromeMessageChannel, ChromeMessageChannelRouter, Wind
 
 import { Path } from '../../common/path';
 import { BaseApp } from '../../common/base_app';
+import { ChromeNetworkInterface } from '../../common/network';
 import { AppAction, AppReducer, ContextAction, ContextReducer } from '../../common/reducers';
 import { TypeRegistryFactory } from '../../web/framework/type_factory';
 
-import { ChromeNetworkInterface } from '../util/network';
 import { SystemChannel, SidebarCommand } from '../common';
 import { SidebarAction } from '../sidebar/reducers';
 

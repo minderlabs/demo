@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import { ID } from 'minder-core';
+import { ID, Database } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
 import { Path } from '../../common/path';
