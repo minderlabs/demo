@@ -2,7 +2,7 @@
 // Copyright 2017 Minder Labs.
 //
 
-const NAMESPACE = 'sidebar';
+const SIDEBAR_NAMESPACE = 'MINDER_SIDEBAR';
 
 import { WindowMessenger } from 'minder-core';
 
@@ -14,13 +14,13 @@ import { SystemChannel, SidebarCommand } from '../common';
 export class SidebarAction {
 
   static ACTION = {
-    INITIALIZED:        `${NAMESPACE}/INITIALIZED`,
-    PING:               `${NAMESPACE}/PING`,
-    UPDATE_VISIBILITY:  `${NAMESPACE}/UPDATE_VISIBILITY`
+    INITIALIZED:        `${SIDEBAR_NAMESPACE}/INITIALIZED`,
+    PING:               `${SIDEBAR_NAMESPACE}/PING`,
+    UPDATE_VISIBILITY:  `${SIDEBAR_NAMESPACE}/UPDATE_VISIBILITY`
   };
 
   static get namespace() {
-    return NAMESPACE;
+    return SIDEBAR_NAMESPACE;
   }
 
   static initalState = {

@@ -3,7 +3,6 @@
 //
 
 import React from 'react';
-import { compose } from 'react-apollo';
 
 import { Const } from '../../../common/defs';
 
@@ -35,29 +34,11 @@ class FinderActivity extends React.Component {
   }
 
   render() {
-    let { config, params: { folder='inbox' } } = this.props;
-
-    // TODO(burdon): Injector context class from state (see ContextReducer).
-
-    // TODO(burdon): Write to user store on modify (and remove from injector).
-    // TODO(burdon): Tasks for contact (create and link to contact).
-    // TODO(burdon): Update Injector from CRX context.
-    let itemInjector = null;
-    if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
-      itemInjector = (items) => {
-        // TODO(burdon): Remove context if in results (and move matching item to top).
-        return _.concat([{
-          id: '__TEST_CONTACT__',
-          type: 'Contact',
-          title: 'Alice Braintree',
-          email: 'alice.braintree@gmail.com'
-        }], items);
-      }
-    }
+    let { config, contextManager, params: { folder='inbox' } } = this.props;
 
     let navbar = <Navbar/>;
 
-    let finder = <Finder folder={ folder } itemInjector={ itemInjector }/>;
+    let finder = <Finder folder={ folder } contextManager={ contextManager }/>;
 
     let platform = _.get(config, 'app.platform');
     if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {

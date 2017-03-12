@@ -69,6 +69,3 @@ window.addEventListener('unload', () => {
 app.init().then(() => {
   app.render(Application);
 });
-
-// Debugging.
-_.set(window, 'minder', app);

@@ -12,6 +12,7 @@ import { Const } from '../../../common/defs';
 
 import { Navigator, WindowNavigator } from '../../common/path';
 import { AppAction, ContextAction } from '../../common/reducers';
+import { ContextManager } from '../../common/context';
 
 import { TypeRegistry } from '../../web/framework/type_registry';
 
@@ -41,8 +42,12 @@ const mapStateToProps = (state, ownProps) => {
   }
 
   // CRX app context.
+  // TODO(burdon): Do we have to rebuild the entire stack every time the context changes? (Push down and update?)
   let contextManager = undefined;
-  let contextState = ContextAction.getState(state);
+  if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
+    let contextState = ContextAction.getState(state);
+    contextManager = new ContextManager(contextState);
+  }
 
   return {
     config,
@@ -117,11 +122,4 @@ export class Activity {
       mutator
     };
   }
-}
-
-/**
- * App context.
- */
-export class AppContextManager {
-
 }

@@ -40,12 +40,17 @@ class Finder extends React.Component {
   render() {
     return ReactUtil.render(this, () => {
       let { typeRegistry } = this.context;
-      let { itemInjector, filter, listType } = this.props;
+      let { contextManager, filter, listType } = this.props;
 
-      // TODO(burdon): CRX debug.
-      let debug = (
+      let debug = false && (
         <div className="ux-debug ux-font-xsmall">{ JSON.stringify(filter) }</div>
       );
+
+      // Inject items into list if the context manager is present.
+      let itemInjector = undefined;
+      if (contextManager) {
+        itemInjector = (items) => contextManager.injectItems(items);
+      }
 
       let list;
       switch (listType) {

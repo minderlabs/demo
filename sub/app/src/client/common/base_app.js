@@ -46,6 +46,9 @@ export class BaseApp {
         });
       });
     }
+
+    // Debugging.
+    _.set(window, 'minder', this);
   }
 
   /**
