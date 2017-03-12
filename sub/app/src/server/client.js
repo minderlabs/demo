@@ -164,7 +164,7 @@ export class ClientManager {
     if (!client) {
       // Web clients should have been created on page load.
       if (platform !== Const.PLATFORM.WEB) {
-        logger.warn('Invalid client: ' + clientId);
+        logger.warn('Invalid or expired client: ' + clientId);
       }
 
       // Create the client.
