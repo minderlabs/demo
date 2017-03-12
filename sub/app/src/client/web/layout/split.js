@@ -6,8 +6,6 @@ import React from 'react';
 
 import BaseLayout from '../layout/layout';
 
-import './split.less';
-
 /**
  * Split page layout.
  *
@@ -24,7 +22,7 @@ export class SplitLayout extends React.Component {
 
     return (
       <BaseLayout navbar={ navbar }>
-        <div className="app-layout app-split-layout">
+        <div className="app-layout app-layout-split">
           <div className="app-finder-panel">
             { finder }
           </div>

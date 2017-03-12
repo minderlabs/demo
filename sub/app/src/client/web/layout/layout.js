@@ -4,16 +4,14 @@
 
 import React from 'react';
 import { compose, graphql } from 'react-apollo';
-import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { DomUtil, ID, IdGenerator, Mutator, UpsertItemsMutation } from 'minder-core';
+import { DomUtil, ID} from 'minder-core';
 import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
 import { Path } from '../../common/path';
-import { AppAction } from '../../common/reducers';
 
 import { SidePanel } from '../component/sidepanel';
 import { StatusBar } from '../component/statusbar';
@@ -165,20 +163,7 @@ const LayoutQuery = gql`
   }
 `;
 
-const mapStateToProps = (state, ownProps) => {
-  let { injector } = AppAction.getState(state);
-
-  // Required by Mutator.
-  let idGenerator = injector.get(IdGenerator);
-
-  return {
-    idGenerator
-  }
-};
-
 export default compose(
-
-  connect(mapStateToProps),
 
   // Configure query (from redux state).
   // http://dev.apollodata.com/react/queries.html#graphql-options

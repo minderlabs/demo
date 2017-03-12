@@ -46,11 +46,11 @@ class FinderActivity extends React.Component {
         <FullLayout navbar={ navbar }>
           { finder }
         </FullLayout>
-      )
+      );
     } else {
       return (
         <SplitLayout navbar={ navbar } finder={ finder }/>
-      )
+      );
     }
   }
 }

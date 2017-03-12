@@ -64,6 +64,9 @@ export class SidebarApp extends BaseApp {
 
     this._router = new ChromeMessageChannelRouter();
     this._systemChannel = new ChromeMessageChannel(SystemChannel.CHANNEL, this._router);
+
+    // Proxy to BG page.
+    this._networkInterface = null;
   }
 
   onError(error) {
@@ -74,6 +77,9 @@ export class SidebarApp extends BaseApp {
   }
 
   initNetwork() {
+
+    // Connect to background page.
+    this._router.connect();
 
     // System commands form background page.
     this._systemChannel.onMessage.addListener(message => {
@@ -91,12 +97,13 @@ export class SidebarApp extends BaseApp {
         }
       }
     });
+
+    // Proxy to BG page.
+    this._networkInterface = new ChromeNetworkInterface(
+      new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this._router), this._eventHandler);
   }
 
   postInit() {
-
-    // Connect to background page.
-    this._router.connect();
 
     // Register with the background page to obtain the CRX registration (userId, clientId) and server.
     // NOTE: Retry in case background page hasn't registered with the server yet (race condition).
@@ -119,8 +126,7 @@ export class SidebarApp extends BaseApp {
   }
 
   get networkInterface() {
-    return new ChromeNetworkInterface(
-      new ChromeMessageChannel(ChromeNetworkInterface.CHANNEL, this._router), this._eventHandler);
+    return this._networkInterface;
   }
 
   get history() {

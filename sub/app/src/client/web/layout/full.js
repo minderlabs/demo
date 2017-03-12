@@ -6,8 +6,6 @@ import React from 'react';
 
 import BaseLayout from '../layout/layout';
 
-import './full.less';
-
 /**
  * Full screen layout.
  *
@@ -20,11 +18,11 @@ export class FullLayout extends React.Component {
   };
 
   render() {
-    let { search, navbar, children, className } = this.props;
+    let { navbar, children } = this.props;
 
     return (
-      <BaseLayout navbar={ navbar } className={ className }>
-        <div className="app-layout app-full-layout">
+      <BaseLayout navbar={ navbar }>
+        <div className="app-layout app-layout-full">
           { children }
         </div>
       </BaseLayout>
