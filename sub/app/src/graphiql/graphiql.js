@@ -19,7 +19,7 @@ let headers = {
 };
 
 // Add auth header.
-window.config.headers.forEach(function(header) {
+window.config.headers.forEach((header) => {
   headers[header.name] = header.value;
 });
 

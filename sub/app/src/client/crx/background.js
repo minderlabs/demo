@@ -205,7 +205,6 @@ class BackgroundApp {
       this._settings.set('registration', registration).then(() => {
 
         // Broadcast reset to all clients (to reset cache).
-        console.log('...');
         this._systemChannel.postMessage(null, {
           command: SystemChannel.FLUSH_CACHE
         });

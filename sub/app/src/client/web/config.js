@@ -8,7 +8,7 @@
 
 Logger.setLevel({
 
-  'main':       Logger.Level.info,
+  'app':        Logger.Level.info,
   'net':        Logger.Level.info,
   'auth':       Logger.Level.debug,
   'client':     Logger.Level.debug,

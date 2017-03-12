@@ -121,7 +121,7 @@ export class NetworkManager {
           [Const.HEADER.REQUEST_ID]: requestId
         });
 
-        this._logger.logRequest(requestId, request);
+        this._logger.logRequest(requestId, request, options.headers);
         this._eventHandler.emit({ type: 'network.out' });
         next();
       }
@@ -255,15 +255,18 @@ class NetworkLogger {
   // TODO(burdon): printRequest
   // https://github.com/apollographql/apollo-client/blob/master/src/transport/networkInterface.ts
 
-  logRequest(requestId, request) {
+  logRequest(requestId, request, headers) {
     logger.log($$('[_TS_] ===>>> [%s] %o', requestId, request.variables || {}));
 
-    // Show GiQL link.
+    //
+    // Show GraphiQL link.
+    //
     if (_.get(this._options, 'debug', true)) {
       let url = HttpUtil.absoluteUrl(_.get(this._options, 'graphiql', '/graphiql'));
       logger.info('[' + TypeUtil.pad(requestId, 24) + ']: ' + url + '?' + HttpUtil.toUrlArgs({
-        query: print(request.query),
-        variables: JSON.stringify(request.variables)
+        clientId:   headers[Const.HEADER.CLIENT_ID],
+        query:      print(request.query),
+        variables:  JSON.stringify(request.variables)
       }));
     }
   }

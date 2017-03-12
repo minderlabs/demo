@@ -337,12 +337,19 @@ app.get('/graphiql', function(req, res) {
         return res.redirect('/home');
       }
 
+      // See NetworkLogger.
       res.render('graphiql', {
         config: {
-          headers: [{
-            name: Const.HEADER.AUTHORIZATION,
-            value: `Bearer ${user.token}`
-          }]
+          headers: [
+            {
+              name: Const.HEADER.AUTHORIZATION,
+              value: `Bearer ${user.token}`
+            },
+            {
+              name: Const.HEADER.CLIENT_ID,
+              value: req.query.clientId
+            }
+          ]
         }
       });
   });

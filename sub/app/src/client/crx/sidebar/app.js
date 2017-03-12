@@ -57,15 +57,25 @@ export class SidebarApp extends BaseApp {
           }
         }
       });
+
+    //
+    // Channel to background page.
+    //
+
+    this._router = new ChromeMessageChannelRouter();
+    this._systemChannel = new ChromeMessageChannel(SystemChannel.CHANNEL, this._router);
+  }
+
+  onError(error) {
+    super.onError(error);
+
+    // Relay to content script.
+    this._messenger.postMessage({ command: SidebarCommand.ERROR, error });
   }
 
   initNetwork() {
 
-    // Channel to background page.
-    this._router = new ChromeMessageChannelRouter().connect();
-
     // System commands form background page.
-    this._systemChannel = new ChromeMessageChannel(SystemChannel.CHANNEL, this._router);
     this._systemChannel.onMessage.addListener(message => {
       console.log('Command: ' + JSON.stringify(message));
       switch (message.command) {
@@ -81,11 +91,12 @@ export class SidebarApp extends BaseApp {
         }
       }
     });
-
-    return Promise.resolve();
   }
 
   postInit() {
+
+    // Connect to background page.
+    this._router.connect();
 
     // Register with the background page to obtain the CRX registration (userId, clientId) and server.
     // NOTE: Retry in case background page hasn't registered with the server yet (race condition).

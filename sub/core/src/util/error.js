@@ -27,8 +27,12 @@ export class ErrorUtil {
     if (typeof Window !== 'undefined') {
 
       // https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onerror
-      // NOTE: Return true to stop propagation.
-      root.onerror = (messageOrEvent, source, lineno, colno, error) => callback(error) || true;
+      root.onerror = (messageOrEvent, source, lineno, colno, error) => {
+        callback(error || messageOrEvent);
+
+        // NOTE: Return true to stop propagation.
+//        return true;
+      }
 
       // https://developer.mozilla.org/en-US/docs/Web/Events/unhandledrejection
       root.addEventListener('unhandledrejection', error => callback(error));

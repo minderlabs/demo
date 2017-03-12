@@ -16,7 +16,9 @@ export class ContextManager {
   // minder.store.dispatch({ type: 'MINDER_CONTEXT/UPDATE', context: TEST_CONTEXT });
   // minder.store.dispatch({ type: 'MINDER_CONTEXT/UPDATE', context: { item: undefined } });
 
-  constructor(state) {
+  constructor(idGenerator, state=undefined) {
+    console.assert(idGenerator);
+    this._idGenerator = idGenerator;
     this._state = state;
   }
 
@@ -25,7 +27,7 @@ export class ContextManager {
 
     let item = _.get(this._state, 'item');
     if (item) {
-      item.id = '_TEST_';
+      item.id = this._idGenerator.createId();
       items.unshift(item);
     }
 

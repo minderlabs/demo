@@ -46,7 +46,7 @@ const mapStateToProps = (state, ownProps) => {
   let contextManager = undefined;
   if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
     let contextState = ContextAction.getState(state);
-    contextManager = new ContextManager(contextState);
+    contextManager = new ContextManager(idGenerator, contextState);
   }
 
   return {

@@ -14,7 +14,7 @@ import moment from 'moment';
 
 import { ErrorUtil, EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 
-const logger = Logger.get('main');
+const logger = Logger.get('app');
 
 /**
  * Base class for all Minder (Apollo) apps.
@@ -37,18 +37,19 @@ export class BaseApp {
     // Manages Apollo query subscriptions.
     this._queryRegistry = new QueryRegistry();
 
-    if (!config.debug) {
-      ErrorUtil.handleErrors(window, error => {
-        logger.error(error);
-        this._eventHandler.emit({
-          type: 'error',
-          message: ErrorUtil.message(error)
-        });
-      });
-    }
-
     // Debugging.
     _.set(window, 'minder', this);
+
+    // Global error handling.
+    ErrorUtil.handleErrors(window, error => this.onError(error));
+  }
+
+  onError(error) {
+    logger.error(error);
+    this._eventHandler.emit({
+      type: 'error',
+      message: ErrorUtil.message(error)
+    });
   }
 
   /**
