@@ -255,14 +255,16 @@ export class Mutator {
     return graphql(UpsertItemsMutation, {
       withRef: true,
 
-      props: ({ ownProps, mutate }) => ({
-
-        //
-        // Injects a mutator instance into the wrapped components' properties.
-        // NOTE: idGenerator must previously have been injected into the properties.
-        //
-        mutator: new Mutator(ownProps.idGenerator, mutate)
-      })
+      //
+      // Injects a mutator instance into the wrapped components' properties.
+      // NOTE: idGenerator must previously have been injected into the properties.
+      //
+      props: ({ ownProps, mutate }) => {
+        let mutator = new Mutator(ownProps.idGenerator, mutate);
+        return {
+          mutator
+        };
+      }
     });
   }
 

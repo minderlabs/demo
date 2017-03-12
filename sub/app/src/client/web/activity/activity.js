@@ -4,13 +4,14 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
+import { compose } from 'react-apollo';
 
-import { EventHandler, IdGenerator, PropertyProvider, QueryRegistry } from 'minder-core';
+import { EventHandler, IdGenerator, Mutator, PropertyProvider, QueryRegistry } from 'minder-core';
 
 import { Const } from '../../../common/defs';
 
 import { Navigator, WindowNavigator } from '../../common/path';
-import { AppAction } from '../../common/reducers';
+import { AppAction, ContextAction } from '../../common/reducers';
 
 import { TypeRegistry } from '../../web/framework/type_registry';
 
@@ -33,10 +34,15 @@ const mapStateToProps = (state, ownProps) => {
   let queryRegistry = injector.get(QueryRegistry);
   let eventHandler  = injector.get(EventHandler);
 
+  // CRX Navigator opens in new window (overridden in mapDispatchToProps for web).
   let navigator = undefined;
   if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
     navigator = new WindowNavigator(new PropertyProvider(appState, 'server'));
   }
+
+  // CRX app context.
+  let contextManager = undefined;
+  let contextState = ContextAction.getState(state);
 
   return {
     config,
@@ -46,6 +52,8 @@ const mapStateToProps = (state, ownProps) => {
     typeRegistry,
     queryRegistry,
     eventHandler,
+
+    contextManager,
     navigator
   };
 };
@@ -74,18 +82,29 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
  */
 export class Activity {
 
+  /**
+   * Connect properties for activities.
+   */
+  static connect = () => compose(
+    connect(mapStateToProps, mapDispatchToProps, mergeProps),
+    Mutator.graphql()
+  );
+
   static childContextTypes = {
-    config:         React.PropTypes.object,
-    registration:   React.PropTypes.object,
-    typeRegistry:   React.PropTypes.object,
-    queryRegistry:  React.PropTypes.object,
-    eventHandler:   React.PropTypes.object,
-    navigator:      React.PropTypes.object,
-    mutator:        React.PropTypes.object
+    config:           React.PropTypes.object,
+    registration:     React.PropTypes.object,
+    typeRegistry:     React.PropTypes.object,
+    queryRegistry:    React.PropTypes.object,
+    eventHandler:     React.PropTypes.object,
+    contextManager:   React.PropTypes.object,
+    navigator:        React.PropTypes.object,
+    mutator:          React.PropTypes.object
   };
 
   static getChildContext(props) {
-    let { config, registration, typeRegistry, queryRegistry, eventHandler, navigator, mutator } = props;
+    let {
+      config, registration, typeRegistry, queryRegistry, eventHandler, contextManager, navigator, mutator
+    } = props;
 
     return {
       config,
@@ -93,13 +112,16 @@ export class Activity {
       typeRegistry,
       queryRegistry,
       eventHandler,
+      contextManager,
       navigator,
       mutator
     };
   }
+}
 
-  /**
-   * Connect properties for activities.
-   */
-  static connect = () => connect(mapStateToProps, mapDispatchToProps, mergeProps);
+/**
+ * App context.
+ */
+export class AppContextManager {
+
 }

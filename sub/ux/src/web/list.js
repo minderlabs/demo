@@ -108,20 +108,25 @@ export class List extends React.Component {
   };
 
   static propTypes = {
+    data:               React.PropTypes.string,     // Custom data.
+
     className:          React.PropTypes.string,
     highlight:          React.PropTypes.bool,
-    data:               React.PropTypes.string,                               // Custom data.
+
+    groupBy:            React.PropTypes.bool,
+    showAdd:            React.PropTypes.bool,
+
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
     itemClassName:      React.PropTypes.string,
     itemRenderer:       React.PropTypes.func,
     itemEditor:         React.PropTypes.func,
-    itemOrderModel:     React.PropTypes.object,                               // Order model for drag and drop.
-    mutator:            React.PropTypes.object,
+    itemOrderModel:     React.PropTypes.object,     // Order model for drag and drop.
+    itemInjector:       React.PropTypes.func,       // Modify results.
+
+    mutator:            React.PropTypes.object,     // TODO(burdon): Remove (must call onItemUpdate).
     onItemUpdate:       React.PropTypes.func,
     onItemSelect:       React.PropTypes.func,
-    onItemDrop:         React.PropTypes.func,
-    groupBy:            React.PropTypes.bool,
-    showAdd:            React.PropTypes.bool
+    onItemDrop:         React.PropTypes.func
   };
 
   static defaultProps = {
@@ -232,12 +237,17 @@ export class List extends React.Component {
   */
 
   render() {
-    let { itemClassName, data, itemOrderModel, groupBy } = this.props;
+    let { itemClassName, itemOrderModel, itemInjector, data, groupBy } = this.props;
     let { items, itemRenderer } = this.state;
 
     // Sort items by order model.
     if (itemOrderModel) {
       items = itemOrderModel.getOrderedItems(items);
+    }
+
+    // Augment items (e.g., from app context).
+    if (itemInjector) {
+      items = itemInjector(items);
     }
 
     //

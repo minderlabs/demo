@@ -217,23 +217,13 @@ export class ListReducer extends Reducer {
         // Get query result.
         let items = listReducer.getResult(data, []);
 
-        // TODO(burdon): Injector context adapter to insert items.
-        // TODO(burdon): Tasks for contact.
-        // TODO(burdon): Write to user store on modify (and remove from injector).
-        // TODO(burdon): Add from CRX context.
-        items.unshift({
-          id: '__TEST_CONTACT__',
-          type: 'Contact',
-          title: 'Alice Braintree',
-          email: 'alice.braintree@gmail.com'
-        });
-
         return {
           loading,
           error,
           refetch,
           matcher,
 
+          // Data from query.
           items,
 
           // Paging.

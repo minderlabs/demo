@@ -40,7 +40,7 @@ class Finder extends React.Component {
   render() {
     return ReactUtil.render(this, () => {
       let { typeRegistry } = this.context;
-      let { filter, listType } = this.props;
+      let { itemInjector, filter, listType } = this.props;
 
       // TODO(burdon): CRX debug.
       let debug = (
@@ -53,6 +53,7 @@ class Finder extends React.Component {
           list = <CardSearchList filter={ filter }
                                  highlight={ false }
                                  className="ux-card-list"
+                                 itemInjector={ itemInjector }
                                  itemRenderer={ Card.ItemRenderer(typeRegistry) }
                                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
           break;

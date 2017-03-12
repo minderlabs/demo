@@ -3,9 +3,6 @@
 //
 
 import React from 'react';
-import { compose } from 'react-apollo';
-
-import { Mutator } from 'minder-core';
 
 import { Const } from '../../../common/defs';
 
@@ -72,7 +69,4 @@ class CanvasActivity extends React.Component {
   }
 }
 
-export default compose(
-  Activity.connect(),
-  Mutator.graphql()
-)(CanvasActivity);
+export default Activity.connect()(CanvasActivity);
