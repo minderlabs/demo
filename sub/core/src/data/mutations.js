@@ -348,9 +348,11 @@ export class Mutator {
 
 
     // TODO(burdon): Clone item if locally created.
+    // TODO(burdon): USE MutationUtil.cloneExternalItem below
     if (item.namespace === Database.NAMESPACE.LOCAL) {
       console.info('### CLONE LOCAL ITEM ###', JSON.stringify(item));
       mutations.unshift(MutationUtil.createFieldMutation('title', 'string', item.title));
+      mutations.unshift(MutationUtil.createFieldMutation('title', 'string', item.email));
       delete item['namespace'];
     }
 

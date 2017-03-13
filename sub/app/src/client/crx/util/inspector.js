@@ -118,23 +118,15 @@ export class TestInspector extends Inspector {
       if (root[0]) {
         let name = root.text();
         let email = root.attr('email');
-
-        // Determine type.
-        let item = null;
-        if (email) {
-          item = {
-            type: 'Contact',
-            title: name,
-            email: email
-          }
-        }
-
-        if (name) {
+        if (name && email) {
           context = {
-            item,
+            items: [{
+              type: 'Contact',
+              title: name,
+              email: email
+            }],
             filter: {
-              type: item && item.type,
-              text: email || name
+              text: email
             }
           };
 
@@ -182,11 +174,11 @@ export class GmailInspector extends Inspector {
         let email = root.attr('email');
         if (name && email) {
           context = {
-            item: {
+            items: [{
               type: 'Contact',
               title: name,
               email: email
-            },
+            }],
             filter: {
               text: email
             }
@@ -235,11 +227,11 @@ export class GoogleInboxInspector extends Inspector {
         let email = root.attr('email');
         if (name && email) {
           context = {
-            item: {
+            items: [{
               type: 'Contact',
               title: name,
               email: email
-            },
+            }],
             filter: {
               text: email
             }

@@ -60,9 +60,9 @@ export class Card extends React.Component {
         { children }
 
         { true &&
-        <div className="ux-section ux-debug">
-          <div className="ux-section-body">
-            { JSON.stringify(_.pick(item, 'bucket', 'type', 'id')) }
+        <div className="ux-section">
+          <div className="ux-section-body ux-debug" title={ JSON.stringify(_.pick(item, 'bucket')) }>
+            { JSON.stringify(_.pick(item, 'id', 'type')) }
           </div>
         </div>
         }

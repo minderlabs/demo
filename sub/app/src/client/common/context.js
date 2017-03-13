@@ -13,9 +13,9 @@ export class ContextManager {
   // TODO(burdon): Update Injector from CRX context.
 
   // To test from console:
-  // let TEST_CONTEXT = { item: { type: 'Contact', title: 'Alice Braintree' } };
+  // let TEST_CONTEXT = { items: [{ type: 'Contact', title: 'Alice Braintree' }] };
   // minder.store.dispatch({ type: 'MINDER_CONTEXT/UPDATE', context: TEST_CONTEXT });
-  // minder.store.dispatch({ type: 'MINDER_CONTEXT/UPDATE', context: { item: undefined } });
+  // minder.store.dispatch({ type: 'MINDER_CONTEXT/UPDATE', context: { items: undefined }});
 
   constructor(idGenerator, state=undefined) {
     console.assert(idGenerator);
@@ -23,19 +23,45 @@ export class ContextManager {
     this._state = state;
   }
 
+  /**
+   * Inject contextual items into the current list results.
+   * @param items
+   * @return {*}
+   */
   injectItems(items) {
 
-    // TODO(burdon): Replace if existing.
+    _.each(_.get(this._state, 'items'), item => {
 
-    let item = _.get(this._state, 'item');
-    if (item) {
-      _.defaults(item, {
-        namespace: Database.NAMESPACE.LOCAL,
-        id: this._idGenerator.createId()
+      // TODO(burdon): Generalize match (by fkey).
+      let currentIdx = _.findIndex(items, i => {
+
+        console.log('###', _.pick(i, ['id', 'type', 'email']));
+
+        if (i.type == item.type && i.email == item.email) {
+          return true;
+        }
       });
 
-      items.unshift(item);
-    }
+      console.log(':::', currentIdx,
+        JSON.stringify(_.pick(item, ['id', 'type', 'email'])),
+        JSON.stringify(_.pick(items[currentIdx], ['id', 'type', 'email'])));
+
+      // TODO(burdon): Remve opt result?
+
+      if (currentIdx != -1) {
+        console.log('>>>>>>>>>>>>>', items[currentIdx].id);
+
+        // Move to front.
+        items.splice(currentIdx, 1);
+        items.unshift(items[currentIdx]);
+      } else {
+        // Prepend context item.
+        items.unshift(_.defaults(item, {
+          namespace: Database.NAMESPACE.LOCAL,
+          id: this._idGenerator.createId()
+        }));
+      }
+    });
 
     return items;
   }

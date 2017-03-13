@@ -57,11 +57,12 @@ app.init().then(() => {
 
 setTimeout(() => {
   window.ITEMS = [
-    { item: { type: 'Contact', title: 'Alice Braintree', email: 'alice.braintree@gmail.com' } }
+    { type: 'Contact', title: 'Alice Braintree', email: 'alice.braintree@gmail.com' },
+    { type: 'Contact', title: 'Kumiko Toft', email: 'kumikotoft@gmail.com' },
   ];
 
   console.log(_.repeat('=', 80));
   console.log('ITEMS = ' + JSON.stringify(window.ITEMS, null, 2));
-  console.log('minder.store.dispatch({ type: \'MINDER_CONTEXT/UPDATE\', context: ITEMS[0] })');
+  console.log('minder.store.dispatch({ type: \'MINDER_CONTEXT/UPDATE\', context: { items: [ITEMS[0]] }})');
   console.log(_.repeat('=', 80));
 }, 2000);
