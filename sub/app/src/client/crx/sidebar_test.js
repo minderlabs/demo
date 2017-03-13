@@ -50,3 +50,18 @@ module.hot.accept('./sidebar/app', () => {
 app.init().then(() => {
   app.render(Application);
 });
+
+//
+// Testing.
+//
+
+setTimeout(() => {
+  window.ITEMS = [
+    { item: { type: 'Contact', title: 'Alice Braintree', email: 'alice.braintree@gmail.com' } }
+  ];
+
+  console.log(_.repeat('=', 80));
+  console.log('ITEMS = ' + JSON.stringify(window.ITEMS, null, 2));
+  console.log('minder.store.dispatch({ type: \'MINDER_CONTEXT/UPDATE\', context: ITEMS[0] })');
+  console.log(_.repeat('=', 80));
+}, 2000);

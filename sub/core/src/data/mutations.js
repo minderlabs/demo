@@ -6,9 +6,10 @@ import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
 import { TypeUtil } from '../util/type';
-import { Transforms } from './transforms';
 
+import { Transforms } from './transforms';
 import { ID } from './id';
+import { Database } from './database';
 import { ItemFragment, TaskFragment, ProjectFragment, ProjectBoardFragment } from './fragments';
 
 //
@@ -187,7 +188,8 @@ class Batch {
     console.assert(item && mutations);
     mutations = TypeUtil.flattenArrays(mutations);
     this._operations.push({
-      item, mutations
+      item,
+      mutations
     });
 
     return this;
@@ -343,7 +345,18 @@ export class Mutator {
   updateItem(item, mutations, namespace, itemMap=undefined) {
     mutations = _.compact(_.concat(mutations));
 
-    // TODO(burdon): If external namespace (factor out from Database.isExternalNamespace).
+
+
+    // TODO(burdon): Clone item if locally created.
+    if (item.namespace === Database.NAMESPACE.LOCAL) {
+      console.info('### CLONE LOCAL ITEM ###', JSON.stringify(item));
+      mutations.unshift(MutationUtil.createFieldMutation('title', 'string', item.title));
+      delete item['namespace'];
+    }
+
+
+
+    // TODO(burdon): If external or local namespace (factor out from Database.isExternalNamespace).
     if (item.namespace) {
       console.log('Cloning item: ' + JSON.stringify(item));
 

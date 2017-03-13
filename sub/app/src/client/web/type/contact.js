@@ -6,7 +6,7 @@ import React from 'react';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ItemReducer, ItemFragment, ContactFragment } from 'minder-core';
+import { ItemReducer, ItemFragment, ContactFragment, MutationUtil } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
 import { connectReducer } from '../framework/connector';
@@ -25,7 +25,8 @@ import { TaskListItemRenderer } from './task';
 export class ContactCard extends React.Component {
 
   static contextTypes = {
-    mutator: React.PropTypes.object.isRequired
+    mutator: React.PropTypes.object.isRequired,
+    registration: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -37,14 +38,26 @@ export class ContactCard extends React.Component {
   }
 
   handleItemUpdate(item, mutations) {
-    let { mutator } = this.context;
+    let { registration: { userId }, mutator } = this.context;
 
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
-      // TODO(burdon): Add task to contact.
-      console.log(mutations);
-      console.warn('Not implemented.');
+      let { item:parent } = this.props;
+
+      // TODO(burdon): If mutating context item then must clone (e.g., upsert title).
+      // TODO(burdon): Check search isn't returning null items.
+
+      mutator.batch()
+        .createItem('Task', _.concat(mutations, [
+          MutationUtil.createFieldMutation('bucket', 'string', userId),
+          MutationUtil.createFieldMutation('owner', 'id', userId)
+        ]), 'new_task')
+        .updateItem(parent, [
+          MutationUtil.createFieldMutation('bucket', 'string', userId),
+          MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+        ])
+        .commit();
     }
   }
 

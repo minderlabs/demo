@@ -43,6 +43,12 @@ export const ItemFragment = gql`
 export const ContactFragment = gql`
   fragment ContactFragment on Contact {
     email
+    tasks {
+      type
+      id
+      title
+      status
+    }
   }
 `;
 

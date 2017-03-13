@@ -2,13 +2,14 @@
 // Copyright 2017 Minder Labs.
 //
 
+import { Database } from 'minder-core';
+
 /**
  * App context.
  */
 export class ContextManager {
 
-  // TODO(burdon): Write to user store on modify (and remove from injector).
-  // TODO(burdon): Tasks for contact (create and link to contact).
+  // TODO(burdon): Clean-up cloning in mutations and reducer.
   // TODO(burdon): Update Injector from CRX context.
 
   // To test from console:
@@ -23,11 +24,16 @@ export class ContextManager {
   }
 
   injectItems(items) {
-    // TODO(burdon): Remove context if in results (and move matching item to top).
+
+    // TODO(burdon): Replace if existing.
 
     let item = _.get(this._state, 'item');
     if (item) {
-      item.id = this._idGenerator.createId();
+      _.defaults(item, {
+        namespace: Database.NAMESPACE.LOCAL,
+        id: this._idGenerator.createId()
+      });
+
       items.unshift(item);
     }
 

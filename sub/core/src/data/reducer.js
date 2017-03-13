@@ -311,10 +311,18 @@ export class ListReducer extends Reducer {
     // Replace the item if it is a recent update to an external item.
     let exists = _.findIndex(items, item => item.id === updatedItem.id) !== -1;
     if (!exists && updatedItem.fkey) {
+      let current  = _.find(items, item => item.namespace && ID.getForeignKey(item) === updatedItem.fkey);
+
+      if (!current) {
+        // TODO(burdon): Replace
+        console.warn('###', updatedItem.title);
+        return;
+      }
+
       return {
         [path]: {
           $replace: {
-            id: _.find(items, item => item.namespace && ID.getForeignKey(item) === updatedItem.fkey).id,
+            id: current.id,
             item: updatedItem
           }
         }
