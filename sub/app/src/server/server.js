@@ -88,7 +88,7 @@ const app = express();
 
 const server = http.Server(app);
 
-const idGenerator = new IdGenerator(999);
+const idGenerator = new IdGenerator(1000);
 
 const clientManager = new ClientManager(idGenerator);
 

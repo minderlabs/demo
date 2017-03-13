@@ -352,7 +352,7 @@ export class Mutator {
     if (item.namespace === Database.NAMESPACE.LOCAL) {
       console.info('### CLONE LOCAL ITEM ###', JSON.stringify(item));
       mutations.unshift(MutationUtil.createFieldMutation('title', 'string', item.title));
-      mutations.unshift(MutationUtil.createFieldMutation('title', 'string', item.email));
+      mutations.unshift(MutationUtil.createFieldMutation('email', 'string', item.email));
       delete item['namespace'];
     }
 

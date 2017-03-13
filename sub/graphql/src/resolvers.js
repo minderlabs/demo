@@ -278,8 +278,6 @@ export class Resolvers {
           let { namespace=Database.NAMESPACE.USER, mutations } = args;
           logger.log($$('UPDATE[%s]: %o', namespace, mutations));
 
-          console.log('<<<', JSON.stringify(mutations, null, 2));
-
           let itemStore = database.getItemStore(namespace);
           return ItemStore.applyMutations(itemStore, context, mutations)
 
@@ -287,9 +285,6 @@ export class Resolvers {
             // Trigger notifications.
             //
             .then(items => {
-
-              console.log('>>>', JSON.stringify(items, null, 2));
-
 
               // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
               database.fireMuationNotification(context, mutations, items);

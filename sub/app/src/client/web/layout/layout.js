@@ -129,6 +129,7 @@ export class BaseLayout extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
+// TODO(burdon): Factor out folders query.
 const LayoutQuery = gql`
   query LayoutQuery { 
 

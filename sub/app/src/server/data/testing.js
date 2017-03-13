@@ -105,6 +105,7 @@ export class TestGenerator {
    */
   static Linkers = {
 
+    // Add project to group.
     'Project': (item, context) => {
       return {
         itemId: ID.toGlobalId('Group', item.group),
@@ -114,6 +115,7 @@ export class TestGenerator {
       };
     },
 
+    // Add task to project.
     'Task': (item, context) => {
       if (item.project) {
         return {
@@ -177,6 +179,7 @@ export class TestGenerator {
       switch (type) {
         case 'Group':
           return this._database.getItemStore(Database.NAMESPACE.SYSTEM);
+
         default:
           return this._database.getItemStore(Database.NAMESPACE.USER);
       }
@@ -188,6 +191,10 @@ export class TestGenerator {
 
         // Upsert items.
         return getStore(type).upsertItems(context, items).then(items => {
+
+          _.each(items, item => {
+            console.log('Test: ' + JSON.stringify(_.pick(item, ['id', 'type', 'title'])));
+          });
 
           // Generate and save links.
           return this._randomizer.generateLinkMutations(context, items).then(itemMutations => {

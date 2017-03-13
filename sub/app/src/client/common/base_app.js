@@ -331,8 +331,11 @@ export class BaseApp {
     );
 
     // Render app.
-    let root = document.getElementById(this._config.root);
-    ReactDOM.render(app, root);
-    return root;
+    return new Promise((resolve, reject) => {
+      let root = document.getElementById(this._config.root);
+      ReactDOM.render(app, root, () => {
+        resolve(root);
+      });
+    });
   }
 }

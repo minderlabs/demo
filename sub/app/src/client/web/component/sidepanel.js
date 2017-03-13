@@ -46,6 +46,7 @@ export class SidePanel extends React.Component {
     const adminItems = [
       // TODO(burdon): Admin ACL.
       {
+        type: 'Folder',
         id: 'folder-admin',
         title: 'Admin',
         icon: 'build',
@@ -53,6 +54,7 @@ export class SidePanel extends React.Component {
       },
       // TODO(burdon): If debug set in config.
       {
+        type: 'Folder',
         id: 'folder-testing',
         title: 'Testing',
         icon: 'bug_report',

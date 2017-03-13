@@ -48,21 +48,30 @@ module.hot.accept('./sidebar/app', () => {
 });
 
 app.init().then(() => {
-  app.render(Application);
+  app.render(Application).then(root => {
+
+    //
+    // Testing.
+    //
+
+    window.ITEMS = {
+      t1: { type: 'Contact', title: 'Alice', email: 'alice.braintree@gmail.com' },
+      t2: { type: 'Contact', title: 'Kumiko', email: 'kumikotoft@gmail.com' },
+    };
+
+    let select = $('<select>').appendTo(root)
+      .append($('<option>').text('Context'))
+      .css('position', 'absolute')
+      .css('bottom', 0)
+      .change(event => {
+        let item = window.ITEMS[$(event.target).val()];
+        let action = { type: 'MINDER_CONTEXT/UPDATE', context: item ? { items: [item] } : null };
+        window.minder.store.dispatch(action);
+        console.log(`window.minder.store.dispatch(${JSON.stringify(action)})`);
+      });
+
+    _.each(window.ITEMS, (value, key) => {
+      $('<option>').appendTo(select).attr('value', key).text(value.title);
+    });
+  });
 });
-
-//
-// Testing.
-//
-
-setTimeout(() => {
-  window.ITEMS = [
-    { type: 'Contact', title: 'Alice Braintree', email: 'alice.braintree@gmail.com' },
-    { type: 'Contact', title: 'Kumiko Toft', email: 'kumikotoft@gmail.com' },
-  ];
-
-  console.log(_.repeat('=', 80));
-  console.log('ITEMS = ' + JSON.stringify(window.ITEMS, null, 2));
-  console.log('minder.store.dispatch({ type: \'MINDER_CONTEXT/UPDATE\', context: { items: [ITEMS[0]] }})');
-  console.log(_.repeat('=', 80));
-}, 2000);

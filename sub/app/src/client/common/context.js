@@ -30,30 +30,25 @@ export class ContextManager {
    */
   injectItems(items) {
 
+    // TODO(burdon): query store directly to get items (and cache): so doesn't mutate/copy.
+    // TODO(burdon): FCM push should push back to sender (since other tabs). AND check push token is unique.
+
     _.each(_.get(this._state, 'items'), item => {
 
       // TODO(burdon): Generalize match (by fkey).
+      // Move existing item to the front or replace.
       let currentIdx = _.findIndex(items, i => {
-
-        console.log('###', _.pick(i, ['id', 'type', 'email']));
-
         if (i.type == item.type && i.email == item.email) {
           return true;
         }
       });
 
-      console.log(':::', currentIdx,
-        JSON.stringify(_.pick(item, ['id', 'type', 'email'])),
-        JSON.stringify(_.pick(items[currentIdx], ['id', 'type', 'email'])));
-
-      // TODO(burdon): Remve opt result?
-
       if (currentIdx != -1) {
-        console.log('>>>>>>>>>>>>>', items[currentIdx].id);
+        console.log('### EXISTING: ' + JSON.stringify(_.pick(items[currentIdx], ['id', 'type', 'title'])));
 
         // Move to front.
-        items.splice(currentIdx, 1);
-        items.unshift(items[currentIdx]);
+        let removed = items.splice(currentIdx, 1);
+        items.unshift(removed[0]);
       } else {
         // Prepend context item.
         items.unshift(_.defaults(item, {

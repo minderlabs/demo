@@ -90,6 +90,7 @@ const FoldersQuery = gql`
   query FoldersQuery {
     viewer {
       folders {
+        type
         id
         alias
         filter
