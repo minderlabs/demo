@@ -7,11 +7,12 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { IdGenerator, QueryParser } from 'minder-core';
+import { IdGenerator, QueryParser, ItemFragment } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
 import { AppAction, ContextAction } from '../../common/reducers';
+import { ContextManager } from '../../common/context';
 
 import { BasicSearchList, CardSearchList, BasicListItemRenderer } from '../framework/lists';
 import { Card } from '../component/card';
@@ -87,7 +88,7 @@ class Finder extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 const FoldersQuery = gql`
-  query FoldersQuery {
+  query FoldersQuery($itemIds: [ID]!) {
     viewer {
       folders {
         type
@@ -96,14 +97,27 @@ const FoldersQuery = gql`
         filter
       }
     }
+
+    items(itemIds: $itemIds) {
+      ...ItemFragment
+    }
   }
+
+  ${ItemFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
   let { config, injector, search } = AppAction.getState(state);
 
   // Current user context (e.g., host page).
-  let { context } = ContextAction.getState(state);
+  let context = ContextAction.getState(state);
+
+  // CRX app context.
+  let contextManager = null;
+  if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
+    // TODO(burdon): Binds to context action; should trigger context requery.
+    contextManager = injector.get(ContextManager).update(context);
+  }
 
   // TODO(burdon): Move to layout config.
   let listType = _.get(config, 'app.platform') === Const.PLATFORM.CRX ? 'card' : 'list';
@@ -120,6 +134,7 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     idGenerator,
+    contextManager,
     listType,
     filter,
     search
@@ -133,6 +148,17 @@ export default compose(
 
   // Query.
   graphql(FoldersQuery, {
+
+    // TODO(burdon): Context items. Update context manager in props below.
+    options: (props) => {
+      let itemIds = [];
+
+      return {
+        variables: {
+          itemIds
+        }
+      };
+    },
 
     // Configure props passed to component.
     // http://dev.apollodata.com/react/queries.html#graphql-props

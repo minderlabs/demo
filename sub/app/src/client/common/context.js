@@ -17,10 +17,16 @@ export class ContextManager {
   // minder.store.dispatch({ type: 'MINDER_CONTEXT/UPDATE', context: TEST_CONTEXT });
   // minder.store.dispatch({ type: 'MINDER_CONTEXT/UPDATE', context: { items: undefined }});
 
-  constructor(idGenerator, state=undefined) {
+  constructor(idGenerator) {
     console.assert(idGenerator);
     this._idGenerator = idGenerator;
+    this._state = null;
+  }
+
+  // TODO(burdon): Should trigger re-render.
+  update(state=undefined) {
     this._state = state;
+    return this;
   }
 
   /**

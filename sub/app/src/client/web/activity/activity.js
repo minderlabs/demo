@@ -11,7 +11,7 @@ import { EventHandler, IdGenerator, Mutator, PropertyProvider, QueryRegistry } f
 import { Const } from '../../../common/defs';
 
 import { Navigator, WindowNavigator } from '../../common/path';
-import { AppAction, ContextAction } from '../../common/reducers';
+import { AppAction } from '../../common/reducers';
 import { ContextManager } from '../../common/context';
 
 import { TypeRegistry } from '../../web/framework/type_registry';
@@ -30,23 +30,16 @@ const mapStateToProps = (state, ownProps) => {
   let { config, registration, injector } = appState;
   console.assert(registration, 'Not registered.');
 
-  let idGenerator   = injector.get(IdGenerator);
-  let typeRegistry  = injector.get(TypeRegistry);
-  let queryRegistry = injector.get(QueryRegistry);
-  let eventHandler  = injector.get(EventHandler);
+  let idGenerator     = injector.get(IdGenerator);
+  let typeRegistry    = injector.get(TypeRegistry);
+  let queryRegistry   = injector.get(QueryRegistry);
+  let eventHandler    = injector.get(EventHandler);
+  let contextManager  = injector.get(ContextManager);
 
   // CRX Navigator opens in new window (overridden in mapDispatchToProps for web).
   let navigator = undefined;
   if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
     navigator = new WindowNavigator(new PropertyProvider(appState, 'server'));
-  }
-
-  // CRX app context.
-  // TODO(burdon): Do we have to rebuild the entire stack every time the context changes? (Push down and update?)
-  let contextManager = undefined;
-  if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
-    let contextState = ContextAction.getState(state);
-    contextManager = new ContextManager(idGenerator, contextState);
   }
 
   return {

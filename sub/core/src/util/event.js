@@ -10,6 +10,7 @@ const logger = Logger.get('event');
 /**
  * Injectable event handler.
  */
+// TODO(burdon): Rename EventListener.
 export class EventHandler {
 
   constructor() {

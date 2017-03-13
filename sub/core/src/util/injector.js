@@ -20,6 +20,7 @@ export class Injector {
       key = instance.constructor.name;
     }
 
+    console.assert(key, 'Invalid key: ' + key);
     return {
       [key]: instance
     };

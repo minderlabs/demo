@@ -14,6 +14,8 @@ import moment from 'moment';
 
 import { ErrorUtil, EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
 
+import { ContextManager } from './context';
+
 const logger = Logger.get('app');
 
 /**
@@ -21,7 +23,6 @@ const logger = Logger.get('app');
  *
  * This is the App's top-level class hat configures the Injector, Apollo, Redux reducers, Router, etc.
  * It also renders the App's top-level React component, which defines the react-router Routes.
- *
  */
 export class BaseApp {
 
@@ -29,7 +30,6 @@ export class BaseApp {
     console.assert(config);
     this._config = config;
 
-    // TODO(burdon): Rename EventListener.
     // Event bus propagates events (e.g., error messages) to components.
     this._eventHandler = new EventHandler();
 
@@ -37,11 +37,11 @@ export class BaseApp {
     // Manages Apollo query subscriptions.
     this._queryRegistry = new QueryRegistry();
 
-    // Debugging.
-    _.set(window, 'minder', this);
-
     // Global error handling.
     ErrorUtil.handleErrors(window, error => this.onError(error));
+
+    // Debugging.
+    _.set(window, 'minder', this);
   }
 
   onError(error) {
@@ -84,12 +84,15 @@ export class BaseApp {
    * Injectors.
    */
   initInjector() {
+    let idGenerator = new IdGenerator();
+
     let providers = _.concat([
-      Injector.provider(this._eventHandler),
-      Injector.provider(this._queryRegistry),
-      Injector.provider(new IdGenerator()),
+      Injector.provider(idGenerator),
       Injector.provider(new Matcher()),
       Injector.provider(new QueryParser()),
+      Injector.provider(new ContextManager(idGenerator)),
+      Injector.provider(this._eventHandler),
+      Injector.provider(this._queryRegistry)
     ], this.providers);
 
     // TODO(burdon): Move to Redux?
@@ -176,6 +179,21 @@ export class BaseApp {
 
       //
       // Apollo framework reducer.
+      // https://dev-blog.apollodata.com/apollo-client-graphql-with-react-and-redux-49b35d0f2641#.6s4uu9s2b
+      //
+      // State: { apollo }
+      // {
+      //   queries:   query state.
+      //   data:      cached items.
+      // }
+      //
+      // TODO(burdon): Subscriptions.
+      // https://github.com/apollographql/graphql-subscriptions
+      // https://dev-blog.apollodata.com/a-proposal-for-graphql-subscriptions-1d89b1934c18#.23j01b1a4
+      //
+      // TODO(burdon): Updating the cache.
+      // https://github.com/apollographql/apollo-client/issues/180
+      // https://www.learnapollo.com/excursions/excursion-02/
       //
       apollo: this._apolloClient.reducer(),
 
@@ -190,7 +208,7 @@ export class BaseApp {
     let enhancer = compose(
 
       // Redux-thunk (for asynchronous actions).
-      // NOTE: The arg is passed as the third arg to the handler:
+      // NOTE: The arg is passed as the third arg to the redux handler:
       // () => (dispatch, getState, injector) => { ... }
       applyMiddleware(ReduxThunk.withExtraArgument(this._injector)),
 
@@ -202,11 +220,9 @@ export class BaseApp {
       // https://github.com/reactjs/react-router-redux#pushlocation-replacelocation-gonumber-goback-goforward
       applyMiddleware(routerMiddleware(this.history)),
 
-      // NOTE: Must go last.
-      // https://github.com/gaearon/redux-devtools
-      // https://github.com/gaearon/redux-devtools/blob/master/docs/Walkthrough.md
-      // TODO(burdon): Factor out.
-//    Monitor.instrument()
+      // https://github.com/zalmoxisus/redux-devtools-extension
+      // https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd
+      window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
     );
 
     // http://redux.js.org/docs/api/createStore.html
