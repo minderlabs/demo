@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
-import { $$, Logger, Database, ID, ItemStore, TypeUtil } from 'minder-core';
+import { $$, Logger, NotAuthenticatedError, Database, ID, ItemStore, TypeUtil } from 'minder-core';
 
 import Schema from './gql/schema.graphql';
 
@@ -295,11 +295,11 @@ export class Resolvers {
     };
   }
 
-  // TODO(burdon): Obsolete? NotAuthenticatedError.
   static checkAuthentication(context) {
     if (!context.userId) {
-      // NOTE: User may be inactive.
-      throw new Error('Not authenticated.');
+      // TODO(burdon): Test user is active also.
+      // NOTE: getUserFromHeader should have already thrown before getting here.
+      throw NotAuthenticatedError();
     }
     if (!context.clientId) {
       throw new Error('Invalid client.');

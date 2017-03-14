@@ -62,6 +62,9 @@ class CloudMessenger {
   onMessage(data) {
     logger.info('Received: ' + JSON.stringify(data));
     this._eventHandler.emit({ type: 'network.in' });
+
+    // TODO(burdon): Check not from us.
+    console.log(':::::', data, this._config)
     this._queryRegistry.invalidate();
   }
 }

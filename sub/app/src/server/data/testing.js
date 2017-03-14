@@ -4,7 +4,9 @@
 
 import _ from 'lodash';
 
-import { Database, ID, MutationUtil, Randomizer, Transforms } from 'minder-core';
+import { Logger, Database, ID, MutationUtil, Randomizer, Transforms } from 'minder-core';
+
+const logger = Logger.get('testing');
 
 /**
  * Test data.
@@ -193,7 +195,7 @@ export class TestGenerator {
         return getStore(type).upsertItems(context, items).then(items => {
 
           _.each(items, item => {
-            console.log('Test: ' + JSON.stringify(_.pick(item, ['id', 'type', 'title'])));
+            logger.log('Test: ' + JSON.stringify(_.pick(item, ['id', 'type', 'title'])));
           });
 
           // Generate and save links.

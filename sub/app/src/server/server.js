@@ -2,7 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-import './config';
+import { TestConfig } from './config';
 
 import _ from 'lodash';
 import path from 'path';
@@ -15,7 +15,6 @@ import moment from 'moment';
 
 import {
   ErrorUtil,
-  NotAuthenticatedError,
   Logger,
   TypeUtil
 } from 'minder-core';
@@ -45,10 +44,11 @@ import { accountsRouter, AccountManager, SlackAccountHandler } from './accounts'
 import { loginRouter, UserManager } from './user';
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { clientRouter, ClientManager } from './client';
+import { loggingRouter } from './logger';
+import { testingRouter } from './testing';
+
 import { Loader } from './data/loader';
 import { TestGenerator } from './data/testing';
-import { testingRouter } from './testing';
-import { loggingRouter } from './logger';
 
 const logger = Logger.get('server');
 
@@ -134,7 +134,7 @@ const database = new Database()
     // TODO(burdon): Options.
     // TODO(burdon): QueryRegistry.
     // Notify clients of changes.
-    // clientManager.invalidateClients(context.clientId);
+    clientManager.invalidateClients(context.clientId);
   });
 
 
