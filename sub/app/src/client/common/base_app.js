@@ -111,6 +111,10 @@ export class BaseApp {
   initApollo() {
     console.assert(this.networkInterface);
 
+    // TODO(burdon): Subscriptions?
+    // addGraphQLSubscriptions(networkInterface, wsClient)
+    // http://dev.apollodata.com/react/subscriptions.html
+
     //
     // http://dev.apollodata.com/react/initialization.html
     // http://dev.apollodata.com/core/apollo-client-api.html#apollo-client

@@ -131,9 +131,10 @@ const database = new Database()
   .registerQueryProcessor(userDataStore)
 
   .onMutation((context, itemMutations, items) => {
+    // TODO(burdon): Options.
     // TODO(burdon): QueryRegistry.
     // Notify clients of changes.
-    clientManager.invalidateClients(context.clientId);
+    // clientManager.invalidateClients(context.clientId);
   });
 
 

@@ -2,6 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
@@ -10,7 +11,7 @@ import { TypeUtil } from '../util/type';
 import { Transforms } from './transforms';
 import { ID } from './id';
 import { Database } from './database';
-import { ItemFragment, TaskFragment, ProjectFragment, ProjectBoardFragment } from './fragments';
+import { ItemFragment, ContactFragment, TaskFragment, ProjectFragment, ProjectBoardFragment } from './fragments';
 
 //
 // Generic mutation.
@@ -21,6 +22,7 @@ export const UpsertItemsMutation = gql`
   mutation UpsertItemsMutation($mutations: [ItemMutationInput]!) {
     upsertItems(mutations: $mutations) {
       ...ItemFragment
+      ...ContactFragment
       ...TaskFragment
       ...ProjectFragment
       ...ProjectBoardFragment
@@ -28,17 +30,40 @@ export const UpsertItemsMutation = gql`
   }
   
   ${ItemFragment}
+  ${ContactFragment}
   ${TaskFragment}
   ${ProjectFragment}
   ${ProjectBoardFragment}
 `;
+
+export const UpsertItemsMutationName = // 'UpsertItemsMutation'
+  _.get(UpsertItemsMutation, 'definitions[0].name.value');
+
+export const UpsertItemsMutationPath = // 'upsertItems'
+  _.get(UpsertItemsMutation, 'definitions[0].selectionSet.selections[0].name.value');
 
 /**
  * Utils to create mutations.
  */
 export class MutationUtil {
 
-  // TODO(burdon): Util to turn object into array of mutations.
+  /**
+   * Get the UpsertItemsMutation from an Apollo Redux action.
+   *
+   * @param action Redux action.
+   * @param optimistic If true then also return optimistic results.
+   * NOTE: The optimistic results may not have well-formed items (e.g., linked items may just have string IDs),
+   * so in some cases (e.g., Finder's ContextHandler) we may want to skip these partial results.
+   *
+   * @returns root result object or undefined.
+   */
+  static getUpsertItemsMutationResult(action, optimistic=true) {
+    if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === UpsertItemsMutationName) {
+      if (optimistic || !_.get(action, 'result.data.optimistic')) {
+        return _.get(action.result.data, UpsertItemsMutationPath);
+      }
+    }
+  }
 
   /**
    * Create mutations to clone the given item.
@@ -46,12 +71,19 @@ export class MutationUtil {
    * @param {Item} item
    * @return {[Mutation]}
    */
-  static cloneExternalItem(item) {
-    // TODO(burdon): Introspect type map?
-    return [
-      MutationUtil.createFieldMutation('fkey', 'string', ID.getForeignKey(item)),
+  static cloneItem(item) {
+    console.assert(item && item.title);
+
+    let mutations = [
       MutationUtil.createFieldMutation('title', 'string', item.title)
     ];
+
+    // TODO(burdon): Introspect type map?
+    if (item.email) {
+      mutations.push(MutationUtil.createFieldMutation('email', 'string', item.email));
+    }
+
+    return mutations;
   }
 
   /**
@@ -123,8 +155,6 @@ export class MutationUtil {
   static createDeleteMutation(set=true) {
     return MutationUtil.createLabelMutation('_deleted', set);
   }
-
-
 }
 
 /*
@@ -310,7 +340,10 @@ export class Mutator {
     // TODO(burdon): How to swap IDs (some values -- e.g., bucket -- are actual strings not references to objects!)
     // TODO(burdon): Get type definitions?
 
-    // Fire mutation.
+    //
+    // Submit mutation.
+    //
+
     this._mutate({
       variables: {
         namespace,
@@ -324,6 +357,7 @@ export class Mutator {
 
       // http://dev.apollodata.com/react/mutations.html#optimistic-ui
       optimisticResponse: {
+        optimistic: true,
         upsertItems: [
           item
         ]
@@ -345,62 +379,101 @@ export class Mutator {
   updateItem(item, mutations, namespace, itemMap=undefined) {
     mutations = _.compact(_.concat(mutations));
 
+    //
+    // Special handling for non-USER namespace.
+    // TODO(burdon): Fall through to standard update processing below (NOT CREATE)?
+    //
 
+    if (item.namespace) {
+      if (item.namespace === Database.NAMESPACE.LOCAL) {
 
-    // TODO(burdon): Clone item if locally created.
-    // TODO(burdon): USE MutationUtil.cloneExternalItem below
-    if (item.namespace === Database.NAMESPACE.LOCAL) {
-      console.info('### CLONE LOCAL ITEM ###', JSON.stringify(item));
-      mutations.unshift(MutationUtil.createFieldMutation('title', 'string', item.title));
-      mutations.unshift(MutationUtil.createFieldMutation('email', 'string', item.email));
-      delete item['namespace'];
+        //
+        // Clone local item on mutation.
+        //
+
+        let cloneMutations = _.concat(
+
+          // Mutations to clone the item's properties.
+          // TODO(burdon): Remove mutations for current properties below.
+          MutationUtil.cloneItem(item),
+
+          // Current mutations.
+          mutations
+        );
+
+        console.log('Cloning local item: ' + JSON.stringify(item));
+        let clonedItem = this.createItem(item.type, cloneMutations);
+        item.fkey = clonedItem.id;
+        return clonedItem;
+      } else {
+
+        //
+        // Clone external item on mutation.
+        // NOTE: This assumes that external items are never presented to the client when a USER item
+        // exists; i.e., external/USER items are merged on the server (Database.search).
+        //
+
+        let cloneMutations = _.concat(
+          // Reference the external item.
+          MutationUtil.createFieldMutation('fkey', 'string', ID.getForeignKey(item)),
+
+          // Mutations to clone the item's properties.
+          // TODO(burdon): Remove mutations for current properties below.
+          MutationUtil.cloneItem(item),
+
+          // Current mutations.
+          mutations
+        );
+
+        console.log('Cloning external item: ' + JSON.stringify(item));
+        return this.createItem(item.type, cloneMutations);
+      }
     }
 
+    //
+    // Regular mutation of USER item.
+    //
 
+    // Create optimistic result.
+    Transforms.applyObjectMutations(item, mutations);
 
-    // TODO(burdon): If external or local namespace (factor out from Database.isExternalNamespace).
-    if (item.namespace) {
-      console.log('Cloning item: ' + JSON.stringify(item));
-
-      // TODO(burdon): Replace cloned mutations with new mutation.
-      return this.createItem(item.type, _.concat(MutationUtil.cloneExternalItem(item), mutations));
-    } else {
-      // Create optimistic result.
-      Transforms.applyObjectMutations(item, mutations);
-
-      // Check for ID references to recently created items.
-      // TODO(burdon): Could eventually use schema?
-      if (itemMap) {
-        TypeUtil.traverse(item, (value, key, root) => {
-          if (_.isString(value)) {
-            let match = itemMap.get(value);
-            if (match) {
-              _.set(root, key, match);
-            }
+    // Check for ID references to recently created items.
+    // TODO(burdon): Add item property to value.id (set by mutation creator).
+    if (itemMap) {
+      TypeUtil.traverse(item, (value, key, root) => {
+        if (_.isString(value)) {
+          let match = itemMap.get(value);
+          if (match) {
+            _.set(root, key, match);
           }
-        });
-      }
-
-      this._mutate({
-        variables: {
-          namespace,
-          mutations: [
-            {
-              itemId: ID.toGlobalId(item.type, item.id),
-              mutations
-            }
-          ]
-        },
-
-        // http://dev.apollodata.com/react/mutations.html#optimistic-ui
-        optimisticResponse: {
-          upsertItems: [
-            item
-          ]
         }
       });
-
-      return item;
     }
+
+    //
+    // Submit mutation.
+    //
+
+    this._mutate({
+      variables: {
+        namespace,
+        mutations: [
+          {
+            itemId: ID.toGlobalId(item.type, item.id),
+            mutations
+          }
+        ]
+      },
+
+      // http://dev.apollodata.com/react/mutations.html#optimistic-ui
+      optimisticResponse: {
+        optimistic: true,
+        upsertItems: [
+          item
+        ]
+      }
+    });
+
+    return item;
   }
 }

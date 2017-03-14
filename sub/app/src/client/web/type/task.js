@@ -152,7 +152,7 @@ export class TaskCard extends React.Component {
                 onItemSelect={ this.handleTaskSelect.bind(this) }
                 onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
 
-          { mutator &&
+          { mutator && task.project &&
           <div className="ux-card-footer">
             <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
           </div>

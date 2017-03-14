@@ -7,7 +7,9 @@ import { Database } from 'minder-core';
 const logger = Logger.get('context');
 
 /**
- * App context.
+ * Application Context.
+ *
+ * See context.png
  *
  * - Content Script registers an Inspector for the current web page
  *   (e.g., Inbox, Gmail, Testing at localhost:3000/testing/crx)
@@ -36,9 +38,6 @@ const logger = Logger.get('context');
  */
 export class ContextManager {
 
-  // TODO(burdon): Clean-up cloning in mutations and reducer.
-  // TODO(burdon): Update Injector from CRX context.
-
   // To test from console:
   // let TEST_CONTEXT = { items: [{ type: 'Contact', title: 'Alice Braintree' }] };
   // minder.store.dispatch({ type: 'MINDER_CONTEXT/UPDATE', context: TEST_CONTEXT });
@@ -51,86 +50,123 @@ export class ContextManager {
     // Current context.
     this._context = {};
 
-    // Cached items.
-    // TODO(burdon): Could this go stale? Pass in apollo cache?
-    // TODO(burdon): Why do we cache since email query happens each time?
-    this._cache = new Map();
+    // Transient items indexed by foreign key (i.e., email).
+    this._transientItems = {};
+
+    // Cached items matching the current context.
+    // NOTE: Plain object map instead of Map so can be iterated using _.find().
+    this._cache = {};
   }
 
   /**
-   * {
-   *   items: [{Item}]
-   * }
+   * Returns a filter to query for contextual items.
+   *
+   * @returns {FilterInput} Context filter or undefined.
    */
-  get context() {
-    return this._context;
+  getFilter() {
+    // TODO(burdon): Email-specific.
+    let emails = _.compact(_.map(_.get(this._context, 'items'), item => item.email));
+    if (emails.length) {
+      return {
+        type: 'Contact',
+        expr: {
+          op: 'OR',
+          expr: _.map(emails, email => ({
+            field: 'email',
+            value: {
+              string: email
+            }
+          }))
+        }
+      };
+    }
   }
 
   /**
-   * Update the context.
+   * Updates the context when the ContextAction updates the Redux store's state.
+   *
    * @param context
    * @returns {ContextManager}
    */
   updateContext(context={}) {
-    logger.log('Context updated: ' + JSON.stringify(context));
     this._context = context || {};
+
+    _.each(_.get(this._context, 'items'), item => {
+      if (item.email) {
+        // TODO(burdon): Update (rather than replace) old transient item (keep ID).
+        // TODO(burdon): Potentially update stored item with additional context?
+        this._transientItems[item.email] = _.defaults(item, {
+          namespace: Database.NAMESPACE.LOCAL,
+          id: this._idGenerator.createId()
+        });
+      }
+    });
+
     return this;
   }
 
   /**
-   * Update the cache.
-   * Cached items come from the HOC query that uses this context.
+   * Updates the cache with either items from the containing List's HOC query, or with mutated items.
+   *
    * @param items
    */
-  updateItems(items=[]) {
-    logger.log('Cache updated: ' + _.map(items, i => i.id));
+  updateCache(items) {
     _.each(items, item => {
-      this._cache.set(item.id, item);
+
+      // TODO(burdon): Check email or ID matches (otherwise when to flush cache?)
+      let email = item.email;
+      if (email && this._transientItems[email]) {
+        this._cache[item.id] = item;
+      }
     });
   }
 
   /**
    * Inject contextual items into the current list results.
    *
-   * @param items Items passed to List control.
+   * @param items Items returned by the List's HOC query.
    * @return {*}
    */
   injectItems(items) {
+
+    // For each transient item in the context.
     _.each(_.get(this._context, 'items'), item => {
+      if (item.email) {
+        item = this._transientItems[item.email];
 
-      // TODO(burdon): Generalize match (by fkey instead of email).
-
-      // Look for item in cache.
-      let match = _.find(this._cache, cachedItem => {
-        if (cachedItem.email == item.email) {
-          return cachedItem;
+        // Replace the transient item with the stored cached item.
+        let match = this.findMatch(this._cache, item);
+        if (match) {
+          item = match;
         }
-      });
-      if (match) {
-        item = match;
-      }
 
-      // Look for item in current list.
-      let currentIdx = _.findIndex(items, listItem => {
-        if (listItem.type == item.type && listItem.email == item.email) {
-          return true;
+        // Look for item in current list.
+        let current = this.findMatch(items, item);
+        if (current) {
+          // Promote to front.
+          _.remove(items, i => i.id == current.id);
+          items.unshift(current);
+        } else {
+          // Prepend context item.
+          items.unshift(item);
         }
-      });
-
-      // If matched then move list item to front.
-      if (currentIdx != -1) {
-        // Move to front.
-        let removed = items.splice(currentIdx, 1);
-        items.unshift(removed[0]);
-      } else {
-        // Prepend context item.
-        items.unshift(_.defaults(item, {
-          namespace: Database.NAMESPACE.LOCAL,
-          id: this._idGenerator.createId()
-        }));
       }
     });
 
     return items;
+  }
+
+  /**
+   * Match collection against item.
+   * @param items
+   * @param item
+   */
+  findMatch(items, item) {
+    return _.find(items, i => {
+      // TODO(burdon): Generalize match (by fkey instead of email).
+      if (item.type === i.type && item.email === i.email) {
+        return true;
+      }
+    });
   }
 }

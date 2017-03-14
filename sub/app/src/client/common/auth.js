@@ -208,6 +208,7 @@ export class AuthManager {
 
         // Troubleshooting:
         // Error: signInWithCredential => INVALID_REQUEST_URI
+        // https://github.com/firebase/quickstart-js/issues/98 [burdon 1/25/17]
         // FB says Chrome auth isn't supported (email to me 1/25/17 and old support thread 6/22/16):
         // http://stackoverflow.com/questions/37865434/firebase-auth-with-facebook-oauth-credential-from-google-extension
         // But:

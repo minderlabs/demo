@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { IdGenerator, QueryParser, ItemFragment } from 'minder-core';
+import { IdGenerator, QueryParser, ItemFragment, MutationUtil } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -88,7 +88,7 @@ class Finder extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 const FoldersQuery = gql`
-  query FoldersQuery($filter: FilterInput!) {
+  query FoldersQuery {
     viewer {
       folders {
         type
@@ -97,7 +97,11 @@ const FoldersQuery = gql`
         filter
       }
     }
-    
+  }
+`;
+
+const ContextQuery = gql`
+  query ContextQuery($filter: FilterInput!) {
     contextItems: search(filter: $filter) {
       ...ItemFragment
     }
@@ -149,49 +153,9 @@ export default compose(
 
   // Query.
   graphql(FoldersQuery, {
-
-    options: (props) => {
-      let { contextManager } = props;
-
-      // Lookup items from context.
-      // TODO(burdon): Currently contact specific based on email.
-      let filter = {};
-      if (contextManager) {
-        let emails = _.compact(_.map(_.get(contextManager.context, 'items'), item => item.email));
-        if (emails.length) {
-          filter = {
-            type: 'Contact',
-            expr: {
-              op: 'OR',
-              expr: _.map(emails, email => ({
-                field: 'email',
-                value: {
-                  string: email
-                }
-              }))
-            }
-          };
-        }
-      }
-
-      return {
-        variables: {
-          filter
-        }
-      };
-    },
-
-    // Configure props passed to component.
-    // http://dev.apollodata.com/react/queries.html#graphql-props
-    // http://dev.apollodata.com/react/queries.html#default-result-props
     props: ({ ownProps, data }) => {
-      let { loading, error, viewer, contextItems } = data;
+      let { loading, error, viewer } = data;
       let { contextManager, filter } = ownProps;
-
-      // Update context.
-      if (contextManager) {
-        contextManager.updateItems(contextItems);
-      }
 
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {
@@ -207,6 +171,52 @@ export default compose(
         loading,
         error,
         filter
+      };
+    }
+  }),
+
+  // Query.
+  graphql(ContextQuery, {
+
+    options: (props) => {
+      let { contextManager } = props;
+
+      // Lookup items from context.
+      let filter = {};
+      if (contextManager) {
+        filter = contextManager.getFilter() || {};
+      }
+
+      return {
+        variables: {
+          filter
+        },
+
+        //
+        // Notify the context if items are mutated.
+        // We need to listen for mutations since the Context query will not be updated.
+        // http://dev.apollodata.com/react/cache-updates.html#resultReducers
+        //
+        reducer: (previousResult, action, variables) => {
+
+          // NOTE: We only listen for non-optimistic responses (since opt responses may not be well formed).
+          let upsertItems = MutationUtil.getUpsertItemsMutationResult(action, false);
+          if (upsertItems && contextManager) {
+            contextManager.updateCache(upsertItems);
+          }
+
+          return previousResult;
+        }
+      };
+    },
+
+    props: ({ ownProps, data }) => {
+      let { contextItems } = data;
+      let { contextManager } = ownProps;
+
+      // Update context.
+      if (contextManager) {
+        contextManager.updateCache(contextItems);
       }
     }
   }),

@@ -10,16 +10,9 @@ import $$ from '../util/format';
 import Logger from '../util/logger';
 
 import { ID } from './id';
-import { UpsertItemsMutation } from './mutations';
+import { MutationUtil } from './mutations';
 
 const logger = Logger.get('reducer');
-
-//
-// Mutation defs.
-//
-
-const UpsertItemsMutationName = _.get(UpsertItemsMutation, 'definitions[0].name.value');
-const UpsertItemsMutationPath = _.get(UpsertItemsMutation, 'definitions[0].selectionSet.selections[0].name.value');
 
 //
 // Custom helper commands.
@@ -86,7 +79,7 @@ update.extend('$replace', (spec, items) => {
  */
 class Reducer {
 
-  // TODO(burdon): This depends specifically on UpsertItemsMutation.
+  // TODO(burdon): Combine into single reducer.
 
   /**
    * Creates a reducer function that returns a list with the updated item either
@@ -157,10 +150,7 @@ class Reducer {
    * @returns {Item}
    */
   getMutatedItem(action) {
-    // TODO(burdon): Const.
-    if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === UpsertItemsMutationName) {
-      return _.get(action.result.data, UpsertItemsMutationPath);
-    }
+    return MutationUtil.getUpsertItemsMutationResult(action);
   }
 
   doTransform(previousResult, transform) {
@@ -261,28 +251,26 @@ export class ListReducer extends Reducer {
    */
   reduceItems(matcher, context, filter, previousResult, action) {
     console.assert(matcher && context && filter && previousResult && action);
-    let result = previousResult;
-    if (action.type !== 'APOLLO_MUTATION_RESULT') {
-      return result;
-    }
+    let upsertItems = MutationUtil.getUpsertItemsMutationResult(action);
+    if (upsertItems) {
+      try {
+        // TODO(burdon): Handle multiple items.
+        let updatedItem = upsertItems[0];
+        if (updatedItem) {
+          let queryName = this.query.definitions[0].name.value;
+          logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
 
-    try {
-      // TODO(burdon): Handle multiple items.
-      let updatedItem = this.getMutatedItem(action)[0];
-      if (updatedItem) {
-        let queryName = this.query.definitions[0].name.value;
-        logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
-
-        let transform = this.getTransform(matcher, context, filter, previousResult, updatedItem);
-        if (transform) {
-          result = this.doTransform(previousResult, transform);
+          let transform = this.getTransform(matcher, context, filter, previousResult, updatedItem);
+          if (transform) {
+            previousResult = this.doTransform(previousResult, transform);
+          }
         }
+      } catch (error) {
+        console.error('Reducer failed:', error);
       }
-    } catch(error) {
-      console.error('Reducer failed:', error);
     }
 
-    return result;
+    return previousResult;
   }
 
   /**
@@ -306,31 +294,35 @@ export class ListReducer extends Reducer {
 
     // Path to items in result.
     let path = this._path;
-    let items = _.get(previousResult, path);
 
-    // Replace the item if it is a recent update to an external item.
-    let exists = _.findIndex(items, item => item.id === updatedItem.id) !== -1;
-    if (!exists && updatedItem.fkey) {
-      let current  = _.find(items, item => item.namespace && ID.getForeignKey(item) === updatedItem.fkey);
+    // Items in current list.
+    let currentItems = _.get(previousResult, path);
+    let exists = _.findIndex(currentItems, item => item.id === updatedItem.id) !== -1;
 
-      if (!current) {
-        // TODO(burdon): Replace
-        console.warn('###', updatedItem.title);
-        return;
-      }
+    //
+    // Replace the item if it's an update to an external item.
+    // TODO(burdon): This should apply to Item reducer also.
+    //
 
-      return {
-        [path]: {
-          $replace: {
-            id: current.id,
-            item: updatedItem
+    if (updatedItem.fkey && !exists) {
+      let current  = _.find(currentItems, item => item.namespace && (ID.getForeignKey(item) === updatedItem.fkey));
+      if (current) {
+        return {
+          [path]: {
+            $replace: {
+              id: current.id,
+              item: updatedItem
+            }
           }
-        }
-      };
+        };
+      }
     }
 
+    //
     // Remove the item if it doesn't match the current query.
     // TODO(burdon): Is the root item needed? Remove this from matcher?
+    //
+
     let match = matcher.matchItem(context, {}, filter, updatedItem);
     if (!match) {
       return {
@@ -340,7 +332,10 @@ export class ListReducer extends Reducer {
       };
     }
 
+    //
     // Insert the item if it doesn't already exist (but matches).
+    //
+
     if (!exists) {
       // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
       return {
@@ -434,28 +429,26 @@ export class ItemReducer extends Reducer {
    */
   reduceItem(matcher, context, previousResult, action) {
     console.assert(matcher && context && previousResult && action);
-    let result = previousResult;
-    if (action.type !== 'APOLLO_MUTATION_RESULT') {
-      return result;
-    }
+    let upsertItems = MutationUtil.getUpsertItemsMutationResult(action);
+    if (upsertItems) {
+      try {
+        // TODO(burdon): Handle multiple items.
+        let updatedItem = previousResult[0];
+        if (updatedItem) {
+          let queryName = this.query.definitions[0].name.value;
+          logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
 
-    try {
-      // TODO(burdon): Handle multiple items.
-      let updatedItem = this.getMutatedItem(action)[0];
-      if (updatedItem) {
-        let queryName = this.query.definitions[0].name.value;
-        logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
-
-        let transform = this.getTransform(matcher, context, previousResult, updatedItem);
-        if (transform) {
-          result = this.doTransform(previousResult, transform);
+          let transform = this.getTransform(matcher, context, previousResult, updatedItem);
+          if (transform) {
+            previousResult = this.doTransform(previousResult, transform);
+          }
         }
+      } catch (error) {
+        console.error('Reducer failed:', error);
       }
-    } catch(error) {
-      console.error('Reducer failed:', error);
     }
 
-    return result;
+    return previousResult;
   }
 
   /**

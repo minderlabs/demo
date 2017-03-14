@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { print } from 'graphql-tag/printer';
 import { createNetworkInterface } from 'apollo-client';
 
-import { UpsertItemsMutation, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
+import { UpsertItemsMutationName, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -344,9 +344,6 @@ export class CachingNetworkInterface { // extends NetworkInterface {
     // https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js
     networkInterface.query = (request) => {
       let { operationName, query, variables={} } = request;
-
-      // TODO(burdon): Factor out.
-      const UpsertItemsMutationName = _.get(UpsertItemsMutation, 'definitions[0].name.value');
 
       switch (operationName) {
 

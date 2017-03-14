@@ -137,6 +137,7 @@ content_scripts:
 # https://console.developers.google.com/apis/credentials?project=minder-beta
 # https://developer.chrome.com/apps/app_identity#update_manifest
 # https://developers.google.com/identity/protocols/googlescopes
+# https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
 # TODO(burdon): Inject from defs.GoogleApiConfig
 #
 # 1). In the Google dashboard (for minder-beta) we create an OAuth Chrome App Client, which has a Client ID (no secret):
