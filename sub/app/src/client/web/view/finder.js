@@ -88,7 +88,7 @@ class Finder extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 const FoldersQuery = gql`
-  query FoldersQuery($itemIds: [ID]!) {
+  query FoldersQuery($filter: FilterInput!) {
     viewer {
       folders {
         type
@@ -97,8 +97,8 @@ const FoldersQuery = gql`
         filter
       }
     }
-
-    items(itemIds: $itemIds) {
+    
+    contextItems: search(filter: $filter) {
       ...ItemFragment
     }
   }
@@ -116,7 +116,7 @@ const mapStateToProps = (state, ownProps) => {
   let contextManager = null;
   if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
     // TODO(burdon): Binds to context action; should trigger context requery.
-    contextManager = injector.get(ContextManager).update(context);
+    contextManager = injector.get(ContextManager).updateContext(context);
   }
 
   // TODO(burdon): Move to layout config.
@@ -149,13 +149,31 @@ export default compose(
   // Query.
   graphql(FoldersQuery, {
 
-    // TODO(burdon): Context items. Update context manager in props below.
     options: (props) => {
-      let itemIds = [];
+      let { contextManager } = props;
+
+      // Lookup items from context.
+      // TODO(burdon): Currently contact specific based on email.
+      let filter = {};
+      let emails = _.compact(_.map(_.get(contextManager.context, 'items'), item => item.email));
+      if (emails.length) {
+        filter = {
+          type: 'Contact',
+          expr: {
+            op: 'OR',
+            expr: _.map(emails, email => ({
+              field: 'email',
+              value: {
+                string: email
+              }
+            }))
+          }
+        };
+      }
 
       return {
         variables: {
-          itemIds
+          filter
         }
       };
     },
@@ -164,8 +182,11 @@ export default compose(
     // http://dev.apollodata.com/react/queries.html#graphql-props
     // http://dev.apollodata.com/react/queries.html#default-result-props
     props: ({ ownProps, data }) => {
-      let { loading, error, viewer } = data;
-      let { filter } = ownProps;
+      let { loading, error, viewer, contextItems } = data;
+      let { contextManager, filter } = ownProps;
+
+      // Update context.
+      contextManager.updateItems(contextItems);
 
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {

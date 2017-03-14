@@ -207,8 +207,7 @@ export const ContextReducer = (state=ContextAction.initialState, action) => {
   switch (action.type) {
 
     case ContextAction.ACTION.UPDATE_CONTEXT: {
-      console.log('Context updated: ' + JSON.stringify(action.context));
-      return _.assign({}, state, action.context);
+      return action.context || {};
     }
   }
 

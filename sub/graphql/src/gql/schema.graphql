@@ -493,9 +493,6 @@ type RootQuery {
   # TODO(burdon): Add basic ItemStore key-range lookup.
   item(itemId: ID!): Item!
 
-  # TODO(burdon): Replace item() with this.
-  items(itemIds: [ID]): [Item]!
-
   # Search.
   search(filter: FilterInput, offset: Int, count: Int): [Item]!
 }

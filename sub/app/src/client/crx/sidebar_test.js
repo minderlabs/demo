@@ -60,12 +60,16 @@ app.init().then(() => {
     };
 
     let select = $('<select>').appendTo(root)
-      .append($('<option>').text('Context'))
+      .append($('<option>').text('<null context>'))
       .css('position', 'absolute')
       .css('bottom', 0)
       .change(event => {
         let item = window.ITEMS[$(event.target).val()];
-        let action = { type: 'MINDER_CONTEXT/UPDATE', context: item ? { items: [item] } : null };
+        let action = {
+          type: 'MINDER_CONTEXT/UPDATE',
+          context: item ? { items: [item] } : null
+        };
+
         window.minder.store.dispatch(action);
         console.log(`window.minder.store.dispatch(${JSON.stringify(action)})`);
       });

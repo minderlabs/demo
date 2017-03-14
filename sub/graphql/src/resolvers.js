@@ -255,20 +255,6 @@ export class Resolvers {
           return database.getItemStore(namespace).getItem(context, type, localId);
         },
 
-        items: (root, args, context) => {
-          Resolvers.checkAuthentication(context);
-
-          let { itemIds } = args;
-
-          return Promise.all(_.map(itemIds, itemId => {
-            let { type, id:localId } = ID.fromGlobalId(itemId);
-
-            let namespace = Resolvers.getNamespaceForType(type);
-
-            return database.getItemStore(namespace).getItems(context, type, localId);
-          }));
-        },
-
         search: (root, args, context) => {
           Resolvers.checkAuthentication(context);
 

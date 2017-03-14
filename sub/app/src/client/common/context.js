@@ -4,6 +4,8 @@
 
 import { Database } from 'minder-core';
 
+const logger = Logger.get('context');
+
 /**
  * App context.
  */
@@ -20,38 +22,77 @@ export class ContextManager {
   constructor(idGenerator) {
     console.assert(idGenerator);
     this._idGenerator = idGenerator;
-    this._state = null;
+
+    // Current context.
+    this._context = {};
+
+    // Cached items.
+    // TODO(burdon): Could this go stale?
+    this._cache = new Map();
   }
 
-  // TODO(burdon): Should trigger re-render.
-  update(state=undefined) {
-    this._state = state;
+  /**
+   * {
+   *   items: [{Item}]
+   * }
+   */
+  get context() {
+    return this._context;
+  }
+
+  /**
+   * Update the context.
+   * @param context
+   * @returns {ContextManager}
+   */
+  updateContext(context={}) {
+    logger.log('Context updated: ' + JSON.stringify(context));
+    this._context = context || {};
     return this;
   }
 
   /**
-   * Inject contextual items into the current list results.
+   * Update the cache.
+   * Cached items come from the HOC query that uses this context.
    * @param items
+   */
+  updateItems(items=[]) {
+    logger.log('Cache updated: ' + _.map(items, i => i.id));
+    _.each(items, item => {
+      this._cache.set(item.id, item);
+    });
+  }
+
+  /**
+   * Inject contextual items into the current list results.
+   *
+   * @param items Items passed to List control.
    * @return {*}
    */
   injectItems(items) {
+    _.each(_.get(this._context, 'items'), item => {
 
-    // TODO(burdon): query store directly to get items (and cache): so doesn't mutate/copy.
-    // TODO(burdon): FCM push should push back to sender (since other tabs). AND check push token is unique.
+      // TODO(burdon): Generalize match (by fkey instead of email).
 
-    _.each(_.get(this._state, 'items'), item => {
+      // Look for item in cache.
+      let match = _.find(this._cache, cachedItem => {
+        if (cachedItem.email == item.email) {
+          return cachedItem;
+        }
+      });
+      if (match) {
+        item = match;
+      }
 
-      // TODO(burdon): Generalize match (by fkey).
-      // Move existing item to the front or replace.
-      let currentIdx = _.findIndex(items, i => {
-        if (i.type == item.type && i.email == item.email) {
+      // Look for item in current list.
+      let currentIdx = _.findIndex(items, listItem => {
+        if (listItem.type == item.type && listItem.email == item.email) {
           return true;
         }
       });
 
+      // If matched then move list item to front.
       if (currentIdx != -1) {
-        console.log('### EXISTING: ' + JSON.stringify(_.pick(items[currentIdx], ['id', 'type', 'title'])));
-
         // Move to front.
         let removed = items.splice(currentIdx, 1);
         items.unshift(removed[0]);
