@@ -13,6 +13,8 @@ export class ReactUtil {
    * React.Component render wrapper.
    * Returns empty <div> if loading; wraps errors.
    *
+   * NOTE: Same-key warning is not caught here.
+   *
    * @param cls
    * @param render
    * @param showLoading
@@ -43,7 +45,6 @@ export class ReactUtil {
       } catch (error) {
         // TODO(burdon): Log if prod and show standard error.
         let message = error.message || 'Error rendering.';
-        console.error(message);
         return (
           <div className="ux-error">{ message }</div>
         );

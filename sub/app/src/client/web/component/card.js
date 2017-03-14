@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import { DomUtil } from 'minder-core';
+import { DomUtil, TypeUtil } from 'minder-core';
 
 import './card.less';
 
@@ -39,6 +39,7 @@ export class Card extends React.Component {
   }
 
   render() {
+    let { config } = this.context;
     let { children, className, icon, item } = this.props;
     let { title, description } = item;
 
@@ -58,6 +59,14 @@ export class Card extends React.Component {
         }
 
         { children }
+
+        { config.debug &&
+        <div className="ux-section">
+          <div className="ux-section-body ux-debug" title={ JSON.stringify(_.pick(item, ['bucket'])) }>
+            { TypeUtil.stringify(_.pick(item, ['id', 'type']), false) }
+          </div>
+        </div>
+        }
       </div>
     );
   }

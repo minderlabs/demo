@@ -84,7 +84,7 @@ const AddCreateSubTask = (batch, userId, parent, mutations) => {
     ]), 'new_task')
     .updateItem(parent, [
       MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
-    ])
+    ]);
 };
 
 /**

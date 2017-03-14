@@ -6,12 +6,14 @@ import React from 'react';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ItemReducer, ItemFragment, ContactFragment } from 'minder-core';
-import { ReactUtil } from 'minder-ux';
+import { ItemReducer, ItemFragment, ContactFragment, MutationUtil } from 'minder-core';
+import { List, ReactUtil } from 'minder-ux';
 
 import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
+
+import { TaskListItemRenderer } from './task';
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -22,18 +24,69 @@ import { Card } from '../component/card';
  */
 export class ContactCard extends React.Component {
 
+  static contextTypes = {
+    mutator: React.PropTypes.object.isRequired,
+    registration: React.PropTypes.object.isRequired
+  };
+
   static propTypes = {
     item: React.PropTypes.object.isRequired
   };
 
+  handleTaskAdd() {
+    this.refs.tasks.addItem();
+  }
+
+  handleItemUpdate(item, mutations) {
+    let { registration: { userId }, mutator } = this.context;
+
+    if (item) {
+      mutator.updateItem(item, mutations);
+    } else {
+      let { item:parent } = this.props;
+
+      // TODO(burdon): If mutating context item then must clone (e.g., upsert title).
+      // TODO(burdon): Check search isn't returning null items.
+
+      mutator.batch()
+        .createItem('Task', _.concat(mutations, [
+          MutationUtil.createFieldMutation('bucket', 'string', userId),
+          MutationUtil.createFieldMutation('owner', 'id', userId)
+        ]), 'new_task')
+        .updateItem(parent, [
+          MutationUtil.createFieldMutation('bucket', 'string', userId),
+          MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+        ])
+        .commit();
+    }
+  }
+
   render() {
     let { item:contact } = this.props;
-    let { email } = contact;
+    let { email, tasks } = contact;
 
     return (
       <Card ref="card" item={ contact }>
         <div className="ux-card-section">
           <div>{ email }</div>
+        </div>
+
+        { !_.isEmpty(tasks) &&
+          <div className="ux-card-section">
+            <h3>Tasks</h3>
+          </div>
+        }
+        <div className="ux-list-tasks">
+          <div className="ux-scroll-container">
+            <List ref="tasks"
+                  items={ tasks }
+                  itemRenderer={ TaskListItemRenderer }
+                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>
+          </div>
+
+          <div className="ux-card-footer">
+            <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this) }/>
+          </div>
         </div>
       </Card>
     );
@@ -70,7 +123,6 @@ export class ContactCanvasComponent extends React.Component {
               <div>{ email }</div>
             </div>
           </div>
-
         </Canvas>
       );
     });

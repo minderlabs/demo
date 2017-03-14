@@ -3,9 +3,6 @@
 //
 
 import React from 'react';
-import { compose } from 'react-apollo';
-
-import { Mutator } from 'minder-core';
 
 import { Const } from '../../../common/defs';
 
@@ -37,11 +34,11 @@ class FinderActivity extends React.Component {
   }
 
   render() {
-    let { config, params: { folder='inbox' } } = this.props;
+    let { config, contextManager, params: { folder='inbox' } } = this.props;
 
     let navbar = <Navbar/>;
 
-    let finder = <Finder folder={ folder }/>;
+    let finder = <Finder folder={ folder } contextManager={ contextManager }/>;
 
     let platform = _.get(config, 'app.platform');
     if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {
@@ -49,16 +46,13 @@ class FinderActivity extends React.Component {
         <FullLayout navbar={ navbar }>
           { finder }
         </FullLayout>
-      )
+      );
     } else {
       return (
         <SplitLayout navbar={ navbar } finder={ finder }/>
-      )
+      );
     }
   }
 }
 
-export default compose(
-  Activity.connect(),
-  Mutator.graphql()
-)(FinderActivity);
+export default Activity.connect()(FinderActivity);

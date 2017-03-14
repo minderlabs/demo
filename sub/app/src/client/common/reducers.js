@@ -47,7 +47,7 @@ GlobalAppReducer.SUBSCRIPTION = {
 // App.
 //-------------------------------------------------------------------------------------------------
 
-const APP_NAMESPACE = 'app';
+const APP_NAMESPACE = 'MINDER_APP';
 
 /**
  * Main App actions.
@@ -173,7 +173,7 @@ export const AppReducer = (injector, config, registration=undefined) => {
 // Context.
 //-------------------------------------------------------------------------------------------------
 
-const CONTEXT_NAMESPACE = 'context';
+const CONTEXT_NAMESPACE = 'MINDER_CONTEXT';
 
 /**
  * Application context (e.g., current page for CRX, location, time, etc.)
@@ -181,12 +181,10 @@ const CONTEXT_NAMESPACE = 'context';
  */
 export class ContextAction {
 
-  static initialState = {
-    context: null
-  };
+  static initialState = {};
 
   static ACTION = {
-    UPDATE_CONTEXT: `${CONTEXT_NAMESPACE}/UPDATE_CONTEXT`,
+    UPDATE_CONTEXT: `${CONTEXT_NAMESPACE}/UPDATE`,
   };
 
   static get namespace() {
@@ -214,10 +212,7 @@ export const ContextReducer = (state=ContextAction.initialState, action) => {
   switch (action.type) {
 
     case ContextAction.ACTION.UPDATE_CONTEXT: {
-      console.log('Context updated: ' + JSON.stringify(action.context));
-      return _.assign({}, state, {
-        context: action.context
-      });
+      return action.context || {};
     }
   }
 

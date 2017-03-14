@@ -2,9 +2,9 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { ItemsQueryWrapper } from 'minder-core';
-
 import { Picker } from 'minder-ux';
+
+import { ItemsQueryWrapper } from '../framework/lists';
 
 /**
  * Subclass picker to create items query fitler.

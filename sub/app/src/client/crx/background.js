@@ -18,9 +18,8 @@ import { Const } from '../../common/defs';
 
 import { AuthManager } from '../common/auth';
 import { ConnectionManager } from '../common/client';
-import { NetworkManager } from '../common/network';
+import { NetworkManager, ChromeNetworkInterface } from '../common/network';
 import { GoogleCloudMessenger } from '../common/cloud_messenger';
-import { ChromeNetworkInterface } from './util/network';
 import { Notification } from './util/notification';
 import { Settings } from './util/settings';
 
@@ -208,7 +207,6 @@ class BackgroundApp {
       this._settings.set('registration', registration).then(() => {
 
         // Broadcast reset to all clients (to reset cache).
-        console.log('...');
         this._systemChannel.postMessage(null, {
           command: SystemChannel.FLUSH_CACHE
         });

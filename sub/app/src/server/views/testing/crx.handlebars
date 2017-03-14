@@ -60,7 +60,7 @@
   const CONTENT = {
     'contact-alice': {
       title: 'Alice',
-      content: $('<div>').text('Alice Braintree')
+      content: $('<div>').text('Alice Braintree').attr('email', 'alice.braintree@gmail.com')
     }
   };
 
@@ -70,13 +70,16 @@
       $('#content-select').append($('<option>').attr('value', key).text(value.title));
     });
 
-    $('#content-save').click(ev => {
+    $('#content-save').click(event => {
       $('#content').empty().text($('#content-text').val());
     });
 
-    $('#content-select').change(ev => {
+    // Trigger DOM change.
+    $('#content-select').change(event => {
       $('#content').empty();
-      let content = CONTENT[$(ev.target).val()];
+      let value = $(event.target).val();
+      let content = CONTENT[value];
+      console.log('Selected: ' + value);
       if (content) {
         $('#content').append(content.content);
       }

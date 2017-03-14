@@ -116,6 +116,10 @@ export class Loader {
         }));
       });
 
+      _.each(groups, group => {
+        console.log('Group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+      });
+
       return this._database.getItemStore(Database.NAMESPACE.SYSTEM).upsertItems({}, groups);
     });
   }

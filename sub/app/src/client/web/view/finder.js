@@ -7,11 +7,12 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { IdGenerator, QueryParser } from 'minder-core';
+import { IdGenerator, QueryParser, ItemFragment } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
 import { AppAction, ContextAction } from '../../common/reducers';
+import { ContextManager } from '../../common/context';
 
 import { BasicSearchList, CardSearchList, BasicListItemRenderer } from '../framework/lists';
 import { Card } from '../component/card';
@@ -40,12 +41,17 @@ class Finder extends React.Component {
   render() {
     return ReactUtil.render(this, () => {
       let { typeRegistry } = this.context;
-      let { filter, listType } = this.props;
+      let { contextManager, filter, listType } = this.props;
 
-      // TODO(burdon): CRX debug.
-      let debug = (
+      let debug = false && (
         <div className="ux-debug ux-font-xsmall">{ JSON.stringify(filter) }</div>
       );
+
+      // Inject items into list if the context manager is present.
+      let itemInjector = undefined;
+      if (contextManager) {
+        itemInjector = (items) => contextManager.injectItems(items);
+      }
 
       let list;
       switch (listType) {
@@ -53,6 +59,7 @@ class Finder extends React.Component {
           list = <CardSearchList filter={ filter }
                                  highlight={ false }
                                  className="ux-card-list"
+                                 itemInjector={ itemInjector }
                                  itemRenderer={ Card.ItemRenderer(typeRegistry) }
                                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
           break;
@@ -81,25 +88,40 @@ class Finder extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 const FoldersQuery = gql`
-  query FoldersQuery {
+  query FoldersQuery($filter: FilterInput!) {
     viewer {
       folders {
+        type
         id
         alias
         filter
       }
     }
+    
+    contextItems: search(filter: $filter) {
+      ...ItemFragment
+    }
   }
+
+  ${ItemFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
   let { config, injector, search } = AppAction.getState(state);
+  let platform = _.get(config, 'app.platform');
 
   // Current user context (e.g., host page).
-  let { context } = ContextAction.getState(state);
+  let context = ContextAction.getState(state);
+
+  // CRX app context.
+  let contextManager = null;
+  if (platform === Const.PLATFORM.CRX) {
+    // TODO(burdon): Binds to context action; should trigger context requery.
+    contextManager = injector.get(ContextManager).updateContext(context);
+  }
 
   // TODO(burdon): Move to layout config.
-  let listType = _.get(config, 'app.platform') === Const.PLATFORM.CRX ? 'card' : 'list';
+  let listType = (platform === Const.PLATFORM.CRX) ? 'card' : 'list';
 
   // Required by Mutator.
   let idGenerator = injector.get(IdGenerator);
@@ -113,6 +135,7 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     idGenerator,
+    contextManager,
     listType,
     filter,
     search
@@ -127,12 +150,48 @@ export default compose(
   // Query.
   graphql(FoldersQuery, {
 
+    options: (props) => {
+      let { contextManager } = props;
+
+      // Lookup items from context.
+      // TODO(burdon): Currently contact specific based on email.
+      let filter = {};
+      if (contextManager) {
+        let emails = _.compact(_.map(_.get(contextManager.context, 'items'), item => item.email));
+        if (emails.length) {
+          filter = {
+            type: 'Contact',
+            expr: {
+              op: 'OR',
+              expr: _.map(emails, email => ({
+                field: 'email',
+                value: {
+                  string: email
+                }
+              }))
+            }
+          };
+        }
+      }
+
+      return {
+        variables: {
+          filter
+        }
+      };
+    },
+
     // Configure props passed to component.
     // http://dev.apollodata.com/react/queries.html#graphql-props
     // http://dev.apollodata.com/react/queries.html#default-result-props
     props: ({ ownProps, data }) => {
-      let { loading, error, viewer } = data;
-      let { filter } = ownProps;
+      let { loading, error, viewer, contextItems } = data;
+      let { contextManager, filter } = ownProps;
+
+      // Update context.
+      if (contextManager) {
+        contextManager.updateItems(contextItems);
+      }
 
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {

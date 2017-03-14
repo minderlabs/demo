@@ -18,16 +18,25 @@ export class InspectorRegistry {
     return this;
   }
 
+  /**
+   * Select and initialize inspectors.
+   * @param callback
+   * @returns {InspectorRegistry}
+   */
   init(callback) {
-    _.each(this._inspectors, inspector => {
-      if (inspector.isValid()) {
-        let rootNode = inspector.getRootNode();
-        if (rootNode) {
-          console.log('Inspector: ' + inspector.constructor.name);
-          inspector.start(rootNode, callback);
+
+    // TODO(burdon): Wait for load. Match URL and dynamically find root each time.
+    setTimeout(() => {
+      _.each(this._inspectors, inspector => {
+        if (inspector.isValid()) {
+          let rootNode = inspector.getRootNode();
+          if (rootNode) {
+            console.log('Inspector: ' + inspector.constructor.name);
+            inspector.start(rootNode, callback);
+          }
         }
-      }
-    });
+      });
+    }, 1000);
 
     return this;
   }
@@ -35,6 +44,8 @@ export class InspectorRegistry {
 
 /**
  * Base class for DOM inspectors.
+ *
+ * TODO(burdon): Make declarative and load dynamic rules from server.
  */
 class Inspector {
 
@@ -46,7 +57,9 @@ class Inspector {
     this._observer = new MutationObserver(mutations => {
       let context = this.inspect(mutations);
       console.log('Context: ' + JSON.stringify(context));
-      this._callback && this._callback(context);
+      if (this._callback && context) {
+        this._callback(context);
+      }
     });
   }
 
@@ -104,31 +117,90 @@ export class TestInspector extends Inspector {
     return $('#content')[0];
   }
 
+  /*
+   * <div id="content">
+   *   <div email="__EMAIL__">__NAME__</div>
+   */
   inspect(mutations) {
     let context = null;
 
-    /*
-      <div id="content">
-        <div>TEXT</div>
-      </div>
-     */
+    _.each(mutations, mutation => {
+      let root = $(mutation.target).find('> div');
+      if (root[0]) {
+        let name = root.text();
+        let email = root.attr('email');
+        if (name && email) {
+          context = {
+            items: [{
+              type: 'Contact',
+              title: name,
+              email: email
+            }],
+            filter: {
+              text: email
+            }
+          };
+
+          return false;
+        }
+      }
+    });
+
+    return context;
+  }
+}
+
+/**
+ * Gmail
+ */
+export class GmailInspector extends Inspector {
+
+  static PATH = 'https://mail.google.com';
+
+  isValid() {
+    return document.location.href.startsWith(GmailInspector.PATH);
+  }
+
+  getRootNode() {
+
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>', $('div[role="main"]')[0]);
+
+    return $('div[role="main"]')[0];
+  }
+
+  /*
+   * <div role="main">
+   *   <table role="presentation">
+   *     <div role="list">
+   *       <div role="listitem">
+   *         <h3 class="iw">
+   *           <span email="__EMAIL__" name="__NAME__">__NAME__</span>
+   */
+  inspect(mutations) {
+    let context = null;
 
     _.each(mutations, mutation => {
-      let text = $(mutation.target).text();
 
-      // TODO(burdon): Determine if person.
-      if (text) {
-        context = {
-          item: {
-            type: 'Person',
-            title: text
-          },
-          filter: {
-            text: text
-          }
-        };
+      // TODO(burdon): Get closest parent for thread ID.
+//    let root = $(mutation.target).find('div[role="listitem"] h3 span');
+      let root = $('div[role="main"] div[role="listitem"] h3 span');
+      if (root[0]) {
+        let name = root.text();
+        let email = root.attr('email');
+        if (name && email) {
+          context = {
+            items: [{
+              type: 'Contact',
+              title: name,
+              email: email
+            }],
+            filter: {
+              text: email
+            }
+          };
 
-        return false;
+          return false;
+        }
       }
     });
 
@@ -151,34 +223,37 @@ export class GoogleInboxInspector extends Inspector {
     return $('.yDSKFc')[0];
   }
 
+  /*
+   * <div data-item-id="#gmail:thread-f:1557184509751026059">
+   *   <div role="list">
+   *     <div data-msg-id="#msg-f:1557184509751026059">
+   *       <div role="heading">
+   *         <div email="__EMAIL__">__NAME__</div>
+   */
   inspect(mutations) {
     let context = null;
-
-    /*
-      <div data-item-id="#gmail:thread-f:1557184509751026059">
-        <div role="list">
-          <div data-msg-id="#msg-f:1557184509751026059">
-            <div role="heading">
-              <div email="">Name</div>
-     */
 
     _.each(mutations, mutation => {
 
       // TODO(burdon): Get closest parent for thread ID.
       let root = $(mutation.target).find('div[data-msg-id] div[email]:first');
       if (root[0]) {
-        context = {
-          item: {
-            type: 'Person',
-            title: root.text(),
-            email: root.attr('email')
-          },
-          filter: {
-            text: root.text()
-          }
-        };
+        let name = root.text();
+        let email = root.attr('email');
+        if (name && email) {
+          context = {
+            items: [{
+              type: 'Contact',
+              title: name,
+              email: email
+            }],
+            filter: {
+              text: email
+            }
+          };
 
-        return false;
+          return false;
+        }
       }
     });
 

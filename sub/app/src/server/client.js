@@ -164,7 +164,7 @@ export class ClientManager {
     if (!client) {
       // Web clients should have been created on page load.
       if (platform !== Const.PLATFORM.WEB) {
-        logger.warn('Invalid client: ' + clientId);
+        logger.warn('Invalid or expired client: ' + clientId);
       }
 
       // Create the client.
@@ -261,6 +261,11 @@ export class ClientManager {
 
   invalidateClients(currentClientId=undefined) {
     let promises = [];
+
+    // TODO(burdon): Get tokens.
+    // TODO(burdon): Ensure clients have unique tokens.
+
+    let messageTokens = [];
     this._clients.forEach(client => {
       if (client.id != currentClientId) {
         promises.push(this.invalidate(client.id));

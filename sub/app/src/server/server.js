@@ -58,7 +58,7 @@ const logger = Logger.get('server');
 //
 
 ErrorUtil.handleErrors(process, error => {
-  logger.error(ErrorUtil.stack(error))
+  logger.error(error);
 });
 
 
@@ -88,7 +88,7 @@ const app = express();
 
 const server = http.Server(app);
 
-const idGenerator = new IdGenerator(999);
+const idGenerator = new IdGenerator(1000);
 
 const clientManager = new ClientManager(idGenerator);
 
@@ -185,13 +185,9 @@ let loading = Promise.all([
 ]).then(() => {
   logger.log('Initializing groups...');
   return loader.initGroups().then(() => {
-
-    // TODO(burdon): Use randomizer to generate test projects for non-admin groups.
-    if (testing && false) {
+    if (testing) {
       logger.log('Generating test data...');
-      return loader.parse(require('./data/testing.json')).then(() => {
-        return new TestGenerator(database).generate();
-      });
+      return new TestGenerator(database).generate();
     }
   });
 });
@@ -202,7 +198,7 @@ let loading = Promise.all([
 // NOTE: Must come first.
 //
 
-if (env === 'hot') {
+if (env.startsWith('hot')) {
   app.use(hotRouter());
 }
 
@@ -341,12 +337,19 @@ app.get('/graphiql', function(req, res) {
         return res.redirect('/home');
       }
 
+      // See NetworkLogger.
       res.render('graphiql', {
         config: {
-          headers: [{
-            name: Const.HEADER.AUTHORIZATION,
-            value: `Bearer ${user.token}`
-          }]
+          headers: [
+            {
+              name: Const.HEADER.AUTHORIZATION,
+              value: `Bearer ${user.token}`
+            },
+            {
+              name: Const.HEADER.CLIENT_ID,
+              value: req.query.clientId
+            }
+          ]
         }
       });
   });

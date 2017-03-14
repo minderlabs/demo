@@ -18,10 +18,11 @@ const logger = Logger.get('app');
 //
 
 const WEBPACK_BUNDLE = {
-  "test":         "test",
-  "development":  "main",
-  "production":   "main",
-  "hot":          "hot"
+  "test":           "test",
+  "development":    "main",
+  "production":     "main",
+  "hot":            "hot",
+  "hot_sidebar":    "hot_sidebar"
 };
 
 /**
@@ -76,6 +77,8 @@ export const appRouter = (userManager, clientManager, systemStore, options) => {
               }, options.config);
 
               logger.log($$('Client options = %o', config));
+
+              // Render page.
               res.render('app', {
                 bundle: WEBPACK_BUNDLE[config.env],
                 config

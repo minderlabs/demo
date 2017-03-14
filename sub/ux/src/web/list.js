@@ -6,7 +6,7 @@ import React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
-import { DomUtil, MutationUtil } from 'minder-core';
+import { DomUtil, ID, MutationUtil } from 'minder-core';
 
 import { TextBox } from './textbox';
 import { ItemDragSource, ItemDropTarget, DragOrderModel } from './dnd';
@@ -108,20 +108,25 @@ export class List extends React.Component {
   };
 
   static propTypes = {
+    data:               React.PropTypes.string,     // Custom data.
+
     className:          React.PropTypes.string,
     highlight:          React.PropTypes.bool,
-    data:               React.PropTypes.string,                               // Custom data.
+
+    groupBy:            React.PropTypes.bool,
+    showAdd:            React.PropTypes.bool,
+
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
     itemClassName:      React.PropTypes.string,
     itemRenderer:       React.PropTypes.func,
     itemEditor:         React.PropTypes.func,
-    itemOrderModel:     React.PropTypes.object,                               // Order model for drag and drop.
-    mutator:            React.PropTypes.object,
+    itemOrderModel:     React.PropTypes.object,     // Order model for drag and drop.
+    itemInjector:       React.PropTypes.func,       // Modify results.
+
+    mutator:            React.PropTypes.object,     // TODO(burdon): Remove (must call onItemUpdate).
     onItemUpdate:       React.PropTypes.func,
     onItemSelect:       React.PropTypes.func,
-    onItemDrop:         React.PropTypes.func,
-    groupBy:            React.PropTypes.bool,
-    showAdd:            React.PropTypes.bool
+    onItemDrop:         React.PropTypes.func
   };
 
   static defaultProps = {
@@ -232,23 +237,35 @@ export class List extends React.Component {
   */
 
   render() {
-    let { itemClassName, data, itemOrderModel, groupBy } = this.props;
+    let { itemClassName, itemOrderModel, itemInjector, data, groupBy } = this.props;
     let { items, itemRenderer } = this.state;
+
+    // Sort items by order model.
+    if (itemOrderModel) {
+      items = itemOrderModel.getOrderedItems(items);
+    }
+
+    // Augment items (e.g., from app context).
+    if (itemInjector) {
+      items = itemInjector(items);
+    }
 
     //
     // Rows.
     //
 
-    if (itemOrderModel) {
-      items = itemOrderModel.getOrderedItems(items);
-    }
-
     let previousOrder = 0;
     let rows = _.map(items, item => {
+      if (!item) {
+        console.error(items);
+      }
+
+//    let key = ID.getGlobalId(item);
+      let key = item.type + '/' + item.id;
 
       // Primary item.
       let listItem = (
-        <div key={ item.id } className={ DomUtil.className('ux-list-item', itemClassName) }>
+        <div key={ key } className={ DomUtil.className('ux-list-item', itemClassName) }>
           { itemRenderer(item) }
         </div>
       );
@@ -264,10 +281,10 @@ export class List extends React.Component {
         let dropOrder = (previousOrder == 0) ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
 
         listItem = (
-          <ListItemDropTarget key={ item.id } data={ data } order={ dropOrder }
+          <ListItemDropTarget key={ key } data={ data } order={ dropOrder }
                               onDrop={ this.handleItemDrop.bind(this) }>
 
-            <ListItemDragSource data={ item.id } order={ actualOrder }>
+            <ListItemDragSource data={ key } order={ actualOrder }>
               { listItem }
             </ListItemDragSource>
           </ListItemDropTarget>
@@ -286,13 +303,13 @@ export class List extends React.Component {
           ));
 
           return (
-            <div key={ item.id } className="ux-list-item-group">
+            <div key={ key } className="ux-list-item-group">
               { listItem }
               <div className="ux-list-item-refs">
                 { refs }
               </div>
             </div>
-          )
+          );
         }
       }
 

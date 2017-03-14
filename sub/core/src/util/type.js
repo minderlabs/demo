@@ -47,15 +47,26 @@ export class TypeUtil {
   /**
    * Concise stringify.
    */
-  static stringify = (json, indent) => JSON.stringify(json, (key, value) => {
-    if (_.isArray(value)) {
-      return `len(${value.length})`;
+  static stringify(json, indent=0) {
+    let str = JSON.stringify(json, (key, value) => {
+      if (_.isArray(value)) {
+        return `len(${value.length})`;
+      }
+      if (_.isString(value)) {
+        return TypeUtil.truncate(value, 40);  // Preserve IDs.
+      }
+      return value;
+    }, indent || 0);
+
+    if (indent === false) {
+      return str
+        .replace(/[/{/}]/g, '')
+        .replace(/"/g, '')
+        .replace(/,/g, ' ');
     }
-    if (_.isString(value)) {
-      return TypeUtil.truncate(value, 40);  // Preserve IDs.
-    }
-    return value;
-  }, indent);
+
+    return str;
+  }
 
   /**
    * Return true if value is effectively empty (i.e., undefined, null, [], or {} values).

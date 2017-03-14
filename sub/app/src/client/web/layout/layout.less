@@ -27,10 +27,53 @@
     margin-top: 8px;
   }
 
+  .app-layout-split {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+
+    overflow: hidden;
+
+    .app-finder-panel {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+
+      // TODO(burdon): Factor out.
+      width: 350px;
+
+      background-color: #FAFAFA;
+      border-right: 1px solid #EEE;
+      overflow: hidden;
+    }
+
+    .app-main-panel {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+
+      overflow: hidden;
+    }
+  }
+
+  .app-layout-full {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  // TODO(burdon): Hack to match inbox.
   &.app-platform-crx {
     .ux-navbar {
-      // Matches Inbox.
       height: 56px;
     }
+  }
+}
+
+// Sidebar testing
+.app-web {
+  .app-platform-crx {
+    flex-grow: 0;
+    width: 400px;
   }
 }

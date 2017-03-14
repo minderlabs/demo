@@ -6,9 +6,10 @@ import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
 import { TypeUtil } from '../util/type';
-import { Transforms } from './transforms';
 
+import { Transforms } from './transforms';
 import { ID } from './id';
+import { Database } from './database';
 import { ItemFragment, TaskFragment, ProjectFragment, ProjectBoardFragment } from './fragments';
 
 //
@@ -122,6 +123,8 @@ export class MutationUtil {
   static createDeleteMutation(set=true) {
     return MutationUtil.createLabelMutation('_deleted', set);
   }
+
+
 }
 
 /*
@@ -185,7 +188,8 @@ class Batch {
     console.assert(item && mutations);
     mutations = TypeUtil.flattenArrays(mutations);
     this._operations.push({
-      item, mutations
+      item,
+      mutations
     });
 
     return this;
@@ -253,14 +257,16 @@ export class Mutator {
     return graphql(UpsertItemsMutation, {
       withRef: true,
 
-      props: ({ ownProps, mutate }) => ({
-
-        //
-        // Injects a mutator instance into the wrapped components' properties.
-        // NOTE: dependencies must previously have been injected into the properties.
-        //
-        mutator: new Mutator(ownProps.idGenerator, ownProps.analytics, mutate)
-      })
+      //
+      // Injects a mutator instance into the wrapped components' properties.
+      // NOTE: dependencies must previously have been injected into the properties.
+      //
+      props: ({ ownProps, mutate }) => {
+        let mutator = new Mutator(ownProps.idGenerator, ownProps.analytics, mutate)
+        return {
+          mutator
+        };
+      }
     });
   }
 
@@ -342,7 +348,20 @@ export class Mutator {
   updateItem(item, mutations, namespace, itemMap=undefined) {
     mutations = _.compact(_.concat(mutations));
 
-    // TODO(burdon): If external namespace (factor out from Database.isExternalNamespace).
+
+
+    // TODO(burdon): Clone item if locally created.
+    // TODO(burdon): USE MutationUtil.cloneExternalItem below
+    if (item.namespace === Database.NAMESPACE.LOCAL) {
+      console.info('### CLONE LOCAL ITEM ###', JSON.stringify(item));
+      mutations.unshift(MutationUtil.createFieldMutation('title', 'string', item.title));
+      mutations.unshift(MutationUtil.createFieldMutation('email', 'string', item.email));
+      delete item['namespace'];
+    }
+
+
+
+    // TODO(burdon): If external or local namespace (factor out from Database.isExternalNamespace).
     if (item.namespace) {
       console.log('Cloning item: ' + JSON.stringify(item));
 

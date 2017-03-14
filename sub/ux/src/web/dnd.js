@@ -234,6 +234,7 @@ export class DragOrderModel {
    *
    * @return [{ id, order }] Mutations applied for this change.
    */
+  // TODO(burdon): Depends on item.id (make sure unique).
   setOrder(items, itemId, listId, dropOrder) {
 //  console.log('setOrder:', _.size(items), itemId, dropOrder);
 

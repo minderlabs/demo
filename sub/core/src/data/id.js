@@ -85,7 +85,7 @@ export class ID {
    * @return {string}
    */
   static getGlobalId(item) {
-    console.assert(item && item.type && item.id);
+    console.assert(item && item.type && item.id, 'Invalid item: ' + JSON.stringify(item));
     return ID.toGlobalId(item.type, item.id);
   }
 
