@@ -12,6 +12,14 @@
 //
 .crx-content-script {
 
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  justify-content: center;
+  right: -28px;
+  top: 60px;
+  z-index: 99999999999;
+
   //
   // Components are in iframes for CSS and JS isolation, and deferred loading.
   //
@@ -25,19 +33,16 @@
   //
 
   button {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-
     margin: 0;
     padding: 0;
     border: none;
     outline: none;
     background-color: transparent;
+    opacity: .5;
 
     img {
-      width: 24px;
-      height: 24px;
+      width: 48px;
+      height: 48px;
     }
 
     -webkit-animation-duration: 1s;

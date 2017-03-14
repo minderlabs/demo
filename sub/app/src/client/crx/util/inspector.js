@@ -18,16 +18,25 @@ export class InspectorRegistry {
     return this;
   }
 
+  /**
+   * Select and initialize inspectors.
+   * @param callback
+   * @returns {InspectorRegistry}
+   */
   init(callback) {
-    _.each(this._inspectors, inspector => {
-      if (inspector.isValid()) {
-        let rootNode = inspector.getRootNode();
-        if (rootNode) {
-          console.log('Inspector: ' + inspector.constructor.name);
-          inspector.start(rootNode, callback);
+
+    // TODO(burdon): Wait for load. Match URL and dynamically find root each time.
+    setTimeout(() => {
+      _.each(this._inspectors, inspector => {
+        if (inspector.isValid()) {
+          let rootNode = inspector.getRootNode();
+          if (rootNode) {
+            console.log('Inspector: ' + inspector.constructor.name);
+            inspector.start(rootNode, callback);
+          }
         }
-      }
-    });
+      });
+    }, 1000);
 
     return this;
   }
@@ -48,7 +57,9 @@ class Inspector {
     this._observer = new MutationObserver(mutations => {
       let context = this.inspect(mutations);
       console.log('Context: ' + JSON.stringify(context));
-      this._callback && this._callback(context);
+      if (this._callback && context) {
+        this._callback(context);
+      }
     });
   }
 
@@ -151,6 +162,9 @@ export class GmailInspector extends Inspector {
   }
 
   getRootNode() {
+
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>', $('div[role="main"]')[0]);
+
     return $('div[role="main"]')[0];
   }
 
@@ -168,7 +182,8 @@ export class GmailInspector extends Inspector {
     _.each(mutations, mutation => {
 
       // TODO(burdon): Get closest parent for thread ID.
-      let root = $(mutation.target).find('div[role="main"] div[role="listitem"] h3');
+//    let root = $(mutation.target).find('div[role="listitem"] h3 span');
+      let root = $('div[role="main"] div[role="listitem"] h3 span');
       if (root[0]) {
         let name = root.text();
         let email = root.attr('email');

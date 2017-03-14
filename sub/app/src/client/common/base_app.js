@@ -203,9 +203,7 @@ export class BaseApp {
     // https://github.com/reactjs/redux/issues/749
     let reducers = global ? reduceReducers(merged, global) : merged;
 
-    // Enhance the store.
-    // https://github.com/reactjs/redux/blob/master/docs/Glossary.md#store-enhancer
-    let enhancer = compose(
+    let enhancers = _.compact([
 
       // Redux-thunk (for asynchronous actions).
       // NOTE: The arg is passed as the third arg to the redux handler:
@@ -223,7 +221,11 @@ export class BaseApp {
       // https://github.com/zalmoxisus/redux-devtools-extension
       // https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd
       window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-    );
+    ]);
+
+    // Enhance the store.
+    // https://github.com/reactjs/redux/blob/master/docs/Glossary.md#store-enhancer
+    let enhancer = compose(...enhancers);
 
     // http://redux.js.org/docs/api/createStore.html
     this._store = createStore(reducers, enhancer);
