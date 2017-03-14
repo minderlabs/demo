@@ -42,7 +42,7 @@ export class ReactUtil {
       try {
         // Ready.
         return render(cls.props, cls.context);
-      } catch (error) {
+      } catch(error) {
         // TODO(burdon): Log if prod and show standard error.
         let message = error.message || 'Error rendering.';
         return (
