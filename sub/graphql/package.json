@@ -54,7 +54,7 @@
     "cheerio": "^0.22.0",
     "cookie-parser": "^1.4.3",
     "express": "^4.14.0",
-    "firebase": "^3.6.3",
+    "firebase": "^3.6.8",
     "firebase-admin": "^4.0.4",
     "googleapis": "^15.0.0",
     "graphql": "^0.8.0",
