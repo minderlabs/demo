@@ -27,7 +27,7 @@ export class ContextManager {
     this._context = {};
 
     // Cached items.
-    // TODO(burdon): Could this go stale?
+    // TODO(burdon): Could this go stale? Pass in apollo cache?
     this._cache = new Map();
   }
 
