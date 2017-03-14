@@ -347,7 +347,7 @@ export class CachingNetworkInterface { // extends NetworkInterface {
 
       switch (operationName) {
 
-        // TODO(burdon): Determine namespace from item when creating mutator !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // TODO(burdon): Determine namespace from item when creating mutator.
 
         // Mutations.
         case UpsertItemsMutationName: {

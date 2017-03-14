@@ -393,6 +393,8 @@ export class Mutator {
 
         let cloneMutations = _.concat(
 
+          // TODO(burdon): Add email as fkey.
+
           // Mutations to clone the item's properties.
           // TODO(burdon): Remove mutations for current properties below.
           MutationUtil.cloneItem(item),
