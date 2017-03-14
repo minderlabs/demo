@@ -108,19 +108,20 @@ const FoldersQuery = gql`
 
 const mapStateToProps = (state, ownProps) => {
   let { config, injector, search } = AppAction.getState(state);
+  let platform = _.get(config, 'app.platform');
 
   // Current user context (e.g., host page).
   let context = ContextAction.getState(state);
 
   // CRX app context.
   let contextManager = null;
-  if (_.get(config, 'app.platform') === Const.PLATFORM.CRX) {
+  if (platform === Const.PLATFORM.CRX) {
     // TODO(burdon): Binds to context action; should trigger context requery.
     contextManager = injector.get(ContextManager).updateContext(context);
   }
 
   // TODO(burdon): Move to layout config.
-  let listType = _.get(config, 'app.platform') === Const.PLATFORM.CRX ? 'card' : 'list';
+  let listType = (platform === Const.PLATFORM.CRX) ? 'card' : 'list';
 
   // Required by Mutator.
   let idGenerator = injector.get(IdGenerator);
@@ -155,20 +156,22 @@ export default compose(
       // Lookup items from context.
       // TODO(burdon): Currently contact specific based on email.
       let filter = {};
-      let emails = _.compact(_.map(_.get(contextManager.context, 'items'), item => item.email));
-      if (emails.length) {
-        filter = {
-          type: 'Contact',
-          expr: {
-            op: 'OR',
-            expr: _.map(emails, email => ({
-              field: 'email',
-              value: {
-                string: email
-              }
-            }))
-          }
-        };
+      if (contextManager) {
+        let emails = _.compact(_.map(_.get(contextManager.context, 'items'), item => item.email));
+        if (emails.length) {
+          filter = {
+            type: 'Contact',
+            expr: {
+              op: 'OR',
+              expr: _.map(emails, email => ({
+                field: 'email',
+                value: {
+                  string: email
+                }
+              }))
+            }
+          };
+        }
       }
 
       return {
@@ -186,7 +189,9 @@ export default compose(
       let { contextManager, filter } = ownProps;
 
       // Update context.
-      contextManager.updateItems(contextItems);
+      if (contextManager) {
+        contextManager.updateItems(contextItems);
+      }
 
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {

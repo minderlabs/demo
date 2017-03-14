@@ -8,6 +8,31 @@ const logger = Logger.get('context');
 
 /**
  * App context.
+ *
+ * - Content Script registers an Inspector for the current web page
+ *   (e.g., Inbox, Gmail, Testing at localhost:3000/testing/crx)
+ * - On a DOM change the Inspector looks for the current contact (name and email).
+ * - The Content Script sends a message to the Sidebar App, which fires a Redux action (ContextAction.ACTION.UPDATE),
+ *   which updates the context state.
+ * - The Finder activity listens to Redux state changes and uses the context to query (by email)
+ *   for possible saved Contacts; it also updates the global (Injected) ContextManager.
+ * - When the query returns the Finder is rendered; this renders the CardSearchList, which has an
+ *   itemInjector property (which is connected to the ContextManager).
+ * - During render the List passed its items (from the query) to the itemInjector,
+ *   which returns a new set of items to render.
+ * - The ContextManager's itemInjector does the following:
+ *   - If the query returns an item that matches the context then it is promoted to the front of the list.
+ *   - If not, the ContextManager creates a transient item (with the LOCAL namespace) and unshifts this
+ *     to the front of the list.
+ *   - The item is cached by the ContextManager, and will be used in subsequent renders.
+ * - If the context item is mutated (e.g., a task is added) then the Mutator clones the transient item
+ *   and changes its namespace to the USER namespace and submits the Mutation.
+ * - The optimistic reducer then plants this new USER item into the cache
+ *   (and triggers a list re-render -- in which case the ContextManager sees a non-transient USER item).
+ * - The list is re-rendered after the Mutation response is received by the server (nothing changes given
+ *   the optimistic response).
+ * - Now, when the context changes the same process begins again, but when the context shifts back
+ *   to the previous context, the non-transient item is shown (i.e., with its tasks).
  */
 export class ContextManager {
 
@@ -28,6 +53,7 @@ export class ContextManager {
 
     // Cached items.
     // TODO(burdon): Could this go stale? Pass in apollo cache?
+    // TODO(burdon): Why do we cache since email query happens each time?
     this._cache = new Map();
   }
 
