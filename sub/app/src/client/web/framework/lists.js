@@ -12,10 +12,10 @@ import {
   DocumentFragment,
   ProjectFragment,
   TaskFragment,
-  ListReducer
+  ListReducer,
+  QueryRegistry
 } from 'minder-core';
 
-import { QueryRegistry } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
 import { connectReducer } from './connector';
@@ -84,6 +84,8 @@ export const DebugListItemRenderer = (item) => {
  * Wraps basic List component adding subscriptions.
  */
 class ListWrapper extends React.Component {
+
+  // TODO(burdon): Must be a better way to get subscriptions.
 
   static defaultProps = {
     cid: QueryRegistry.createId()

@@ -166,10 +166,12 @@ export class TestGenerator {
                 // Generate data items for each user.
                 //
                 return Promise.resolve()
+                  // TODO(burdon): Add default label for private project.
+                  // TODO(burdon): Auto-provision project when creating a group.
                   .then(() =>
                     this.generateItems(context, 'Project', 1))
-                  // .then(() =>
-                  //   this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 20, max: 40 })));
+                  .then(() =>
+                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 1, max: 5 })));
               }));
             });
         }));

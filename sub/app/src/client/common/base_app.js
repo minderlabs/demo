@@ -113,7 +113,7 @@ export class BaseApp {
 
     // TODO(burdon): Subscriptions?
     // addGraphQLSubscriptions(networkInterface, wsClient)
-    // http://dev.apollodata.com/react/subscriptions.html
+    // http://dev.apollodata.com/react/subscriptionsx.html
 
     //
     // http://dev.apollodata.com/react/initialization.html

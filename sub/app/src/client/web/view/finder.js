@@ -87,6 +87,7 @@ class Finder extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
+// TODO(burdon): Get from top-level Activity.
 const FoldersQuery = gql`
   query FoldersQuery {
     viewer {
@@ -100,6 +101,8 @@ const FoldersQuery = gql`
   }
 `;
 
+// TODO(burdon): Add Projects query.
+// TODO(burdon): Common reducer for queries (not bound to list).
 const ContextQuery = gql`
   query ContextQuery($filter: FilterInput!) {
     contextItems: search(filter: $filter) {
@@ -155,7 +158,7 @@ export default compose(
   graphql(FoldersQuery, {
     props: ({ ownProps, data }) => {
       let { loading, error, viewer } = data;
-      let { contextManager, filter } = ownProps;
+      let { filter } = ownProps;
 
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {
