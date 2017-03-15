@@ -43,9 +43,11 @@ export const FirebaseTestingAppConfig = {
  */
 export const AnalyticsConfig = {
   // Google Analytics
+  // https://analytics.google.com/analytics/web/#management/Settings/a82404502w137842039p142136815/
   googleAnalyticsTrackingId: 'UA-82404502-2',
 
   // Segment Analytics
+  // https://segment.com/minderlabs/sources/jsweb/settings/keys
   segmentWriteKey: 'zNgiIvbGonawzsamSbKQ9WlX0WgXcy2b'
 };
 

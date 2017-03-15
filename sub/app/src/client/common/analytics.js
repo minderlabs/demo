@@ -66,6 +66,14 @@ export class Analytics {
   // TODO(madadam): Add a group() method? for e.g. https://segment.com/docs/sources/website/analytics.js/#group
 }
 
+/**
+ * Segment.com
+ *
+ * Segment is an analytics aggregator/distributor/warehouse service. We can report events here and then distribute
+ * to other services (mixpanel, Google Analytics, etc.) or export to a warehouse (database).
+ *
+ * Dashboard: https://segment.com/minderlabs
+ */
 export class SegmentAnalytics extends Analytics {
 
   constructor(config) {
@@ -73,7 +81,7 @@ export class SegmentAnalytics extends Analytics {
 
     // TODO(madadam): will this work in CRX? Might need to use the node library.
 
-    this.analytics = function(){
+    this.analytics = function() {
       // https://segment.com/docs/sources/website/analytics.js/quickstart/
       var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="4.0.0";
       analytics.load(AnalyticsConfig.segmentWriteKey);
@@ -97,6 +105,16 @@ export class SegmentAnalytics extends Analytics {
 
 }
 
+/**
+ * Google Analytics
+ *
+ * Note: Firebase Analytics is Google's newer analytics service designed for mobile apps. Since v3 however,
+ * they no longer support web apps, and the documentation advises using Google Analytics instead.
+ * When we get React Native working for mobile devices, we should switch over, or consider something else
+ * (Mixpanel)?
+ *
+ * Dashboard: https://analytics.google.com/analytics/web/#management/Settings/a82404502w137842039p142136815/
+ */
 export class GoogleAnalytics extends Analytics {
 
   constructor(config) {
