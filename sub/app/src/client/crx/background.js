@@ -10,9 +10,7 @@ Logger.setLevel({
   'net':        Logger.Level.info
 }, Logger.Level.info);
 
-import {
-  ChromeMessageChannelDispatcher, ErrorUtil, EventHandler, Listeners, QueryRegistry, TypeUtil
-} from 'minder-core';
+import { ChromeMessageChannelDispatcher, ErrorUtil, EventHandler, Listeners, TypeUtil } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -99,11 +97,17 @@ class BackgroundApp {
     // NetworkManager => AuthManager.getToken()
     //
 
-    this._queryRegistry = new QueryRegistry();
-
     this._authManager = new AuthManager(this._config);
 
-    this._cloudMessenger = new GoogleCloudMessenger(this._config, this._queryRegistry, this._eventHandler);
+    // GCM Push Messenger.
+    this._cloudMessenger = new GoogleCloudMessenger(this._config, this._eventHandler).listen(message => {
+
+      // Push invalidation to clients.
+      this._systemChannel.postMessage(null, {
+        command: SystemChannel.INVALIDATE
+      });
+    });
+
     this._connectionManager = new ConnectionManager(this._config, this._authManager, this._cloudMessenger);
 
     this._networkManager =

@@ -15,13 +15,19 @@ window.Words = Words;
  */
 class Site {
 
+  // TODO(burdon): Factor out.
+  // TODO(burdon): Security: Require Auth header.
   static post(url, data) {
-    $.ajax({
-      url: url,
-      type: 'POST',
-      contentType: 'application/json; charset=utf-8',
-      dataType: 'json',
-      data: JSON.stringify(data)
+    return new Promise((resolve, reject) => {
+      $.ajax({
+        url: url,
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: JSON.stringify(data),
+        success: response => { resolve(response) },
+        error: (xhr, textStatus, error) => { reject(error) }
+      });
     });
   }
 }

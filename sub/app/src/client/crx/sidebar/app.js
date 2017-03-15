@@ -92,6 +92,12 @@ export class SidebarApp extends BaseApp {
           break;
         }
 
+        // Invalidate queries.
+        case SystemChannel.INVALIDATE: {
+          this._queryRegistry.invalidate();
+          break;
+        }
+
         default: {
           console.warn('Invalid command: ' + JSON.stringify(message));
         }

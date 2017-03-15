@@ -66,7 +66,7 @@ export class ContextManager {
   getFilter() {
     // TODO(burdon): Email-specific.
     let emails = _.compact(_.map(_.get(this._context, 'items'), item => item.email));
-    if (emails.length) {mut
+    if (emails.length) {
       return {
         type: 'Contact',
         expr: {

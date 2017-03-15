@@ -13,7 +13,7 @@ import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
-import { TaskListItemRenderer } from './task';
+import { TaskCard, TaskListItemRenderer } from './task';
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -98,6 +98,11 @@ export class ContactCard extends React.Component {
  */
 export class ContactCanvasComponent extends React.Component {
 
+  static contextTypes = {
+    mutator: React.PropTypes.object.isRequired,
+    registration: React.PropTypes.object.isRequired
+  };
+
   static propTypes = {
     refetch: React.PropTypes.func.isRequired,
     item: React.PropTypes.object
@@ -107,10 +112,19 @@ export class ContactCanvasComponent extends React.Component {
     return [];
   }
 
+  handleTaskUpdate(item, mutations) {
+    console.assert(mutations);
+    let { registration: { userId }, mutator } = this.context;
+
+    if (item) {
+      mutator.updateItem(item, mutations);
+    }
+  }
+
   render() {
     return ReactUtil.render(this, () => {
       let { item:contact, refetch } = this.props;
-      let { email } = contact;
+      let { email, tasks } = contact;
 
       return (
         <Canvas ref="canvas"
@@ -122,6 +136,19 @@ export class ContactCanvasComponent extends React.Component {
             <div className="ux-section-body ux-font-small">
               <div>{ email }</div>
             </div>
+          </div>
+
+          <div className="ux-section">
+            <div className="ux-section-header ux-row">
+              <h4 className="ux-expand ux-title">Tasks</h4>
+            </div>
+
+            <List ref="tasks"
+                  className="ux-list-tasks"
+                  items={ tasks }
+                  itemRenderer={ TaskListItemRenderer }
+                  itemEditor={ TaskCard.TaskEditor }
+                  onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
           </div>
         </Canvas>
       );

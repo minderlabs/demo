@@ -68,7 +68,7 @@ export const adminRouter = (clientManager, firebase, options) => {
       }
     }
 
-    res.end();
+    res.send({});
   });
 
   //

@@ -249,7 +249,7 @@ export class ClientManager {
     }
 
     logger.log('Sending invalidation to client: ' + clientId);
-    return this.sendMessage(client.platform, client.messageToken, clientId);
+    return this.sendMessage(client.platform, client.messageToken, clientId, true);
   }
 
   /**
@@ -258,17 +258,19 @@ export class ClientManager {
    * @param platform Client platform.
    * @param senderId Client ID of sender.
    * @param messageToken
+   * @param force
    * @return {Promise}
    */
-  sendMessage(platform, messageToken, senderId) {
+  sendMessage(platform, messageToken, senderId, force=false) {
     return new Promise((resolve, reject) => {
 
-      // TODO(burdon): Query invalidation message.
+      // TODO(burdon): Query invalidation message (see CloudMessenger).
       // NOTE: key x value pairs only.
       // https://firebase.google.com/docs/cloud-messaging/http-server-ref#downstream-http-messages-json
       let data = {
         command: 'invalidate',
-        senderId
+        senderId,
+        force
       };
 
       let url;

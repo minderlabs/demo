@@ -23,8 +23,8 @@ export * from './data/memory_item_store';
 export * from './data/mutations';
 export * from './data/parser';
 export * from './data/randomizer';
+export * from './data/queries';
 export * from './data/reducer';
-export * from './data/subscriptions';
 export * from './data/system_store';
 export * from './data/transforms';
 

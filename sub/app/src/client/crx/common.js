@@ -74,5 +74,6 @@ export const SystemChannel = {
   REQUEST_REGISTRATION:   'REQUEST_REGISTRATION',
 
   // To sidebar.
-  FLUSH_CACHE:            'FLUSH_CACHE'
+  FLUSH_CACHE:            'FLUSH_CACHE',
+  INVALIDATE:             'INVALIDATE'
 };

@@ -202,6 +202,8 @@ export default compose(
           // NOTE: We only listen for non-optimistic responses (since opt responses may not be well formed).
           let upsertItems = MutationUtil.getUpsertItemsMutationResult(action, false);
           if (upsertItems && contextManager) {
+            // TODO(burdon): Possibly refresh list: if the item being mutated is NOT part of the list query
+            //               then we need to trigger re-rendering.
             contextManager.updateCache(upsertItems);
           }
 

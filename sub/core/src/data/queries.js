@@ -11,25 +11,32 @@ const logger = Logger.get('sub');
  */
 export class QueryRegistry {
 
-  // TODO(burdon): Move to minder-ux
-
   static createId() {
     return _.uniqueId('S-');
   }
 
-  // TODO(burdon): Factor out (minder-core/client).
+  // TODO(burdon): Factor out (move to minder-core).
   // http://dev.apollodata.com/core/apollo-client-api.html#QuerySubscription
 
   constructor() {
     this._components = new Map();
   }
 
+  /**
+   * Register query subscription.
+   * @param id
+   * @param refetch
+   */
   register(id, refetch) {
     console.assert(id && refetch);
     this._components.set(id, { refetch });
     logger.log(`Registered[${this._components.size}]: ${id}`);
   }
 
+  /**
+   * Unregister query.
+   * @param id
+   */
   unregister(id) {
     console.assert(id);
     this._components.delete(id);
