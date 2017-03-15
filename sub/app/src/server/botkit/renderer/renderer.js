@@ -6,6 +6,8 @@ import _ from 'lodash';
 
 import { ID, TypeUtil } from 'minder-core';
 
+import { TASK_LEVELS } from '../../../client/web/type/task'
+
 const IS_SHORT_FIELD = true;
 
 // TODO(burdon): Const.
@@ -97,10 +99,8 @@ export class ItemRenderer {
 
     let promises = [];
 
-    // TODO(madadam): Fix this to reflect new task schema.
     if (item.type === 'Task') {
-      // TODO(burdon): Status code consts.
-      if (_.get(item, 'status') == 2) { // status COMPLETE
+      if (_.get(item, 'status') == TASK_LEVELS.COMPLETE) {
         ItemRenderer._maybeAddField(result, 'Status', 'Done', IS_SHORT_FIELD);
         TypeUtil.maybeSet(this.result, 'color', 'good');
       } else {
