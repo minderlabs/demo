@@ -5,6 +5,8 @@
 import React from 'react';
 import { DragSource, DropTarget } from 'react-dnd';
 
+import { DomUtil } from 'minder-core';
+
 /**
  * Drag container wraps the list item.
  *
@@ -26,10 +28,8 @@ class ItemDragContainer extends React.Component {
   render() {
     let { children, order, connectDragSource, isDragging } = this.props;
 
-    let className = 'ux-drag-source' + (isDragging ? ' ux-dragging' : '');
-
     return connectDragSource(
-      <div className={ className }>
+      <div className={ DomUtil.className('ux-drag-source', isDragging && 'ux-dragging') }>
         <div className="ux-debug">{ order }</div>
 
         { children }
@@ -52,7 +52,7 @@ const dragSpec = {
     let item = {
       id: props.data
     };
-    console.log('Drag: ' + JSON.stringify(item));
+//  console.log('Drag: ' + JSON.stringify(item));
     return item;
   }
 };
@@ -84,7 +84,7 @@ class ItemDropContainer extends React.Component {
   render() {
     let { children, order, connectDropTarget, isOver } = this.props;
 
-    let className = 'ux-drop-target' + (isOver ? ' ux-active' : '') + (children ? '' : ' ux-last');
+    let className = DomUtil.className('ux-drop-target', isOver && 'ux-active', !children && 'ux-last');
 
     return connectDropTarget(
       <div className={ className }>
@@ -106,7 +106,7 @@ const dropSpec = {
   drop(props, monitor, connect) {
     let { data, order } = props;
     let item = monitor.getItem();
-    console.log('Drop: ' + JSON.stringify(item), data, order);
+//  console.log('Drop: ' + JSON.stringify(item), data, order);
     props.onDrop(item, data, order);
   }
 };
@@ -234,8 +234,9 @@ export class DragOrderModel {
    *
    * @return [{ id, order }] Mutations applied for this change.
    */
+  // TODO(burdon): Depends on item.id (make sure unique).
   setOrder(items, itemId, listId, dropOrder) {
-    console.log('setOrder:', _.size(items), itemId, dropOrder);
+//  console.log('setOrder:', _.size(items), itemId, dropOrder);
 
     let changes = [];
     let sortedItems = this.getOrderedItems(items);

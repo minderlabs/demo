@@ -4,15 +4,18 @@
 
 import React from 'react';
 
+import { DomUtil } from 'minder-core';
+
 /**
  * Textarea.
  */
 export class Textarea extends React.Component {
 
   static propTypes = {
-    className: React.PropTypes.string,
-    onChange: React.PropTypes.func,
-    value: React.PropTypes.string
+    className:    React.PropTypes.string,
+    onChange:     React.PropTypes.func,
+    placeholder:  React.PropTypes.string,
+    value:        React.PropTypes.string
   };
 
   state = {};
@@ -44,11 +47,12 @@ export class Textarea extends React.Component {
   }
 
   render() {
-    let { rows, className } = this.props;
+    let { rows, className, placeholder } = this.props;
     let { value } = this.state;
 
     return (
-      <textarea className={ _.join([className, 'ux-textarea'], ' ') }
+      <textarea className={ DomUtil.className('ux-textarea', className) }
+                placeholder={ placeholder }
                 spellCheck={ false }
                 rows={ rows }
                 value={ value }

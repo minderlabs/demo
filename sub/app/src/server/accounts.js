@@ -2,73 +2,45 @@
 // Copyright 2017 Minder Labs.
 //
 
-import express from 'express';
 
-
-// Sign-up buttons can start oauth flow that redirects back to /accounts/<service>, which delegates to the
-// service handler. After creating accounts (userStore?) and getting credentials from the service and
+// Sign-up buttons can start OAuth flow that redirects back to /accounts/<service>, which delegates to the
+// service handler. After creating accounts (systemStore?) and getting credentials from the service and
 // storing them in the UserStore, the handler can redirect back to /accounts.
 
 /**
  * AccountManager handles service-specific accounts, each provided by an AccountHandler
  * e.g. SlackAccountHandler.
- *
  */
 export class AccountManager {
+
   constructor() {
     this._handlers = new Map();
   }
 
-  get handlers() { return this._handlers; }
+  get handlers() {
+    return this._handlers;
+  }
 
   registerHandler(name, handler) {
     this._handlers[name] = handler;
+    return this;
   }
 }
-
-
-/**
- * Router for '/accounts' paths. Root /accounts page iterates over AccountManager.accounts exposing
- * account.signUpButtons() if not already connected, or account.info() if connected.
- *
- * @param accountManager
- * @returns {core.Router|*}
- */
-export const accountsRouter = (accountManager) => {
-  console.assert(accountManager);
-
-  let router = express.Router();
-
-  accountManager.handlers.forEach((name, handler) => {
-    let oauthHandler = handler.oauthRedirectHandler();
-    if (oauthHandler) {
-      router.get('/accounts/' + name, oauthHandler);
-    }
-  });
-
-  router.get('/accounts', function(req, res) {
-    res.render('accounts', {
-      accounts: accountManager.handlers
-    });
-  });
-
-  return router;
-};
-
 
 /**
  * AccountHandler interface.
  */
 export class AccountHandler {
+
   /**
    * Display name for the accounts management page.
    */
-  name() { throw 'Not implemented'; }
+  name() { throw new Error('Not implemented'); }
 
   /**
    * Return a block of html for the /accounts management page.
    */
-  infoHtml() { throw 'Not implemented'; }
+  infoHtml() { throw new Error('Not implemented'); }
 
   /**
    * Express route handler for oauth redirects. If implemented, installed at /accounts/<service_name>.

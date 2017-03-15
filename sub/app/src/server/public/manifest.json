@@ -1,0 +1,6 @@
+{
+  "//": "https://firebase.google.com/docs/cloud-messaging/js/client",
+  "//": "https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest",
+  "//": "NOTE: This ID is not project-specific.",
+  "gcm_sender_id": "103953800507"
+}

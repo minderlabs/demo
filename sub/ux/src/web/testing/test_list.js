@@ -60,6 +60,8 @@ export default class TestList extends React.Component {
   // TODO(burdon): Textbox bug due to Redux?
 
   render() {
+    let { value, item, items } = this.state;
+
     return (
       <div className="ux-column">
         <div className="ux-bar">
@@ -68,25 +70,23 @@ export default class TestList extends React.Component {
 
         <div className="ux-row ux-data-row">
           <TextBox className="ux-expand"
-                   value={ this.state.value }
+                   value={ value }
                    autoFocus={ true }
                    onChange={ this.handleChange.bind(this) }/>
         </div>
 
         <div className="ux-row ux-data-row">
-          <div className="ux-text ux-text-nocollapse">{ this.state.value }</div>
+          <div className="ux-text ux-text-nocollapse">{ value }</div>
         </div>
 
-        <div className="ux-scroll-container">
-          <div className="ux-scroll-panel">
-            <List items={ this.state.items }
-                  itemRenderer={ this.itemRenderer }
-                  onItemSelect={ this.handleSelect.bind(this) }/>
-          </div>
+        <div className="ux-expand">
+          <List items={ items }
+                itemRenderer={ this.itemRenderer }
+                onItemSelect={ this.handleSelect.bind(this) }/>
         </div>
 
         <div className="ux-bar">
-          <div className="ux-text-nocollapse ux-text-nowrap">{ this.state.item && JSON.stringify(this.state.item) }</div>
+          <div className="ux-text-nocollapse ux-text-nowrap">{ item && JSON.stringify(item) }</div>
         </div>
       </div>
     );

@@ -40,24 +40,155 @@
   }
 }
 
+//
+// Panel
+//
+
+.ux-panel {
+  display: flex;
+}
+
+//
+// Canvas
+//
+
+.ux-canvas-container {
+  display: flex;
+  flex-grow: 1;
+}
+
 .ux-canvas {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  overflow: hidden;
 
-  color: @ux-canvas-color;
-  background-color: @ux-canvas-background;
+  > div > .ux-columns {
+    border-bottom: 1px solid #DDD;
+  }
+
+  .ux-canvas-menu-bar {
+    display: flex;
+    flex-direction: row;
+
+    .ux-bar {
+      padding: 0 6px;
+      border-left: 1px solid #DDD;
+
+      .ux-icon {
+        font-size: @ux-font-large;
+      }
+    }
+  }
 }
 
-.ux-panel {
+//
+// Card
+//
+
+.ux-card-list {
+  background-color: #FAFAFA;
+}
+
+.ux-card {
   display: flex;
   flex-direction: column;
+  margin: 4px 8px;
+
   background-color: white;
+  box-shadow: 0 1px 1px #AAA;
+
+  .ux-card-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    background-color: gainsboro;
+    padding: 4px;
+
+    h1 {
+      font-size: @ux-font-medium;
+    }
+
+    .ux-icon {
+      font-size: @ux-font-small;
+    }
+  }
+
+  .ux-card-section {
+    padding: 4px;
+  }
+
+  .ux-card-footer {
+    padding: 0 6px 4px 4px;
+
+    .ux-icon-add {
+      float: right;
+    }
+  }
+}
+
+.ux-card-rounded {
+  border-radius: 2px;
+
+  .ux-card-header {
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+  }
+
+  .ux-card-body {
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+  }
+}
+
+//
+// Content section.
+//
+
+.ux-section {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+
+  margin: 4px 8px;
+  border: 1px solid #DDD;
+  border-radius: 4px;
+}
+.ux-section-header {
+  padding: @ux-section-header-padding;
+
+  background-color: @ux-section-header-background;
+  color: @ux-section-header-color;
+
+  i.ux-icon {
+    color: @ux-section-header-color;
+  }
+
+  .ux-title {
+    padding: 0 2px;
+  }
+}
+.ux-section-header-dark {
+  background-color: @ux-section-header-dark-background;
+  color: @ux-section-header-dark-color;
+}
+.ux-section-body {
+  padding: 6px;
 }
 
 //
 // Column container.
 //
+
+.ux-columns {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+
+  overflow-y: hidden;
+  align-items: stretch;
+}
 
 .ux-column {
   display: flex;
@@ -78,22 +209,17 @@
 
   overflow-x: hidden;
   align-items: center;
-
-  i.ux-icon {
-    margin: 0 4px;
-  }
 }
 
 //
 // Scroll container.
+// NOTE: The outer scroll-container must expand and make the overflow hidden.
+// NOTE: Scrolling requires display:flex in all ancestors.
 // https://css-tricks.com/almanac/properties/s/scrollbar
-// NOTE: Inner div (ux-scroll-panel) is important.
 //
 // <div class="ux-scroll-container">
-//   <div class="ux-scroll-panel">
-//     <List/>
-//   </div>
-// </div>
+//   <div class="ux-scroll-x-panel"/>
+// <div>
 //
 
 .ux-scroll-container {
@@ -101,52 +227,22 @@
   flex-direction: column;
   flex-grow: 1;
 
-  overflow-y: scroll;
-}
-.ux-scroll-container::-webkit-scrollbar {
-  width: 4px;
-}
-.ux-scroll-container::-webkit-scrollbar-thumb {
-  background-color: #666;
+  overflow: hidden;
 }
 
-.ux-scroll-x-container {
+.ux-scroll-x-panel {
   display: flex;
   flex-direction: row;
   flex-grow: 1;
 
   overflow-x: scroll;
+  overflow-y: hidden;
 }
-.ux-scroll-x-container::-webkit-scrollbar {
+.ux-scroll-x-panel::-webkit-scrollbar {
   height: 8px;
 }
-.ux-scroll-x-container::-webkit-scrollbar-thumb {
+.ux-scroll-x-panel::-webkit-scrollbar-thumb {
   background-color: #666;
-}
-
-//
-// Content section.
-//
-
-.ux-section {
-  padding: @ux-section-padding;
-
-  background-color: @ux-section-background;
-  border-bottom: 1px solid @ux-section-border-color;
-}
-.ux-section-header {
-  padding: @ux-section-header-padding;
-
-  background-color: @ux-section-header-background;
-  color: @ux-section-header-color;
-
-  i.ux-icon {
-    color: @ux-section-header-color;
-  }
-}
-.ux-section-header-dark {
-  background-color: @ux-section-header-dark-background;
-  color: @ux-section-header-dark-color;
 }
 
 //
@@ -167,14 +263,61 @@
 
   background-color: @ux-navbar-background;
   color: @ux-navbar-color;
-  padding: 4px 8px;
+
+  box-shadow: 0 4px 8px #AAA;
+  z-index: 999;
+
+  // Title editor.
+  .ux-header {
+
+    // TODO(burdon): Rationalize with searchbox
+
+    .ux-title {
+
+      margin: 0 8px;
+
+      div.ux-textbox {
+        justify-content: center;
+      }
+
+      input.ux-textbox {
+        margin: 0 16px;
+        border: none;
+        text-align: center;
+
+        background-color: white;
+        border-radius: 4px;
+        padding: 4px;
+      }
+    }
+  }
+
+  .ux-navbar-buttons {
+    .ux-text-nowrap;
+
+    margin: 0 8px;
+
+    > div {
+      display: flex;
+      justify-content: center;
+      background-color: #78a1c3;
+      padding: 3px;
+      border-radius: 2px;
+
+      .ux-icon {
+        color: royalblue;
+        font-size: @ux-font-medium;
+      }
+
+      .ux-icon.ux-icon-active {
+        color: #013b68;
+      }
+    }
+  }
 }
 
 .ux-toolbar {
   .ux-bar;
-
-  background-color: @ux-toolbar-background;
-  padding: @ux-toolbar-padding;
 
   > input, button, select {
     margin-left: @ux-toolbar-padding;

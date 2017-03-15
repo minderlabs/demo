@@ -9,19 +9,26 @@
   flex-direction: column;
   flex-grow: 1;
 
+  // Outer class should expand and overflow:hidden
   overflow-y: scroll;
 
-  .ux-list-item:hover {
-    background-color: @ux-list-highlight;
+  // .ux-list.ux-list-highlight
+  &.ux-list-highlight {
+    .ux-list-item:hover {
+      background-color: @ux-list-highlight;
+    }
   }
+
+  > .ux-list-item {
+    padding: 0 4px;
+  }
+
   .ux-list-editor { // Undo hover.
     background-color: transparent !important;
   }
 
+  // Groups for combined results.
   .ux-list-item-group {
-    display: flex;
-    flex-direction: column;
-
     .ux-list-item-refs {
       background-color: #F5F5F5;
     }
@@ -45,7 +52,11 @@
 
   .ux-drop-target {
     .ux-drop-placeholder {
-      display: none;
+      _display: none;
+      height: 0;
+      -webkit-transition: height 0.2s;
+      -moz-transition: height 0.2s;
+      transition: height 0.2s;
 
       font-size: 12px;
       font-family: Monaco, monospace;
@@ -57,23 +68,24 @@
       }
     }
   }
+  .ux-drop-target.ux-active {
+    .ux-drop-placeholder {
+      display: flex;
+      height: 80px;
+
+      margin: 8px 0;
+      background-color: #EEE;
+      border-radius: 2px;
+    }
+  }
   .ux-drop-target.ux-last {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
   }
-  .ux-drop-target.ux-active {
-    .ux-drop-placeholder {
-      display: flex;
-      height: 40px;
-      margin-bottom: 4px;
-
-      background-color: white;
-      border: 3px dotted cornflowerblue;
-    }
-  }
 }
 
+// TODO(burdon): Option to inhibit scrollbar.
 .ux-list::-webkit-scrollbar {
   width: 2px;
 }

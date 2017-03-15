@@ -6,52 +6,83 @@
   <div class="site-column">
 
     <div class="site-window-container">
-      <div class="site-window">
+      <div class="site-window site-admin-window">
+
         <div class="site-section">
-          <h1>Database</h1>
+          <div class="site-header">
+            <h1>Admin</h1>
+            <i onclick="refresh()" class="material-icons site-action">refresh</i>
+          </div>
+
+          <!-- TODO(burdon): Factor out links. -->
           <div>
-            <button onclick="reset()">Reset Cache</button>
+            <a class="site-button" target="MINDER_KUE"
+               href="/admin/kue">Kue</a>
+            <a class="site-button" target="MINDER_KUBE"
+               href="https://api.dev.k.minderlabs.com/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard">Kubernetes</a>
+            <a class="site-button" target="MINDER_FIREBASE"
+               href="https://console.firebase.google.com/project/minder-beta/database/data">Firebase</a>
+          </div>
+        </div>
+
+        <div class="site-section site-section-expand">
+          <h2>Clients</h2>
+          <div class="site-scroll-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>Platform</th>
+                  <th>Client ID</th>
+                  <th>User ID</th>
+                  <th>Message Token</th>
+                  <th>Registered</th>
+                </tr>
+              </thead>
+              <tbody>
+              {{#each clients}}
+                <tr>
+                  <td class="site-data">{{ platform }}</td>
+                  <td class="site-data">{{ id }}</td>
+                  <td class="site-data">{{ userId }}</td>
+                  <td class="site-data">{{ short messageToken }}</td>
+                  <td class="site-data site-expand">{{ time registered }}</td>
+                  <td>
+                    <button onclick="invalidate('{{ id }}')">Ping</button>
+                  </td>
+                </tr>
+              {{/each}}
+              </tbody>
+            </table>
           </div>
         </div>
 
         <div class="site-section">
-          <h1>Clients</h1>
-          <table>
-            <thead>
-              <tr>
-                <th>User ID</th>
-                <th>Client ID</th>
-                <th>Socket ID</th>
-                <th>Registered</th>
-              </tr>
-            </thead>
-            <tbody>
-            {{#each clients}}
-              <tr>
-                <td class="site-data">{{ userId }}</td>
-                <td class="site-data">{{ id }}</td>
-                <td class="site-data">{{ socketId }}</td>
-                <td class="site-data site-expand">{{ time registered }}</td>
-                <td>
-                  <button onclick="ping('{{ id }}')">Ping</button>
-                </td>
-              </tr>
-            {{/each}}
-            </tbody>
-          </table>
+          <div>
+            <button onclick="flush()">Flush Clients</button>
+            <button onclick="schedule()">Test Scheduler</button>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
 
   <script src="/assets/website.bundle.js"></script>
   <script>
-    function reset() {
-      Site.post('/admin', { cmd: 'db.cache.reset' });
+    function refresh() {
+      document.location.reload();
     }
 
-    function ping(clientId) {
-      Site.post('/client/invalidate', { clientId: clientId });
+    function flush() {
+      Site.post('/admin', { action: 'client.flush' });
+    }
+
+    function invalidate(clientId) {
+      Site.post('/admin', { action: 'client.invalidate', clientId: clientId });
+    }
+
+    function schedule() {
+      Site.post('/admin', { action: 'schedule.test' });
     }
   </script>
 </div>

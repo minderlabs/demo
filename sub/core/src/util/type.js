@@ -10,17 +10,63 @@ import _ from 'lodash';
 export class TypeUtil {
 
   /**
+   * Right-pad given string.
+   * @param text
+   * @param length
+   */
+  static pad(text, length) {
+    let len = text ? text.length : 0;
+    if (len > length) {
+      text = text.substring(0, length - 3) + '...';
+      len = length;
+    }
+    return (text || '') + _.repeat(' ', length - len);
+  }
+
+  /**
+   * Truncate string.
+   * @param value
+   * @param len Max length (including ellipses).
+   * @returns {string}
+   */
+  static truncate(value, len=32) {
+    if (!value) {
+      return '';
+    }
+
+    if (value.length > len) {
+      let mid = Math.floor(len / 2);
+      let left = value.substring(0, mid);
+      let right = value.substring(value.length - (mid - 3));
+      return left + '...' + right;
+    }
+
+    return value;
+  }
+
+  /**
    * Concise stringify.
    */
-  static stringify = (json, indent) => JSON.stringify(json, (key, value) => {
-    if (_.isArray(value)) {
-      return `len(${value.length})`;
+  static stringify(json, indent=0) {
+    let str = JSON.stringify(json, (key, value) => {
+      if (_.isArray(value)) {
+        return `len(${value.length})`;
+      }
+      if (_.isString(value)) {
+        return TypeUtil.truncate(value, 40);  // Preserve IDs.
+      }
+      return value;
+    }, indent || 0);
+
+    if (indent === false) {
+      return str
+        .replace(/[/{/}]/g, '')
+        .replace(/"/g, '')
+        .replace(/,/g, ' ');
     }
-    if (_.isString(value) && value.length > 32) {
-      return value.substring(0, 32) + '...';
-    }
-    return value;
-  }, indent);
+
+    return str;
+  }
 
   /**
    * Return true if value is effectively empty (i.e., undefined, null, [], or {} values).
@@ -36,6 +82,7 @@ export class TypeUtil {
    */
   static clone(obj) {
     console.assert(obj);
+    // TODO(burdon): Consider _.cloneDeep?
     return JSON.parse(JSON.stringify(obj));
   }
 
@@ -67,13 +114,12 @@ export class TypeUtil {
   }
 
   /**
-   * Merges the array into the current array.
-   * @param current
-   * @param array
+   * Flatten array that may contain arrays. Remove null/undefined values.
+   * @param values
+   * @returns {*}
    */
-  static merge(current, array) {
-    current.splice(current.length, 0, ...array);
-    return current;
+  static flattenArrays(values) {
+    return _.compact([].concat.apply([], values));
   }
 
   /**
@@ -119,20 +165,64 @@ export class TypeUtil {
   /**
    * Iterates the collection sequentially calling the async function for each.
    *
-   * @param collection Data to iterate.
-   * @param func Returns a value or promise.
-   * @return {Promise}
+   * @param obj
+   * @param f Function to call for each key x value. (value, key/index, root)
    */
-  static iterateWithPromises(collection, func) {
-    let p = Promise.resolve();
-
-    _.each(collection, (...args) => {
-      p = p.then(() => {
-        return Promise.resolve(func.apply(null, args));
-      });
+  static traverse(obj, f) {
+    _.forIn(obj, (value, key) => {
+      f(value, key, obj);
+      if (_.isArray(value)) {
+        value.forEach((el, i) => {
+          f(el, i, value);
+          if (_.isObject(el)) {
+            TypeUtil.traverse(el, f);
+          }
+        });
+      } else if (_.isObject(value)) {
+        TypeUtil.traverse(obj[key], f);
+      }
     });
+  }
+}
 
-    // Resolve after each item in the sequence resolves.
-    return p;
+/**
+ * Dynamic value provider.
+ */
+export class Provider {
+
+  get value() {}
+}
+
+/**
+ * Dyamically returns the give property from the object.
+ * new PropertyProvider({ foo: { bar: 100 } }, 'foo.bar').value == 100;
+ */
+export class PropertyProvider extends Provider {
+
+  constructor(object, property) {
+    super();
+    console.assert(object && property);
+
+    this._object = object;
+    this._property = property;
+  }
+
+  get value() {
+    return _.get(this._object, this._property);
+  }
+}
+
+/**
+ * Wraps a read-only object. Allows for dynamic access of values.
+ */
+export class Wrapper {
+
+  constructor(object) {
+    console.assert(object);
+    this._object = object;
+  }
+
+  value(property, defaultValue) {
+    return _.get(this._object, property, defaultValue);
   }
 }

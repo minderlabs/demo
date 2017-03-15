@@ -16,9 +16,34 @@ body {
   font-family: Roboto, sans-serif;
 }
 
-h1 {
-  margin: 8px 0;
+a {
+  color: darkblue;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+a.site-button {
+  margin-left: -4px;
+  margin-right: 4px;
+  padding: 4px 4px;
+  color: #039be5;
+}
+a.site-button:hover {
+  background-color: #A9E2FA;
+  text-decoration: none;
+}
+
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+h1, h2, h3 {
+  margin: 16px 0 8px;
   font-weight: 100;
+  color: #444;
 }
 
 table {
@@ -37,20 +62,32 @@ table td:last-child {
 
 input, button {
   outline: none;
-  font-size: 20px;
+  font-size: 16px;
   border: 1px solid darkgray;
   padding: 4px;
 }
-button:hover,
-button:focus {
+button:active {
+  background-color: #AAA;
+}
+button:hover {
   background-color: #DDD;
 }
 
-.site-header {
-  margin-bottom: 16px;
+i.material-icons {
+  cursor: pointer;
+  color: #333;
+}
+i.site-action:hover {
+  color: #999;
 }
 
+.site-header {
+  display: flex;
+  margin-bottom: 16px;
+}
 .site-header h1 {
+  display: flex;
+  flex-grow: 1;
   margin: 0;
   font-weight: 100;
   font-size: 30px;
@@ -87,10 +124,33 @@ button:focus {
   flex-direction: column;
   background-color: whitesmoke;
   box-shadow: 4px 4px 16px darkslategray;
+  overflow: hidden;
+}
+.site-admin-window {
+  min-width: 1000px;
 }
 
 .site-section {
-  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 8px;
+}
+.site-section-expand {
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+.site-scroll-panel {
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+}
+.site-scroll-panel::-webkit-scrollbar {
+  width: 4px;
+}
+.site-scroll-panel::-webkit-scrollbar-thumb {
+  background-color: #666;
 }
 
 .site-row {
@@ -102,9 +162,26 @@ button:focus {
 
 .site-data {
   font-family: Monaco, monospace;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .site-expand {
   flex-grow: 1;
+}
+
+.site-buttonbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+
+  .site-install-crx {
+    font-size: small;
+  }
+}
+
+.site-json {
+  margin: 0;
+  color: darkcyan;
+  white-space: pre-wrap;
 }

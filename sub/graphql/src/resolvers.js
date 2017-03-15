@@ -7,9 +7,9 @@ import _ from 'lodash';
 import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
-import { $$, Logger, ID, Transforms } from 'minder-core';
+import { $$, Logger, Database, ID, ItemStore, TypeUtil } from 'minder-core';
 
-import Schema from './schema.graphql';
+import Schema from './gql/schema.graphql';
 
 const logger = Logger.get('resolver');
 
@@ -18,6 +18,21 @@ const logger = Logger.get('resolver');
  */
 export class Resolvers {
 
+  // TODO(burdon): Remove.
+  static getNamespaceForType(type) {
+    switch (type) {
+      case 'User':
+      case 'Group':
+        return Database.NAMESPACE.SYSTEM;
+
+      case 'Folder':
+        return Database.NAMESPACE.SETTINGS;
+
+      default:
+        return Database.NAMESPACE.USER;
+    }
+  }
+
   static get typeDefs() {
     return Schema;
   }
@@ -25,6 +40,7 @@ export class Resolvers {
   //
   // Resolver Map
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-map
+  // https://dev-blog.apollodata.com/graphql-explained-5844742f195e#.vcfu43qao
   //
   // TODO(burdon): See args and return values (incl. promise).
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
@@ -34,7 +50,14 @@ export class Resolvers {
   //
 
   /**
-   * Create the resolver map.
+   * GraphQL Resolvers.
+   *
+   * The context is set via the graphqlRouter's contextProvider.
+   *
+   * context: {
+   *   userId,
+   *   clientId
+   * }
    */
   static getResolvers(database) {
     return {
@@ -45,11 +68,14 @@ export class Resolvers {
       // http://graphql.org/graphql-js/type/#graphqlscalartype
       //
 
+      /**
+       * Milliseconds since Unix epoch (_.now() == new Date().getTime()).
+       */
       Timestamp: {
         __serialize: value => value,
         __parseValue: value => value,
         __parseLiteral: ast => {
-          return (ask.kind === Kind.FLOAT) ? parseFloat(ast.value) : null;
+          return (ask.kind === Kind.INT) ? parseInt(ast.value) : null;
         }
       },
 
@@ -60,7 +86,7 @@ export class Resolvers {
 
       Item: {
         __resolveType(root) {
-          console.assert(root.type);
+          console.assert(root.type, 'Invalid type: ' + TypeUtil.stringify(root));
 
           // The type property maps onto the GraphQL schema type name.
           return root.type;
@@ -78,18 +104,18 @@ export class Resolvers {
       Group: {
 
         members: (root, args, context) => {
-          return database.getItems(context, 'User', root.members);
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItems(context, 'User', root.members);
         },
 
         projects: (root, args, context) => {
+          // NOTE: Group is in the system store, so we don't reference user store items.
           let filter = {
             type: 'Project',
-            filter: {
-              expr: { field: "team", ref: "id" }
-            }
+            expr: { field: "group", ref: "id" }
           };
 
-          return database.queryItems(context, root, filter);
+          // TODO(burdon): Links.
+          return database.getQueryProcessor(Database.NAMESPACE.USER).queryItems(context, root, filter);
         }
       },
 
@@ -98,7 +124,7 @@ export class Resolvers {
         // TODO(burdon): Generalize for filtered items (like queryItems). Can reference context and root node.
         tasks: (root, args, context) => {
           let { filter } = args || {};
-          return database.queryItems(context, root, filter);
+          return database.getItemStore().queryItems(context, root, filter);
         }
       },
 
@@ -115,36 +141,89 @@ export class Resolvers {
           }));
         },
 
-        team: (root, args, context) => {
-          return database.getItem(context, 'Group', root.team);
+        group: (root, args, context) => {
+          let { group } = root;
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', group);
         },
 
         tasks: (root, args, context) => {
-          return root.tasks && database.getItems(context, 'Task', root.tasks) || [];
+          let { tasks } = root;
+          if (tasks) {
+            return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', tasks);
+          } else {
+            return [];
+          }
         }
       },
 
       Task: {
 
-        // TODO(burdon): Better way to deal with defaults?
         status: (root, args, context) => {
           return root.status || 0
         },
 
         project: (root, args, context) => {
-          return root.project && database.getItem(context, 'Project', root.project);
+          if (root.project) {
+            return database.getItemStore(Database.NAMESPACE.USER).getItem(context, 'Project', root.project);
+          }
         },
 
+        // TODO(burdon): Links.
         tasks: (root, args, context) => {
-          return root.tasks && database.getItems(context, 'Task', root.tasks) || [];
+          if (root.tasks) {
+            return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', root.tasks);
+          } else {
+            return [];
+          }
         },
 
         owner: (root, args, context) => {
-          return root.owner && database.getItem(context, 'User', root.owner);
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', root.owner);
         },
 
         assignee: (root, args, context) => {
-          return root.assignee && database.getItem(context, 'User', root.assignee);
+          if (root.assignee) {
+            return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', root.assignee);
+          }
+        }
+      },
+
+      Contact: {
+
+        // TODO(burdon): Links.
+        tasks: (root, args, context) => {
+          if (root.tasks) {
+            return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', root.tasks);
+          } else {
+            return [];
+          }
+        }
+      },
+
+      //
+      // Root Viewer.
+      //
+
+      Viewer: {
+
+        user: (root, args, context) => {
+          let { userId } = context;
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', userId);
+        },
+
+        // TODO(burdon): Replace with "groups" and lookup without context.
+        group: (root, args, context) => {
+          let { groupId } = context;
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', groupId);
+        },
+
+        folders: (root, args, context) => {
+          return database.getQueryProcessor(Database.NAMESPACE.SETTINGS).queryItems(context, root, {
+            type: 'Folder',
+            orderBy: {
+              field: 'order'
+            }
+          });
         }
       },
 
@@ -153,44 +232,32 @@ export class Resolvers {
       // NOTE: root is undefined for root-level queries.
       //
 
+      //const AuthError = new Error('Not authenticated.');
+
       RootQuery: {
 
         viewer: (root, args, context) => {
-          let { user: { id, email, name } } = context;
+          Resolvers.checkAuthentication(context);
 
-          // TODO(burdon): Local/global ID (need to document to memo this).
-          // let { type, id:localUserId } = ID.fromGlobalId(userId);
-
-          // TODO(burdon): Can the resolver resolve this for us?
-          // return {
-          //   id,
-          //   user: ID.toGlobalId('User', id)
-          // };
-
-          return database.getItem(context, 'User', id).then(user => ({
-            id,   // TODO(burdon): Global ID?
-            user
-          }));
+          return {};
         },
 
-        folders: (root, args, context) => {
-          return database.queryItems(context, root, { type: 'Folder', orderBy: { field: 'order' } });
-        },
-
+        // TODO(burdon): items
         item: (root, args, context) => {
+          Resolvers.checkAuthentication(context);
+
           let { itemId } = args;
-          let { type, id:localItemId } = ID.fromGlobalId(itemId);
+          let { type, id:localId } = ID.fromGlobalId(itemId);
 
-          return database.getItem(context, type, localItemId);
-        },
+          // TODO(burdon): Should be from args or ID.
+          let namespace = Resolvers.getNamespaceForType(type);
 
-        items: (root, args, context) => {
-          let { filter, offset, count } = args;
-
-          return database.queryItems(context, root, filter, offset, count);
+          return database.getItemStore(namespace).getItem(context, type, localId);
         },
 
         search: (root, args, context) => {
+          Resolvers.checkAuthentication(context);
+
           let { filter, offset, count, groupBy } = args;
 
           return database.search(context, root, filter, offset, count, groupBy);
@@ -199,39 +266,43 @@ export class Resolvers {
 
       //
       // Mutations
+      // Apply ItemMutationInput
       // http://dev.apollodata.com/react/receiving-updates.html
       //
 
       RootMutation: {
 
-        updateItem: (root, args, context) => {
-          let { itemId, mutations } = args;
-          let { type, id:localItemId } = ID.fromGlobalId(itemId);
-          logger.log($$('UPDATE[%s:%s]: %o', type, localItemId, mutations));
+        upsertItems: (root, args, context) => {
+          Resolvers.checkAuthentication(context);
 
-          // TODO(burdon): Validate type.
+          let { namespace=Database.NAMESPACE.USER, mutations } = args;
+          logger.log($$('UPDATE[%s]: %o', namespace, mutations));
 
-          // Get existing item (or undefined).
-          return database.getItem(context, type, localItemId).then(item => {
+          let itemStore = database.getItemStore(namespace);
+          return ItemStore.applyMutations(itemStore, context, mutations)
 
-            // If not found (i.e., insert).
-            // TODO(burdon): Check this is an insert (not a miss due to a bug).
-            if (!item.id) {
-              item = {
-                id: localItemId,
-                type: type,
-                title: ''
-              };
-            }
+            //
+            // Trigger notifications.
+            //
+            .then(items => {
 
-            // Apply mutation.
-            Transforms.applyObjectMutations(item, mutations);
-
-            // Upsert database.
-            return database.upsertItem(context, item);
-          });
+              // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
+              database.fireMuationNotification(context, mutations, items);
+              return items;
+            });
         }
       }
     };
+  }
+
+  // TODO(burdon): Obsolete? NotAuthenticatedError.
+  static checkAuthentication(context) {
+    if (!context.userId) {
+      // NOTE: User may be inactive.
+      throw new Error('Not authenticated.');
+    }
+    if (!context.clientId) {
+      throw new Error('Invalid client.');
+    }
   }
 }

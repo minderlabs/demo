@@ -4,9 +4,8 @@
 
 import gql from 'graphql-tag';
 
+import { UpsertItemsMutation } from './mutations';
 import { ItemReducer, ListReducer } from './reducer';
-
-import { UpdateItemMutation } from './mutations';
 import { Matcher } from './matcher';
 
 const TestListQuery = gql`
@@ -34,31 +33,22 @@ const TestItemQuery = gql`
   }
 `;
 
-const TestItemMutation = gql`
-  mutation TestMutation($itemId: ID!, $mutations: [ObjectMutationInput]!) {
-    updateItem(itemId: $itemId, mutations: $mutations) {
-      id
-      title
-    }
-  }
-`;
-
 const Items = [
   {
     id: 'I-1',
-    type: 'Test',
+    type: 'Task',
     labels: ['_favorite'],
     title: 'Item 1'
   },
   {
     id: 'I-2',
-    type: 'Test',
+    type: 'Task',
     labels: ['_favorite'],
     title: 'Item 2'
   },
   {
     id: 'I-3',
-    type: 'Test',
+    type: 'Task',
     labels: ['_favorite'],
     title: 'Item 3'
   }
@@ -81,36 +71,17 @@ const CachedItem = {
 describe('Reducers:', () => {
 
   const filter = {
-    type: 'Test',
+    type: 'Task',
     labels: ['_favorite']
   };
 
-  const listReducer = new ListReducer({
-    mutation: {
-      type: TestItemMutation,
-      path: 'updateItem'
-    },
-    query: {
-      type: TestListQuery,
-      path: 'items'
-    }
-  });
+  const listReducer = new ListReducer(TestListQuery);
 
-  const itemReducer = new ItemReducer({
-    mutation: {
-      type: TestItemMutation,
-      path: 'updateItem'
-    },
-    query: {
-      type: TestItemQuery,
-      path: 'item'
-    }
-  }, (matcher, context, previousResult, item) => {
+  const itemReducer = new ItemReducer(TestItemQuery, (matcher, context, previousResult, item) => {
     let match = matcher.matchItem(context, {}, filter, item);
 
-    let idx = _.findIndex(_.get(previousResult, 'item.project.items'), i => i.id == item.id);
-
     // Ignore if matches and already exists.
+    let idx = _.findIndex(_.get(previousResult, 'item.project.items'), i => i.id == item.id);
     let change = (match && idx == -1) || (!match && idx != -1);
     return change && {
       item: {
@@ -128,7 +99,7 @@ describe('Reducers:', () => {
           }
         }
       }
-    }
+    };
   });
 
   const context = {};
@@ -137,19 +108,19 @@ describe('Reducers:', () => {
 
   it('Inserts an item into list.', () => {
 
-    let updatedItem = {
+    let upsertItems = [{
       id: 'I-4',
-      type: 'Test',
+      type: 'Task',
       labels: ['_favorite'],
       title: 'Item 4'
-    };
+    }];
 
     let action = {
       type: 'APOLLO_MUTATION_RESULT',
-      operationName: TestItemMutation.definitions[0].name.value,
+      operationName: UpsertItemsMutation.definitions[0].name.value,
       result: {
         data: {
-          updateItem: updatedItem
+          upsertItems
         }
       }
     };
@@ -160,23 +131,23 @@ describe('Reducers:', () => {
 
     // Test was appended.
     expect(result.items.length).to.equal(previousResult.items.length + 1);
-    expect(result.items[3].id).to.equal(updatedItem.id);
+    expect(result.items[3].id).to.equal(upsertItems[0].id);
   });
 
   it('Removes an item from list.', () => {
 
-    let updatedItem = {
+    let upsertItems = [{
       id: 'I-2',
-      type: 'Test',
+      type: 'Task',
       title: 'Item 2'
-    };
+    }];
 
     let action = {
       type: 'APOLLO_MUTATION_RESULT',
-      operationName: TestItemMutation.definitions[0].name.value,
+      operationName: UpsertItemsMutation.definitions[0].name.value,
       result: {
         data: {
-          updateItem: updatedItem
+          upsertItems
         }
       }
     };
@@ -191,19 +162,19 @@ describe('Reducers:', () => {
 
   it('Inserts the item into a nested list within the cached item.', () => {
 
-    let updatedItem = {
+    let upsertItems = [{
       id: 'I-4',
-      type: 'Test',
+      type: 'Task',
       labels: ['_favorite'],
       title: 'Item 4'
-    };
+    }];
 
     let action = {
       type: 'APOLLO_MUTATION_RESULT',
-      operationName: TestItemMutation.definitions[0].name.value,
+      operationName: UpsertItemsMutation.definitions[0].name.value,
       result: {
         data: {
-          updateItem: updatedItem
+          upsertItems
         }
       }
     };
@@ -218,18 +189,18 @@ describe('Reducers:', () => {
 
   it('Removed the item from a nested list within the cached item.', () => {
 
-    let updatedItem = {
+    let upsertItems = [{
       id: 'I-3',
-      type: 'Test',
+      type: 'Task',
       title: 'Item 3'
-    };
+    }];
 
     let action = {
       type: 'APOLLO_MUTATION_RESULT',
-      operationName: TestItemMutation.definitions[0].name.value,
+      operationName: UpsertItemsMutation.definitions[0].name.value,
       result: {
         data: {
-          updateItem: updatedItem
+          upsertItems
         }
       }
     };
@@ -244,19 +215,19 @@ describe('Reducers:', () => {
 
   it('Ignore modified items', () => {
 
-    let updatedItem = {
+    let upsertItems = [{
       id: 'I-3',
-      type: 'Test',
+      type: 'Task',
       labels: ['_favorite'],
       title: 'Item 3-a'
-    };
+    }];
 
     let action = {
       type: 'APOLLO_MUTATION_RESULT',
-      operationName: TestItemMutation.definitions[0].name.value,
+      operationName: UpsertItemsMutation.definitions[0].name.value,
       result: {
         data: {
-          updateItem: updatedItem
+          upsertItems
         }
       }
     };

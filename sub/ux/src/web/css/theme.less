@@ -8,15 +8,25 @@
 // https://material.io/guidelines/style/color.html#color-color-palette
 //
 
+@import './palette';
+
 @ux-body-background:                    #CCC;
 
 @ux-boxshadow:                          4px 4px 16px #AAA;
 
 @ux-font-family:                        Roboto, sans-serif;
-@ux-font-large:                         28px;
+@ux-font-xlarge:                        28px;
+@ux-font-large:                         24px;
 @ux-font-medium:                        18px;
 @ux-font-small:                         16px;
 @ux-font-xsmall:                        14px;
+
+@ux-color-dark:                         #333;
+@ux-color-medium:                       #666;
+@ux-color-debug:                        #BBB;
+@ux-color-error:                        darkred;
+@ux-color-star:                         orange;
+@ux-color-tag:                          cornflowerblue;
 
 @ux-header-color:                       white;
 @ux-header-background:                  darken(@ux-navbar-background, 10%);
@@ -27,12 +37,10 @@
 @ux-canvas-color:                       #333;
 @ux-canvas-background:                  #0277BD;
 
-@ux-contrast-color:                     lighten(#56ad39, 20%);
-
 @ux-section-padding:                    8px;
-@ux-section-header-padding:             2px 8px;
+@ux-section-header-padding:             2px 2px;
 @ux-section-header-color:               @ux-color-dark;
-@ux-section-header-background:          gainsboro;
+@ux-section-header-background:          #A5D6A7;
 @ux-section-header-dark-color:          whitesmoke;
 @ux-section-header-dark-background:     #0277BD;
 @ux-section-border-color:               @ux-section-header-background;
@@ -43,7 +51,7 @@
 @ux-toolbar-control-color:              #333;
 @ux-toolbar-control-background:         gainsboro;
 @ux-toolbar-control-background-hover:   darken(@ux-toolbar-control-background, 20%);
-@ux-toolbar-control-border:             darken(@ux-toolbar-control-background, 40%);
+@ux-toolbar-control-border:             darken(@ux-toolbar-control-background, 30%);
 @ux-toolbar-control-border-light:       @ux-toolbar-control-background;
 
 @ux-border:                             1px solid #AAA;
@@ -54,11 +62,6 @@
 @ux-background-light:                   #CCC;
 @ux-background-select:                  lightblue;
 
-@ux-color-dark:                         #333;
-@ux-color-medium:                       #666;
-@ux-color-debug:                        darkgreen;
-@ux-color-error:                        darkred;
-@ux-color-star:                         orange;
-@ux-color-tag:                          cornflowerblue;
+@ux-list-highlight:                     @color-200-gray;
 
-@ux-list-highlight:                     @ux-contrast-color;
+@ux-card-width:                         350px;

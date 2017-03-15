@@ -1,0 +1,62 @@
+{{#section 'head'}}
+  <link rel="stylesheet" href="/assets/website.css">
+
+  {{!-- Chrome Extension. --}}
+  <link rel="chrome-webstore-item" href="{{ crxUrl }}">
+{{/section}}
+
+<div class="site-container">
+  <div class="site-column">
+
+    <div class="site-window-container">
+      <div class="site-window site-admin-window">
+
+        <div class="site-section">
+          <h1>Profile</h1>
+          <div>
+            <a class="site-button" target="_blank"
+               href="/home">Home</a>
+            <a class="site-button" target="_blank"
+               href="https://myaccount.google.com/permissions">Google App Permissions</a>
+            <a class="site-button"
+               href="/user/logout">Logout</a>
+          </div>
+
+          <div>
+            <h2>OAuth</h2>
+            {{#each accounts}}
+            <div>{{{ infoHtml }}}</div>
+            {{/each}}
+          </div>
+
+          <div>
+            <h2>User</h2>
+            <pre class="site-json">{{{ toJSONPretty user }}}</pre>
+          </div>
+
+          <div>
+            <h2>Groups</h2>
+            {{#each groups}}
+            <pre class="site-json">{{{ toJSONPretty . }}}</pre>
+            {{/each}}
+          </div>
+
+          <div>
+            <h2>CRX</h2>
+            <button class="site-install-crx" onclick="installCrx()">Install Chrome Extension</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/website.bundle.js"></script>
+  <script>
+    new Words().start(3, 30);
+
+    function installCrx() {
+      // https://developer.chrome.com/webstore/inline_installation
+      chrome.webstore.install('{{ crxUrl }}', () => { console.log('OK') }, error => { console.error(error) });
+    }
+  </script>
+</div>

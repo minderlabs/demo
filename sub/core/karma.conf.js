@@ -41,7 +41,10 @@ module.exports = function(config) {
     preprocessors: {
       // Transpile test suite.
       // https://github.com/webpack/karma-webpack#alternative-usage
-      'src/webpack.tests.js': ['webpack']
+      // https://github.com/webpack-contrib/karma-webpack
+      // https://webpack.github.io/docs/usage-with-karma.html
+      // TODO(burdon): Doesn't work.
+      'src/webpack.tests.js': ['webpack', 'sourcemap']
     },
 
     webpack: webpackConfig,
@@ -64,8 +67,9 @@ module.exports = function(config) {
 
     // https://npmjs.org/browse/keyword/karma-reporter
     reporters: [
-      'progress',
-      'verbose'
+      'mocha',
+//    'progress',
+//    'verbose'
     ],
 
     frameworks: [
@@ -87,8 +91,10 @@ module.exports = function(config) {
       'karma-babel-preprocessor',     // https://github.com/babel/karma-babel-preprocessor
       'karma-phantomjs-launcher',     // https://www.npmjs.com/package/karma-phantomjs-launcher
       'karma-chrome-launcher',        // https://www.npmjs.com/package/karma-chrome-launcher
-      'karma-verbose-reporter',       // https://www.npmjs.com/package/karma-verbose-reporter
+//    'karma-verbose-reporter',       // https://www.npmjs.com/package/karma-verbose-reporter
 
+      require('karma-mocha-reporter'),
+      require('karma-sourcemap-loader'),
       require('karma-webpack')
     ],
   });

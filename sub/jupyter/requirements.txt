@@ -1,0 +1,13 @@
+# NOTE: Do not add any requirements here that could be installed during docker build -- add them
+# to the Dockerfile instead.
+# The minderlabs/research repo will be mounted into the container at runtime from a shared
+# volume. Pip-install the python modules from the repo here at startup time since they're
+# not available during the docker build.
+#
+# Assume the research git repo is already pulled.
+-e /notebook/research/ml_data
+-e /notebook/research/ml_util
+
+# Install research repo packages from github:
+# -e git+git@github.com:minderlabs/research.git@master#egg=ml_data&subdirectory=ml_data
+# -e git+git@github.com:minderlabs/research.git@master#egg=ml_util&subdirectory=ml_util

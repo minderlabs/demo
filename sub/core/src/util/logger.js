@@ -17,12 +17,14 @@ const Level = {
 
 //
 // With npm-link each module has its own copy of global definitions!
-// So we bind to window (for the browser) to create a singleon.
+// So we bind to window (for the browser) to create a singleton.
 //
 
-const levels = {};
+const levels = {
+  ID: new Date().getTime()
+};
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && !window.__LOGGER_LEVELS) {
   window.__LOGGER_LEVELS = levels;
 }
 
@@ -55,6 +57,7 @@ class Logger {
    * @param f
    * @return {string}
    */
+  // TODO(burdon): Replace with ``.
   static format(f) {
     let i = 1;
     let args = arguments;
@@ -110,14 +113,37 @@ class Logger {
   static Level = Level;
 
   constructor(name='', showPrefix=true) {
-    let prefix = showPrefix ? [`[${name}]`] : [];
+    this._name = name;
+    this._prefix = showPrefix ? [`[${name}]`] : [];
 
-    let level = _.get(singleton(), name, _.get(singleton(), '*', Logger.debug));
+    const bind = f => {
+      return f.bind(console, ...this._prefix);
+    };
 
-    this.log    = (level > Level.log)    ? Logger.noop : console.log     .bind(console, ...prefix);
-    this.info   = (level > Level.info)   ? Logger.noop : console.info    .bind(console, ...prefix);
-    this.warn   = (level > Level.warn)   ? Logger.noop : console.warn    .bind(console, ...prefix);
-    this.error  = (level > Level.error)  ? Logger.noop : console.error   .bind(console, ...prefix);
+    this._log   = bind(console.log);
+    this._info  = bind(console.info);
+    this._warn  = bind(console.warn);
+    this._error = bind(console.error);
+  }
+
+  get level() {
+    return _.get(singleton(), this._name, _.get(singleton(), '*', Logger.debug));
+  }
+
+  get log() {
+    return (this.level > Level.log) ? Logger.noop : this._log;
+  }
+
+  get info() {
+    return (this.level > Level.info) ? Logger.noop : this._info;
+  }
+
+  get warn() {
+    return (this.level > Level.warn) ? Logger.noop : this._warn;
+  }
+
+  get error() {
+    return (this.level > Level.error) ? Logger.noop : this._error;
   }
 }
 

@@ -15,8 +15,6 @@ import { TypeUtil } from '../util/type';
  */
 export class Matcher {
 
-  // TODO(burdon): Reorder args: context, root, item, ...
-
   /**
    * Matches the items against the filter.
    *
@@ -27,7 +25,7 @@ export class Matcher {
    * @returns {[item]} Array of items that match.
    */
   matchItems(context, root, filter, items) {
-    return _.compact(_.map(items, item => this.matchItem(context, root, filter, item) ? item : false));
+    return _.filter(items, item => this.matchItem(context, root, filter, item));
   }
 
   /**
@@ -43,17 +41,26 @@ export class Matcher {
 //  console.log('MATCH: [%s]: %s', JSON.stringify(filter), JSON.stringify(item));
     console.assert(item && filter);
 
-    // Bucket match (ACL filtering).
-    // TODO(burdon): Filter should not include bucket (implicit in query).
-    if (item.bucket && item.bucket !== _.get(context, 'user.id')) {
-      return false;
-    }
-    if (filter.bucket && item.bucket !== filter.bucket) {
+    // TODO(burdon): Filter should not include bucket (implicit in query)?
+    if (filter.bucket && filter.bucket !== item.bucket) {
       return false;
     }
 
-    // Could match IDs.
+    // Bucket match (ACL filtering).
+    // TODO(burdon): Support multiple groups?
+    if (item.bucket &&
+        item.bucket !== _.get(context, 'userId') &&
+        item.bucket !== _.get(context, 'groupId')) {
+      return false;
+    }
+
+    // Matches given IDs.
     if (filter.ids && _.indexOf(filter.ids, item.id) != -1) {
+      return true;
+    }
+
+    // Matches given foreign keys.
+    if (filter.fkeys && _.indexOf(filter.fkeys, item.fkey) != -1) {
       return true;
     }
 
@@ -65,7 +72,7 @@ export class Matcher {
     }
 
     // Type match.
-    if (filter.type && _.toLower(filter.type) != _.toLower(item.type)) {
+    if (filter.type && _.toLower(filter.type) !== _.toLower(item.type)) {
       return false;
     }
 
@@ -203,24 +210,20 @@ export class Matcher {
     //
     // Substitute value for reference.
     //
-
     let ref = expr.ref;
     if (ref) {
-      // Resolve magic variables.
-      // TODO(burdon): These must provided to the client matcher (client and server).
-      switch (ref) {
-        case '$USER_ID': {
-          console.assert(context.user);
-          inputValue = { id: context.user.id };
-          break;
-        }
-
-        default: {
-          // TODO(burdon): Note we could use the resolver's info attribute to enable to ref to reference ancestor nodes.
-          if (_.get(root, ref)) {
-            // TODO(madadam): Resolve other scalar types.
-            inputValue = { id: _.get(root, ref) };
-          }
+      // Resolve magic variables against context (e.g., $CONTEXT.userId).
+      let match = ref.match(/\$CONTEXT\.(.+)/);
+      if (match) {
+        let value = _.get(context, match[1]);
+        console.assert(value);
+        inputValue = { id: value };
+      } else {
+        // TODO(burdon): Resolve other scalar types.
+        // TODO(burdon): Use the resolver's info attribute to enable to ref to reference ancestor nodes?
+        let value = _.get(root, ref);
+        if (value) {
+          inputValue = { id: value };
         }
       }
     }
@@ -247,6 +250,9 @@ export class Matcher {
     //noinspection FallThroughInSwitchStatementJS
     switch (expr.comp) {
 
+      case 'IN':
+        return Matcher.isIn(fieldValue, inputValue, not);
+
       case 'GTE':
         eq = true;
       case 'GT':
@@ -266,7 +272,24 @@ export class Matcher {
   }
 
   // NOTE: See ValueInput in schema.
+  // TODO(burdon): Move to SchemaUtil.
   static SCALARS = ['id', 'timestamp', 'date', 'int', 'float', 'string', 'boolean'];
+
+  static scalarValue(inputValue) {
+    let value = undefined;
+    _.each(Matcher.SCALARS, field => {
+      if (inputValue[field] !== undefined) {
+        value = inputValue[field];
+        return false;
+      }
+    });
+
+    return value;
+  }
+
+  static isIn(fieldValue, inputValue, not) {
+    return (_.indexOf(fieldValue, Matcher.scalarValue(inputValue)) == -1) ? not : !not;
+  }
 
   static isEqualTo(fieldValue, inputValue, not) {
 

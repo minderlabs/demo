@@ -2,6 +2,10 @@
 # Basic
 #
 
+.DS_Store
+
+*.sw[opn]
+
 node_modules/
 npm-debug.log*
 
@@ -19,3 +23,7 @@ dist/
 .idea/jsLibraryMappings.xml
 .idea/codeStyleSettings.xml
 .idea/copyright/
+
+venv/
+creds.data
+

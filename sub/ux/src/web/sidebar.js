@@ -4,10 +4,12 @@
 
 import React from 'react';
 
+import { DomUtil } from 'minder-core';
+
 import './sidebar.less';
 
 /**
- * Sidebar nav.
+ * Side panel.
  */
 export class Sidebar extends React.Component {
 
@@ -33,6 +35,8 @@ export class Sidebar extends React.Component {
   close() {
     // NOTE: Race condition with <Link> so use manual onMouseDown to trigger navigation events.
     // http://stackoverflow.com/questions/10652852/jquery-fire-click-before-blur-event
+    // NOTE: If timer is used, get error below:
+    // Warning: setState(...): Can only update a mounted or mounting component. This usually means you called setState()
     this.setState({
       open: false
     });
@@ -44,19 +48,20 @@ export class Sidebar extends React.Component {
   }
 
   render() {
-    let className = _.join(['ux-sidebar-drawer', this.state.open ? 'ux-open' : ''], ' ');
+    let { children, sidebar } = this.props;
+    let { open } = this.state;
 
     return (
       <div className="ux-sidebar">
-        <div className={ className }>
+        <div className={ DomUtil.className('ux-sidebar-drawer', open && 'ux-open') }>
           <div>
             <input ref="hidden" onBlur={ this.close.bind(this) }/>
           </div>
 
-          { this.props.sidebar }
+          { sidebar }
         </div>
 
-        { this.props.children }
+        { children }
       </div>
     );
   }

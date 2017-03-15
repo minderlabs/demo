@@ -1,0 +1,13 @@
+{
+  "Items": {
+    "Group": [
+      {
+        "id": "minder-admin",
+        "title": "Minder Admin",
+        "whitelist": [
+          "eng-admin@minderlabs.com"
+        ]
+      }
+    ]
+  }
+}

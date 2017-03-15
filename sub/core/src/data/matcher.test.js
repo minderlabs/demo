@@ -61,8 +61,27 @@ describe('Matcher:', () => {
     // TODO(burdon): console.assert is ignored by node (use node assert module?)
 
     let root = {};
-    expect(matcher.matchItems({ user: { id: 'a' } }, root, { type: 'Task' }, items)).to.have.length(4);
-    expect(matcher.matchItems({ user: { id: 'b' } }, root, { type: 'Task' }, items)).to.have.length(3);
+    expect(matcher.matchItems({ userId: 'a' }, root, { type: 'Task' }, items)).to.have.length(4);
+    expect(matcher.matchItems({ userId: 'b' }, root, { type: 'Task' }, items)).to.have.length(3);
+  });
+
+  /**
+   * Bucket filter.
+   */
+  it('Matches bucket id.', () => {
+    let matcher = new Matcher();
+
+    let context = {
+      userId: 'a'
+    };
+    let root = {};
+    let filter = {
+      bucket: 'a',
+      matchAll: true
+    };
+
+    expect(matcher.matchItem(context, root, filter, items.f)).to.be.true;
+    expect(matcher.matchItems(context, root, filter, items)).to.have.length(1);
   });
 
   /**
@@ -74,9 +93,7 @@ describe('Matcher:', () => {
     // TODO(burdon): console.assert is ignored by node (use node assert module?)
 
     let context = {
-      user: {
-        id: 'a'
-      }
+      userId: 'a'
     };
     let root = {};
 
@@ -98,9 +115,7 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      user: {
-        id: 'a'
-      }
+      userId: 'a'
     };
     let root = {};
 
@@ -115,9 +130,7 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      user: {
-        id: 'a'
-      }
+      userId: 'a'
     };
     let root = {};
 
@@ -132,9 +145,7 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      user: {
-        id: 'a'
-      }
+      userId: 'a'
     };
     let root = {};
 
@@ -150,7 +161,7 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      user: { id: 'a' }
+      userId: 'a'
     };
     let root = {};
 
@@ -158,8 +169,8 @@ describe('Matcher:', () => {
       expr: {
         op: 'OR',
         expr: [
-          { field: 'owner',     ref: '$USER_ID' },
-          { field: 'assignee',  ref: '$USER_ID' }
+          { field: 'owner',     ref: '$CONTEXT.userId' },
+          { field: 'assignee',  ref: '$CONTEXT.userId' }
         ]
       }
     };
@@ -175,35 +186,17 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      user: { id: 'a' }
+      userId: 'a'
     };
     let root = {
       id: 'b'
     };
 
     expect(matcher.matchItems(
-      context, root, { expr: { field: 'owner', ref: '$USER_ID'} }, items)).to.have.length(2);
+      context, root, { expr: { field: 'owner', ref: '$CONTEXT.userId'} }, items)).to.have.length(2);
 
     expect(matcher.matchItems(
       context, root, { expr: { field: 'assignee', ref: 'id'} }, items)).to.have.length(1);
-  });
-
-  /**
-   * Bucket filter.
-   */
-  it('Matches bucket id.', () => {
-    let matcher = new Matcher();
-
-    let context = {
-      user: { id: 'a' }
-    };
-    let root = {};
-    let filter = { bucket: 'a',
-      matchAll: true
-    };
-
-    expect(matcher.matchItem(context, root, filter, items.f)).to.be.true;
-    expect(matcher.matchItems(context, root, filter, items)).to.have.length(1);
   });
 
   /**

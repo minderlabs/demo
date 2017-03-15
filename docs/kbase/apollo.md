@@ -3,6 +3,13 @@
 ![Apollo](https://github.com/minderlabs/demo/blob/master/docs/kbase/apollo.png "Apollo")
 
 
+## Ref
+
+- https://apollographql.slack.com
+- http://dev.apollodata.com/react/higher-order-components.html
+- http://dev.apollodata.com/core/apollo-client-api.html#apollo-client
+
+
 ## Call Sequence.
 
 TODO(burdon): When is redux callback triggered (all called on each action?)
@@ -50,9 +57,27 @@ https://github.com/minderlabs/demo/docs/kbase/apollo_sequence.png
 2). Apollo graphql(options(props)) maps component props to query variables.
 3). Apollo graphql(props(oldProps, data)) replaces the component's data property with custom
     properties (e.g., adding dispatcher).
+    
+Component properties come from:
+- Calling container (e.g., <Foo bar={ 100 }/>)
+- Redux mapStateToProps and mapStateToDispatch.
+- graphQL.props for query and mutation declarations (i.e., query data).
+
+GraphQL queries are called twice:
+- First when the query is loading (data.loading == true or data.error)
+  - Components should use data.loading to inspect the state.
+- Second when the query results arrive.
+
+
+# Queries
+
+The graphql connector `graphql(Query, options)` passes options to the `watchQuery` API.
+
+- http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient.watchQuery
+
+# Example
 
 ~~~~
-
     /**
      * Map Redux state onto component properties.
      * Called whenever the state is updated via a reducer.
@@ -63,12 +88,12 @@ https://github.com/minderlabs/demo/docs/kbase/apollo_sequence.png
      * https://github.com/markerikson/redux-ecosystem-links/blob/master/devtools.md#component-update-monitoring
      */
 
-    mapStateToProps = (state, ownProps) => {
-    }
+    // Map Redux state to properties.
+    mapStateToProps = (state, ownProps) => {}
 
     // Create function bindings to dispatch Redux actions.
     mapStateToDispatch = (dispatch, ownProps) => {
-    
+
         // Invoke Redux action.
         foo: (value) => { dispatch({ type: 'FOO', value }); }
         
@@ -86,7 +111,7 @@ https://github.com/minderlabs/demo/docs/kbase/apollo_sequence.png
     // GraphQL mutation.
     const Mutation = gql`
         mutation Mutation($foo: String) {
-            updateItem(foo: $foo) { ... }
+            upsertItems(foo: $foo) { ... }
         }
     `;
 
@@ -123,8 +148,7 @@ https://github.com/minderlabs/demo/docs/kbase/apollo_sequence.png
             
             // Map query results to properties (and provide data functions).
             // http://dev.apollodata.com/react/queries.html#graphql-props
-            props: ({ ownProps, data }) => ({
-            
+            props: ({ ownProps, data }) => ({            
                 // Vars returned by the query.
                 // Best practice to map these onto props required by dumb component.
                 data,

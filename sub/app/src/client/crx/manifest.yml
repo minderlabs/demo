@@ -1,0 +1,199 @@
+#
+# Manifest YML
+# NOTE: We use YML (converted to JSON via Grunt) to support comments, etc.
+#
+# Manifest format
+# https://developer.chrome.com/extensions/manifest
+# https://developer.chrome.com/extensions/faq
+# https://bugs.chromium.org/p/chromium/issues/list
+#
+# Dashboard
+# https://chrome.google.com/webstore/developer/dashboard/u32a9eaef58cd96cf309f9a48dfd49b9d
+#
+# Development
+# grunt watch:crx
+#
+# Chrome Extension Tools:
+# https://chrome.google.com/webstore/detail/chrome-apps-extensions-de/ohmmkhmmmpcnpikjeljgnaoabkaalbgc
+# https://chrome.google.com/webstore/detail/extensions-reloader/fimgfedafeadlieiabdeeaodndnlbhid
+#
+# Launch the Extensions Manager from chrome://apps (then select Extensions).
+# NOTE: ### MAKE SURE THE RIGHT CHROME EXTENSION TOOL IS RUNNING FOR THE PROFILE BEING TESTED ###
+# NOTE: To keep the BG page window open, click reload then manually reload the content script page.
+# NOTE: On manifest changes, MUST reload via the Chrome Extenion Tool (not via the Extensions Reloader).
+#
+
+# TODO(burdon): Publishing Group Deleted; Account suspended; Publish rejected (2/6/17 case #12034091 + #12038661)
+# Submitted form (Chrome Web Store Help): https://support.google.com/chrome_webstore/contact/developer_support/?hl=en&vid=0-409079033547-1486423924689
+# http://stackoverflow.com/questions/42079184/chrome-web-store-group-publishing [2/6/17]
+# https://productforums.google.com/forum/#!topic/chrome/llSseh0Gtzc;context-place=forum/chrome [2/6/17]
+# https://mail.google.com/mail/u/0/#inbox/15a14d7e0cf1e47a [2/7/17]
+# https://developer.chrome.com/webstore/publish#set-up-group-publishing
+# https://support.google.com/chrome/a/answer/2663860?hl=en#contact=1
+# https://groups.google.com/a/chromium.org/forum/#!searchin/chromium-extensions/publishing$20group%7Csort:relevance/chromium-extensions/pWK2sy6MLEI/U-vAvmFrgGsJ
+
+manifest_version:   2
+
+name:               "Minder"
+short_name:         "Minder"
+version:            "0.1.11"                         # grunt version:crx:patch (uses version.json)
+author:             "Minder Labs"
+description:        "Automated intelligence."
+
+icons:
+  128: "img/icon_128.png"
+
+
+# The key ensures that the development and production insance have the same CRX_ID: ofdkhkelcafdphpddfobhbbblgnloian
+# It's important to have a consistent key for OAuth.
+# https://developer.chrome.com/extensions/manifest/key
+# https://developer.chrome.com/apps/app_identity#copy_key
+# ~/Library/Application Support/Google/Chrome/Default/Extensions (select the profile with the install published app).
+
+key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv9GnZhQDH73nz/WXaO2WDpMTpYuFwUqcRPiW+HIjPq4K1s2pWkTJMhTd7fy+QLj5p6rN5dGJypErFV5SSFy+f3NhqpDnr3UHjAGzVWDouXsTvOCjjAiCr1C+4075vBup5ocxXckgstQrSo3Au7JocM6BHMMD2nkhs7apEsx3o7Cb3riOY7Lo1txjfmeKhA5zkGHzBj+tYUdp+lC8hFVH0bMg1ju3vvuNk7Vghj01Sg8z9GgNV9Wl1PORdND0PiavWKnVBFYuCknjYBXga+7o4wux+vtH9FVMmZQ++RKrhzgsAW2F+NpDKuCjdVIHj/WYIWCuHCjD9t5XB75K0SyCbwIDAQAB"
+
+#
+# Permissions.
+# https://developer.chrome.com/extensions/declare_permissions
+#
+
+permissions:
+  - background
+  - contextMenus
+  - identity              # Required for OAuth.
+  - management
+  - notifications
+  - storage
+  - tabs
+  - gcm
+
+  - "http://localhost/*"
+  - "http://127.0.0.1/*"
+  - "http://local-docker-machine/*"
+
+  - "*://minderlabs.com/*"
+
+  - "<all_urls>"
+
+
+#
+# https://developer.chrome.com/extensions/optionsV2
+# NOTE: set open_in_tab true to debug.
+#
+
+options_ui:
+  page: "page/options.html"
+  chrome_style: true
+  open_in_tab: false
+
+
+#
+# Background page (contains Apollo network interface proxy and push API).
+# https://developer.chrome.com/extensions/background_pages
+# https://developer.chrome.com/extensions/event_pages
+#
+
+background:
+  scripts:
+    - "assets/background.bundle.js"
+
+
+#
+# Browser actions.
+# https://developer.chrome.com/extensions/browserAction
+#
+
+browser_action:
+  default_icon: "img/icon_128.png",
+  default_title: "Minder",
+  default_popup: "page/browser_action.html"
+
+
+#
+# Content script.
+# https://developer.chrome.com/extensions/content_scripts
+#
+
+content_scripts:
+  -
+    run_at: document_idle
+    matches:
+#     - "<all_urls>"
+
+      - "http://localhost/testing/*"
+
+      - "https://*.google.com/*"
+
+    js:
+      # NOTE: Cannot be symlink (must be copied).
+      # https://bugs.chromium.org/p/chromium/issues/detail?id=27185&q=burdon&colspec=ID%20Pri%20M%20Stars%20ReleaseBlock%20Component%20Status%20Owner%20Summary%20OS%20Modified
+      - "assets/content_script.bundle.js"
+
+    css:
+      - "assets/content_script.css"
+
+
+#
+# https://console.developers.google.com/apis/credentials?project=minder-beta
+# https://developer.chrome.com/apps/app_identity#update_manifest
+# https://developers.google.com/identity/protocols/googlescopes
+# TODO(burdon): Inject from defs.GoogleApiConfig
+#
+# 1). In the Google dashboard (for minder-beta) we create an OAuth Chrome App Client, which has a Client ID (no secret):
+#     https://console.developers.google.com/apis/credentials/oauthclient/189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com?project=minder-beta
+#     Client ID: 189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com
+# 2). The Client ID must be set in the manifest's "oauth2.client_id" key.
+# 3). When the CRX is published, the Chrome Web Store assigned a CRX ID:
+#     CRX ID: ofdkhkelcafdphpddfobhbbblgnloian
+# 4). When installed the the CRX is saved in the user's Chrome settings;
+#     ~/Library/Application\ Support/Google/Chrome/USER_PROFILE/Extensions/CRX_ID/CRX_VERSION/manifest.json
+#     This manifest contains a key property.
+# 5). The key must be copied to the development manifest.yml file; this ensures that the locally built CRX and prod CRX have the same CRX ID; otherwise, each developer's CRX would have a different ID, which would need to be registered below.
+# 6). In the Firebase Google Authentication Sign-In method, we register the CRX's Client ID; this is used by the CRX to enable the Firebase auth Login (i.e., firebase.auth().signInWithCredential, which uses the Google OAuth credential)
+#     https://console.firebase.google.com/project/minder-beta/authentication/providers
+
+oauth2:
+
+  # Create OAuth Client ID; Type: "Chrome App" (3/8/17)
+  # NOTE: Requires consistent CRX ID (see key property above).
+  # https://console.developers.google.com/apis/credentials?project=minder-beta
+  client_id: "189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com"
+
+  # Default scopes (can be overridden in getAuthToken call (network.js)
+  scopes:
+    - "https://www.googleapis.com/auth/userinfo.email"
+    - "https://www.googleapis.com/auth/userinfo.profile"
+
+
+#
+# Content Security Policy (CSP)
+# https://developer.chrome.com/extensions/contentSecurityPolicy
+# http://www.html5rocks.com/en/tutorials/security/content-security-policy
+# https://w3c.github.io/webappsec-csp
+# TODO(burdon): Document why unsafe-eval is needed.
+#
+# Firebase API:
+# https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
+#
+
+content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com https://minderlabs.com; object-src 'self'"
+
+#
+# https://developer.chrome.com/extensions/manifest/externally_connectable
+#
+
+externally_connectable:
+  ids:
+    - "*"
+
+
+#
+# White list for content script resources.
+# https://developer.chrome.com/extensions/manifest/web_accessible_resources
+# Accessible via: chrome-extension://ID/PATH
+#
+
+web_accessible_resources:
+  - "assets/*"
+  - "page/*"
+  - "img/*"

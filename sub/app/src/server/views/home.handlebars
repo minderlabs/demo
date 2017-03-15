@@ -1,6 +1,9 @@
 {{#section 'head'}}
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poiret+One:400">
   <link rel="stylesheet" href="/assets/website.css">
+
+  {{!-- Chrome Extension. --}}
+  <link rel="chrome-webstore-item" href="{{ crxUrl }}">
 {{/section}}
 
 <div class="site-container">
@@ -11,14 +14,17 @@
         <div class="site-section">
           <div class="site-header site-row" style="width: 400px">
             <h1 class="site-expand">Welcome</h1>
-            <i class="site-logo material-icons">toll</i>
+            <img src="favicon.ico"/>
           </div>
 
-          <div>
-            <a href="/user/login">
-              <button>Login</button>
-            </a>
+          <div>{{ message }}</div>
+
+          {{#if login}}
+          <div class="site-buttonbar">
+            <button onclick="login()">Login</button>
+            <button class="site-install-crx" onclick="installCrx()">Install Chrome Extension</button>
           </div>
+          {{/if}}
         </div>
       </div>
     </div>
@@ -34,5 +40,18 @@
   <script src="/assets/website.bundle.js"></script>
   <script>
     new Words().start(3, 30);
+
+    function login() {
+      let url = '/user/login';
+      if (window.event.shiftKey) {
+        url += '?force';
+      }
+      document.location.href = url;
+    }
+
+    function installCrx() {
+      // https://developer.chrome.com/webstore/inline_installation
+      chrome.webstore.install('{{ crxUrl }}', () => { console.log('OK') }, error => { console.error(error) });
+    }
   </script>
 </div>

@@ -1,6 +1,8 @@
 #!/usr/bin/env babel-node --optional es7.asyncFunctions
 
+//
 // Transpiles GraphQL schema.
+//
 
 'use strict';
 
@@ -11,7 +13,7 @@ import { graphql }  from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 import { makeExecutableSchema } from 'graphql-tools';
 
-import Schema from '../../src/schema.graphql';
+import Schema from '../../src/gql/schema.graphql';
 
 const dist = path.join(__dirname, '../../dist');
 const filename = path.join(dist, 'schema.json');
@@ -39,7 +41,7 @@ if (!fs.existsSync(dist)) {
       fs.writeFileSync(filename, JSON.stringify(result, null, 2));
       console.log('Created: %s', filename);
     }
-  } catch(ex) {
-    console.log('ERROR', ex);
+  } catch(error) {
+    console.log('Error Creating Schema:', error);
   }
 })();

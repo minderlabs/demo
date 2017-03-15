@@ -1,0 +1,92 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+body {
+  margin: 0;
+  background-color: white;
+  font-family: Roboto, sans-serif;
+  font-weight: 100;
+}
+
+button {
+  outline: none;
+}
+
+// TODO(burdon): Normalize with main app.
+
+#crx-root {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+
+  position: fixed;
+
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.crx-panel {
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.crx-expand {
+  flex-grow: 1;
+}
+
+.crx-header, .crx-footer {
+  flex-direction: row;
+  flex-shrink: 0;
+
+  border-top: 1px solid gray;
+  background-color: #EEE;
+}
+
+.crx-header {
+  h1 {
+    .crx-expand;
+  }
+}
+
+.crx-footer {
+  justify-content: space-between;
+  padding: 2px;
+
+  button {
+    width: 80px;
+  }
+}
+
+.crx-content {
+  .crx-expand;
+  overflow-y: scroll;
+}
+
+.crx-list-item {
+  padding: 8px;
+  border-bottom: 1px solid #EEE;
+}
+
+.crx-sidebar {
+
+  .crx-header {
+    h1 {
+      margin: 0;
+      padding: 8px;
+      font-weight: 100;
+
+      color: white;
+      background-color: #4285F4;
+    }
+  }
+
+  .crx-footer {
+    button {
+      border: 1px solid gray;
+    }
+  }
+}

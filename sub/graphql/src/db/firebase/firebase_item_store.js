@@ -3,103 +3,152 @@
 //
 
 import _ from 'lodash';
-import moment from 'moment';
 
-import { ItemStore } from 'minder-core';
-
-import { Database } from '../database';
-import { Cache } from './cache';
+import { ItemStore, ItemUtil, QueryProcessor } from 'minder-core';
 
 /**
  * Item store.
  *
- * Database hierarchy:
+ * https://firebase.google.com/docs/reference/js/firebase.database.Reference
  *
- *  items/
- *    TYPE/
- *      ID:Item
+ * /NAMESPACE   /[BUCKET]   /TYPE     /ID     => { Item }
+ *
+ * /system                  /User     /user-1             System data.
+ * /system                  /Group    /group-1
+ * /user        /bucket-1   /Task     /task-1             First party data.
+ * /google_com  /bucket-2   /Contact  /contact-1          Third-party data.
  */
 export class FirebaseItemStore extends ItemStore {
 
-  // Root database node.
-  static ROOT = 'items';
+  constructor(idGenerator, matcher, db, namespace, buckets=false) {
+    super(namespace, buckets);
+
+    this._util = new ItemUtil(idGenerator, matcher);
+
+    console.assert(db);
+    this._db = db;
+  }
 
   /**
-   * Parses the root node of the data set, inserting items into the item store.
-   * Flattens all items into a single map.
-   *
-   * @param itemStore
-   * @param data
+   * https://firebase.google.com/docs/database/web/structure-data
+   * Keys must be UTF-8 encoded, can be a maximum of 768 bytes,
+   * and cannot contain ., $, #, [, ], /, or ASCII control characters 0-31 or 127.
    */
-  static parseData(itemStore, data) {
-    let items = [];
-    _.each(data.val(), (records, type) => {
-      _.each(records, (item, id) => {
-        items.push(item);
+  key(args=[]) {
+    _.each(args, arg => console.assert(!_.isNil(arg), 'Invalid key: ' + JSON.stringify(args)));
+    return '/' + this.namespace + '/' + args.join('/');
+  }
+
+  /**
+   * Return root keys for all buckets accessible to this user.
+   * Override if no buckets (i.e., system store).
+   * @param context
+   * @param type
+   * @returns {Array}
+   */
+  getBucketKeys(context, type=undefined) {
+    if (this._buckets) {
+      return _.map(QueryProcessor.getBuckets(context), bucket => this.key(_.compact([bucket, type])));
+    } else {
+      return [this.key(_.compact([type]))];
+    }
+  }
+
+  /**
+   * Resets the store.
+   */
+  clear() {
+    return new Promise((resolve, reject) => {
+      let ref = this._db.ref(this.key());
+      ref.set(null, error => {
+        if (error) { reject(); } else { resolve(this); }
       });
     });
-
-    itemStore.upsertItems({}, items);
   }
 
-  constructor(db, idGenerator, matcher) {
-    super(idGenerator, matcher);
-    console.assert(db);
-
-    this._db = db;
-
-    // TODO(burdon): Need to be able to reset cache.
-    this._cache = new Cache(this._db, FirebaseItemStore.ROOT, idGenerator, matcher, FirebaseItemStore.parseData);
-  }
-
-  clearCache() {
-    return this._cache.getItemStore(true);
-  }
-
-  //
-  // ItemStore API.
-  //
-
-  upsertItems(context, items) {
-    // https://firebase.google.com/docs/database/web/read-and-write
-    _.each(items, item => {
-      console.assert(item.type);
-      if (!item.id) {
-        item.id = this._idGenerator.createId();
-        item.created = moment().unix();
-      }
-
-      item.modified = moment().unix();
-
-      this._db.ref(FirebaseItemStore.ROOT + '/' + item.type + '/' + item.id).set(item);
+  /**
+   *
+   * @param key
+   * @returns {Promise}
+   */
+  _getValue(key) {
+    return new Promise((resolve, reject) => {
+      // https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
+      this._db.ref(key).once('value', data => {
+        resolve(data.val());
+      });
     });
-
-    return this._cache.getItemStore()
-      .then(itemStore => itemStore.upsertItems(context, items));
   }
 
+  /**
+   *
+   */
+  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+
+    // Gather results for all buckets.
+    let promises = _.map(this.getBucketKeys(context), key => this._getValue(key));
+    return Promise.all(promises).then(buckets => {
+      let items = [];
+      _.each(buckets, typeMap => {
+        _.each(typeMap, (itemMap, type) => {
+          _.each(itemMap, (item, key) => {
+            items.push(item);
+          });
+        });
+      });
+
+      return this._util.filterItems(items, context, root, filter, offset, count);
+    });
+  }
+
+  /**
+   *
+   */
   getItems(context, type, itemIds) {
-    return this._cache.getItemStore()
-      .then(itemStore => itemStore.getItems(context, type, itemIds));
+
+    // Gather results for each bucket.
+    // TODO(burdon): Maintain ID=>bucket index for ACL.
+    let promises = _.map(this.getBucketKeys(context, type), key => this._getValue(key));
+    return Promise.all(promises).then(buckets => {
+      let items = [];
+      _.each(buckets, itemMap => {
+        _.each(itemIds, itemId => {
+          let item = _.get(itemMap, itemId);
+          if (item) {
+            items.push(item);
+          }
+        });
+      });
+
+      return items;
+    });
   }
 
-  queryItems(context, root, filter={}, offset=0, count=10) {
-    return this._cache.getItemStore()
-      .then(itemStore => itemStore.queryItems(context, root, filter))
-      .then(items => {
-        // Sort.
-        let orderBy = filter.orderBy;
-        if (orderBy) {
-          console.assert(orderBy.field);
-          items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
-        }
+  /**
+   *
+   */
+  upsertItems(context, items) {
+    let promises = [];
 
-        console.log(items.length + '::' + count);
+    _.each(items, item => {
+      this._util.onUpdate(item);
 
-        // Page.
-        items = _.slice(items, offset, offset + count);
+      // NOTE: Bucket is optional for some stores (e.g., system).
+      let { bucket, type, id:itemId } = item;
+      console.assert(type && itemId);
+      console.assert(this._buckets == !_.isNil(bucket), 'Invalid bucket: ' + bucket);
 
-        return items;
-      });
+      promises.push(new Promise((resolve, reject) => {
+        let key = this.key(_.compact([ bucket, type, itemId ]));
+
+        // https://firebase.google.com/docs/database/web/read-and-write
+        let ref = this._db.ref(key);
+        ref.set(item, error => {
+          if (error) { reject(); } else { resolve(item); }
+        });
+      }));
+    });
+
+    return Promise.all(promises);
   }
 }

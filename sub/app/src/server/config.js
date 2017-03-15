@@ -6,16 +6,18 @@ import { Logger } from 'minder-core';
 
 //
 // Config must come before module imports that create Logger instances.
-// TODO(burdon): NOTE: For the server, minder-core modules are already initialized before this is called.
 //
 
 Logger.setLevel({
 
-  'main'      : Logger.Level.debug,
-
+  'server'    : Logger.Level.debug,
+  'auth'      : Logger.Level.info,
   'botkit'    : Logger.Level.debug,
-  'db'        : Logger.Level.debug,
+  'client'    : Logger.Level.debug,
+  'net'       : Logger.Level.debug,
   'resolver'  : Logger.Level.debug,
+  'system'    : Logger.Level.debug,
   'gql'       : Logger.Level.debug,
+  'db'        : Logger.Level.info,
 
-}, Logger.Level.error);
+}, Logger.Level.info);

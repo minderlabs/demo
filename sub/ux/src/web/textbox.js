@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import { Async } from 'minder-core';
+import { Async, DomUtil } from 'minder-core';
 
 /**
  * Text box.
@@ -36,14 +36,19 @@ export class TextBox extends React.Component {
     onFocusChange:  React.PropTypes.func,
     onKeyDown:      React.PropTypes.func,
     placeholder:    React.PropTypes.string,
-    value:          React.PropTypes.string
+    value:          React.PropTypes.string,
+    clickToEdit:    React.PropTypes.bool,
+    notEmpty:       React.PropTypes.bool
   };
 
   static defaultProps = {
     delay: 100
   };
 
-  state = {};
+  state = {
+    value: '',
+    readOnly: false
+  };
 
   constructor() {
     super(...arguments);
@@ -51,16 +56,26 @@ export class TextBox extends React.Component {
     this._timeout = Async.timeout(this.props.delay);
   }
 
+  // TODO(burdon): Colors, pointer, etc.
+  // TODO(burdon): Mutation in layout.
+  // TODO(burdon): Center text (layout).
+  // TODO(burdon): Esc to cancel.
+  // TODO(burdon): Revert value if (trim) empty text.
+
   /**
    * Update state when parent is re-rendered (e.g., input is reused across different detail views).
    * https://facebook.github.io/react/docs/react-component.html#componentwillreceiveprops
    */
   componentWillReceiveProps(nextProps) {
-    if (nextProps.value != this.state.value) {
-      this.setState({
-        value: nextProps.value || ''
-      });
+    let state = {
+      readOnly: nextProps.clickToEdit
+    };
+
+    if (this.state.readOnly) {
+      state.value = nextProps.value || '';
     }
+
+    this.setState(state);
   }
 
   get value() {
@@ -69,7 +84,7 @@ export class TextBox extends React.Component {
 
   set value(value) {
     this.setState({
-      value: value
+      value: value || ''
     }, () => {
       this.fireTextChange(true);
     });
@@ -105,13 +120,27 @@ export class TextBox extends React.Component {
       // ENTER
       case 13: {
         this.fireTextChange(true);
-        this.props.onEnter && this.props.onEnter(this.value, event);
+        let text = this.value.trim();
+        if (this.props.notEmpty && !text) {
+          break;
+        }
+
+        this.setState({
+          readOnly: this.props.clickToEdit
+        }, () => {
+          this.props.onEnter && this.props.onEnter(this.value, this, event);
+        });
         break;
       }
 
       // ESCAPE
       case 27: {
-        this.props.onCancel && this.props.onCancel(this.value, event);
+        this.setState({
+          value: this.props.value,
+          readOnly: this.props.clickToEdit
+        }, () => {
+          this.props.onCancel && this.props.onCancel(this.props.value, event);
+        });
         break;
       }
     }
@@ -121,22 +150,40 @@ export class TextBox extends React.Component {
     this.props.onFocusChange && this.props.onFocusChange(state);
   }
 
+  handleClickToEdit() {
+    if (this.props.clickToEdit) {
+      this.setState({
+        readOnly: false
+      }, () => {
+        this.refs.input.focus();
+      });
+    }
+  }
+
   render() {
     let { autoFocus, className, placeholder } = this.props;
-    let { value } = this.state;
+    let { readOnly, value } = this.state;
 
-    return (
-      <input ref="input"
-             type="text"
-             spellCheck={ false }
-             className={ _.join([className, 'ux-textbox'], ' ') }
-             autoFocus={ autoFocus ? 'autoFocus' : '' }
-             value={ value || '' }
-             placeholder={ placeholder }
-             onChange={ this.handleTextChange.bind(this) }
-             onKeyDown={ this.handleKeyDown.bind(this) }
-             onFocus={ this.handleFocusChange.bind(this, true) }
-             onBlur={ this.handleFocusChange.bind(this, false) }/>
-    );
+    if (readOnly) {
+      return (
+        <div className={ DomUtil.className('ux-textbox', 'ux-readonly', className) }
+             onClick={ this.handleClickToEdit.bind(this) }>{ value }</div>
+      );
+    } else {
+      // TODO(burdon): Buttons.
+      return (
+        <input ref="input"
+               type="text"
+               value={ value }
+               className={ DomUtil.className('ux-textbox', className) }
+               spellCheck={ false }
+               autoFocus={ autoFocus ? 'autoFocus' : '' }
+               placeholder={ placeholder }
+               onChange={ this.handleTextChange.bind(this) }
+               onKeyDown={ this.handleKeyDown.bind(this) }
+               onFocus={ this.handleFocusChange.bind(this, true) }
+               onBlur={ this.handleFocusChange.bind(this, false) }/>
+      );
+    }
   }
 }

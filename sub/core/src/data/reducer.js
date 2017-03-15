@@ -2,24 +2,46 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
+import { graphql } from 'react-apollo';
 import update from 'immutability-helper';
 
 import $$ from '../util/format';
 import Logger from '../util/logger';
 
+import { ID } from './id';
+import { UpsertItemsMutation } from './mutations';
+
 const logger = Logger.get('reducer');
 
 //
+// Mutation defs.
+//
+
+const UpsertItemsMutationName = _.get(UpsertItemsMutation, 'definitions[0].name.value');
+const UpsertItemsMutationPath = _.get(UpsertItemsMutation, 'definitions[0].selectionSet.selections[0].name.value');
+
+//
 // Custom helper commands.
-// https://github.com/kolodny/immutability-helper
+// https://github.com/kolodny/immutability-helper (Replaces below)
 // https://facebook.github.io/react/docs/update.html#available-commands
 //
 
 /**
  * { items: $remove: item }
+ * @returns new array.
  */
 update.extend('$remove', (item, items) => {
   return _.filter(items, i => i.id !== item.id);
+});
+
+/**
+ * { items: $replace: { id, item } }
+ * @returns new array.
+ */
+update.extend('$replace', (spec, items) => {
+  let { id, item } = spec;
+  return _.map(items, i => { return i.id === id ? item : i });
 });
 
 //
@@ -64,6 +86,8 @@ update.extend('$remove', (item, items) => {
  */
 class Reducer {
 
+  // TODO(burdon): This depends specifically on UpsertItemsMutation.
+
   /**
    * Creates a reducer function that returns a list with the updated item either
    * appended or removed from the list based on the filter.
@@ -74,15 +98,16 @@ class Reducer {
    * @param updatedItem
    * @returns {function([Item])}
    */
-  // TODO(burdon): Use push/remove instead?
-  // TODO(burdon): Factor out with ListReducer class below.
+  // TODO(burdon): Make available to customer reducers (e.g., project, task).
   static listApplicator(matcher, context, filter, updatedItem) {
     return (items) => {
+      // TODO(burdon): Make sure matches.
       let taskIdx = _.findIndex(items, item => item.id == updatedItem.id);
       if (taskIdx == -1) {
         // Append.
         return [...items, updatedItem];
       } else {
+        // TODO(burdon): Use push/remove instead?
         return _.compact(_.map(items, item => {
           if (item.id == updatedItem.id) {
             // Remove if doesn't match filter.
@@ -99,45 +124,31 @@ class Reducer {
   }
 
   /**
-   * @param spec Object of the form below.
-   * @param customReducer Custom reducer function.
-   *
-   * TODO(burdon): Document (see project.js for complete example).
-   *
-   * {
-   *   mutation {
-   *     type: MutationType,
-   *     path: "mutation_action_data_path"      // Path to mutation root result.
-   *   },
-   *   query: {
-   *     type: QueryType
-   *     path: "query_result_path"              // Path to query root result.
-   *   }
-   * }
+   * @param query GQL Query Type.
+   * @param reducer Custom reducer.
    */
-  constructor(spec, customReducer) {
-    console.assert(spec, customReducer);
+  // TODO(burdon): Extend via inheritance.
+  constructor(query, reducer) {
+    console.assert(query);
+    this._query = query;
+    this._reducer = reducer;
 
-    this._spec = spec;
-
-    // TODO(burdon): Extend or inject?
-    this._customReducer = customReducer;
-
-    // TODO(burdon): Check when created and called. And when instantiated.
-    let queryName = this.query.definitions[0].name.value;
-    console.log('###### REDUCER [%s] ######', queryName);
-  }
-
-  get mutation() {
-    return this._spec.mutation.type;
+    // NOTE: Limited to single return root (for lists, this is typically the "items" root).
+    this._path = _.get(query, 'definitions[0].selectionSet.selections[0].name.value');
   }
 
   get query() {
-    return this._spec.query.type;
+    return this._query;
   }
 
-  getResult(data) {
-    return _.get(data, this._spec.query.path);
+  getResult(data, defValue) {
+    if (data.error) {
+      // TODO(burdon): Apollo bug: shows "Error: Network error:"
+      // TODO(burdon): Throw (trigger error handler StatusBar).
+      console.error(data.error);
+    } else {
+      return _.get(data, this._path, defValue);
+    }
   }
 
   /**
@@ -146,10 +157,9 @@ class Reducer {
    * @returns {Item}
    */
   getMutatedItem(action) {
-    let mutationName = this.mutation.definitions[0].name.value;
-    if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === mutationName) {
-      // TODO(burdon): Must match mutation (make customizable).
-      return _.get(action.result.data, this._spec.mutation.path);
+    // TODO(burdon): Const.
+    if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === UpsertItemsMutationName) {
+      return _.get(action.result.data, UpsertItemsMutationPath);
     }
   }
 
@@ -165,12 +175,77 @@ class Reducer {
  */
 export class ListReducer extends Reducer {
 
-  constructor(spec, customReducer=null) {
-    super(spec, customReducer);
-  }
+  /**
+   * Creates HOC for list query.
+   *
+   * @param query
+   * @param customReducer
+   * @return standard mutation wrapper supplied to redux's combine() method.
+   */
+  static graphql(query, customReducer=undefined) {
+    let listReducer = new ListReducer(query, customReducer);
 
-  getItems(data) {
-    return this.getResult(data);
+    // Return HOC.
+    return graphql(query, {
+      withRef: 'true',
+
+      // Configure query variables.
+      // http://dev.apollodata.com/react/queries.html#graphql-options
+      // http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient\.query
+      options: (props) => {
+        let { matcher, filter, count } = props;
+
+        // TODO(burdon): Generates a new callback each time rendered. Create property for class.
+        // https://github.com/apollostack/apollo-client/blob/master/src/ApolloClient.ts
+        return {
+          variables: {
+            filter, count, offset: 0
+          },
+
+          reducer: (previousResult, action) => {
+            return listReducer.reduceItems(matcher, props.context, filter, previousResult, action);
+          }
+        }
+      },
+
+      // Configure props passed to component.
+      // http://dev.apollodata.com/react/queries.html#graphql-props
+      props: ({ ownProps, data }) => {
+        let { matcher, filter, count } = ownProps;
+        let { loading, error, refetch } = data;
+
+        // Get query result.
+        let items = listReducer.getResult(data, []);
+
+        return {
+          loading,
+          error,
+          refetch,
+          matcher,
+
+          // Data from query.
+          items,
+
+          // Paging.
+          // TODO(burdon): Hook-up to UX.
+          // http://dev.apollodata.com/react/pagination.html
+          // http://dev.apollodata.com/react/cache-updates.html#fetchMore
+          fetchMoreItems: () => {
+            return data.fetchMore({
+              variables: {
+                filter, count, offset: items.length
+              },
+
+              updateQuery: (previousResult, { fetchMoreResult }) => {
+                return _.assign({}, previousResult, {
+                  items: [...previousResult.items, ...fetchMoreResult.data.items]
+                });
+              }
+            });
+          }
+        }
+      }
+    });
   }
 
   /**
@@ -185,10 +260,15 @@ export class ListReducer extends Reducer {
    * @returns {*} Updated cache result.
    */
   reduceItems(matcher, context, filter, previousResult, action) {
+    console.assert(matcher && context && filter && previousResult && action);
     let result = previousResult;
+    if (action.type !== 'APOLLO_MUTATION_RESULT') {
+      return result;
+    }
 
     try {
-      let updatedItem = this.getMutatedItem(action);
+      // TODO(burdon): Handle multiple items.
+      let updatedItem = this.getMutatedItem(action)[0];
       if (updatedItem) {
         let queryName = this.query.definitions[0].name.value;
         logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
@@ -198,8 +278,8 @@ export class ListReducer extends Reducer {
           result = this.doTransform(previousResult, transform);
         }
       }
-    } catch (ex) {
-      console.error('Reducer failed:', ex);
+    } catch(error) {
+      console.error('Reducer failed:', error);
     }
 
     return result;
@@ -207,6 +287,7 @@ export class ListReducer extends Reducer {
 
   /**
    * Get the default list transformation.
+   * https://github.com/kolodny/immutability-helper
    *
    * @param matcher
    * @param context
@@ -218,32 +299,65 @@ export class ListReducer extends Reducer {
   getTransform(matcher, context, filter, previousResult, updatedItem) {
 
     // Custom reducers are required when the list is not at the root of the result.
-    if (this._customReducer) {
-      return this._customReducer(matcher, context, filter, previousResult, updatedItem);
+    let reducer = this._reducer;
+    if (reducer) {
+      return reducer(matcher, context, filter, previousResult, updatedItem);
     }
 
-    // TODO(burdon): Is the root item needed?
-    // Determine if the mutated item matches the filter.
-    let match = matcher.matchItem(context, {}, filter, updatedItem);
-
-    // Determine if the item matches and is new, otherwise remove it.
-    // NOTE: do nothing if it's just an update.
-    let path = this._spec.query.path;
+    // Path to items in result.
+    let path = this._path;
     let items = _.get(previousResult, path);
-    let insert = match && _.findIndex(items, item => item.id === updatedItem.id) === -1;
-    if (insert) {
-      // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
-      return { [path]: { $push: [ updatedItem ] } };
-    } else if (!match) {
-      return { [path]: { $remove: updatedItem } };
+
+    // Replace the item if it is a recent update to an external item.
+    let exists = _.findIndex(items, item => item.id === updatedItem.id) !== -1;
+    if (!exists && updatedItem.fkey) {
+      let current  = _.find(items, item => item.namespace && ID.getForeignKey(item) === updatedItem.fkey);
+
+      if (!current) {
+        // TODO(burdon): Replace
+        console.warn('###', updatedItem.title);
+        return;
+      }
+
+      return {
+        [path]: {
+          $replace: {
+            id: current.id,
+            item: updatedItem
+          }
+        }
+      };
     }
+
+    // Remove the item if it doesn't match the current query.
+    // TODO(burdon): Is the root item needed? Remove this from matcher?
+    let match = matcher.matchItem(context, {}, filter, updatedItem);
+    if (!match) {
+      return {
+        [path]: {
+          $remove: updatedItem
+        }
+      };
+    }
+
+    // Insert the item if it doesn't already exist (but matches).
+    if (!exists) {
+      // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
+      return {
+        [path]: {
+          $push: [ updatedItem ]
+        }
+      };
+    }
+
+    // Do nothing if it's just an update.
   }
 }
 
 /**
  * The item Reducer updates the cached item (which may have a complex shape).
  *
- * The Reducer is called on mutation. When the generic UpdateItemMutation response is received we need
+ * The Reducer is called on mutation. When the generic UpsertItemsMutation response is received we need
  * to tell Apollo how to stitch the result into the cached response. For item mutations, this is easy
  * since the ID is used to change the existing item. For adds and deletes, Apollo has no way of knowing
  * where the item should fit (e.g., for a flat list it depends on the sort order; for complex query shapes
@@ -251,12 +365,60 @@ export class ListReducer extends Reducer {
  */
 export class ItemReducer extends Reducer {
 
-  constructor(spec, customReducer=null) {
-    super(spec, customReducer);
-  }
+  /**
+   * Creates HOC for item query.
+   *
+   * @param query
+   * @param customReducer
+   *
+   * Example:
+   * Reducer = (matcher, context, previousResult, updatedItem) => {
+   *   if (updatedItem.type == 'Task') {
+   *     return {
+   *       items:  $push: [ updatedItem ]
+   *     }
+   *   }
+   * }
+   *
+   * @return standard mutation wrapper supplied to redux's combine() method.
+   */
+  static graphql(query, customReducer=undefined) {
+    let itemReducer = new ItemReducer(query, customReducer);
 
-  getItem(data) {
-    return this.getResult(data);
+    // Return HOC.
+    return graphql(query, {
+      withRef: 'true',
+
+      // Map properties to query.
+      // http://dev.apollodata.com/react/queries.html#graphql-options
+      options: (props) => {
+        let { matcher, context, itemId } = props;
+
+        return {
+          variables: {
+            itemId
+          },
+
+          reducer: (previousResult, action) => {
+            return itemReducer.reduceItem(matcher, context, previousResult, action);
+          }
+        };
+      },
+
+      // Map query result to component properties.
+      // http://dev.apollodata.com/react/queries.html#graphql-props
+      props: ({ ownProps, data }) => {
+        let { loading, error, refetch } = data;
+        let item = itemReducer.getResult(data);
+
+        return {
+          loading,
+          error,
+          refetch,
+          item
+        }
+      }
+    })
   }
 
   /**
@@ -271,10 +433,15 @@ export class ItemReducer extends Reducer {
    * @returns {*} Updated cache result.
    */
   reduceItem(matcher, context, previousResult, action) {
+    console.assert(matcher && context && previousResult && action);
     let result = previousResult;
+    if (action.type !== 'APOLLO_MUTATION_RESULT') {
+      return result;
+    }
 
     try {
-      let updatedItem = this.getMutatedItem(action);
+      // TODO(burdon): Handle multiple items.
+      let updatedItem = this.getMutatedItem(action)[0];
       if (updatedItem) {
         let queryName = this.query.definitions[0].name.value;
         logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
@@ -284,8 +451,8 @@ export class ItemReducer extends Reducer {
           result = this.doTransform(previousResult, transform);
         }
       }
-    } catch (ex) {
-      console.error('Reducer failed:', ex);
+    } catch(error) {
+      console.error('Reducer failed:', error);
     }
 
     return result;
@@ -302,6 +469,7 @@ export class ItemReducer extends Reducer {
    * @returns {*}
    */
   getTransform(matcher, context, previousResult, updatedItem) {
-    return this._customReducer && this._customReducer(matcher, context, previousResult, updatedItem);
+    let reducer = this._reducer;
+    return reducer && reducer(matcher, context, previousResult, updatedItem);
   }
 }

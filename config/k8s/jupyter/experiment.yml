@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: exp-58b203c465433b049b429e12
+spec:
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        run: exp-58b203c465433b049b429e12
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: jupyter
+        image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/jupyter:madadam
+        imagePullPolicy: Always
+        env:
+          - name: EXPERIMENT_ID
+            value: "58b203c465433b049b429e12" # FIXME

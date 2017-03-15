@@ -3,6 +3,7 @@
 //
 
 import _ from 'lodash';
+import { expect } from 'chai';
 
 import { Transforms } from './transforms';
 

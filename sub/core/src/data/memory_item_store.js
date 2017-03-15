@@ -3,74 +3,91 @@
 //
 
 import _ from 'lodash';
-import moment from 'moment';
 
 import { TypeUtil } from '../util/type';
-import { ItemStore } from './item_store';
+
+import { ItemUtil, ItemStore, QueryProcessor } from './item_store';
 
 /**
  * In-memory database.
  */
 export class MemoryItemStore extends ItemStore {
 
-  constructor(idGenerator, matcher) {
-    super(idGenerator, matcher);
+  constructor(idGenerator, matcher, namespace, buckets=true) {
+    super(namespace, buckets);
 
-    // Items by ID.
+    // Helper for filtering and sorting items.
+    this._util = new ItemUtil(idGenerator, matcher);
+
+    // Item stored by key.
     this._items = new Map();
+  }
+
+  toString() {
+    return `MemoryItemStore(${this._items.size})`;
+  }
+
+  key({ bucket, type, id }) {
+    console.assert(bucket || !this._buckets, 'Invalid bucket for item: ' + id);
+
+    return _.compact([bucket, type, id]).join('/');
+  }
+
+  getBucketKeys(context, type) {
+    if (this._buckets) {
+      return _.map(QueryProcessor.getBuckets(context), bucket => this.key({ bucket, type }));
+    } else {
+      console.assert(type);
+      return [this.key({ type })];
+    }
+  }
+
+  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+    console.assert(context && root && filter);
+
+    // Gather results for all buckets.
+    let bucketItems = [];
+    if (this._buckets) {
+      let keys = this.getBucketKeys(context);
+      this._items.forEach((item, key) => {
+        _.each(keys, k => {
+          if (key.startsWith(k)) {
+            bucketItems.push(item);
+            return false;
+          }
+        });
+      });
+    } else {
+      bucketItems = this._items;
+    }
+
+
+    let items = this._util.filterItems(bucketItems, context, root, filter, offset, count);
+    return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
+  }
+
+  getItems(context, type, itemIds=[]) {
+    console.assert(context && type && itemIds);
+
+    // Check all buckets.
+    let items = [];
+    _.each(this.getBucketKeys(context, type), key => {
+      TypeUtil.maybeAppend(items, _.compact(_.map(itemIds, itemId => this._items.get(key + '/' + itemId))));
+    });
+
+    return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
   }
 
   upsertItems(context, items) {
     console.assert(context && items);
 
-    return Promise.resolve(_.map(items, (item) => {
-      item = TypeUtil.clone(item);
+    return Promise.resolve(_.map(items, item => {
+      console.assert(!this._buckets || item.bucket, 'Invalid bucket: ' + JSON.stringify(item));
 
-      console.assert(item.type);
-
-      // TODO(burdon): Factor out to MutationProcessor (then remove idGenerator requirement).
-      if (!item.id) {
-        item.id = this._idGenerator.createId();
-        item.created = moment().unix();
-      }
-
-      item.modified = moment().unix();
-
-      // TODO(burdon): Enforce immutable properties (e.g., type).
-      this._items.set(item.id, item);
-
-      return item;
+      let clonedItem = this._util.onUpdate(TypeUtil.clone(item));
+      let key = this.key(clonedItem);
+      this._items.set(key, clonedItem);
+      return clonedItem;
     }));
-  }
-
-  getItems(context, type, itemIds) {
-    console.assert(context && type && itemIds);
-
-    return Promise.resolve(_.map(itemIds, itemId => TypeUtil.clone(this._items.get(itemId) || {})));
-  }
-
-  queryItems(context, root, filter={}, offset=0, count=10) {
-    console.assert(context && filter);
-
-    let items = [];
-    this._items.forEach(item => {
-      if (!this._matcher.matchItem(context, root, filter, item)) {
-        return;
-      }
-
-      items.push(TypeUtil.clone(item));
-    });
-
-    // Sort.
-    let orderBy = filter.orderBy;
-    if (orderBy) {
-      console.assert(orderBy.field);
-      items = _.orderBy(items, [orderBy.field], [orderBy.order === 'DESC' ? 'desc' : 'asc']);
-    }
-
-    // Page.
-    items = _.slice(items, offset, offset + count);
-
-    return Promise.resolve(items);
   }
 }

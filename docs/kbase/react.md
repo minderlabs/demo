@@ -14,6 +14,7 @@ Component (class or render function) <= Instance <= DOM Element.
 
 - https://facebook.github.io/react/blog/2015/12/18/react-components-elements-and-instances.html
 
+
 ### Hermetic
 
 React components should not access child components other than setting properties.

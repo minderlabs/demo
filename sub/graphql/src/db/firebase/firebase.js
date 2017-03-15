@@ -8,9 +8,6 @@ import admin from 'firebase-admin';
 
 import { Logger } from 'minder-core';
 
-import { FirebaseUserStore } from './firebase_user_store';
-import { FirebaseItemStore } from './firebase_item_store';
-
 const logger = Logger.get('firebase');
 
 /**
@@ -23,43 +20,32 @@ const logger = Logger.get('firebase');
  */
 export class Firebase {
 
-  // TODO(burdon): Namespace (prod, qa, dev-rich, dev-adam).
-
-  constructor(idGenerator, matcher, config) {
-    console.assert(idGenerator && matcher);
-
-    _.assign(config, {
-      credential: admin.credential.cert(config.credentialPath)
-    });
+  /**
+   * Creates the Firebase singleton app and wraps utils.
+   *
+   * @param config
+   */
+  constructor(config) {
 
     // https://firebase.google.com/docs/admin/setup
     // https://firebase.google.com/docs/reference/admin/node/admin
-    let app = admin.initializeApp(config);
-    logger.log(`INITIALIZED: ${app.name}`);
+    this._app = admin.initializeApp(_.defaults(config, {
+      credential: admin.credential.cert(config.credentialPath)
+    }));
 
-    this._db = admin.database();
-
-    this._userStore = new FirebaseUserStore(this._db, idGenerator, matcher);
-    this._itemStore = new FirebaseItemStore(this._db, idGenerator, matcher);
-  }
-
-  clearCache() {
-    this._userStore.clearCache();
-    this._itemStore.clearCache();
+    logger.info('Initialized: ' + config.databaseURL);
   }
 
   /**
-   * NOTE: This must be a shared instance since it is initialized here.
+   * https://firebase.google.com/docs/auth/admin/verify-id-tokens#verify_id_tokens_using_the_firebase_admin_sdks
+   * @param token
+   * @return { uid, email }
    */
-  get admin() {
-    return admin;
+  verifyIdToken(token) {
+    return this._app.auth().verifyIdToken(token);
   }
 
-  get userStore() {
-    return this._userStore;
-  }
-
-  get itemStore() {
-    return this._itemStore;
+  get db() {
+    return this._app.database();
   }
 }

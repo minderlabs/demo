@@ -38,14 +38,14 @@ export const graphqlLogger = (options={ pretty: false }) => {
     }
 
     // Monkey patch.
+    // TODO(burdon): Not efficient intercepting write?
     // https://github.com/axiomzen/express-interceptor/blob/master/index.js
     // http://stackoverflow.com/questions/19215042/express-logging-response-body
     let originalWrite = res.write;
     res.write = (data) => {
-      // TODO(burdon): Not efficient intercepting write.
-      let json = JSON.parse(data);
       switch (res.statusCode) {
         case 200: {
+          let json = JSON.parse(data);
           if (options.pretty) {
             logger.log($$(PRETTY_RES, moment().format(TS), stringify(json)));
           } else {
@@ -56,11 +56,16 @@ export const graphqlLogger = (options={ pretty: false }) => {
         }
 
         default: {
-          // TODO(burdon): Get error?
-          logger.error(`### ERR[${res.statusCode}] ###`);
-          _.each(json.errors, (err) => {
-            logger.log(`> ${err.message}`);
-          });
+          // On error, the response may be a GraphQL JSON object with an "errors" field,
+          // or a plain-text exception message (e.g., for server-side errors).
+          try {
+            let json = JSON.parse(data);
+            _.each(json.errors, (err) => {
+              logger.error(`### ERR[${res.statusCode}] ### ${err.message}`);
+            });
+          } catch(ex) {
+            logger.error(`### ERR[${res.statusCode}] ### ${data}`);
+          }
         }
       }
 

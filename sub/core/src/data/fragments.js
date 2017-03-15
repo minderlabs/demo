@@ -4,6 +4,11 @@
 
 import gql from 'graphql-tag';
 
+// TODO(burdon): Factor out GQL component (mutations, etc.)
+// TODO(burdon): Refine fragments returned by mutation.
+// NOTE: When the Project Detail card adds a new Task, unless "on Project { tasks {} }" is
+// declared in the mutation, then thhe Project Board canvas will not be updated.
+
 //
 // Canonical Query fragments (i.e., contain all fields).
 //
@@ -21,22 +26,54 @@ export const ValueFragment = gql`
   }
 `;
 
+// TODO(burdon): Warning: fragment with name ItemFragment already exists.
 export const ItemFragment = gql`
   fragment ItemFragment on Item {
+    namespace
+    fkey
     bucket
-    id
     type
+    id
     labels
     title
     description
   }
 `;
 
+export const ContactFragment = gql`
+  fragment ContactFragment on Contact {
+    email
+    tasks {
+      type
+      id
+      title
+      status
+    }
+  }
+`;
+
+// TODO(burdon): Move url, iconUrl to ItemFragment
 export const DocumentFragment = gql`
   fragment DocumentFragment on Document {
     url
     iconUrl
-    source
+  }
+`;
+
+export const GroupFragment = gql`
+  fragment GroupFragment on Group {
+    id 
+    members {
+      type
+      id
+      title
+      email
+    }
+    projects {
+      type
+      id
+      title
+    }
   }
 `;
 
@@ -46,14 +83,15 @@ export const TaskFragment = gql`
     type
     id
 
+    # TODO(burdon): Already in ItemFragment.
     title
     description
 
-    status
     project {
       id
       title
     }
+
     owner {
       id
       title
@@ -61,6 +99,29 @@ export const TaskFragment = gql`
     assignee {
       id
       title
+    }
+
+    status
+
+    # TODO(burdon): Required for sub-task mutations.
+    tasks {
+      type
+      id
+      title
+      status
+    }
+  }
+`;
+
+export const ProjectFragment = gql`
+  fragment ProjectFragment on Project {
+
+    # TODO(burdon): Potential collision with Task.tasks (for card search mixin).
+    tasks {
+      type
+      id
+      title
+      status
     }
   }
 `;
@@ -88,17 +149,22 @@ export const ProjectBoardFragment = gql`
   ${ValueFragment}
 `;
 
-export const ProjectTasksFragment = gql`
-  fragment ProjectBoardFragment on Project {
-    tasks {
-      ...TaskFragment
+export const UserFragment = gql`
+  fragment UserFragment on User {
+    title
+
+    ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
+      type
+      id
+      title
+      status
+    }
+
+    assigneeTasks: tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
+      type
+      id
+      title
+      status
     }
   }
-
-  ${TaskFragment}
 `;
-
-//
-// Mutation fragments.
-// TODO(burdon): Doc (fields that are returned from the server after the mutation).
-//

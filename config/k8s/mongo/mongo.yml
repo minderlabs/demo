@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  labels:
+    run: mongo
+spec:
+  ports:
+  - port: 27017
+    targetPort: 27017
+  selector:
+    run: mongo
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: mongo
+    spec:
+      containers:
+      - name: mongo
+        # NOTE: Don't use the :latest tag in production. see http://kubernetes.io/docs/user-guide/config-best-practices/#container-images
+        image: mongo
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+      volumes:
+        - name: mongo-data
+          awsElasticBlockStore:
+            volumeID: vol-09e2931dad51ca7ce  # Must already exist.
+            fsType: ext4

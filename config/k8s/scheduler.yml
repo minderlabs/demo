@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: scheduler
+  labels:
+    run: scheduler
+spec:
+  ports:
+  - port: 9000
+    targetPort: 9000
+  selector:
+    run: scheduler
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: scheduler
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: scheduler
+    spec:
+      containers:
+      - name: minder-scheduler
+        # NOTE: Don't use the :latest tag in production.
+        # See http://kubernetes.io/docs/user-guide/config-best-practices/#container-images
+        image: 240980109537.dkr.ecr.us-east-1.amazonaws.com/minder-scheduler:latest
+        ports:
+        - containerPort: 9000

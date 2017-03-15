@@ -1,0 +1,25 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+.app-finder {
+
+  // Show delete icon when hovering.
+  .ux-icons {
+    margin-left: 8px;
+
+    .ux-icon-delete {
+      display: none;
+    }
+  }
+  .ux-list-item:hover {
+    .ux-icons {
+      .ux-icon {
+        display: none;
+      }
+      .ux-icon-delete {
+        display: block;
+      }
+    }
+  }
+}

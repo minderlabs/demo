@@ -5,7 +5,7 @@
 import Cookies from 'js-cookie';
 import * as firebase from 'firebase';
 
-import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
+import { Const, FirebaseAppConfig, GoogleApiConfig } from '../common/defs';
 
 /**
  * Auth module.
@@ -13,103 +13,115 @@ import { Const, FirebaseConfig, GoogleApiConfig } from '../common/defs';
  */
 export class Auth {
 
-  // TODO(burdon): Enable offline.
+  // TODO(burdon): Send email on first login?
+  // https://firebase.google.com/docs/auth/web/manage-users#send_a_user_a_verification_email
 
   constructor() {
-    firebase.initializeApp(FirebaseConfig);
+    firebase.initializeApp(FirebaseAppConfig);
 
     // https://firebase.google.com/docs/auth/web/google-signin
     this._provider = new firebase.auth.GoogleAuthProvider();
-    _.each(GoogleApiConfig.authScopes, scope => { this._provider.addScope(scope); });
+
+    // Google default scopes.
+    // TODO(burdon): Get scopes from registry.
+    // https://myaccount.google.com/permissions
+    _.each(GoogleApiConfig.authScopes, scope => {
+      this._provider.addScope(scope);
+    });
   }
 
   /**
    * Login via Firebase.
-   * @param path
+   *
+   * Firebase issues a JWT once the user is authenticated and uses a Provider (e.g., Google) to actually
+   * perform the authentication and return OAuth credentials (for the requested scopes).
+   *
+   * The JWT is passed as a header by the client on all network requests. The JWT is short-lived (1 hour),
+   * so the client uses auth().getToken() on each network request -- and the token is seamlessly refreshed
+   * when it has expired.
+   *
+   * Additionally, we set a cookie so that our frontend server can recognize authenticated users.
+   *
+   * @returns {Promise}
    */
-  login(path) {
-    console.log('LOGIN');
+  login() {
+    return new Promise((resolve, reject) => {
 
-    // TODO(burdon): Document.
-    // Access Token: Determine authorization (short-lived).
-    // Refresh Token: Get new Access Token.
+      // Check if already logged in.
+      // https://firebase.google.com/docs/auth/web/manage-users#get_the_currently_signed-in_user
+      firebase.auth().onAuthStateChanged(userInfo => {
+        if (userInfo) {
 
-    // TODO(burdon): Expiration? Getting JWT isn't complete?
-    // https://auth0.com/blog/refresh-tokens-what-are-they-and-when-to-use-them/
-
-    // NOTE: Always flows through here (first then after redirect).
-    firebase.auth().getRedirectResult()
-      .then(result => {
-
-        // TODO(burdon): Store Google Access Token.
-        if (result.credential) {
-          let token = result.credential.accessToken;
-          console.log('Access Token: %s', token);
-        }
-
-        // The signed-in user info.
-        let user = result.user;
-        if (user) {
+          // Get the JWT.
+          // Returns the current token or issues a new one if expire (short lived; lasts for about an hour).
           // https://firebase.google.com/docs/reference/js/firebase.User#getToken
-          user.getToken().then(token => {
-            this.registerUser(result).then(() => {
+          console.log('Getting token...');
+          return userInfo.getToken()
+            .then(jwt => {
 
-              // TODO(burdon): Do we need this?
-              // Se the auth cookie for server-side detection.
-              // https://github.com/js-cookie/js-cookie
-              Cookies.set(Const.AUTH_COOKIE, token, {
-//              path: '/',
-                domain: window.location.hostname,
-                expires: 1,       // 1 day.
-//              secure: true      // If served over HTTPS.
+              // We're now authenticated, but need to register or check we are active.
+              // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#getRedirectResult
+              return firebase.auth().getRedirectResult().then(result => {
+                let { credential } = result;
+
+                // Credential is null if we've already been authenticated (i.e., JWT token is fresh).
+                return this.registerUser(userInfo, credential).then(user => {
+                  console.log('Credentials: ' + JSON.stringify(_.pick(credential, ['provider'])));
+
+                  // TODO(burdon): Use express-session?
+                  // https://github.com/graphql/express-graphql#combining-with-other-express-middleware
+                  // Set the auth cookie for server-side detection via AuthManager.getUserFromCookie().
+                  // https://github.com/js-cookie/js-cookie
+                  if (user.active) {
+                    Cookies.set(Const.AUTH_COOKIE, jwt, {
+                      domain: window.location.hostname,
+                      expires: 1 // 1 day.
+                    });
+                  }
+
+                  resolve(user);
+                });
               });
-
-              // Redirect.
-              window.location.href = path;
             });
-          });
         } else {
-          // Calls above.
-          firebase.auth().signInWithRedirect(this._provider);
+
+          // Redirect to Google if token has expired (results obtained by getRedirectResult above).
+          // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signInWithRedirect
+          console.log('Redirecting to OAuth provider: ' + this._provider.providerId);
+          return firebase.auth().signInWithRedirect(this._provider);
         }
-      })
-      .catch((error) => {
-        console.log('ERROR', error);
       });
+    });
   }
 
   /**
    * Logout Firebase app.
-   * @param path
+   * NOTE: This flashes the "login" popup.
+   *
+   * @returns {Promise}
    */
-  logout(path) {
-    console.log('LOGOUT');
-
-    // https://firebase.google.com/docs/auth/web/google-signin
-    firebase.auth().signOut().then(
-      function() {
-        // Remove the cookie.
-        Cookies.remove(Const.AUTH_COOKIE);
-
-        // Redirect.
-        window.location.href = path;
-      },
-      function(error) {
-        console.log('ERROR', error);
-      });
+  logout() {
+    // Logout and remove the cookie.
+    // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signOut
+    return firebase.auth().signOut().then(() => {
+      console.log('Logged out.');
+      Cookies.remove(Const.AUTH_COOKIE);
+    }, error => {
+      console.error(error);
+    });
   }
 
   /**
-   * Upsers the logged in user to create a user record.
+   * Registers the user's credential if logged in by the provider or looks up an existing user.
+   * See loginRouter => UserManager.
    *
-   * @param result
+   * @param userInfo Firebase user record.
+   * @param credential
    * @returns {Promise}
    */
-  registerUser(result) {
+  registerUser(userInfo, credential=undefined) {
     return new Promise((resolve, reject) => {
-      let { credential, user } = result;
-      let { accessToken, idToken, provider } = credential;
-      let { uid, email, displayName:name } = user;
+      console.log('Registering user: ' + userInfo.email);
 
       $.ajax({
         url: '/user/register',
@@ -117,21 +129,18 @@ export class Auth {
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         data: JSON.stringify({
-          credential: {
-            accessToken, idToken, provider,
-          },
-          user: {
-            uid, email, name
-          }
+          userInfo,
+          credential
         }),
 
-        success: (response) => {
-          console.log('Registered user: [%s] %s', uid, email);
-          resolve()
+        success: response => {
+          let { user } = response;
+          console.log('Registered user: %s', JSON.stringify(_.pick(user, ['id', 'title', 'email', 'active'])));
+          resolve(user)
         },
 
-        error: (error) => {
-          console.log('ERROR', error);
+        error: error => {
+          reject(error);
         }
       });
     });

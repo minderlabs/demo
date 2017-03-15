@@ -6,8 +6,10 @@ import _ from 'lodash';
 
 import { Chance } from 'chance';
 
-import Logger from '../util/logger';
+import { Async } from '../util/async';
 import { TypeUtil } from '../util/type';
+
+import Logger from '../util/logger';
 
 const logger = Logger.get('randomizer');
 
@@ -16,50 +18,21 @@ const logger = Logger.get('randomizer');
  */
 export class Randomizer {
 
-  // http://chancejs.com
-
-  static generators = {
-
-    'Task': chance => {
-      return {
-        title: chance.sentence({ words: chance.natural({ min: 3, max: 5 }) }),
-        description: chance.sentence({ words: chance.natural({ min: 10, max: 20 }) })
-      }
-    },
-
-    'Contact': chance => {
-      return {
-        title: chance.name()
-      }
-    },
-
-    'Place': chance => {
-      return {
-        title: chance.city(),
-
-        geo: {
-          lat: chance.latitude(),
-          lng: chance.longitude()
-        }
-      };
-    }
-  };
-
   /**
-   *
-   * @param itemStore
-   * @param context
-   * @param seed        A fixed seed guarantees consistent results for unit tests, etc.
+   * @param generators
+   * @param linkers
+   * @param options
    */
-  constructor(itemStore, context={}, seed=1000) {
-    console.assert(itemStore);
+  constructor(generators, linkers, options) {
+    console.assert(generators && linkers);
+    this._generators = generators;
+    this._linkers = linkers;
+    this._options = _.defaults(options, {
+      seed: 1000
+    });
 
-    // TODO(burdon): Need to fan out to User, etc.
-    this._itemStore = itemStore;
-    this._context = context;
-
-    this._chance = new Chance(seed);
-    this._cache = new Map();
+    // http://chancejs.com
+    this._chance = new Chance(this._options.seed);
   }
 
   get chance() {
@@ -67,108 +40,63 @@ export class Randomizer {
   }
 
   /**
-   * Query the itemStore or return a cached value.
-   * @param filter
-   * @return {Promise}
-   */
-  queryCache(filter) {
-    let key = JSON.stringify(filter);
-    let result = this._cache.get(key);
-    if (result) {
-      return Promise.resolve(result);
-    } else {
-      return this._itemStore.queryItems(this._context, {}, filter).then(values => {
-        this._cache.set(key, values);
-        return values;
-      });
-    }
-  }
-
-  upsertItems(items) {
-    return this._itemStore.upsertItems(this._context, items);
-  }
-
-  /**
    * Asynchronously generate items of the given type.
    * Optionally provide field plugins that can either directly set values or query for them.
    *
+   * @param context
    * @param type
    * @param n
-   * @param fields
    * @return Promise
    */
-  generate(type, n, fields={}) {
+  generateItems(context, type, n) {
     logger.log(`GENERATE[${type}]:${n}`);
 
-    let items = [];
-
-    // Each item is generates asynchronously (since it may look-up other items) so we gather the promises.
-    return TypeUtil.iterateWithPromises(_.times(n), i => {
-
-      //
-      // Generate item.
-      //
-
+    return Promise.all(_.times(n, i => {
+      // TODO(burdon): Set owner, bucket, etc?
       let item = {
-        type: type,
-        labels: this._chance.bool({ likelihood: 20 }) ? ['_favorite'] : [],
-
-        ...Randomizer.generators[type](this._chance)
+        type
       };
 
-      // Add user bucket.
-      if (this._context.group && this._chance.bool({ likelihood: 20 })) {
-        item.bucket = this._chance.pickone(this._context.group.members);
-      }
-
-      items.push(item);
-
-      //
-      // Iterate fields.
-      //
-
-      return TypeUtil.iterateWithPromises(fields, (spec, field) => {
-
-        // Set literal value.
-        if (spec.likelihood === undefined || this._chance.bool({ likelihood: spec.likelihood * 100 })) {
-          // Direct value.
-          if (_.isFunction(spec)) {
-            item[field] = spec();
-          } else {
-            // Get items for generator's type.
-            return this.queryCache({ type: spec.type }).then(values => {
-//            console.log('GET[%s]: %d', spec.type, values.length);
-              if (values.length) {
-                let value = this._chance.pickone(values);
-                item[field] = value.id;
-              }
-            });
+      // Process fields in order (since may be dependent).
+      let fields = this._generators[type];
+      return Async.iterateWithPromises(fields, (fieldGenerator, field) => {
+        return Promise.resolve(fieldGenerator(item, context, this)).then(value => {
+          if (!_.isNil(value)) {
+            _.set(item, field, value);
           }
-        }
-      });
-    }).then(() => {
 
-      // Insert array of items.
-      return this.upsertItems(items).then(items => {
-
-        // TODO(burdon): Should happen before upsert.
-        // Fake timestamps (so don't show up in inbox).
-        if (this._context.created) {
-          _.each(items, item => {
-            item.created = this._context.created;
-            item.modified = this._context.created;
-          });
-        }
-
-        // Post-create hook.
-        return TypeUtil.iterateWithPromises(fields, (spec, field) => {
-          if (spec.onCreate) {
-            return spec.onCreate(this, items);
-          }
-        }).then(() => {
-          return items;
+          return item;
         });
       });
+    }));
+  }
+
+  /**
+   * Generate link mutations for created items.
+   *
+   * @param context
+   * @param items
+   * @returns {*}
+   */
+  generateLinkMutations(context, items) {
+    return Promise.all(_.compact(_.map(items, item => {
+      let linker = this._linkers[item.type];
+      if (linker) {
+        return Promise.resolve(linker(item, context));
+      }
+    }))).then(itemMutations => {
+      // Merge mutations.
+      let mutationMap = new Map();
+      _.each(_.compact(itemMutations), itemMutation => {
+        let currentItemMutation = mutationMap.get(itemMutation.itemId);
+        if (currentItemMutation) {
+          TypeUtil.maybeAppend(currentItemMutation.mutations, itemMutation.mutations)
+        } else {
+          mutationMap.set(itemMutation.itemId, itemMutation);
+        }
+      });
+
+      return Array.from(mutationMap.values());
     });
   }
 }

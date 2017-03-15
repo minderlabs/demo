@@ -1,0 +1,89 @@
+{{#section 'head'}}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+  <style>
+    body {
+      font-family: Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    h1, h2, h3 {
+      font-weight: 100;
+    }
+
+    textarea {
+      resize: none;
+      spellcheck: none;
+      outline: none;
+      border: 1px solid #EEE;
+    }
+
+    .test-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .test-content {
+      margin: 16px 0;
+      padding: 16px;
+      border: 1px solid #EEE;
+    }
+
+  </style>
+{{/section}}
+
+<div class="site-container">
+
+  <h1>CRX Testing</h1>
+
+  <div class="test-panel">
+    <textarea id="content-text" rows="4" autofocus placeholder="Content"></textarea>
+
+    <div>
+      <button id="content-save">Save</button>
+      <select id="content-select">
+        <option>None</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="content" class="test-content"></div>
+
+</div>
+
+<!-- Trigger CRX to open automatically. -->
+<div id="crx-testing"></div>
+
+<script>
+  'use strict';
+
+  const CONTENT = {
+    'contact-alice': {
+      title: 'Alice',
+      content: $('<div>').text('Alice Braintree').attr('email', 'alice.braintree@gmail.com')
+    }
+  };
+
+  $(document).ready(() => {
+
+    $.each(CONTENT, (key, value) => {
+      $('#content-select').append($('<option>').attr('value', key).text(value.title));
+    });
+
+    $('#content-save').click(event => {
+      $('#content').empty().text($('#content-text').val());
+    });
+
+    // Trigger DOM change.
+    $('#content-select').change(event => {
+      $('#content').empty();
+      let value = $(event.target).val();
+      let content = CONTENT[value];
+      console.log('Selected: ' + value);
+      if (content) {
+        $('#content').append(content.content);
+      }
+    });
+
+  });
+</script>

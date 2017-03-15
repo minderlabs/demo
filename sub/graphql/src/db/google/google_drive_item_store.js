@@ -5,9 +5,7 @@
 import _ from 'lodash';
 import google from 'googleapis';
 
-import { ItemStore, Logger } from 'minder-core';
-
-const logger = Logger.get('db');
+import { ErrorUtil, QueryProcessor } from 'minder-core';
 
 /**
  * Google API client.
@@ -15,15 +13,46 @@ const logger = Logger.get('db');
 class GoogleDriveClient {
 
   // TODO(burdon): Generalize client.
+  // TODO(burdon): Handle expiration: Query failed: Error: No access or refresh token is set.
 
-  constructor(config) {
+  /**
+   * Convert Drive result to a schema object Item.
+   *
+   * @param idGenerator
+   * @param file Google Drive file result.
+   * @returns Item
+   * @private
+   */
+  static resultToItem(idGenerator, file) {
+    // TODO(madadam): This makes a transient Item that isn't written into the item store;
+    // it's an Item wrapper around foreign data.
+
+    let item = {
+      namespace: GoogleDriveQueryProcessor.NAMESPACE,
+      type: 'Document',
+      id: file.id,
+      title: file.name
+    };
+
+    if (file.webViewLink) {
+      item.url = file.webViewLink;
+    }
+    if (file.iconLink) {
+      item.iconUrl = file.iconLink;
+    }
+
+    return item;
+  }
+
+  constructor(idGenerator, config) {
+    this._idGenerator = idGenerator;
     this._config = config;
     this._drive = google.drive('v3');
   }
 
   _getOAuthClient(context) {
-    // TODO(madadam): Avoid creating a new OAuth2 client every request. Can't I just pass access token? If not, then
-    // cache the clients by context.user.id.
+    // TODO(madadam): Avoid creating a new OAuth2 client every request. Just pass access token?
+    // If not, then cache the clients by context.userId.
     let oauth2Client = new google.auth.OAuth2(
       this._config.clientId,
       this._config.clientSecret
@@ -36,128 +65,98 @@ class GoogleDriveClient {
     return _.get(context, 'user.credentials.google_com.accessToken');
   }
 
-  // TODO(burdon): Reimplement callbacks with promises.
-  _fetchPage(client, pageToken, driveQuery, numResults, processResult, onSuccess, onError=null) {
-    if (numResults <= 0) {
-      onSuccess();
-      return;
-    }
+  /**
+   * Fetches a single page of results.
+   */
+  _fetchPage(client, driveQuery, numResults, pageToken=undefined) {
+    return new Promise((resolve, reject) => {
+      let query = {
+        auth: client,
+        q: driveQuery,
+        fields: 'nextPageToken, files(id, name, webViewLink, iconLink)',
+        spaces: 'drive',
+        pageToken: pageToken
+      };
 
-    let query = {
-      auth: client,
-      q: driveQuery,
-      fields: 'nextPageToken, files(id, name, webViewLink, iconLink)',
-      spaces: 'drive',
-      pageToken: pageToken
-    };
-
-    this._drive.files.list(query, (err, response) => {
-      if (err) {
-        logger.error('GoogleDriveClient: ' + err);
-        onError && onError(err);
-      } else {
-//      console.log('** GOOGLE DRIVE results: ' + JSON.stringify(response.files)); // FIXME
-        _.each(response.files, processResult);
-
-        if (response.nextPageToken) {
-          this._fetchPage(
-            client, response.nextPageToken, driveQuery, numResults - response.files.length, processResult, onSuccess);
+      this._drive.files.list(query, (err, response) => {
+        if (err) {
+          reject(err.message);
         } else {
-          onSuccess();
+          resolve(response);
         }
-      }
+      });
     });
   }
 
-  // TODO(burdon): Reimplement callbacks with promises.
-  search(context, driveQuery, maxResults, processResult, onSucces, onError) {
+  /**
+   * Recursively fetches pages for the specified number of results.
+   */
+  _fetchAll(client, driveQuery, maxResults, pageToken=undefined) {
+    if (maxResults == 0) {
+      return Promise.resolve([]);
+    }
+
+    // Collect the results.
+    let results = [];
+
+    // Get the next page.
+    return this._fetchPage(client, driveQuery, maxResults, pageToken).then(response => {
+      // Add results.
+      _.each(response.files, file => results.push(GoogleDriveClient.resultToItem(this._idGenerator, file)));
+
+      // Maybe get more (recursively).
+      if (response.nextPageToken) {
+        return this._fetchAll(client, driveQuery, maxResults - response.files.length, response.nextPageToken);
+      }
+
+      return results;
+    });
+  }
+
+  /**
+   * Returns items for each document that matches the query.
+   *
+   * @param context
+   * @param driveQuery
+   * @param maxResults
+   * @return {*}
+   */
+  search(context, driveQuery, maxResults) {
     let oauth2Client = this._getOAuthClient(context);
-    this._fetchPage(oauth2Client, null, driveQuery, maxResults, processResult, onSucces, onError);
+    return this._fetchAll(oauth2Client, driveQuery, maxResults);
   }
 }
 
 /**
  * Google Drive.
  */
-export class GoogleDriveItemStore extends ItemStore {
+export class GoogleDriveQueryProcessor extends QueryProcessor {
 
-  // TODO(burdon): Generalize GoogleItemStore.
+  static NAMESPACE = 'google.com/drive';
 
   static makeDriveQuery(queryString) {
     // https://developers.google.com/drive/v3/web/search-parameters
     return _.isEmpty(queryString) ? null : `fullText contains \'${queryString}\'`;
   }
 
-  /**
-   * Convert Drive result to a schema object Item.
-   *
-   * @param idGenerator
-   * @param file Google Drive file result.
-   * @returns Item
-   * @private
-   */
-  static resultToItem(idGenerator, file) {
-    // TODO(madadam): This makes a transient Item that isn't written into the item store; it's an Item wrapper
-    // around foreign data.
-
-    let document = {
-      id: idGenerator.createId(), // TODO(madadam): keep file.id (Google Drive ID) as a foreign key.
-      title: file.name,
-      source: 'Google Drive',
-      type: 'Document',
-    };
-
-    if (file.webViewLink) {
-      document.url = file.webViewLink;
-    }
-    if (file.iconLink) {
-      document.iconUrl = file.iconLink;
-    }
-
-    return document;
-  }
-
   constructor(idGenerator, matcher, config) {
-    super(idGenerator, matcher);
+    super(GoogleDriveQueryProcessor.NAMESPACE);
 
-    this._driveClient = new GoogleDriveClient(config);
+    this._driveClient = new GoogleDriveClient(idGenerator, config);
   }
 
   //
-  // ItemStore API.
+  // QueryProcessor API.
   //
 
-  // TODO(burdon): QueryProcessor interface.
+  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+    let driveQuery = GoogleDriveQueryProcessor.makeDriveQuery(filter.text);
+    if (!driveQuery) {
+      return Promise.resolve([]);
+    }
 
-  upsertItems(context, items) {
-    throw 'Not Supported';
-  }
-
-  getItems(context, type, itemIds) {
-    throw 'Not Supported';
-  }
-
-  queryItems(context, root, filter={}, offset=0, count=10) {
-    return new Promise((resolve, reject) => {
-      let items = [];
-
-      // TODO(burdon): Reimplement callbacks with promises.
-      let driveQuery = GoogleDriveItemStore.makeDriveQuery(filter.text);
-      if (!driveQuery) {
-        resolve(items);
-      } else {
-        this._driveClient.search(context, driveQuery, count,
-          result => {
-            items.push(GoogleDriveItemStore.resultToItem(this._idGenerator, result));
-          },
-          () => {
-            resolve(items);
-          },
-          err => {
-            reject(err);
-          }
-        );
-      }
+    return this._driveClient.search(context, driveQuery, count).catch(error => {
+      throw ErrorUtil.error('Google Drive', error);
     });
   }
 }

@@ -2,24 +2,20 @@
 // Copyright 2016 Minder Labs.
 //
 
+import { expect } from 'chai';
+
 import { TypeUtil } from './type';
 
-describe('Types:', () => {
+describe('TypeUtil:', () => {
 
-  it('TypeUtil.defaultMap', () => {
+  it('defaultMap', () => {
     let map = new Map();
     TypeUtil.defaultMap(map, 'a', Array).push('x');
     TypeUtil.defaultMap(map, 'a', Array).push('y');
     expect(map.get('a')).to.have.lengthOf(2);
   });
 
-  it('TypeUtil.merge', () => {
-    let values = [1, 2, 3];
-    let result = TypeUtil.merge(values, [4, 5]);
-    expect(result.length).to.equal(5);
-  });
-
-  it('TypeUtil.isEmpty', () => {
+  it('isEmpty', () => {
     expect(TypeUtil.isEmpty()).to.be.true;
     expect(TypeUtil.isEmpty({})).to.be.true;
     expect(TypeUtil.isEmpty([])).to.be.true;
@@ -32,28 +28,30 @@ describe('Types:', () => {
     expect(TypeUtil.isEmpty({ foo: 1 })).to.be.false;
   });
 
-  it('TypeUtil.iterateWithPromises', (done) => {
-    let values = [];
-
-    // Async function.
-    let f = (i) => {
-      values.push(i);
-
-      return Promise.resolve(i);
+  it('traverse', () => {
+    let obj = {
+      a: {
+        b: {
+          c: [
+            {
+              value: { id: 100 }
+            },
+            {
+              value: { id: 200 }
+            }
+          ]
+        }
+      }
     };
 
-    TypeUtil.iterateWithPromises(_.times(5), (i) => {
-      return f(i);
-
-    }).then((value) => {
-
-      // Last value.
-      expect(value).to.equal(4);
-
-      // Test done sequentially.
-      expect(values.length).to.equal(5);
-
-      done();
+    let x = [];
+    TypeUtil.traverse(obj, (value, key) => {
+      let id = _.get(value, 'value.id');
+      if (id) {
+        x.push(id);
+      }
     });
+
+    expect(x).to.have.lengthOf(2);
   });
 });

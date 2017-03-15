@@ -1,0 +1,88 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+@sidebar-width: 350px;
+@sidebar-offset: 370px;   // Additional distance to hide box-shadow.
+
+@zindex: 2147483647;      // Max.
+
+//
+// Root element in host DOM.
+//
+.crx-content-script {
+
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  justify-content: center;
+  right: -28px;
+  top: 60px;
+  z-index: 99999999999;
+
+  //
+  // Components are in iframes for CSS and JS isolation, and deferred loading.
+  //
+
+  iframe {
+    border: none;
+  }
+
+  //
+  // Logo
+  //
+
+  button {
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    opacity: .5;
+
+    img {
+      width: 48px;
+      height: 48px;
+    }
+
+    -webkit-animation-duration: 1s;
+  }
+
+  button.crx-bounce {
+    -webkit-animation-name: bounce;
+  }
+
+  @-webkit-keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateX(0); }
+    40% { transform: translateX(-30px); }
+    60% { transform: translateX(-15px); }
+  }
+
+  //
+  // Sidebar
+  //
+
+  .crx-sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: @sidebar-width;
+    z-index: @zindex;
+
+    background-color: white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+
+    transition-property: -webkit-transform, transform, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+
+    -webkit-transform: translateX(@sidebar-offset);
+  }
+
+  .crx-sidebar.crx-open {
+    -webkit-transform: translateX(0px);
+  }
+}

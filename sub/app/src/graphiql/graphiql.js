@@ -5,6 +5,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import { HttpUtil } from 'minder-core';
+
 import GraphiQL from 'graphiql';
 
 import 'graphiql/graphiql.css';
@@ -17,7 +19,7 @@ let headers = {
 };
 
 // Add auth header.
-window.config.headers.forEach(function(header) {
+window.config.headers.forEach((header) => {
   headers[header.name] = header.value;
 });
 
@@ -37,7 +39,7 @@ function graphQLFetcher(graphQLParams) {
   }).then(function(responseBody) {
     try {
       return JSON.parse(responseBody);
-    } catch (error) {
+    } catch(error) {
       return responseBody;
     }
   });
@@ -47,52 +49,14 @@ function graphQLFetcher(graphQLParams) {
 // Decode URL.
 //
 
-let search = window.location.search;
-let parameters = {};
-search.substr(1).split('&').forEach(function(entry) {
-  let eq = entry.indexOf('=');
-  if (eq >= 0) {
-    parameters[decodeURIComponent(entry.slice(0, eq))] = decodeURIComponent(entry.slice(eq + 1));
-  }
-});
-
-// if variables was provided, try to format it.
-if (parameters.variables) {
-  try {
-    parameters.variables = JSON.stringify(JSON.parse(parameters.variables), null, 2);
-  } catch (ex) {
-    // Do nothing.
-  }
-}
+let parameters = HttpUtil.parseUrlArgs(window.location.search);
 
 //
 // Encode URL.
 //
 
-function onEditQuery(newQuery) {
-  parameters.query = newQuery;
-  updateURL();
-}
-
-function onEditVariables(newVariables) {
-  parameters.variables = newVariables;
-  updateURL();
-}
-
-function onEditOperationName(newOperationName) {
-  parameters.operationName = newOperationName;
-  updateURL();
-}
-
-// TODO(burdon): Factor out and use in client to provide links.
-function updateURL() {
-  let newSearch = '?' + Object.keys(parameters).filter(function(key) {
-    return Boolean(parameters[key]);
-  }).map(function(key) {
-    return encodeURIComponent(key) + '=' + encodeURIComponent(parameters[key]);
-  }).join('&');
-
-  history.replaceState(null, null, newSearch);
+function updateURL(update) {
+  history.replaceState(null, null, '?' + HttpUtil.toUrlArgs(_.assign(parameters, update)));
 }
 
 //
@@ -100,19 +64,19 @@ function updateURL() {
 // https://raw.githubusercontent.com/graphql/graphiql/master/example/index.html
 //
 
-const defQuery = 'query { viewer { id } }';
+const defQuery = 'query { viewer { user { id } } }';
 
 ReactDOM.render(
   React.createElement(GraphiQL, {
     fetcher: graphQLFetcher,
 
     query: parameters.query || defQuery,
-    variables: parameters.variables,
+    variables: parameters.variables ? JSON.stringify(JSON.parse(parameters.variables), 0, 2) : '',
     operationName: parameters.operationName,
 
-    onEditQuery: onEditQuery,
-    onEditVariables: onEditVariables,
-    onEditOperationName: onEditOperationName
+    onEditQuery: query => updateURL({ query }),
+    onEditVariables: variables => updateURL({ variables }),
+    onEditOperationName: operationName => updateURL({ operationName })
   }),
 
   document.getElementById('graphiql')

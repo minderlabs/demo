@@ -4,9 +4,9 @@
 
 import React from 'react';
 
-import { TextBox } from './textbox';
+import { DomUtil } from 'minder-core';
 
-import './search.less';
+import { TextBox } from './textbox';
 
 /**
  * Search bar.
@@ -31,24 +31,26 @@ export class SearchBar extends React.Component {
     this.props.onSearch(this.refs.text.value);
   }
 
-  handleCancel(event) {
+  handleClear(event) {
     this.refs.text.value = '';
+    this.refs.text.focus();
   }
 
   render() {
-    let { className, value } = this.props;
+    let { value, className } = this.props;
 
     return (
-      <div className={ _.join([className, 'ux-search', 'ux-row'], ' ') }>
+      <div className={ DomUtil.className(className, 'ux-search', 'ux-row') }>
         <TextBox ref="text"
                  className='ux-expand'
                  autoFocus={ true }
-                 placeholder='Search... [@type] [#label]'
+                 placeholder='Search...'
                  value={ value }
-                 onCancel={ this.handleCancel.bind(this) }
+                 onCancel={ this.handleClear.bind(this) }
                  onChange={ this.handleSearch.bind(this) }/>
 
-        <i className="ux-icon" onClick={ this.handleSearch.bind(this) }>search</i>
+        <i className="ux-icon ux-search-icon" onClick={ this.handleSearch.bind(this) }>search</i>
+        <i className="ux-icon ux-search-icon" onClick={ this.handleClear.bind(this) }>clear</i>
       </div>
     );
   }

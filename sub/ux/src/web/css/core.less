@@ -17,10 +17,98 @@
 .ux-font-small    { font-size: @ux-font-small;  }
 .ux-font-medium   { font-size: @ux-font-medium; }
 .ux-font-large    { font-size: @ux-font-large;  }
+.ux-font-xlarge   { font-size: @ux-font-xlarge; }
 
 .ux-link {
   color: #185588;
   cursor: pointer;
+}
+
+.ux-debug {
+  overflow: hidden;
+}
+
+//
+// Loading bar.
+// https://www.pexels.com/blog/css-only-loaders/
+//
+
+@keyframes ux-loading {
+  from { left: 50%; width: 0;z-index:100; }
+  33.3333% { left: 0; width: 100%;z-index: 10; }
+  to { left: 0; width: 100%; }
+}
+
+.ux-loading-bar {
+  position: relative;
+  width: 100%;
+  height: 6px;
+
+  background-color: #fdba2c;
+
+  .ux-load-bar {
+    content: '';
+    display: inline;
+    position: absolute;
+    width: 0;
+    height: 100%;
+    left: 50%;
+    text-align: center;
+  }
+
+  .ux-load-bar:nth-child(1) {
+    background-color: #da4733;
+    animation: ux-loading 3s linear infinite;
+  }
+  .ux-load-bar:nth-child(2) {
+    background-color: #3b78e7;
+    animation: ux-loading 3s linear 1s infinite;
+  }
+  .ux-load-bar:nth-child(3) {
+    background-color: #fdba2c;
+    animation: ux-loading 3s linear 2s infinite;
+  }
+}
+
+.ux-loading-title {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+
+  h1 {
+    font-family: Poiret One, sans-serif;
+    color: #000;
+    opacity: .05;
+    font-size: 200px;
+  }
+}
+
+//
+// Loading indicator.
+// NOTE: Inner span is necessary.
+//
+
+.ux-loading {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  font-size: 0;               // Prevent space at top.
+}
+.ux-loading > div {
+  display: flex;
+  justify-content: flex-end;
+
+  span {
+    display: inline-block;
+    padding: 2px 4px;
+    background: #EEE;
+    color: #666;
+  }
+  span:after {
+    content: 'Loading...';
+    font-size: 10px;
+  }
 }
 
 //
@@ -86,7 +174,7 @@ ul.ux-inline {
 
   li {
     display: inline;
-    padding-left: 8px;
+    padding-left: 12px;
     font-size: @ux-font-small;
   }
 }
@@ -100,7 +188,7 @@ ul.ux-inline {
 // TODO(burdon): Clean-up. Move to layout.
 //
 
-// TODO(burdon): Remove.
+// TODO(burdon): Remove/Rename form?
 .ux-data {
   display: flex;
   flex-direction: column;
@@ -135,7 +223,6 @@ ul.ux-inline {
   }
 
   input[type=text] {
-    font-size: @ux-font-medium;
     padding: 2px 4px;
   }
 
@@ -162,7 +249,7 @@ ul.ux-inline {
 
 .ux-debug {
   word-wrap: break-word;
-  white-space: pre;
+  white-space: pre-wrap;
   font-family: Monaco, monospace;
   font-size: 10px;
   color: @ux-color-debug;

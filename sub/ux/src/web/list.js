@@ -6,6 +6,8 @@ import React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
+import { DomUtil, ID, MutationUtil } from 'minder-core';
+
 import { TextBox } from './textbox';
 import { ItemDragSource, ItemDropTarget, DragOrderModel } from './dnd';
 
@@ -19,7 +21,12 @@ const ListItemDragSource = ItemDragSource('ListItem');
 const ListItemDropTarget = ItemDropTarget('ListItem');
 
 /**
- * Simple list component.
+ * List is a super flexible component for rendering items.
+ *
+ * Lists can specify a custom itemRenderer that creates ListItem components.
+ *
+ * Inline components within each ListItem receive the List's context to access the data item,
+ * and to handle events (e.g., selection, update).
  */
 export class List extends React.Component {
 
@@ -45,25 +52,31 @@ export class List extends React.Component {
   /**
    * Inline editor.
    */
-  static DefaultEditor = React.createClass({
-
-    // TODO(burdon): Modularize to extend (list ListItem).
+  static ItemEditor = React.createClass({
 
     handleSave() {
+      let { item, onSave } = this.props;
       let title = this.refs.title.value;
-      this.props.onSave && this.props.onSave({ title });
+
+      onSave(item, [
+        MutationUtil.createFieldMutation('title', 'string', title)
+      ]);
     },
 
     handleCancel() {
-      this.props.onCancel && this.props.onCancel();
+      let { onCancel } = this.props;
+
+      onCancel();
     },
 
     render() {
-      let { item } = this.props;
-      let title = item && item.title;
+      let { item, icon } = this.props;
+      let { title } = item || {};
 
       return (
         <div className="ux-row ux-data-row">
+          { icon }
+
           <TextBox ref="title" className="ux-expand"
                    value={ title }
                    autoFocus={ true }
@@ -79,41 +92,56 @@ export class List extends React.Component {
     }
   });
 
+  static DefaultItemEditor = (props) => {
+    return (
+      <List.ItemEditor { ...props }/>
+    );
+  };
+
+  //
+  // Context passed to ListItem and inline widgets.
+  //
   static childContextTypes = {
-    onItemSelect: React.PropTypes.func
+    mutator:            React.PropTypes.object,
+    onItemSelect:       React.PropTypes.func,
+    onItemUpdate:       React.PropTypes.func
   };
 
   static propTypes = {
+    data:               React.PropTypes.string,     // Custom data.
+
     className:          React.PropTypes.string,
-    data:               React.PropTypes.string,                               // Custom data.
+    highlight:          React.PropTypes.bool,
+
+    groupBy:            React.PropTypes.bool,
+    showAdd:            React.PropTypes.bool,
+
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
     itemClassName:      React.PropTypes.string,
     itemRenderer:       React.PropTypes.func,
     itemEditor:         React.PropTypes.func,
-    itemOrderModel:     React.PropTypes.object,                               // Order model for drag and drop.
-    onItemSave:         React.PropTypes.func,
+    itemOrderModel:     React.PropTypes.object,     // Order model for drag and drop.
+    itemInjector:       React.PropTypes.func,       // Modify results.
+
+    mutator:            React.PropTypes.object,     // TODO(burdon): Remove (must call onItemUpdate).
+    onItemUpdate:       React.PropTypes.func,
     onItemSelect:       React.PropTypes.func,
-    onItemDrop:         React.PropTypes.func,
-    groupBy:            React.PropTypes.bool,
-    showAdd:            React.PropTypes.bool
+    onItemDrop:         React.PropTypes.func
   };
 
   static defaultProps = {
+    highlight: true,
     itemRenderer: List.DefaultItemRenderer,
-    itemEditor: List.DefaultEditor
+    itemEditor: List.DefaultItemEditor
   };
 
-  constructor() {
-    super(...arguments);
-
-    this.state = {
-      items: this.props.items || [],
-      itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
-      itemEditor: this.props.itemEditor,
-      showAdd: this.props.showAdd,
-      editedItem: null
-    };
-  }
+  state = {
+    items: this.props.items || [],
+    itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
+    itemEditor: this.props.itemEditor || List.DefaultItemEditor,
+    showAdd: this.props.showAdd,
+    editedItem: null
+  };
 
   componentWillReceiveProps(nextProps) {
     this.setState({
@@ -123,8 +151,9 @@ export class List extends React.Component {
 
   getChildContext() {
     return {
-      onItemSelect: this.handleItemSelect.bind(this)
-    }
+      onItemSelect: this.handleItemSelect.bind(this),
+      onItemUpdate: this.handleItemUpdate.bind(this)
+    };
   }
 
   set itemRenderer(itemRenderer) {
@@ -145,9 +174,43 @@ export class List extends React.Component {
     });
   }
 
-  // TODO(burdon): Standardize selection for items.
+  /**
+   * Call the List's onItemSelect callback.
+   * @param {Item} item Item to select or null to cancel.
+   */
   handleItemSelect(item) {
+
+    // TODO(burdon): Should provide selection model.
     this.props.onItemSelect && this.props.onItemSelect(item);
+  }
+
+  /**
+   * Call the List's onItemUpdate callback with the given mutations.
+   * @param {Item} item Null if create.
+   * @param mutations
+   */
+  handleItemUpdate(item, mutations) {
+    console.assert(mutations);
+    if (!this.props.onItemUpdate) {
+      console.warning('Immutable list (set onItemUpdate property).');
+    } else {
+      this.props.onItemUpdate && this.props.onItemUpdate(item, mutations);
+
+      // Cancel inline editing.
+      if (this.state.showAdd) {
+        this.setState({
+          showAdd: false,
+          editedItem: null
+        });
+      }
+    }
+  }
+
+  handleItemCancel() {
+    this.setState({
+      showAdd: false,
+      editedItem: null
+    });
   }
 
   handleItemDrop(dropItem, data, order) {
@@ -159,21 +222,6 @@ export class List extends React.Component {
     // Repaint and notify parent.
     this.forceUpdate(() => {
       this.props.onItemDrop(this.props.data, dropItem.id, changes);
-    });
-  }
-
-  handleItemSave(item) {
-    this.props.onItemSave && this.props.onItemSave(item);
-    this.setState({
-      showAdd: false,
-      editedItem: null
-    });
-  }
-
-  handleItemCancel() {
-    this.setState({
-      showAdd: false,
-      editedItem: null
     });
   }
 
@@ -189,25 +237,35 @@ export class List extends React.Component {
   */
 
   render() {
-    let { data, itemOrderModel, groupBy } = this.props;
+    let { itemClassName, itemOrderModel, itemInjector, data, groupBy } = this.props;
     let { items, itemRenderer } = this.state;
 
-    let itemClassName = 'ux-list-item ' + (this.props.itemClassName || '');
+    // Sort items by order model.
+    if (itemOrderModel) {
+      items = itemOrderModel.getOrderedItems(items);
+    }
+
+    // Augment items (e.g., from app context).
+    if (itemInjector) {
+      items = itemInjector(items);
+    }
 
     //
     // Rows.
     //
 
-    if (itemOrderModel) {
-      items = itemOrderModel.getOrderedItems(items);
-    }
-
     let previousOrder = 0;
     let rows = _.map(items, item => {
+      if (!item) {
+        console.error(items);
+      }
+
+//    let key = ID.getGlobalId(item);
+      let key = item.type + '/' + item.id;
 
       // Primary item.
       let listItem = (
-        <div key={ item.id } className={ itemClassName }>
+        <div key={ key } className={ DomUtil.className('ux-list-item', itemClassName) }>
           { itemRenderer(item) }
         </div>
       );
@@ -223,10 +281,10 @@ export class List extends React.Component {
         let dropOrder = (previousOrder == 0) ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
 
         listItem = (
-          <ListItemDropTarget key={ item.id } data={ data } order={ dropOrder }
+          <ListItemDropTarget key={ key } data={ data } order={ dropOrder }
                               onDrop={ this.handleItemDrop.bind(this) }>
 
-            <ListItemDragSource data={ item.id } order={ actualOrder }>
+            <ListItemDragSource data={ key } order={ actualOrder }>
               { listItem }
             </ListItemDragSource>
           </ListItemDropTarget>
@@ -245,51 +303,66 @@ export class List extends React.Component {
           ));
 
           return (
-            <div key={ item.id } className="ux-list-item-group">
+            <div key={ key } className="ux-list-item-group">
               { listItem }
               <div className="ux-list-item-refs">
                 { refs }
               </div>
             </div>
-          )
+          );
         }
       }
 
       return listItem;
     });
 
-    let lastDrop = null;
+    let lastDropTarget = null;
     if (itemOrderModel) {
-      lastDrop = <ListItemDropTarget data={ data } order={ previousOrder + .5 } onDrop={ this.handleItemDrop.bind(this) }/>
+      lastDropTarget = <ListItemDropTarget data={ data }
+                                           order={ previousOrder + .5 }
+                                           onDrop={ this.handleItemDrop.bind(this) }/>
     }
 
     //
     // Editor.
     // TODO(burdon): By default at the bottom.
+    // TODO(burdon): Distinguish create/update for handleItemUpdate callback.
     //
 
     let editor = null;
     if (this.state.showAdd) {
-      const Editor = List.DefaultEditor;
+      const Editor = this.state.itemEditor;
       editor = (
         <div className="ux-list-item ux-list-editor">
           <Editor item={ this.state.editedItem }
-                  onSave={ this.handleItemSave.bind(this) }
+                  onSave={ this.handleItemUpdate.bind(this) }
                   onCancel={ this.handleItemCancel.bind(this) }/>
         </div>
       );
     }
 
-    let className = 'ux-list ' + (this.props.className || '');
+    let className = DomUtil.className('ux-list', this.props.className, this.props.highlight && 'ux-list-highlight');
     return (
       <div className={ className }>
         { rows }
-        { lastDrop }
+        { lastDropTarget }
         { editor }
       </div>
     );
   }
 }
+
+//
+// To child <ListItem/> components.
+// Enable sub-components to access the item and handlers.
+//
+const ListItemChildContextTypes = {
+  item: React.PropTypes.object,
+
+  // Inherit these from parent List.
+  onItemSelect: React.PropTypes.func,
+  onItemUpdate: React.PropTypes.func
+};
 
 /**
  * List item component (and sub-components).
@@ -302,13 +375,20 @@ export class List extends React.Component {
  */
 export class ListItem extends React.Component {
 
-  // TODO(burdon): Custom columns (by type).
+  /**
+   * Creates an inline ListItem widget with the context declarations.
+   * @param render
+   * @returns {*}
+   */
+  static createInlineComponent(render) {
+    render.contextTypes = ListItemChildContextTypes;
+    return render;
+  }
 
-  //
-  // List Item Components.
-  //
-
-  static Debug = (props, context) => {
+  /**
+   * <ListItem.Debug/>
+   */
+  static Debug = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
     let { fields } = props;
 
@@ -316,75 +396,108 @@ export class ListItem extends React.Component {
     return (
       <div className="ux-debug">{ JSON.stringify(obj, null, 1) }</div>
     );
-  };
+  });
 
-  // TODO(burdon): Provide generic callback.
-  static Icon = (props, context) => {
+  /**
+   * <ListItem.Icon/>
+   */
+  static Icon = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
 
-    let icon = props.icon;
+    let icon = props.icon || item.icon || '';
     if (icon.startsWith('http') || icon.startsWith('/')) {
       return (
         <i className="ux-icon ux-icon-img">
           <img src={ icon }/>
         </i>
-      )
+      );
     } else {
       return (
-        <i className="ux-icon">{ props.icon }</i>
+        <i className="ux-icon">{ icon }</i>
       );
     }
-  };
+  });
 
-  static Favorite = (props, context) => {
+  /**
+   * <ListItem.Favorite/>
+   */
+  static Favorite = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
-    let { onSetLabel } = props;
 
+    // TODO(burdon): Generalize to toggle any icon.
     let set = _.indexOf(item.labels, '_favorite') != -1;
-    return (
-      <i className="ux-icon"
-         onClick={ onSetLabel.bind(null, item, '_favorite', !set) }>
-        { set ? 'star' : 'star_border' }
-      </i>
-    );
-  };
+    const handleToggleLabel = () => {
+      context.onItemUpdate(item, [
+        MutationUtil.createLabelMutation('_favorite', !set)
+      ]);
+    };
 
-  static Title = (props, context) => {
+    return (
+      <i className="ux-icon" onClick={ handleToggleLabel }>{ set ? 'star' : 'star_border' }</i>
+    );
+  });
+
+  /**
+   * <ListItem.Title select={ true }/>
+   */
+  static Title = ListItem.createInlineComponent((props, context) => {
     let { item, onItemSelect } = context;
     let { select=true } = props;
 
-    return (
-      <div className="ux-expand ux-text ux-selector"
-           onClick={ select && onItemSelect.bind(null, item) }>
-        { item.title }
-      </div>
-    );
-  };
+    // NOTE: Use onMouseDown instead of onClick (happens before onBlur for focusable components).
+    if (select) {
+      return (
+        <div className="ux-expand ux-text ux-selector"
+             onMouseDown={ select && onItemSelect.bind(null, item) }>
+          { item.title }
+        </div>
+      );
+    } else {
+      return (
+        <div className="ux-expand ux-text">{ item.title }</div>
+      );
+    }
+  });
 
-  static Delete = (props, context) => {
+  /**
+   * <ListItem.Delete/>
+   */
+  static Delete = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
-    let { onDelete } = props;
+
+    const handleDelete = () => {
+      context.onItemUpdate(item, [
+        MutationUtil.createDeleteMutation(_.findIndex(item.labels, '_deleted') == -1)
+      ]);
+    };
 
     return (
-      <i className="ux-icon ux-icon-delete"
-         onClick={ onDelete.bind(null, item) }>cancel</i>
+      <i className="ux-icon ux-icon-delete" onClick={ handleDelete }>cancel</i>
     );
-  };
+  });
 
+  //
+  // Provided by renderer.
+  //
   static propTypes = {
+    // TODO(burdon): Highlight on/off.
+    item: React.PropTypes.object.isRequired,
     className: React.PropTypes.string,
   };
 
+  //
   // From parent <List/> control.
+  //
   static contextTypes = {
     onItemSelect: React.PropTypes.func.isRequired,
+    onItemUpdate: React.PropTypes.func
   };
 
+  //
   // To child <ListItem/> components.
-  static childContextTypes = {
-    onItemSelect: React.PropTypes.func,
-    item: React.PropTypes.object
-  };
+  // Enable sub-components to access the item and handlers.
+  //
+  static childContextTypes = ListItemChildContextTypes;
 
   getChildContext() {
     return {
@@ -392,21 +505,15 @@ export class ListItem extends React.Component {
     }
   }
 
-  // TODO(burdon): CSS remove: ux-data-row.
   render() {
+    let { children, className } = this.props;
+
     return (
-      <div className={ 'ux-row ux-data-row ' + (this.props.className || '') }>
-        { this.props.children }
+      <div className={ DomUtil.className('ux-row', 'ux-data-row', className) }>
+        { children }
       </div>
     );
   }
 }
 
-ListItem.Debug.contextTypes     = ListItem.childContextTypes;
-ListItem.Icon.contextTypes      = ListItem.childContextTypes;
-ListItem.Favorite.contextTypes  = ListItem.childContextTypes;
-ListItem.Title.contextTypes     = ListItem.childContextTypes;
-ListItem.Delete.contextTypes    = ListItem.childContextTypes;
-
-// TODO(burdon): Should be broader than List (i.e., on Board, etc.)
 export const DragDropList = DragDropContext(HTML5Backend)(List);
