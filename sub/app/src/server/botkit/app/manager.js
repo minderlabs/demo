@@ -17,8 +17,8 @@ const logger = Logger.get('botkit');
  */
 export class BotKitManager {
   constructor(config, database) {
-    this.config = config;
-    this.database = database;
+    this._config = config;
+    this._database = database;
 
     // Cache the bots (and their RTM connections etc), keyed by bot token.
     this._bots = new Map();
@@ -54,7 +54,7 @@ export class BotKitManager {
       scopes: ['commands', 'bot', 'incoming-webhook', 'search:read']
     });
 
-    this.slackbot = new SlackBot(this.controller, this.database);
+    this.slackbot = new SlackBot(this.controller, this._database);
   }
 
   /**

@@ -100,7 +100,7 @@ export class ItemRenderer {
     // TODO(madadam): Fix this to reflect new task schema.
     if (item.type === 'Task') {
       // TODO(burdon): Status code consts.
-      if (_.get(item, 'status') == 3) { // status COMPLETE
+      if (_.get(item, 'status') == 2) { // status COMPLETE
         ItemRenderer._maybeAddField(result, 'Status', 'Done', IS_SHORT_FIELD);
         TypeUtil.maybeSet(this.result, 'color', 'good');
       } else {
@@ -126,9 +126,6 @@ export class ItemRenderer {
     return Promise.all(promises)
       .then(resolvedPromises => {
         return result;
-      })
-      .catch(err => {
-        console.error('Promise failed: ' + err);
       });
   }
 

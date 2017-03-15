@@ -17,7 +17,7 @@ export class Action {
 // TODO(madadam): EditAction --> opens up in CRX.
 class EditAction extends Action {
   run(bot, message, item, context) {
-    bot.reply(message, 'Item selected. Opening in sidebar...');
+    bot.reply(message, 'Opening item ' + item.id);
   }
 }
 

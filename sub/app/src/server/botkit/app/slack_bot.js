@@ -37,6 +37,7 @@ const logger = Logger.get('botkit');
 export class SlackBot {
 
   constructor(controller, database) {
+    console.assert(controller && database);
     this.controller = controller;
     this.database = database;
 
@@ -79,9 +80,9 @@ export class SlackBot {
         };
         return this.database.queryItems({}, {}, filter)
           .then(items => {
-            let user = _.find(items, {'email': email});
+            let user = _.find(items, { email });
             if (!user) {
-              throw new Error('No known user for email ' + email);
+              throw new Error('Invalid user: ' + email);
             }
             return user;
           });
