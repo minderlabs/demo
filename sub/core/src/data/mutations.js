@@ -331,7 +331,7 @@ export class Mutator {
       }
     });
 
-    this._analytics && this._analytics.track('Create Item', {label: type});
+    this._analytics && this._analytics.track('item.create', {label: type});
 
     return item;
   }
@@ -403,7 +403,7 @@ export class Mutator {
         }
       });
 
-      this._analytics && this._analytics.track('Edit Item', {label: item.type});
+      this._analytics && this._analytics.track('item.edit', {label: item.type});
 
       return item;
     }
