@@ -279,6 +279,7 @@ export class ItemUtil {
    * @private
    */
   static groupBy(items, getGroupKey) {
+    console.assert(items && getGroupKey);
 
     // TODO(burdon): Reimplement grouping using search items.
     // Currently item.refs pollutes the apollo client cache (since depends on search context).

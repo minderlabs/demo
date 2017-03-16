@@ -8,6 +8,7 @@ import { Database } from './database';
 import { IdGenerator } from './id';
 import { ItemUtil } from './item_store';
 import { Matcher } from './matcher';
+import { MemoryItemStore } from './memory_item_store';
 
 const matcher = new Matcher();
 
@@ -22,21 +23,6 @@ const tests = (itemStore) => {
 
   let database = new Database()
     .registerItemStore(itemStore);
-
-  it('Create and get items.', (done) => {
-    let context = {};
-
-    // TODO(burdon): Test ID.
-    database.getItemStore().upsertItems(context, [{ type: 'User', title: 'Minder' }]).then(items => {
-      expect(items).to.exist;
-      expect(items.length).to.equal(1);
-
-      database.getItemStore().getItem(context, 'User', items[0].id).then(item => {
-        expect(item.title).to.equal('Minder');
-        done();
-      });
-    });
-  });
 
   it('Groups items.', () => {
     let items = [
@@ -87,7 +73,16 @@ const tests = (itemStore) => {
       }
     ];
 
-    let groupedItems = ItemUtil.groupBy(items);
+    // TODO(madadam): TypeUtil or TypeRegistry.
+    const getGroupKey = item => {
+      switch (item.type) {
+        case 'Task': {
+          return item.project;
+        }
+      }
+    };
+
+    let groupedItems = ItemUtil.groupBy(items, getGroupKey);
 
     expect(groupedItems).to.have.lengthOf(6);
     expect(groupedItems[0].id).to.equal('project-1');
@@ -96,10 +91,5 @@ const tests = (itemStore) => {
   });
 };
 
-/*
 describe('MemoryDatabase:',
   () => tests(new MemoryItemStore(idGenerator, matcher, 'test')));
-
-describe('RedisDatabase:',
-  () => tests(new RedisItemStore(fakeredis.createClient(), matcher)));
-*/
