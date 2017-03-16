@@ -152,6 +152,8 @@ class BackgroundApp {
         // Triggers popup.
         return this._authManager.authenticate(true).then(user => {
 
+          this._analytics.identify(user.uid);
+
           // Register with server.
           return this.connect().then(registration => {
 
