@@ -4,6 +4,7 @@
 
 import _ from 'lodash';
 
+import { ID } from './id';
 import { ErrorUtil } from '../util/error';
 import { TypeUtil } from '../util/type';
 

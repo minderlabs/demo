@@ -99,7 +99,12 @@ export class StatusBar extends React.Component {
         href: '/admin',
         title: 'Admin console',
         icon: 'graphic_eq'
-      }
+      },
+      {
+        href: '/accounts',
+        title: 'Accounts',
+        icon: 'apps'
+      },
     ];
 
     return (
