@@ -144,11 +144,11 @@ export class TypeUtil {
   }
 
   /**
-   * Set obj.key = val if val evaluates true.
+   * Set obj.key = val if val is not null or undefined.
    * Returns the object.
    */
   static maybeSet(obj, path, val) {
-    val && _.set(obj, path, val);
+    !_.isNil(val) && _.set(obj, path, val);
     return obj;
   }
 

@@ -70,9 +70,7 @@ export class SlackBot {
     })
       .then(user => {
         let email = _.get(user, 'profile.email');
-        if (!email) {
-          throw new Error('Unknown user');
-        }
+        console.assert(email);
         // TODO(madadam): Query userStore by email.
         // For now, iterate through all users in the UserStore (via Database).
         let filter = {
