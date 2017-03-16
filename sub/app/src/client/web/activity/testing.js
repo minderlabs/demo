@@ -11,9 +11,9 @@ import { List } from 'minder-ux';
 
 import { Navbar } from '../component/navbar';
 import { Card } from '../component/card';
-import { FullLayout } from '../layout/full';
 
 import { Activity } from './activity';
+import { Layout } from './layout';
 
 /**
  * Testing Activity.
@@ -73,13 +73,13 @@ class TestingActivity extends React.Component {
     );
 
     return (
-      <FullLayout navbar={ navbar }>
+      <Layout navbar={ navbar }>
         <List ref="list"
               highlight={ false }
               items={ items }
               itemRenderer={ itemRenderer }
               onItemUpdate={ this.onItemUpdate.bind(this) }/>
-      </FullLayout>
+      </Layout>
     );
   }
 }
@@ -90,7 +90,7 @@ class TestingActivity extends React.Component {
 
 const TestQuery = gql`
   query TestQuery($filter: FilterInput) {
-    items(filter: $filter) {
+    items: search(filter: $filter) {
       ...ItemFragment
       ...ContactFragment
       ...TaskFragment

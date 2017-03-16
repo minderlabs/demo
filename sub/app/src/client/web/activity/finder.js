@@ -4,14 +4,13 @@
 
 import React from 'react';
 
-import { Const } from '../../../common/defs';
+import { ReactUtil } from 'minder-ux';
 
 import { Navbar } from '../component/navbar';
-import { FullLayout } from '../layout/full';
-import { SplitLayout } from '../layout/split';
 import Finder from '../view/finder';
 
 import { Activity } from './activity';
+import { Layout } from './layout';
 
 /**
  * Finder Activity.
@@ -34,24 +33,17 @@ class FinderActivity extends React.Component {
   }
 
   render() {
-    let { config, viewer, contextManager, params: { folder='inbox' } } = this.props;
+    return ReactUtil.render(this, () => {
+      let { config, viewer, contextManager, params: { folder='inbox' } } = this.props;
 
-    let navbar = <Navbar/>;
+      let navbar = <Navbar/>;
 
-    let finder = <Finder viewer={ viewer } folder={ folder } contextManager={ contextManager }/>;
+      let finder = <Finder viewer={ viewer } folder={ folder } contextManager={ contextManager }/>;
 
-    let platform = _.get(config, 'app.platform');
-    if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {
       return (
-        <FullLayout navbar={ navbar }>
-          { finder }
-        </FullLayout>
+        <Layout navbar={ navbar } finder={ finder }/>
       );
-    } else {
-      return (
-        <SplitLayout navbar={ navbar } finder={ finder }/>
-      );
-    }
+    });
   }
 }
 

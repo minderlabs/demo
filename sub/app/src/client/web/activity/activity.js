@@ -46,14 +46,14 @@ const mapStateToProps = (state, ownProps) => {
   return {
     config,
     registration,
-
-    idGenerator,
     typeRegistry,
     queryRegistry,
     eventHandler,
-
     contextManager,
-    navigator
+    navigator,
+
+    // Required by Mutator.
+    idGenerator
   };
 };
 
@@ -77,6 +77,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 //-------------------------------------------------------------------------------------------------
 // HOC.
 //-------------------------------------------------------------------------------------------------
+
+// Top-level query provided in context.
+// TODO(burdon): Factor out Groups, Projects and Folders which might change (require reducer, etc.)
+// TODO(burdon): Pre-populate from server in DOM?
 
 const ViewerQuery = gql`
   query ViewerQuery {
@@ -155,18 +159,18 @@ export class Activity {
   static getChildContext(props) {
     let {
       config,
-      viewer,
       registration,
       typeRegistry,
       queryRegistry,
       eventHandler,
       contextManager,
       navigator,
-      mutator
+      mutator,
+
+      viewer
     } = props;
 
     console.assert(config);
-    console.assert(viewer);
     console.assert(registration);
     console.assert(typeRegistry);
     console.assert(queryRegistry);
@@ -177,14 +181,15 @@ export class Activity {
 
     return {
       config,
-      viewer,
       registration,
       typeRegistry,
       queryRegistry,
       eventHandler,
       contextManager,
       navigator,
-      mutator
+      mutator,
+
+      viewer
     };
   }
 }

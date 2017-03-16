@@ -4,14 +4,15 @@
 
 import React from 'react';
 
+import { ReactUtil } from 'minder-ux';
+
 import { Const } from '../../../common/defs';
 
-import { FullLayout } from '../layout/full';
-import { SplitLayout } from '../layout/split';
 import { CanvasContainer, CanvasNavbar } from '../component/canvas';
 import Finder from '../view/finder';
 
 import { Activity } from './activity';
+import { Layout } from './layout';
 
 /**
  * Canvas Activity.
@@ -40,32 +41,29 @@ class CanvasActivity extends React.Component {
   }
 
   render() {
-    let { config, viewer, params: { type, canvas, itemId } } = this.props;
+    return ReactUtil.render(this, () => {
+      let { config, viewer, params: { type, canvas, itemId } } = this.props;
 
-    let canvasComponent = (
-      <CanvasContainer ref="canvas" canvas={ canvas } type={ type } itemId={ itemId }/>
-    );
-
-    let navbar = (
-      <CanvasNavbar onSave={ this.handleSave.bind(this) } canvas={ canvas } type={ type } itemId={ itemId }/>
-    );
-
-    // TODO(burdon): Layout based on form factor. Replace "expand" prop below with app state.
-    let platform = _.get(config, 'app.platform');
-    if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {
-      return (
-        <FullLayout navbar={ navbar }>
-          { canvasComponent }
-        </FullLayout>
+      let navbar = (
+        <CanvasNavbar onSave={ this.handleSave.bind(this) } canvas={ canvas } type={ type } itemId={ itemId }/>
       );
-    } else {
-      let finder = <Finder viewer={ viewer } folder={ 'inbox' }/>;
-      return (
-        <SplitLayout navbar={ navbar } finder={ finder }>
-          { canvasComponent }
-        </SplitLayout>
+
+      let canvasComponent = (
+        <CanvasContainer ref="canvas" canvas={ canvas } type={ type } itemId={ itemId }/>
       );
-    }
+
+      let finder = null;
+      let platform = _.get(config, 'app.platform');
+      if (platform !== Const.PLATFORM.MOBILE && platform !== Const.PLATFORM.CRX) {
+        finder = <Finder viewer={ viewer } folder={ 'inbox' }/>;
+      }
+
+      return (
+        <Layout navbar={ navbar } finder={ finder }>
+          { canvasComponent }
+        </Layout>
+      );
+    });
   }
 }
 

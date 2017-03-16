@@ -9,9 +9,8 @@ import gql from 'graphql-tag';
 import { ItemFragment, GroupFragment } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
-import { FullLayout } from '../layout/full';
-
 import { Activity } from './activity';
+import { Layout } from './layout';
 
 import './admin.less';
 
@@ -50,9 +49,7 @@ class AdminActivity extends React.Component {
     let { items:groups } = this.props;
     let { groupId } = this.state;
 
-    // TODO(burdon): Remove from list.
-    // TODO(burdon): Add to list.
-    // TODO(burdon): Join whitelist with actual members.
+    // TODO(burdon): Join whitelist with actual members (rather than 2 columns).
 
     let navbar = <div/>;
 
@@ -70,26 +67,25 @@ class AdminActivity extends React.Component {
     }
 
     return (
-      <FullLayout navbar={ navbar } search={ false }>
-        <div className="ux-column app-admin">
-          <h1>Groups</h1>
-          <div className="ux-columns">
-            {/* Master */}
-            <div className="ux-column app-admin-groups">
-              <List ref="groups"
-                    items={ groups }
-                    onItemSelect={ this.handleSelectGroup.bind(this) }/>
-            </div>
+      <Layout navbar={ navbar } search={ false } className="app-admin-activity">
+        <h1>Groups</h1>
+        <div className="ux-columns">
 
-            {/* Detail */}
-            <div className="ux-column app-admin-whitelist">
-              <List ref="whitelist"
-                    items={ whitelist }
-                    itemRenderer={ AdminActivity.ItemRenderer }/>
-            </div>
+          {/* Master */}
+          <div className="ux-column app-admin-groups">
+            <List ref="groups"
+                  items={ groups }
+                  onItemSelect={ this.handleSelectGroup.bind(this) }/>
+          </div>
+
+          {/* Detail */}
+          <div className="ux-column app-admin-whitelist">
+            <List ref="whitelist"
+                  items={ whitelist }
+                  itemRenderer={ AdminActivity.ItemRenderer }/>
           </div>
         </div>
-      </FullLayout>
+      </Layout>
     );
   }
 }
@@ -100,7 +96,7 @@ class AdminActivity extends React.Component {
 
 const AdminQuery = gql`
   query AdminQuery($groupFilter: FilterInput) { 
-    items(filter: $groupFilter) {
+    items: search(filter: $groupFilter) {
       ...ItemFragment
       ...GroupFragment
       
@@ -122,7 +118,6 @@ export default compose(
     options: (props) => ({
       variables: {
         groupFilter: {
-          // TODO(burdon): Const.
           namespace: 'system',
           type: 'Group'
         }
