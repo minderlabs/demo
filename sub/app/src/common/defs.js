@@ -2,7 +2,10 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import path from 'path';
+
+const MINDER_CONF_DIR =  _.get(process.env, 'MINDER_CONF_DIR', './conf');
 
 /**
  * Client configuration.
@@ -21,7 +24,7 @@ export const FirebaseAppConfig = {
   // Generated 3/4/17 (Create Key from Service Accounts: firebase-adminsdk).
   // https://console.firebase.google.com/project/minder-beta/settings/serviceaccounts/adminsdk
   // https://console.cloud.google.com/iam-admin/serviceaccounts/project?consoleUI=FIREBASE&project=minder-beta
-  credentialPath: path.join(__dirname, './conf/minder-beta-44ee54278556.json')
+  credentialPath: path.join(__dirname, MINDER_CONF_DIR, '/minder-beta-44ee54278556.json')
 };
 
 // TODO(burdon): Manage configs.
@@ -35,7 +38,7 @@ export const FirebaseTestingAppConfig = {
   // Generated 3/4/17 (Create Key from Service Accounts: firebase-adminsdk).
   // https://console.firebase.google.com/project/minder-qa/settings/serviceaccounts/adminsdk
   // https://console.cloud.google.com/iam-admin/serviceaccounts/project?consoleUI=FIREBASE&project=minder-qa
-  credentialPath: path.join(__dirname, './conf/minder-qa-e90e2fe651a3.json')
+  credentialPath: path.join(__dirname, MINDER_CONF_DIR, '/minder-qa-e90e2fe651a3.json')
 };
 
 /**

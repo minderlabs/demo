@@ -6,7 +6,7 @@ import React from 'react';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
-f
+
 import { DomUtil, ID} from 'minder-core';
 import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 

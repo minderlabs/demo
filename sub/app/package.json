@@ -115,9 +115,7 @@
   "scripts": {
     "//": [
       "nodemon => babel-node: runs the server with auto-rebuild (via babel) on change.",
-      "start => runs the server with hot module replacement (server not updated).",
-      "NOTE: nodemon seems to cache .graphql imports.",
-      "NOTE: npm run server won't work without symlinks."
+      "start => runs the server with hot module replacement (server not updated)."
     ],
     "webpack": "webpack --watch",
     "webpack-server": "webpack --config webpack-server.config.js",

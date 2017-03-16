@@ -16,6 +16,7 @@ import moment from 'moment';
 import {
   ErrorUtil,
   Logger,
+  NotAuthenticatedError,
   TypeUtil
 } from 'minder-core';
 
@@ -209,8 +210,11 @@ if (env.startsWith('hot')) {
 // https://github.com/ericf/express-handlebars
 //
 
+const MINDER_VIEWS_DIR = _.get(process.env, 'MINDER_VIEWS_DIR', './views');
+
 app.engine('handlebars', handlebars({
-  layoutsDir: path.join(__dirname, 'views/layouts'),
+  layoutsDir: path.join(__dirname, MINDER_VIEWS_DIR, '/layouts'),
+
   defaultLayout: 'main',
 
   helpers: {
@@ -238,7 +242,7 @@ app.engine('handlebars', handlebars({
 }));
 
 app.set('view engine', 'handlebars');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, MINDER_VIEWS_DIR));
 
 
 //
@@ -257,8 +261,10 @@ if (env === 'production') {
 // https://expressjs.com/en/starter/static-files.html
 //
 
-app.use(favicon(path.join(__dirname, 'public/favicon.ico')));
-app.use(express.static(path.join(__dirname, 'public')));
+const MINDER_PUBLIC_DIR = _.get(process.env, 'MINDER_PUBLIC_DIR', './public');
+
+app.use(favicon(path.join(__dirname, MINDER_PUBLIC_DIR, '/favicon.ico')));
+app.use(express.static(path.join(__dirname, MINDER_PUBLIC_DIR)));
 
 
 //
@@ -326,10 +332,10 @@ app.use(graphqlRouter(database, {
 // TODO(burdon): Move to Util (how to use handlebars in external lib?)
 //
 
-let staticPath = (env === 'production') ?
-    path.join(__dirname, '../node_modules') : path.join(__dirname, '../../node_modules');
+const MINDER_NODE_MODULES_DIR =
+  _.get(process.env, 'MINDER_NODE_MODULES_DIR', (env === 'production') ? '../node_modules' : '../../node_modules');
 
-app.use('/node_modules', express.static(staticPath));
+app.use('/node_modules', express.static(path.join(__dirname, MINDER_NODE_MODULES_DIR)));
 
 app.get('/graphiql', function(req, res) {
   return userManager.getUserFromCookie(req)
@@ -384,13 +390,16 @@ if (botkitManager) {
 // Web App.
 //
 
+const MINDER_ASSETS_DIR =
+  _.get(process.env, 'MINDER_ASSETS_DIR', (env === 'production') ? '.' : '../../dist');
+
 app.use(appRouter(userManager, clientManager, systemStore, {
 
   // App root path.
   root: Const.APP_PATH,
 
   // Webpack assets.
-  assets: (env === 'production') ? __dirname : path.join(__dirname, '../../dist'),
+  assets: path.join(__dirname, MINDER_ASSETS_DIR),
 
   // Client config.
   config: {
@@ -413,20 +422,6 @@ app.use(appRouter(userManager, clientManager, systemStore, {
 //
 // Catch-all (last).
 //
-
-app.use('/foo', function(req, res, next) {
-  return new Promise((resolve, reject) => {
-
-    console.log(req.query);
-
-    if (req.query.error) {
-      throw new Error('!!!');
-    }
-
-    res.send('HI');
-    resolve();
-  }).catch(next);
-});
 
 app.use('/', function(req, res) {
   res.redirect('/home');
@@ -460,7 +455,7 @@ app.use(function(req, res) {
 //
 
 app.use(function(error, req, res, next) {
-  if (error === NotAuthenticated) {
+  if (error === NotAuthenticatedError) {
     return res.status(401).end();
   }
 
