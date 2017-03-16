@@ -25,6 +25,7 @@ class EditAction extends Action {
  * Dispatch on incoming interactive message button actions to take appropriate action.
  */
 export class ActionDispatcher {
+
   constructor() {
     this.actions = {
       //'done': DoneAction,

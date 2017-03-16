@@ -159,17 +159,18 @@ database
 // NOTE: Disabled for testing since slow startup.
 //
 
-const botkitManager = false && !testing && new BotKitManager({
-  port,
-  redirectHost: _.get(process.env, 'OAUTH_REDIRECT_ROOT', 'http://localhost:' + port),
-  ...SlackConfig
-}, database);
+let botkitManager = null;
 
-if (botkitManager) {
+if (_.get(process.env, 'MINDER_BOTKIT', false)) {
+  botkitManager = new BotKitManager({
+    port,
+    redirectHost: _.get(process.env, 'OAUTH_REDIRECT_ROOT', 'http://localhost:' + port),
+    ...SlackConfig
+  }, database);
+
   database
     .registerQueryProcessor(new SlackQueryProcessor(idGenerator, matcher, botkitManager));
 }
-
 
 //
 // Data initialization.
@@ -377,7 +378,6 @@ app.use('/client', clientRouter(userManager, clientManager, systemStore));
 if (botkitManager) {
   app.use('/botkit', botkitRouter(botkitManager));
 }
-
 
 //
 // Web App.

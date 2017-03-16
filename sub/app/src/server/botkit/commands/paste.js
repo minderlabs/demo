@@ -6,6 +6,7 @@ import { Command } from './command';
 import { ItemRenderer } from '../renderer/renderer';
 
 export class PasteCommand extends Command {
+
   constructor() {
     super();
   }
