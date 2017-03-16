@@ -11,12 +11,11 @@ import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 import { Const } from '../../../common/defs';
 import { Path } from '../../common/path';
 
-import { SidePanel } from '../component/sidepanel';
+import SidePanel from '../view/sidepanel';
+
 import { StatusBar } from '../component/statusbar';
 
 import './layout.less';
-
-// TODO(burdon): Rename ActivityContainer.
 
 /**
  * Layout for all containers.
@@ -66,13 +65,9 @@ export class Layout extends React.Component {
     return ReactUtil.render(this, () => {
       let { config, viewer, typeRegistry } = this.context;
       let { navbar, finder, children, className } = this.props;
-
-      let sidePanel = <SidePanel typeRegistry={ typeRegistry }
-                                 folders={ viewer.folders }
-                                 group={ viewer.group }
-                                 projects={ viewer.group.projects }/>;
-
       let platform = _.get(config, 'app.platform');
+
+      let sidePanel = <SidePanel typeRegistry={ typeRegistry }/>;
 
       let content;
       if (finder) {

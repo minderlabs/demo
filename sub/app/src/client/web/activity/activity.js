@@ -79,7 +79,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 //-------------------------------------------------------------------------------------------------
 
 // Top-level query provided in context.
-// TODO(burdon): Factor out Groups, Projects and Folders which might change (require reducer, etc.)
+// TODO(burdon): Remove Group.
+// TODO(burdon): Remove Project.
 // TODO(burdon): Pre-populate from server in DOM?
 
 const ViewerQuery = gql`
@@ -105,14 +106,6 @@ const ViewerQuery = gql`
           title
         }
       }
-
-      folders {
-        type
-        id
-        alias
-        title
-        icon
-      }
     }
   }
 `;
@@ -127,22 +120,30 @@ export class Activity {
   /**
    * Connect properties for activities.
    */
-  static connect = () => compose(
+  static compose() {
+    let connectors = [
 
-    // Redux state.
-    connect(mapStateToProps, mapDispatchToProps, mergeProps),
+      // Redux state.
+      connect(mapStateToProps, mapDispatchToProps, mergeProps),
 
-    // Apollo mutation.
-    Mutator.graphql(),
+      // Apollo mutation.
+      Mutator.graphql(),
 
-    // Apollo viewer query.
-    graphql(ViewerQuery, {
+      // Apollo viewer query.
+      graphql(ViewerQuery, {
 
-      props: ({ ownProps, data }) => {
-        return _.pick(data, ['loading', 'error', 'viewer'])
-      }
-    })
-  );
+        props: ({ ownProps, data }) => {
+          return _.pick(data, ['loading', 'error', 'viewer'])
+        }
+      })
+    ];
+
+    if (arguments) {
+      connectors = _.concat(connectors, arguments);
+    }
+
+    return compose(... connectors);
+  };
 
   static childContextTypes = {
     config:           React.PropTypes.object,

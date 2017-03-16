@@ -8,7 +8,7 @@ import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { IdGenerator, QueryParser, SubscriptionWrapper } from 'minder-core';
-import { ItemFragment, ContactFragment } from 'minder-core';
+import { Fragments } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -93,8 +93,6 @@ class Finder extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
-// TODO(burdon): Factor out.
-// TODO(burdon): Get from top-level Activity.
 const FoldersQuery = gql`
   query FoldersQuery {
     viewer {
@@ -118,8 +116,8 @@ const ContextQuery = gql`
     }
   }
 
-  ${ItemFragment}
-  ${ContactFragment}
+  ${Fragments.ItemFragment}
+  ${Fragments.ContactFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
@@ -168,9 +166,6 @@ export default compose(
     props: ({ ownProps, data }) => {
       let { loading, error, viewer } = data;
       let { filter } = ownProps;
-
-      // TODO(burdon): !!! PASS in folders separately
-      //viewer = ownProps.viewer;
 
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {
@@ -221,6 +216,7 @@ export default compose(
       return {
         contextItems,
 
+        // For subscriptions.
         refetch: () => {
           data.refetch();
         }

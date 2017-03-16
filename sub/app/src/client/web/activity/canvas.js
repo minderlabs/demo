@@ -8,8 +8,9 @@ import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
 
-import { CanvasContainer, CanvasNavbar } from '../component/canvas';
 import Finder from '../view/finder';
+
+import { CanvasContainer, CanvasNavbar } from '../component/canvas';
 
 import { Activity } from './activity';
 import { Layout } from './layout';
@@ -67,4 +68,4 @@ class CanvasActivity extends React.Component {
   }
 }
 
-export default Activity.connect()(CanvasActivity);
+export default Activity.compose()(CanvasActivity);

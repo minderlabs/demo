@@ -6,7 +6,7 @@ import React from 'react';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ItemFragment, UserFragment, ItemReducer } from 'minder-core';
+import { Fragments, ItemReducer } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
 import { connectReducer } from '../framework/connector';
@@ -97,8 +97,8 @@ const UserQuery = gql`
     }
   }
 
-  ${ItemFragment}
-  ${UserFragment}  
+  ${Fragments.ItemFragment}
+  ${Fragments.UserFragment}  
 `;
 
 export const UserCanvas = compose(

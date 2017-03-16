@@ -6,8 +6,11 @@ import React from 'react';
 
 import { ReactUtil } from 'minder-ux';
 
-import { Navbar } from '../component/navbar';
+import { Const } from '../../../common/defs';
+
 import Finder from '../view/finder';
+
+import { Navbar } from '../component/navbar';
 
 import { Activity } from './activity';
 import { Layout } from './layout';
@@ -34,17 +37,23 @@ class FinderActivity extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { config, viewer, contextManager, params: { folder='inbox' } } = this.props;
+      let { viewer, contextManager, params: { folder='inbox' } } = this.props;
 
       let navbar = <Navbar/>;
 
       let finder = <Finder viewer={ viewer } folder={ folder } contextManager={ contextManager }/>;
 
+      let content = null;
+      let platform = _.get(config, 'app.platform');
+      if (platform !== Const.PLATFORM.MOBILE && platform !== Const.PLATFORM.CRX) {
+        content = <div/>;
+      }
+
       return (
-        <Layout navbar={ navbar } finder={ finder }/>
+        <Layout navbar={ navbar } finder={ finder }>{ content }</Layout>
       );
     });
   }
 }
 
-export default Activity.connect()(FinderActivity);
+export default Activity.compose()(FinderActivity);

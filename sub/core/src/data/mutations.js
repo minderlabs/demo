@@ -11,7 +11,7 @@ import { TypeUtil } from '../util/type';
 import { Transforms } from './transforms';
 import { ID } from './id';
 import { Database } from './database';
-import { ItemFragment, ContactFragment, TaskFragment, ProjectFragment, ProjectBoardFragment } from './fragments';
+import { Fragments } from './fragments';
 
 //
 // Generic mutation.
@@ -29,11 +29,11 @@ export const UpsertItemsMutation = gql`
     }
   }
   
-  ${ItemFragment}
-  ${ContactFragment}
-  ${TaskFragment}
-  ${ProjectFragment}
-  ${ProjectBoardFragment}
+  ${Fragments.ItemFragment}
+  ${Fragments.ContactFragment}
+  ${Fragments.TaskFragment}
+  ${Fragments.ProjectFragment}
+  ${Fragments.ProjectBoardFragment}
 `;
 
 export const UpsertItemsMutationName = // 'UpsertItemsMutation'

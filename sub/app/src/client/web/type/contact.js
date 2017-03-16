@@ -6,7 +6,7 @@ import React from 'react';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ItemReducer, ItemFragment, ContactFragment, MutationUtil } from 'minder-core';
+import { ItemReducer, Fragments, MutationUtil } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
 import { connectReducer } from '../framework/connector';
@@ -168,8 +168,8 @@ const ContactQuery = gql`
     }
   }
 
-  ${ItemFragment}
-  ${ContactFragment}  
+  ${Fragments.ItemFragment}
+  ${Fragments.ContactFragment}  
 `;
 
 export const ContactCanvas = compose(

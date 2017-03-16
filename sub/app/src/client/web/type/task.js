@@ -8,7 +8,7 @@ import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { ID, ItemFragment, TaskFragment, ItemReducer, MutationUtil } from 'minder-core';
+import { ID, Fragments, ItemReducer, MutationUtil } from 'minder-core';
 import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
 
 import { Path } from '../../common/path';
@@ -400,8 +400,8 @@ const TaskQuery = gql`
     }
   }
 
-  ${ItemFragment}
-  ${TaskFragment}  
+  ${Fragments.ItemFragment}
+  ${Fragments.TaskFragment}  
 `;
 
 export const TaskCanvas = compose(

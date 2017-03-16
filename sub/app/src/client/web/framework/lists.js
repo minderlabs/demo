@@ -6,15 +6,7 @@ import React from 'react';
 import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
-import {
-  ItemFragment,
-  ContactFragment,
-  DocumentFragment,
-  ProjectFragment,
-  TaskFragment,
-  ListReducer,
-  SubscriptionWrapper
-} from 'minder-core';
+import { Fragments, ListReducer, SubscriptionWrapper } from 'minder-core';
 
 import { List, ListItem } from 'minder-ux';
 
@@ -97,7 +89,7 @@ const BasicItemFragment = gql`
     ...DocumentFragment
   }
 
-  ${DocumentFragment}
+  ${Fragments.DocumentFragment}
 `;
 
 const BasicSearchQuery = gql`
@@ -135,11 +127,11 @@ const CardItemFragment = gql`
     ...TaskFragment
   }
 
-  ${ItemFragment}
-  ${ContactFragment}
-  ${DocumentFragment}
-  ${ProjectFragment}
-  ${TaskFragment}
+  ${Fragments.ItemFragment}
+  ${Fragments.ContactFragment}
+  ${Fragments.DocumentFragment}
+  ${Fragments.ProjectFragment}
+  ${Fragments.TaskFragment}
 `;
 
 const CardSearchQuery = gql`
