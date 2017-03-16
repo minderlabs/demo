@@ -40,7 +40,7 @@ class CanvasActivity extends React.Component {
   }
 
   render() {
-    let { config, params: { type, canvas, itemId } } = this.props;
+    let { config, viewer, params: { type, canvas, itemId } } = this.props;
 
     let canvasComponent = (
       <CanvasContainer ref="canvas" canvas={ canvas } type={ type } itemId={ itemId }/>
@@ -59,7 +59,7 @@ class CanvasActivity extends React.Component {
         </FullLayout>
       );
     } else {
-      let finder = <Finder folder={ 'inbox' }/>;
+      let finder = <Finder viewer={ viewer } folder={ 'inbox' }/>;
       return (
         <SplitLayout navbar={ navbar } finder={ finder }>
           { canvasComponent }

@@ -31,6 +31,10 @@ class Finder extends React.Component {
     mutator: React.PropTypes.object.isRequired
   };
 
+  static propTypes = {
+    viewer: React.PropTypes.object.isRequired
+  };
+
   handleItemSelect(item) {
     this.context.navigator.pushCanvas(item);
   }
@@ -164,6 +168,9 @@ export default compose(
     props: ({ ownProps, data }) => {
       let { loading, error, viewer } = data;
       let { filter } = ownProps;
+
+      // TODO(burdon): !!! PASS in folders separately
+      //viewer = ownProps.viewer;
 
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {

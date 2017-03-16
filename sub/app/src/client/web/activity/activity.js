@@ -4,7 +4,8 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-import { compose } from 'react-apollo';
+import { compose, graphql } from 'react-apollo';
+import gql from 'graphql-tag';
 
 import { EventHandler, IdGenerator, Mutator, PropertyProvider, QueryRegistry } from 'minder-core';
 
@@ -73,6 +74,45 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return _.defaults({}, ownProps, stateProps, dispatchProps);
 };
 
+//-------------------------------------------------------------------------------------------------
+// HOC.
+//-------------------------------------------------------------------------------------------------
+
+const ViewerQuery = gql`
+  query ViewerQuery {
+
+    viewer {
+      user {
+        type
+        id
+        title
+      }
+
+      group {
+        type
+        id
+        title
+
+        projects {
+          type
+          id
+          type
+          labels
+          title
+        }
+      }
+
+      folders {
+        type
+        id
+        alias
+        title
+        icon
+      }
+    }
+  }
+`;
+
 /**
  * Activity helper.
  * Activities are top-level components that set-up the context.
@@ -84,12 +124,25 @@ export class Activity {
    * Connect properties for activities.
    */
   static connect = () => compose(
+
+    // Redux state.
     connect(mapStateToProps, mapDispatchToProps, mergeProps),
-    Mutator.graphql()
+
+    // Apollo mutation.
+    Mutator.graphql(),
+
+    // Apollo viewer query.
+    graphql(ViewerQuery, {
+
+      props: ({ ownProps, data }) => {
+        return _.pick(data, ['loading', 'error', 'viewer'])
+      }
+    })
   );
 
   static childContextTypes = {
     config:           React.PropTypes.object,
+    viewer:           React.PropTypes.object,
     registration:     React.PropTypes.object,
     typeRegistry:     React.PropTypes.object,
     queryRegistry:    React.PropTypes.object,
@@ -101,11 +154,30 @@ export class Activity {
 
   static getChildContext(props) {
     let {
-      config, registration, typeRegistry, queryRegistry, eventHandler, contextManager, navigator, mutator
+      config,
+      viewer,
+      registration,
+      typeRegistry,
+      queryRegistry,
+      eventHandler,
+      contextManager,
+      navigator,
+      mutator
     } = props;
+
+    console.assert(config);
+    console.assert(viewer);
+    console.assert(registration);
+    console.assert(typeRegistry);
+    console.assert(queryRegistry);
+    console.assert(eventHandler);
+    console.assert(contextManager);
+    console.assert(navigator);
+    console.assert(mutator);
 
     return {
       config,
+      viewer,
       registration,
       typeRegistry,
       queryRegistry,

@@ -34,11 +34,11 @@ class FinderActivity extends React.Component {
   }
 
   render() {
-    let { config, contextManager, params: { folder='inbox' } } = this.props;
+    let { config, viewer, contextManager, params: { folder='inbox' } } = this.props;
 
     let navbar = <Navbar/>;
 
-    let finder = <Finder folder={ folder } contextManager={ contextManager }/>;
+    let finder = <Finder viewer={ viewer } folder={ folder } contextManager={ contextManager }/>;
 
     let platform = _.get(config, 'app.platform');
     if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {

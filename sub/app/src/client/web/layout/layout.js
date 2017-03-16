@@ -25,6 +25,7 @@ export class BaseLayout extends React.Component {
 
   static contextTypes = {
     config: React.PropTypes.object.isRequired,
+    viewer: React.PropTypes.object.isRequired,
     typeRegistry: React.PropTypes.object.isRequired,
     queryRegistry: React.PropTypes.object.isRequired,
     eventHandler: React.PropTypes.object.isRequired
@@ -62,9 +63,8 @@ export class BaseLayout extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { config, typeRegistry } = this.context;
-      let { navbar, search, children, className } = this.props;
-      let { viewer } = this.props; // Data.
+      let { config, viewer, typeRegistry } = this.context;
+      let { navbar, children, className } = this.props;
 
       let sidePanel = <SidePanel typeRegistry={ typeRegistry }
                                  folders={ viewer.folders }
