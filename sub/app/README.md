@@ -36,7 +36,7 @@ Benefits over Relay:
  - Relay 2.0 looks sketchy (and moving towards Apollo)
 
 
-## Troubleshoorting:
+## Troubleshooting:
 
 - ERROR: [index.js Uncaught SyntaxError: Unexpected token export]
     - Babel (ES2015) not invoked (see "require" in webpack bundle).

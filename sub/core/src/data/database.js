@@ -36,7 +36,7 @@ const logger = Logger.get('db');
  * - User Items declare a Bucket which corresponds to a Group or User ID.
  *   - The database key is: "NAMESPACE/BUCKET/TYPE/ITEM-ID"
  *
- * - Queries implicitely declare Buckets via the resolver context (which computes which buckets are accessible).
+ * - Queries implicitly declare Buckets via the resolver context (which computes which buckets are accessible).
  */
 export class Database {
 
@@ -144,7 +144,7 @@ export class Database {
    * @param itemMutations
    * @param items
    */
-  fireMuationNotification(context, itemMutations, items) {
+  fireMutationNotification(context, itemMutations, items) {
     this._onMutation && this._onMutation(context, itemMutations, items);
   }
 
