@@ -133,3 +133,20 @@ export const Const = {
   CRX_ID: 'ofdkhkelcafdphpddfobhbbblgnloian',
   CRX_URL: crxId => 'https://chrome.google.com/webstore/detail/' + crxId
 };
+
+// TODO(burdon): Find a better place for non-deployment related app constants.
+// TODO(burdon): Get from query?
+// Enums with properties in javascript:
+// https://stijndewitt.com/2014/01/26/enums-in-javascript/
+export const TASK_LEVELS = {
+  UNSTARTED: 0,
+  ACTIVE:    1,
+  COMPLETE:  2,
+  BLOCKED:   3,
+  properties: {
+    0: { title: 'Unstarted'},
+    1: { title: 'Active'},
+    2: { title: 'Complete'},
+    3: { title: 'Blocked'}
+  }
+};
