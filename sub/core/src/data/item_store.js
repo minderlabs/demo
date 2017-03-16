@@ -183,7 +183,74 @@ export class DelegateItemStore extends ItemStore {
 }
 
 /**
- * Wrapper for item filtering and sorting.
+ * Base ItemStore.
+ */
+export class BaseItemStore extends ItemStore {
+
+  constructor(idGenerator, matcher, namespace, buckets) {
+    super(namespace, buckets);
+    console.assert(idGenerator && matcher);
+    this._idGenerator = idGenerator;
+    this._matcher = matcher;
+  }
+
+  /**
+   * Update the timestamps and set ID if create.
+   * @param item
+   * @return {*}
+   */
+  onUpdate(item) {
+    console.assert(item && item.type, 'Invalid item: ' + JSON.stringify(item));
+
+    // Client created items set the ID.
+    if (!item.id) {
+      item.id = this._idGenerator.createId();
+    }
+
+    // Standard metadata.
+    let ts = moment().unix();
+    _.defaults(item, {
+      created: ts,
+      modified: ts
+    });
+
+    return item;
+  }
+
+  /**
+   * Filter and sort list of items.
+   *
+   * @param itemIterator
+   * @param context
+   * @param root
+   * @param filter
+   * @param offset
+   * @param count
+   * @returns {Array}
+   */
+  // TODO(burdon): Rename filter and sort.
+  filterItems(itemIterator, context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+    let items = [];
+
+    // Match items.
+    itemIterator.forEach(item => {
+      if (this._matcher.matchItem(context, root, filter, item)) {
+        items.push(item);
+      }
+    });
+
+    // Sort.
+    items = ItemUtil.sortItems(items, filter);
+
+    // Page.
+    items = _.slice(items, offset, offset + count);
+
+    return items;
+  }
+}
+
+/**
+ * Item Utils.
  */
 export class ItemUtil {
 
@@ -270,7 +337,9 @@ export class ItemUtil {
           results.push(group);
 
           // Remove each grouped item.
-          _.each(group.refs, item => { itemsById.delete(item.id); });
+          _.each(group.refs, item => {
+            itemsById.delete(item.id);
+          });
         } else {
           // Add plain item.
           results.push(item);
@@ -282,65 +351,5 @@ export class ItemUtil {
     });
 
     return results;
-  }
-
-  constructor(idGenerator, matcher) {
-    console.assert(idGenerator && matcher);
-    this._idGenerator = idGenerator;
-    this._matcher = matcher;
-  }
-
-  /**
-   * Update the timestamps and set ID if create.
-   * @param item
-   * @return {*}
-   */
-  onUpdate(item) {
-    console.assert(item && item.type, 'Invalid item: ' + JSON.stringify(item));
-
-    // Client created items set the ID.
-    if (!item.id) {
-      item.id = this._idGenerator.createId();
-    }
-
-    // Standard metadata.
-    let ts = moment().unix();
-    _.defaults(item, {
-      created: ts,
-      modified: ts
-    });
-
-    return item;
-  }
-
-  /**
-   * Filter and sort list of items.
-   *
-   * @param itemIterator
-   * @param context
-   * @param root
-   * @param filter
-   * @param offset
-   * @param count
-   * @returns {Array}
-   */
-  // TODO(burdon): Rename filter and sort.
-  filterItems(itemIterator, context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
-    let items = [];
-
-    // Match items.
-    itemIterator.forEach(item => {
-      if (this._matcher.matchItem(context, root, filter, item)) {
-        items.push(item);
-      }
-    });
-
-    // Sort.
-    items = ItemUtil.sortItems(items, filter);
-
-    // Page.
-    items = _.slice(items, offset, offset + count);
-
-    return items;
   }
 }
