@@ -2,6 +2,8 @@
 // Copyright 2017 Minder Labs.
 //
 
+import { ID } from 'minder-core';
+
 //import { SlackItemSpecParser } from '../parser/parser';
 
 /**
