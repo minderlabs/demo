@@ -12,6 +12,7 @@ Logger.setLevel({
 
   'server'    : Logger.Level.debug,
   'auth'      : Logger.Level.info,
+  'botkit'    : Logger.Level.debug,
   'client'    : Logger.Level.debug,
   'net'       : Logger.Level.debug,
   'resolver'  : Logger.Level.debug,

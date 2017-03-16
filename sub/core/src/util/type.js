@@ -144,6 +144,27 @@ export class TypeUtil {
   }
 
   /**
+   * Set obj.key = val if val is not null or undefined.
+   * Returns the object.
+   */
+  static maybeSet(obj, path, val) {
+    !_.isNil(val) && _.set(obj, path, val);
+    return obj;
+  }
+
+  /**
+   * Get value for key or set to default value.
+   */
+  static getOrSet(obj, key, defaultVal) {
+    if (!obj.hasOwnProperty(key)) {
+      obj[key] = defaultVal;
+    }
+    return obj[key];
+  }
+
+  /**
+   * Iterates the collection sequentially calling the async function for each.
+   *
    * @param obj
    * @param f Function to call for each key x value. (value, key/index, root)
    */
