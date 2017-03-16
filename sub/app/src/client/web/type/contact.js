@@ -45,8 +45,8 @@ export class ContactCard extends React.Component {
     } else {
       let { item:parent } = this.props;
 
-      // TODO(burdon): If mutating context item then must clone (e.g., upsert title).
-      // TODO(burdon): Check search isn't returning null items.
+      // TODO(burdon): Add to default project.
+      // TODO(burdon): Get projects from context (from Layout).
 
       mutator.batch()
         .createItem('Task', _.concat(mutations, [
@@ -72,9 +72,9 @@ export class ContactCard extends React.Component {
         </div>
 
         { !_.isEmpty(tasks) &&
-          <div className="ux-card-section">
-            <h3>Tasks</h3>
-          </div>
+        <div className="ux-card-section">
+          <h3>Tasks</h3>
+        </div>
         }
         <div className="ux-list-tasks">
           <div className="ux-scroll-container">

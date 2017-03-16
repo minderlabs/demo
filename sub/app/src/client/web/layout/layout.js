@@ -6,7 +6,7 @@ import React from 'react';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
-
+f
 import { DomUtil, ID} from 'minder-core';
 import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 
@@ -129,9 +129,9 @@ export class BaseLayout extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
-// TODO(burdon): Factor out folders query.
+// TODO(burdon): Split out projects.
 const LayoutQuery = gql`
-  query LayoutQuery { 
+  query LayoutQuery {
 
     viewer {
       user {
@@ -149,6 +149,7 @@ const LayoutQuery = gql`
           type
           id
           type
+          labels
           title
         }
       }
@@ -165,6 +166,9 @@ const LayoutQuery = gql`
 `;
 
 export default compose(
+
+  // TODO(burdon): Store Projects list in context (and better understand caching).
+  // TODO(burdon): Add reducer to update projects list on mutation.
 
   // Configure query (from redux state).
   // http://dev.apollodata.com/react/queries.html#graphql-options

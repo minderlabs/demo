@@ -12,10 +12,10 @@ import {
   DocumentFragment,
   ProjectFragment,
   TaskFragment,
-  ListReducer
+  ListReducer,
+  SubscriptionWrapper
 } from 'minder-core';
 
-import { SubscriptionWrapper } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
 import { connectReducer } from './connector';

@@ -13,6 +13,8 @@ import gql from 'graphql-tag';
 // Canonical Query fragments (i.e., contain all fields).
 //
 
+// TODO(burdon): Create single exportable map.
+
 export const ValueFragment = gql`
   fragment ValueFragment on Value {
     null
@@ -39,8 +41,6 @@ export const ItemFragment = gql`
     description
   }
 `;
-
-// TODO(burdon): Create single exportable map.
 
 export const ContactFragment = gql`
   fragment ContactFragment on Contact {
