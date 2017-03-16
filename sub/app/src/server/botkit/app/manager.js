@@ -16,6 +16,7 @@ const logger = Logger.get('botkit');
  * Wraps botkit controller, configures oauth endpoints, and sets up Slack app logic.
  */
 export class BotKitManager {
+
   constructor(config, database) {
     this._config = config;
     this._database = database;
@@ -61,7 +62,6 @@ export class BotKitManager {
    * Start handling controller signals for bot creation and startup.
    */
   start() {
-
     this.controller.on('create_bot', (bot, config) => {
       logger.info('Created bot with token: ' + JSON.stringify(config));
       this.startBot(bot).then(({bot, isFirstConnect}) => {
@@ -155,6 +155,7 @@ export const botkitRouter = (manager) => {
       }
     })
     .createWebhookEndpoints(router);
+
   // TODO(madadam): Enable token verification after fixing the bug in botkit that breaks this for
   // interactive message buttons.
   //.createWebhookEndpoints(webserver, [_.get(process.env, 'slackVerificationToken')]);

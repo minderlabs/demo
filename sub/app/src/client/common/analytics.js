@@ -102,7 +102,6 @@ export class SegmentAnalytics extends Analytics {
   track(name, params) {
     this.analytics.track(name, params);
   }
-
 }
 
 /**
@@ -151,6 +150,7 @@ export class GoogleAnalytics extends Analytics {
     if (params.value) {
       eventArgs.value = params.value;
     }
+
     ReactGA.event(eventArgs);
   }
 }

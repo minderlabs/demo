@@ -8,6 +8,7 @@ import { Command } from './command';
 import { ItemRenderer } from '../renderer/renderer';
 
 export class QueryCommand extends Command {
+
   constructor() {
     super();
     this.queryParser = new QueryParser();

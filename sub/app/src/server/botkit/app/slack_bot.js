@@ -11,7 +11,6 @@ import { PasteCommand } from '../commands/paste';
 import { QueryCommand } from '../commands/query';
 import { DatabaseContext } from './database_context';
 
-
 const logger = Logger.get('botkit');
 
 // TODO(madadam): Unify all command parsing into one parser; use a single controller.hears clause. Or maybe
@@ -154,6 +153,5 @@ export class SlackBot {
       logger.info('Slash command Message: ' + JSON.stringify(message));
       bot.reply(message, 'hi from slash command');
     });
-
   }
 }
