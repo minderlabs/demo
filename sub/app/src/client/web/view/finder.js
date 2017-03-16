@@ -7,7 +7,8 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { IdGenerator, QueryParser, ItemFragment, MutationUtil } from 'minder-core';
+import { IdGenerator, QueryParser, SubscriptionWrapper } from 'minder-core';
+import { ItemFragment, ContactFragment } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -60,6 +61,7 @@ class Finder extends React.Component {
                                  highlight={ false }
                                  className="ux-card-list"
                                  itemInjector={ itemInjector }
+                                 stuff={ this.props.contextItems }
                                  itemRenderer={ Card.ItemRenderer(typeRegistry) }
                                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
           break;
@@ -87,6 +89,7 @@ class Finder extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
+// TODO(burdon): Factor out.
 const FoldersQuery = gql`
   query FoldersQuery {
     viewer {
@@ -104,10 +107,12 @@ const ContextQuery = gql`
   query ContextQuery($filter: FilterInput!) {
     contextItems: search(filter: $filter) {
       ...ItemFragment
+      ...ContactFragment
     }
   }
 
   ${ItemFragment}
+  ${ContactFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
@@ -190,24 +195,6 @@ export default compose(
       return {
         variables: {
           filter
-        },
-
-        //
-        // Notify the context if items are mutated.
-        // We need to listen for mutations since the Context query will not be updated.
-        // http://dev.apollodata.com/react/cache-updates.html#resultReducers
-        //
-        reducer: (previousResult, action, variables) => {
-
-          // NOTE: We only listen for non-optimistic responses (since opt responses may not be well formed).
-          let upsertItems = MutationUtil.getUpsertItemsMutationResult(action, false);
-          if (upsertItems && contextManager) {
-            // TODO(burdon): Possibly refresh list: if the item being mutated is NOT part of the list query
-            //               then we need to trigger re-rendering.
-            contextManager.updateCache(upsertItems);
-          }
-
-          return previousResult;
         }
       };
     },
@@ -220,7 +207,15 @@ export default compose(
       if (contextManager) {
         contextManager.updateCache(contextItems);
       }
+
+      return {
+        contextItems,
+
+        refetch: () => {
+          data.refetch();
+        }
+      };
     }
   }),
 
-)(Finder);
+)(SubscriptionWrapper(Finder));

@@ -15,7 +15,7 @@ import {
   ListReducer
 } from 'minder-core';
 
-import { QueryRegistry } from 'minder-core';
+import { SubscriptionWrapper } from 'minder-core';
 import { List, ListItem } from 'minder-ux';
 
 import { connectReducer } from './connector';
@@ -80,32 +80,6 @@ export const DebugListItemRenderer = (item) => {
   );
 };
 
-/**
- * Wraps basic List component adding subscriptions.
- */
-class ListWrapper extends React.Component {
-
-  static defaultProps = {
-    cid: QueryRegistry.createId()
-  };
-
-  static contextTypes = {
-    queryRegistry: React.PropTypes.object.isRequired
-  };
-
-  componentWillMount() {
-    this.context.queryRegistry.register(this.props.cid, this.props.refetch);
-  }
-
-  componentWillUnmount() {
-    this.context.queryRegistry.unregister(this.props.cid);
-  }
-
-  render() {
-    return <List { ...this.props }/>
-  }
-}
-
 //-------------------------------------------------------------------------------------------------
 // Basic List.
 //-------------------------------------------------------------------------------------------------
@@ -143,7 +117,7 @@ const BasicSearchQuery = gql`
   ${BasicItemFragment}
 `;
 
-export const BasicSearchList = connectReducer(ListReducer.graphql(BasicSearchQuery))(ListWrapper);
+export const BasicSearchList = connectReducer(ListReducer.graphql(BasicSearchQuery))(SubscriptionWrapper(List));
 
 //-------------------------------------------------------------------------------------------------
 // Card List.
@@ -184,7 +158,7 @@ const CardSearchQuery = gql`
   ${CardItemFragment}
 `;
 
-export const CardSearchList = connectReducer(ListReducer.graphql(CardSearchQuery))(ListWrapper);
+export const CardSearchList = connectReducer(ListReducer.graphql(CardSearchQuery))(SubscriptionWrapper(List));
 
 //-------------------------------------------------------------------------------------------------
 // Simple List.
@@ -220,11 +194,9 @@ export const ItemsQueryWrapper = graphql(SimpleSearchQuery, {
     let { filter, count } = ownProps;
 
     return {
-      // Result.
       items,
 
-      // Called when variables are updated.
-      refetch: (filter) => {
+      refetch: () => {
         data.refetch({
           filter
         });

@@ -188,8 +188,6 @@ export class NetworkManager {
     // https://github.com/apollographql/apollo-client/blob/master/src/transport/networkInterface.ts
     //
 
-    // TODO(burdon): Subscriptions (esp. BG page); create directive. (SubscriptionNetworkInterface)
-
     // TODO(burdon): Configure batching via options.
     // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
 

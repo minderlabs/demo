@@ -162,9 +162,6 @@ export class GmailInspector extends Inspector {
   }
 
   getRootNode() {
-
-    console.log('>>>>>>>>>>>>>>>>>>>>>>>>', $('div[role="main"]')[0]);
-
     return $('div[role="main"]')[0];
   }
 

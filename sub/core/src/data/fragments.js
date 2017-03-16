@@ -40,6 +40,8 @@ export const ItemFragment = gql`
   }
 `;
 
+// TODO(burdon): Create single exportable map.
+
 export const ContactFragment = gql`
   fragment ContactFragment on Contact {
     email

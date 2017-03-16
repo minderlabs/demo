@@ -50,6 +50,7 @@ export class ContextManager {
     // Current context.
     this._context = {};
 
+    // TODO(burdon): Convert to map and use _.toArray()
     // Transient items indexed by foreign key (i.e., email).
     this._transientItems = {};
 
@@ -89,6 +90,7 @@ export class ContextManager {
    * @returns {ContextManager}
    */
   updateContext(context={}) {
+    logger.log('Updated context: ' + JSON.stringify(context));
     this._context = context || {};
 
     _.each(_.get(this._context, 'items'), item => {
@@ -111,13 +113,13 @@ export class ContextManager {
    * @param items
    */
   updateCache(items) {
-    _.each(items, item => {
+    logger.log('Updated cache: ' + JSON.stringify(_.map(items, i => _.pick(i, ['id', 'type', 'email']))));
 
-      // TODO(burdon): Check email or ID matches (otherwise when to flush cache?)
+    // TODO(burdon): Reset cache.
+    _.each(items, item => {
       let email = item.email;
-      if (email && this._transientItems[email]) {
-        this._cache[item.id] = item;
-      }
+      console.assert(email);
+      this._cache[email] = item;
     });
   }
 

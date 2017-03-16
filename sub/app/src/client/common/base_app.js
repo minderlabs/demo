@@ -111,10 +111,6 @@ export class BaseApp {
   initApollo() {
     console.assert(this.networkInterface);
 
-    // TODO(burdon): Subscriptions?
-    // addGraphQLSubscriptions(networkInterface, wsClient)
-    // http://dev.apollodata.com/react/subscriptions.html
-
     //
     // http://dev.apollodata.com/react/initialization.html
     // http://dev.apollodata.com/core/apollo-client-api.html#apollo-client
@@ -190,10 +186,6 @@ export class BaseApp {
       //   queries:   query state.
       //   data:      cached items.
       // }
-      //
-      // TODO(burdon): Subscriptions.
-      // https://github.com/apollographql/graphql-subscriptions
-      // https://dev-blog.apollodata.com/a-proposal-for-graphql-subscriptions-1d89b1934c18#.23j01b1a4
       //
       // TODO(burdon): Updating the cache.
       // https://github.com/apollographql/apollo-client/issues/180

@@ -66,7 +66,7 @@
             </div>
 
             <div>
-              <label>Auto-update <input id="auto-update" type="checkbox"/></label>
+              <label>Auto-update <input id="auto-update" type="checkbox" checked/></label>
             </div>
           </div>
         </div>
@@ -80,14 +80,18 @@
     $(document).ready(() => {
       let interval = null;
 
-      $('#auto-update').change((event) => {
+      const setRefresh = (on) => {
         clearInterval(interval);
-        if ($(event.target).is(':checked')) {
+        if (on) {
           interval = setInterval(() => {
             document.location.reload();
-          }, 1000);
+          }, 5000);
         }
-      });
+      };
+
+      setRefresh($('#auto-update').change((event) => {
+        setRefresh($(event.target).is(':checked'));
+      }).is(':checked'));
     });
 
     function refresh() {
