@@ -124,6 +124,7 @@
     "babel-node": "BABEL_DISABLE_CACHE=1 babel-node src/server/server.js",
     "nodemon": "hilite nodemon --config nodemon.json --exec npm run babel-node",
     "server": "webpack --config webpack-server.config.js && node dist/server.bundle.js",
+    "localtunnel": "lt --port 3000",
     "hot-sidebar": "BABEL_DISABLE_CACHE=1 BABEL_ENV=hot NODE_ENV=hot_sidebar hilite babel-node src/server/server.js",
     "hot": "BABEL_DISABLE_CACHE=1 BABEL_ENV=hot NODE_ENV=hot hilite babel-node src/server/server.js",
     "start": "npm run hot"

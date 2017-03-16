@@ -163,7 +163,7 @@ const botkitManager = false && !testing && new BotKitManager({
   port,
   redirectHost: _.get(process.env, 'OAUTH_REDIRECT_ROOT', 'http://localhost:' + port),
   ...SlackConfig
-});
+}, database);
 
 if (botkitManager) {
   database

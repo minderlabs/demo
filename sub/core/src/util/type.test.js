@@ -2,6 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import { expect } from 'chai';
 
 import { TypeUtil } from './type';
@@ -53,5 +54,20 @@ describe('TypeUtil:', () => {
     });
 
     expect(x).to.have.lengthOf(2);
+  });
+
+  it('maybeSet', () => {
+    let obj = {
+      a: 'foo',
+      b: {
+        c: 'bar',
+        d: 10
+      }
+    };
+
+    expect(_.get(TypeUtil.maybeSet(obj, 'b.c', 'wow'), 'b.c')).to.equal('wow');
+    expect(_.get(TypeUtil.maybeSet(obj, 'b.x', undefined), 'b.x')).to.be.undefined;
+    expect(_.get(TypeUtil.maybeSet(obj, 'b.x', null), 'b.x')).to.be.undefined;
+    expect(_.get(TypeUtil.maybeSet(obj, 'b.x', false), 'b.x')).to.be.false;
   });
 });
