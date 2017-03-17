@@ -4,7 +4,7 @@
 
 import * as firebase from 'firebase';
 
-import { ErrorUtil } from 'minder-core';
+import { Async, ErrorUtil } from 'minder-core';
 
 import { GoogleApiConfig } from '../../common/defs';
 
@@ -29,6 +29,10 @@ class CloudMessenger {
     this._eventHandler = eventHandler;
     this._onTokenUpdate = null;
     this._onMessage = null;
+
+    // Timer to prevent multiple push invalidations within time period.
+    this._messages = [];
+    this._timeout = Async.timeout(1000);
   }
 
   /**
@@ -74,7 +78,16 @@ class CloudMessenger {
 
     // Ignore invalidations from self.
     if (_.get(this._config, 'registration.clientId') != data.senderId || data.force) {
-      this._onMessage && this._onMessage(data);
+      // TODO(burdon): Use collapse key to determine if first message can be skipped.
+      this._messages.push(data);
+      this._timeout(() => {
+        if (this._messages.length > 1) {
+          logger.warn('Collapsing messages: ' + JSON.stringify(this._messages));
+        }
+
+        this._onMessage && this._onMessage(data);
+        this._messages = [];
+      });
     }
   }
 }
