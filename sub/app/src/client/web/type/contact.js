@@ -26,7 +26,8 @@ export class ContactCard extends React.Component {
 
   static contextTypes = {
     mutator: React.PropTypes.object.isRequired,
-    registration: React.PropTypes.object.isRequired
+    registration: React.PropTypes.object.isRequired,
+    viewer: React.PropTypes.object.isRequired,
   };
 
   static propTypes = {
@@ -46,15 +47,22 @@ export class ContactCard extends React.Component {
       let { item:parent } = this.props;
 
       // TODO(burdon): Add to default project.
-      // TODO(burdon): Get projects from context (from Layout).
+      console.log('::', JSON.stringify(this.context.viewer));
+      let project = _.get(this.context.viewer, 'group.projects[0]');
+      console.assert(project);
+      console.log('::', project);
 
       mutator.batch()
         .createItem('Task', _.concat(mutations, [
           MutationUtil.createFieldMutation('bucket', 'string', userId),
+          MutationUtil.createFieldMutation('project', 'id', project.id),
           MutationUtil.createFieldMutation('owner', 'id', userId)
         ]), 'new_task')
         .updateItem(parent, [
           MutationUtil.createFieldMutation('bucket', 'string', userId),
+          MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+        ])
+        .updateItem(project, [
           MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
         ])
         .commit();
@@ -68,11 +76,14 @@ export class ContactCard extends React.Component {
     return (
       <Card ref="card" item={ contact }>
         <div className="ux-card-section">
-          <div>{ email }</div>
+          <div className="ux-data-row">
+            <i className="ux-icon">email</i>
+            <div className="ux-text">{ email }</div>
+          </div>
         </div>
 
         { !_.isEmpty(tasks) &&
-        <div className="ux-card-section">
+        <div className="ux-section-header">
           <h3>Tasks</h3>
         </div>
         }

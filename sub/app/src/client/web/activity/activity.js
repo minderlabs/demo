@@ -147,14 +147,15 @@ export class Activity {
 
   static childContextTypes = {
     config:           React.PropTypes.object,
-    viewer:           React.PropTypes.object,
     registration:     React.PropTypes.object,
     typeRegistry:     React.PropTypes.object,
     queryRegistry:    React.PropTypes.object,
     eventHandler:     React.PropTypes.object,
     contextManager:   React.PropTypes.object,
     navigator:        React.PropTypes.object,
-    mutator:          React.PropTypes.object
+    mutator:          React.PropTypes.object,
+
+    viewer:           React.PropTypes.object
   };
 
   static getChildContext(props) {
