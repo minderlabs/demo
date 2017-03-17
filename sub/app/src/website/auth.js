@@ -22,6 +22,9 @@ export class Auth {
     // https://firebase.google.com/docs/auth/web/google-signin
     this._provider = new firebase.auth.GoogleAuthProvider();
 
+    // TODO(madadam): As of 2017.03.17, I'm not seeing a refresh_token in the response's credential, even setting this.
+    this._provider.setCustomParameters({access_type: 'offline'});
+
     // Google default scopes.
     // TODO(burdon): Get scopes from registry.
     // https://myaccount.google.com/permissions

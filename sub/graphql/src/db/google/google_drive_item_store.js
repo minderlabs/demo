@@ -5,7 +5,7 @@
 import _ from 'lodash';
 import google from 'googleapis';
 
-import { ErrorUtil, QueryProcessor } from 'minder-core';
+import { ErrorUtil, QueryProcessor, TypeUtil } from 'minder-core';
 
 /**
  * Google API client.
@@ -57,12 +57,16 @@ class GoogleDriveClient {
       this._config.clientId,
       this._config.clientSecret
     );
-    oauth2Client.credentials = { access_token: this._getAccessToken(context) };
+    oauth2Client.credentials = this._getCredentials(context);
     return oauth2Client;
   }
 
-  _getAccessToken(context) {
-    return _.get(context, 'user.credentials.google_com.accessToken');
+  _getCredentials(context) {
+    let credentials = {
+      access_token: _.get(context, 'credentials.google_com.accessToken'),
+    };
+    TypeUtil.maybeSet(credentials, 'refresh_token', _.get(context, 'credentials.google_com.refreshToken'));
+    return credentials;
   }
 
   /**

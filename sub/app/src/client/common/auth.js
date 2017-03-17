@@ -47,6 +47,7 @@ export class AuthManager {
 
     // Google scopes.
     this._authProvider = new firebase.auth.GoogleAuthProvider();
+    this._authProvider.setCustomParameters({access_type: 'offline'});
     _.each(GoogleApiConfig.authScopes, scope => {
       this._authProvider.addScope(scope);
     });

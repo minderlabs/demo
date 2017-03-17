@@ -306,7 +306,8 @@ app.use(graphqlRouter(database, {
     .then(user => {
       let context = {
         userId: user && user.active && user.id,
-        clientId: request.headers[Const.HEADER.CLIENT_ID]
+        clientId: request.headers[Const.HEADER.CLIENT_ID],
+        credentials: user.credentials
       };
 
       if (!user) {
@@ -461,7 +462,7 @@ app.use(function(req, res) {
 //
 
 app.use(function(error, req, res, next) {
-  if (error === NotAuthenticated) {
+  if (error === NotAuthenticatedError) {
     return res.status(401).end();
   }
 
