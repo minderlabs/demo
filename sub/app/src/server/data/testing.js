@@ -169,7 +169,7 @@ export class TestGenerator {
                   .then(() =>
                     this.generateItems(context, 'Project', 1))
                   .then(() =>
-                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 1, max: 5 })));
+                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 5, max: 20 })));
               }));
             });
         }));

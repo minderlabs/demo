@@ -235,7 +235,7 @@ class Batch {
    */
   // TODO(burdon): Actually batch mutations. (affects optimistic result and reducer)?
   commit() {
-    logger.log('Commit...');
+    logger.log('Commit: ' + TypeUtil.stringify(this._operations));
 
     // Map of named items.
     let itemsById = new Map();
@@ -352,6 +352,7 @@ export class Mutator {
     // Submit mutation.
     //
 
+    logger.log('createItem: ' + TypeUtil.stringify({ item: { type, id: itemId }, mutations }));
     this._mutate({
       variables: {
         namespace,
@@ -372,8 +373,7 @@ export class Mutator {
       }
     });
 
-    this._analytics && this._analytics.track('item.create', {label: type});
-
+    this._analytics && this._analytics.track('item.create', { label: type });
     return item;
   }
 
@@ -460,16 +460,13 @@ export class Mutator {
           }
         }
       });
-
-      this._analytics && this._analytics.track('item.edit', {label: item.type});
-
-      return item;
     }
 
     //
     // Submit mutation.
     //
 
+    logger.log('updateItem: ' + TypeUtil.stringify({ item: _.pick(item, 'type', 'id'), mutations }));
     this._mutate({
       variables: {
         namespace,
@@ -490,6 +487,7 @@ export class Mutator {
       }
     });
 
+    this._analytics && this._analytics.track('item.edit', { label: item.type });
     return item;
   }
 }

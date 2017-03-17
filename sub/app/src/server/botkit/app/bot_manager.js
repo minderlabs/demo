@@ -26,7 +26,7 @@ export class BotManager {
     controller.on('create_bot', function(bot, config) {
       self.connect(bot, function() {
 
-        bot.startPrivateConversation({user: config.createdBy}, function(err, convo) {
+        bot.startPrivateConversation({ user: config.createdBy }, function(err, convo) {
           if (err) {
             console.log(err);
           } else {
