@@ -1,6 +1,6 @@
 {
   "name": "minder-app",
-  "version": "0.1.10",
+  "version": "0.1.12",
   "description": "Minder App.",
   "license": "UNLICENSED",
   "repository": {
@@ -60,7 +60,8 @@
     "webpack-dev-server": "^1.16.2",
     "webpack-hot-middleware": "^2.13.2",
     "webpack-link": "^0.2.0",
-    "webpack-node-externals": "^1.5.4"
+    "webpack-node-externals": "^1.5.4",
+    "webpack-notifier": "^1.5.0"
   },
   "dependencies": {
     "apollo-client": "^0.6.0",
@@ -73,7 +74,7 @@
     "cookie-parser": "^1.4.3",
     "express": "^4.14.0",
     "express-handlebars": "^3.0.0",
-    "firebase": "3.6.5",
+    "firebase": "^3.6.8",
     "firebase-admin": "^4.0.3",
     "googleapis": "^15.0.0",
     "graphiql": "^0.8.0",
@@ -103,6 +104,7 @@
     "react-dnd": "^2.1.4",
     "react-dnd-html5-backend": "^2.1.2",
     "react-dom": "^15.3.2",
+    "react-ga": "^2.1.2",
     "react-redux": "^5.0.2",
     "react-router": "^3.0.0",
     "react-router-redux": "^4.0.7",
@@ -114,15 +116,16 @@
   "scripts": {
     "//": [
       "nodemon => babel-node: runs the server with auto-rebuild (via babel) on change.",
-      "start => runs the server with hot module replacement (server not updated).",
-      "NOTE: nodemon seems to cache .graphql imports.",
-      "NOTE: npm run server won't work without symlinks."
+      "start => runs the server with hot module replacement (server not updated)."
     ],
     "webpack": "webpack --watch",
     "webpack-server": "webpack --config webpack-server.config.js",
     "babel-node": "BABEL_DISABLE_CACHE=1 babel-node src/server/server.js",
     "nodemon": "hilite nodemon --config nodemon.json --exec npm run babel-node",
     "server": "webpack --config webpack-server.config.js && node dist/server.bundle.js",
-    "start": "BABEL_DISABLE_CACHE=1 BABEL_ENV=hot NODE_ENV=hot hilite babel-node src/server/server.js"
+    "localtunnel": "lt --port 3000",
+    "hot-sidebar": "BABEL_DISABLE_CACHE=1 BABEL_ENV=hot NODE_ENV=hot_sidebar hilite babel-node src/server/server.js",
+    "hot": "BABEL_DISABLE_CACHE=1 BABEL_ENV=hot NODE_ENV=hot hilite babel-node src/server/server.js",
+    "start": "npm run hot"
   }
 }

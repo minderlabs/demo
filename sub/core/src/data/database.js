@@ -4,11 +4,10 @@
 
 import _ from 'lodash';
 
+import { ID } from './id';
 import { ErrorUtil } from '../util/error';
-import { TypeUtil } from '../util/type';
 
 import { ItemUtil, ItemStore, QueryProcessor } from './item_store';
-import { Transforms } from './transforms';
 
 import $$ from '../util/format';
 import Logger from '../util/logger';
@@ -36,7 +35,7 @@ const logger = Logger.get('db');
  * - User Items declare a Bucket which corresponds to a Group or User ID.
  *   - The database key is: "NAMESPACE/BUCKET/TYPE/ITEM-ID"
  *
- * - Queries implicitely declare Buckets via the resolver context (which computes which buckets are accessible).
+ * - Queries implicitly declare Buckets via the resolver context (which computes which buckets are accessible).
  */
 export class Database {
 
@@ -51,7 +50,17 @@ export class Database {
   static NAMESPACE = {
     SYSTEM:   'system',
     SETTINGS: 'settings',
-    USER:     'user'
+    USER:     'user',
+    LOCAL:    'local'
+  };
+
+  // TODO(burdon): Move to GraphQL.
+  static GROUP_SPECS = {
+    Task: {
+      parentType:   'Project',
+      parentKey:    'project',
+      parentMember: 'tasks'
+    }
   };
 
   static isExternalNamespace(namespace) {
@@ -61,6 +70,7 @@ export class Database {
       case Database.NAMESPACE.SYSTEM:
       case Database.NAMESPACE.SETTINGS:
       case Database.NAMESPACE.USER:
+      case Database.NAMESPACE.LOCAL:
         return false;
     }
 
@@ -142,7 +152,7 @@ export class Database {
    * @param itemMutations
    * @param items
    */
-  fireMuationNotification(context, itemMutations, items) {
+  fireMutationNotification(context, itemMutations, items) {
     this._onMutation && this._onMutation(context, itemMutations, items);
   }
 
@@ -152,18 +162,10 @@ export class Database {
   search(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
-    // TODO(madadam): TypeUtil or TypeRegistry.
-    const getGroupKey = item => {
-      switch (item.type) {
-        case 'Task': {
-          return item.project;
-        }
-      }
-    };
-
+    let itemStore = this.getItemStore();
     return this._searchAll(context, root, filter, offset, count)
       .then(items => {
-        return filter.groupBy ? ItemUtil.groupBy(items, getGroupKey) : items;
+        return filter.groupBy ? ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS) : items
       });
   }
 
@@ -213,11 +215,13 @@ export class Database {
 
         // First get items from the current query that may have external references.
         let result = _.find(results, result => result.namespace === Database.NAMESPACE.USER);
-        _.each(result.items, item => {
-          if (item.fkey) {
-            itemsWithForeignKeys.set(item.fkey, item);
-          }
-        });
+        if (result) {
+          _.each(result.items, item => {
+            if (item.fkey) {
+              itemsWithForeignKeys.set(item.fkey, item);
+            }
+          });
+        }
 
         // Gather the set of foreign keys for external items.
         let foreignKeys = [];

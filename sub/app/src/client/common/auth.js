@@ -76,7 +76,7 @@ export class AuthManager {
           resolve(user);
         } else {
           // NOTE: This is called if the user logs out from elsewhere.
-          // So, by default we don't promt (unless CRX).
+          // So, by default we don't prompt (unless CRX).
           logger.log('Signed out.');
           return force ? this._doAuth() : Promise.resolve(null);
         }
@@ -100,38 +100,39 @@ export class AuthManager {
    * @param reauthenticate
    */
   signout(reauthenticate=true) {
-    logger.log('Signing out...');
+    return new Promise((resolve, reject) => {
+      chrome.identity.getAuthToken({
+        // Don't force login if already expired.
+        interactive: false
+      }, accessToken => {
+        if (chrome.runtime.lastError) {
+          throw new Error(chrome.runtime.lastError);
+        }
 
-    chrome.identity.getAuthToken({
-      // Don't force login if already expired.
-      interactive: false
-    }, accessToken => {
-      if (chrome.runtime.lastError) {
-        throw new Error(chrome.runtime.lastError);
-      }
-
-      // Remove cached token if present.
-      return new Promise((resolve, reject) => {
+        // Already expired.
         if (!accessToken) {
           resolve();
         } else {
+          // Remove cached token if present.
+          // https://developer.chrome.com/apps/identity#method-removeCachedAuthToken
+          logger.log('Removing cached token...');
           chrome.identity.removeCachedAuthToken({ token: accessToken }, () => {
             if (chrome.runtime.lastError) {
               throw new Error(chrome.runtime.lastError);
             }
 
-            resolve();
+            // https://firebase.google.com/docs/reference/js/firebase.auth
+            // Automatically re-authenticates (triggers onAuthStateChanged above).
+            logger.log('Signing out...');
+            firebase.auth().signOut().then(resolve);
           });
         }
-      }).then(() => {
-        // Automatically re-authenticates (triggers onAuthStateChanged above).
-        return firebase.auth().signOut();
       });
     });
   }
 
   /**
-   * Authenitcate the user (based on platform).
+   * Authenticate the user (based on platform).
    *
    * @return {Promise<User>}
    * @private
@@ -205,10 +206,27 @@ export class AuthManager {
           throw new Error(chrome.runtime.lastError);
         }
 
-        // NOTE: Get Google specific credentials (for CRX.)
+        // Troubleshooting:
+        // Error: signInWithCredential => INVALID_REQUEST_URI
+        // https://github.com/firebase/quickstart-js/issues/98 [burdon 1/25/17]
+        // FB says Chrome auth isn't supported (email to me 1/25/17 and old support thread 6/22/16):
+        // http://stackoverflow.com/questions/37865434/firebase-auth-with-facebook-oauth-credential-from-google-extension
+        // But:
+        // https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
+        // https://groups.google.com/forum/#!msg/firebase-talk/HgntKvXHEcY/vu6dCgbuGwAJ (demo)
+        // https://chrome.google.com/webstore/detail/firebase-auth-in-chrome-e/lpgchdfbjddonaolofeijjackhnhnlla/related
+        // > Ensure Chrome App OAuth Client
+        // > Client ID to manifest
+        // > Add published extension key to manifest
+        // > Add Google OAuth Client ID to Firebase Google Auth whitelist
+        // https://console.developers.google.com/apis/credentials?project=minder-beta
+        // https://console.firebase.google.com/project/minder-beta/authentication/providers
+
+        // Get Google-specific credentials.
         // https://firebase.google.com/docs/reference/js/firebase.auth.GoogleAuthProvider
-        // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signInWithCredential
         let credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
+
+        // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signInWithCredential
         firebase.auth().signInWithCredential(credential)
           .then(result => {
             let user = firebase.auth().currentUser;
@@ -224,7 +242,7 @@ export class AuthManager {
               });
             }
 
-            // TODO(burdon): Just hangs if user closes Login page?
+            // TODO(burdon): Hangs if user closes Login page?
             reject(error);
           });
       });

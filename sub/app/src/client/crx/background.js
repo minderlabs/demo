@@ -10,17 +10,14 @@ Logger.setLevel({
   'net':        Logger.Level.info
 }, Logger.Level.info);
 
-import {
-  ChromeMessageChannelDispatcher, ErrorUtil, EventHandler, Listeners, QueryRegistry, TypeUtil
-} from 'minder-core';
+import { ChromeMessageChannelDispatcher, ErrorUtil, EventHandler, Listeners, TypeUtil } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
 import { AuthManager } from '../common/auth';
 import { ConnectionManager } from '../common/client';
-import { NetworkManager } from '../common/network';
+import { NetworkManager, ChromeNetworkInterface } from '../common/network';
 import { GoogleCloudMessenger } from '../common/cloud_messenger';
-import { ChromeNetworkInterface } from './util/network';
 import { Notification } from './util/notification';
 import { Settings } from './util/settings';
 
@@ -100,11 +97,17 @@ class BackgroundApp {
     // NetworkManager => AuthManager.getToken()
     //
 
-    this._queryRegistry = new QueryRegistry();
-
     this._authManager = new AuthManager(this._config);
 
-    this._cloudMessenger = new GoogleCloudMessenger(this._config, this._queryRegistry, this._eventHandler);
+    // GCM Push Messenger.
+    this._cloudMessenger = new GoogleCloudMessenger(this._config, this._eventHandler).listen(message => {
+
+      // Push invalidation to clients.
+      this._systemChannel.postMessage(null, {
+        command: SystemChannel.INVALIDATE
+      });
+    });
+
     this._connectionManager = new ConnectionManager(this._config, this._authManager, this._cloudMessenger);
 
     this._networkManager =
@@ -152,6 +155,8 @@ class BackgroundApp {
 
         // Triggers popup.
         return this._authManager.authenticate(true).then(user => {
+
+          this._analytics.identify(user.uid);
 
           // Register with server.
           return this.connect().then(registration => {
@@ -206,7 +211,6 @@ class BackgroundApp {
       this._settings.set('registration', registration).then(() => {
 
         // Broadcast reset to all clients (to reset cache).
-        console.log('...');
         this._systemChannel.postMessage(null, {
           command: SystemChannel.FLUSH_CACHE
         });

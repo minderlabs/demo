@@ -2,14 +2,17 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { ID, ItemFragment, TaskFragment, ItemReducer, MutationUtil } from 'minder-core';
+import { ID, Fragments, ItemReducer, MutationUtil } from 'minder-core';
 import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
+
+import { TASK_LEVELS } from '../../../common/defs';
 
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
@@ -19,14 +22,6 @@ import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
 import './task.less';
-
-// TODO(burdon): Get from query (see test.json).
-export const TASK_LEVELS = [
-  { value: 0, title: 'Unstarted'  },
-  { value: 1, title: 'Active'     },
-  { value: 2, title: 'Complete'   },
-  { value: 3, title: 'Blocked'    }
-];
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -84,7 +79,7 @@ const AddCreateSubTask = (batch, userId, parent, mutations) => {
     ]), 'new_task')
     .updateItem(parent, [
       MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
-    ])
+    ]);
 };
 
 /**
@@ -152,7 +147,7 @@ export class TaskCard extends React.Component {
                 onItemSelect={ this.handleTaskSelect.bind(this) }
                 onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
 
-          { mutator &&
+          { mutator && task.project &&
           <div className="ux-card-footer">
             <i className="ux-icon ux-icon-add" onClick={ this.handlTaskAdd.bind(this) }/>
           </div>
@@ -264,8 +259,8 @@ class TaskCanvasComponent extends React.Component {
       // TODO(burdon): Set group from project (remove groupId).
       //groupId={ project.group.id }
 
-      const levels = TASK_LEVELS.map(level =>
-        <option key={ level.value } value={ level.value }>{ level.title }</option>);
+      const levels = _.keys(TASK_LEVELS.properties).sort().map(level =>
+        <option key={ level } value={ level }>{ TASK_LEVELS.properties[level].title }</option>);
 
       return (
         <Canvas ref="canvas"
@@ -400,8 +395,8 @@ const TaskQuery = gql`
     }
   }
 
-  ${ItemFragment}
-  ${TaskFragment}  
+  ${Fragments.ItemFragment}
+  ${Fragments.TaskFragment}  
 `;
 
 export const TaskCanvas = compose(

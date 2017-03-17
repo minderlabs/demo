@@ -47,15 +47,26 @@ export class TypeUtil {
   /**
    * Concise stringify.
    */
-  static stringify = (json, indent) => JSON.stringify(json, (key, value) => {
-    if (_.isArray(value)) {
-      return `len(${value.length})`;
+  static stringify(json, indent=0) {
+    let str = JSON.stringify(json, (key, value) => {
+      if (_.isArray(value)) {
+        return `len(${value.length})`;
+      }
+      if (_.isString(value)) {
+        return TypeUtil.truncate(value, 40);  // Preserve IDs.
+      }
+      return value;
+    }, indent || 0);
+
+    if (indent === false) {
+      return str
+        .replace(/[/{/}]/g, '')
+        .replace(/"/g, '')
+        .replace(/,/g, ' ');
     }
-    if (_.isString(value)) {
-      return TypeUtil.truncate(value, 40);  // Preserve IDs.
-    }
-    return value;
-  }, indent);
+
+    return str;
+  }
 
   /**
    * Return true if value is effectively empty (i.e., undefined, null, [], or {} values).
@@ -133,6 +144,27 @@ export class TypeUtil {
   }
 
   /**
+   * Set obj.key = val if val is not null or undefined.
+   * Returns the object.
+   */
+  static maybeSet(obj, path, val) {
+    !_.isNil(val) && _.set(obj, path, val);
+    return obj;
+  }
+
+  /**
+   * Get value for key or set to default value.
+   */
+  static getOrSet(obj, key, defaultVal) {
+    if (!obj.hasOwnProperty(key)) {
+      obj[key] = defaultVal;
+    }
+    return obj[key];
+  }
+
+  /**
+   * Iterates the collection sequentially calling the async function for each.
+   *
    * @param obj
    * @param f Function to call for each key x value. (value, key/index, root)
    */

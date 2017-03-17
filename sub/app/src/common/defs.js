@@ -2,7 +2,10 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import path from 'path';
+
+const MINDER_CONF_DIR =  _.get(process.env, 'MINDER_CONF_DIR', './conf');
 
 /**
  * Client configuration.
@@ -21,7 +24,7 @@ export const FirebaseAppConfig = {
   // Generated 3/4/17 (Create Key from Service Accounts: firebase-adminsdk).
   // https://console.firebase.google.com/project/minder-beta/settings/serviceaccounts/adminsdk
   // https://console.cloud.google.com/iam-admin/serviceaccounts/project?consoleUI=FIREBASE&project=minder-beta
-  credentialPath: path.join(__dirname, './conf/minder-beta-44ee54278556.json')
+  credentialPath: path.join(__dirname, MINDER_CONF_DIR, '/minder-beta-44ee54278556.json')
 };
 
 // TODO(burdon): Manage configs.
@@ -35,7 +38,20 @@ export const FirebaseTestingAppConfig = {
   // Generated 3/4/17 (Create Key from Service Accounts: firebase-adminsdk).
   // https://console.firebase.google.com/project/minder-qa/settings/serviceaccounts/adminsdk
   // https://console.cloud.google.com/iam-admin/serviceaccounts/project?consoleUI=FIREBASE&project=minder-qa
-  credentialPath: path.join(__dirname, './conf/minder-qa-e90e2fe651a3.json')
+  credentialPath: path.join(__dirname, MINDER_CONF_DIR, '/minder-qa-e90e2fe651a3.json')
+};
+
+/**
+ * Analytics
+ */
+export const AnalyticsConfig = {
+  // Google Analytics
+  // https://analytics.google.com/analytics/web/#management/Settings/a82404502w137842039p142136815/
+  googleAnalyticsTrackingId: 'UA-82404502-2',
+
+  // Segment Analytics
+  // https://segment.com/minderlabs/sources/jsweb/settings/keys
+  segmentWriteKey: 'zNgiIvbGonawzsamSbKQ9WlX0WgXcy2b'
 };
 
 /**
@@ -98,7 +114,7 @@ export const Const = {
   APP_NAME: 'minder',
 
   // NOTE: Changed by grunt:version
-  APP_VERSION: "0.1.10",
+  APP_VERSION: "0.1.12",
 
   // NOTE: Express lowercases headers.
   HEADER: {
@@ -119,4 +135,21 @@ export const Const = {
   // https://chrome.google.com/webstore/developer/edit/ofdkhkelcafdphpddfobhbbblgnloian
   CRX_ID: 'ofdkhkelcafdphpddfobhbbblgnloian',
   CRX_URL: crxId => 'https://chrome.google.com/webstore/detail/' + crxId
+};
+
+// TODO(burdon): Find a better place for non-deployment related app constants.
+// TODO(burdon): Get from query?
+// Enums with properties in javascript:
+// https://stijndewitt.com/2014/01/26/enums-in-javascript/
+export const TASK_LEVELS = {
+  UNSTARTED: 0,
+  ACTIVE:    1,
+  COMPLETE:  2,
+  BLOCKED:   3,
+  properties: {
+    0: { title: 'Unstarted'},
+    1: { title: 'Active'},
+    2: { title: 'Complete'},
+    3: { title: 'Blocked'}
+  }
 };

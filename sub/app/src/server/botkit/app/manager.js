@@ -8,14 +8,18 @@ import express from 'express';
 
 import { Logger } from 'minder-core';
 
+import { SlackBot } from './slack_bot';
+
 const logger = Logger.get('botkit');
 
 /**
  * Wraps botkit controller, configures oauth endpoints, and sets up Slack app logic.
  */
 export class BotKitManager {
-  constructor(config) {
-    this.config = config;
+
+  constructor(config, database) {
+    this._config = config;
+    this._database = database;
 
     // Cache the bots (and their RTM connections etc), keyed by bot token.
     this._bots = new Map();
@@ -51,16 +55,15 @@ export class BotKitManager {
       scopes: ['commands', 'bot', 'incoming-webhook', 'search:read']
     });
 
-    // TODO(madadam): port slackbot logic from framework:sub/botkit.
-    // this.slackbot = new App(controller);
+    this.slackbot = new SlackBot(this.controller, this._database);
   }
 
   /**
    * Start handling controller signals for bot creation and startup.
    */
   start() {
-
     this.controller.on('create_bot', (bot, config) => {
+      logger.info('Created bot with token: ' + JSON.stringify(config));
       this.startBot(bot).then(({bot, isFirstConnect}) => {
         if (isFirstConnect) {
           bot.startPrivateConversation({user: config.createdBy}, (err, conversation) => {
@@ -94,18 +97,7 @@ export class BotKitManager {
       });
     });
 
-    // TODO(madadam): replace with full-blown slackbot app, ported from framework/sub/botkit/app.js
-    // this.slackbot.start();
-
-    // Simple ping for testing.
-    this.controller.hears('hello', 'direct_message', function(bot, message) {
-      bot.reply(message, 'Hi there');
-    });
-
-    this.controller.on('create_bot', function(bot, config) {
-      // TODO(madadam): port BotManager from framework:sub/botkit.
-      logger.info('Created bot with token: ' + JSON.stringify(config));
-    });
+    this.slackbot.start();
   }
 
   /**
@@ -163,6 +155,7 @@ export const botkitRouter = (manager) => {
       }
     })
     .createWebhookEndpoints(router);
+
   // TODO(madadam): Enable token verification after fixing the bug in botkit that breaks this for
   // interactive message buttons.
   //.createWebhookEndpoints(webserver, [_.get(process.env, 'slackVerificationToken')]);

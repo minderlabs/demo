@@ -88,6 +88,9 @@ export class Async {
   /**
    * Iterates the collection sequentially calling the async function for each.
    *
+   * NOTE: Iterating an array of promises sequentially doesn't make sense since each promise will be invoked
+   * and start execution inside the array.
+   *
    * @param collection Data to iterate.
    * @param func Returns a value or promise.
    * @return {Promise}

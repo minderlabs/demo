@@ -58,7 +58,7 @@ export const adminRouter = (clientManager, firebase, options) => {
       }
 
       case 'client.invalidate': {
-        clientManager.invalidate(clientId);
+        clientManager.invalidateClient(clientId);
         break;
       }
 
@@ -68,7 +68,7 @@ export const adminRouter = (clientManager, firebase, options) => {
       }
     }
 
-    res.end();
+    res.send({});
   });
 
   //

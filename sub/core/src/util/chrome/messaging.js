@@ -51,7 +51,7 @@ export class ChromeMessageSender {
     // Handle messages.
     this._port.onMessage.addListener((message) => {
       logger.log('Received: ' + TypeUtil.stringify(message));
-      message && onMessage(message);
+      onMessage && onMessage(message);
     });
 
     // Handle disconnect and auto-retry.

@@ -5,6 +5,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import { ChromeMessageChannel, ChromeMessageChannelRouter } from 'minder-core';
+
+import { SystemChannel } from './common';
+
 import './browser_action.less';
 
 /**
@@ -12,12 +16,16 @@ import './browser_action.less';
  */
 class BrowserAction extends React.Component {
 
-  // TODO(burdon): Access BG page directly.
-  // chrome.extension.getBackgroundPage().app.config;
+  constructor() {
+    super(...arguments);
 
-  state = {
-    url: ''
-  };
+    // Message channel to background page.
+    this._systemChannel = new ChromeMessageChannel(SystemChannel.CHANNEL, new ChromeMessageChannelRouter().connect());
+
+    this.state = {
+      url: ''
+    };
+  }
 
   handleClip() {
     // https://developer.chrome.com/extensions/tabs#method-query
@@ -33,6 +41,17 @@ class BrowserAction extends React.Component {
     });
   }
 
+  handleAuthenticate() {
+    // TODO(burdon): Access BG page directly?
+    // chrome.extension.getBackgroundPage().app.config;
+
+    return this._systemChannel.postMessage({
+      command: SystemChannel.AUTHENTICATE
+    }, true).then(response => {
+      window.close();
+    });
+  }
+
   render() {
     let { url } = this.state;
 
@@ -41,9 +60,7 @@ class BrowserAction extends React.Component {
     return (
       <div className="crx-browser-action">
         <div className="crx-column">
-          <h1>Minder</h1>
-          <button onClick={ this.handleClip.bind(this) }>Bookmark Page</button>
-          <div>{ url }</div>
+          <button onClick={ this.handleAuthenticate.bind(this) }>Authenticate</button>
         </div>
       </div>
     );

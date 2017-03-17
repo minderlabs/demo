@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { DragSource, DropTarget } from 'react-dnd';
 
 import { DomUtil } from 'minder-core';
@@ -24,6 +25,10 @@ class ItemDragContainer extends React.Component {
     isDragging: React.PropTypes.bool.isRequired,
     connectDragSource: React.PropTypes.func.isRequired
   };
+
+  get height() {
+    return ReactDOM.findDOMNode(this).clientHeight;
+  }
 
   render() {
     let { children, order, connectDragSource, isDragging } = this.props;
@@ -48,10 +53,28 @@ const dragSpec = {
 //  return false;
 //},
 
-  beginDrag(props) {
+  /**
+   * Called when drag starts.
+   *
+   * @param props
+   * @param monitor
+   * @param {ItemDragContainer} component
+   * @returns {{id}}
+   */
+  beginDrag(props, monitor, component) {
     let item = {
       id: props.data
     };
+
+    // Set the drop zone height.
+    const styleId = 'style-root';
+    let styleRoot = $('#' + styleId);
+    if (!styleRoot.length) {
+      styleRoot = $('<div/>').attr('id', styleId).appendTo(document.body);
+    }
+    styleRoot.empty()
+      .html('<style>.ux-drop-target.ux-active .ux-drop-placeholder { height: ' + component.height + 'px; }</style>');
+
 //  console.log('Drag: ' + JSON.stringify(item));
     return item;
   }
@@ -103,9 +126,11 @@ class ItemDropContainer extends React.Component {
 //
 
 const dropSpec = {
+
   drop(props, monitor, connect) {
     let { data, order } = props;
     let item = monitor.getItem();
+
 //  console.log('Drop: ' + JSON.stringify(item), data, order);
     props.onDrop(item, data, order);
   }
@@ -234,6 +259,7 @@ export class DragOrderModel {
    *
    * @return [{ id, order }] Mutations applied for this change.
    */
+  // TODO(burdon): Depends on item.id (make sure unique).
   setOrder(items, itemId, listId, dropOrder) {
 //  console.log('setOrder:', _.size(items), itemId, dropOrder);
 

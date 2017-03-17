@@ -58,7 +58,7 @@ export class UserManager {
             return user;
           });
       })
-      .catch(error => {
+      .catch (error => {
         logger.warn('Invalid JWT (may have expired).');
       });
   }

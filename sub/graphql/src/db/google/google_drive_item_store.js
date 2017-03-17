@@ -139,7 +139,7 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
     return _.isEmpty(queryString) ? null : `fullText contains \'${queryString}\'`;
   }
 
-  constructor(idGenerator, matcher, config) {
+  constructor(idGenerator, config) {
     super(GoogleDriveQueryProcessor.NAMESPACE);
 
     this._driveClient = new GoogleDriveClient(idGenerator, config);

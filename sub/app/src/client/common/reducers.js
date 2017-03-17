@@ -4,6 +4,8 @@
 
 // TODO(burdon): Rename app_reducers.
 
+import { Analytics } from './analytics'
+
 //-------------------------------------------------------------------------------------------------
 // Global.
 // The global reducer listens for Apollo query results and updates the App state.
@@ -45,7 +47,7 @@ GlobalAppReducer.SUBSCRIPTION = {
 // App.
 //-------------------------------------------------------------------------------------------------
 
-const APP_NAMESPACE = 'app';
+const APP_NAMESPACE = 'MINDER_APP';
 
 /**
  * Main App actions.
@@ -152,6 +154,9 @@ export const AppReducer = (injector, config, registration=undefined) => {
 
       // TODO(burdon): Get search query (not just text).
       case AppAction.ACTION.SEARCH: {
+        // TODO(madadam): Add delay or only log final query -- now we send an event for every keystroke, it's overkill.
+        let analytics = state.injector.get(Analytics.INJECTOR_KEY);
+        analytics && analytics.track('search', {text: action.value});
         return _.set(state, 'search.text', action.value);
       }
 
@@ -168,7 +173,7 @@ export const AppReducer = (injector, config, registration=undefined) => {
 // Context.
 //-------------------------------------------------------------------------------------------------
 
-const CONTEXT_NAMESPACE = 'context';
+const CONTEXT_NAMESPACE = 'MINDER_CONTEXT';
 
 /**
  * Application context (e.g., current page for CRX, location, time, etc.)
@@ -176,12 +181,10 @@ const CONTEXT_NAMESPACE = 'context';
  */
 export class ContextAction {
 
-  static initialState = {
-    context: null
-  };
+  static initialState = {};
 
   static ACTION = {
-    UPDATE_CONTEXT: `${CONTEXT_NAMESPACE}/UPDATE_CONTEXT`,
+    UPDATE_CONTEXT: `${CONTEXT_NAMESPACE}/UPDATE`,
   };
 
   static get namespace() {
@@ -209,10 +212,7 @@ export const ContextReducer = (state=ContextAction.initialState, action) => {
   switch (action.type) {
 
     case ContextAction.ACTION.UPDATE_CONTEXT: {
-      console.log('Context updated: ' + JSON.stringify(action.context));
-      return _.assign({}, state, {
-        context: action.context
-      });
+      return action.context || {};
     }
   }
 

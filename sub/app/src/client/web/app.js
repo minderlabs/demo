@@ -3,8 +3,19 @@
 //
 
 import React from 'react';
-import { IndexRedirect, Redirect, Route, Router } from 'react-router'
+import { browserHistory, IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { ApolloProvider } from 'react-apollo';
+
+import { Injector, Database, IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
+
+import { BaseApp } from '../common/base_app';
+import { AppAction, AppReducer, GlobalAppReducer } from '../common/reducers';
+import { AuthManager } from '../common/auth';
+import { ConnectionManager } from '../common/client';
+import { NetworkManager } from '../common/network';
+import { FirebaseCloudMessenger } from '../common/cloud_messenger';
+
+import { TypeRegistryFactory } from './framework/type_factory';
 
 import { Path } from '../common/path';
 
@@ -12,6 +23,91 @@ import AdminActivity from './activity/admin';
 import CanvasActivity from './activity/canvas';
 import FinderActivity from './activity/finder';
 import TestingActivity from './activity/testing';
+
+/**
+ * Base class for Web apps.
+ */
+export class WebApp extends BaseApp {
+
+  /**
+   * Apollo network.
+   */
+  initNetwork() {
+
+    // Manages OAuth.
+    this._authManager = new AuthManager(this._config);
+
+    // FCM Push Messenger.
+    this._cloudMessenger = new FirebaseCloudMessenger(this._config, this._eventHandler).listen(message => {
+      this._queryRegistry.invalidate();
+    });
+
+    // Manages the client connection and registration.
+    this._connectionManager = new ConnectionManager(this._config, this._authManager, this._cloudMessenger);
+
+    // Local transient items.
+    /*
+    let idGenerator = this._injector.get(IdGenerator);
+    let matcher = this._injector.get(Matcher);
+    this._itemStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.LOCAL, false);
+    */
+    this._itemStore = null;
+
+    // Apollo network requests.
+    this._networkManager =
+      new NetworkManager(this._config, this._authManager, this._connectionManager, this._eventHandler)
+        .init(this._itemStore);
+  }
+
+  postInit() {
+
+    // Register client.
+    return this._authManager.authenticate().then(user => {
+
+      this._analytics.identify(user.uid);
+
+      // TODO(burdon): Retry?
+      return this._connectionManager.register().then(registration => {
+        this.store.dispatch(AppAction.register(registration));
+      });
+    });
+  }
+
+  terminate() {
+    // Unregister client.
+    return this._connectionManager.unregister();
+  }
+
+  get itemStore() {
+    return this._itemStore;
+  }
+
+  get providers() {
+    return [
+      Injector.provider(TypeRegistryFactory())
+    ]
+  }
+
+  get globalReducer() {
+    return GlobalAppReducer;
+  }
+
+  get reducers() {
+    return {
+      // Main app reducer.
+      [AppAction.namespace]: AppReducer(this._injector, this._config)
+    }
+  }
+
+  get networkInterface() {
+    return this._networkManager.networkInterface;
+  }
+
+  get history() {
+    // https://github.com/ReactTraining/react-router/blob/master/docs/guides/Histories.md#browserhistory
+    return browserHistory;
+  }
+}
 
 /**
  * The Application must be a pure React component since HOCs may cause the component to be re-rendered,

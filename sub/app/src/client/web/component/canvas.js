@@ -118,6 +118,7 @@ export class Canvas extends React.Component {
   };
 
   static contextTypes = {
+    config: React.PropTypes.object.isRequired,
     queryRegistry: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired
   };
@@ -181,6 +182,7 @@ export class Canvas extends React.Component {
   }
 
   render() {
+    let { config } = this.context;
     let { item, fields, children } = this.props;
 
     return (
@@ -198,17 +200,17 @@ export class Canvas extends React.Component {
         </div>
         }
 
-        <div className="ux-column ux-expand">
-          { children }
-        </div>
-
-        { fields['debug'] &&
+        { config.debug &&
         <div className="ux-section ux-debug">
           <div className="ux-section-body">
             { JSON.stringify(_.pick(item, 'bucket', 'type', 'id')) }
           </div>
         </div>
         }
+
+        <div className="ux-column ux-expand">
+          { children }
+        </div>
       </div>
     )
   }

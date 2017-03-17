@@ -166,8 +166,17 @@ https://github.com/kubernetes/kops/blob/master/vendor/k8s.io/kubernetes/docs/des
     `//kube/configs/<cluster>`. Ask
     for access if you need it.
 
-    Further reading on sharing and merging kubeconfig files: http://kubernetes.io/docs/user-guide/sharing-clusters/
+    The kubeconfig file can contain metadata about multiple clusters. A few useful commands
+    for switching `contexts`:
+    ```
+    # List all known contexts, also shows the default.
+    kubectl config get-contexts
 
+    # Switch context to e.g. the research cluster.
+    kubectl config use-context research.k.minderlabs.com
+    ```
+
+    Further reading on sharing and merging kubeconfig files: http://kubernetes.io/docs/user-guide/sharing-clusters/
 
 1. Use `kubectl` to administer.
 

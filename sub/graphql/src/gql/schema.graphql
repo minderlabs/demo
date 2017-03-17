@@ -293,7 +293,7 @@ type Group implements Item {
   whitelist: [String]
   members: [User]!
 
-  # TODO(burdon): Shouldn't be part of Group. Instead link (since many-to-may).
+  # TODO(burdon): Shouldn't be part of Group (i.e., span namespaces). Instead link (since many-to-may).
   projects: [Project]!
 }
 
@@ -315,6 +315,9 @@ type Contact implements Item {
   labels: [String]
 
   email: String
+
+  # TODO(burdon): Implement as links.
+  tasks: [Task]!
 }
 
 type Document implements Item {
@@ -408,11 +411,6 @@ type Project implements Item {
 
   # TODO(burdon): Map type (array of typed values).
   boards: [Board]
-
-  # Sub-items.
-  # TODO(madadam): Rename -> items.
-  # TODO(burdon): Reimplement using SearchResult.
-  refs: [Item]
 }
 
 type Task implements Item {
@@ -485,15 +483,12 @@ type RootQuery {
   viewer: Viewer!
 
   # Get specific.
-  # TODO(burdon): Add namespace to ID?
+  # TODO(burdon): Namespace.
+  # TODO(burdon): Return multiple items.
+  # TODO(burdon): Add basic ItemStore key-range lookup.
   item(itemId: ID!): Item!
 
-  # Query.
-  # TODO(burdon): Replace with ItemStore method (e.g., Bucket/Type/ID?)
-  items(filter: FilterInput, offset: Int, count: Int): [Item]!
-
   # Search.
-  # TODO(burdon): Document why different from items.
   search(filter: FilterInput, offset: Int, count: Int): [Item]!
 }
 

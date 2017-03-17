@@ -48,10 +48,11 @@ export const graphqlRouter = (database, options) => {
     resolvers: Resolvers.getResolvers(database),
 
     // Log resolver errors (formatError returns message to client).
+    // https://github.com/apollographql/graphql-tools/issues/291
     // https://github.com/graphql/graphql-js/pull/402
     logger: {
       log: (error) => {
-        logger.error('GraphQL Error: ' + ErrorUtil.stack(error));
+        logger.error('GraphQL Schema Error: ' + error);
       }
     }
   });
@@ -94,6 +95,7 @@ export const graphqlRouter = (database, options) => {
       // function used to format errors before returning them to clients.
       // TODO(burdon): https://www.npmjs.com/package/graphql-apollo-errors
       formatError: (error) => {
+        logger.error(error);
 
         // NOTE: Don't leak server errors to client.
         // https://github.com/graphql/express-graphql#debugging-tips

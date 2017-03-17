@@ -2,7 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-@import './css/theme.less';
+@import './css/theme';
 
 .ux-list {
   display: flex;
@@ -25,13 +25,6 @@
 
   .ux-list-editor { // Undo hover.
     background-color: transparent !important;
-  }
-
-  // Groups for combined results.
-  .ux-list-item-group {
-    .ux-list-item-refs {
-      background-color: #F5F5F5;
-    }
   }
 
   //
@@ -71,7 +64,7 @@
   .ux-drop-target.ux-active {
     .ux-drop-placeholder {
       display: flex;
-      height: 80px;
+      min-height: 40px;
 
       margin: 8px 0;
       background-color: #EEE;

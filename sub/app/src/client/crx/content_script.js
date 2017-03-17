@@ -5,7 +5,7 @@
 import { WindowMessenger, HttpUtil, KeyListener } from 'minder-core';
 
 import { SidebarCommand, KeyCodes } from './common';
-import { InspectorRegistry, TestInspector, GoogleInboxInspector } from './util/inspector';
+import { InspectorRegistry, GmailInspector, GoogleInboxInspector, TestInspector } from './util/inspector';
 
 import './content_script.less';
 
@@ -137,6 +137,7 @@ class ContentScript {
     //
     let inspectors = new InspectorRegistry()
       .add(new TestInspector())
+      .add(new GmailInspector())
       .add(new GoogleInboxInspector())
       .init(context => {
 

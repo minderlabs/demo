@@ -21,15 +21,14 @@ class CloudMessenger {
    * Registers client (and push socket).
    *
    * @param {object} config
-   * @param {QueryRegistry}queryRegistry
    * @param {EventHandler} eventHandler
    */
-  constructor(config, queryRegistry, eventHandler) {
-    console.assert(config && queryRegistry);
+  constructor(config, eventHandler) {
+    console.assert(config && eventHandler);
     this._config = config;
-    this._queryRegistry = queryRegistry;
     this._eventHandler = eventHandler;
     this._onTokenUpdate = null;
+    this._onMessage = null;
   }
 
   /**
@@ -38,13 +37,23 @@ class CloudMessenger {
    */
   onTokenUpdate(onTokenUpdate) {
     this._onTokenUpdate = onTokenUpdate;
+    return this;
+  }
+
+  /**
+   * Register callback.
+   * @param onMessage
+   */
+  listen(onMessage) {
+    this._onMessage = onMessage;
+    return this;
   }
 
   /**
    * Register with the FCM/GCM server.
    * @return {Promise<pushToken>}
    */
-  connect(onMessage) {
+  connect() {
     throw new Error('Not implemented.');
   }
 
@@ -59,10 +68,14 @@ class CloudMessenger {
    * Message callback.
    * @param data
    */
-  onMessage(data) {
+  fireMessage(data) {
     logger.info('Received: ' + JSON.stringify(data));
     this._eventHandler.emit({ type: 'network.in' });
-    this._queryRegistry.invalidate();
+
+    // Ignore invalidations from self.
+    if (_.get(this._config, 'registration.clientId') != data.senderId || data.force) {
+      this._onMessage && this._onMessage(data);
+    }
   }
 }
 
@@ -77,15 +90,11 @@ export class FirebaseCloudMessenger extends CloudMessenger {
   // TODO(burdon): Instance API (server side admin for client).
   // https://developers.google.com/instance-id/reference/server#get_information_about_app_instances
 
-  constructor(config, queryRegistry, eventHandler) {
-    super(config, queryRegistry, eventHandler);
-  }
-
   connect() {
 
     // https://firebase.google.caom/docs/cloud-messaging/js/receive#handle_messages_when_your_web_app_is_in_the_foreground
     firebase.messaging().onMessage(data => {
-      this.onMessage(data);
+      this.fireMessage(data);
     });
 
     // The token is updated when the user clears browser data.
@@ -132,10 +141,10 @@ export class FirebaseCloudMessenger extends CloudMessenger {
  */
 export class GoogleCloudMessenger extends CloudMessenger {
 
-  // TODO(burdon): Store token!
+  // TODO(burdon): Store token?
 
-  constructor(config, queryRegistry, eventHandler) {
-    super(config, queryRegistry, eventHandler);
+  constructor(config, eventHandler) {
+    super(config, eventHandler);
 
     // https://developer.chrome.com/apps/gcm#event-onMessage
     chrome.gcm.onMessage.addListener(message => {
@@ -145,7 +154,7 @@ export class GoogleCloudMessenger extends CloudMessenger {
       // https://developers.google.com/cloud-messaging/chrome/client#collapsible_messages
 
       // Max message size: 4K.
-      this.onMessage(data);
+      this.fireMessage(data);
     });
   }
 

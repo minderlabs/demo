@@ -36,7 +36,7 @@ manifest_version:   2
 
 name:               "Minder"
 short_name:         "Minder"
-version:            "0.1.10"                         # grunt version:crx:patch (uses version.json)
+version:            "0.1.12"                         # grunt version:crx:patch (uses version.json)
 author:             "Minder Labs"
 description:        "Automated intelligence."
 
@@ -137,8 +137,21 @@ content_scripts:
 # https://console.developers.google.com/apis/credentials?project=minder-beta
 # https://developer.chrome.com/apps/app_identity#update_manifest
 # https://developers.google.com/identity/protocols/googlescopes
+# https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
 # TODO(burdon): Inject from defs.GoogleApiConfig
 #
+# 1). In the Google dashboard (for minder-beta) we create an OAuth Chrome App Client, which has a Client ID (no secret):
+#     https://console.developers.google.com/apis/credentials/oauthclient/189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com?project=minder-beta
+#     Client ID: 189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com
+# 2). The Client ID must be set in the manifest's "oauth2.client_id" key.
+# 3). When the CRX is published, the Chrome Web Store assigned a CRX ID:
+#     CRX ID: ofdkhkelcafdphpddfobhbbblgnloian
+# 4). When installed the the CRX is saved in the user's Chrome settings;
+#     ~/Library/Application\ Support/Google/Chrome/USER_PROFILE/Extensions/CRX_ID/CRX_VERSION/manifest.json
+#     This manifest contains a key property.
+# 5). The key must be copied to the development manifest.yml file; this ensures that the locally built CRX and prod CRX have the same CRX ID; otherwise, each developer's CRX would have a different ID, which would need to be registered below.
+# 6). In the Firebase Google Authentication Sign-In method, we register the CRX's Client ID; this is used by the CRX to enable the Firebase auth Login (i.e., firebase.auth().signInWithCredential, which uses the Google OAuth credential)
+#     https://console.firebase.google.com/project/minder-beta/authentication/providers
 
 oauth2:
 
@@ -164,9 +177,7 @@ oauth2:
 # https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
 #
 
-# TODO(burdon): Sort.
-content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://minderlabs.com https://apis.google.com; object-src 'self'"
-
+content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com https://minderlabs.com; object-src 'self'"
 
 #
 # https://developer.chrome.com/extensions/manifest/externally_connectable

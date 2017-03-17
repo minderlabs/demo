@@ -27,7 +27,12 @@ export class ErrorUtil {
     if (typeof Window !== 'undefined') {
 
       // https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onerror
-      root.onerror = error => callback(error);
+      root.onerror = (messageOrEvent, source, lineno, colno, error) => {
+        callback(error || messageOrEvent);
+
+        // NOTE: Return true to stop propagation.
+//        return true;
+      }
 
       // https://developer.mozilla.org/en-US/docs/Web/Events/unhandledrejection
       root.addEventListener('unhandledrejection', error => callback(error));
@@ -67,9 +72,5 @@ export class ErrorUtil {
    */
   static message(error) {
     return error instanceof Error ? (error.originalMessage || error.message) : error;
-  }
-
-  static stack(error) {
-    return error.stack || ErrorUtil.message(error);
   }
 }

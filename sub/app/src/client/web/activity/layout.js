@@ -3,19 +3,16 @@
 //
 
 import React from 'react';
-import { compose, graphql } from 'react-apollo';
-import { connect } from 'react-redux';
 import { Link } from 'react-router';
-import gql from 'graphql-tag';
 
-import { DomUtil, ID, IdGenerator, Mutator, UpsertItemsMutation } from 'minder-core';
+import { DomUtil, ID} from 'minder-core';
 import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
 import { Path } from '../../common/path';
-import { AppAction } from '../../common/reducers';
 
-import { SidePanel } from '../component/sidepanel';
+import SidePanel from '../view/sidepanel';
+
 import { StatusBar } from '../component/statusbar';
 
 import './layout.less';
@@ -23,10 +20,11 @@ import './layout.less';
 /**
  * Layout for all containers.
  */
-export class BaseLayout extends React.Component {
+export class Layout extends React.Component {
 
   static contextTypes = {
     config: React.PropTypes.object.isRequired,
+    viewer: React.PropTypes.object.isRequired,
     typeRegistry: React.PropTypes.object.isRequired,
     queryRegistry: React.PropTypes.object.isRequired,
     eventHandler: React.PropTypes.object.isRequired
@@ -34,6 +32,7 @@ export class BaseLayout extends React.Component {
 
   static propTypes = {
     navbar: React.PropTypes.object.isRequired,
+    finder: React.PropTypes.object,
     className: React.PropTypes.string
   };
 
@@ -64,21 +63,34 @@ export class BaseLayout extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { config, typeRegistry } = this.context;
-      let { navbar, search, children, className } = this.props;
-      let { viewer } = this.props; // Data.
-
-      let sidePanel = <SidePanel typeRegistry={ typeRegistry }
-                                 folders={ viewer.folders }
-                                 group={ viewer.group }
-                                 projects={ viewer.group.projects }/>;
-
+      let { config, viewer, typeRegistry } = this.context;
+      let { navbar, finder, children, className } = this.props;
       let platform = _.get(config, 'app.platform');
-      let platformClassName = 'app-platform-' + platform;
+
+      let sidePanel = <SidePanel typeRegistry={ typeRegistry }/>;
+
+      let content;
+      if (finder) {
+        if (children) {
+          content = (
+            <div className="app-layout-finder ux-columns">
+              { finder }
+
+              <div className="ux-column">
+                { children }
+              </div>
+            </div>
+          );
+        } else {
+          content = finder;
+        }
+      } else {
+        content = children;
+      }
 
       return (
         <div className="ux-fullscreen">
-          <div className={ DomUtil.className('ux-main-layout', 'app-base-layout', platformClassName, className) }>
+          <div className={ DomUtil.className('ux-main-layout', 'ux-column', 'app-layout-' + platform, className) }>
 
             {/* Header */}
             { platform !== Const.PLATFORM.CRX &&
@@ -111,8 +123,8 @@ export class BaseLayout extends React.Component {
             <Sidebar ref="sidebar" sidebar={ sidePanel }>
 
               {/* Content view. */}
-              <div className="ux-column">
-                { children }
+              <div className="app-layout ux-column">
+                { content }
               </div>
             </Sidebar>
 
@@ -126,66 +138,3 @@ export class BaseLayout extends React.Component {
     });
   }
 }
-
-//-------------------------------------------------------------------------------------------------
-// HOC.
-//-------------------------------------------------------------------------------------------------
-
-const LayoutQuery = gql`
-  query LayoutQuery { 
-
-    viewer {
-      user {
-        type
-        id
-        title
-      }
-
-      group {
-        type
-        id
-        title
-
-        projects {
-          type
-          id
-          type
-          title
-        }
-      }
-
-      folders {
-        type
-        id
-        alias
-        title
-        icon
-      }
-    }
-  }
-`;
-
-const mapStateToProps = (state, ownProps) => {
-  let { injector } = AppAction.getState(state);
-
-  // Required by Mutator.
-  let idGenerator = injector.get(IdGenerator);
-
-  return {
-    idGenerator
-  }
-};
-
-export default compose(
-
-  connect(mapStateToProps),
-
-  // Configure query (from redux state).
-  // http://dev.apollodata.com/react/queries.html#graphql-options
-  graphql(LayoutQuery, {
-    props: ({ ownProps, data }) => {
-      return _.pick(data, ['loading', 'error', 'viewer'])
-    }
-  })
-
-)(BaseLayout);

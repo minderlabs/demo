@@ -2,6 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import express from 'express';
 import bodyParser from 'body-parser';
 import moment from 'moment';
@@ -164,7 +165,7 @@ export class ClientManager {
     if (!client) {
       // Web clients should have been created on page load.
       if (platform !== Const.PLATFORM.WEB) {
-        logger.warn('Invalid client: ' + clientId);
+        logger.warn('Invalid or expired client: ' + clientId);
       }
 
       // Create the client.
@@ -196,10 +197,46 @@ export class ClientManager {
   // TODO(burdon): Factor out Cloud Messaging.
 
   /**
-   * Send query invalidations to client.
-   * @param clientId
+   * Invalidate all clients.
+   *
+   * NOTE: Clients may share the same push token (one per browser), so the sender will also receive the
+   * invalidation but may choose to ignore it.
+   *
+   * @param senderId Client ID of sender.
+   * @return {Promise.<*>|*}
    */
-  invalidate(clientId) {
+  invalidateClients(senderId=undefined) {
+
+    // Create map of tokens by platform.
+    let messageTokenMap = {};
+    _.each(_.toArray(this._clients.values()), client => {
+      if (client.messageToken) {
+        console.assert(messageTokenMap[client.messageToken] === undefined ||
+                       messageTokenMap[client.messageToken] === client.platform,
+          'Multiple platforms for message token: ' + client.messageToken);
+
+        messageTokenMap[client.messageToken] = client.platform;
+      }
+    });
+
+    if (_.size(messageTokenMap) == 0) {
+      return Promise.resolve();
+    }
+
+    // Send to multiple tokens.
+    logger.log('Sending invalidations to clients: ' + _.size(messageTokenMap));
+    return Promise.all(_.map(messageTokenMap, (platform, messageToken) => {
+      return this.sendMessage(platform, messageToken, senderId);
+    })).catch(error => {
+      console.warn('Invalidation failed: ' + error);
+    });
+  }
+
+  /**
+   * Invalidate given client.
+   * @param clientId Client to invalidate.
+   */
+  invalidateClient(clientId) {
     let client = this._clients.get(clientId);
 
     if (!client) {
@@ -208,21 +245,36 @@ export class ClientManager {
 
     if (!client.messageToken) {
       logger.warn('No message token for client: ' + clientId);
-      return;
+      return Promise.resolve();
     }
 
-    logger.log('Invalidating: ' + clientId);
+    logger.log('Sending invalidation to client: ' + clientId);
+    return this.sendMessage(client.platform, client.messageToken, clientId, true);
+  }
+
+  /**
+   * Send push message.
+   *
+   * @param platform Client platform.
+   * @param senderId Client ID of sender.
+   * @param messageToken
+   * @param force
+   * @return {Promise}
+   */
+  sendMessage(platform, messageToken, senderId, force=false) {
     return new Promise((resolve, reject) => {
 
-      // TODO(burdon): Query invalidation message.
+      // TODO(burdon): Query invalidation message (see CloudMessenger).
       // NOTE: key x value pairs only.
       // https://firebase.google.com/docs/cloud-messaging/http-server-ref#downstream-http-messages-json
       let data = {
-        command: 'invalidate'
+        command: 'invalidate',
+        senderId,
+        force
       };
 
       let url;
-      if (client.platform === Const.PLATFORM.CRX) {
+      if (platform === Const.PLATFORM.CRX) {
         // https://developers.google.com/cloud-messaging/downstream
         url = 'https://gcm-http.googleapis.com/gcm/send';
       } else {
@@ -241,34 +293,23 @@ export class ClientManager {
         },
 
         body: JSON.stringify({
-          to: client.messageToken,
+          // No support for multiple recipients.
+          to: messageToken,
+
           data
         })
       };
 
       // Post authenticated request to GCM/FCM endpoint.
-      logger.log(`Sending [${clientId}]: ${JSON.stringify(data)}`);
+      // https://firebase.google.com/docs/cloud-messaging/server
+      logger.log('Sending message: ' + messageToken, JSON.stringify(data));
       request.post(options, (error, response, body) => {
         if (error || response.statusCode != 200) {
-          // https://firebase.google.com/docs/cloud-messaging/server
-          logger.warn(`Cloud Messaging Error [${response.statusCode}]: ${error || response.statusMessage}`);
+          throw new Error(`Messaging Error [${response.statusCode}]: ${error || response.statusMessage}`);
         } else {
           resolve();
         }
       });
-    });
-  }
-
-  invalidateClients(currentClientId=undefined) {
-    let promises = [];
-    this._clients.forEach(client => {
-      if (client.id != currentClientId) {
-        promises.push(this.invalidate(client.id));
-      }
-    });
-
-    return Promise.all(promises).catch(error => {
-      console.warn('Invalidation failed: ' + error);
     });
   }
 }

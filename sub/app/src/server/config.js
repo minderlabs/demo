@@ -11,7 +11,8 @@ import { Logger } from 'minder-core';
 Logger.setLevel({
 
   'server'    : Logger.Level.debug,
-  'auth'      : Logger.Level.debug,
+  'auth'      : Logger.Level.info,
+  'botkit'    : Logger.Level.debug,
   'client'    : Logger.Level.debug,
   'net'       : Logger.Level.debug,
   'resolver'  : Logger.Level.debug,
@@ -20,3 +21,7 @@ Logger.setLevel({
   'db'        : Logger.Level.info,
 
 }, Logger.Level.info);
+
+export const TestConfig = {
+
+};
