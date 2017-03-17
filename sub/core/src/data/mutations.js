@@ -460,10 +460,19 @@ export class Mutator {
           }
         }
       });
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> master
 
       this._analytics && this._analytics.track('item.edit', {label: item.type});
 
       return item;
+<<<<<<< HEAD
+>>>>>>> master
+=======
+>>>>>>> master
     }
 
     //
