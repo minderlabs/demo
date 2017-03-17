@@ -58,7 +58,7 @@ export class QueryProcessor {
 export class ItemStore extends QueryProcessor {
 
   // TODO(burdon): Don't extend QueryProcessor.
-  // TODO(burdon): Implment basic Keyscan lookup (e.g., Type-only).
+  // TODO(burdon): Implment basic Keyscan lookup (e.g., Type-only) and replace current getItems().
 
   /**
    * @param namespace Namespace.
@@ -272,30 +272,32 @@ export class ItemUtil {
 
   /**
    * Groups search results by common parents.
+   * E.g., Tasks are groups into the parent Project.
    *
+   * @param itemStore
    * @param items
-   * @param getGroupKey Function that returns group key for the item.
-   * @returns {[Item]} ordered item results.
+   * @param groupSpecs Map of Type => { parentType, parentKey, parentMember }
+   * @returns {Promise<[Item]>} ordered item results.
    * @private
    */
-  static groupBy(items, getGroupKey) {
-    console.assert(items && getGroupKey);
+  static groupBy(itemStore, items, groupSpecs) {
+    console.assert(itemStore && items && groupSpecs);
 
-    // TODO(burdon): Reimplement grouping using search items.
-    // Currently item.refs pollutes the apollo client cache (since depends on search context).
-
+    // Map of items being processed.
     let itemsById = new Map();
 
     //
-    // Create a map of items arrays indexed by common group item ID.
+    // Create a map of item arrays indexed by common group item ID.
     //
 
-    let groupedItems = new Map();
+    let itemsByGroupId = new Map();
     _.each(items, item => {
       itemsById.set(item.id, item);
-      let groupItemId = getGroupKey(item);
+
+      let spec = groupSpecs[item.type];
+      let groupItemId = spec && item[spec.parentKey];
       if (groupItemId) {
-        TypeUtil.defaultMap(groupedItems, groupItemId, Array).push(item);
+        TypeUtil.defaultMap(itemsByGroupId, groupItemId, Array).push(item);
       }
     });
 
@@ -303,23 +305,30 @@ export class ItemUtil {
     // Create groups.
     //
 
-    let itemGroups = new Map();
-    groupedItems.forEach((items, groupItemId) => {
+    let missingGroupItemsByType = new Map();
+
+    let groupItemsById = new Map();
+    itemsByGroupId.forEach((items, groupItemId) => {
       if (items.length > 1) {
+        let spec = groupSpecs[items[0].type];
+        console.assert(spec);
+
         // Check if grouped parent is actually part of the results.
         let groupItem = itemsById.get(groupItemId);
         if (!groupItem) {
-          // TODO(burdon): Look-up the item.
-          // TODO(burdon): Generalize for other types.
+
+          // Create stub and look-up later.
           groupItem = {
-            id: groupItemId,
-            type: 'Project',
-            title: 'Project ' + groupItemId
+            type: spec.parentType,
+            id: groupItemId
           };
+
+          TypeUtil.defaultMap(missingGroupItemsByType, spec.parentType, Array).push(groupItem);
         }
 
-        groupItem.refs = items;
-        itemGroups.set(groupItemId, groupItem);
+        // Set the child items.
+        groupItem[spec.parentMember] = items;
+        groupItemsById.set(groupItemId, groupItem);
       }
     });
 
@@ -327,30 +336,93 @@ export class ItemUtil {
     // Create the ordered results.
     //
 
-    let results = [];
-    _.each(items, item => {
-      // Check if the item has already been listed (e.g., as part of a group).
-      if (itemsById.get(item.id)) {
-        // Get the group (either current item or parent of current item).
-        let group = itemGroups.get(item.id) || itemGroups.get(getGroupKey(item));
-        if (group) {
-          // Add group.
-          results.push(group);
+    const getResults = (items) => {
 
-          // Remove each grouped item.
-          _.each(group.refs, item => {
+      let results = [];
+      _.each(items, item => {
+
+        // Check if the item has already been listed (e.g., as part of a group).
+        // NOTE: We remove from this map once they are listed in the results.
+        if (itemsById.get(item.id)) {
+
+          // Check if the result is a group item.
+          let groupItem = groupItemsById.get(item.id);
+
+          // If not, check if we are a member of a group item.
+          if (!groupItem) {
+            let spec = groupSpecs[item.type];
+            let groupItemId = spec && item[spec.parentKey];
+            if (groupItemId) {
+              groupItem = groupItemsById.get(groupItemId);
+            }
+          }
+
+          // If we have a group item, add it to the results and remove the children.
+          if (groupItem) {
+
+            // Add the group item.
+            results.push(groupItem);
+
+            // Don't use again.
+            itemsById.delete(groupItem.id);
+
+            // Remove grouped items.
+            // NOTE: May have multiple groups.
+            _.each(groupSpecs, (spec, type) => {
+              if (spec.parentType === groupItem.type) {
+                _.each(groupItem[spec.parentMember], item => {
+                  itemsById.delete(item.id);
+                });
+              }
+            });
+          } else {
+
+            // Add regular item.
+            results.push(item);
+
+            // Don't use again.
             itemsById.delete(item.id);
-          });
-        } else {
-          // Add plain item.
-          results.push(item);
+          }
         }
+      });
 
-        // Don't use again.
-        itemsById.delete(item.id);
-      }
-    });
+      return results;
+    };
 
-    return results;
+    //
+    // Look-up missing items.
+    //
+
+    if (missingGroupItemsByType.size) {
+      let promsies = [];
+      missingGroupItemsByType.forEach((items, type) => {
+        promsies.push(itemStore.getItems({}, type, _.map(items, item => item.id)));
+      });
+
+      return Promise.all(promsies).then(results => {
+        _.each(results, items => {
+          _.each(items, item => {
+
+            // Get the stub created above.
+            let groupItemStub = groupItemsById.get(item.id);
+            console.assert(groupItemStub);
+
+            // Merge collections onto real results.
+            _.each(groupSpecs, (spec, type) => {
+              if (spec.parentType === item.type) {
+                item[spec.parentMember] = groupItemStub[spec.parentMember];
+              }
+            });
+
+            // Set the actual item.
+            groupItemsById.set(item.id, item);
+          });
+        });
+
+        return getResults(items);
+      });
+    } else {
+      return Promise.resolve(getResults(items));
+    }
   }
 }

@@ -113,7 +113,6 @@ export class List extends React.Component {
     className:          React.PropTypes.string,
     highlight:          React.PropTypes.bool,
 
-    groupBy:            React.PropTypes.bool,
     showAdd:            React.PropTypes.bool,
 
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
@@ -237,7 +236,7 @@ export class List extends React.Component {
   */
 
   render() {
-    let { itemClassName, itemOrderModel, itemInjector, data, groupBy } = this.props;
+    let { itemClassName, itemOrderModel, itemInjector, data } = this.props;
     let { items, itemRenderer } = this.state;
 
     // Sort items by order model.
@@ -291,26 +290,6 @@ export class List extends React.Component {
         );
 
         previousOrder = itemOrder;
-      } else {
-
-        // Grouped items.
-        // TODO(burdon): Can't group with drag?
-        if (groupBy && !_.isEmpty(item.refs)) {
-          let refs = item.refs.map(ref => (
-            <div key={ ref.id } className={ itemClassName }>
-              { itemRenderer(ref) }
-            </div>
-          ));
-
-          return (
-            <div key={ key } className="ux-list-item-group">
-              { listItem }
-              <div className="ux-list-item-refs">
-                { refs }
-              </div>
-            </div>
-          );
-        }
       }
 
       return listItem;

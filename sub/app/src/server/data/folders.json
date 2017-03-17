@@ -33,7 +33,7 @@
             "field": "modified",
             "order": "DESC"
           },
-          "groupBy": false
+          "groupBy": true
         }
       },
       {

@@ -14,7 +14,6 @@ const matcher = new Matcher();
 
 //
 // Database.
-// TODO(burdon): Test both databases.
 //
 
 const idGenerator = new IdGenerator(1000);
@@ -24,13 +23,13 @@ const tests = (itemStore) => {
   let database = new Database()
     .registerItemStore(itemStore);
 
-  it('Groups items.', () => {
+  it('Groups items.', (done) => {
     let items = [
       {
         id: 'I-1',
         type: 'Task',
         title: 'Task 1',
-        project: 'project-1'
+        project: 'project-1'          // project-1
       },
       {
         id: 'I-2',
@@ -45,13 +44,13 @@ const tests = (itemStore) => {
       {
         id: 'project-1',
         type: 'Project',
-        title: 'Project 1'
+        title: 'Project 1'            // project-1
       },
       {
         id: 'I-4',
         type: 'Task',
         title: 'Task 3',
-        project: 'project-1'
+        project: 'project-1'          // project-1
       },
       {
         id: 'I-5',
@@ -63,33 +62,38 @@ const tests = (itemStore) => {
         id: 'I-6',
         type: 'Task',
         title: 'Task 5',
-        project: 'project-3'
+        project: 'project-3'          // project-3
       },
       {
         id: 'I-7',
         type: 'Task',
         title: 'Task 6',
-        project: 'project-3'
+        project: 'project-3'          // project-3
       }
     ];
 
-    // TODO(madadam): TypeUtil or TypeRegistry.
-    const getGroupKey = item => {
-      switch (item.type) {
-        case 'Task': {
-          return item.project;
-        }
+    itemStore.upsertItems({}, [
+
+      {
+        id: 'project-3',              // project-3
+        type: 'Project',
+        title: 'Project 3'
       }
-    };
 
-    let groupedItems = ItemUtil.groupBy(items, getGroupKey);
+    ]).then(() => {
 
-    expect(groupedItems).to.have.lengthOf(6);
-    expect(groupedItems[0].id).to.equal('project-1');
-    expect(groupedItems[0].title).to.equal('Project 1');
-    expect(groupedItems[0].refs).to.have.lengthOf(2);
+      ItemUtil.groupBy(itemStore, items, Database.GROUP_SPECS).then(results => {
+
+        console.error(JSON.stringify(results, 0, 2));
+
+        expect(results).to.have.lengthOf(5);
+        expect(results[0].id).to.equal('project-1');
+        expect(results[0].tasks).to.have.lengthOf(2);
+        done();
+      });
+    });
   });
 };
 
 describe('MemoryDatabase:',
-  () => tests(new MemoryItemStore(idGenerator, matcher, 'test')));
+  () => tests(new MemoryItemStore(idGenerator, matcher, 'test', false)));

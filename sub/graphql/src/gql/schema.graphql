@@ -411,11 +411,6 @@ type Project implements Item {
 
   # TODO(burdon): Map type (array of typed values).
   boards: [Board]
-
-  # Sub-items.
-  # TODO(madadam): Rename -> items.
-  # TODO(burdon): Reimplement using SearchResult.
-  refs: [Item]
 }
 
 type Task implements Item {

@@ -76,6 +76,8 @@ export const DebugListItemRenderer = (item) => {
 // Basic List.
 //-------------------------------------------------------------------------------------------------
 
+// TODO(burdon): Fragments for grouping.
+
 const BasicItemFragment = gql`
   fragment BasicItemFragment on Item {
     namespace
@@ -96,13 +98,6 @@ const BasicSearchQuery = gql`
   query BasicSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
     search(filter: $filter, offset: $offset, count: $count) {
       ...BasicItemFragment
-
-      # TODO(burdon): Generalize grouping?
-      ... on Project {
-        refs {
-          ...BasicItemFragment
-        }
-      }
     }
   }
 
