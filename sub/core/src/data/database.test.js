@@ -23,6 +23,8 @@ const tests = (itemStore) => {
   let database = new Database()
     .registerItemStore(itemStore);
 
+  let context = {};
+
   it('Groups items.', (done) => {
     let items = [
       {
@@ -72,7 +74,7 @@ const tests = (itemStore) => {
       }
     ];
 
-    itemStore.upsertItems({}, [
+    itemStore.upsertItems(context, [
 
       {
         id: 'project-3',              // project-3
@@ -82,7 +84,7 @@ const tests = (itemStore) => {
 
     ]).then(() => {
 
-      ItemUtil.groupBy(itemStore, items, Database.GROUP_SPECS).then(results => {
+      ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS).then(results => {
 
         console.error(JSON.stringify(results, 0, 2));
 

@@ -79,8 +79,6 @@ export class TestGenerator {
         });
       },
 
-      topLevel: () => true,
-
       tasks: (item, context, randomizer) => {
         let { groupId, userId } = context;
         console.assert(groupId && userId);

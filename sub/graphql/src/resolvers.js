@@ -37,6 +37,21 @@ export class Resolvers {
     return Schema;
   }
 
+  /**
+   * Retreive items from a set of IDs, or return fully formed items.
+   *
+   * @param itemStore
+   * @param context
+   * @param type
+   * @param items
+   * @returns {*|Promise.<Item[]>}
+   */
+  static getItems(itemStore, context, type, items) {
+    let itemIds = _.filter(items, item => _.isString(item));
+
+    return _.isEmpty(itemIds) ? (items || []) : itemStore.getItems(context, type, itemIds);
+  }
+
   //
   // Resolver Map
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-map
@@ -148,11 +163,8 @@ export class Resolvers {
 
         tasks: (root, args, context) => {
           let { tasks } = root;
-          if (tasks) {
-            return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', tasks);
-          } else {
-            return [];
-          }
+
+          return Resolvers.getItems(database.getItemStore(Database.NAMESPACE.USER), context, 'Task', tasks);
         }
       },
 

@@ -164,10 +164,7 @@ export class Database {
     let itemStore = this.getItemStore();
     return this._searchAll(context, root, filter, offset, count)
       .then(items => {
-        return filter.groupBy ? ItemUtil.groupBy(itemStore, items, Database.GROUP_SPECS).then(items => {
-          console.log('*** Grouped ***\n' + JSON.stringify(items, 0, 2));
-          return items;
-        }) : items;
+        return filter.groupBy ? ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS) : items
       });
   }
 

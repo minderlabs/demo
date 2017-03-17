@@ -274,14 +274,15 @@ export class ItemUtil {
    * Groups search results by common parents.
    * E.g., Tasks are groups into the parent Project.
    *
+   * @param context
    * @param itemStore
    * @param items
    * @param groupSpecs Map of Type => { parentType, parentKey, parentMember }
    * @returns {Promise<[Item]>} ordered item results.
    * @private
    */
-  static groupBy(itemStore, items, groupSpecs) {
-    console.assert(itemStore && items && groupSpecs);
+  static groupBy(itemStore, context, items, groupSpecs) {
+    console.assert(itemStore && context && items && groupSpecs);
 
     // Map of items being processed.
     let itemsById = new Map();
@@ -309,27 +310,26 @@ export class ItemUtil {
 
     let groupItemsById = new Map();
     itemsByGroupId.forEach((items, groupItemId) => {
-      if (items.length > 1) {
-        let spec = groupSpecs[items[0].type];
-        console.assert(spec);
+      let spec = groupSpecs[items[0].type];
+      console.assert(spec);
 
-        // Check if grouped parent is actually part of the results.
-        let groupItem = itemsById.get(groupItemId);
-        if (!groupItem) {
+      // Check if grouped parent is actually part of the results.
+      let groupItem = itemsById.get(groupItemId);
+      if (!groupItem) {
 
-          // Create stub and look-up later.
-          groupItem = {
-            type: spec.parentType,
-            id: groupItemId
-          };
+        // Create stub and look-up later.
+        groupItem = {
+          title: '### ERROR ###',     // Will be replaced by referenced item.
+          type: spec.parentType,
+          id: groupItemId
+        };
 
-          TypeUtil.defaultMap(missingGroupItemsByType, spec.parentType, Array).push(groupItem);
-        }
-
-        // Set the child items.
-        groupItem[spec.parentMember] = items;
-        groupItemsById.set(groupItemId, groupItem);
+        TypeUtil.defaultMap(missingGroupItemsByType, spec.parentType, Array).push(groupItem);
       }
+
+      // Set the child items.
+      groupItem[spec.parentMember] = items;
+      groupItemsById.set(groupItemId, groupItem);
     });
 
     //
@@ -395,8 +395,9 @@ export class ItemUtil {
 
     if (missingGroupItemsByType.size) {
       let promsies = [];
+
       missingGroupItemsByType.forEach((items, type) => {
-        promsies.push(itemStore.getItems({}, type, _.map(items, item => item.id)));
+        promsies.push(itemStore.getItems(context, type, _.map(items, item => item.id)));
       });
 
       return Promise.all(promsies).then(results => {
