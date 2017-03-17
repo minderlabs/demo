@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { Logger } from 'minder-core';
+import { Database, Logger } from 'minder-core';
 
 import { ActionDispatcher } from '../commands/action';
 import { PasteCommand } from '../commands/paste';
@@ -75,11 +75,14 @@ export class SlackBot {
         let filter = {
           type: 'User',
         };
-        return this.database.queryItems({}, {}, filter)
+        let queryProcessor = this.database.getQueryProcessor(Database.NAMESPACE.SYSTEM);
+        console.assert(queryProcessor);
+        return queryProcessor.queryItems({}, {}, filter)
           .then(items => {
             let user = _.find(items, { email });
             if (!user) {
-              throw new Error('Invalid user: ' + email);
+              // TODO(madadam): Synthesize transient user record?
+              return { email };
             }
             return user;
           });

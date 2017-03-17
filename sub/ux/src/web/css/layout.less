@@ -24,6 +24,8 @@
 
 .ux-main-layout {
 
+  background-color: white;
+
   > .ux-header {
     padding: 0 8px;
 
@@ -32,6 +34,12 @@
 
     i.ux-icon {
       margin: 0;
+      font-size: 24px;
+    }
+
+    h1 {
+      margin-left: 8px;
+      font-family: Poiret One, sans-serif;
     }
 
     a {
@@ -109,6 +117,12 @@
     h1 {
       font-size: @ux-font-medium;
     }
+    h2 {
+      font-size: @ux-font-small;
+    }
+    h3 {
+      font-size: @ux-font-xsmall;
+    }
 
     .ux-icon {
       font-size: @ux-font-small;
@@ -124,6 +138,15 @@
 
     .ux-icon-add {
       float: right;
+    }
+  }
+
+  .ux-section-header {
+    padding: 1px 4px;
+    background-color: #ECEFF1;
+
+    h3 {
+      font-size: @ux-font-xsmall;
     }
   }
 }

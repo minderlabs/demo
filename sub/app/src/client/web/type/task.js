@@ -9,8 +9,10 @@ import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { ID, ItemFragment, TaskFragment, ItemReducer, MutationUtil } from 'minder-core';
+import { ID, Fragments, ItemReducer, MutationUtil } from 'minder-core';
 import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
+
+import { TASK_LEVELS } from '../../../common/defs';
 
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
@@ -20,22 +22,6 @@ import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
 import './task.less';
-
-// TODO(burdon): Get from query (see test.json).
-// Enums with properties in javascript:
-// https://stijndewitt.com/2014/01/26/enums-in-javascript/
-export const TASK_LEVELS = {
-  UNSTARTED: 0,
-  ACTIVE:    1,
-  COMPLETE:  2,
-  BLOCKED:   3,
-  properties: {
-    0: { title: 'Unstarted'},
-    1: { title: 'Active'},
-    2: { title: 'Complete'},
-    3: { title: 'Blocked'}
-  }
-};
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -409,8 +395,8 @@ const TaskQuery = gql`
     }
   }
 
-  ${ItemFragment}
-  ${TaskFragment}  
+  ${Fragments.ItemFragment}
+  ${Fragments.TaskFragment}  
 `;
 
 export const TaskCanvas = compose(

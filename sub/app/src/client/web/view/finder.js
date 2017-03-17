@@ -8,7 +8,7 @@ import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { IdGenerator, QueryParser, SubscriptionWrapper } from 'minder-core';
-import { ItemFragment, ContactFragment } from 'minder-core';
+import { Fragments } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -29,6 +29,10 @@ class Finder extends React.Component {
     typeRegistry: React.PropTypes.object.isRequired,
     navigator: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired
+  };
+
+  static propTypes = {
+    viewer: React.PropTypes.object.isRequired
   };
 
   handleItemSelect(item) {
@@ -57,11 +61,10 @@ class Finder extends React.Component {
       let list;
       switch (listType) {
         case 'card':
-          list = <CardSearchList filter={ filter }
+          list = <CardSearchList filter={ _.defaults(filter, { groupBy: true }) }
                                  highlight={ false }
                                  className="ux-card-list"
                                  itemInjector={ itemInjector }
-                                 stuff={ this.props.contextItems }
                                  itemRenderer={ Card.ItemRenderer(typeRegistry) }
                                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
           break;
@@ -69,7 +72,6 @@ class Finder extends React.Component {
         case 'list':
         default:
           list = <BasicSearchList filter={ filter }
-                                  groupBy={ false }
                                   itemRenderer={ BasicListItemRenderer(typeRegistry) }
                                   onItemSelect={ this.handleItemSelect.bind(this) }
                                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
@@ -89,8 +91,6 @@ class Finder extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
-// TODO(burdon): Factor out.
-// TODO(burdon): Get from top-level Activity.
 const FoldersQuery = gql`
   query FoldersQuery {
     viewer {
@@ -114,8 +114,8 @@ const ContextQuery = gql`
     }
   }
 
-  ${ItemFragment}
-  ${ContactFragment}
+  ${Fragments.ItemFragment}
+  ${Fragments.ContactFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
@@ -214,6 +214,7 @@ export default compose(
       return {
         contextItems,
 
+        // For subscriptions.
         refetch: () => {
           data.refetch();
         }

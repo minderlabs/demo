@@ -35,7 +35,8 @@ export class QueryRegistry {
    * @param refetch
    */
   register(id, refetch) {
-    console.assert(id && refetch, 'Invalid registration.');
+    console.assert(id);
+    console.assert(refetch, 'Component must have refetch prop.');
     this._components.set(id, { refetch });
     logger.log(`Registered[${this._components.size}]: ${id}`);
   }

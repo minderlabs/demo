@@ -64,11 +64,9 @@ export class Card extends React.Component {
         { children }
 
         { config.debug &&
-        <div className="ux-section">
-          <div className="ux-section-body ux-debug" title={ JSON.stringify(_.pick(item, ['namespace', 'bucket'])) }>
-            { TypeUtil.stringify(_.pick(item, ['id', 'type']), false) +
-                (item.namespace ? ` (${item.namespace[0].toUpperCase()})` : '') }
-          </div>
+        <div className="ux-section-body ux-debug" title={ JSON.stringify(_.pick(item, ['namespace', 'bucket'])) }>
+          { TypeUtil.stringify(_.pick(item, ['id', 'type']), false) +
+              (item.namespace ? ` (${item.namespace[0].toUpperCase()})` : '') }
         </div>
         }
       </div>

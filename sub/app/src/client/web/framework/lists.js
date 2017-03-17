@@ -6,15 +6,7 @@ import React from 'react';
 import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
-import {
-  ItemFragment,
-  ContactFragment,
-  DocumentFragment,
-  ProjectFragment,
-  TaskFragment,
-  ListReducer,
-  SubscriptionWrapper
-} from 'minder-core';
+import { Fragments, ListReducer, SubscriptionWrapper } from 'minder-core';
 
 import { List, ListItem } from 'minder-ux';
 
@@ -84,6 +76,8 @@ export const DebugListItemRenderer = (item) => {
 // Basic List.
 //-------------------------------------------------------------------------------------------------
 
+// TODO(burdon): Fragments for grouping.
+
 const BasicItemFragment = gql`
   fragment BasicItemFragment on Item {
     namespace
@@ -97,20 +91,13 @@ const BasicItemFragment = gql`
     ...DocumentFragment
   }
 
-  ${DocumentFragment}
+  ${Fragments.DocumentFragment}
 `;
 
 const BasicSearchQuery = gql`
   query BasicSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
     search(filter: $filter, offset: $offset, count: $count) {
       ...BasicItemFragment
-
-      # TODO(burdon): Generalize grouping?
-      ... on Project {
-        refs {
-          ...BasicItemFragment
-        }
-      }
     }
   }
 
@@ -135,11 +122,11 @@ const CardItemFragment = gql`
     ...TaskFragment
   }
 
-  ${ItemFragment}
-  ${ContactFragment}
-  ${DocumentFragment}
-  ${ProjectFragment}
-  ${TaskFragment}
+  ${Fragments.ItemFragment}
+  ${Fragments.ContactFragment}
+  ${Fragments.DocumentFragment}
+  ${Fragments.ProjectFragment}
+  ${Fragments.TaskFragment}
 `;
 
 const CardSearchQuery = gql`

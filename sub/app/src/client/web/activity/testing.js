@@ -3,17 +3,17 @@
 //
 
 import React from 'react';
-import { compose, graphql } from 'react-apollo';
+import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ItemFragment, ContactFragment, TaskFragment } from 'minder-core';
-import { List } from 'minder-ux';
+import { Fragments } from 'minder-core';
+import { List, ReactUtil } from 'minder-ux';
 
 import { Navbar } from '../component/navbar';
 import { Card } from '../component/card';
-import { FullLayout } from '../layout/full';
 
 import { Activity } from './activity';
+import { Layout } from './layout';
 
 /**
  * Testing Activity.
@@ -46,41 +46,43 @@ class TestingActivity extends React.Component {
   }
 
   render() {
-    let { typeRegistry, items } = this.props;
-    let { listType } = this.state;
+    return ReactUtil.render(this, () => {
+      let { viewer, typeRegistry, items } = this.props;
+      let { listType } = this.state;
 
-    let itemRenderer = null;
-    switch (listType) {
-      case 'card': {
-        itemRenderer = Card.ItemRenderer(typeRegistry);
-        break;
+      let itemRenderer = null;
+      switch (listType) {
+        case 'card': {
+          itemRenderer = Card.ItemRenderer(typeRegistry);
+          break;
+        }
       }
-    }
 
-    let navbar = (
-      <Navbar search={ false }>
-        <div className="ux-toolbar">
-          <div>
-            <i className="ux-icon ux-icon-action"
-               onClick={ this.onAddItem.bind(this, 'list') }>add</i>
-            <i className="ux-icon ux-icon-action"
-               onClick={ this.onChangeView.bind(this, 'list') }>view_list</i>
-            <i className="ux-icon ux-icon-action"
-               onClick={ this.onChangeView.bind(this, 'card') }>view_module</i>
+      let navbar = (
+        <Navbar search={ false }>
+          <div className="ux-toolbar">
+            <div>
+              <i className="ux-icon ux-icon-action"
+                 onClick={ this.onAddItem.bind(this, 'list') }>add</i>
+              <i className="ux-icon ux-icon-action"
+                 onClick={ this.onChangeView.bind(this, 'list') }>view_list</i>
+              <i className="ux-icon ux-icon-action"
+                 onClick={ this.onChangeView.bind(this, 'card') }>view_module</i>
+            </div>
           </div>
-        </div>
-      </Navbar>
-    );
+        </Navbar>
+      );
 
-    return (
-      <FullLayout navbar={ navbar }>
-        <List ref="list"
-              highlight={ false }
-              items={ items }
-              itemRenderer={ itemRenderer }
-              onItemUpdate={ this.onItemUpdate.bind(this) }/>
-      </FullLayout>
-    );
+      return (
+        <Layout viewer={ viewer } navbar={ navbar }>
+          <List ref="list"
+                highlight={ false }
+                items={ items }
+                itemRenderer={ itemRenderer }
+                onItemUpdate={ this.onItemUpdate.bind(this) }/>
+        </Layout>
+      );
+    });
   }
 }
 
@@ -90,7 +92,7 @@ class TestingActivity extends React.Component {
 
 const TestQuery = gql`
   query TestQuery($filter: FilterInput) {
-    items(filter: $filter) {
+    items: search(filter: $filter) {
       ...ItemFragment
       ...ContactFragment
       ...TaskFragment
@@ -103,14 +105,12 @@ const TestQuery = gql`
     }
   }
 
-  ${ItemFragment}
-  ${ContactFragment}
-  ${TaskFragment}
+  ${Fragments.ItemFragment}
+  ${Fragments.ContactFragment}
+  ${Fragments.TaskFragment}
 `;
 
-export default compose(
-
-  Activity.connect(),
+export default Activity.compose(
 
   graphql(TestQuery, {
     options: (props) => ({

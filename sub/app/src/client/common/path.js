@@ -103,6 +103,10 @@ export class WindowNavigator {
     this._serverProvider = serverProvider;
   }
 
+  goBack() {}
+  goForward() {}
+  push() {}
+
   pushCanvas(item) {
     let path = this._serverProvider.value + Path.canvas(ID.toGlobalId(item.type, item.id));
     window.open(path, 'MINDER');

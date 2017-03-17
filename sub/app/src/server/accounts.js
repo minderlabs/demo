@@ -2,6 +2,8 @@
 // Copyright 2017 Minder Labs.
 //
 
+import bodyParser from 'body-parser';
+import express from 'express';
 
 // Sign-up buttons can start OAuth flow that redirects back to /accounts/<service>, which delegates to the
 // service handler. After creating accounts (systemStore?) and getting credentials from the service and
@@ -26,6 +28,31 @@ export class AccountManager {
     return this;
   }
 }
+
+// Router for '/accounts' paths. Root /accounts page iterates over AccountManager.accounts exposing
+// account.signUpButtons() if not already connected, or account.info() if connected.
+
+export const accountsRouter = (accountManager) => {
+
+  console.assert(accountManager);
+
+  let router = express.Router();
+
+  router.use(bodyParser.json());
+  // TODO(madadam): use bodyParser.urlencoded?
+
+  accountManager.handlers.forEach((name, handler) => {
+    router.get('/accounts/' + name, handler.oauthRedirectHandler());
+  });
+
+  router.get('/accounts', function(req, res) {
+    res.render('accounts', {
+      accounts: accountManager.handlers
+    });
+  });
+
+  return router;
+};
 
 /**
  * AccountHandler interface.

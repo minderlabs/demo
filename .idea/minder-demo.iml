@@ -13,6 +13,8 @@
       <excludeFolder url="file://$MODULE_DIR$/sub/site/node_modules" />
       <excludeFolder url="file://$MODULE_DIR$/sub/tools/venv" />
       <excludeFolder url="file://$MODULE_DIR$/sub/tools/virtual_env" />
+      <excludeFolder url="file://$MODULE_DIR$/sub/web/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/sub/web/node_modules" />
     </content>
     <orderEntry type="jdk" jdkName="Python 2.7.12 virtualenv at ~/projects/src/minderlabs/demo/sub/tools/tools/python" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -153,7 +153,7 @@ const accountManager = new AccountManager()
 //
 
 database
-  .registerQueryProcessor(new GoogleDriveQueryProcessor(idGenerator, matcher, GoogleApiConfig));
+  .registerQueryProcessor(new GoogleDriveQueryProcessor(idGenerator, GoogleApiConfig));
 
 
 //
@@ -171,7 +171,7 @@ if (_.get(process.env, 'MINDER_BOTKIT', false)) {
   }, database);
 
   database
-    .registerQueryProcessor(new SlackQueryProcessor(idGenerator, matcher, botkitManager));
+    .registerQueryProcessor(new SlackQueryProcessor(idGenerator, botkitManager));
 }
 
 //
@@ -385,6 +385,8 @@ app.use('/client', clientRouter(userManager, clientManager, systemStore));
 if (botkitManager) {
   app.use('/botkit', botkitRouter(botkitManager));
 }
+
+app.use(accountsRouter(accountManager));
 
 //
 // Web App.

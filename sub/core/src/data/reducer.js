@@ -127,7 +127,9 @@ class Reducer {
     this._reducer = reducer;
 
     // NOTE: Limited to single return root (for lists, this is typically the "items" root).
-    this._path = _.get(query, 'definitions[0].selectionSet.selections[0].name.value');
+    this._path =
+      _.get(query, 'definitions[0].selectionSet.selections[0].alias.value',
+      _.get(query, 'definitions[0].selectionSet.selections[0].name.value'));
   }
 
   get query() {
@@ -251,11 +253,11 @@ export class ListReducer extends Reducer {
    */
   reduceItems(matcher, context, filter, previousResult, action) {
     console.assert(matcher && context && filter && previousResult && action);
-    let upsertItems = MutationUtil.getUpsertItemsMutationResult(action);
-    if (upsertItems) {
+    let updatedItems = MutationUtil.getUpsertItemsMutationResult(action);
+    if (updatedItems) {
       try {
         // TODO(burdon): Handle multiple items.
-        let updatedItem = upsertItems[0];
+        let updatedItem = updatedItems[0];
         if (updatedItem) {
           let queryName = this.query.definitions[0].name.value;
           logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
@@ -297,6 +299,7 @@ export class ListReducer extends Reducer {
 
     // Items in current list.
     let currentItems = _.get(previousResult, path);
+
     let exists = _.findIndex(currentItems, item => item.id === updatedItem.id) !== -1;
 
     //
@@ -418,7 +421,6 @@ export class ItemReducer extends Reducer {
 
   /**
    * Execute the reducer.
-   * TODO(burdon): Doc.
    *
    * @param matcher
    * @param context
@@ -429,11 +431,11 @@ export class ItemReducer extends Reducer {
    */
   reduceItem(matcher, context, previousResult, action) {
     console.assert(matcher && context && previousResult && action);
-    let upsertItems = MutationUtil.getUpsertItemsMutationResult(action);
-    if (upsertItems) {
+    let updatedItems = MutationUtil.getUpsertItemsMutationResult(action);
+    if (updatedItems) {
       try {
         // TODO(burdon): Handle multiple items.
-        let updatedItem = previousResult[0];
+        let updatedItem = updatedItems[0];
         if (updatedItem) {
           let queryName = this.query.definitions[0].name.value;
           logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
@@ -453,7 +455,6 @@ export class ItemReducer extends Reducer {
 
   /**
    * Get the custom item transformation.
-   * TODO(burdon): Doc.
    *
    * @param matcher
    * @param context

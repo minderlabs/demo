@@ -7,11 +7,14 @@ import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
 import { TypeUtil } from '../util/type';
+import Logger from '../util/logger';
 
 import { Transforms } from './transforms';
 import { ID } from './id';
 import { Database } from './database';
-import { ItemFragment, ContactFragment, TaskFragment, ProjectFragment, ProjectBoardFragment } from './fragments';
+import { Fragments } from './fragments';
+
+const logger = Logger.get('mutations');
 
 //
 // Generic mutation.
@@ -29,11 +32,11 @@ export const UpsertItemsMutation = gql`
     }
   }
   
-  ${ItemFragment}
-  ${ContactFragment}
-  ${TaskFragment}
-  ${ProjectFragment}
-  ${ProjectBoardFragment}
+  ${Fragments.ItemFragment}
+  ${Fragments.ContactFragment}
+  ${Fragments.TaskFragment}
+  ${Fragments.ProjectFragment}
+  ${Fragments.ProjectBoardFragment}
 `;
 
 export const UpsertItemsMutationName = // 'UpsertItemsMutation'
@@ -158,25 +161,27 @@ export class MutationUtil {
 }
 
 /*
-  mutator.batch()
-    .createItem('Task', [{
-      field: 'title',
-      value: {
-        string: 'Task-1'
-      }
-    }], 'new_item')
-    .updateItem('project-1', [{
-      field: "tasks",
-      value: {
-        set: {
-          value: {
-            id: "${new_item}.id"  // Reference item created above.
-          }
-        }
-      }
-    }])
-    .commit();
-*/
+ * TODO(burdon): id values should include item for optimistic responses.
+ *
+ * mutator.batch()
+ *   .createItem('Task', [{
+ *     field: 'title',
+ *     value: {
+ *       string: 'Task-1'
+ *     }
+ *   }], 'new_item')
+ *   .updateItem('project-1', [{
+ *     field: "tasks",
+ *     value: {
+ *       set: {
+ *         value: {
+ *           id: "${new_item}.id"  // Reference named item created above.
+ *         }
+ *       }
+ *     }
+ *   }])
+ *   .commit();
+ */
 class Batch {
 
   /**
@@ -230,6 +235,7 @@ class Batch {
    */
   // TODO(burdon): Actually batch mutations. (affects optimistic result and reducer)?
   commit() {
+    logger.log('Commit...');
 
     // Map of named items.
     let itemsById = new Map();
@@ -292,7 +298,7 @@ export class Mutator {
       // NOTE: dependencies must previously have been injected into the properties.
       //
       props: ({ ownProps, mutate }) => {
-        let mutator = new Mutator(ownProps.idGenerator, ownProps.analytics, mutate)
+        let mutator = new Mutator(ownProps.idGenerator, ownProps.analytics, mutate);
         return {
           mutator
         };
@@ -302,10 +308,11 @@ export class Mutator {
 
   /**
    * @param idGenerator
+   * @param analytics
    * @param mutate Function provided by apollo.
    */
   constructor(idGenerator, analytics, mutate) {
-    console.assert(idGenerator && mutate);
+    console.assert(idGenerator && analytics && mutate);
     this._idGenerator = idGenerator;
     this._analytics = analytics;
     this._mutate = mutate;
@@ -406,7 +413,7 @@ export class Mutator {
           mutations
         );
 
-        console.log('Cloning local item: ' + JSON.stringify(item));
+        logger.log('Cloning local item: ' + JSON.stringify(item));
         let clonedItem = this.createItem(item.type, cloneMutations);
         item.fkey = clonedItem.id;
         return clonedItem;
@@ -430,7 +437,7 @@ export class Mutator {
           mutations
         );
 
-        console.log('Cloning external item: ' + JSON.stringify(item));
+        logger.log('Cloning external item: ' + JSON.stringify(item));
         return this.createItem(item.type, cloneMutations);
       }
     }
@@ -454,11 +461,17 @@ export class Mutator {
         }
       });
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> master
 
       this._analytics && this._analytics.track('item.edit', {label: item.type});
 
       return item;
+<<<<<<< HEAD
+>>>>>>> master
+=======
 >>>>>>> master
     }
 

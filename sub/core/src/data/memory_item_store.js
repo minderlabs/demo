@@ -6,18 +6,15 @@ import _ from 'lodash';
 
 import { TypeUtil } from '../util/type';
 
-import { ItemUtil, ItemStore, QueryProcessor } from './item_store';
+import { BaseItemStore, QueryProcessor } from './item_store';
 
 /**
  * In-memory database.
  */
-export class MemoryItemStore extends ItemStore {
+export class MemoryItemStore extends BaseItemStore {
 
   constructor(idGenerator, matcher, namespace, buckets=true) {
-    super(namespace, buckets);
-
-    // Helper for filtering and sorting items.
-    this._util = new ItemUtil(idGenerator, matcher);
+    super(idGenerator, matcher, namespace, buckets);
 
     // Item stored by key.
     this._items = new Map();
@@ -61,8 +58,7 @@ export class MemoryItemStore extends ItemStore {
       bucketItems = this._items;
     }
 
-
-    let items = this._util.filterItems(bucketItems, context, root, filter, offset, count);
+    let items = this.filterItems(bucketItems, context, root, filter, offset, count);
     return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
   }
 
@@ -84,7 +80,7 @@ export class MemoryItemStore extends ItemStore {
     return Promise.resolve(_.map(items, item => {
       console.assert(!this._buckets || item.bucket, 'Invalid bucket: ' + JSON.stringify(item));
 
-      let clonedItem = this._util.onUpdate(TypeUtil.clone(item));
+      let clonedItem = this.onUpdate(TypeUtil.clone(item));
       let key = this.key(clonedItem);
       this._items.set(key, clonedItem);
       return clonedItem;

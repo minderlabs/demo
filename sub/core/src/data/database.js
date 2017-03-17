@@ -4,11 +4,10 @@
 
 import _ from 'lodash';
 
+import { ID } from './id';
 import { ErrorUtil } from '../util/error';
-import { TypeUtil } from '../util/type';
 
 import { ItemUtil, ItemStore, QueryProcessor } from './item_store';
-import { Transforms } from './transforms';
 
 import $$ from '../util/format';
 import Logger from '../util/logger';
@@ -53,6 +52,15 @@ export class Database {
     SETTINGS: 'settings',
     USER:     'user',
     LOCAL:    'local'
+  };
+
+  // TODO(burdon): Move to GraphQL.
+  static GROUP_SPECS = {
+    Task: {
+      parentType:   'Project',
+      parentKey:    'project',
+      parentMember: 'tasks'
+    }
   };
 
   static isExternalNamespace(namespace) {
@@ -154,18 +162,10 @@ export class Database {
   search(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
 
-    // TODO(madadam): TypeUtil or TypeRegistry.
-    const getGroupKey = item => {
-      switch (item.type) {
-        case 'Task': {
-          return item.project;
-        }
-      }
-    };
-
+    let itemStore = this.getItemStore();
     return this._searchAll(context, root, filter, offset, count)
       .then(items => {
-        return filter.groupBy ? ItemUtil.groupBy(items, getGroupKey) : items;
+        return filter.groupBy ? ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS) : items
       });
   }
 

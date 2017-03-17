@@ -1,0 +1,36 @@
+//
+// Copyright 2016 Minder Labs.
+//
+
+.app-layout {
+
+  // Margin below Nav drop shadow.
+  margin-top: 8px;
+
+  .app-layout-finder {
+    .app-finder {
+      // TODO(burdon): Factor out (match SearchBar).
+      width: 350px;
+      max-width: 350px;
+      flex-shrink: 0;
+
+      background-color: #FAFAFA;
+      border-right: 1px solid #EEE;
+    }
+  }
+}
+
+// TODO(burdon): Hack to match inbox.
+.app-layout-crx {
+  .ux-navbar {
+    height: 56px;
+  }
+}
+
+// TODO(burdon): Hack for sidebar testing.
+.app-web {
+  .app-layout-crx {
+    flex-grow: 0;
+    width: 400px;
+  }
+}
