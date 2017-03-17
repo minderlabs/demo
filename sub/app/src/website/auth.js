@@ -20,7 +20,19 @@ export class Auth {
     firebase.initializeApp(FirebaseAppConfig);
 
     // https://firebase.google.com/docs/auth/web/google-signin
+    // https://firebase.google.com/docs/reference/android/com/google/firebase/auth/GoogleAuthProvider
     this._provider = new firebase.auth.GoogleAuthProvider();
+
+    // NOTE: Presents "Have offline access" on login.
+    // https://developers.google.com/identity/protocols/OAuth2WebServer
+    // TESTING: The following link should show access_type: offline.
+    // https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=XXX
+    // The refresh token is valid until the user revokes it.
+    // TODO(burdon): Refresh token currently not returned.
+    // http://stackoverflow.com/questions/27890737/firebase-google-auth-offline-access-type-in-order-to-get-a-token-refresh/27910548
+    // Manually?
+    // https://github.com/google/google-api-nodejs-client/#oauth2-client
+    this._provider.setCustomParameters({ access_type: 'offline' });
 
     // Google default scopes.
     // TODO(burdon): Get scopes from registry.

@@ -126,13 +126,13 @@ export class UserManager {
  * Manage user authentication.
  *
  * @param userManager
- * @param accountManager
+ * @param oauthRegistry
  * @param systemStore
  * @param options
  * @returns {Router}
  */
-export const loginRouter = (userManager, accountManager, systemStore, options) => {
-  console.assert(userManager && accountManager && systemStore);
+export const loginRouter = (userManager, oauthRegistry, systemStore, options) => {
+  console.assert(userManager && oauthRegistry && systemStore);
 
   let router = express.Router();
 
@@ -178,7 +178,7 @@ export const loginRouter = (userManager, accountManager, systemStore, options) =
               res.render('profile', {
                 user,
                 groups: [ group ],
-                accounts: accountManager.handlers,
+                providers: oauthRegistry.providers,
                 crxUrl: Const.CRX_URL(Const.CRX_ID)
               });
             })

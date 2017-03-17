@@ -41,7 +41,7 @@ import { Const, FirebaseAppConfig, GoogleApiConfig, SlackConfig } from '../commo
 
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
-import { accountsRouter, AccountManager, SlackAccountHandler } from './accounts';
+import { oauthRouter, OAuthRegistry, OAuthProvider, SlackOAuthProvider, GoogleOAuthProvider } from './oauth';
 import { loginRouter, UserManager } from './user';
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { clientRouter, ClientManager } from './client';
@@ -141,11 +141,11 @@ const database = new Database()
 
 //
 // OAuth accounts.
-// TODO(burdon): Reconcile with UserManager.
 //
 
-const accountManager = new AccountManager()
-  .registerHandler('Slack', new SlackAccountHandler());
+const oauthRegistry = new OAuthRegistry()
+  .registerProvider(new GoogleOAuthProvider())
+  .registerProvider(new SlackOAuthProvider());
 
 
 //
@@ -173,6 +173,7 @@ if (_.get(process.env, 'MINDER_BOTKIT', false)) {
   database
     .registerQueryProcessor(new SlackQueryProcessor(idGenerator, botkitManager));
 }
+
 
 //
 // Data initialization.
@@ -378,7 +379,7 @@ app.use('/admin', adminRouter(clientManager, firebase, {
 // App services.
 //
 
-app.use('/user', loginRouter(userManager, accountManager, systemStore, { env }));
+app.use('/user', loginRouter(userManager, oauthRegistry, systemStore, { env }));
 
 app.use('/client', clientRouter(userManager, clientManager, systemStore));
 
@@ -386,7 +387,7 @@ if (botkitManager) {
   app.use('/botkit', botkitRouter(botkitManager));
 }
 
-app.use(accountsRouter(accountManager));
+app.use(OAuthProvider.PATH, oauthRouter(oauthRegistry));
 
 //
 // Web App.
