@@ -47,10 +47,8 @@ export class ContactCard extends React.Component {
       let { item:parent } = this.props;
 
       // TODO(burdon): Add to default project.
-      console.log('::', JSON.stringify(this.context.viewer));
       let project = _.get(this.context.viewer, 'group.projects[0]');
       console.assert(project);
-      console.log('::', project);
 
       mutator.batch()
         .createItem('Task', _.concat(mutations, [
