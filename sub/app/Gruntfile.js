@@ -21,16 +21,6 @@ module.exports = (grunt) => {
       ]
     },
 
-    run: {
-      update_schema: {
-        cmd: 'npm',
-        args: [
-          'run',
-          'update-schema'
-        ]
-      }
-    },
-
     // Version: "grunt version:app:patch" (to inc version).
     version: {
       options: {
@@ -179,6 +169,6 @@ module.exports = (grunt) => {
   //
 
   grunt.registerTask('default', ['build']);
-  grunt.registerTask('build', ['clean', 'run:update_schema', 'webpack']);
+  grunt.registerTask('build', ['clean', 'webpack']);
   grunt.registerTask('build-crx', ['webpack:crx', 'convert:yml2json', 'copy:crx', 'crx:minder', 'compress:crx'])
 };

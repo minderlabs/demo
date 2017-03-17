@@ -4,8 +4,10 @@
 
 import _ from 'lodash';
 
-import { Database, ID, TypeUtil } from 'minder-core';
+import { Logger, Database, ID, TypeUtil } from 'minder-core';
 import { Resolvers } from 'minder-graphql';
+
+const logger = Logger.get('loader');
 
 /**
  * Loads start-up and test data.
@@ -117,7 +119,7 @@ export class Loader {
       });
 
       _.each(groups, group => {
-        console.log('Group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+        logger.log('Group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
       });
 
       return this._database.getItemStore(Database.NAMESPACE.SYSTEM).upsertItems({}, groups);

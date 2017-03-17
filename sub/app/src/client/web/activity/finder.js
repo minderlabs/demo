@@ -4,14 +4,16 @@
 
 import React from 'react';
 
+import { ReactUtil } from 'minder-ux';
+
 import { Const } from '../../../common/defs';
 
-import { Navbar } from '../component/navbar';
-import { FullLayout } from '../layout/full';
-import { SplitLayout } from '../layout/split';
 import Finder from '../view/finder';
 
+import { Navbar } from '../component/navbar';
+
 import { Activity } from './activity';
+import { Layout } from './layout';
 
 /**
  * Finder Activity.
@@ -34,25 +36,24 @@ class FinderActivity extends React.Component {
   }
 
   render() {
-    let { config, contextManager, params: { folder='inbox' } } = this.props;
+    return ReactUtil.render(this, () => {
+      let { config, viewer, contextManager, params: { folder='inbox' } } = this.props;
 
-    let navbar = <Navbar/>;
+      let navbar = <Navbar/>;
 
-    let finder = <Finder folder={ folder } contextManager={ contextManager }/>;
+      let finder = <Finder viewer={ viewer } folder={ folder } contextManager={ contextManager }/>;
 
-    let platform = _.get(config, 'app.platform');
-    if (platform === Const.PLATFORM.MOBILE || platform === Const.PLATFORM.CRX) {
+      let content = null;
+      let platform = _.get(config, 'app.platform');
+      if (platform !== Const.PLATFORM.MOBILE && platform !== Const.PLATFORM.CRX) {
+        content = <div/>;
+      }
+
       return (
-        <FullLayout navbar={ navbar }>
-          { finder }
-        </FullLayout>
+        <Layout navbar={ navbar } finder={ finder }>{ content }</Layout>
       );
-    } else {
-      return (
-        <SplitLayout navbar={ navbar } finder={ finder }/>
-      );
-    }
+    });
   }
 }
 
-export default Activity.connect()(FinderActivity);
+export default Activity.compose()(FinderActivity);

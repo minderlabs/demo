@@ -191,10 +191,6 @@ export class BaseApp {
       //   data:      cached items.
       // }
       //
-      // TODO(burdon): Subscriptions.
-      // https://github.com/apollographql/graphql-subscriptions
-      // https://dev-blog.apollodata.com/a-proposal-for-graphql-subscriptions-1d89b1934c18#.23j01b1a4
-      //
       // TODO(burdon): Updating the cache.
       // https://github.com/apollographql/apollo-client/issues/180
       // https://www.learnapollo.com/excursions/excursion-02/

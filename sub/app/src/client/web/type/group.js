@@ -6,7 +6,7 @@ import React from 'react';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { GroupFragment, ItemFragment, ItemReducer, MutationUtil } from 'minder-core';
+import { Fragments, ItemReducer, MutationUtil } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
 import { connectReducer } from '../framework/connector';
@@ -124,8 +124,8 @@ const GroupQuery = gql`
     }
   }
 
-  ${ItemFragment}
-  ${GroupFragment}  
+  ${Fragments.ItemFragment}
+  ${Fragments.GroupFragment}  
 `;
 
 export const GroupCanvas = compose(

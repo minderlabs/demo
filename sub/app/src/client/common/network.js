@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { print } from 'graphql-tag/printer';
 import { createNetworkInterface } from 'apollo-client';
 
-import { UpsertItemsMutation, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
+import { UpsertItemsMutationName, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -188,8 +188,6 @@ export class NetworkManager {
     // https://github.com/apollographql/apollo-client/blob/master/src/transport/networkInterface.ts
     //
 
-    // TODO(burdon): Subscriptions (esp. BG page); create directive. (SubscriptionNetworkInterface)
-
     // TODO(burdon): Configure batching via options.
     // https://github.com/apollostack/core-docs/blob/master/source/network.md#query-batching
 
@@ -345,12 +343,9 @@ export class CachingNetworkInterface { // extends NetworkInterface {
     networkInterface.query = (request) => {
       let { operationName, query, variables={} } = request;
 
-      // TODO(burdon): Factor out.
-      const UpsertItemsMutationName = _.get(UpsertItemsMutation, 'definitions[0].name.value');
-
       switch (operationName) {
 
-        // TODO(burdon): Determine namespace from item when creating mutator !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // TODO(burdon): Determine namespace from item when creating mutator.
 
         // Mutations.
         case UpsertItemsMutationName: {

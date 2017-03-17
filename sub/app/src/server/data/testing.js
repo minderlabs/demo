@@ -4,7 +4,9 @@
 
 import _ from 'lodash';
 
-import { Database, ID, MutationUtil, Randomizer, Transforms } from 'minder-core';
+import { Logger, Database, ID, MutationUtil, Randomizer, Transforms } from 'minder-core';
+
+const logger = Logger.get('testing');
 
 /**
  * Test data.
@@ -76,8 +78,6 @@ export class TestGenerator {
           return project.id;
         });
       },
-
-      topLevel: () => true,
 
       tasks: (item, context, randomizer) => {
         let { groupId, userId } = context;
@@ -164,10 +164,12 @@ export class TestGenerator {
                 // Generate data items for each user.
                 //
                 return Promise.resolve()
+                  // TODO(burdon): Add default label for private project.
+                  // TODO(burdon): Auto-provision project when creating a group.
                   .then(() =>
                     this.generateItems(context, 'Project', 1))
-                  // .then(() =>
-                  //   this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 20, max: 40 })));
+                  .then(() =>
+                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 1, max: 5 })));
               }));
             });
         }));
@@ -193,7 +195,7 @@ export class TestGenerator {
         return getStore(type).upsertItems(context, items).then(items => {
 
           _.each(items, item => {
-            console.log('Test: ' + JSON.stringify(_.pick(item, ['id', 'type', 'title'])));
+            logger.log('Test: ' + JSON.stringify(_.pick(item, ['id', 'type', 'title'])));
           });
 
           // Generate and save links.

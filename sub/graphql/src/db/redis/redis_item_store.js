@@ -6,7 +6,7 @@ import _ from 'lodash';
 import bluebird from 'bluebird';
 import redis from 'redis';
 
-import { ItemStore, ItemUtil, Key, QueryProcessor } from 'minder-core';
+import { BaseItemStore, Key, QueryProcessor } from 'minder-core';
 
 // https://github.com/NodeRedis/node_redis#promises
 bluebird.promisifyAll(redis.RedisClient.prototype);
@@ -20,7 +20,7 @@ bluebird.promisifyAll(redis.Multi.prototype);
  * https://github.com/NodeRedis/node_redis
  * https://redis.io/commands
  */
-export class RedisItemStore extends ItemStore {
+export class RedisItemStore extends BaseItemStore {
 
   // TODO(burdon): PubSub demo (and Mutation Processor).
 
@@ -33,10 +33,9 @@ export class RedisItemStore extends ItemStore {
   }
 
   constructor(idGenerator, matcher, client, namespace) {
-    super(namespace);
+    super(idGenerator, matcher, namespace);
 
     this._key = new Key(`I:${namespace}:{{bucket}}:{{type}}:{{itemId}}`);
-    this._util = new ItemUtil(idGenerator, matcher);
 
     console.assert(client);
     this._client = client;
@@ -76,7 +75,7 @@ export class RedisItemStore extends ItemStore {
       return this._client.mgetAsync(keys)
         .then(values => {
           let items = _.map(values, value => JSON.parse(value));
-          return this._util.filterItems(items, context, root, filter, offset, count)
+          return this.filterItems(items, context, root, filter, offset, count)
         });
     });
   }
@@ -96,7 +95,7 @@ export class RedisItemStore extends ItemStore {
 
   upsertItems(context, items) {
     return Promise.resolve(_.map(items, item => {
-      this._util.onUpdate(item);
+      this.onUpdate(item);
 
       let { bucket, type, id:itemId } = item;
       let key = this._key.toKey({ bucket, type, itemId });

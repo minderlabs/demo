@@ -21,3 +21,7 @@ Logger.setLevel({
   'db'        : Logger.Level.info,
 
 }, Logger.Level.info);
+
+export const TestConfig = {
+
+};

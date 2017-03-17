@@ -37,8 +37,10 @@ export class WebApp extends BaseApp {
     // Manages OAuth.
     this._authManager = new AuthManager(this._config);
 
-    // FCM manager.
-    this._cloudMessenger = new FirebaseCloudMessenger(this._config, this._queryRegistry, this._eventHandler);
+    // FCM Push Messenger.
+    this._cloudMessenger = new FirebaseCloudMessenger(this._config, this._eventHandler).listen(message => {
+      this._queryRegistry.invalidate();
+    });
 
     // Manages the client connection and registration.
     this._connectionManager = new ConnectionManager(this._config, this._authManager, this._cloudMessenger);

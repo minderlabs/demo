@@ -43,8 +43,11 @@ export class Card extends React.Component {
     let { children, className, icon, item } = this.props;
     let { title, description } = item;
 
+    className = DomUtil.className(
+      'ux-card', 'ux-card-rounded', 'ux-card-type-' + item.type.toLowerCase(), className);
+
     return (
-      <div className={ DomUtil.className('ux-card', 'ux-card-rounded', 'ux-card-type-' + item.type.toLowerCase(), className) }>
+      <div className={ className }>
         <div className="ux-card-header">
           <h1 className="ux-text-noselect ux-selector"
               onClick={ this.handleSelect.bind(this, item) }>{ title }</h1>
@@ -61,10 +64,9 @@ export class Card extends React.Component {
         { children }
 
         { config.debug &&
-        <div className="ux-section">
-          <div className="ux-section-body ux-debug" title={ JSON.stringify(_.pick(item, ['bucket'])) }>
-            { TypeUtil.stringify(_.pick(item, ['id', 'type']), false) }
-          </div>
+        <div className="ux-section-body ux-debug" title={ JSON.stringify(_.pick(item, ['namespace', 'bucket'])) }>
+          { TypeUtil.stringify(_.pick(item, ['id', 'type']), false) +
+              (item.namespace ? ` (${item.namespace[0].toUpperCase()})` : '') }
         </div>
         }
       </div>

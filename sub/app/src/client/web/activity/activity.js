@@ -4,7 +4,8 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-import { compose } from 'react-apollo';
+import { compose, graphql } from 'react-apollo';
+import gql from 'graphql-tag';
 
 import { EventHandler, IdGenerator, Mutator, PropertyProvider, QueryRegistry } from 'minder-core';
 
@@ -49,13 +50,14 @@ const mapStateToProps = (state, ownProps) => {
     registration,
 
     analytics,
-    idGenerator,
     typeRegistry,
     queryRegistry,
     eventHandler,
-
     contextManager,
-    navigator
+    navigator,
+
+    // Required by Mutator.
+    idGenerator
   };
 };
 
@@ -76,6 +78,42 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return _.defaults({}, ownProps, stateProps, dispatchProps);
 };
 
+//-------------------------------------------------------------------------------------------------
+// HOC.
+//-------------------------------------------------------------------------------------------------
+
+// Top-level query provided in context.
+// TODO(burdon): Remove Group.
+// TODO(burdon): Remove Project.
+// TODO(burdon): Pre-populate from server in DOM?
+
+const ViewerQuery = gql`
+  query ViewerQuery {
+
+    viewer {
+      user {
+        type
+        id
+        title
+      }
+
+      group {
+        type
+        id
+        title
+
+        projects {
+          type
+          id
+          type
+          labels
+          title
+        }
+      }
+    }
+  }
+`;
+
 /**
  * Activity helper.
  * Activities are top-level components that set-up the context.
@@ -86,10 +124,30 @@ export class Activity {
   /**
    * Connect properties for activities.
    */
-  static connect = () => compose(
-    connect(mapStateToProps, mapDispatchToProps, mergeProps),
-    Mutator.graphql()
-  );
+  static compose() {
+    let connectors = [
+
+      // Redux state.
+      connect(mapStateToProps, mapDispatchToProps, mergeProps),
+
+      // Apollo mutation.
+      Mutator.graphql(),
+
+      // Apollo viewer query.
+      graphql(ViewerQuery, {
+
+        props: ({ ownProps, data }) => {
+          return _.pick(data, ['loading', 'error', 'viewer'])
+        }
+      })
+    ];
+
+    if (arguments) {
+      connectors = _.concat(connectors, arguments);
+    }
+
+    return compose(... connectors);
+  };
 
   static childContextTypes = {
     config:           React.PropTypes.object,
@@ -99,13 +157,33 @@ export class Activity {
     eventHandler:     React.PropTypes.object,
     contextManager:   React.PropTypes.object,
     navigator:        React.PropTypes.object,
-    mutator:          React.PropTypes.object
+    mutator:          React.PropTypes.object,
+
+    viewer:           React.PropTypes.object
   };
 
   static getChildContext(props) {
     let {
-      config, registration, typeRegistry, queryRegistry, eventHandler, contextManager, navigator, mutator
+      config,
+      registration,
+      typeRegistry,
+      queryRegistry,
+      eventHandler,
+      contextManager,
+      navigator,
+      mutator,
+
+      viewer
     } = props;
+
+    console.assert(config);
+    console.assert(registration);
+    console.assert(typeRegistry);
+    console.assert(queryRegistry);
+    console.assert(eventHandler);
+    console.assert(contextManager);
+    console.assert(navigator);
+    console.assert(mutator);
 
     return {
       config,
@@ -115,7 +193,9 @@ export class Activity {
       eventHandler,
       contextManager,
       navigator,
-      mutator
+      mutator,
+
+      viewer
     };
   }
 }

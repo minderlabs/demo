@@ -36,7 +36,7 @@ export class ReactUtil {
     } else if (error) {
       // NOTE: NetworkLogger logs to the console.
       return (
-        <div className="ux-error">{ String(error) }</div>
+        <div className="ux-error">{ cls.constructor.name + ': ' + String(error) }</div>
       );
     } else {
       try {
@@ -46,7 +46,7 @@ export class ReactUtil {
         // TODO(burdon): Log if prod and show standard error.
         let message = error.message || 'Error rendering.';
         return (
-          <div className="ux-error">{ message }</div>
+          <div className="ux-error">{ cls.constructor.name + ': ' + message }</div>
         );
       }
     }

@@ -1,4 +1,6 @@
 {{#section 'head'}}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
   <link rel="stylesheet" href="/assets/website.css">
 {{/section}}
 
@@ -57,9 +59,15 @@
         </div>
 
         <div class="site-section">
-          <div>
-            <button onclick="flush()">Flush Clients</button>
-            <button onclick="schedule()">Test Scheduler</button>
+          <div class="site-buttonbar">
+            <div>
+              <button onclick="flush()">Flush Clients</button>
+              <button onclick="schedule()">Test Scheduler</button>
+            </div>
+
+            <div>
+              <label>Auto-update <input id="auto-update" type="checkbox" checked/></label>
+            </div>
           </div>
         </div>
 
@@ -69,12 +77,31 @@
 
   <script src="/assets/website.bundle.js"></script>
   <script>
+    $(document).ready(() => {
+      let interval = null;
+
+      const setRefresh = (on) => {
+        clearInterval(interval);
+        if (on) {
+          interval = setInterval(() => {
+            document.location.reload();
+          }, 5000);
+        }
+      };
+
+      setRefresh($('#auto-update').change((event) => {
+        setRefresh($(event.target).is(':checked'));
+      }).is(':checked'));
+    });
+
     function refresh() {
       document.location.reload();
     }
 
     function flush() {
-      Site.post('/admin', { action: 'client.flush' });
+      Site.post('/admin', { action: 'client.flush' }).then(() => {
+        document.location.reload();
+      });
     }
 
     function invalidate(clientId) {
