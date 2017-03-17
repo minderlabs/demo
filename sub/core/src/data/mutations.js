@@ -7,11 +7,14 @@ import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
 import { TypeUtil } from '../util/type';
+import Logger from '../util/logger';
 
 import { Transforms } from './transforms';
 import { ID } from './id';
 import { Database } from './database';
 import { Fragments } from './fragments';
+
+const logger = Logger.get('mutations');
 
 //
 // Generic mutation.
@@ -158,25 +161,27 @@ export class MutationUtil {
 }
 
 /*
-  mutator.batch()
-    .createItem('Task', [{
-      field: 'title',
-      value: {
-        string: 'Task-1'
-      }
-    }], 'new_item')
-    .updateItem('project-1', [{
-      field: "tasks",
-      value: {
-        set: {
-          value: {
-            id: "${new_item}.id"  // Reference item created above.
-          }
-        }
-      }
-    }])
-    .commit();
-*/
+ * TODO(burdon): id values should include item for optimistic responses.
+ *
+ * mutator.batch()
+ *   .createItem('Task', [{
+ *     field: 'title',
+ *     value: {
+ *       string: 'Task-1'
+ *     }
+ *   }], 'new_item')
+ *   .updateItem('project-1', [{
+ *     field: "tasks",
+ *     value: {
+ *       set: {
+ *         value: {
+ *           id: "${new_item}.id"  // Reference named item created above.
+ *         }
+ *       }
+ *     }
+ *   }])
+ *   .commit();
+ */
 class Batch {
 
   /**
@@ -230,6 +235,7 @@ class Batch {
    */
   // TODO(burdon): Actually batch mutations. (affects optimistic result and reducer)?
   commit() {
+    logger.log('Commit...');
 
     // Map of named items.
     let itemsById = new Map();
@@ -403,7 +409,7 @@ export class Mutator {
           mutations
         );
 
-        console.log('Cloning local item: ' + JSON.stringify(item));
+        logger.log('Cloning local item: ' + JSON.stringify(item));
         let clonedItem = this.createItem(item.type, cloneMutations);
         item.fkey = clonedItem.id;
         return clonedItem;
@@ -427,7 +433,7 @@ export class Mutator {
           mutations
         );
 
-        console.log('Cloning external item: ' + JSON.stringify(item));
+        logger.log('Cloning external item: ' + JSON.stringify(item));
         return this.createItem(item.type, cloneMutations);
       }
     }

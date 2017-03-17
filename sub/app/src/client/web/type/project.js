@@ -273,11 +273,14 @@ class ProjectBoardCanvasComponent extends React.Component {
     let { mutator } = this.context;
     let { item:project, boardAlias } = this.props;
 
+    console.log(':::', item, column, changes);
+
     // TODO(burdon): Batch.
     // Update item for column.
     let batch = mutator.batch();
     let dropMutations = this.boardAdapter.onDropMutations(item, column);
     if (dropMutations) {
+
       batch.updateItem(item, dropMutations);
     }
 

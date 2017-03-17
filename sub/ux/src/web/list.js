@@ -236,6 +236,7 @@ export class List extends React.Component {
   */
 
   render() {
+    // NOTE: data is a user-label to identify the list.
     let { itemClassName, itemOrderModel, itemInjector, data } = this.props;
     let { items, itemRenderer } = this.state;
 
@@ -259,12 +260,9 @@ export class List extends React.Component {
         console.error(items);
       }
 
-//    let key = ID.getGlobalId(item);
-      let key = item.type + '/' + item.id;
-
       // Primary item.
       let listItem = (
-        <div key={ key } className={ DomUtil.className('ux-list-item', itemClassName) }>
+        <div key={ item.id } className={ DomUtil.className('ux-list-item', itemClassName) }>
           { itemRenderer(item) }
         </div>
       );
@@ -279,11 +277,14 @@ export class List extends React.Component {
         // Calculate the dropzone order (i.e., midway between the previous and current item).
         let dropOrder = (previousOrder == 0) ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
 
+        // Drop zone above each item.
         listItem = (
-          <ListItemDropTarget key={ key } data={ data } order={ dropOrder }
+          <ListItemDropTarget key={ item.id }
+                              data={ data }
+                              order={ dropOrder }
                               onDrop={ this.handleItemDrop.bind(this) }>
 
-            <ListItemDragSource data={ key } order={ actualOrder }>
+            <ListItemDragSource data={ item.id } order={ actualOrder }>
               { listItem }
             </ListItemDragSource>
           </ListItemDropTarget>
@@ -295,6 +296,7 @@ export class List extends React.Component {
       return listItem;
     });
 
+    // Drop zone at the bottom of the list.
     let lastDropTarget = null;
     if (itemOrderModel) {
       lastDropTarget = <ListItemDropTarget data={ data }
