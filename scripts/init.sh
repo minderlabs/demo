@@ -21,6 +21,7 @@ npm install -g karma-cli
 npm install -g nodemon
 npm install -g npm-workspace
 npm install -g webpack
+npm install -g babel-cli
 
 #
 # Ops tools.

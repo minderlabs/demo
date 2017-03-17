@@ -64,6 +64,8 @@ export class WebApp extends BaseApp {
     // Register client.
     return this._authManager.authenticate().then(user => {
 
+      this._analytics.identify(user.uid);
+
       // TODO(burdon): Retry?
       return this._connectionManager.register().then(registration => {
         this.store.dispatch(AppAction.register(registration));

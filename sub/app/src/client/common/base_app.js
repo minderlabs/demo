@@ -13,6 +13,7 @@ import ApolloClient from 'apollo-client';
 import moment from 'moment';
 
 import { ErrorUtil, EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
+import { Analytics, GoogleAnalytics } from './analytics';
 
 import { ContextManager } from './context';
 
@@ -36,6 +37,8 @@ export class BaseApp {
     // TODO(burdon): Experimental (replace with Apollo directives).
     // Manages Apollo query subscriptions.
     this._queryRegistry = new QueryRegistry();
+
+    this._analytics = new GoogleAnalytics(this._config);
 
     // Global error handling.
     ErrorUtil.handleErrors(window, error => this.onError(error));
@@ -87,6 +90,7 @@ export class BaseApp {
     let idGenerator = new IdGenerator();
 
     let providers = _.concat([
+      Injector.provider(this._analytics, Analytics.INJECTOR_KEY),
       Injector.provider(idGenerator),
       Injector.provider(new Matcher()),
       Injector.provider(new QueryParser()),
@@ -106,7 +110,7 @@ export class BaseApp {
   initNetwork() {}
 
   /**
-   * Acpollo client.
+   * Apollo client.
    */
   initApollo() {
     console.assert(this.networkInterface);
@@ -237,6 +241,7 @@ export class BaseApp {
 
     this.history.listen(location => {
       logger.log('Router: ' + location.pathname);
+      this._analytics && this._analytics.pageview(location);
     });
   }
 

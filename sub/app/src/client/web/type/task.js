@@ -2,6 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
@@ -21,12 +22,20 @@ import { Card } from '../component/card';
 import './task.less';
 
 // TODO(burdon): Get from query (see test.json).
-export const TASK_LEVELS = [
-  { value: 0, title: 'Unstarted'  },
-  { value: 1, title: 'Active'     },
-  { value: 2, title: 'Complete'   },
-  { value: 3, title: 'Blocked'    }
-];
+// Enums with properties in javascript:
+// https://stijndewitt.com/2014/01/26/enums-in-javascript/
+export const TASK_LEVELS = {
+  UNSTARTED: 0,
+  ACTIVE:    1,
+  COMPLETE:  2,
+  BLOCKED:   3,
+  properties: {
+    0: { title: 'Unstarted'},
+    1: { title: 'Active'},
+    2: { title: 'Complete'},
+    3: { title: 'Blocked'}
+  }
+};
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -264,8 +273,8 @@ class TaskCanvasComponent extends React.Component {
       // TODO(burdon): Set group from project (remove groupId).
       //groupId={ project.group.id }
 
-      const levels = TASK_LEVELS.map(level =>
-        <option key={ level.value } value={ level.value }>{ level.title }</option>);
+      const levels = _.keys(TASK_LEVELS.properties).sort().map(level =>
+        <option key={ level } value={ level }>{ TASK_LEVELS.properties[level].title }</option>);
 
       return (
         <Canvas ref="canvas"

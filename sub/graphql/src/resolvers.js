@@ -287,7 +287,7 @@ export class Resolvers {
             .then(items => {
 
               // TODO(burdon): Move mutation notifications to Notifier/QueryRegistry.
-              database.fireMuationNotification(context, mutations, items);
+              database.fireMutationNotification(context, mutations, items);
               return items;
             });
         }
