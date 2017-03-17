@@ -124,7 +124,7 @@ export class GoogleAnalytics extends Analytics {
   }
 
   identify(userId) {
-    ReactGA.set({userId});
+    ReactGA.set({ userId });
   }
 
   pageview(location) {
