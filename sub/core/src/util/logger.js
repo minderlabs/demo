@@ -34,9 +34,9 @@ function singleton() {
 
 /**
  * Provides configurable logging to console.
- * NOTE: js-logger, etc. does not preserve file/line numbers!
- * So we need to bind console.log directly. Since we want to add a (name) prefix, we break
- * the string substitution so either use backquote substitution `${foo}`, or $$().
+ *
+ * NOTE: js-logger, etc. does not preserve file/line numbers (we have to bind to console methods directly)
+ * and node's debug module is node-only.
  *
  * http://stackoverflow.com/questions/13815640/a-proper-wrapper-for-console-log-with-correct-line-number
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind

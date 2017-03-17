@@ -55,8 +55,11 @@ app.init().then(() => {
     //
 
     window.ITEMS = {
-      t1: { type: 'Contact', title: 'Alice', email: 'alice.braintree@gmail.com' },
-      t2: { type: 'Contact', title: 'Kumiko', email: 'kumikotoft@gmail.com' },
+      t1: { type: 'Contact', title: 'Alice',      email: 'alice.braintree@gmail.com'  },
+      t2: { type: 'Contact', title: 'Bob',        email: 'bob@example.com'            },
+      t3: { type: 'Contact', title: 'Catherine',  email: 'catherine@example.com'      },
+      t4: { type: 'Contact', title: 'David',      email: 'david@example.com'          },
+      t5: { type: 'Contact', title: 'Emiko',      email: 'emiko@example.com'          },
     };
 
     let select = $('<select>').appendTo(root)

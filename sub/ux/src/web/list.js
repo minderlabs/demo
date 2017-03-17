@@ -113,7 +113,6 @@ export class List extends React.Component {
     className:          React.PropTypes.string,
     highlight:          React.PropTypes.bool,
 
-    groupBy:            React.PropTypes.bool,
     showAdd:            React.PropTypes.bool,
 
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
@@ -237,7 +236,8 @@ export class List extends React.Component {
   */
 
   render() {
-    let { itemClassName, itemOrderModel, itemInjector, data, groupBy } = this.props;
+    // NOTE: data is a user-label to identify the list.
+    let { itemClassName, itemOrderModel, itemInjector, data } = this.props;
     let { items, itemRenderer } = this.state;
 
     // Sort items by order model.
@@ -260,12 +260,9 @@ export class List extends React.Component {
         console.error(items);
       }
 
-//    let key = ID.getGlobalId(item);
-      let key = item.type + '/' + item.id;
-
       // Primary item.
       let listItem = (
-        <div key={ key } className={ DomUtil.className('ux-list-item', itemClassName) }>
+        <div key={ item.id } className={ DomUtil.className('ux-list-item', itemClassName) }>
           { itemRenderer(item) }
         </div>
       );
@@ -280,42 +277,26 @@ export class List extends React.Component {
         // Calculate the dropzone order (i.e., midway between the previous and current item).
         let dropOrder = (previousOrder == 0) ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
 
+        // Drop zone above each item.
         listItem = (
-          <ListItemDropTarget key={ key } data={ data } order={ dropOrder }
+          <ListItemDropTarget key={ item.id }
+                              data={ data }
+                              order={ dropOrder }
                               onDrop={ this.handleItemDrop.bind(this) }>
 
-            <ListItemDragSource data={ key } order={ actualOrder }>
+            <ListItemDragSource data={ item.id } order={ actualOrder }>
               { listItem }
             </ListItemDragSource>
           </ListItemDropTarget>
         );
 
         previousOrder = itemOrder;
-      } else {
-
-        // Grouped items.
-        // TODO(burdon): Can't group with drag?
-        if (groupBy && !_.isEmpty(item.refs)) {
-          let refs = item.refs.map(ref => (
-            <div key={ ref.id } className={ itemClassName }>
-              { itemRenderer(ref) }
-            </div>
-          ));
-
-          return (
-            <div key={ key } className="ux-list-item-group">
-              { listItem }
-              <div className="ux-list-item-refs">
-                { refs }
-              </div>
-            </div>
-          );
-        }
       }
 
       return listItem;
     });
 
+    // Drop zone at the bottom of the list.
     let lastDropTarget = null;
     if (itemOrderModel) {
       lastDropTarget = <ListItemDropTarget data={ data }

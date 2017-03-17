@@ -200,10 +200,6 @@ export class Canvas extends React.Component {
         </div>
         }
 
-        <div className="ux-column ux-expand">
-          { children }
-        </div>
-
         { config.debug &&
         <div className="ux-section ux-debug">
           <div className="ux-section-body">
@@ -211,6 +207,10 @@ export class Canvas extends React.Component {
           </div>
         </div>
         }
+
+        <div className="ux-column ux-expand">
+          { children }
+        </div>
       </div>
     )
   }

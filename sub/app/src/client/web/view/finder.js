@@ -7,7 +7,8 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { IdGenerator, QueryParser, ItemFragment } from 'minder-core';
+import { IdGenerator, QueryParser, SubscriptionWrapper } from 'minder-core';
+import { Fragments } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -28,6 +29,10 @@ class Finder extends React.Component {
     typeRegistry: React.PropTypes.object.isRequired,
     navigator: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired
+  };
+
+  static propTypes = {
+    viewer: React.PropTypes.object.isRequired
   };
 
   handleItemSelect(item) {
@@ -56,7 +61,7 @@ class Finder extends React.Component {
       let list;
       switch (listType) {
         case 'card':
-          list = <CardSearchList filter={ filter }
+          list = <CardSearchList filter={ _.defaults(filter, { groupBy: true }) }
                                  highlight={ false }
                                  className="ux-card-list"
                                  itemInjector={ itemInjector }
@@ -67,7 +72,6 @@ class Finder extends React.Component {
         case 'list':
         default:
           list = <BasicSearchList filter={ filter }
-                                  groupBy={ false }
                                   itemRenderer={ BasicListItemRenderer(typeRegistry) }
                                   onItemSelect={ this.handleItemSelect.bind(this) }
                                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
@@ -88,7 +92,7 @@ class Finder extends React.Component {
 //-------------------------------------------------------------------------------------------------
 
 const FoldersQuery = gql`
-  query FoldersQuery($filter: FilterInput!) {
+  query FoldersQuery {
     viewer {
       folders {
         type
@@ -97,13 +101,21 @@ const FoldersQuery = gql`
         filter
       }
     }
-    
+  }
+`;
+
+// TODO(burdon): Add Projects query.
+// TODO(burdon): Common reducer for queries (not bound to list).
+const ContextQuery = gql`
+  query ContextQuery($filter: FilterInput!) {
     contextItems: search(filter: $filter) {
       ...ItemFragment
+      ...ContactFragment
     }
   }
 
-  ${ItemFragment}
+  ${Fragments.ItemFragment}
+  ${Fragments.ContactFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
@@ -149,49 +161,9 @@ export default compose(
 
   // Query.
   graphql(FoldersQuery, {
-
-    options: (props) => {
-      let { contextManager } = props;
-
-      // Lookup items from context.
-      // TODO(burdon): Currently contact specific based on email.
-      let filter = {};
-      if (contextManager) {
-        let emails = _.compact(_.map(_.get(contextManager.context, 'items'), item => item.email));
-        if (emails.length) {
-          filter = {
-            type: 'Contact',
-            expr: {
-              op: 'OR',
-              expr: _.map(emails, email => ({
-                field: 'email',
-                value: {
-                  string: email
-                }
-              }))
-            }
-          };
-        }
-      }
-
-      return {
-        variables: {
-          filter
-        }
-      };
-    },
-
-    // Configure props passed to component.
-    // http://dev.apollodata.com/react/queries.html#graphql-props
-    // http://dev.apollodata.com/react/queries.html#default-result-props
     props: ({ ownProps, data }) => {
-      let { loading, error, viewer, contextItems } = data;
-      let { contextManager, filter } = ownProps;
-
-      // Update context.
-      if (contextManager) {
-        contextManager.updateItems(contextItems);
-      }
+      let { loading, error, viewer } = data;
+      let { filter } = ownProps;
 
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {
@@ -207,8 +179,47 @@ export default compose(
         loading,
         error,
         filter
-      }
+      };
     }
   }),
 
-)(Finder);
+  // Query.
+  graphql(ContextQuery, {
+
+    options: (props) => {
+      let { contextManager } = props;
+
+      // Lookup items from context.
+      let filter = {};
+      if (contextManager) {
+        filter = contextManager.getFilter() || {};
+      }
+
+      return {
+        variables: {
+          filter
+        }
+      };
+    },
+
+    props: ({ ownProps, data }) => {
+      let { contextItems } = data;
+      let { contextManager } = ownProps;
+
+      // Update context.
+      if (contextManager) {
+        contextManager.updateCache(contextItems);
+      }
+
+      return {
+        contextItems,
+
+        // For subscriptions.
+        refetch: () => {
+          data.refetch();
+        }
+      };
+    }
+  }),
+
+)(SubscriptionWrapper(Finder));

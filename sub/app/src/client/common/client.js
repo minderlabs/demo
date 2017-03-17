@@ -175,7 +175,7 @@ export class ConnectionManager {
         data: JSON.stringify(data),
 
         success: response => { resolve(response) },
-        error: error => { reject(error) }
+        error: (xhr, textStatus, error) => { reject(error) }
       });
     });
   }

@@ -142,9 +142,7 @@ export class Auth {
           resolve(user)
         },
 
-        error: error => {
-          reject(error);
-        }
+        error: (xhr, textStatus, error) => { reject(error) }
       });
     });
   }

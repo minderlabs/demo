@@ -8,12 +8,12 @@ import { Database } from './database';
 import { IdGenerator } from './id';
 import { ItemUtil } from './item_store';
 import { Matcher } from './matcher';
+import { MemoryItemStore } from './memory_item_store';
 
 const matcher = new Matcher();
 
 //
 // Database.
-// TODO(burdon): Test both databases.
 //
 
 const idGenerator = new IdGenerator(1000);
@@ -23,28 +23,15 @@ const tests = (itemStore) => {
   let database = new Database()
     .registerItemStore(itemStore);
 
-  it('Create and get items.', (done) => {
-    let context = {};
+  let context = {};
 
-    // TODO(burdon): Test ID.
-    database.getItemStore().upsertItems(context, [{ type: 'User', title: 'Minder' }]).then(items => {
-      expect(items).to.exist;
-      expect(items.length).to.equal(1);
-
-      database.getItemStore().getItem(context, 'User', items[0].id).then(item => {
-        expect(item.title).to.equal('Minder');
-        done();
-      });
-    });
-  });
-
-  it('Groups items.', () => {
+  it('Groups items.', (done) => {
     let items = [
       {
         id: 'I-1',
         type: 'Task',
         title: 'Task 1',
-        project: 'project-1'
+        project: 'project-1'          // project-1
       },
       {
         id: 'I-2',
@@ -59,13 +46,13 @@ const tests = (itemStore) => {
       {
         id: 'project-1',
         type: 'Project',
-        title: 'Project 1'
+        title: 'Project 1'            // project-1
       },
       {
         id: 'I-4',
         type: 'Task',
         title: 'Task 3',
-        project: 'project-1'
+        project: 'project-1'          // project-1
       },
       {
         id: 'I-5',
@@ -77,29 +64,38 @@ const tests = (itemStore) => {
         id: 'I-6',
         type: 'Task',
         title: 'Task 5',
-        project: 'project-3'
+        project: 'project-3'          // project-3
       },
       {
         id: 'I-7',
         type: 'Task',
         title: 'Task 6',
-        project: 'project-3'
+        project: 'project-3'          // project-3
       }
     ];
 
-    let groupedItems = ItemUtil.groupBy(items);
+    itemStore.upsertItems(context, [
 
-    expect(groupedItems).to.have.lengthOf(6);
-    expect(groupedItems[0].id).to.equal('project-1');
-    expect(groupedItems[0].title).to.equal('Project 1');
-    expect(groupedItems[0].refs).to.have.lengthOf(2);
+      {
+        id: 'project-3',              // project-3
+        type: 'Project',
+        title: 'Project 3'
+      }
+
+    ]).then(() => {
+
+      ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS).then(results => {
+
+        console.error(JSON.stringify(results, 0, 2));
+
+        expect(results).to.have.lengthOf(5);
+        expect(results[0].id).to.equal('project-1');
+        expect(results[0].tasks).to.have.lengthOf(2);
+        done();
+      });
+    });
   });
 };
 
-/*
 describe('MemoryDatabase:',
-  () => tests(new MemoryItemStore(idGenerator, matcher, 'test')));
-
-describe('RedisDatabase:',
-  () => tests(new RedisItemStore(fakeredis.createClient(), matcher)));
-*/
+  () => tests(new MemoryItemStore(idGenerator, matcher, 'test', false)));

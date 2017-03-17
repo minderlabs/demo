@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { ItemStore, ItemUtil, QueryProcessor } from 'minder-core';
+import { BaseItemStore, QueryProcessor } from 'minder-core';
 
 /**
  * Item store.
@@ -18,12 +18,10 @@ import { ItemStore, ItemUtil, QueryProcessor } from 'minder-core';
  * /user        /bucket-1   /Task     /task-1             First party data.
  * /google_com  /bucket-2   /Contact  /contact-1          Third-party data.
  */
-export class FirebaseItemStore extends ItemStore {
+export class FirebaseItemStore extends BaseItemStore {
 
   constructor(idGenerator, matcher, db, namespace, buckets=false) {
-    super(namespace, buckets);
-
-    this._util = new ItemUtil(idGenerator, matcher);
+    super(idGenerator, matcher, namespace, buckets);
 
     console.assert(db);
     this._db = db;
@@ -97,7 +95,7 @@ export class FirebaseItemStore extends ItemStore {
         });
       });
 
-      return this._util.filterItems(items, context, root, filter, offset, count);
+      return this.filterItems(items, context, root, filter, offset, count);
     });
   }
 
@@ -131,7 +129,7 @@ export class FirebaseItemStore extends ItemStore {
     let promises = [];
 
     _.each(items, item => {
-      this._util.onUpdate(item);
+      this.onUpdate(item);
 
       // NOTE: Bucket is optional for some stores (e.g., system).
       let { bucket, type, id:itemId } = item;

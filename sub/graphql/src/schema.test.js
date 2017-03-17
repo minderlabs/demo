@@ -115,6 +115,7 @@ describe('GraphQL Mock Server:', () => {
 // https://github.com/apollostack/frontpage-server/blob/master/data/schema.js
 //
 
+if (false)
 describe('GraphQL Executable Schema:', () => {
   let context = { userId: 'minder' };
 

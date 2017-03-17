@@ -38,14 +38,10 @@ export class Board extends React.Component {
     itemOrderModel: new DragOrderModel()
   };
 
-  constructor() {
-    super(...arguments);
-
-    this.state = {
-      items: this.props.items,
-      columns: this.props.columns
-    }
-  }
+  state = {
+    items: this.props.items,
+    columns: this.props.columns
+  };
 
   componentWillReceiveProps(nextProps) {
     this.setState({
@@ -64,6 +60,7 @@ export class Board extends React.Component {
 
     let column = _.find(columns, column => column.id == listId);
     let item = _.find(items, item => item.id === itemId);
+    console.assert(item);
 
     this.props.onItemDrop && this.props.onItemDrop(column, item, changes);
   }

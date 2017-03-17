@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
-import { $$, Logger, Database, ID, ItemStore, TypeUtil } from 'minder-core';
+import { $$, Logger, NotAuthenticatedError, Database, ID, ItemStore, TypeUtil } from 'minder-core';
 
 import Schema from './gql/schema.graphql';
 
@@ -35,6 +35,21 @@ export class Resolvers {
 
   static get typeDefs() {
     return Schema;
+  }
+
+  /**
+   * Retreive items from a set of IDs, or return fully formed items.
+   *
+   * @param itemStore
+   * @param context
+   * @param type
+   * @param items
+   * @returns {*|Promise.<Item[]>}
+   */
+  static getItems(itemStore, context, type, items) {
+    let itemIds = _.filter(items, item => _.isString(item));
+
+    return _.isEmpty(itemIds) ? (items || []) : itemStore.getItems(context, type, itemIds);
   }
 
   //
@@ -148,11 +163,8 @@ export class Resolvers {
 
         tasks: (root, args, context) => {
           let { tasks } = root;
-          if (tasks) {
-            return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', tasks);
-          } else {
-            return [];
-          }
+
+          return Resolvers.getItems(database.getItemStore(Database.NAMESPACE.USER), context, 'Task', tasks);
         }
       },
 
@@ -295,11 +307,11 @@ export class Resolvers {
     };
   }
 
-  // TODO(burdon): Obsolete? NotAuthenticatedError.
   static checkAuthentication(context) {
     if (!context.userId) {
-      // NOTE: User may be inactive.
-      throw new Error('Not authenticated.');
+      // TODO(burdon): Test user is active also.
+      // NOTE: getUserFromHeader should have already thrown before getting here.
+      throw NotAuthenticatedError();
     }
     if (!context.clientId) {
       throw new Error('Invalid client.');

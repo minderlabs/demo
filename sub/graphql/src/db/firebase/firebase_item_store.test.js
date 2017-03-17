@@ -31,6 +31,6 @@ describe('FirebaseItemStore:', function() {
   this.timeout(5000);
 
   ItemStoreTests(expect, () => {
-    return new FirebaseItemStore(idGenerator, matcher, db, 'testing').clear();
+    return new FirebaseItemStore(idGenerator, matcher, db, 'testing', true).clear();
   });
 });

@@ -4,29 +4,29 @@
 
 import gql from 'graphql-tag';
 
-import { UpsertItemsMutation } from './mutations';
+import { UpsertItemsMutationName } from './mutations';
 import { ItemReducer, ListReducer } from './reducer';
 import { Matcher } from './matcher';
 
 const TestListQuery = gql`
-  query TestListQuery {
-    items {
+  query TestListQuery($filter: FilterInput!) {
+    items: search(filter: $filter) {
       id
       title
     }
   }
 `;
 
-// TODO(burdon): Implement more complex shape (see project).
-// TODO(burdon): Test if inserted into multiple paths.
 const TestItemQuery = gql`
-  query TestItemQuery {
-    item {
+  query TestItemQuery($itemId: ID!) {
+    item(itemId: $itemId) {
       id
-      project {
-        items {
-          id
-          title
+      ... on Task {
+        project {
+          tasks {
+            id
+            title
+          }
         }
       }
     }
@@ -55,20 +55,30 @@ const Items = [
 ];
 
 const CachedItems = {
+
   items: Items
 };
 
 const CachedItem = {
+
   item: {
     id: 'X-1',
 
     project: {
-      items: Items
+      tasks: Items
     }
   }
 };
 
 describe('Reducers:', () => {
+
+  const context = {};
+
+  const matcher = new Matcher();
+
+  //
+  // Operations based on filter.
+  //
 
   const filter = {
     type: 'Task',
@@ -77,34 +87,9 @@ describe('Reducers:', () => {
 
   const listReducer = new ListReducer(TestListQuery);
 
-  const itemReducer = new ItemReducer(TestItemQuery, (matcher, context, previousResult, item) => {
-    let match = matcher.matchItem(context, {}, filter, item);
-
-    // Ignore if matches and already exists.
-    let idx = _.findIndex(_.get(previousResult, 'item.project.items'), i => i.id == item.id);
-    let change = (match && idx == -1) || (!match && idx != -1);
-    return change && {
-      item: {
-        project: {
-          items: {
-            $apply: (items) => {
-              if (idx == -1) {
-                // Insert.
-                return [...items, item];
-              } else {
-                // Remove.
-                return _.filter(items, i => i.id != item.id);
-              }
-            }
-          }
-        }
-      }
-    };
-  });
-
-  const context = {};
-
-  const matcher = new Matcher();
+  //
+  // ListReducer.
+  //
 
   it('Inserts an item into list.', () => {
 
@@ -117,7 +102,7 @@ describe('Reducers:', () => {
 
     let action = {
       type: 'APOLLO_MUTATION_RESULT',
-      operationName: UpsertItemsMutation.definitions[0].name.value,
+      operationName: UpsertItemsMutationName,
       result: {
         data: {
           upsertItems
@@ -144,7 +129,7 @@ describe('Reducers:', () => {
 
     let action = {
       type: 'APOLLO_MUTATION_RESULT',
-      operationName: UpsertItemsMutation.definitions[0].name.value,
+      operationName: UpsertItemsMutationName,
       result: {
         data: {
           upsertItems
@@ -160,6 +145,35 @@ describe('Reducers:', () => {
     expect(result.items.length).to.equal(previousResult.items.length - 1);
   });
 
+  //
+  // ItemReducer
+  //
+
+  const itemReducer = new ItemReducer(TestItemQuery, (matcher, context, previousResult, item) => {
+    let match = matcher.matchItem(context, {}, filter, item);
+
+    // Ignore if matches and already exists.
+    let idx = _.findIndex(_.get(previousResult, 'item.project.tasks'), i => i.id == item.id);
+    let change = (match && idx == -1) || (!match && idx != -1);
+    return change && {
+      item: {
+        project: {
+          tasks: {
+            $apply: (items) => {
+              if (idx == -1) {
+                // Insert.
+                return [...items, item];
+              } else {
+                // Remove.
+                return _.filter(items, i => i.id != item.id);
+              }
+            }
+          }
+        }
+      }
+    };
+  });
+
   it('Inserts the item into a nested list within the cached item.', () => {
 
     let upsertItems = [{
@@ -171,7 +185,7 @@ describe('Reducers:', () => {
 
     let action = {
       type: 'APOLLO_MUTATION_RESULT',
-      operationName: UpsertItemsMutation.definitions[0].name.value,
+      operationName: UpsertItemsMutationName,
       result: {
         data: {
           upsertItems
@@ -183,70 +197,8 @@ describe('Reducers:', () => {
 
     let result = itemReducer.reduceItem(matcher, context, previousResult, action);
 
-    let path = 'item.project.items';
+    let path = 'item.project.tasks';
     expect(_.get(result, path).length).to.equal(_.get(previousResult, path).length + 1);
   });
 
-  it('Removed the item from a nested list within the cached item.', () => {
-
-    let upsertItems = [{
-      id: 'I-3',
-      type: 'Task',
-      title: 'Item 3'
-    }];
-
-    let action = {
-      type: 'APOLLO_MUTATION_RESULT',
-      operationName: UpsertItemsMutation.definitions[0].name.value,
-      result: {
-        data: {
-          upsertItems
-        }
-      }
-    };
-
-    let previousResult = CachedItem;
-
-    let result = itemReducer.reduceItem(matcher, context, previousResult, action);
-
-    let path = 'item.project.items';
-    expect(_.get(result, path).length).to.equal(_.get(previousResult, path).length - 1);
-  });
-
-  it('Ignore modified items', () => {
-
-    let upsertItems = [{
-      id: 'I-3',
-      type: 'Task',
-      labels: ['_favorite'],
-      title: 'Item 3-a'
-    }];
-
-    let action = {
-      type: 'APOLLO_MUTATION_RESULT',
-      operationName: UpsertItemsMutation.definitions[0].name.value,
-      result: {
-        data: {
-          upsertItems
-        }
-      }
-    };
-
-    // List.
-    {
-      let previousResult = CachedItems;
-      let listResult = listReducer.reduceItems(matcher, context, filter, previousResult, action);
-
-      expect(listResult.items.length).to.equal(previousResult.items.length);
-    }
-
-    // Item.
-    {
-      let previousResult = CachedItem;
-      let itemResult = itemReducer.reduceItem(matcher, context, previousResult, action);
-
-      let path = 'item.project.items';
-      expect(_.get(itemResult, path).length).to.equal(_.get(previousResult, path).length);
-    }
-  });
 });

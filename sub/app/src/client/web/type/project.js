@@ -7,8 +7,7 @@ import { compose } from 'react-apollo';
 import { connect } from 'react-redux';
 import gql from 'graphql-tag';
 
-import { DomUtil, ID, ItemReducer, MutationUtil } from 'minder-core';
-import { ItemFragment, ProjectBoardFragment, TaskFragment } from 'minder-core';
+import { Fragments, DomUtil, ID, ItemReducer, MutationUtil } from 'minder-core';
 import { Board, DragOrderModel, List, ReactUtil, connectWithRef } from 'minder-ux';
 
 import { Path } from '../../common/path';
@@ -279,6 +278,7 @@ class ProjectBoardCanvasComponent extends React.Component {
     let batch = mutator.batch();
     let dropMutations = this.boardAdapter.onDropMutations(item, column);
     if (dropMutations) {
+
       batch.updateItem(item, dropMutations);
     }
 
@@ -436,9 +436,9 @@ const ProjectBoardQuery = gql`
     }
   }
 
-  ${ItemFragment}
-  ${ProjectBoardFragment}
-  ${TaskFragment}  
+  ${Fragments.ItemFragment}
+  ${Fragments.ProjectBoardFragment}
+  ${Fragments.TaskFragment}  
 `;
 
 export const ProjectBoardCanvas = compose(

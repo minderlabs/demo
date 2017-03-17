@@ -6,7 +6,7 @@ import React from 'react';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ItemReducer, ItemFragment, MutationUtil } from 'minder-core';
+import { ItemReducer, Fragments, MutationUtil } from 'minder-core';
 import { ReactUtil, TextBox } from 'minder-ux';
 
 import { connectReducer } from '../framework/connector';
@@ -134,7 +134,7 @@ const ItemQuery = gql`
     }
   }
 
-  ${ItemFragment}  
+  ${Fragments.ItemFragment}  
 `;
 
 export const ItemCanvas = compose(
