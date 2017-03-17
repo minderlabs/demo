@@ -37,7 +37,7 @@ class FinderActivity extends React.Component {
 
   render() {
     return ReactUtil.render(this, () => {
-      let { viewer, contextManager, params: { folder='inbox' } } = this.props;
+      let { config, viewer, contextManager, params: { folder='inbox' } } = this.props;
 
       let navbar = <Navbar/>;
 

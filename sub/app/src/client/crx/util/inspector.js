@@ -135,10 +135,7 @@ export class TestInspector extends Inspector {
               type: 'Contact',
               title: name,
               email: email
-            }],
-            filter: {
-              text: email
-            }
+            }]
           };
 
           return false;
@@ -190,10 +187,7 @@ export class GmailInspector extends Inspector {
               type: 'Contact',
               title: name,
               email: email
-            }],
-            filter: {
-              text: email
-            }
+            }]
           };
 
           return false;
@@ -243,10 +237,7 @@ export class GoogleInboxInspector extends Inspector {
               type: 'Contact',
               title: name,
               email: email
-            }],
-            filter: {
-              text: email
-            }
+            }]
           };
 
           return false;

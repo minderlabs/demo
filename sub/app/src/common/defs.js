@@ -101,7 +101,7 @@ export const Const = {
   APP_NAME: 'minder',
 
   // NOTE: Changed by grunt:version
-  APP_VERSION: "0.1.11",
+  APP_VERSION: "0.1.12",
 
   // NOTE: Express lowercases headers.
   HEADER: {
