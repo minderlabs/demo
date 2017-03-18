@@ -155,6 +155,8 @@ export const AppReducer = (injector, config, registration=undefined) => {
       // TODO(burdon): Get search query (not just text).
       case AppAction.ACTION.SEARCH: {
         // TODO(madadam): Add delay or only log final query -- now we send an event for every keystroke, it's overkill.
+        // TODO(madadam): Remove user query from analytics events, for privacy. Search logs need to be handled with
+        // greater care.
         let analytics = state.injector.get(Analytics.INJECTOR_KEY);
         analytics && analytics.track('search', {text: action.value});
         return _.set(state, 'search.text', action.value);

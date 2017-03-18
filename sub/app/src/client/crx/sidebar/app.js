@@ -42,6 +42,10 @@ export class SidebarApp extends BaseApp {
 
           // Updated visibility.
           case SidebarCommand.UPDATE_VISIBILITY: {
+            // FIXME: not seeing this. Where do these console logs go?
+            if (message.visible) {
+              this._analytics && this._analytics.track('sidebar.open');
+            }
             this.store.dispatch(SidebarAction.updateVisibility(message.visible));
             break;
           }
@@ -121,6 +125,8 @@ export class SidebarApp extends BaseApp {
         .then(({ registration, server }) => {
           console.assert(registration && server);
           console.log('Registered: ' + JSON.stringify(registration));
+
+          this._analytics && this._analytics.identify(registration.userId);
 
           // Initialize the app.
           this.store.dispatch(AppAction.register(registration, server));
