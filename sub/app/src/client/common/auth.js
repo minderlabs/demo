@@ -90,6 +90,9 @@ export class AuthManager {
    */
   getToken() {
     let user = firebase.auth().currentUser;
+    if (!user) {
+      return Promise.reject(null);
+    }
 
     // https://firebase.google.com/docs/reference/js/firebase.User#getToken
     return user.getToken();
@@ -161,6 +164,11 @@ export class AuthManager {
         return firebase.auth().currentUser;
       })
       .catch(error => {
+        switch (error.code) {
+          case 'auth/popup-blocked': {
+            // TODO(burdon): Show user dialog.
+          }
+        }
         logger.error('Sign-in failed:', JSON.stringify(error));
       });
   }

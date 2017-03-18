@@ -13,6 +13,8 @@ import { Const, FirebaseAppConfig, GoogleApiConfig } from '../common/defs';
  */
 export class Auth {
 
+  // TODO(burdon): Replace with server-side OAuth.
+
   // TODO(burdon): Send email on first login?
   // https://firebase.google.com/docs/auth/web/manage-users#send_a_user_a_verification_email
 
@@ -32,6 +34,8 @@ export class Auth {
     // http://stackoverflow.com/questions/27890737/firebase-google-auth-offline-access-type-in-order-to-get-a-token-refresh/27910548
     // Manually?
     // https://github.com/google/google-api-nodejs-client/#oauth2-client
+    // https://firebase.google.com/docs/reference/js/firebase.auth.GoogleAuthProvider#setCustomParameters
+    // https://developers.google.com/identity/protocols/OAuth2WebServer#offline
     this._provider.setCustomParameters({ access_type: 'offline' });
 
     // Google default scopes.
@@ -74,11 +78,23 @@ export class Auth {
               // We're now authenticated, but need to register or check we are active.
               // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#getRedirectResult
               return firebase.auth().getRedirectResult().then(result => {
-                let { credential } = result;
+                console.log('>>>>>>>>>>>>', result);
+
+                // Convert to protocol var names.
+                // https://tools.ietf.org/html/rfc6749#appendix-A
+                let {
+                  user: userInfo,
+                  credential: { provider, idToken: id_token, accessToken: access_token }
+                } = result;
+
+                let credential = {
+                  provider,
+                  id_token,
+                  access_token
+                };
 
                 // Credential is null if we've already been authenticated (i.e., JWT token is fresh).
                 return this.registerUser(userInfo, credential).then(user => {
-                  console.log('Credentials: ' + JSON.stringify(_.pick(credential, ['provider'])));
 
                   // TODO(burdon): Use express-session?
                   // https://github.com/graphql/express-graphql#combining-with-other-express-middleware
@@ -93,6 +109,8 @@ export class Auth {
 
                   resolve(user);
                 });
+              }, error => {
+                console.error('>>>>>>>>>>>>>>>>>>>>>>>>>>', error);
               });
             });
         } else {

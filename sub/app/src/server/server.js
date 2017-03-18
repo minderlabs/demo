@@ -144,7 +144,7 @@ const database = new Database()
 //
 
 const oauthRegistry = new OAuthRegistry()
-  .registerProvider(new GoogleOAuthProvider())
+  .registerProvider(new GoogleOAuthProvider().init(env === 'development'))
   .registerProvider(new SlackOAuthProvider());
 
 
@@ -337,7 +337,7 @@ app.use(graphqlRouter(database, {
 const MINDER_NODE_MODULES_DIR =
   _.get(process.env, 'MINDER_NODE_MODULES_DIR', (env === 'production') ? '../node_modules' : '../../node_modules');
 
-app.use('/node_modules', express.static(path.join(__dirname, MINDER_NODE_MODULES_DIR)));
+app.get('/node_modules', express.static(path.join(__dirname, MINDER_NODE_MODULES_DIR)));
 
 app.get('/graphiql', function(req, res) {
   return userManager.getUserFromCookie(req)
@@ -366,18 +366,11 @@ app.get('/graphiql', function(req, res) {
 
 
 //
-// Admin.
-// TODO(burdon): SECURITY: Permissions!
-//
-
-app.use('/admin', adminRouter(clientManager, firebase, {
-  scheduler: (env === 'production')
-}));
-
-
-//
 // App services.
+// TODO(burdon): Factor out path constants (e.g., OAuthProvider.PATH).
 //
+
+app.use(OAuthProvider.PATH, oauthRouter(userManager, systemStore, oauthRegistry, { env }));
 
 app.use('/user', loginRouter(userManager, oauthRegistry, systemStore, { env }));
 
@@ -387,7 +380,16 @@ if (botkitManager) {
   app.use('/botkit', botkitRouter(botkitManager));
 }
 
-app.use(OAuthProvider.PATH, oauthRouter(oauthRegistry));
+
+//
+// Admin.
+// TODO(burdon): SECURITY: Permissions!
+//
+
+app.use('/admin', adminRouter(clientManager, firebase, {
+  scheduler: (env === 'production')
+}));
+
 
 //
 // Web App.
@@ -423,10 +425,10 @@ app.use(appRouter(userManager, clientManager, systemStore, {
 
 
 //
-// Catch-all (last).
+// Redirect root.
 //
 
-app.use('/', function(req, res) {
+app.get('/', function(req, res) {
   res.redirect('/home');
 });
 
@@ -435,7 +437,8 @@ app.use('/', function(req, res) {
 // File not found.
 //
 
-app.use(function(req, res) {
+app.get(function(req, res) {
+  // TODO(burdon): Special handling for JSON.
   logger.log(`[404]: ${req.path}`);
   res.status(404).end();
 });
@@ -448,7 +451,7 @@ app.use(function(req, res) {
 // NOTE: Must be last.
 // NOTE: Async functions must call next() for subsequent middleware to be called.
 //
-// app.use(function(req, res, next) {
+// app.get(function(req, res, next) {
 //   return new Promise((resolve, reject) => {
 //     res.end();
 //   }).catch(next);
@@ -457,7 +460,7 @@ app.use(function(req, res) {
 // https://strongloop.com/strongblog/async-error-handling-expressjs-es7-promises-generators/
 //
 
-app.use(function(error, req, res, next) {
+app.get(function(error, req, res) {
   if (error === NotAuthenticatedError) {
     return res.status(401).end();
   }

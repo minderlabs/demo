@@ -11,7 +11,7 @@ import { ErrorUtil, NotAuthenticatedError, Logger } from 'minder-core';
 
 import { Const } from '../common/defs';
 
-const logger = Logger.get('auth');
+const logger = Logger.get('user');
 
 /**
  * Manage authentication.
@@ -31,6 +31,7 @@ export class UserManager {
   /**
    * Decodes the JWT token.
    * https://jwt.io/introduction
+   * https://jwt.io (Test decoding token).
    *
    * @param token
    * @returns {Promise<Item>}
