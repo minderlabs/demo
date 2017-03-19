@@ -9,7 +9,7 @@ import _ from 'lodash';
  *
  * Formats and parses structured keys.
  *
- * Example: new Key('I:{{type}}:{{itemId}}').toKey({type: 'User', itemId: '123'});
+ * Example: new Key('I:{{type}}:{{itemId}}').toKey({ type: 'User', itemId: '123' });
  */
 export class Key {
 

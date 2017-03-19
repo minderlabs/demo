@@ -64,9 +64,9 @@ export class BotKitManager {
   start() {
     this.controller.on('create_bot', (bot, config) => {
       logger.info('Created bot with token: ' + JSON.stringify(config));
-      this.startBot(bot).then(({bot, isFirstConnect}) => {
+      this.startBot(bot).then(({ bot, isFirstConnect }) => {
         if (isFirstConnect) {
-          bot.startPrivateConversation({user: config.createdBy}, (err, conversation) => {
+          bot.startPrivateConversation({ user: config.createdBy }, (err, conversation) => {
             if (err) {
               logger.error(err);
             } else {
@@ -89,7 +89,7 @@ export class BotKitManager {
         if (team.bot) {
           // Spawn bot instance to represent specific bot identity for team (will appear online in Slack once connected).
           let bot = this.controller.spawn(team);
-          this.startBot(bot).then(({bot}) => {
+          this.startBot(bot).then(({ bot }) => {
             // TODO(madadam): Load bots for all users? Does anything need to happen here for credential management?
             //this.userStateManager.loadUsers(bot);
           });

@@ -78,6 +78,9 @@ export class Analytics {
  * to other services (mixpanel, Google Analytics, etc.) or export to a warehouse (database).
  *
  * Dashboard: https://segment.com/minderlabs
+ *
+ * Segment sends events to other services via integrations, including:
+ *   Intercom: https://app.intercom.io/a/apps/mnpnnt3b/
  */
 export class SegmentAnalytics extends Analytics {
 
@@ -88,7 +91,7 @@ export class SegmentAnalytics extends Analytics {
 
     this.analytics = function() {
       // https://segment.com/docs/sources/website/analytics.js/quickstart/
-      var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="4.0.0";
+      var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src="https://cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="4.0.0";
       analytics.load(AnalyticsConfig.segmentWriteKey);
       analytics.page();}
       return analytics;
@@ -141,7 +144,7 @@ export class GoogleAnalytics extends Analytics {
   identify(userId, attributes) {
     // NOTE: It's against Google Analytics to send personally-identifiable information such as email address,
     // so we don't send any attributes.
-    ReactGA.set({userId});
+    ReactGA.set({ userId });
   }
 
   pageview(location) {
