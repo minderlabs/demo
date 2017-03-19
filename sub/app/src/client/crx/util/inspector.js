@@ -29,7 +29,14 @@ export class InspectorRegistry {
     setTimeout(() => {
       _.each(this._inspectors, inspector => {
         if (inspector.isValid()) {
-          let rootNode = inspector.getRootNode();
+          // FIXME: change the interace -- two passes of state:
+          // 1) state = getPageState() -- at page load time (equiv of getRootNode now) (and callback(context) once)
+          //   ---> { context, rootNode }
+          // 2) start(state, callback) -- start listening for mutations,
+          let { context, rootNode } = inspector.getPageState();
+          if (context) {
+            callback(context);
+          }
           if (rootNode) {
             console.log('Inspector: ' + inspector.constructor.name);
             inspector.start(rootNode, callback);
@@ -83,6 +90,21 @@ class Inspector {
    */
   isValid() {
     return false;
+  }
+
+  /**
+   *
+   * @return {{context, rootNode}}
+   */
+  getPageState() {
+    return {
+      context: this.getInitialContext(),
+      rootNode: this.getRootNode()
+    }
+  }
+
+  getInitialContext() {
+    return  null;
   }
 
   /**
@@ -228,6 +250,62 @@ export class GoogleInboxInspector extends Inspector {
 
       // TODO(burdon): Get closest parent for thread ID.
       let root = $(mutation.target).find('div[data-msg-id] div[email]:first');
+      if (root[0]) {
+        let name = root.text();
+        let email = root.attr('email');
+        if (name && email) {
+          context = {
+            items: [{
+              type: 'Contact',
+              title: name,
+              email: email
+            }]
+          };
+
+          return false;
+        }
+      }
+    });
+
+    return context;
+  }
+}
+
+export class SlackInspector extends Inspector {
+
+  static PATH_RE = /https:\/\/([^\.]+)\.slack\.com\/messages/([^\/]+)\//;
+
+  isValid() {
+    this._matches = document.location.href.match(SlackInspector.PATH_RE);
+    return this._matches;
+  }
+
+  getInitialContext() {
+    let context = null;
+    if (this._matches) {
+      context = {
+        items: [{
+
+        }]
+      }
+    }
+    return context;
+  }
+
+  getRootNode() {
+    // Hack -- we don't need a root node, just return true so this inspector gets run.
+    // FIXME: don't need this now with getInitialContext.
+    return true;
+  }
+
+  inspect(mutations) {
+    let context = null;
+
+    _.each(mutations, mutation => {
+
+      // TODO(burdon): Get closest parent for thread ID.
+//    let root = $(mutation.target).find('div[role="listitem"] h3 span');
+      let root = $('div[role="main"] div[role="listitem"] h3 span');
       if (root[0]) {
         let name = root.text();
         let email = root.attr('email');

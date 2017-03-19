@@ -5,7 +5,7 @@
 import { WindowMessenger, HttpUtil, KeyListener } from 'minder-core';
 
 import { SidebarCommand, KeyCodes } from './common';
-import { InspectorRegistry, GmailInspector, GoogleInboxInspector, TestInspector } from './util/inspector';
+import { InspectorRegistry, GmailInspector, GoogleInboxInspector, SlackInspector, TestInspector } from './util/inspector';
 
 import './content_script.less';
 
@@ -139,6 +139,7 @@ class ContentScript {
       .add(new TestInspector())
       .add(new GmailInspector())
       .add(new GoogleInboxInspector())
+      .add(new SlackInspector())
       .init(context => {
 
         // Send update to SidebarApp.

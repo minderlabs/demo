@@ -65,6 +65,11 @@ export class ContextManager {
    * @returns {FilterInput} Context filter or undefined.
    */
   getFilter() {
+    // FIXME: here. Add context.text or something, and add it into the filter.
+    // To handle more specific stuff like Slack channel name, send context object (key-value pairs, or even
+    // whole json object). Server can do whatever it wants with it -- initially return Contact cards for people
+    // in the channel, google Doc commenters, etc.
+
     // TODO(burdon): Email-specific.
     let emails = _.compact(_.map(_.get(this._context, 'items'), item => item.email));
     if (emails.length) {
