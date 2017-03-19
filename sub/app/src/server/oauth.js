@@ -175,8 +175,10 @@ export class GoogleOAuthProvider extends OAuthProvider {
     let callback = (testing ? OAuthProvider.OAUTH_TESTING_CALLBACK : OAuthProvider.OAUTH_CALLBACK) +
       SystemStore.sanitizeKey(this.domain);
 
+    // TODO(burdon): Get Const from config.
     // TODO(burdon): Factor out (and pass in) client with setCredentials method below (for use in subsequent API calls).
     // https://github.com/google/google-api-nodejs-client/#oauth2-client
+    // https://github.com/google/google-api-nodejs-client/blob/master/apis/oauth2/v2.js
     this._oauth2Client = new google.auth.OAuth2(
       GoogleApiConfig.clientId,
       GoogleApiConfig.clientSecret,
@@ -233,6 +235,7 @@ export class GoogleOAuthProvider extends OAuthProvider {
         }
 
         // TODO(burdon): Extract and use in all API calls.
+        // https://github.com/google/google-api-nodejs-client/blob/master/apis/oauth2/v2.js
         this._oauth2Client.setCredentials(_.pick(credential, ['access_token', 'refresh_token']));
 
         // Enable API in console (then wait "a few" Google minutes).
@@ -248,6 +251,7 @@ export class GoogleOAuthProvider extends OAuthProvider {
 //        console.log('User Info:', JSON.stringify(response, 0, 2));
 
           // TODO(burdon): Normalize userInfo across other OAuth services.
+          // https://github.com/google/google-api-nodejs-client/blob/master/apis/oauth2/v2.js
           let userInfo = {
             id: response.id,
             name: response.displayName,
