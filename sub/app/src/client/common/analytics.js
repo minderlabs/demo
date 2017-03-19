@@ -78,6 +78,9 @@ export class Analytics {
  * to other services (mixpanel, Google Analytics, etc.) or export to a warehouse (database).
  *
  * Dashboard: https://segment.com/minderlabs
+ *
+ * Segment sends events to other services via integrations, including:
+ *   Intercom: https://app.intercom.io/a/apps/mnpnnt3b/
  */
 export class SegmentAnalytics extends Analytics {
 
