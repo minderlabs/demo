@@ -313,7 +313,8 @@ app.use(graphqlRouter(database, {
     .then(user => {
       let context = {
         userId: user && user.active && user.id,
-        clientId: request.headers[Const.HEADER.CLIENT_ID]
+        clientId: request.headers[Const.HEADER.CLIENT_ID],
+        credentials: user.credentials
       };
 
       if (!user) {

@@ -108,8 +108,8 @@ export class SystemStore extends DelegateItemStore {
    */
   static updateUser(user, credential=undefined) {
     if (credential) {
-      let { accessToken, idToken, provider } = credential;
-      _.set(user, `credentials.${SystemStore.sanitizeKey(provider)}`, { accessToken, idToken });
+      let { provider } = credential;
+      _.set(user, `credentials.${SystemStore.sanitizeKey(provider)}`, _.omit(credential, ['provider']));
     } else {
       user.active = false;
     }
