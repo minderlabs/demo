@@ -27,7 +27,7 @@ export class Async {
    * @param delay
    * @returns {function(*)}
    */
-  static timeout = (delay = 500) => {
+  static timeout(delay=500) {
     let timeout = null;
 
     /**

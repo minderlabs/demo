@@ -141,7 +141,7 @@ export class GoogleAnalytics extends Analytics {
   identify(userId, attributes) {
     // NOTE: It's against Google Analytics to send personally-identifiable information such as email address,
     // so we don't send any attributes.
-    ReactGA.set({userId});
+    ReactGA.set({ userId });
   }
 
   pageview(location) {
