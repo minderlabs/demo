@@ -42,7 +42,6 @@ export class SidebarApp extends BaseApp {
 
           // Updated visibility.
           case SidebarCommand.UPDATE_VISIBILITY: {
-            // FIXME: not seeing this. Where do these console logs go?
             if (message.visible) {
               this._analytics && this._analytics.track('sidebar.open');
             }
