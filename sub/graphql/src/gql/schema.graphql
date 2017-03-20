@@ -154,6 +154,8 @@ input OrderByInput {
   order: Order              # Default: ASC
 }
 
+# TODO(burdon): Rename QueryInput.
+# TODO(burdon): Move paging here.
 input FilterInput {
 
   # Data store namespace (e.g., system for User, etc.)

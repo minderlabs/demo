@@ -29,7 +29,7 @@
   }
 
   //
-  // Logo
+  // Toggle Button
   //
 
   button {
@@ -85,4 +85,49 @@
   .crx-sidebar.crx-open {
     -webkit-transform: translateX(0px);
   }
+}
+
+//
+// Toggle hint bubble.
+// http://www.cssarrowplease.com/
+//
+
+.crx-hint {
+  position: fixed;
+  top: 65px;
+  right: 25px;
+  padding: 8px 2px;
+  color: whitesmoke;
+  background-color: #333;
+  border: 2px solid #000;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 100;
+
+  span.crx-key {
+    padding: 4px;
+    margin: 0 2px;
+  }
+}
+.crx-hint:after, .arrow_box:before {
+  left: 100%;
+  top: 50%;
+  border: solid transparent;
+  content: ' ';
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+.crx-hint:after {
+  border-color: rgba(51, 51, 51, 0);
+  border-left-color: #333;
+  border-width: 8px;
+  margin-top: -8px;
+}
+.crx-hint:before {
+  border-color: rgba(0, 0, 0, 0);
+  border-left-color: #000;
+  border-width: 11px;
+  margin-top: -11px;
 }

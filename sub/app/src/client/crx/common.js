@@ -35,14 +35,17 @@ export const DefaultSettings = {
 
 /**
  * Keys
- * Properties (other than "hint") should match the keydown event.
+ * Properties (other than "_KEYS_") should match the keydown event.
+ * https://css-tricks.com/snippets/javascript/javascript-keycodes
+ * https://developer.mozilla.org/en-US/docs/Web/Events/keydown
+ * http://keycode.info
  */
 export const KeyCodes = {
 
   TOGGLE: {
-    hint: '⌘-/',
-    metaKey: true,
-    keyCode: 191
+    _KEYS_: ['⌥ Option', '\\'],
+    altKey: true,
+    keyCode: 220
   }
 };
 

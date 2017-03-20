@@ -39,6 +39,11 @@ export class UserManager {
   getUserFromJWT(token) {
     console.assert(token);
 
+
+    // TODO(burdon): Use Google verify (check same as id_token).
+    // https://developers.google.com/identity/sign-in/web/backend-auth
+
+
     return this._firebase.verifyIdToken(token)
       .then(decodedToken => {
         let { uid, email } = decodedToken;

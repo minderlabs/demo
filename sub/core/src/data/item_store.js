@@ -47,6 +47,7 @@ export class QueryProcessor {
    * @param count
    * @return {Promise.<[Item]>} Retrieved items or [].
    */
+  // TODO(burdon): Move offset, count into filter and rename filter=>query.
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     throw new Error('Not implemented');
   }

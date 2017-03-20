@@ -50,16 +50,35 @@ class ContentScript {
     let container = $('<div>').appendTo(document.body)
       .addClass('crx-content-script');
 
+    // Keyboard hint.
+    this.hint = $('<div>').appendTo(container)
+      .addClass('crx-hint')
+      .css('display', 'none');
+    let idx = 0;
+    _.each(KeyCodes.TOGGLE._KEYS_, key => {
+      if (idx++ > 0) {
+        $('<span>').text('+').appendTo(this.hint);
+      }
+      $('<span>').addClass('crx-key').text(key).appendTo(this.hint);
+    });
+
     // Button to toggle sidebar.
     // Grabs focus so that pressing enter causes toggle.
     this.button = $('<button>').appendTo(container)
       .append($('<img>')
-        .attr('title', KeyCodes.TOGGLE.hint)
+        .attr('title', KeyCodes.TOGGLE._KEYS_.join(' '))
         .attr('src', chrome.extension.getURL('img/icon_128.png')))
         .css('cursor', 'pointer')
       .click(() => {
+        this.hint.css('display', 'none');
         this.sidebar.toggle();
         this.button.focus();
+      })
+      .mouseover(() => {
+        this.hint.css('display', 'block');
+      })
+      .mouseout(() => {
+        this.hint.css('display', 'none');
       });
 
     // Frame elements.
