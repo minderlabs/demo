@@ -49,13 +49,18 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
     // TODO(burdon): Handle errors.
     provider.processResponse(req, res).then(response => {
-      let { userInfo, credential } = response;
+      let { userInfo, credential, scope } = response;
       logger.log('Authenticated:', JSON.stringify(userInfo));
 
       // TODO(burdon): Google ID is different from the FB ID! Deprecate FB auth.
       // TODO(burdon): Rename credential => credentials.
       systemStore.getUserByEmail(userInfo.email).then(user => {
-        SystemStore.updateUserCredential(user, _.assign(credential, { provider: providerId }));
+
+        SystemStore.updateUserCredential(user, _.assign(credential, {
+          provider: providerId,
+          scope
+        }));
+
         systemStore.updateUser(user).then(() => {
           // TODO(burdon): Inject router to redirect.
           res.redirect('/user/profile');
@@ -68,15 +73,15 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   //
   // Oauth logout.
   //
-  router.get('/logout/:providerId', function(req, res, next) {
-    let { providerId } = req.params;
-    logger.log('Logout: ' + providerId);
-    let provider = oauthRegistry.getProvider(providerId);
-
-    provider.revoke().then(() => {
-      next();
-    });
-  });
+  // router.get('/logout/:providerId', function(req, res, next) {
+  //   let { providerId } = req.params;
+  //   logger.log('Logout: ' + providerId);
+  //   let provider = oauthRegistry.getProvider(providerId);
+  //
+  //   provider.revoke().then(() => {
+  //     next();
+  //   });
+  // });
 
   return router;
 };
@@ -279,25 +284,25 @@ export class GoogleOAuthProvider extends OAuthProvider {
             imageUrl: _.get(response, 'image.url'),
           };
 
-          resolve({ userInfo, credential });
+          resolve({ userInfo, credential, scope: this._scope });
         });
       });
     });
   }
 
   // TODO(burdon): Need to create instance of client with credential.
-  revoke() {
-    return new Promise((resolve, reject) => {
-      this._oauth2Client.setCredentials(_.pick(credential, ['access_token', 'refresh_token']));
-      this._oauth2Client.revokeCredentials((error, result) => {
-        if (error) {
-          throw new Error(error);
-        }
-
-        resolve();
-      });
-    });
-  }
+  // revoke() {
+  //   return new Promise((resolve, reject) => {
+  //     this._oauth2Client.setCredentials(_.pick(credential, ['access_token', 'refresh_token']));
+  //     this._oauth2Client.revokeCredentials((error, result) => {
+  //       if (error) {
+  //         throw new Error(error);
+  //       }
+  //
+  //       resolve();
+  //     });
+  //   });
+  // }
 }
 
 /**

@@ -115,6 +115,38 @@ export class SystemStore extends DelegateItemStore {
   }
 
   /**
+   * Converts a firebase User record to a User item.
+   */
+  static createUser(userInfo, credential) {
+    console.assert(userInfo);
+    let { uid, email, displayName } = userInfo;
+
+    return SystemStore.updateUser({
+      active: !_.isNil(credential),
+      type: 'User',
+      id: uid,
+      title: displayName,
+      email: email
+    }, credential);
+  }
+
+  /**
+   * Update the user record's credentials.
+   * NOTE: The GraphQL User definition is a projection of part of this data.
+   * For example, credentials are not exposed through the GQL API.
+   */
+  static updateUser(user, credential=undefined) {
+    if (credential) {
+      let { provider } = credential;
+      _.set(user, `credentials.${SystemStore.sanitizeKey(provider)}`, _.omit(credential, ['provider']));
+    } else {
+      user.active = false;
+    }
+
+    return user;
+  }
+
+  /**
    * Upsert Firebase User Account.
    *
    * Cases:

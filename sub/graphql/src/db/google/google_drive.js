@@ -5,7 +5,7 @@
 import _ from 'lodash';
 import google from 'googleapis';
 
-import { ErrorUtil, SystemStore, QueryProcessor } from 'minder-core';
+import { ErrorUtil, QueryProcessor } from 'minder-core';
 
 /**
  * Google API client.
@@ -58,17 +58,9 @@ class GoogleDriveClient {
       this._config.clientSecret
     );
 
-    console.log('::::::::::::::::::::', context);
-
-    // TODO(burdon): Standardize (move GoogleOAuthProvider to minder-core).
-    let credentials = _.get(context, 'user.credentials.google_com');
+    let credentials = _.get(context, 'credentials.google_com');
     oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));
-
     return oauth2Client;
-  }
-
-  _getAccessToken(context) {
-    return _.get(context, 'user.credentials.google_com.access_token');
   }
 
   /**
