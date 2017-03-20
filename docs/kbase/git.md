@@ -18,12 +18,25 @@
     git push -u origin <branch>
 ~~~
 
+### Update your local copy of a tracked branch from origin without switching branches.
+
+For example, you're working in a feature branch and want to pull the latest changes in master
+so you can merge them:
+
+~~~
+# Pull latest changes into master without switching branches:
+git fetch origin master:master
+# Then merge into your current branch:
+git merge master
+~~~
+
 
 ### Check out a remote branch and track it
 
 ~~~~
-    git fetch
-    git branch -a
+    git fetch # or git pull
+    git checkout <name of branch>
+    # Or more verbosely:
     git checkout --track origin/<branch>
 ~~~~
 
@@ -145,7 +158,7 @@ https://rtyley.github.io/bfg-repo-cleaner/
     alias gtd='git difftool -t vimdiff'
     alias gcm='git commit -a -m "."'
     alias ggs='git status'
-    alias gb='git branch -v'
+    alias gb='git branch -vv' # More verbose and useful display of branches
     alias gl='git log --graph --decorate --oneline'
 ~~~
 
