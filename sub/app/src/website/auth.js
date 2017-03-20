@@ -13,6 +13,8 @@ import { Const, FirebaseAppConfig, GoogleApiConfig } from '../common/defs';
  */
 export class Auth {
 
+  // TODO(burdon): Replace with server-side OAuth.
+
   // TODO(burdon): Send email on first login?
   // https://firebase.google.com/docs/auth/web/manage-users#send_a_user_a_verification_email
 
@@ -20,10 +22,21 @@ export class Auth {
     firebase.initializeApp(FirebaseAppConfig);
 
     // https://firebase.google.com/docs/auth/web/google-signin
+    // https://firebase.google.com/docs/reference/android/com/google/firebase/auth/GoogleAuthProvider
     this._provider = new firebase.auth.GoogleAuthProvider();
 
-    // TODO(madadam): As of 2017.03.17, I'm not seeing a refresh_token in the response's credential, even setting this.
-    this._provider.setCustomParameters({access_type: 'offline'});
+    // NOTE: Presents "Have offline access" on login.
+    // https://developers.google.com/identity/protocols/OAuth2WebServer
+    // TESTING: The following link should show access_type: offline.
+    // https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=XXX
+    // The refresh token is valid until the user revokes it.
+    // TODO(burdon): Refresh token currently not returned.
+    // http://stackoverflow.com/questions/27890737/firebase-google-auth-offline-access-type-in-order-to-get-a-token-refresh/27910548
+    // Manually?
+    // https://github.com/google/google-api-nodejs-client/#oauth2-client
+    // https://firebase.google.com/docs/reference/js/firebase.auth.GoogleAuthProvider#setCustomParameters
+    // https://developers.google.com/identity/protocols/OAuth2WebServer#offline
+    this._provider.setCustomParameters({ access_type: 'offline' });
 
     // Google default scopes.
     // TODO(burdon): Get scopes from registry.
@@ -45,7 +58,7 @@ export class Auth {
    *
    * Additionally, we set a cookie so that our frontend server can recognize authenticated users.
    *
-   * @returns {Promise}
+   * @returns {Promise<User>}
    */
   login() {
     return new Promise((resolve, reject) => {
@@ -58,18 +71,32 @@ export class Auth {
           // Get the JWT.
           // Returns the current token or issues a new one if expire (short lived; lasts for about an hour).
           // https://firebase.google.com/docs/reference/js/firebase.User#getToken
-          console.log('Getting token...');
+          console.log('Getting token for user: ', userInfo.email);
           return userInfo.getToken()
             .then(jwt => {
 
               // We're now authenticated, but need to register or check we are active.
               // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#getRedirectResult
               return firebase.auth().getRedirectResult().then(result => {
-                let { credential } = result;
+                if (_.isNil(result.user)) {
+                  return firebase.auth().signInWithRedirect(this._provider);
+                }
+
+                // Convert to protocol var names.
+                // https://tools.ietf.org/html/rfc6749#appendix-A
+                let {
+                  user: userInfo,
+                  credential: { provider, idToken: id_token, accessToken: access_token }
+                } = result;
+
+                let credential = {
+                  provider,
+                  id_token,
+                  access_token
+                };
 
                 // Credential is null if we've already been authenticated (i.e., JWT token is fresh).
                 return this.registerUser(userInfo, credential).then(user => {
-                  console.log('Credentials: ' + JSON.stringify(_.pick(credential, ['provider'])));
 
                   // TODO(burdon): Use express-session?
                   // https://github.com/graphql/express-graphql#combining-with-other-express-middleware

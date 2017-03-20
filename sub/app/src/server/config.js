@@ -10,15 +10,16 @@ import { Logger } from 'minder-core';
 
 Logger.setLevel({
 
-  'server'    : Logger.Level.debug,
-  'auth'      : Logger.Level.info,
   'botkit'    : Logger.Level.debug,
   'client'    : Logger.Level.debug,
-  'net'       : Logger.Level.debug,
-  'resolver'  : Logger.Level.debug,
-  'system'    : Logger.Level.debug,
-  'gql'       : Logger.Level.debug,
   'db'        : Logger.Level.info,
+  'gql'       : Logger.Level.debug,
+  'net'       : Logger.Level.debug,
+  'oauth'     : Logger.Level.debug,
+  'resolver'  : Logger.Level.debug,
+  'server'    : Logger.Level.debug,
+  'system'    : Logger.Level.debug,
+  'user'      : Logger.Level.debug,
 
 }, Logger.Level.info);
 

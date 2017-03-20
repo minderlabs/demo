@@ -113,8 +113,6 @@ export class List extends React.Component {
     className:          React.PropTypes.string,
     highlight:          React.PropTypes.bool,
 
-    showAdd:            React.PropTypes.bool,
-
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
     itemClassName:      React.PropTypes.string,
     itemRenderer:       React.PropTypes.func,
@@ -138,7 +136,7 @@ export class List extends React.Component {
     items: this.props.items || [],
     itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
     itemEditor: this.props.itemEditor || List.DefaultItemEditor,
-    showAdd: this.props.showAdd,
+    showAdd: false,
     editedItem: null
   };
 

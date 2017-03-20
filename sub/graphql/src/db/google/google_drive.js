@@ -5,7 +5,7 @@
 import _ from 'lodash';
 import google from 'googleapis';
 
-import { ErrorUtil, QueryProcessor, TypeUtil } from 'minder-core';
+import { ErrorUtil, QueryProcessor } from 'minder-core';
 
 /**
  * Google API client.
@@ -13,7 +13,6 @@ import { ErrorUtil, QueryProcessor, TypeUtil } from 'minder-core';
 class GoogleDriveClient {
 
   // TODO(burdon): Generalize client.
-  // TODO(burdon): Handle expiration: Query failed: Error: No access or refresh token is set.
 
   /**
    * Convert Drive result to a schema object Item.
@@ -25,7 +24,7 @@ class GoogleDriveClient {
    */
   static resultToItem(idGenerator, file) {
     // TODO(madadam): This makes a transient Item that isn't written into the item store;
-    // it's an Item wrapper around foreign data.
+    // it's an Item wrapper around external data.
 
     let item = {
       namespace: GoogleDriveQueryProcessor.NAMESPACE,
@@ -50,6 +49,7 @@ class GoogleDriveClient {
     this._drive = google.drive('v3');
   }
 
+  // TODO(burdon): Factor out (see oauth.js).
   _getOAuthClient(context) {
     // TODO(madadam): Avoid creating a new OAuth2 client every request. Just pass access token?
     // If not, then cache the clients by context.userId.
@@ -57,16 +57,10 @@ class GoogleDriveClient {
       this._config.clientId,
       this._config.clientSecret
     );
-    oauth2Client.credentials = this._getCredentials(context);
-    return oauth2Client;
-  }
 
-  _getCredentials(context) {
-    let credentials = {
-      access_token: _.get(context, 'credentials.google_com.accessToken'),
-    };
-    TypeUtil.maybeSet(credentials, 'refresh_token', _.get(context, 'credentials.google_com.refreshToken'));
-    return credentials;
+    let credentials = _.get(context, 'credentials.google_com');
+    oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));
+    return oauth2Client;
   }
 
   /**

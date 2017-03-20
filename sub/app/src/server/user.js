@@ -11,7 +11,7 @@ import { ErrorUtil, NotAuthenticatedError, Logger } from 'minder-core';
 
 import { Const } from '../common/defs';
 
-const logger = Logger.get('auth');
+const logger = Logger.get('user');
 
 /**
  * Manage authentication.
@@ -31,6 +31,7 @@ export class UserManager {
   /**
    * Decodes the JWT token.
    * https://jwt.io/introduction
+   * https://jwt.io (Test decoding token).
    *
    * @param token
    * @returns {Promise<Item>}
@@ -126,13 +127,13 @@ export class UserManager {
  * Manage user authentication.
  *
  * @param userManager
- * @param accountManager
+ * @param oauthRegistry
  * @param systemStore
  * @param options
  * @returns {Router}
  */
-export const loginRouter = (userManager, accountManager, systemStore, options) => {
-  console.assert(userManager && accountManager && systemStore);
+export const loginRouter = (userManager, oauthRegistry, systemStore, options) => {
+  console.assert(userManager && oauthRegistry && systemStore);
 
   let router = express.Router();
 
@@ -144,16 +145,20 @@ export const loginRouter = (userManager, accountManager, systemStore, options) =
 
   // Login page.
   router.use('/login', function(req, res) {
-    let force = !!req.query.force;
 
     // Firebase JS login.
-    res.render('login', { force }) ;
+    res.render('login');
+
+    // res.redirect('/oauth/login/google_com');    // TODO(burdon): !!!
   });
 
   // Logout page (javascript).
   router.use('/logout', function(req, res) {
     // Firebase JS login.
     res.render('logout');
+
+    // res.redirect('/oauth/logout');
+    // res.redirect('/user/profile');
   });
 
   // Handle user registration.
@@ -178,7 +183,7 @@ export const loginRouter = (userManager, accountManager, systemStore, options) =
               res.render('profile', {
                 user,
                 groups: [ group ],
-                accounts: accountManager.handlers,
+                providers: oauthRegistry.providers,
                 crxUrl: Const.CRX_URL(Const.CRX_ID)
               });
             })
