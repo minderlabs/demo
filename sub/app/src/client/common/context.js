@@ -70,6 +70,16 @@ export class ContextManager {
     // whole json object). Server can do whatever it wants with it -- initially return Contact cards for people
     // in the channel, google Doc commenters, etc.
 
+    // FIXME: move this server-side. Instead, context object should be like:
+    return {
+      context: _.map(emails, email => ({
+        key: 'email',
+        value: {
+          string: email
+        }
+      }))
+    };
+
     // TODO(burdon): Email-specific.
     let emails = _.compact(_.map(_.get(this._context, 'items'), item => item.email));
     if (emails.length) {
@@ -86,6 +96,8 @@ export class ContextManager {
         }
       };
     }
+
+    let contextMap = _.omit(this._context, 'items');
   }
 
   /**

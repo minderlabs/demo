@@ -104,7 +104,7 @@ class Inspector {
   }
 
   getInitialContext() {
-    return  null;
+    return null;
   }
 
   /**
@@ -273,7 +273,8 @@ export class GoogleInboxInspector extends Inspector {
 
 export class SlackInspector extends Inspector {
 
-  static PATH_RE = /https:\/\/([^\.]+)\.slack\.com\/messages/([^\/]+)\//;
+  // FIXME: Now it's the channel ID e.g https://minderlabs.slack.com/messages/C4BPPS9RC/details/
+  static PATH_RE = /https:\/\/([^\.]+)\.slack\.com\/messages\/([^\/]+)\//;
 
   isValid() {
     this._matches = document.location.href.match(SlackInspector.PATH_RE);
@@ -281,13 +282,22 @@ export class SlackInspector extends Inspector {
   }
 
   getInitialContext() {
-    let context = null;
-    if (this._matches) {
-      context = {
-        items: [{
-
-        }]
-      }
+    let context = [];
+    if (this._matches && this._matches.length == 3) {
+      context = [
+        {
+          key: 'slack_team',
+          value: {
+            string: this._matches[1]
+          }
+        },
+        {
+          key: 'slack_channel',
+          value: {
+            string: this._matches[2]
+          }
+        },
+      ]
     }
     return context;
   }

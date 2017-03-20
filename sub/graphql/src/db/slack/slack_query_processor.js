@@ -56,6 +56,15 @@ export class SlackQueryProcessor extends QueryProcessor {
   //
 
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+    // FIXME:
+    let channelName = QueryUtil.getContextKey(filter, 'slack_channel');
+    if (channelName && !filter.text) {
+      // FIXME: Get recent/active users in this channel, return as Person cards.
+      let activeUsers = this._getActiveUsers(channelName); // Slack API, get channel history; first check slack bot's channel cache.
+      return this._convertToPersonCards(activeUsers);
+    }
+
+    // FIXME: rename searchSlackAPI.
     return this._search(filter.text);
   }
 
