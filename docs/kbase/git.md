@@ -18,12 +18,23 @@
     git push -u origin <branch>
 ~~~
 
+### Update your local copy of a tracked branch from origin without switching branches.
+
+For example, you're working in a feature branch and want to pull the latest changes in master
+so you can merge them:
+
+~~~
+# Pull latest changes into master without switching branches:
+git fetch origin master:master
+# Then merge into your current branch:
+git merge master
+~~~
+
 
 ### Check out a remote branch and track it
 
 ~~~~
-    git fetch
-    git branch -a
+    git fetch # or git pull
     git checkout --track origin/<branch>
 ~~~~
 
