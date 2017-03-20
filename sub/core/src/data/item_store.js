@@ -394,13 +394,13 @@ export class ItemUtil {
     //
 
     if (missingGroupItemsByType.size) {
-      let promsies = [];
+      let promises = [];
 
       missingGroupItemsByType.forEach((items, type) => {
-        promsies.push(itemStore.getItems(context, type, _.map(items, item => item.id)));
+        promises.push(itemStore.getItems(context, type, _.map(items, item => item.id)));
       });
 
-      return Promise.all(promsies).then(results => {
+      return Promise.all(promises).then(results => {
         _.each(results, items => {
           _.each(items, item => {
 

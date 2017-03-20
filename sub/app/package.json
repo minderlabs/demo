@@ -76,7 +76,7 @@
     "express-handlebars": "^3.0.0",
     "firebase": "^3.6.8",
     "firebase-admin": "^4.0.3",
-    "googleapis": "^15.0.0",
+    "googleapis": "^15.1.0",
     "graphiql": "^0.8.0",
     "graphql": "^0.8.0",
     "graphql-anywhere": "^2.0.0",

@@ -24,6 +24,7 @@ export class SystemStore extends DelegateItemStore {
    */
   // TODO(burdon): Move to util.
   static sanitizeKey(str) {
+    console.assert(str);
     return str.replace(/\W+/g, '_');
   }
 
@@ -40,6 +41,34 @@ export class SystemStore extends DelegateItemStore {
    */
   getUser(userId) {
     return this.getItem(this._context, 'User', userId);
+  }
+
+  /**
+   * Get an existing user by email address.
+   * @param email
+   */
+  getUserByEmail(email) {
+    console.assert(email);
+    return this.queryItems(this._context, {}, {
+      type: 'User',
+      expr: {
+        field: 'email',
+        value: {
+          string: email
+        }
+      }
+    }).then(items => {
+      return items[0];
+    });
+  }
+
+  /**
+   * Update and existing user.
+   * @param user
+   * @return {Promise.<Item>}
+   */
+  updateUser(user) {
+    return this.upsertItem(this._context, user);
   }
 
   /**
@@ -135,6 +164,7 @@ export class SystemStore extends DelegateItemStore {
    * @returns {Promise<User>}
    */
   registerUser(userInfo, credential=undefined) {
+    // TODO(burdon): Replace Firebase userInfo with normalized object (i.e., not custom uid field).
     let { uid, email } = userInfo;
     console.assert(uid && email);
 
@@ -145,8 +175,15 @@ export class SystemStore extends DelegateItemStore {
 
       if (!user) {
         // TODO(burdon): Handle no credentials (e.g., user record missing but authenticated).
-        logger.log('Registering user: ' + JSON.stringify({ uid, email, credential: _.pick(credential, ['provider']) }));
-        let user = SystemStore.createUser(userInfo, credential);
+        logger.log('Registering user: ' + JSON.stringify({ uid, email }));
+        let { email, displayName } = userInfo;
+        let user = SystemStore.updateUserCredential({
+          active: !_.isNil(credential),
+          type: 'User',
+          id: uid,
+          title: displayName,
+          email
+        }, credential);
 
         //
         // New user.
@@ -159,7 +196,7 @@ export class SystemStore extends DelegateItemStore {
           }
 
           // Create new user record.
-          return this.upsertItem(this._context, user).then(user => {
+          return this.updateUser(user).then(user => {
 
             // Add user to group.
             if (user.active) {
@@ -187,16 +224,15 @@ export class SystemStore extends DelegateItemStore {
 
             // Active if whitelisted.
             user.active = !_.isNil(group);
-
             return (user.active) ? this.maybeAddUserToGroup(user, group) : Promise.resolve(user);
           });
 
           //
           // 3). Update existing user's credentials.
           //
-          return promise.then(user => this.upsertItem(this._context, SystemStore.updateUser(user, credential)))
+          return promise.then(user => this.updateUser(SystemStore.updateUserCredential(user, credential)))
             .then(user => {
-              logger.log('Updated credentials: ' + JSON.stringify({ user: email, provider: credential.provider }));
+              logger.log('Updated credentials: ' + JSON.stringify({ email }));
               return user;
             });
         } else {
@@ -208,5 +244,27 @@ export class SystemStore extends DelegateItemStore {
         }
       }
     });
+  }
+
+  /**
+   * Update the user record's credentials.
+   * NOTE: The GraphQL User definition is a projection of part of this data.
+   * For example, credentials are not exposed through the GQL API.
+   * @param user
+   * @param credential OAuth credentials (https://tools.ietf.org/html/rfc6749#appendix-A).
+   */
+  static updateUserCredential(user, credential=undefined) {
+    if (credential) {
+      let { provider } = credential;
+      let key = `credentials.${SystemStore.sanitizeKey(provider)}`;
+
+      // Merge credentials.
+      // NOTE: refresh_token is only returned when first accessed.
+      _.set(user, key, _.assign(_.get(user, key, {}), _.omit(credential, 'provider')));
+    } else {
+      user.active = false;
+    }
+
+    return user;
   }
 }
