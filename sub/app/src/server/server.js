@@ -144,7 +144,7 @@ const database = new Database()
 //
 
 const oauthRegistry = new OAuthRegistry()
-  .registerProvider(new GoogleOAuthProvider(GoogleApiConfig, GoogleApiConfig.authScopes).init(env === 'development'))
+  .registerProvider(new GoogleOAuthProvider(GoogleApiConfig, GoogleApiConfig.authScopes).init(env !== 'production'))
   .registerProvider(new SlackOAuthProvider());
 
 
