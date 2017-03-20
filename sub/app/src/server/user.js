@@ -145,16 +145,20 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
 
   // Login page.
   router.use('/login', function(req, res) {
-    let force = !!req.query.force;
 
     // Firebase JS login.
-    res.render('login', { force }) ;
+    // res.render('login', { force }) ;
+
+    res.redirect('/oauth/login/google_com');    // TODO(burdon): !!!
   });
 
   // Logout page (javascript).
   router.use('/logout', function(req, res) {
     // Firebase JS login.
-    res.render('logout');
+    // res.render('logout');
+
+    // res.redirect('/oauth/logout');
+    res.redirect('/user/profile');
   });
 
   // Handle user registration.

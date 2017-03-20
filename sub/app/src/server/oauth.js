@@ -8,9 +8,9 @@ import google from 'googleapis';
 
 import { Logger, SystemStore } from 'minder-core';
 
-import { GoogleApiConfig } from '../common/defs';
-
 const logger = Logger.get('oauth');
+
+// TODO(burdon): Move to minder-service (server only).
 
 /**
  * Router for '/accounts' paths. Root /accounts page iterates over AccountManager.accounts exposing
@@ -34,7 +34,8 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     let { providerId } = req.params;
     let provider = oauthRegistry.getProvider(providerId);
     console.assert(provider, 'Invalid provider: ' + providerId);
-    logger.log('Redirecting: ' + provider.requestUrl);
+
+    logger.log('Login: ' + provider.requestUrl);
     res.redirect(provider.requestUrl);
   });
 
@@ -61,6 +62,19 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
           next();
         });
       });
+    });
+  });
+
+  //
+  // Oauth logout.
+  //
+  router.get('/logout/:providerId', function(req, res, next) {
+    let { providerId } = req.params;
+    logger.log('Logout: ' + providerId);
+    let provider = oauthRegistry.getProvider(providerId);
+
+    provider.revoke().then(() => {
+      next();
     });
   });
 
@@ -142,15 +156,17 @@ export class OAuthProvider {
  *
  * https://developers.google.com/identity/protocols/OAuth2WebServer
  *
- *
- * Officially "supported" Node.js ("google") librarys:
+ * ### Node ###
+ * Officially "supported" Node ("google") librarys:
  * https://github.com/google/google-api-nodejs-client
+ * http://google.github.io/google-api-nodejs-client/18.0.0/index.html
  *
- * Vs. Completely separate set of JS Client ("gapi") library:
+ * ### Web Client ###
+ * Vs. Completely separate set of Web Client ("gapi") library:
  * https://developers.google.com/api-client-library/javascript/features/authentication
  * https://developers.google.com/api-client-library/javascript/reference/referencedocs
  *
- * Testing:
+ * ### Testing ###
  * https://myaccount.google.com/permissions (revoke app permissions).
  * https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=XXX (test token).
  */
@@ -162,10 +178,12 @@ export class GoogleOAuthProvider extends OAuthProvider {
     'https://www.googleapis.com/auth/userinfo.email'
   ];
 
-  constructor(scope=GoogleOAuthProvider.SCOPES) {
+  constructor(config, scope=GoogleOAuthProvider.SCOPES) {
     super();
 
-    // TODO(burdon): Pass scope to base class.
+    this._config = config;
+
+    // TODO(burdon): Scopes should be dynamic (from service registry).
     this._scope = scope;
   }
 
@@ -180,8 +198,8 @@ export class GoogleOAuthProvider extends OAuthProvider {
     // https://github.com/google/google-api-nodejs-client/#oauth2-client
     // https://github.com/google/google-api-nodejs-client/blob/master/apis/oauth2/v2.js
     this._oauth2Client = new google.auth.OAuth2(
-      GoogleApiConfig.clientId,
-      GoogleApiConfig.clientSecret,
+      this._config.clientId,
+      this._config.clientSecret,
       callback
     );
 
@@ -196,6 +214,8 @@ export class GoogleOAuthProvider extends OAuthProvider {
     // This can be done manually via: https://myaccount.google.com/permissions
     this._requestUrl = this._oauth2Client.generateAuthUrl({
       access_type: 'offline',
+
+      // TODO(burdon): Dynamic from registry.
       scope: this._scope
     });
 
@@ -261,6 +281,20 @@ export class GoogleOAuthProvider extends OAuthProvider {
 
           resolve({ userInfo, credential });
         });
+      });
+    });
+  }
+
+  // TODO(burdon): Need to create instance of client with credential.
+  revoke() {
+    return new Promise((resolve, reject) => {
+      this._oauth2Client.setCredentials(_.pick(credential, ['access_token', 'refresh_token']));
+      this._oauth2Client.revokeCredentials((error, result) => {
+        if (error) {
+          throw new Error(error);
+        }
+
+        resolve();
       });
     });
   }

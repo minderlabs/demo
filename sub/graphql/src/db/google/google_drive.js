@@ -58,6 +58,8 @@ class GoogleDriveClient {
       this._config.clientSecret
     );
 
+    console.log('::::::::::::::::::::', context);
+
     // TODO(burdon): Standardize (move GoogleOAuthProvider to minder-core).
     let credentials = _.get(context, 'user.credentials.google_com');
     oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));

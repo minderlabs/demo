@@ -5,13 +5,13 @@
 import { TestConfig } from './config';
 
 import _ from 'lodash';
-import path from 'path';
-import http from 'http';
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import handlebars from 'express-handlebars';
-import cookieParser from 'cookie-parser';
 import favicon from 'serve-favicon';
+import http from 'http';
 import moment from 'moment';
+import path from 'path';
 
 import {
   ErrorUtil,
@@ -144,7 +144,7 @@ const database = new Database()
 //
 
 const oauthRegistry = new OAuthRegistry()
-  .registerProvider(new GoogleOAuthProvider().init(env === 'development'))
+  .registerProvider(new GoogleOAuthProvider(GoogleApiConfig).init(env === 'development'))
   .registerProvider(new SlackOAuthProvider());
 
 

@@ -58,7 +58,7 @@ export class Auth {
    *
    * Additionally, we set a cookie so that our frontend server can recognize authenticated users.
    *
-   * @returns {Promise}
+   * @returns {Promise<User>}
    */
   login() {
     return new Promise((resolve, reject) => {
@@ -71,14 +71,16 @@ export class Auth {
           // Get the JWT.
           // Returns the current token or issues a new one if expire (short lived; lasts for about an hour).
           // https://firebase.google.com/docs/reference/js/firebase.User#getToken
-          console.log('Getting token...');
+          console.log('Getting token for user: ', userInfo.email);
           return userInfo.getToken()
             .then(jwt => {
 
               // We're now authenticated, but need to register or check we are active.
               // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#getRedirectResult
               return firebase.auth().getRedirectResult().then(result => {
-                console.log('>>>>>>>>>>>>', result);
+                if (_.isNil(result.user)) {
+                  return firebase.auth().signInWithRedirect(this._provider);
+                }
 
                 // Convert to protocol var names.
                 // https://tools.ietf.org/html/rfc6749#appendix-A
@@ -109,8 +111,6 @@ export class Auth {
 
                   resolve(user);
                 });
-              }, error => {
-                console.error('>>>>>>>>>>>>>>>>>>>>>>>>>>', error);
               });
             });
         } else {

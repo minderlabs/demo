@@ -60,8 +60,12 @@ export class AuthManager {
    * @param force If true, then trigger authentication if logged out.
    * @return {Promise<User>}
    */
-  authenticate(force=false) {
+  authenticate(force=true) {
     this._unsubscribe && this._unsubscribe();
+
+
+    console.log('::::::::::::::', firebase.auth().currentUser);
+
 
     return new Promise((resolve, reject) => {
 
