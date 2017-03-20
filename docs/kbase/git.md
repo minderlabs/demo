@@ -158,7 +158,7 @@ https://rtyley.github.io/bfg-repo-cleaner/
     alias gtd='git difftool -t vimdiff'
     alias gcm='git commit -a -m "."'
     alias ggs='git status'
-    alias gb='git branch -v'
+    alias gb='git branch -vv' # More verbose and useful display of branches
     alias gl='git log --graph --decorate --oneline'
 ~~~
 
