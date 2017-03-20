@@ -7,7 +7,7 @@ https://medium.com/@codazeninc/choosing-a-graphql-client-apollo-vs-relay-9398dde
 https://medium.freecodecamp.com/tutorial-how-to-use-graphql-in-your-redux-app-9bf8ebbeb362#.m5mpkzy7k
 
 TODO(burdon): Fragment composition
-https://github.com/facebook/graphql/issues/204 (ARGS IN FRAGMENTS)>>>>>> stubailo
+https://github.com/facebook/graphql/issues/204 (ARGS IN FRAGMENTS) stubailo
 https://github.com/apollostack/react-apollo/issues/140
 http://dev.apollodata.com/core/fragments.html
 http://graphql.org/learn/queries/#fragments

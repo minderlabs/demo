@@ -113,7 +113,7 @@ export class List extends React.Component {
     className:          React.PropTypes.string,
     highlight:          React.PropTypes.bool,
 
-    showAdd:            React.PropTypes.bool,
+    showAdd:            React.PropTypes.bool,       // TODO(burdon): Remove (change to inline edit).
 
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
     itemClassName:      React.PropTypes.string,

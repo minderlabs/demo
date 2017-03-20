@@ -61,7 +61,7 @@ export class AuthManager {
    * @param force If true, then trigger authentication if logged out.
    * @return {Promise<User>}
    */
-  authenticate(force=false) {
+  authenticate(force=true) {
     this._unsubscribe && this._unsubscribe();
 
     return new Promise((resolve, reject) => {
@@ -91,6 +91,9 @@ export class AuthManager {
    */
   getToken() {
     let user = firebase.auth().currentUser;
+    if (!user) {
+      return Promise.reject(null);
+    }
 
     // https://firebase.google.com/docs/reference/js/firebase.User#getToken
     return user.getToken();
@@ -162,6 +165,11 @@ export class AuthManager {
         return firebase.auth().currentUser;
       })
       .catch(error => {
+        switch (error.code) {
+          case 'auth/popup-blocked': {
+            // TODO(burdon): Show user dialog.
+          }
+        }
         logger.error('Sign-in failed:', JSON.stringify(error));
       });
   }
