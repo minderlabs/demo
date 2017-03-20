@@ -35,6 +35,8 @@ git merge master
 
 ~~~~
     git fetch # or git pull
+    git checkout <name of branch>
+    # Or more verbosely:
     git checkout --track origin/<branch>
 ~~~~
 
