@@ -24,12 +24,13 @@ export class AuthManager {
 
   /**
    * Return the authentication header.
+   * https://en.wikipedia.org/wiki/Basic_access_authentication
    * @param {string} token JWT token.
    */
   static getHeaders(token) {
     console.assert(token);
     return {
-      [Const.HEADER.AUTHORIZATION]: 'Bearer ' + token
+      'Authorization': 'Bearer ' + token
     }
   }
 
@@ -190,10 +191,16 @@ export class AuthManager {
   _doAuthChromeExtension() {
     logger.log('Authenticating CRX app...');
 
+    // TODO(burdon): Remove FB.
+    // https://developer.chrome.com/apps/app_identity
+    // https://developer.chrome.com/extensions/tut_oauth
+    // chrome://identity-internals
+
     return new Promise((resolve, reject) => {
 
       // TODO(burdon): "For a good user experience..."
       // https://developer.chrome.com/apps/identity#method-getAuthToken
+      // https://developer.chrome.com/apps/identity#method-getProfileUserInfo
 
       // NOTE: The OAuth2 token uses the scopes defined in the manifest (can be overridden below).
       // NOTE: Can only be accessed from the background page.

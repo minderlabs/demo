@@ -143,7 +143,8 @@ export class TestGenerator {
       .queryItems({}, {}, { type: 'User' })
       .then(users => {
         return Promise.all(_.map(users, user => {
-          let { id:userId, email } = user;
+          let { id:userId } = user;
+          console.assert(userId);
 
           // Lookup by Groups for User.
           // TODO(burdon): Should be enforced by store given context?

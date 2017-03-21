@@ -4,7 +4,6 @@
 
 import _ from 'lodash';
 import express from 'express';
-import bodyParser from 'body-parser';
 
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
@@ -58,9 +57,6 @@ export const graphqlRouter = (database, options) => {
   });
 
   let router = express.Router();
-
-  // JSON body.
-  router.use(bodyParser.json());
 
   // Add logging to path (must go first).
   if (options.logging) {

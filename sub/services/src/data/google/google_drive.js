@@ -58,8 +58,8 @@ class GoogleDriveClient {
       this._config.clientSecret
     );
 
-    let credentials = _.get(context, 'credentials.google_com');
-    oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));
+    let credential = _.get(context, 'credentials.google_com');
+    oauth2Client.setCredentials(_.pick(credential, ['access_token', 'refresh_token']));
     return oauth2Client;
   }
 

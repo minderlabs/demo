@@ -5,7 +5,9 @@
 import Cookies from 'js-cookie';
 import * as firebase from 'firebase';
 
-import { Const, FirebaseAppConfig, GoogleApiConfig } from '../common/defs';
+import { ServiceDefs } from 'minder-services';
+
+import {  FirebaseAppConfig, GoogleApiConfig } from '../common/defs';
 
 /**
  * Auth module.
@@ -103,7 +105,7 @@ export class Auth {
                   // Set the auth cookie for server-side detection via AuthManager.getUserFromCookie().
                   // https://github.com/js-cookie/js-cookie
                   if (user.active) {
-                    Cookies.set(Const.AUTH_COOKIE, jwt, {
+                    Cookies.set(ServiceDefs.AUTH_COOKIE, jwt, {
                       domain: window.location.hostname,
                       expires: 1 // 1 day.
                     });
@@ -135,7 +137,7 @@ export class Auth {
     // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signOut
     return firebase.auth().signOut().then(() => {
       console.log('Logged out.');
-      Cookies.remove(Const.AUTH_COOKIE);
+      Cookies.remove(ServiceDefs.AUTH_COOKIE);
     }, error => {
       console.error(error);
     });

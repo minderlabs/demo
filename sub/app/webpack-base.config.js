@@ -83,6 +83,7 @@ module.exports = {
           path.resolve(__dirname, 'src'),
           path.resolve(__dirname, '../core/src'),
           path.resolve(__dirname, '../graphql/src'),
+          path.resolve(__dirname, '../services/src'),
           path.resolve(__dirname, '../ux/src')
         ],
         loader: 'babel-loader',
@@ -110,7 +111,7 @@ module.exports = {
 
   // https://www.npmjs.com/package/webpack-link
   // Comma separated list (or --link=minder-core)
-  link: 'minder-core,minder-graphql',
+  link: 'minder-core, minder-graphql, minder-services',
 
   // https://github.com/webpack/docs/wiki/list-of-plugins
   plugins: [
@@ -125,9 +126,10 @@ module.exports = {
     // NOTE: Dependent project must have appropriate deps installed.
     // https://www.npmjs.com/package/webpack-link
     new WebpackLinkPlugin({
-      'minder-core':    path.resolve(__dirname, '../core'),
-      'minder-graphql': path.resolve(__dirname, '../graphql'),
-      'minder-ux':      path.resolve(__dirname, '../ux')
+      'minder-core':      path.resolve(__dirname, '../core'),
+      'minder-graphql':   path.resolve(__dirname, '../graphql'),
+      'minder-services':  path.resolve(__dirname, '../services'),
+      'minder-ux':        path.resolve(__dirname, '../ux')
     }),
 
     new webpack.ProvidePlugin({ _: 'lodash' }),

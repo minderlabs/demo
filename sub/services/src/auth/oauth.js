@@ -6,6 +6,9 @@ import _ from 'lodash';
 import express from 'express';
 import google from 'googleapis';
 
+import passport from 'passport';
+import { OAuth2Strategy as GoogleStrategy } from 'passport-google-oauth';
+
 import { Logger, SystemStore } from 'minder-core';
 
 const logger = Logger.get('oauth');
@@ -27,9 +30,103 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
   let router = express.Router();
 
+
+
+
+
+
+  // TODO(burdon): Test CRX login flow (and register). And onSigninChanged.
+  // TODO(burdon): id_token (chrome.identity.launchWebAuthFlow)
+  // http://stackoverflow.com/questions/26256179/is-it-possible-to-get-an-id-token-with-chrome-app-indentity-api
+
+
+  // TODO(burdon): JwtStrategy: https://jonathanmh.com/express-passport-json-web-token-jwt-authentication-beginners
+  // TODO(burdon): Session store: https://github.com/expressjs/session#compatible-session-stores
+  //               https://www.npmjs.com/package/connect-redis
+  //               https://www.npmjs.com/package/connect-memcached
+  // TODO(burdon): Remove website/login and AUTH_COOKIE. (Test and doc if uses Google cookie "_ga"; see source).
+  // TODO(burdon): Register user in callback.
+  // TODO(burdon): Move to User (login/logout). Use passport for all OAuth.
+
+  router.use(passport.initialize());
+  router.use(passport.session());
+
+  passport.serializeUser((user, done) => {
+    console.log('>>>>>>>>>>>>>', user);
+    done(null, user);
+  });
+
+  passport.deserializeUser((user, done) => {
+    console.log('<<<<<<<<<<<<<<<', user);
+    done(null, user);
+  });
+
+  // http://passportjs.org/docs/google
+  // https://github.com/jaredhanson/passport-google-oauth
+  // https://github.com/jaredhanson/passport-google-oauth2
+  passport.use(new GoogleStrategy({
+    clientID: '189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com',
+    clientSecret: 'WZypHT09Z8Fy8NHVKY3qmMFt',
+    callbackURL: 'http://localhost.net:3000/oauth/callback/google_com'
+  }, (accessToken, refreshToken, params, profile, done) => {
+
+    let { id_token, token_type, expires_in } = params;
+
+    // http://passportjs.org/docs/profile
+    let { id, displayName } = profile;
+
+    let credentials = {
+      provider: 'google.com',
+      id,
+      id_token,                           // JWT
+      access_token: accessToken,
+      refresh_token: refreshToken,        // NOTE: Only provided when first requested.
+      token_type,
+      expires_in                          // Access token expiration.
+    };
+
+    console.log('OAuth', JSON.stringify(credentials, null, 2));
+    return done(null, { id });  // TODO(burdon): User object (Factor out serialization).
+  }));
+
+  // TODO(burdon): Get refresh_token ("offline").
+  // https://github.com/jaredhanson/passport/issues/42
+  router.use('/login/google_com', passport.authenticate('google', {
+    scope: ['https://www.googleapis.com/auth/plus.login'],
+    accessType: 'offline',
+    approvalPrompt: 'force'
+  }));
+
+  router.use('/callback/google_com', passport.authenticate('google', {
+    failureRedirect: '/error'
+  }), (req, res) => {
+    res.redirect('/oauth/test');
+  });
+
+  // TODO(burdon): Factor out.
+  // TODO(burdon): Admin version.
+  const isAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+
+    res.status(401).end();
+  };
+
+  router.use('/test', isAuthenticated, (req, res) => {
+    res.send('OK: ' + JSON.stringify(req.user));
+  });
+
+
+
+
+
+
+
   //
   // OAuth request.
   //
+  if (false)
   router.get('/login/:providerId', function(req, res) {
     let { providerId } = req.params;
     let provider = oauthRegistry.getProvider(providerId);
@@ -42,6 +139,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   //
   // OAuth callback.
   //
+  if (false)
   router.get('/callback/:providerId', function(req, res, next) {
     let { providerId } = req.params;
     logger.log('Callback: ' + providerId);
@@ -52,12 +150,14 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
       let { userInfo, credential, scope } = response;
       logger.log('Authenticated:', JSON.stringify(userInfo));
 
+      // TODO(burdon): Register user.
       // TODO(burdon): Google ID is different from the FB ID! Deprecate FB auth.
       // TODO(burdon): Rename credential => credentials.
       systemStore.getUserByEmail(userInfo.email).then(user => {
 
         SystemStore.updateUserCredential(user, _.assign(credential, {
           provider: providerId,
+          id: userInfo.id,
           scope
         }));
 
@@ -116,6 +216,9 @@ export class OAuthRegistry {
  */
 export class OAuthProvider {
 
+  // TODO(burdon): Consider using passport for non-google providers?
+  // http://passportjs.org/docs/google
+
   static PATH = '/oauth';
 
   // Register callbacks with OAuth providers.
@@ -146,6 +249,15 @@ export class OAuthProvider {
   }
 
   /**
+   * For Login providers, validate the JWT.
+   * @param token
+   */
+  // TODO(burdon): Factor out LoginProvider.
+  validateJWT(token) {
+    throw new Error('Not implemented');
+  }
+
+  /**
    * Process OAuth callback response.
    * @param req HTTP request.
    * @param res HTTP response.
@@ -172,8 +284,9 @@ export class OAuthProvider {
  * https://developers.google.com/api-client-library/javascript/reference/referencedocs
  *
  * ### Testing ###
+ * chrome://identity-internals (revoke auth)>.
  * https://myaccount.google.com/permissions (revoke app permissions).
- * https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=XXX (test token).
+ * https://www.googleapis.com/oauth2/v1/tokeninfo?{id_token|access_token}=XXX (validate token).
  */
 export class GoogleOAuthProvider extends OAuthProvider {
 
@@ -245,6 +358,25 @@ export class GoogleOAuthProvider extends OAuthProvider {
   }
 
   /**
+   * Validate and decode the JWT.
+   * @param token
+   * @return {Promise}
+   */
+  validateJWT(token) {
+    return new Promise((resolve, reject) => {
+      // https://developers.google.com/identity/sign-in/web/backend-auth
+      this._oauth2Client.verifyIdToken(token, this._config.clientId, (error, response) => {
+        if (error) {
+          throw new Error(error);
+        }
+
+        let { sub:userId, email } = response.getPayload();
+        resolve({ userId, email });
+      });
+    });
+  }
+
+  /**
    * https://developers.google.com/identity/protocols/OAuth2WebServer#handlingresponse
    */
   processResponse(req, res) {
@@ -273,8 +405,6 @@ export class GoogleOAuthProvider extends OAuthProvider {
             throw new Error(error);
           }
 
-//        console.log('User Info:', JSON.stringify(response, 0, 2));
-
           // TODO(burdon): Normalize userInfo across other OAuth services.
           // https://github.com/google/google-api-nodejs-client/blob/master/apis/oauth2/v2.js
           let userInfo = {
@@ -284,6 +414,7 @@ export class GoogleOAuthProvider extends OAuthProvider {
             imageUrl: _.get(response, 'image.url'),
           };
 
+//        console.log('### User Info:', JSON.stringify(response, 0, 2));
           resolve({ userInfo, credential, scope: this._scope });
         });
       });

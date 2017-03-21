@@ -4,12 +4,10 @@
 
 import _ from 'lodash';
 import express from 'express';
-import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
 
 import { ErrorUtil, NotAuthenticatedError, Logger } from 'minder-core';
 
-import { Const } from '../common/defs';
+import { ServiceDefs } from '../defs';
 
 const logger = Logger.get('user');
 
@@ -39,10 +37,8 @@ export class UserManager {
   getUserFromJWT(token) {
     console.assert(token);
 
-
     // TODO(burdon): Use Google verify (check same as id_token).
     // https://developers.google.com/identity/sign-in/web/backend-auth
-
 
     return this._firebase.verifyIdToken(token)
       .then(decodedToken => {
@@ -87,7 +83,7 @@ export class UserManager {
 
     // Token set in apollo client's network interface middleware.
     // NOTE: Express headers are lowercase.
-    let auth = _.get(req.headers, Const.HEADER.AUTHORIZATION.toLowerCase());
+    let auth = _.get(req.headers, 'authorization');
     let match = auth && auth.match(/^Bearer (.+)$/);
     let token = match && match[1];
     if (!token) {
@@ -113,7 +109,7 @@ export class UserManager {
     console.assert(req);
 
     // Cookie set by auth script before app loads.
-    let token = _.get(req.cookies, Const.AUTH_COOKIE);
+    let token = _.get(req.cookies, ServiceDefs.AUTH_COOKIE);
     if (!token) {
       if (required) {
         throw NotAuthenticatedError();
@@ -142,23 +138,18 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
 
   let router = express.Router();
 
-  // Parse login cookie (set by client).
-  router.use(cookieParser());
-
-  // JSON body.
-  router.use(bodyParser.json());
-
   // Login page.
   router.use('/login', function(req, res) {
 
     // Firebase JS login.
-    res.render('login');
+    // res.render('login');
 
-    // res.redirect('/oauth/login/google_com');    // TODO(burdon): !!!
+    res.redirect('/oauth/login/google_com');
   });
 
   // Logout page (javascript).
   router.use('/logout', function(req, res) {
+
     // Firebase JS login.
     res.render('logout');
 
@@ -189,7 +180,7 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
                 user,
                 groups: [ group ],
                 providers: oauthRegistry.providers,
-                crxUrl: Const.CRX_URL(Const.CRX_ID)
+                crxUrl: options.crxUrl
               });
             })
         } else {

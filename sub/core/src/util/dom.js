@@ -111,6 +111,7 @@ export class KeyListener {
 
         // Match keys against event.
         if (_.every(_.omit(spec, ['_KEYS_']), (value, key) => event[key] == value)) {
+          event.preventDefault();
           callback();
         }
       });

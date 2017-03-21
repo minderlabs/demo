@@ -119,9 +119,6 @@ export const Const = {
   // NOTE: Express lowercases headers.
   HEADER: {
 
-    // https://en.wikipedia.org/wiki/Basic_access_authentication
-    AUTHORIZATION: 'Authorization',
-
     // Client ID set by server (Web) or on registration (CRX, mobile).
     CLIENT_ID: 'minder-client',
 
@@ -129,8 +126,6 @@ export const Const = {
     REQUEST_ID: 'minder-request'
   },
 
-  // Stores JWT set by client login script (auth.js).
-  AUTH_COOKIE: 'minder_auth_token',
 
   // https://chrome.google.com/webstore/developer/edit/ofdkhkelcafdphpddfobhbbblgnloian
   CRX_ID: 'ofdkhkelcafdphpddfobhbbblgnloian',

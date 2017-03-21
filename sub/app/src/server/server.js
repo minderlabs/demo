@@ -5,8 +5,10 @@
 import { TestConfig } from './config';
 
 import _ from 'lodash';
+import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import express from 'express';
+import session from 'express-session';
 import handlebars from 'express-handlebars';
 import favicon from 'serve-favicon';
 import http from 'http';
@@ -20,6 +22,7 @@ import {
   TypeUtil
 } from 'minder-core';
 
+// TODO(burdon): minder-data.
 import {
   Database,
   IdGenerator,
@@ -30,10 +33,23 @@ import {
 } from 'minder-core';
 
 import {
+  ServiceDefs,
+
+  oauthRouter,
+  loginRouter,
+
+  OAuthProvider,
+  OAuthRegistry,
+  SlackOAuthProvider,
+  SlackQueryProcessor,
+  GoogleDriveQueryProcessor,
+  GoogleOAuthProvider,
+  UserManager
+} from 'minder-services';
+
+import {
   Firebase,
   FirebaseItemStore,
-  GoogleDriveQueryProcessor,
-  SlackQueryProcessor,
   graphqlRouter
 } from 'minder-graphql';
 
@@ -41,8 +57,6 @@ import { Const, FirebaseAppConfig, GoogleApiConfig, SlackConfig } from '../commo
 
 import { adminRouter } from './admin';
 import { appRouter, hotRouter } from './app';
-import { oauthRouter, OAuthRegistry, OAuthProvider, SlackOAuthProvider, GoogleOAuthProvider } from './oauth';
-import { loginRouter, UserManager } from './user';
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { clientRouter, ClientManager } from './client';
 import { loggingRouter } from './logger';
@@ -259,21 +273,31 @@ if (env === 'production') {
 
 
 //
-// Public assets.
-// https://expressjs.com/en/starter/static-files.html
+// Middleware.
 //
 
 const MINDER_PUBLIC_DIR = _.get(process.env, 'MINDER_PUBLIC_DIR', './public');
 
+// https://expressjs.com/en/starter/static-files.html
 app.use(favicon(path.join(__dirname, MINDER_PUBLIC_DIR, '/favicon.ico')));
 app.use(express.static(path.join(__dirname, MINDER_PUBLIC_DIR)));
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.use(cookieParser());  // TODO(burdon): Remove (moved to passport).
+
+// https://github.com/expressjs/session
+app.use(session({
+  secret: 'minder-secret',                      // TODO(burdon): Move to Const.
+  resave: false,                                // Don't write to the store if not modified.
+  saveUninitialized: false                      // Don't save new sessions that haven't been initialized.
+}));
 
 
 //
 // Home page.
 //
-
-app.use(cookieParser());
 
 app.get('/home', function(req, res, next) {
   return userManager.getUserFromCookie(req)
@@ -352,7 +376,7 @@ app.get('/graphiql', function(req, res) {
         config: {
           headers: [
             {
-              name: Const.HEADER.AUTHORIZATION,
+              name: 'Authorization',
               value: `Bearer ${user.token}`
             },
             {
@@ -373,7 +397,10 @@ app.get('/graphiql', function(req, res) {
 
 app.use(OAuthProvider.PATH, oauthRouter(userManager, systemStore, oauthRegistry, { env }));
 
-app.use('/user', loginRouter(userManager, oauthRegistry, systemStore, { env }));
+app.use('/user', loginRouter(userManager, oauthRegistry, systemStore, {
+  env,
+  crxUrl: Const.CRX_URL(Const.CRX_ID)
+}));
 
 app.use('/client', clientRouter(userManager, clientManager, systemStore));
 

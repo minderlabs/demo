@@ -4,7 +4,6 @@
 
 import _ from 'lodash';
 import express from 'express';
-import bodyParser from 'body-parser';
 import kue from 'kue';
 
 /**
@@ -29,9 +28,6 @@ export const adminRouter = (clientManager, firebase, options) => {
       console.warn('Kue Error:', err.code);
     });
   }
-
-  // JSON body.
-  router.use(bodyParser.json());
 
   //
   // Admin page.

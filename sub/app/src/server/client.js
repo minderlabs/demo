@@ -4,7 +4,6 @@
 
 import _ from 'lodash';
 import express from 'express';
-import bodyParser from 'body-parser';
 import moment from 'moment';
 import request from 'request';
 
@@ -14,15 +13,14 @@ import { Const, FirebaseServerConfig } from '../common/defs';
 
 const logger = Logger.get('client');
 
+// TODO(burdon): Move to minder-services
+
 /**
  * Client endpoints.
  */
 export const clientRouter = (userManager, clientManager, systemStore, options={}) => {
   console.assert(userManager && clientManager);
   let router = express.Router();
-
-  // JSON body.
-  router.use(bodyParser.json());
 
   //
   // Registers the client.

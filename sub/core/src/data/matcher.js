@@ -5,7 +5,12 @@
 import _ from 'lodash';
 import moment from 'moment';
 
+import { ErrorUtil } from '../util/error';
 import { TypeUtil } from '../util/type';
+
+import Logger from '../util/logger';
+
+const logger = Logger.get('matcher');
 
 /**
  * Item matcher.
@@ -91,7 +96,7 @@ export class Matcher {
     // Expression match.
     // TODO(burdon): Handle AST.
     if (filter.expr) {
-      if (!Matcher.matchExpression(context, root, filter.expr, item)) {
+      if (!Matcher.matchRootExpression(context, root, filter.expr, item)) {
         return false;
       }
     }
@@ -118,6 +123,15 @@ export class Matcher {
     }
 
     return true;
+  }
+
+  static matchRootExpression(context, root, expr, item) {
+    try {
+      return Matcher.matchExpression(context, root, expr, item);
+    } catch(error) {
+      logger.error(ErrorUtil.message(error));
+      return false;
+    }
   }
 
   /**
@@ -216,7 +230,7 @@ export class Matcher {
       let match = ref.match(/\$CONTEXT\.(.+)/);
       if (match) {
         let value = _.get(context, match[1]);
-        console.assert(value);
+        console.assert(value, 'Invalid context: ' + JSON.stringify({ context, ref }));
         inputValue = { id: value };
       } else {
         // TODO(burdon): Resolve other scalar types.
