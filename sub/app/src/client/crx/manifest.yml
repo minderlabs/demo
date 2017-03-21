@@ -176,8 +176,10 @@ oauth2:
 # Firebase API:
 # https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
 #
+# Segment analytics pulls in other scripts depending on which integrations are enabled.
+# https://segment.com/minderlabs/sources/jsweb/integrations
 
-content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com https://minderlabs.com; object-src 'self'"
+content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com https://cdn.segment.com https://www.google-analytics.com https://www.googleadservices.com https://*.intercom.io https://js.intercomcdn.com https://minderlabs.com; object-src 'self'"
 
 #
 # https://developer.chrome.com/extensions/manifest/externally_connectable

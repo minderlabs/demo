@@ -74,6 +74,14 @@ export class StatusBar extends React.Component {
     this.error(false);
   }
 
+  showHelp(showHelp=true) {
+    if (showHelp) {
+      window.Intercom('show');
+    } else {
+      window.Intercom('hide');
+    }
+  }
+
   render() {
     let { config } = this.context;
     let { error, networkIn, networkOut } = this.state;
@@ -120,6 +128,10 @@ export class StatusBar extends React.Component {
             </a>
             ))
           }
+
+          <i className="ux-icon ux-icon-action" title="Get help"
+             onClick={ this.showHelp.bind(this) }>live_help</i>
+
         </div>
 
         <div className="app-status-info">{ config.app.version }</div>
