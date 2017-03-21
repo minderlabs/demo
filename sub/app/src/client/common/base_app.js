@@ -49,10 +49,12 @@ export class BaseApp {
 
   onError(error) {
     logger.error(error);
+    let message = ErrorUtil.message(error);
     this._eventHandler.emit({
       type: 'error',
-      message: ErrorUtil.message(error)
+      message: message
     });
+    this._analytics && this._analytics.track('error', { message });
   }
 
   /**
