@@ -267,71 +267,85 @@ export class AuthManager {
     });
   }
 
-    // https://accounts.google.com/o/oauth2/auth?
-    // client_id=189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com
-    // &response_type=id_token
-    // &access_type=offline
-    // &redirect_uri=https://ofdkhkelcafdphpddfobhbbblgnloian.chromiumapp.org/
-    // &scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile
-
   // http://stackoverflow.com/questions/26256179/is-it-possible-to-get-an-id-token-with-chrome-app-indentity-api
   _doNativeAuthChromeExtension() {
+    return new Promise((resolve, reject) => {
 
-    console.log('######## getAuthToken');
-    chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
-      if (chrome.runtime.lastError) {
-        throw new Error(chrome.runtime.lastError);
-      }
+      // chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
+      //   if (chrome.runtime.lastError) {
+      //     throw new Error(chrome.runtime.lastError);
+      //   }
+      //
+      //   console.log('>>>>>>>>>>> getAuthToken', token);
+      // });
 
-      console.log('>>>>>>>>>>> TOKEN', token);
+      let manifest = chrome.runtime.getManifest();
+
+      // https://developer.chrome.com/apps/identity#method-launchWebAuthFlow
+      // https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters
+      // let redirectUri = encodeURIComponent('https://' + chrome.runtime.id + '.chromiumapp.org');
+
+      console.log('::::::', manifest.oauth2.client_id);
+
+      let params = {
+        client_id: '189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com', //manifest.oauth2.client_id,
+        response_type: 'id_token',
+        access_type: 'offline',
+        redirect_uri: chrome.identity.getRedirectURL('google'),
+        scope: 'https://www.googleapis.com/auth/plus.me'
+      };
+
+      // redirect_uri_mismatch
+
+
+      let url = 'https://accounts.google.com/o/oauth2/auth?' +
+        _.map(params, (v, k) => k + '=' + encodeURIComponent(v)).join('&');
+
+      console.log('############');
+      console.log(JSON.stringify(params, 0, 2));
+      console.log(url);
+      console.log('############');
+
+      let options = {
+        url,
+        interactive: true
+      };
+
+      chrome.identity.launchWebAuthFlow(options, (redirectedTo) => {
+        if (chrome.runtime.lastError) {
+          // Example: Authorization page could not be loaded.
+          throw new Error(chrome.runtime.lastError.message);
+        }
+
+        let response = redirectedTo.split('#', 2)[1];
+
+        // Error in response to identity.launchWebAuthFlow: Error: Authorization page could not be loaded.
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=559523&q=Authorization%20page%20could%20not%20be%20loaded&colspec=ID%20Pri%20M%20Stars%20ReleaseBlock%20Component%20Status%20Owner%20Summary%20OS%20Modified [comment]
+        // http://stackoverflow.com/questions/11485271/google-oauth-2-authorization-error-redirect-uri-mismatch
+        // http://stackoverflow.com/questions/26256179/is-it-possible-to-get-an-id-token-with-chrome-app-indentity-api/32548057#32548057 [comment]
+        // http://stackoverflow.com/questions/28445656/launchwebauthflow-with-spotify-returns-authorization-page-could-not-be-loaded
+        // http://stackoverflow.com/questions/31159206/get-id-token-with-chrome-identity-api
+        // http://stackoverflow.com/questions/30052100/redirects-not-working-in-chrome-identity
+        // http://stackoverflow.com/questions/32852920/chrome-extension-authentication-identity-api
+        // http://stackoverflow.com/questions/36383129/google-chrome-extension-attempt-to-authenticate-user-using-launchwebauthflow-e
+        // http://stackoverflow.com/questions/36503551/chrome-app-authentication-fails-with-chrome-runtime-identity-getauthtoken-autho
+        // https://groups.google.com/a/chromium.org/forum/#!topic/chromium-apps/mLFtZvyrqEE
+        // https://github.com/dropbox/dropbox-js/issues/200
+
+        // Example: id_token=<YOUR_BELOVED_ID_TOKEN>&authuser=0&hd=<SOME.DOMAIN.PL>&session_state=<SESSION_SATE>&prompt=<PROMPT>
+        console.log(response);
+      });
+
+      // TODO(burdon): onSignInChanged
+
+      // TODO(burdon): Signout.
+      // http://stackoverflow.com/questions/26080632/how-do-i-log-out-of-a-chrome-identity-oauth-provider
+      // chrome.identity.launchWebAuthFlow(
+      // { 'url': 'https://accounts.google.com/logout' },
+      // function(tokenUrl) {
+      //     responseCallback();
+      // }
+      // );
     });
-
-
-    let manifest = chrome.runtime.getManifest();
-    let clientId = encodeURIComponent(manifest.oauth2.client_id);
-    let scopes = encodeURIComponent(manifest.oauth2.scopes.join(' '));
-
-    // https://developer.chrome.com/apps/identity#method-launchWebAuthFlow
-    // https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters
-    // let redirectUri = encodeURIComponent('https://' + chrome.runtime.id + '.chromiumapp.org');
-    let redirectUri = redirectUri = chrome.identity.getRedirectURL();
-
-    // http://stackoverflow.com/questions/11485271/google-oauth-2-authorization-error-redirect-uri-mismatch
-    let url = 'https://accounts.google.com/o/oauth2/auth' + 
-      '?client_id=' + clientId +
-      '&response_type=id_token' +
-      '&access_type=offline' +
-      '&redirect_uri=' + redirectUri +
-      '&scope=' + scopes;
-
-    let options = {
-      url,
-      interactive: true
-    };
-
-    // TODO(burdon): onSignInChanged
-
-    console.log('### launchWebAuthFlow ###', redirectUri, url);
-    chrome.identity.launchWebAuthFlow(options, (redirectedTo) => {
-      if (chrome.runtime.lastError) {
-        // Example: Authorization page could not be loaded.
-        throw new Error(chrome.runtime.lastError.message);
-      }
-
-      let response = redirectedTo.split('#', 2)[1];
-
-      // Example: id_token=<YOUR_BELOVED_ID_TOKEN>&authuser=0&hd=<SOME.DOMAIN.PL>&session_state=<SESSION_SATE>&prompt=<PROMPT>
-      console.log(response);
-    });
-
-    // TODO(burdon): Signout.
-    // http://stackoverflow.com/questions/26080632/how-do-i-log-out-of-a-chrome-identity-oauth-provider
-    // chrome.identity.launchWebAuthFlow(
-    // { 'url': 'https://accounts.google.com/logout' },
-    // function(tokenUrl) {
-    //     responseCallback();
-    // }
-    // );
   }
 }
-
