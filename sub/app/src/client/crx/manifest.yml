@@ -67,9 +67,11 @@ permissions:
   - tabs
   - gcm
 
-  - "http://localhost/*"
   - "http://127.0.0.1/*"
+  - "http://localhost/*"
   - "http://local-docker-machine/*"
+
+  - "https://accounts.google.com/o/oauth2/auth/*"
 
   - "*://minderlabs.com/*"
 
@@ -121,6 +123,7 @@ content_scripts:
 #     - "<all_urls>"
 
       - "http://localhost/testing/*"
+      - "http://localhost.net/testing/*"
 
       - "https://*.google.com/*"
 
@@ -162,6 +165,7 @@ oauth2:
 
   # Default scopes (can be overridden in getAuthToken call (network.js)
   scopes:
+    - "openid"
     - "https://www.googleapis.com/auth/userinfo.email"
     - "https://www.googleapis.com/auth/userinfo.profile"
 

@@ -33,31 +33,32 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
 
 
-
-
   // TODO(burdon): Test CRX login flow (and register). And onSigninChanged.
   // TODO(burdon): id_token (chrome.identity.launchWebAuthFlow)
   // http://stackoverflow.com/questions/26256179/is-it-possible-to-get-an-id-token-with-chrome-app-indentity-api
 
 
+  // TODO(burdon): Register user in callback.
+
   // TODO(burdon): JwtStrategy: https://jonathanmh.com/express-passport-json-web-token-jwt-authentication-beginners
+
   // TODO(burdon): Session store: https://github.com/expressjs/session#compatible-session-stores
   //               https://www.npmjs.com/package/connect-redis
   //               https://www.npmjs.com/package/connect-memcached
+
   // TODO(burdon): Remove website/login and AUTH_COOKIE. (Test and doc if uses Google cookie "_ga"; see source).
-  // TODO(burdon): Register user in callback.
   // TODO(burdon): Move to User (login/logout). Use passport for all OAuth.
 
   router.use(passport.initialize());
   router.use(passport.session());
 
   passport.serializeUser((user, done) => {
-    console.log('>>>>>>>>>>>>>', user);
+    console.log('===>>>', user);
     done(null, user);
   });
 
   passport.deserializeUser((user, done) => {
-    console.log('<<<<<<<<<<<<<<<', user);
+    console.log('<<<===', user);
     done(null, user);
   });
 

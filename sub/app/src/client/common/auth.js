@@ -65,6 +65,8 @@ export class AuthManager {
   authenticate(force=true) {
     this._unsubscribe && this._unsubscribe();
 
+    this._doAuth()
+
     return new Promise((resolve, reject) => {
 
       // TODO(burdon): Handle errors.
@@ -144,7 +146,7 @@ export class AuthManager {
    */
   _doAuth() {
     if (_.get(this._config, 'app.platform') === Const.PLATFORM.CRX) {
-      return this._doAuthChromeExtension();
+      return this._doNativeAuthChromeExtension();
     } else {
       return this._doAuthWebApp();
     }
@@ -264,4 +266,72 @@ export class AuthManager {
       });
     });
   }
+
+    // https://accounts.google.com/o/oauth2/auth?
+    // client_id=189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com
+    // &response_type=id_token
+    // &access_type=offline
+    // &redirect_uri=https://ofdkhkelcafdphpddfobhbbblgnloian.chromiumapp.org/
+    // &scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile
+
+  // http://stackoverflow.com/questions/26256179/is-it-possible-to-get-an-id-token-with-chrome-app-indentity-api
+  _doNativeAuthChromeExtension() {
+
+    console.log('######## getAuthToken');
+    chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
+      if (chrome.runtime.lastError) {
+        throw new Error(chrome.runtime.lastError);
+      }
+
+      console.log('>>>>>>>>>>> TOKEN', token);
+    });
+
+
+    let manifest = chrome.runtime.getManifest();
+    let clientId = encodeURIComponent(manifest.oauth2.client_id);
+    let scopes = encodeURIComponent(manifest.oauth2.scopes.join(' '));
+
+    // https://developer.chrome.com/apps/identity#method-launchWebAuthFlow
+    // https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters
+    // let redirectUri = encodeURIComponent('https://' + chrome.runtime.id + '.chromiumapp.org');
+    let redirectUri = redirectUri = chrome.identity.getRedirectURL();
+
+    // http://stackoverflow.com/questions/11485271/google-oauth-2-authorization-error-redirect-uri-mismatch
+    let url = 'https://accounts.google.com/o/oauth2/auth' + 
+      '?client_id=' + clientId +
+      '&response_type=id_token' +
+      '&access_type=offline' +
+      '&redirect_uri=' + redirectUri +
+      '&scope=' + scopes;
+
+    let options = {
+      url,
+      interactive: true
+    };
+
+    // TODO(burdon): onSignInChanged
+
+    console.log('### launchWebAuthFlow ###', redirectUri, url);
+    chrome.identity.launchWebAuthFlow(options, (redirectedTo) => {
+      if (chrome.runtime.lastError) {
+        // Example: Authorization page could not be loaded.
+        throw new Error(chrome.runtime.lastError.message);
+      }
+
+      let response = redirectedTo.split('#', 2)[1];
+
+      // Example: id_token=<YOUR_BELOVED_ID_TOKEN>&authuser=0&hd=<SOME.DOMAIN.PL>&session_state=<SESSION_SATE>&prompt=<PROMPT>
+      console.log(response);
+    });
+
+    // TODO(burdon): Signout.
+    // http://stackoverflow.com/questions/26080632/how-do-i-log-out-of-a-chrome-identity-oauth-provider
+    // chrome.identity.launchWebAuthFlow(
+    // { 'url': 'https://accounts.google.com/logout' },
+    // function(tokenUrl) {
+    //     responseCallback();
+    // }
+    // );
+  }
 }
+
