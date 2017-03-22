@@ -58,6 +58,7 @@ key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv9GnZhQDH73nz/WXaO2WDpMTpYuFwU
 #
 
 permissions:
+  - activeTab
   - background
   - contextMenus
   - identity              # Required for OAuth.
@@ -123,6 +124,7 @@ content_scripts:
       - "http://localhost/testing/*"
 
       - "https://*.google.com/*"
+      - "https://*.slack.com/*"
 
     js:
       # NOTE: Cannot be symlink (must be copied).

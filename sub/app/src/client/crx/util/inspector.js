@@ -273,7 +273,6 @@ export class GoogleInboxInspector extends Inspector {
 
 export class SlackInspector extends Inspector {
 
-  // FIXME: Now it's the channel ID e.g https://minderlabs.slack.com/messages/C4BPPS9RC/details/
   static PATH_RE = /https:\/\/([^\.]+)\.slack\.com\/messages\/([^\/]+)\//;
 
   isValid() {
@@ -281,6 +280,7 @@ export class SlackInspector extends Inspector {
     return this._matches;
   }
 
+  // FIXME This needs to be called again when the tab location changes.
   getInitialContext() {
     let context = [];
     if (this._matches && this._matches.length == 3) {
@@ -299,40 +299,10 @@ export class SlackInspector extends Inspector {
         },
       ]
     }
-    return context;
+    // TODO(madadam): Unify other uses (email) and return context (array of KeyValues) not dict { context: [..] }.
+    return {
+      context
+    };
   }
 
-  getRootNode() {
-    // Hack -- we don't need a root node, just return true so this inspector gets run.
-    // FIXME: don't need this now with getInitialContext.
-    return true;
-  }
-
-  inspect(mutations) {
-    let context = null;
-
-    _.each(mutations, mutation => {
-
-      // TODO(burdon): Get closest parent for thread ID.
-//    let root = $(mutation.target).find('div[role="listitem"] h3 span');
-      let root = $('div[role="main"] div[role="listitem"] h3 span');
-      if (root[0]) {
-        let name = root.text();
-        let email = root.attr('email');
-        if (name && email) {
-          context = {
-            items: [{
-              type: 'Contact',
-              title: name,
-              email: email
-            }]
-          };
-
-          return false;
-        }
-      }
-    });
-
-    return context;
-  }
 }

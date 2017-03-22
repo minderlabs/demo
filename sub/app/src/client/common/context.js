@@ -65,20 +65,9 @@ export class ContextManager {
    * @returns {FilterInput} Context filter or undefined.
    */
   getFilter() {
-    // FIXME: here. Add context.text or something, and add it into the filter.
-    // To handle more specific stuff like Slack channel name, send context object (key-value pairs, or even
-    // whole json object). Server can do whatever it wants with it -- initially return Contact cards for people
-    // in the channel, google Doc commenters, etc.
 
-    // FIXME: move this server-side. Instead, context object should be like:
-    return {
-      context: _.map(emails, email => ({
-        key: 'email',
-        value: {
-          string: email
-        }
-      }))
-    };
+    // TODO(madadam): Unify email stuff to be keyValue pairs with key 'email', and rewrite the query
+    // on the server side like follows.
 
     // TODO(burdon): Email-specific.
     // TODO(burdon): Push DOM node (server does more processing -- incl. creating transient item?)
@@ -98,7 +87,12 @@ export class ContextManager {
       };
     }
 
-    let contextMap = _.omit(this._context, 'items');
+    // TODO(madadam): this._context should be the KeyValue array, get rid of extra level of object.
+    if (this._context.context) {
+      return {
+        context: this._context.context
+      }
+    }
   }
 
   /**

@@ -228,8 +228,10 @@ export class Database {
         _.each(results, result => {
           if (result.namespace && Database.isExternalNamespace(result.namespace)) {
             _.each(result.items, item => {
+              // One more check on fkey, because query providers may return heterogeneous lists of items
+              // from different namespaces, some may not have foreign keys.
               let fkey = ID.getForeignKey(item);
-              if (!itemsWithForeignKeys.get(fkey)) {
+              if (fkey && !itemsWithForeignKeys.get(fkey)) {
                 foreignKeys.push(fkey);
               }
             });
@@ -271,16 +273,15 @@ export class Database {
           let items = [];
           _.each(results, result => {
             _.each(result.items, item => {
+              let shouldPush = true;
               if (result.namespace && Database.isExternalNamespace(result.namespace)) {
+                let fkey = ID.getForeignKey(item);
                 // If an item already exists, then it will be added above.
-                let existing = itemsWithForeignKeys.get(ID.getForeignKey(item));
-                if (!existing) {
-                  items.push(item);
+                if (fkey && itemsWithForeignKeys.get(fkey)) {
+                  shouldPush = false;
                 }
-              } else {
-                // Add regular item.
-                items.push(item);
               }
+              shouldPush && items.push(item);
             });
           });
 

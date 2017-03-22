@@ -40,9 +40,10 @@ export const DefaultSettings = {
 export const KeyCodes = {
 
   TOGGLE: {
-    hint: '⌘-/',
+    // FIXME
+    hint: '⌘-\'',
     metaKey: true,
-    keyCode: 191
+    keyCode: 222
   }
 };
 
@@ -75,5 +76,6 @@ export const SystemChannel = {
 
   // To sidebar.
   FLUSH_CACHE:            'FLUSH_CACHE',
-  INVALIDATE:             'INVALIDATE'
+  INVALIDATE:             'INVALIDATE',
+  OPEN_ACTIVE:            'OPEN_ACTIVE'           // Open the sidebar in the active tab.
 };

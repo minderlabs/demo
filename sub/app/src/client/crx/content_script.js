@@ -132,6 +132,35 @@ class ContentScript {
       }
     });
 
+    // Listen for window events injected into this page (e.g. from the browser action bar).
+    window.addEventListener('message', event => {
+      console.log('*** GOT WINDOW EVENT ' + JSON.stringify(event));
+
+      // https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#The_dispatched_event
+      let origin = event.origin || event.originalEvent.origin;
+      if (origin !== 'chrome-extension://' + chrome.runtime.id) {
+        console.log('*** BAD ORIGIN'); // FIXME
+        return;
+      }
+
+      let { message } = event;
+
+      // TODO(madadam): Support all SidebarCommands?
+
+      if (message.command === SidebarCommand.SET_VISIBILITY ) {
+        let promise;
+        if (message.open === true) {
+          promise = this.sidebar.open();
+        } else if (message.open === false) {
+          promise = this.sidebar.close();
+        } else {
+          promise = this.sidebar.toggle();
+        }
+
+        promise.then(visible => updateVisibility(visible));
+      }
+    });
+
     //
     // Listen for context updates from the Inspectors.
     //
