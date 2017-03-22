@@ -134,24 +134,25 @@ class ContentScript {
 
     // Listen for window events injected into this page (e.g. from the browser action bar).
     window.addEventListener('message', event => {
-      console.log('*** GOT WINDOW EVENT ' + JSON.stringify(event));
+
+      let origin = event.origin || event.originalEvent.origin;
+      // TODO(madadam): Should we also check origin for security? But the origin can be any page where the content
+      // script runs, so it's not useful for filtering.
 
       // https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#The_dispatched_event
-      let origin = event.origin || event.originalEvent.origin;
-      if (origin !== 'chrome-extension://' + chrome.runtime.id) {
-        console.log('*** BAD ORIGIN'); // FIXME
+      if (!event.isTrusted) {
         return;
       }
 
-      let { message } = event;
+      let { data } = event;
 
       // TODO(madadam): Support all SidebarCommands?
 
-      if (message.command === SidebarCommand.SET_VISIBILITY ) {
+      if (data.command === SidebarCommand.SET_VISIBILITY ) {
         let promise;
-        if (message.open === true) {
+        if (data.open === true) {
           promise = this.sidebar.open();
-        } else if (message.open === false) {
+        } else if (data.open === false) {
           promise = this.sidebar.close();
         } else {
           promise = this.sidebar.toggle();

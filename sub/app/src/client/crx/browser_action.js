@@ -59,12 +59,8 @@ class BrowserAction extends React.Component {
     }, tabs => {
       let tab = tabs[0];
       console.assert(tab);
-      // FIXME: Stumped on how to get the window from the active tab, from tab.windowId.
-      console.log('*** ACTIVE TAB window_id ' + tab.id); // FIXME
       chrome.tabs.executeScript(tab.id, {
-        // Pretty sure this won't work because of "isolated worlds". will have to use window.postMessage.
-        //code: 'console.log("opening sidebar " + window.app); debugger; window.app.sidebar.open();'
-        code: 'console.log("*** sending SET_VISIBILITY message"); debugger; window.postMessage({command: "' + SidebarCommand.SET_VISIBILITY + '" }, "*");'
+        code: 'window.postMessage({command: "' + SidebarCommand.SET_VISIBILITY + '" }, "*");'
       }, results => {
         window.close();
       });
