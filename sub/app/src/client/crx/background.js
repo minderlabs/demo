@@ -255,11 +255,6 @@ class BackgroundApp {
         return this.connect();
       }
 
-      case SystemChannel.OPEN_ACTIVE: {
-        // Re-broadcast.
-        return this._systemChannel.postMessage(null, request);
-      }
-
       default: {
         throw new Error('Invalid command: ' + request.command);
       }

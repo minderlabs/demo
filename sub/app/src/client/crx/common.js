@@ -76,6 +76,5 @@ export const SystemChannel = {
 
   // To sidebar.
   FLUSH_CACHE:            'FLUSH_CACHE',
-  INVALIDATE:             'INVALIDATE',
-  OPEN_ACTIVE:            'OPEN_ACTIVE'           // Open the sidebar in the active tab.
+  INVALIDATE:             'INVALIDATE'
 };

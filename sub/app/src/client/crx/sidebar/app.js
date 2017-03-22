@@ -101,15 +101,6 @@ export class SidebarApp extends BaseApp {
           break;
         }
 
-        case SystemChannel.OPEN_ACTIVE: {
-          chrome.tabs.getCurrent(tab => {
-            if (tab.active) {
-              this.store.dispatch(SidebarAction.toggleVisibility(message.visible));
-            }
-          });
-          break;
-        }
-
         default: {
           console.warn('Invalid command: ' + JSON.stringify(message));
         }
