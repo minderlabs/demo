@@ -27,7 +27,7 @@ const config = _.merge({
     platform: Const.PLATFORM.CRX,
     name: Const.APP_NAME
   }
-}, HttpUtil.parseUrlArgs());
+}, HttpUtil.parseUrlParams());
 
 const app = new SidebarApp(config);
 

@@ -26,7 +26,7 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
   // Registers the client.
   //
   router.post('/register', function(req, res, next) {
-    return userManager.getUserFromHeader(req, true)
+    return userManager.getUserFromHeader(req.headers, true)
       .then(user => {
         let { platform, messageToken } = req.body;
 
@@ -49,6 +49,8 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
               clientId: client.id,
               groupId: group.id   // TODO(burdon): Remove group.
             });
+
+            next();
           });
       })
       .catch(next);
@@ -58,11 +60,13 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
   // Unregisters the client.
   //
   router.post('/unregister', function(req, res, next) {
-    return userManager.getUserFromHeader(req, true)
+    return userManager.getUserFromHeader(req.headers, true)
       .then(user => {
         let clientId = req.headers[Const.HEADER.CLIENT_ID];
         clientManager.unregister(user.id, clientId);
+
         res.end();
+        next();
       })
       .catch(next);
   });

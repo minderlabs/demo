@@ -19,7 +19,7 @@ let headers = {
 };
 
 // Add auth header.
-window.config.headers.forEach((header) => {
+window.config.headers.forEach(header => {
   headers[header.name] = header.value;
 });
 
@@ -49,7 +49,7 @@ function graphQLFetcher(graphQLParams) {
 // Decode URL.
 //
 
-let parameters = HttpUtil.parseUrlArgs(window.location.search);
+let parameters = HttpUtil.parseUrlParams(window.location.search);
 
 //
 // Encode URL.

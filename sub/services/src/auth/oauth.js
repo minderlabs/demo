@@ -13,7 +13,38 @@ import { Logger, SystemStore } from 'minder-core';
 
 const logger = Logger.get('oauth');
 
-// TODO(burdon): Move to minder-service (server only).
+
+// TODO(burdon): Use registration idToken in client headers (don't need to authenticate for Web).
+// TODO(burdon): Remove FB from client.
+// TODO(burdon): Remove FB from server.
+// TODO(burdon): Logout/invalidate.
+
+// TODO(burdon): Remove FB config (incl. server OAuth registration from FB and Google consoles).
+// TODO(burdon): Only set user as active if joins group (via whitelist).
+// TODO(burdon): Clean-up OAuth providers.
+// TODO(burdon): Update credentials when access_token updated by refresh_token
+// TODO(burdon): graphiql: get token from cookie.
+// TODO(burdon): 401 and 500 handling.
+// TODO(burdon): Admin group and auth check.
+
+
+/**
+ * Checks if the OAuth cookie has been set by passport.
+ */
+// TODO(burdon): Admin version.
+export const isAuthenticated = (redirect=undefined) => (req, res, next) => {
+  if (req.isAuthenticated()) {
+    logger.log('Authenticated user: ' + req.user.id);
+    next();
+  } else {
+    if (redirect) {
+      res.redirect(redirect);
+    } else {
+      // TODO(burdon): throw NotAuthenticatedError()?
+      res.status(401).end();
+    }
+  }
+};
 
 /**
  * Router for '/accounts' paths. Root /accounts page iterates over AccountManager.accounts exposing
@@ -30,36 +61,34 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
   let router = express.Router();
 
-
-
-
-  // TODO(burdon): Test CRX login flow (and register). And onSigninChanged.
-  // TODO(burdon): id_token (chrome.identity.launchWebAuthFlow)
-  // http://stackoverflow.com/questions/26256179/is-it-possible-to-get-an-id-token-with-chrome-app-indentity-api
-
-
-  // TODO(burdon): Register user in callback.
-
-  // TODO(burdon): JwtStrategy: https://jonathanmh.com/express-passport-json-web-token-jwt-authentication-beginners
+  router.use(passport.initialize());
+  router.use(passport.session());
 
   // TODO(burdon): Session store: https://github.com/expressjs/session#compatible-session-stores
   //               https://www.npmjs.com/package/connect-redis
   //               https://www.npmjs.com/package/connect-memcached
 
-  // TODO(burdon): Remove website/login and AUTH_COOKIE. (Test and doc if uses Google cookie "_ga"; see source).
-  // TODO(burdon): Move to User (login/logout). Use passport for all OAuth.
-
-  router.use(passport.initialize());
-  router.use(passport.session());
-
+  /**
+   * Serialize User Item to session state.
+   */
   passport.serializeUser((user, done) => {
-    console.log('===>>>', user);
-    done(null, user);
+    logger.log('<<<', JSON.stringify(_.pick(user, ['id', 'email'])));
+    let { id } = user;
+    done(null, { id });
   });
 
-  passport.deserializeUser((user, done) => {
-    console.log('<<<===', user);
-    done(null, user);
+  /**
+   * Get session state and retrieve a User Item.
+   */
+  passport.deserializeUser((userInfo, done) => {
+    logger.log('>>>', JSON.stringify(userInfo));
+    let { id } = userInfo;
+    userManager.getUserFromId(id).then(user => {
+      if (!user) {
+        logger.warn('Invalid User ID: ' + id);
+      }
+      done(null, user);
+    });
   });
 
   // http://passportjs.org/docs/google
@@ -68,112 +97,64 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   passport.use(new GoogleStrategy({
     clientID: '189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com',
     clientSecret: 'WZypHT09Z8Fy8NHVKY3qmMFt',
-    callbackURL: 'http://localhost.net:3000/oauth/callback/google_com'
+    callbackURL: 'http://localhost.net:3000/oauth/callback/google'      // TODO(burdon): Use passport const?
   }, (accessToken, refreshToken, params, profile, done) => {
-
     let { id_token, token_type, expires_in } = params;
+    console.assert(id_token && token_type && expires_in);
 
-    // http://passportjs.org/docs/profile
-    let { id, displayName } = profile;
+    // TODO(burdon): Catch exceptions: throw 500.
+
+    let { provider: providerId, id } = profile;
 
     let credentials = {
-      provider: 'google.com',
+      provider: providerId,
       id,
       id_token,                           // JWT
       access_token: accessToken,
-      refresh_token: refreshToken,        // NOTE: Only provided when first requested.
       token_type,
       expires_in                          // Access token expiration.
     };
 
-    console.log('OAuth', JSON.stringify(credentials, null, 2));
-    return done(null, { id });  // TODO(burdon): User object (Factor out serialization).
+    // NOTE: Only provided when first requested.
+    if (refreshToken) {
+      credentials.refresh_token = refreshToken;
+    }
+
+    // http://passportjs.org/docs/profile
+    // Get user profile (in particular email address).
+    let provider = oauthRegistry.getProvider(providerId);
+    let userProfile = provider.getCanonicalUserProfile(profile);
+
+    // Register/update user.
+//  logger.log('Credentials', JSON.stringify(credentials, null, 2));
+    systemStore.registerUser(userProfile, credentials).then(user => {
+      done(null, user);
+    });
   }));
 
-  // TODO(burdon): Get refresh_token ("offline").
-  // https://github.com/jaredhanson/passport/issues/42
-  router.use('/login/google_com', passport.authenticate('google', {
-    scope: ['https://www.googleapis.com/auth/plus.login'],
+  router.use('/login/google', passport.authenticate('google', {
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ],
     accessType: 'offline',
     approvalPrompt: 'force'
   }));
 
-  router.use('/callback/google_com', passport.authenticate('google', {
+  router.use('/callback/google', passport.authenticate('google', {
     failureRedirect: '/error'
   }), (req, res) => {
+    logger.log('Logged in: ', JSON.stringify(_.pick(req.user, ['id', 'email'])));
     res.redirect('/oauth/test');
   });
 
-  // TODO(burdon): Factor out.
-  // TODO(burdon): Admin version.
-  const isAuthenticated = (req, res, next) => {
-    if (req.isAuthenticated()) {
-      return next();
-    }
-
-    res.status(401).end();
-  };
-
-  router.use('/test', isAuthenticated, (req, res) => {
-    res.send('OK: ' + JSON.stringify(req.user));
+  // TODO(burdon): Remove.
+  router.use('/test', isAuthenticated(), (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(req.user));
   });
 
-
-
-
-
-
-
-  //
-  // OAuth request.
-  //
-  if (false)
-  router.get('/login/:providerId', function(req, res) {
-    let { providerId } = req.params;
-    let provider = oauthRegistry.getProvider(providerId);
-    console.assert(provider, 'Invalid provider: ' + providerId);
-
-    logger.log('Login: ' + provider.requestUrl);
-    res.redirect(provider.requestUrl);
-  });
-
-  //
-  // OAuth callback.
-  //
-  if (false)
-  router.get('/callback/:providerId', function(req, res, next) {
-    let { providerId } = req.params;
-    logger.log('Callback: ' + providerId);
-    let provider = oauthRegistry.getProvider(providerId);
-
-    // TODO(burdon): Handle errors.
-    provider.processResponse(req, res).then(response => {
-      let { userInfo, credential, scope } = response;
-      logger.log('Authenticated:', JSON.stringify(userInfo));
-
-      // TODO(burdon): Register user.
-      // TODO(burdon): Google ID is different from the FB ID! Deprecate FB auth.
-      // TODO(burdon): Rename credential => credentials.
-      systemStore.getUserByEmail(userInfo.email).then(user => {
-
-        SystemStore.updateUserCredential(user, _.assign(credential, {
-          provider: providerId,
-          id: userInfo.id,
-          scope
-        }));
-
-        systemStore.updateUser(user).then(() => {
-          // TODO(burdon): Inject router to redirect.
-          res.redirect('/user/profile');
-          next();
-        });
-      });
-    });
-  });
-
-  //
-  // Oauth logout.
-  //
+  // TODO(burdon): Logout/invalidate.
   // router.get('/logout/:providerId', function(req, res, next) {
   //   let { providerId } = req.params;
   //   logger.log('Logout: ' + providerId);
@@ -200,14 +181,14 @@ export class OAuthRegistry {
     return _.toArray(this._providers.values());
   }
 
-  getProvider(domain) {
-    console.assert(domain);
-    return this._providers.get(SystemStore.sanitizeKey(domain));
+  getProvider(providerId) {
+    console.assert(providerId);
+    return this._providers.get(providerId);
   }
 
   registerProvider(provider) {
-    console.assert(provider && provider.domain);
-    this._providers.set(SystemStore.sanitizeKey(provider.domain), provider);
+    console.assert(provider && provider.providerId);
+    this._providers.set(SystemStore.sanitizeKey(provider.providerId), provider);
     return this;
   }
 }
@@ -229,9 +210,9 @@ export class OAuthProvider {
   static OAUTH_TESTING_CALLBACK = 'http://localhost.net:3000/oauth/callback/';
 
   /**
-   * Display name for the accounts management page.
+   * Passport provider ID (e.g., "google").
    */
-  get domain() {
+  get providerId() {
     throw new Error('Not implemented');
   }
 
@@ -250,22 +231,40 @@ export class OAuthProvider {
   }
 
   /**
-   * For Login providers, validate the JWT.
+   * Validates the (JWT) id_token.
+   *
+   * https://jwt.io/introduction
+   * https://jwt.io (Test decoding token).
+   *
    * @param token
    */
   // TODO(burdon): Factor out LoginProvider.
-  validateJWT(token) {
+  verifyIdToken(idToken) {
     throw new Error('Not implemented');
   }
 
   /**
-   * Process OAuth callback response.
-   * @param req HTTP request.
-   * @param res HTTP response.
-   * @returns {Promise<{credentials}>} Credentials: https://tools.ietf.org/html/rfc6749#section-1.5
+   *
+   * @param credentials
    */
-  processResponse(req, res) {
+  getUserProfile(credentials) {
     throw new Error('Not implemented');
+  }
+
+  /**
+   * Passport normalizes profile. We store an abridged version of this.
+   * http://passportjs.org/docs/profile
+   * https://github.com/google/google-api-nodejs-client/blob/master/apis/oauth2/v2.js
+   *
+   * @param userProfile
+   * @returns {UserProfile}
+   */
+  getCanonicalUserProfile(userProfile) {
+    let { id, emails, displayName, imageUrl } = userProfile;
+    let email = _.get(_.find(emails, email => email.type === 'account'), 'value');
+    return {
+      id, email, displayName, imageUrl
+    };
   }
 }
 
@@ -304,13 +303,16 @@ export class GoogleOAuthProvider extends OAuthProvider {
 
     // TODO(burdon): Scopes should be dynamic (from service registry).
     this._scope = scope;
+
+    // Move client out of provider? Make stateless?
+    this._oauth2Client = null;
   }
 
   init(testing=false) {
 
     // https://console.developers.google.com/apis/credentials?project=minder-beta
     let callback = (testing ? OAuthProvider.OAUTH_TESTING_CALLBACK : OAuthProvider.OAUTH_CALLBACK) +
-      SystemStore.sanitizeKey(this.domain);
+      SystemStore.sanitizeKey(this.providerId);
 
     // TODO(burdon): Get Const from config.
     // TODO(burdon): Factor out (and pass in) client with setCredentials method below (for use in subsequent API calls).
@@ -341,8 +343,8 @@ export class GoogleOAuthProvider extends OAuthProvider {
     return this;
   }
 
-  get domain() {
-    return 'google.com';
+  get providerId() {
+    return 'google';
   }
 
   get requestUrl() {
@@ -359,73 +361,60 @@ export class GoogleOAuthProvider extends OAuthProvider {
   }
 
   /**
-   * Validate and decode the JWT.
-   * @param token
-   * @return {Promise}
+   * Testing:
+   * https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=XXX
    */
-  validateJWT(token) {
+  verifyIdToken(idToken) {
+    console.assert(idToken);
+
     return new Promise((resolve, reject) => {
       // https://developers.google.com/identity/sign-in/web/backend-auth
-      this._oauth2Client.verifyIdToken(token, this._config.clientId, (error, response) => {
+      // https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation
+      this._oauth2Client.verifyIdToken(idToken, this._config.clientId, (error, response) => {
         if (error) {
+          console.error('Invalid id_token: ' + idToken);
           throw new Error(error);
         }
 
-        let { sub:userId, email } = response.getPayload();
-        resolve({ userId, email });
+        let { iss, aud: clientId, sub: id, email, email_verified } = response.getPayload();
+        console.assert(iss === 'accounts.google.com');
+        console.assert(clientId === this._config.clientId);
+        console.assert(email_verified);
+
+        let tokenInfo = { id, email };
+        logger.log('Decoded id_token:', JSON.stringify(tokenInfo));
+        resolve(tokenInfo);
       });
     });
   }
 
-  /**
-   * https://developers.google.com/identity/protocols/OAuth2WebServer#handlingresponse
-   */
-  processResponse(req, res) {
+  getUserProfile(credentials) {
+    console.assert(credentials);
+
     return new Promise((resolve, reject) => {
-      let { code, error } = req.query;
-      if (error) {
-        throw new Error(error);
-      }
 
-      this._oauth2Client.getToken(code, (error, credential) => {
+      // TODO(burdon): Client factory.
+      this._oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));
+
+      // TODO(burdon): Factor out.
+      let plus = google.plus('v1');
+      plus.people.get({
+        userId: 'me',
+        auth: this._oauth2Client
+      }, (error, profile) => {
         if (error) {
           throw new Error(error);
         }
 
-        // TODO(burdon): Extract and use in all API calls.
-        // https://github.com/google/google-api-nodejs-client/blob/master/apis/oauth2/v2.js
-        this._oauth2Client.setCredentials(_.pick(credential, ['access_token', 'refresh_token']));
-
-        // Enable API in console (then wait "a few" Google minutes).
-        let plus = google.plus('v1');
-        plus.people.get({
-          userId: 'me',
-          auth: this._oauth2Client
-        }, (error, response) => {
-          if (error) {
-            throw new Error(error);
-          }
-
-          // TODO(burdon): Normalize userInfo across other OAuth services.
-          // https://github.com/google/google-api-nodejs-client/blob/master/apis/oauth2/v2.js
-          let userInfo = {
-            id: response.id,
-            name: response.displayName,
-            email: _.get(_.find(response.emails, email => email.type === 'account'), 'value'),
-            imageUrl: _.get(response, 'image.url'),
-          };
-
-//        console.log('### User Info:', JSON.stringify(response, 0, 2));
-          resolve({ userInfo, credential, scope: this._scope });
-        });
+        resolve(this.getCanonicalUserProfile(profile));
       });
     });
   }
 
-  // TODO(burdon): Need to create instance of client with credential.
+  // TODO(burdon): Revoke.
   // revoke() {
   //   return new Promise((resolve, reject) => {
-  //     this._oauth2Client.setCredentials(_.pick(credential, ['access_token', 'refresh_token']));
+  //     this._oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));
   //     this._oauth2Client.revokeCredentials((error, result) => {
   //       if (error) {
   //         throw new Error(error);
@@ -442,8 +431,8 @@ export class GoogleOAuthProvider extends OAuthProvider {
  */
 export class SlackOAuthProvider extends OAuthProvider {
 
-  get domain() {
-    return 'slack.com';
+  get providerId() {
+    return 'slack';
   }
 
   get requestUrl() {

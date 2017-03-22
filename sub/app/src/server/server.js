@@ -36,6 +36,7 @@ import {
   ServiceDefs,
 
   oauthRouter,
+  isAuthenticated,
   loginRouter,
 
   OAuthProvider,
@@ -56,7 +57,7 @@ import {
 import { Const, FirebaseAppConfig, GoogleApiConfig, SlackConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
-import { appRouter, hotRouter } from './app';
+import { webAppRouter, hotRouter } from './app';
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { clientRouter, ClientManager } from './client';
 import { loggingRouter } from './logger';
@@ -117,6 +118,19 @@ const matcher = new Matcher();
 
 const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credentialPath']));
 
+
+//
+// OAuth providers.
+//
+
+const loginAuthProvider = new GoogleOAuthProvider(
+  GoogleApiConfig, GoogleApiConfig.authScopes).init(env !== 'production');
+
+const oauthRegistry = new OAuthRegistry()
+  .registerProvider(loginAuthProvider)
+  .registerProvider(new SlackOAuthProvider());
+
+
 //
 // Database.
 //
@@ -131,7 +145,7 @@ const userDataStore = testing ?
 const systemStore = new SystemStore(
   new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.SYSTEM, false));
 
-const userManager = new UserManager(firebase, systemStore);
+const userManager = new UserManager(loginAuthProvider, systemStore);
 
 const database = new Database()
 
@@ -151,15 +165,6 @@ const database = new Database()
     // Notify clients of changes.
     clientManager.invalidateClients(context.clientId);
   });
-
-
-//
-// OAuth accounts.
-//
-
-const oauthRegistry = new OAuthRegistry()
-  .registerProvider(new GoogleOAuthProvider(GoogleApiConfig, GoogleApiConfig.authScopes).init(env !== 'production'))
-  .registerProvider(new SlackOAuthProvider());
 
 
 //
@@ -299,19 +304,11 @@ app.use(session({
 // Home page.
 //
 
-app.get('/home', function(req, res, next) {
-  return userManager.getUserFromCookie(req)
-    .then(user => {
-      if (user) {
-        res.redirect(Const.APP_PATH);
-      } else {
-        res.render('home', {
-          crxUrl: Const.CRX_URL(Const.CRX_ID),
-          login: true
-        });
-      }
-    })
-    .catch(next);
+app.get('/home', isAuthenticated('/user/login'), function(req, res) {
+  res.render('home', {
+    crxUrl: Const.CRX_URL(Const.CRX_ID),
+    login: true
+  });
 });
 
 app.get('/welcome', function(req, res) {
@@ -334,11 +331,11 @@ app.use(graphqlRouter(database, {
   // Gets the user context from the request headers (async).
   // NOTE: The client must pass the same context shape to the matcher.
   //
-  contextProvider: request => userManager.getUserFromHeader(request)
+  contextProvider: req => userManager.getUserFromHeader(req.headers)
     .then(user => {
       let context = {
         userId: user && user.active && user.id,
-        clientId: request.headers[Const.HEADER.CLIENT_ID],
+        clientId: req.headers[Const.HEADER.CLIENT_ID],
         credentials: user.credentials
       };
 
@@ -364,28 +361,25 @@ const MINDER_NODE_MODULES_DIR =
 
 app.get('/node_modules', express.static(path.join(__dirname, MINDER_NODE_MODULES_DIR)));
 
-app.get('/graphiql', function(req, res) {
-  return userManager.getUserFromCookie(req)
-    .then(user => {
-      if (!user) {
-        return res.redirect('/home');
-      }
+// TODO(burdon): Auth from cookie.
+app.get('/graphiql', isAuthenticated(), function(req, res) {
 
-      // See NetworkLogger.
-      res.render('graphiql', {
-        config: {
-          headers: [
-            {
-              name: 'Authorization',
-              value: `Bearer ${user.token}`
-            },
-            {
-              name: Const.HEADER.CLIENT_ID,
-              value: req.query.clientId
-            }
-          ]
+  // TODO(burdon): Get idToken from credentials.
+  let idToken = loginAuthProvider.getIdToken(req.user);
+
+  res.render('graphiql', {
+    config: {
+      headers: [
+        {
+          name: 'Authorization',
+          value: idToken
+        },
+        {
+          name: Const.HEADER.CLIENT_ID,
+          value: req.query.clientId
         }
-      });
+      ]
+    }
   });
 });
 
@@ -426,7 +420,7 @@ app.use('/admin', adminRouter(clientManager, firebase, {
 const MINDER_ASSETS_DIR =
   _.get(process.env, 'MINDER_ASSETS_DIR', (env === 'production') ? '.' : '../../dist');
 
-app.use(appRouter(userManager, clientManager, systemStore, {
+app.use(webAppRouter(userManager, clientManager, systemStore, {
 
   // App root path.
   root: Const.APP_PATH,
@@ -482,6 +476,7 @@ app.get(function(req, res) {
 // app.get(function(req, res, next) {
 //   return new Promise((resolve, reject) => {
 //     res.end();
+//     next();
 //   }).catch(next);
 // });
 //

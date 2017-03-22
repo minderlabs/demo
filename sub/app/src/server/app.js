@@ -8,6 +8,8 @@ import moment from 'moment';
 
 import { $$, Logger } from 'minder-core';
 
+import { isAuthenticated } from 'minder-services';
+
 import { Const } from '../common/defs';
 
 const logger = Logger.get('app');
@@ -34,7 +36,7 @@ const WEBPACK_BUNDLE = {
  * @param options
  * @returns {Router}
  */
-export const appRouter = (userManager, clientManager, systemStore, options) => {
+export const webAppRouter = (userManager, clientManager, systemStore, options) => {
   console.assert(userManager && clientManager);
   const router = express.Router();
 
@@ -46,47 +48,44 @@ export const appRouter = (userManager, clientManager, systemStore, options) => {
   const path = new RegExp(options.root.replace('/', '\/') + '\/?(.*)');
 
   // Web app.
-  router.get(path, function(req, res, next) {
-    return userManager.getUserFromCookie(req)
-      .then(user => {
-        if (!user) {
-          // TODO(burdon): Create Router object rather than hardcoding path.
-          res.redirect('/');
-        } else {
-          // Create the client.
-          // TODO(burdon): Client should register (might store ID -- esp. if has worker, etc.)
-          let client = clientManager.create(user.id, Const.PLATFORM.WEB);
+  router.get(path, isAuthenticated(), function(req, res, next) {
+    let user = req.user;
+    let idToken = userManager.getIdToken(user);
 
-          // Get group.
-          // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
-          return systemStore.getGroup(user.id)
-            .then(group => {
-              // Client app config.
-              let config = _.defaults({
-                root: Const.DOM_ROOT,
+    // Create the client.
+    // TODO(burdon): Client should register (might store ID -- esp. if has worker, etc.)
+    let client = clientManager.create(user.id, Const.PLATFORM.WEB);
 
-                graphql: '/graphql',
-                graphiql: '/graphiql',
+    // Get group.
+    // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
+    return systemStore.getGroup(user.id).then(group => {
 
-                // Authenticated user.
-                registration: {
-                  userId:   user.id,
-                  groupId:  group.id,    // TODO(burdon): Remove.
-                  clientId: client.id
-                }
-              }, options.config);
+      // Client app config.
+      let config = _.defaults({
+        root: Const.DOM_ROOT,
 
-              logger.log($$('Client options = %o', config));
+        graphql: '/graphql',
+        graphiql: '/graphiql',
 
-              // Render page.
-              res.render('app', {
-                bundle: WEBPACK_BUNDLE[config.env],
-                config
-              });
-            });
+        // Authenticated user.
+        registration: {
+          idToken:  idToken,
+          userId:   user.id,
+          groupId:  group.id,    // TODO(burdon): Remove.
+          clientId: client.id
         }
-      })
-      .catch(next);
+      }, options.config);
+
+      logger.log($$('Client options = %o', config));
+
+      // Render page.
+      res.render('app', {
+        bundle: WEBPACK_BUNDLE[config.env],
+        config
+      });
+
+      next();
+    }).catch(next);
   });
 
   // Status

@@ -9,6 +9,7 @@ import { HttpUtil } from 'minder-core';
 import { Const } from '../../common/defs';
 
 import { AuthManager } from './auth';
+import { NetUtil } from './net';
 
 const logger = Logger.get('client');
 
@@ -72,7 +73,7 @@ export class ConnectionManager {
 
   /**
    * Register the client with the server.
-   * Web clients are served from the server, which configures registration properties (see appRouter).
+   * Web clients are served from the server, which configures registration properties (see webAppRouter).
    * CRX and mobile clients must register to obtain this information (e.g., clientId).
    * Clients also register their Cloud Messaging (FCM, GCM) tokens (which may need to be refreshed).
    * Client must also provide the clientId to request headers.
@@ -82,51 +83,36 @@ export class ConnectionManager {
    * @return {Promise<{Registration}>}
    */
   register() {
-    // Get the auth token.
-    return this._authManager.getToken().then(authToken => {
+    // Get the push channel token.
+    // TODO(burdon): Store the message token (for re-registration?)
+    return this._cloudMessenger.connect().then(messageToken => {
+      logger.log('Cloud Messenger connected.');
 
-      // Get the push channel token.
-      // TODO(burdon): Store the message token.
-      return this._cloudMessenger.connect().then(messageToken => {
-        logger.log('Cloud Messenger connected.');
+      let registerUrl = NetUtil.getUrl('/client/register', this._config.server);
 
-        // Register the client.
-        return this._doRegistration(authToken, messageToken);
+      let platform = _.get(this._config, 'app.platform');
+      let clientId = _.get(this._config, 'registration.clientId');
+      if (!clientId && platform === Const.PLATFORM.WEB) {
+        console.assert(clientId);
+      }
+
+      let headers = AuthManager.getHeaders(this._authManager.getToken());
+      if (clientId) {
+        _.assign(headers, ConnectionManager.getHeaders(clientId));
+      }
+
+      let request = {
+        platform,
+        messageToken
+      };
+
+      // TODO(burdon): Configure Retry (perpetual with backoff for CRX?)
+      logger.log(`Registering client: ${clientId || platform} (${registerUrl})`);
+      return NetUtil.postJson(registerUrl, request, headers).then(registration => {
+        logger.info('Registered client: ' + JSON.stringify(registration));
+        _.set(this._config, 'registration', registration);
+        return registration;
       });
-    });
-  }
-
-  /**
-   * @param authToken
-   * @param messageToken
-   * @return {Promise<{Registration}>}
-   * @private
-   */
-  _doRegistration(authToken, messageToken) {
-    let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
-
-    let platform = _.get(this._config, 'app.platform');
-    let clientId = _.get(this._config, 'registration.clientId');
-    if (!clientId && platform === Const.PLATFORM.WEB) {
-      console.assert(clientId);
-    }
-
-    let headers = AuthManager.getHeaders(authToken);
-    if (clientId) {
-      _.assign(headers, ConnectionManager.getHeaders(clientId));
-    }
-
-    let request = {
-      platform,
-      messageToken
-    };
-
-    // TODO(burdon): Configure Retry (perpetual with backoff for CRX?)
-    logger.log(`Registering client: ${clientId || platform} (${url})`);
-    return ConnectionManager.postJson(url, request, headers).then(registration => {
-      logger.info('Registered client: ' + JSON.stringify(registration));
-      _.set(this._config, 'registration', registration);
-      return registration;
     });
   }
 
@@ -141,42 +127,12 @@ export class ConnectionManager {
       return Promise.resolve();
     }
 
-    return this._authManager.getToken().then(authToken => {
-      let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/unregister');
+    let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/unregister');
 
-      let headers = _.merge(
-        AuthManager.getHeaders(authToken), ConnectionManager.getHeaders(this.registration.clientId));
+    let headers = _.merge(
+      AuthManager.getHeaders(this._authManager.getToken()),
+      ConnectionManager.getHeaders(this.registration.clientId));
 
-      return ConnectionManager.postJson(url, {}, headers, async);
-    });
-  }
-
-  /**
-   * AJAX Post.
-   *
-   * @param url
-   * @param data
-   * @param headers
-   * @param async
-   * @return {Promise}
-   */
-  // TODO(burdon): Factor out (without dependency on $).
-  static postJson(url, data, headers={}, async=true) {
-    console.assert(url && data && headers);
-    return new Promise((resolve, reject) => {
-      $.ajax({
-        type: 'POST',
-        url,
-        async,
-        headers,
-
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        data: JSON.stringify(data),
-
-        success: response => { resolve(response) },
-        error: (xhr, textStatus, error) => { reject(error) }
-      });
-    });
+    return NetUtil.postJson(url, {}, headers, async);
   }
 }

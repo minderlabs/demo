@@ -35,11 +35,12 @@ export class HttpUtil {
   }
 
   /**
-   * Return map of args from URL.
+   * Returns a map of params from URL.
    * @param url
+   * @param delim By default '?' but could be '#' for a URL fragment.
    */
-  static parseUrlArgs(url=document.location.href) {
-    let search = url.substring(url.indexOf('?') + 1);
+  static parseUrlParams(url=document.location.href, delim='?') {
+    let search = url.substring(url.indexOf(delim) + 1);
     return _.fromPairs(_.map(search.split('&'), keyValue => {
       let parts = keyValue.split('=');
       return [ decodeURIComponent(parts[0]), decodeURIComponent(parts[1]) ];
@@ -47,12 +48,22 @@ export class HttpUtil {
   }
 
   /**
-   * Converts object to URL encoded search string.
-   * @param {object} args
+   * Creates a well-formed URL.
+   * @param url
+   * @param params
    * @returns {string}
    */
-  static toUrlArgs(args) {
-    return _.compact(_.map(args, (v, k) => (v !== undefined) && encodeURIComponent(k) + '=' + encodeURIComponent(v)))
+  static toUrl(url, params) {
+    return url.replace(/\/$/, '') + '?' + HttpUtil.toUrlArgs(params);
+  }
+
+  /**
+   * Converts object to URL encoded search string.
+   * @param {object} params
+   * @returns {string}
+   */
+  static toUrlArgs(params) {
+    return _.compact(_.map(params, (v, k) => (v !== undefined) && encodeURIComponent(k) + '=' + encodeURIComponent(v)))
       .join('&');
   }
 }

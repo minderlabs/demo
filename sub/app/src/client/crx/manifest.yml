@@ -160,13 +160,13 @@ oauth2:
 
   # Create OAuth Client ID; Type: "Chrome App" (3/8/17)
   # NOTE: Requires consistent CRX ID (see key property above).
+  # NOTE: This is different from the "Web Client" Client ID.
+  # NOTE: This is legacy (required for Firebase Authentication).
   # https://console.developers.google.com/apis/credentials?project=minder-beta
-#client_id: "189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com"
-  client_id: "189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com"
+  client_id: "189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com"
 
   # Default scopes (can be overridden in getAuthToken call (network.js)
   scopes:
-    - "openid"   # TODO(burdon): ????
     - "https://www.googleapis.com/auth/userinfo.email"
     - "https://www.googleapis.com/auth/userinfo.profile"
 

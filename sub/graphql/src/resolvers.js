@@ -136,6 +136,10 @@ export class Resolvers {
 
       User: {
 
+        title: (root) => {
+          return root.displayName;
+        },
+
         // TODO(burdon): Generalize for filtered items (like queryItems). Can reference context and root node.
         tasks: (root, args, context) => {
           let { filter } = args || {};
