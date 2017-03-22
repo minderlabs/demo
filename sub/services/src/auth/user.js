@@ -42,6 +42,10 @@ export class UserManager {
     this._systemStore = systemStore;
   }
 
+  get loginAuthProvider() {
+    return this._loginAuthProvider;
+  }
+
   /**
    *
    * @param userId
@@ -109,24 +113,30 @@ export class UserManager {
 export const loginRouter = (userManager, oauthRegistry, systemStore, options) => {
   console.assert(userManager && oauthRegistry && systemStore);
 
-  let provider = oauthRegistry.getProvider('google');
-  console.assert(provider);
+  // OAuth provider used for login.
+  let loginAuthProvider = userManager.loginAuthProvider;
 
   let router = express.Router();
 
-  // Login page.
+  //
+  // Login.
+  //
   router.use('/login', function(req, res) {
-    // TODO(burdon): Const from provider.
-    res.redirect('/oauth/login/google');
+    // TODO(burdon): Path const.
+    res.redirect('/oauth/login/' + loginAuthProvider.providerId);
   });
 
-  // Logout page (javascript).
+  //
+  // Logout.
+  //
   router.use('/logout', function(req, res) {
-    // TODO(burdon): Invalidate tokens?
-    res.end();
+    // TODO(burdon): Path const.
+    res.redirect('/oauth/logout/' + loginAuthProvider.providerId);
   });
 
+  //
   // Handle user registration.
+  //
   router.post('/register', function(req, res, next) {
 
     // JWT.
@@ -139,12 +149,12 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
     let { credentials } = req.body;
 
     // Decode the (JWT) id_token.
-    provider.verifyIdToken(idToken).then(tokenInfo => {
+    loginAuthProvider.verifyIdToken(idToken).then(tokenInfo => {
 
       // Use the access_token to request the user's profile.
-      provider.getUserProfile(credentials).then(userProfile => {
-        console.assert(tokenInfo.id === userProfile.id);
-        console.assert(tokenInfo.email === userProfile.email);
+      loginAuthProvider.getUserProfile(credentials).then(userProfile => {
+        console.assert(tokenInfo.id     === userProfile.id);
+        console.assert(tokenInfo.email  === userProfile.email);
 
         // Register user.
         // TODO(burdon): Active?
@@ -158,15 +168,17 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
     }).catch(next);
   });
 
+  //
   // Profile page.
-  router.get('/profile', isAuthenticated(), function(req, res, next) {
+  //
+  router.get('/profile', isAuthenticated('/home'), function(req, res, next) {
     let user = req.user;
     return systemStore.getGroup(user.id).then(group => {
       res.render('profile', {
         user,
-        groups: [ group ],
-        providers: oauthRegistry.providers,
-        crxUrl: options.crxUrl
+        groups:     [ group ],
+        providers:  oauthRegistry.providers,
+        crxUrl:     options.crxUrl
       });
 
       next();

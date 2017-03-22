@@ -2,7 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { TestConfig } from './config';
+import './config';
 
 import _ from 'lodash';
 import bodyParser from 'body-parser';
@@ -33,19 +33,19 @@ import {
 } from 'minder-core';
 
 import {
-  ServiceDefs,
-
-  oauthRouter,
   isAuthenticated,
+  oauthRouter,
   loginRouter,
 
   OAuthProvider,
   OAuthRegistry,
-  SlackOAuthProvider,
-  SlackQueryProcessor,
-  GoogleDriveQueryProcessor,
+  UserManager,
+
   GoogleOAuthProvider,
-  UserManager
+  GoogleDriveQueryProcessor,
+
+  SlackServiceProvider,
+  SlackQueryProcessor
 } from 'minder-services';
 
 import {
@@ -123,12 +123,14 @@ const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credent
 // OAuth providers.
 //
 
-const loginAuthProvider = new GoogleOAuthProvider(
-  GoogleApiConfig, GoogleApiConfig.authScopes).init(env !== 'production');
+const loginAuthProvider =
+  new GoogleOAuthProvider(GoogleApiConfig, GoogleApiConfig.authScopes, env !== 'production');
 
 const oauthRegistry = new OAuthRegistry()
-  .registerProvider(loginAuthProvider)
-  .registerProvider(new SlackOAuthProvider());
+  .registerProvider(loginAuthProvider);
+
+// TODO(burdon): Service provider.
+// .registerProvider(new SlackOAuthProvider());
 
 
 //
@@ -304,7 +306,7 @@ app.use(session({
 // Home page.
 //
 
-app.get('/home', isAuthenticated('/user/login'), function(req, res) {
+app.get('/home', function(req, res) {
   res.render('home', {
     crxUrl: Const.CRX_URL(Const.CRX_ID),
     login: true
@@ -444,6 +446,19 @@ app.use(webAppRouter(userManager, clientManager, systemStore, {
     }
   }
 }));
+
+
+//
+// Server status.
+//
+
+app.get('/status', function(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify({
+    env,
+    version: Const.APP_VERSION
+  }, null, 2));
+});
 
 
 //

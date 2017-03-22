@@ -38,17 +38,21 @@ const WEBPACK_BUNDLE = {
  */
 export const webAppRouter = (userManager, clientManager, systemStore, options) => {
   console.assert(userManager && clientManager);
+
   const router = express.Router();
 
+  //
   // Webpack assets.
+  //
   router.use('/assets', express.static(options.assets));
 
+  //
+  // Web app.
   // Path: /\/app\/(.*)/
   // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
+  //
   const path = new RegExp(options.root.replace('/', '\/') + '\/?(.*)');
-
-  // Web app.
-  router.get(path, isAuthenticated(), function(req, res, next) {
+  router.get(path, isAuthenticated('/home'), function(req, res, next) {
     let user = req.user;
     let idToken = userManager.getIdToken(user);
 
@@ -86,12 +90,6 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
 
       next();
     }).catch(next);
-  });
-
-  // Status
-  router.get('/status', function(req, res) {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(options.config, null, 2));
   });
 
   return router;

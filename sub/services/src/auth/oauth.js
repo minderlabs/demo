@@ -4,10 +4,8 @@
 
 import _ from 'lodash';
 import express from 'express';
-import google from 'googleapis';
 
 import passport from 'passport';
-import { OAuth2Strategy as GoogleStrategy } from 'passport-google-oauth';
 
 import { Logger, SystemStore } from 'minder-core';
 
@@ -19,7 +17,7 @@ const logger = Logger.get('oauth');
 // TODO(burdon): Remove FB from server.
 // TODO(burdon): Logout/invalidate.
 
-// TODO(burdon): Remove FB config (incl. server OAuth registration from FB and Google consoles).
+// TODO(burdon): Remove FB OAuth config (incl. server OAuth registration from FB and Google consoles).
 // TODO(burdon): Only set user as active if joins group (via whitelist).
 // TODO(burdon): Clean-up OAuth providers.
 // TODO(burdon): Update credentials when access_token updated by refresh_token
@@ -31,12 +29,13 @@ const logger = Logger.get('oauth');
 /**
  * Checks if the OAuth cookie has been set by passport.
  */
-// TODO(burdon): Admin version.
+// TODO(burdon): Admin option.
 export const isAuthenticated = (redirect=undefined) => (req, res, next) => {
   if (req.isAuthenticated()) {
     logger.log('Authenticated user: ' + req.user.id);
     next();
   } else {
+    logger.warn('Not authenticated: ' + req.url);
     if (redirect) {
       res.redirect(redirect);
     } else {
@@ -72,7 +71,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
    * Serialize User Item to session state.
    */
   passport.serializeUser((user, done) => {
-//  logger.log('<<<', JSON.stringify(_.pick(user, ['id', 'email'])));
+    logger.log('<<<', JSON.stringify(_.pick(user, ['id', 'email'])));
     let { id } = user;
     done(null, { id });
   });
@@ -81,7 +80,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
    * Get session state and retrieve a User Item.
    */
   passport.deserializeUser((userInfo, done) => {
-//  logger.log('>>>', JSON.stringify(userInfo));
+    logger.log('>>>', JSON.stringify(userInfo));
     let { id } = userInfo;
     userManager.getUserFromId(id).then(user => {
       if (!user) {
@@ -130,61 +129,69 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     // Register/update user.
     // TODO(burdon): Checking for and update existing user?
     // TODO(burdon): Catch exceptions: throw 500.
-//  logger.log('Credentials', JSON.stringify(credentials, null, 2));
     systemStore.registerUser(userProfile, credentials).then(user => {
+      logger.log('OAuth callback: ' + JSON.stringify(_.pick(userProfile, ['id', 'email'])));
       done(null, user);
     });
   };
 
-  // TODO(burdon): Move strategy factory to OAuthProvider.
-  // http://passportjs.org/docs/google
-  // https://github.com/jaredhanson/passport-google-oauth
-  // https://github.com/jaredhanson/passport-google-oauth2
-  let strategy = new GoogleStrategy({
-    clientID: '189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com',
-    clientSecret: 'WZypHT09Z8Fy8NHVKY3qmMFt',
-    callbackURL: 'http://localhost.net:3000/oauth/callback/google' // TODO(burdon): Use passport provider const?
-  }, loginCallback);
-
-  // TODO(burdon): Register strategies and routes for all oauth providers.
-  passport.use(strategy);
-
-  router.use('/login/google', passport.authenticate('google', {
-    // TODO(burdon): Get scopes from OAuthProvider.
-    scope: [
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
-    ],
-    accessType: 'offline',      // TODO(burdon): Only used when requesting services.
-    approvalPrompt: 'force'
-  }));
-
-  router.use('/callback/google', passport.authenticate('google', {
-    failureRedirect: '/error'
-  }), (req, res) => {
-    logger.log('Logged in: ', JSON.stringify(_.pick(req.user, ['id', 'email'])));
-
-    // TODO(burdon): Profile page (via router).
-    res.redirect('/oauth/testing');
-  });
-
-
-  // TODO(burdon): Move to loginRouter.
-  router.use('/testing', isAuthenticated(), (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(req.user));
-  });
-
-  // TODO(burdon): Logout/invalidate.
-  // router.get('/logout/:providerId', function(req, res, next) {
-  //   let { providerId } = req.params;
-  //   logger.log('Logout: ' + providerId);
-  //   let provider = oauthRegistry.getProvider(providerId);
   //
-  //   provider.revoke().then(() => {
-  //     next();
-  //   });
-  // });
+  // Register OAuth strategies.
+  //
+  _.each(oauthRegistry.providers, provider => {
+    logger.log('Registering OAuth Strategy: ' + provider.providerId);
+
+    // TODO(burdon): Document.
+    let strategy = provider.createStrategy(loginCallback);
+    passport.use(strategy);
+
+    //
+    // OAuth login.
+    //
+    router.use('/login/' + provider.providerId, passport.authenticate(provider.providerId, {
+      scope: provider.scopes,
+      approvalPrompt: 'force'
+    }));
+
+    //
+    // Registered OAuth request flow callback.
+    //
+    router.use('/callback/' + provider.providerId, passport.authenticate(provider.providerId, {
+      // TODO(burdon): Const.
+      failureRedirect: '/home'
+    }), (req, res) => {
+      logger.log('Logged in: ' + JSON.stringify(_.pick(req.user, ['id', 'email'])));
+
+      // TODO(burdon): Redirect based on context.
+      res.redirect('/app');
+    });
+  });
+
+  //
+  // OAuth test.
+  //
+  router.use('/test', function (req, res, next) {
+    let user = req.user;
+
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({
+      user
+    }, null, 2));
+  });
+
+  //
+  // Logout.
+  //
+  router.get('/logout/:providerId', function(req, res, next) {
+    let { providerId } = req.params;
+    logger.log('Logout: ' + providerId);
+
+    // TODO(burdon): Logout/invalidate.
+    let provider = oauthRegistry.getProvider(providerId);
+    provider.revoke().then(() => {
+      next();
+    });
+  });
 
   return router;
 };
@@ -219,10 +226,14 @@ export class OAuthRegistry {
  */
 export class OAuthProvider {
 
-  // TODO(burdon): Consider using passport for non-google providers?
-  // http://passportjs.org/docs/google
-
   static PATH = '/oauth';
+
+  // TODO(burdon): Document.
+  static DEFAULT_LOGIN_SCOPES = [
+    'openid',
+    'profile',
+    'email'
+  ];
 
   // Register callbacks with OAuth providers.
   static OAUTH_CALLBACK = 'https://www.minderlabs.com/oauth/callback/';
@@ -231,51 +242,10 @@ export class OAuthProvider {
   static OAUTH_TESTING_CALLBACK = 'http://localhost.net:3000/oauth/callback/';
 
   /**
-   * Passport provider ID (e.g., "google").
-   */
-  get providerId() {
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * Get the OAuth request URL.
-   */
-  get requestUrl() {
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * Return a block of html for the /accounts management page.
-   */
-  get html() {
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * Validates the (JWT) id_token.
-   *
-   * https://jwt.io/introduction
-   * https://jwt.io (Test decoding token).
-   *
-   * @param token
-   */
-  // TODO(burdon): Factor out LoginProvider.
-  verifyIdToken(idToken) {
-    throw new Error('Not implemented');
-  }
-
-  /**
-   *
-   * @param credentials
-   */
-  getUserProfile(credentials) {
-    throw new Error('Not implemented');
-  }
-
-  /**
    * Passport normalizes profile. We store an abridged version of this.
    * http://passportjs.org/docs/profile
    * https://github.com/google/google-api-nodejs-client/blob/master/apis/oauth2/v2.js
+   * TODO(burdon): Document profile.
    *
    * @param userProfile
    * @returns {UserProfile}
@@ -287,184 +257,63 @@ export class OAuthProvider {
       id, email, displayName, imageUrl
     };
   }
-}
 
-/**
- * Google.
- *
- * https://developers.google.com/identity/protocols/OAuth2WebServer
- *
- * ### Node ###
- * Officially "supported" Node ("google") librarys:
- * https://github.com/google/google-api-nodejs-client
- * http://google.github.io/google-api-nodejs-client/18.0.0/index.html
- *
- * ### Web Client ###
- * Vs. Completely separate set of Web Client ("gapi") library:
- * https://developers.google.com/api-client-library/javascript/features/authentication
- * https://developers.google.com/api-client-library/javascript/reference/referencedocs
- *
- * ### Testing ###
- * chrome://identity-internals (revoke auth)>.
- * https://myaccount.google.com/permissions (revoke app permissions).
- * https://www.googleapis.com/oauth2/v1/tokeninfo?{id_token|access_token}=XXX (validate token).
- */
-export class GoogleOAuthProvider extends OAuthProvider {
-
-  // https://developers.google.com/identity/protocols/googlescopes
-  static SCOPES = [
-    'https://www.googleapis.com/auth/plus.me',
-    'https://www.googleapis.com/auth/userinfo.email'
-  ];
-
-  constructor(config, scope=GoogleOAuthProvider.SCOPES) {
-    super();
-
-    this._config = config;
-
-    // TODO(burdon): Scopes should be dynamic (from service registry).
-    this._scope = scope;
-
-    // Move client out of provider? Make stateless?
-    this._oauth2Client = null;
-  }
-
-  init(testing=false) {
-
-    // https://console.developers.google.com/apis/credentials?project=minder-beta
-    let callback = (testing ? OAuthProvider.OAUTH_TESTING_CALLBACK : OAuthProvider.OAUTH_CALLBACK) +
-      SystemStore.sanitizeKey(this.providerId);
-
-    // TODO(burdon): Get Const from config.
-    // TODO(burdon): Factor out (and pass in) client with setCredentials method below (for use in subsequent API calls).
-    // https://github.com/google/google-api-nodejs-client/#oauth2-client
-    // https://github.com/google/google-api-nodejs-client/blob/master/apis/oauth2/v2.js
-    this._oauth2Client = new google.auth.OAuth2(
-      this._config.clientId,
-      this._config.clientSecret,
-      callback
-    );
-
-    // TODO(burdon): Implement revoke.
-    // https://developers.google.com/identity/protocols/OAuth2UserAgent#tokenrevoke
-
-    // TODO(burdon): See "prompt" argument.
-    // https://developers.google.com/identity/protocols/OAuth2WebServer#redirecting
-
-    // NOTE: The refresh_token is only returned when it is FIRST REQUESTED.
-    // We need to unregister offline access then re-request it to obtain the token.
-    // This can be done manually via: https://myaccount.google.com/permissions
-    this._requestUrl = this._oauth2Client.generateAuthUrl({
-      access_type: 'offline',
-
-      // TODO(burdon): Dynamic from registry.
-      scope: this._scope
-    });
-
-    return this;
-  }
-
-  get providerId() {
-    return 'google';
-  }
-
-  get requestUrl() {
-    return this._requestUrl;
-  }
-
-  get html() {
-    // https://developers.google.com/identity/branding-guidelines
-    return (
-      '<a href="' + this.requestUrl + '">' +
-        '<img alt="Google Login" src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png">' +
-      '</a>'
-    );
+  /**
+   * Login scopes.
+   */
+  get scopes() {
+    return OAuthProvider.DEFAULT_LOGIN_SCOPES;
   }
 
   /**
-   * Testing:
-   * https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=XXX
+   * Passport provider ID (e.g., "google").
+   */
+  get providerId() {
+    throw new Error('Not implemented');
+  }
+
+  /**
+   * Return a block of html for the /accounts management page.
+   */
+  get html() {
+    throw new Error('Not implemented');
+  }
+
+  /**
+   * Creates the Passport strategy.
+   * http://passportjs.org/docs/google
+   *
+   * @param loginCallback
+   */
+  createStrategy(loginCallback) {
+    throw new Error('Not implemented');
+  }
+
+  /**
+   * Validates the (JWT) id_token.
+   *
+   * https://jwt.io/introduction
+   * https://jwt.io (Test decoding token).
+   *
+   * @param idToken
    */
   verifyIdToken(idToken) {
-    console.assert(idToken);
-
-    return new Promise((resolve, reject) => {
-      // https://developers.google.com/identity/sign-in/web/backend-auth
-      // https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation
-      this._oauth2Client.verifyIdToken(idToken, this._config.clientId, (error, response) => {
-        if (error) {
-          console.error('Invalid id_token: ' + idToken);
-          throw new Error(error);
-        }
-
-        let { iss, aud: clientId, sub: id, email, email_verified } = response.getPayload();
-        console.assert(iss === 'accounts.google.com');
-        console.assert(clientId === this._config.clientId);
-        console.assert(email_verified);
-
-        let tokenInfo = { id, email };
-        logger.log('Decoded id_token:', JSON.stringify(tokenInfo));
-        resolve(tokenInfo);
-      });
-    });
+    throw new Error('Not implemented');
   }
 
+  /**
+   * Uses the OAuth API to retrieve the user's profile.
+   *
+   * @param credentials
+   */
   getUserProfile(credentials) {
-    console.assert(credentials);
-
-    return new Promise((resolve, reject) => {
-
-      // TODO(burdon): Client factory.
-      this._oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));
-
-      // TODO(burdon): Factor out.
-      let plus = google.plus('v1');
-      plus.people.get({
-        userId: 'me',
-        auth: this._oauth2Client
-      }, (error, profile) => {
-        if (error) {
-          throw new Error(error);
-        }
-
-        resolve(OAuthProvider.getCanonicalUserProfile(profile));
-      });
-    });
+    throw new Error('Not implemented');
   }
 
-  // TODO(burdon): Revoke.
-  // revoke() {
-  //   return new Promise((resolve, reject) => {
-  //     this._oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));
-  //     this._oauth2Client.revokeCredentials((error, result) => {
-  //       if (error) {
-  //         throw new Error(error);
-  //       }
-  //
-  //       resolve();
-  //     });
-  //   });
-  // }
-}
-
-/**
- * Slack.
- */
-export class SlackOAuthProvider extends OAuthProvider {
-
-  get providerId() {
-    return 'slack';
-  }
-
-  get requestUrl() {
-    return '/botkit/login';
-  }
-
-  get html() {
-    return (
-      '<a href="' + this.requestUrl + '">' +
-        '<img alt="Add to Slack" height=40 width="139" src="https://platform.slack-edge.com/img/add_to_slack.png">' +
-      '</a>'
-    );
+  /**
+   * Revokes the OAuth credentials.
+   */
+  revokeCredentials(credentials) {
+    throw new Error('Not implemented');
   }
 }

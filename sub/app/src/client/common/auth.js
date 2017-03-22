@@ -68,6 +68,15 @@ export class AuthManager {
     logger.log('Authenticating...');
     return new Promise((resolve, reject) => {
 
+      // TODO(burdon): Return now if web.
+      // TODO(burdon): Standardize userProfile and registration.
+      let platform = _.get(this._config, 'app.platform');
+      if (platform === Const.PLATFORM.WEB) {
+        let registration = _.get(this._config.registration);
+        this._token = registration.idToken;
+        resolve(registration);
+      }
+
       // TODO(burdon): Factor out client provider.
       const OAuthProvider = {
         provider: 'google',
@@ -128,6 +137,8 @@ export class AuthManager {
         let credentials = _.assign(_.pick(responseParams, ['access_token', 'id_token']), {
           provider: OAuthProvider.provider
         });
+
+        this._token = credentials.id_token;
 
         this.registerUser(credentials).then(userProfile => {
           console.log('############', JSON.stringify(userProfile, 0, 2));
