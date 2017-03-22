@@ -183,6 +183,8 @@ input FilterInput {
   # TODO(madadam): Specify aggregation key here?
   groupBy: Boolean
 
+  # Context information, as KeyValue pairs extracted from the user's environment or recent history.
+  # Used for "queryless" search or for context-sensitive ranking.
   context: [KeyValue]
 }
 

@@ -83,12 +83,9 @@ export class SlackQueryProcessor extends QueryProcessor {
    * @return {Promise} of array of Person card items.
    */
   convertToPersonCards(slackUserIds, bot, slackApiToken) {
-    let promises = [];
-    _.each(slackUserIds, slackUserId => {
-      // TODO(madadam): Batch API calls? I don't see any support for batch in Slack API docs.
-      promises.push(
-        this._botManager.slackbot.getUserInfo(slackUserId, bot, slackApiToken)
-      );
+    // TODO(madadam): Batch API calls? I don't see any support for batch in Slack API docs.
+    let promises = _.map(slackUserIds, slackUserId => {
+      return this._botManager.slackbot.getUserInfo(slackUserId, bot, slackApiToken);
     });
     return Promise.all(promises);
   }
@@ -101,15 +98,13 @@ export class SlackQueryProcessor extends QueryProcessor {
   getUsersForChannel(slackChannelId, bot, slackApiToken) {
     return new Promise((resolve, reject) => {
       bot.api.channels.info(
-        {token: slackApiToken, channel: slackChannelId},
+        { token: slackApiToken, channel: slackChannelId },
         (err, response) => {
           if (err) {
             reject(err);
           }
-          resolve(_.get(response, 'channel'));
+          resolve(_.get(response, 'channel.members', []));
         });
-    }).then(channel => {
-      return _.get(channel, 'members', []);
     });
   }
 
@@ -119,7 +114,10 @@ export class SlackQueryProcessor extends QueryProcessor {
 
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     let slackChannel = QueryUtil.getContextKey(filter, 'slack_channel');
-    if (slackChannel && !filter.text) {
+
+    if (filter.text || !slackChannel) {
+      return this._search(filter.text);
+    } else {
       let bot = this.getBot();
       let slackApiToken = _.get(bot, 'config.incoming_webhook.token'); // same as bot.config.bot.app_token?
 
@@ -132,8 +130,6 @@ export class SlackQueryProcessor extends QueryProcessor {
           })
       });
     }
-
-    return this._search(filter.text);
   }
 
   _search(query) {

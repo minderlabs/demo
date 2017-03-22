@@ -144,10 +144,8 @@ class ContentScript {
         return;
       }
 
-      let { data } = event;
-
       // TODO(madadam): Support all SidebarCommands?
-
+      let { data } = event;
       if (data.command === SidebarCommand.SET_VISIBILITY ) {
         let promise;
         if (data.open === true) {

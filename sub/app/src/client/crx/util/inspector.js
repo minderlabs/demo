@@ -28,7 +28,7 @@ export class InspectorRegistry {
     // TODO(burdon): Wait for load. Match URL and dynamically find root each time.
     setTimeout(() => {
       _.each(this._inspectors, inspector => {
-        if (inspector.isValid()) {
+        if (inspector.shouldObservePage()) {
           let { context, rootNode } = inspector.getPageState();
           if (context) {
             // TODO(madadam): This happens too early, before the sidebar is loaded. Need to keep it cached
@@ -84,9 +84,12 @@ class Inspector {
   }
 
   /**
-   * @return {boolean} Returns true if this inspector is valid.
+   * @return {boolean} Returns true if this inspector should start observers for the current page.
+   *
+   * Note that this is only called once, but in dynamic web apps, window.location.href can change
+   * without reloading the page. Observers are responsible for handling that.
    */
-  isValid() {
+  shouldObservePage() {
     return false;
   }
 
@@ -129,7 +132,7 @@ export class TestInspector extends Inspector {
 
   static PATH = '/testing/crx';
 
-  isValid() {
+  shouldObservePage() {
     return document.location.href.endsWith(TestInspector.PATH);
   }
 
@@ -174,7 +177,7 @@ export class GmailInspector extends Inspector {
 
   static PATH = 'https://mail.google.com';
 
-  isValid() {
+  shouldObservePage() {
     return document.location.href.startsWith(GmailInspector.PATH);
   }
 
@@ -226,7 +229,7 @@ export class GoogleInboxInspector extends Inspector {
 
   static PATH = 'https://inbox.google.com';
 
-  isValid() {
+  shouldObservePage() {
     return document.location.href.startsWith(GoogleInboxInspector.PATH);
   }
 
@@ -269,18 +272,21 @@ export class GoogleInboxInspector extends Inspector {
   }
 }
 
+/**
+ * Slack Inspector
+ */
 export class SlackInspector extends Inspector {
 
   static PATH_RE = /https:\/\/([^\.]+)\.slack\.com\/messages\/([^\/]+)\//;
 
-  isValid() {
+  shouldObservePage() {
     this._matches = document.location.href.match(SlackInspector.PATH_RE);
     return this._matches;
   }
 
   getContextFromDocumentLocation() {
-    this._matches = document.location.href.match(SlackInspector.PATH_RE);
     let context = [];
+    this._matches = document.location.href.match(SlackInspector.PATH_RE);
     if (this._matches && this._matches.length == 3) {
       context = [
         {
@@ -294,7 +300,7 @@ export class SlackInspector extends Inspector {
           value: {
             string: this._matches[2]
           }
-        },
+        }
       ]
     }
     // TODO(madadam): Unify other uses (email) and return context (array of KeyValues) not dict { context: [..] }.

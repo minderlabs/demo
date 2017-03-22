@@ -203,6 +203,7 @@ export class Database {
 
     //
     // Join stored items with external items.
+    // TODO(madadam): Factor this out into merge helper, and write tests.
     //
     return Promise.all(promises)
       .then(results => {

@@ -70,8 +70,8 @@ export class SlackBot {
     })
       .then(userInfo => {
         let email = _.get(userInfo, 'profile.email');
-        let fullName = _.get(userInfo, 'profile.real_name') ||
-          (_.get(userInfo, 'profile.first_name', '') + _.get(userInfo, 'profile.last_name', ''));
+        let fullName = _.get(userInfo, 'profile.real_name',
+          _.compact(_.at(userInfo, ['profile.first_name', 'profile.last_name'])).join(' '));
         let slackUserId = userInfo.id;
         console.assert(email);
         // TODO(madadam): Query userStore by email.
@@ -89,8 +89,9 @@ export class SlackBot {
               return {
                 type: 'Contact',
                 namespace: SlackQueryProcessor.NAMESPACE,
+                // TODO(madadam): generate random ID and stick this in fkey? See discussion in PR#81.
                 id: slackUserId, // Foreign key
-                title: fullName,
+                title: fullName, // TODO(madadam): displayName?
                 email
               };
             }
