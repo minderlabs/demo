@@ -127,6 +127,8 @@ export class ContextManager {
   updateCache(items) {
     logger.log('Updated cache: ' + JSON.stringify(_.map(items, i => _.pick(i, ['id', 'type', 'email']))));
 
+    // TODO(madadam): cache by foreign key instead of email?
+
     // TODO(burdon): Reset cache.
     _.each(items, item => {
       let email = item.email;
@@ -143,6 +145,8 @@ export class ContextManager {
    */
   injectItems(items) {
 
+    let seenKeys = new Map();
+
     // For each transient item in the context.
     _.each(_.get(this._context, 'items'), item => {
       if (item.email) {
@@ -152,6 +156,7 @@ export class ContextManager {
         let match = this.findMatch(this._cache, item);
         if (match) {
           item = match;
+          seenKeys[item.email] = true;
         }
 
         // Look for item in current list.
@@ -165,6 +170,14 @@ export class ContextManager {
           items.unshift(item);
         }
       }
+    });
+
+    // Inject remaining cached items that *didn't* match any of the "contextual" (synthetic client-side) items.
+    _.each(this._cache, item => {
+      if (item.email && seenKeys[item.email]) {
+        return;
+      }
+      items.push(item);
     });
 
     return items;

@@ -29,12 +29,10 @@ export class InspectorRegistry {
     setTimeout(() => {
       _.each(this._inspectors, inspector => {
         if (inspector.isValid()) {
-          // FIXME: change the interace -- two passes of state:
-          // 1) state = getPageState() -- at page load time (equiv of getRootNode now) (and callback(context) once)
-          //   ---> { context, rootNode }
-          // 2) start(state, callback) -- start listening for mutations,
           let { context, rootNode } = inspector.getPageState();
           if (context) {
+            // TODO(madadam): This happens too early, before the sidebar is loaded. Need to keep it cached
+            // and supply it when the sidebar is done loading.
             callback(context);
           }
           if (rootNode) {
@@ -280,8 +278,8 @@ export class SlackInspector extends Inspector {
     return this._matches;
   }
 
-  // FIXME This needs to be called again when the tab location changes.
-  getInitialContext() {
+  getContextFromDocumentLocation() {
+    this._matches = document.location.href.match(SlackInspector.PATH_RE);
     let context = [];
     if (this._matches && this._matches.length == 3) {
       context = [
@@ -303,6 +301,18 @@ export class SlackInspector extends Inspector {
     return {
       context
     };
+  }
+
+  getInitialContext() {
+    return this.getContextFromDocumentLocation();
+  }
+
+  getRootNode() {
+    return $('#client_header')[0];
+  }
+
+  inspect(mutations) {
+    return this.getContextFromDocumentLocation();
   }
 
 }
