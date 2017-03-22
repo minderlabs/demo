@@ -72,7 +72,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
    * Serialize User Item to session state.
    */
   passport.serializeUser((user, done) => {
-    logger.log('<<<', JSON.stringify(_.pick(user, ['id', 'email'])));
+//  logger.log('<<<', JSON.stringify(_.pick(user, ['id', 'email'])));
     let { id } = user;
     done(null, { id });
   });
@@ -81,7 +81,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
    * Get session state and retrieve a User Item.
    */
   passport.deserializeUser((userInfo, done) => {
-    logger.log('>>>', JSON.stringify(userInfo));
+//  logger.log('>>>', JSON.stringify(userInfo));
     let { id } = userInfo;
     userManager.getUserFromId(id).then(user => {
       if (!user) {
@@ -91,23 +91,27 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     });
   });
 
-  // http://passportjs.org/docs/google
-  // https://github.com/jaredhanson/passport-google-oauth
-  // https://github.com/jaredhanson/passport-google-oauth2
-  passport.use(new GoogleStrategy({
-    clientID: '189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com',
-    clientSecret: 'WZypHT09Z8Fy8NHVKY3qmMFt',
-    callbackURL: 'http://localhost.net:3000/oauth/callback/google'      // TODO(burdon): Use passport const?
-  }, (accessToken, refreshToken, params, profile, done) => {
+  /**
+   * Called when OAuth login flow completes.
+   * TODO(burdon): Cite documentation for callback signature (params is not in the docs).
+   *
+   * @param accessToken
+   * @param refreshToken
+   * @param params
+   * @param profile
+   * @param done
+   */
+  let loginCallback = (accessToken, refreshToken, params, profile, done) => {
+    console.assert(accessToken);
+
     let { id_token, token_type, expires_in } = params;
     console.assert(id_token && token_type && expires_in);
 
-    // TODO(burdon): Catch exceptions: throw 500.
-
-    let { provider: providerId, id } = profile;
+    let { provider, id } = profile;
+    console.assert(provider && id);
 
     let credentials = {
-      provider: providerId,
+      provider,
       id,
       id_token,                           // JWT
       access_token: accessToken,
@@ -120,24 +124,38 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
       credentials.refresh_token = refreshToken;
     }
 
-    // http://passportjs.org/docs/profile
-    // Get user profile (in particular email address).
-    let provider = oauthRegistry.getProvider(providerId);
-    let userProfile = provider.getCanonicalUserProfile(profile);
+    // Get user profile.
+    let userProfile = OAuthProvider.getCanonicalUserProfile(profile);
 
     // Register/update user.
+    // TODO(burdon): Checking for and update existing user?
+    // TODO(burdon): Catch exceptions: throw 500.
 //  logger.log('Credentials', JSON.stringify(credentials, null, 2));
     systemStore.registerUser(userProfile, credentials).then(user => {
       done(null, user);
     });
-  }));
+  };
+
+  // TODO(burdon): Move strategy factory to OAuthProvider.
+  // http://passportjs.org/docs/google
+  // https://github.com/jaredhanson/passport-google-oauth
+  // https://github.com/jaredhanson/passport-google-oauth2
+  let strategy = new GoogleStrategy({
+    clientID: '189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com',
+    clientSecret: 'WZypHT09Z8Fy8NHVKY3qmMFt',
+    callbackURL: 'http://localhost.net:3000/oauth/callback/google' // TODO(burdon): Use passport provider const?
+  }, loginCallback);
+
+  // TODO(burdon): Register strategies and routes for all oauth providers.
+  passport.use(strategy);
 
   router.use('/login/google', passport.authenticate('google', {
+    // TODO(burdon): Get scopes from OAuthProvider.
     scope: [
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile',
     ],
-    accessType: 'offline',
+    accessType: 'offline',      // TODO(burdon): Only used when requesting services.
     approvalPrompt: 'force'
   }));
 
@@ -145,11 +163,14 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     failureRedirect: '/error'
   }), (req, res) => {
     logger.log('Logged in: ', JSON.stringify(_.pick(req.user, ['id', 'email'])));
-    res.redirect('/oauth/test');
+
+    // TODO(burdon): Profile page (via router).
+    res.redirect('/oauth/testing');
   });
 
-  // TODO(burdon): Remove.
-  router.use('/test', isAuthenticated(), (req, res) => {
+
+  // TODO(burdon): Move to loginRouter.
+  router.use('/testing', isAuthenticated(), (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(req.user));
   });
@@ -259,7 +280,7 @@ export class OAuthProvider {
    * @param userProfile
    * @returns {UserProfile}
    */
-  getCanonicalUserProfile(userProfile) {
+  static getCanonicalUserProfile(userProfile) {
     let { id, emails, displayName, imageUrl } = userProfile;
     let email = _.get(_.find(emails, email => email.type === 'account'), 'value');
     return {
@@ -406,7 +427,7 @@ export class GoogleOAuthProvider extends OAuthProvider {
           throw new Error(error);
         }
 
-        resolve(this.getCanonicalUserProfile(profile));
+        resolve(OAuthProvider.getCanonicalUserProfile(profile));
       });
     });
   }
