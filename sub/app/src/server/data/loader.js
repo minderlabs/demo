@@ -4,8 +4,7 @@
 
 import _ from 'lodash';
 
-import { Logger, Database, ID, TypeUtil } from 'minder-core';
-import { Resolvers } from 'minder-graphql';
+import { Logger, Database, TypeUtil } from 'minder-core';
 
 const logger = Logger.get('loader');
 
@@ -28,77 +27,74 @@ export class Loader {
    * Parse data file.
    * @param data JSON data file.
    * @param namespace
+   * @param index Regular expression to identify items.
    */
-  parse(data, namespace=Database.NAMESPACE.USER) {
-    return this.parseItems(_.get(data, 'Items'), namespace)
-      .then(() => this.parseMutations(_.get(data, 'Mutations'), namespace));
-  }
+  parse(data, namespace=Database.NAMESPACE.USER, index) {
+    console.assert(data && namespace && index);
+    logger.log('Parsing data: ' + index);
 
-  /**
-   * Parse item defs.
-   */
-  parseItems(itemsByType, namespace) {
-
-    // In testing use alias as ID (for test file ID resolution).
+    // Build map of items.
     let itemsByAlias = new Map();
+    TypeUtil.traverse(data, (value, key, root, path) => {
+      let match = path.match(index);
+      if (match) {
+        let item = value;
+        let type = match[1];
+        match.splice(0, 2);
 
-    // Iterate each item by type.
-    let parsedItems = TypeUtil.flattenArrays(_.map(itemsByType, (items, type) => {
-
-      // Iterate items.
-      return _.map(items, (item) => {
+        item.alias = match.join('/');
         item.type = type;
 
-        // If testing, use alias as ID.
-        if (this._testing && item.alias) {
-          itemsByAlias.set(item.alias, item);
-          item.id = item.alias;
-        }
-
-        // TODO(burdon): Factor out special type handling.
-        // NOTE: The GraphQL schema defines filter as an input type.
-        // In order to "store" the filter within the Folder's filter property, we need
-        // to serialize it to a string (otherwise we need to create parallel output type defs).
         switch (type) {
-
-          case 'Project': {
-            item.bucket = item.group;
-            break;
-          }
-
           case 'Folder': {
             item.filter = JSON.stringify(item.filter);
             break;
           }
         }
 
-        return item;
-      });
-    }));
-
-    return this._database.getItemStore(namespace).upsertItems({}, parsedItems);
-  }
-
-  /**
-   * Parse item mutations.
-   */
-  parseMutations(itemMutations, namespace) {
-    if (!itemMutations) {
-      return Promise.resolve([]);
-    }
-
-    // Translate local IDs to remote IDs.
-    TypeUtil.traverse(itemMutations, (value, key, root) => {
-      if (key === '@itemId') {
-        delete root['@itemId'];
-        let { type, id:localId } = value;
-        root.itemId = ID.toGlobalId(type, localId);
+//      console.log(item.alias + ' = ' + TypeUtil.stringify(item));
+        itemsByAlias.set(item.alias, item);
+        return false;
       }
     });
 
+    let aliases = Array.from(itemsByAlias.keys());
+
+    // Filter for items with matching aliases.
+    let filter = {
+      expr: {
+        op: 'OR',
+        expr: _.map(aliases, alias => ({
+          field: 'alias',
+          value: {
+            string: alias
+          }
+        }))
+      }
+    };
+
+    // Lookup up items with alias.
     let itemStore = this._database.getItemStore(namespace);
-    return Resolvers.processMutations(itemStore, {}, itemMutations);
+    return itemStore.queryItems({}, {}, filter).then(matchedItems => {
+
+      // Update ID of mapped items and merge.
+      _.each(matchedItems, item => {
+        let alias = item.alias;
+        let parsed = itemsByAlias.get(alias);
+
+        // Merge.
+        _.assign(item, parsed);
+        itemsByAlias.set(alias, item);
+      });
+
+      let items = Array.from(itemsByAlias.values());
+
+      return itemStore.upsertItems({}, items);
+    });
   }
+
+  // TODO(burdon): Map queries from bucket (for item stores).
+  // TODO(burdon): Create project for each group.
 
   /**
    * Initialize group members.

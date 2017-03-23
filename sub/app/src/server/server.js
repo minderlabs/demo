@@ -197,28 +197,6 @@ if (_.get(process.env, 'MINDER_BOTKIT', false)) {
 
 
 //
-// Data initialization.
-//
-
-let loader = new Loader(database, testing);
-
-logger.log('Loading data...');
-let loading = Promise.all([
-  // Do in parallel.
-  loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM),
-  loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS)
-]).then(() => {
-  logger.log('Initializing groups...');
-  return loader.initGroups().then(() => {
-    if (testing) {
-      logger.log('Generating test data...');
-      return new TestGenerator(database).generate();
-    }
-  });
-});
-
-
-//
 // Hot loader.
 // NOTE: Must come first.
 //
@@ -272,10 +250,14 @@ app.set('views', path.join(__dirname, MINDER_VIEWS_DIR));
 // Logging.
 //
 
+// TODO(burdon): ???
 if (env === 'production') {
   app.use('/', loggingRouter({}));
 } else {
-  app.use('/testing', testingRouter({}));
+  app.use((req, res, next) => {
+    logger.log(req.method, req.url);
+    next();  // Call actual route.
+  });
 }
 
 
@@ -316,6 +298,15 @@ app.get('/home', function(req, res) {
 app.get('/welcome', function(req, res) {
   res.render('home', {});
 });
+
+
+//
+// Testing.
+//
+
+if (env !== 'production') {
+  app.get('/testing', testingRouter({}));
+}
 
 
 //
@@ -391,7 +382,7 @@ app.get('/graphiql', isAuthenticated(), function(req, res) {
 // TODO(burdon): Factor out path constants (e.g., OAuthProvider.PATH).
 //
 
-app.use(OAuthProvider.PATH, oauthRouter(userManager, systemStore, oauthRegistry, { env }));
+app.use(OAuthProvider.PATH, oauthRouter(userManager, systemStore, oauthRegistry, { app, env }));
 
 app.use('/user', loginRouter(userManager, oauthRegistry, systemStore, {
   env,
@@ -500,11 +491,32 @@ app.get(function(req, res) {
 
 app.get(function(error, req, res) {
   if (error === NotAuthenticatedError) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   logger.error(error.stack);
   res.status(500).end();
+});
+
+
+//
+// Test data.
+//
+
+let loader = new Loader(database, testing);
+let loading = Promise.all([
+  // Do in parallel.
+  loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM, /^(Group)\.(.+)\.(.+)$/),
+  loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS, /^(Folder)\.(.+)$/)
+]).then(() => {
+  logger.log('Initializing groups...');
+  return loader.initGroups().then(() => {
+    if (testing) {
+      logger.log('Generating test data...');
+      return new TestGenerator(database).generate();
+    }
+  });
 });
 
 

@@ -36,7 +36,9 @@ export class SystemStore extends DelegateItemStore {
    */
   static createUserId(provider, userId) {
     console.assert(provider, userId);
-    return SystemStore.sanitizeKey(provider) + '/' + userId;
+
+    // TODO(burdon): Change to '/' (fix hierarchical keys for FirebaseItemStore).
+    return SystemStore.sanitizeKey(provider) + '-' + userId;
   }
 
   constructor(itemStore) {
@@ -172,7 +174,7 @@ export class SystemStore extends DelegateItemStore {
     console.assert(provider, 'Invalid credentials: ' + JSON.stringify(credentials));
 
     //
-    // Check of existing user.
+    // Check for existing user.
     //
     return this.getUser(SystemStore.createUserId(provider, id)).then(user => {
       if (!user) {
@@ -198,10 +200,14 @@ export class SystemStore extends DelegateItemStore {
           if (!group) {
             user.active = false;
             logger.log('User not whitelisted: ' + JSON.stringify({ id, email }));
+          } else {
+            user.active = true;
           }
 
           // Create new user record.
           return this.updateUser(user).then(user => {
+
+            console.log('222222', user.id, user.active);
 
             // Add user to group.
             if (user.active) {

@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { BaseItemStore, Logger, QueryProcessor } from 'minder-core';
+import { BaseItemStore, Logger, QueryProcessor, TypeUtil } from 'minder-core';
 
 const logger = Logger.get('store.firebase');
 
@@ -36,6 +36,7 @@ export class FirebaseItemStore extends BaseItemStore {
    */
   key(args=[]) {
     _.each(args, arg => console.assert(!_.isNil(arg), 'Invalid key: ' + JSON.stringify(args)));
+
     return '/' + this.namespace + '/' + args.join('/');
   }
 
@@ -86,13 +87,25 @@ export class FirebaseItemStore extends BaseItemStore {
    */
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
 
+    // TODO(burdon): Buckets should return flattened roots?
+
     // Gather results for all buckets.
     let promises = _.map(this.getBucketKeys(context), key => this._getValue(key));
     return Promise.all(promises).then(buckets => {
       let items = [];
       _.each(buckets, typeMap => {
         _.each(typeMap, (itemMap, type) => {
+
+          // TODO(burdon): Iterator (by type?).
+          // NS/Type/Bucket/ID
+          // NS/Bucket/Type/ID == standars (separate user/group NS?)
+
           _.each(itemMap, (item, key) => {
+
+            // TODO(burdon): HOW TO KNOW TO FLATTEN?
+            // if (type === 'User')
+            // console.log('ITEM: >>>>>>>>>', TypeUtil.stringify(item, 2));
+
             items.push(item);
           });
         });

@@ -6,6 +6,8 @@ import _ from 'lodash';
 
 import { HttpUtil } from 'minder-core';
 
+import { Const } from '../../common/defs';
+
 import { NetUtil } from './net';
 
 const logger = Logger.get('auth');

@@ -26,32 +26,33 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
   // Registers the client.
   //
   router.post('/register', function(req, res, next) {
-    return userManager.getUserFromHeader(req.headers, true)
+    userManager.getUserFromHeader(req.headers, true)
       .then(user => {
         let { platform, messageToken } = req.body;
 
         // Register the client (and create it if necessary).
         let clientId = req.headers[Const.HEADER.CLIENT_ID];
-        let client = clientManager.register(user.id, platform, clientId, messageToken);
-        if (!client) {
-          return res.status(400).send({ message: 'Invalid client.' });
-        }
+        clientManager.register(user.id, platform, clientId, messageToken).then(client => {
+          if (!client) {
+            logger.warn('Invalid client: ' + clientId);
+            res.status(400).send({ message: 'Invalid client: ' + clientId });
+            return;
+          }
 
-        // Get group.
-        // TODO(burdon): Remove group.
-        return systemStore.getGroup(user.id)
-          .then(group => {
+          // Get group.
+          // TODO(burdon): Remove group.
+          return systemStore.getGroup(user.id)
+            .then(group => {
 
-            // Registration info.
-            res.send({
-              timestamp: client.registered,
-              userId: user.id,
-              clientId: client.id,
-              groupId: group.id   // TODO(burdon): Remove group.
+              // Registration info.
+              res.send({
+                timestamp: client.registered,
+                userId: user.id,
+                clientId: client.id,
+                groupId: group.id   // TODO(burdon): Remove group.
+              });
             });
-
-            next();
-          });
+        })
       })
       .catch(next);
   });
@@ -64,9 +65,7 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
       .then(user => {
         let clientId = req.headers[Const.HEADER.CLIENT_ID];
         clientManager.unregister(user.id, clientId);
-
         res.end();
-        next();
       })
       .catch(next);
   });
@@ -132,7 +131,7 @@ export class ClientManager {
    * CRX: Created when the app registers.
    * @param userId
    * @param platform
-   * @returns {Client}
+   * @returns {Promise<Client>}
    */
   create(userId, platform) {
     console.assert(userId && platform, JSON.stringify({ userId, platform }));
@@ -146,9 +145,10 @@ export class ClientManager {
       registered: null
     };
 
+    // TODO(burdon): Make async.
     this._clients.set(client.id, client);
     logger.log('Created: ' + client.id);
-    return client;
+    return Promise.resolve(client);
   }
 
   /**
@@ -158,7 +158,7 @@ export class ClientManager {
    * @param platform
    * @param clientId
    * @param messageToken
-   * @returns {Client}
+   * @returns {Promise<Client>}
    */
   register(userId, platform, clientId, messageToken=undefined) {
     console.assert(userId && platform, JSON.stringify({ userId, platform, clientId }));
@@ -181,7 +181,7 @@ export class ClientManager {
     client.messageToken = messageToken;
     client.registered = moment().unix();
     logger.log('Registered: ' + clientId);
-    return client;
+    return Promise.resolve(client);
   }
 
   /**
@@ -189,6 +189,7 @@ export class ClientManager {
    * @param userId
    * @param clientId
    */
+  // TODO(burdon): Async.
   unregister(userId, clientId) {
     console.assert(userId && clientId, JSON.stringify({ userId, clientId }));
 

@@ -4,7 +4,6 @@
 
 import _ from 'lodash';
 import express from 'express';
-
 import passport from 'passport';
 
 import { Logger, SystemStore } from 'minder-core';
@@ -17,6 +16,7 @@ const logger = Logger.get('oauth');
 // TODO(burdon): Remove FB from server.
 // TODO(burdon): Logout/invalidate.
 
+// TODO(burdon): Consistent error handling and logging (throw Error with 400, 401, 500, etc. and catch at end).
 // TODO(burdon): Remove FB OAuth config (incl. server OAuth registration from FB and Google consoles).
 // TODO(burdon): Only set user as active if joins group (via whitelist).
 // TODO(burdon): Clean-up OAuth providers.
@@ -25,9 +25,12 @@ const logger = Logger.get('oauth');
 // TODO(burdon): 401 and 500 handling.
 // TODO(burdon): Admin group and auth check.
 
+// TODO(burdon): Group ID by org?
+
 
 /**
  * Checks if the OAuth cookie has been set by passport.
+ * NOTE: Browser prefetch may call methods twice.
  */
 // TODO(burdon): Admin option.
 export const isAuthenticated = (redirect=undefined) => (req, res, next) => {
@@ -58,10 +61,12 @@ export const isAuthenticated = (redirect=undefined) => (req, res, next) => {
 export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) => {
   console.assert(userManager && systemStore && oauthRegistry && config);
 
-  let router = express.Router();
+  // Must be global.
+  console.assert(config.app);
+  config.app.use(passport.initialize());
+  config.app.use(passport.session());
 
-  router.use(passport.initialize());
-  router.use(passport.session());
+  let router = express.Router();
 
   // TODO(burdon): Session store: https://github.com/expressjs/session#compatible-session-stores
   //               https://www.npmjs.com/package/connect-redis
@@ -71,7 +76,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
    * Serialize User Item to session state.
    */
   passport.serializeUser((user, done) => {
-    logger.log('<<<', JSON.stringify(_.pick(user, ['id', 'email'])));
+    logger.log('===>> ' + JSON.stringify(_.pick(user, ['id', 'email'])));
     let { id } = user;
     done(null, { id });
   });
@@ -80,12 +85,13 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
    * Get session state and retrieve a User Item.
    */
   passport.deserializeUser((userInfo, done) => {
-    logger.log('>>>', JSON.stringify(userInfo));
+    logger.log('<<=== ' + JSON.stringify(userInfo));
     let { id } = userInfo;
     userManager.getUserFromId(id).then(user => {
       if (!user) {
         logger.warn('Invalid User ID: ' + id);
       }
+
       done(null, user);
     });
   });
@@ -147,8 +153,10 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
     //
     // OAuth login.
+    // http://passportjs.org/docs/google
+    // TODO(burdon): Google is specific so OAuthProvider should define router.
     //
-    router.use('/login/' + provider.providerId, passport.authenticate(provider.providerId, {
+    router.get('/login/' + provider.providerId, passport.authenticate(provider.providerId, {
       scope: provider.scopes,
       approvalPrompt: 'force'
     }));
@@ -156,7 +164,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     //
     // Registered OAuth request flow callback.
     //
-    router.use('/callback/' + provider.providerId, passport.authenticate(provider.providerId, {
+    router.get('/callback/' + provider.providerId, passport.authenticate(provider.providerId, {
       // TODO(burdon): Const.
       failureRedirect: '/home'
     }), (req, res) => {
@@ -170,9 +178,8 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   //
   // OAuth test.
   //
-  router.use('/test', function (req, res, next) {
+  router.get('/test', isAuthenticated('/xxx'), (req, res, next) => {
     let user = req.user;
-
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({
       user
@@ -182,7 +189,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   //
   // Logout.
   //
-  router.get('/logout/:providerId', function(req, res, next) {
+  router.get('/logout/:providerId', (req, res, next) => {
     let { providerId } = req.params;
     logger.log('Logout: ' + providerId);
 

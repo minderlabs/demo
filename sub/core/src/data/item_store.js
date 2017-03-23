@@ -201,7 +201,7 @@ export class BaseItemStore extends ItemStore {
    * @return {*}
    */
   onUpdate(item) {
-    console.assert(item && item.type, 'Invalid item: ' + JSON.stringify(item));
+    console.assert(item && item.type, 'Invalid item: ' + TypeUtil.stringify(item));
 
     // Client created items set the ID.
     if (!item.id) {

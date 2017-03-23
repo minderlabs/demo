@@ -130,8 +130,10 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
   // Logout.
   //
   router.use('/logout', function(req, res) {
+    // http://passportjs.org/docs/logout
+    req.logout();
     // TODO(burdon): Path const.
-    res.redirect('/oauth/logout/' + loginAuthProvider.providerId);
+    res.redirect('/home');
   });
 
   //
