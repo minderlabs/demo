@@ -54,9 +54,14 @@ export class ContextManager {
     // Transient items indexed by foreign key (i.e., email).
     this._transientItems = new Map();
 
+    this._cache = this.clearCache();
+  }
+
+  clearCache() {
     // Cached items matching the current context.
     // NOTE: Plain object map instead of Map so can be iterated using _.find().
     this._cache = {};
+    return this._cache;
   }
 
   /**
@@ -127,10 +132,10 @@ export class ContextManager {
   updateCache(items) {
     logger.log('Updated cache: ' + JSON.stringify(_.map(items, i => _.pick(i, ['id', 'type', 'email']))));
 
-    // TODO(madadam): cache by foreign key instead of email?
+    this.clearCache();
 
-    // TODO(burdon): Reset cache.
     _.each(items, item => {
+      // TODO(madadam): cache by foreign key instead of email?
       let email = item.email;
       console.assert(email);
       this._cache[email] = item;
