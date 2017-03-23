@@ -84,7 +84,7 @@ export class SidebarApp extends BaseApp {
     // Connect to background page.
     this._router.connect();
 
-    // System commands form background page.
+    // System commands from background page.
     this._systemChannel.onMessage.addListener(message => {
       console.log('Command: ' + JSON.stringify(message));
       switch (message.command) {

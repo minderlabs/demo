@@ -5,7 +5,7 @@
 import { WindowMessenger, HttpUtil, KeyListener } from 'minder-core';
 
 import { SidebarCommand, KeyCodes } from './common';
-import { InspectorRegistry, GmailInspector, GoogleInboxInspector, TestInspector } from './util/inspector';
+import { InspectorRegistry, GmailInspector, GoogleInboxInspector, SlackInspector, TestInspector } from './util/inspector';
 
 import './content_script.less';
 
@@ -132,6 +132,34 @@ class ContentScript {
       }
     });
 
+    // Listen for window events injected into this page (e.g. from the browser action bar).
+    window.addEventListener('message', event => {
+
+      let origin = event.origin || event.originalEvent.origin;
+      // TODO(madadam): Should we also check origin for security? But the origin can be any page where the content
+      // script runs, so it's not useful for filtering.
+
+      // https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#The_dispatched_event
+      if (!event.isTrusted) {
+        return;
+      }
+
+      // TODO(madadam): Support all SidebarCommands?
+      let { data } = event;
+      if (data.command === SidebarCommand.SET_VISIBILITY ) {
+        let promise;
+        if (data.open === true) {
+          promise = this.sidebar.open();
+        } else if (data.open === false) {
+          promise = this.sidebar.close();
+        } else {
+          promise = this.sidebar.toggle();
+        }
+
+        promise.then(visible => updateVisibility(visible));
+      }
+    });
+
     //
     // Listen for context updates from the Inspectors.
     //
@@ -139,6 +167,7 @@ class ContentScript {
       .add(new TestInspector())
       .add(new GmailInspector())
       .add(new GoogleInboxInspector())
+      .add(new SlackInspector())
       .init(context => {
 
         // Send update to SidebarApp.

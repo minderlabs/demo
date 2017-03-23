@@ -8,6 +8,32 @@ import { QueryProcessor, Logger } from 'minder-core';
 
 const logger = Logger.get('slack');
 
+
+// TODO(madadam): Move to util.
+class QueryUtil {
+
+  /**
+   *
+   * @param filter FilterInput
+   * @param key return the value for this key from filter.context's KeyValue pairs
+   */
+  static getContextKey(filter, key) {
+    let value = null;
+    _.each(_.get(filter, 'context', []), keyValue => {
+      if (keyValue.key === key) {
+        let types = _.keys(keyValue.value);
+        if (types.length != 1) {
+          throw new Error('ValueInput must have exactly one value: ' + JSON.stringify(types));
+        }
+        value = keyValue.value[types[0]];
+        return false;
+      }
+    });
+    return value;
+  }
+
+}
+
 /**
  * SlackQueryProvider
  */
@@ -51,12 +77,59 @@ export class SlackQueryProcessor extends QueryProcessor {
     }
   }
 
+  /**
+   *
+   * @param slackUserIds array of slack user Ids.
+   * @return {Promise} of array of Person card items.
+   */
+  convertToPersonCards(slackUserIds, bot, slackApiToken) {
+    // TODO(madadam): Batch API calls? I don't see any support for batch in Slack API docs.
+    let promises = _.map(slackUserIds, slackUserId => {
+      return this._botManager.slackbot.getUserInfo(slackUserId, bot, slackApiToken);
+    });
+    return Promise.all(promises);
+  }
+
+  /**
+   *
+   * @param slackChannelId
+   * @return {Array}
+   */
+  getUsersForChannel(slackChannelId, bot, slackApiToken) {
+    return new Promise((resolve, reject) => {
+      bot.api.channels.info(
+        { token: slackApiToken, channel: slackChannelId },
+        (err, response) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(_.get(response, 'channel.members', []));
+        });
+    });
+  }
+
   //
   // QueryProcessor API.
   //
 
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
-    return this._search(filter.text);
+    let slackChannel = QueryUtil.getContextKey(filter, 'slack_channel');
+
+    if (filter.text || !slackChannel) {
+      return this._search(filter.text);
+    } else {
+      let bot = this.getBot();
+      let slackApiToken = _.get(bot, 'config.incoming_webhook.token'); // same as bot.config.bot.app_token?
+
+      // TODO(madadam): Get channel history to filter active/recent users; use slack bot's channel cache.
+      return this.getUsersForChannel(slackChannel, bot, slackApiToken).then(slackUserIds => {
+        return this.convertToPersonCards(slackUserIds, bot, slackApiToken)
+          .then(results => {
+            console.log('*** CONTEXT QUERY RESULTS ' + JSON.stringify(results)); // FIXME
+            return results;
+          })
+      });
+    }
   }
 
   _search(query) {
