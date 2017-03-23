@@ -87,6 +87,8 @@ export class Database {
 
     // Callback.
     this._onMutation = null;
+
+    this._resultMerger = new ResultMerger(this._queryProcessors);
   }
 
   /**
@@ -201,94 +203,124 @@ export class Database {
         });
     });
 
-    //
-    // Join stored items with external items.
-    // TODO(madadam): Factor this out into merge helper, and write tests.
-    //
     return Promise.all(promises)
       .then(results => {
-        // Skip empty results (e.g., on error).
-        results = _.compact(results);
+        return this._resultMerger.mergeResults(results, context, root);
+      });
+  }
 
-        // Create a map of items that have foreign keys.
-        // TODO(burdon): Requires stable external keys (google drive!)
-        let itemsWithForeignKeys = new Map();
+}
 
-        // First get items from the current query that may have external references.
-        let result = _.find(results, result => result.namespace === Database.NAMESPACE.USER);
-        if (result) {
-          _.each(result.items, item => {
-            if (item.fkey) {
-              itemsWithForeignKeys.set(item.fkey, item);
-            }
-          });
+/**
+ * Join stored items with external items.
+ */
+export class ResultMerger {
+
+  constructor(queryProcessors) {
+    this._queryProcessors = queryProcessors;
+  }
+
+  /**
+   *
+   * @param results
+   * @return {Promise.<TResult>}
+   */
+  mergeResults(results, context, root={}) {
+    // Skip empty results (e.g., on error).
+    results = _.compact(results);
+
+    // TODO(madadam): Merge by regular (non-foreign key) ID too? e.g. SlackQueryProvider may return User items
+    // from the SYSTEM store, should those be merged?
+
+    // Create a map of items that have foreign keys.
+    // TODO(burdon): Requires stable external keys (google drive!)
+    let itemsWithForeignKeys = new Map();
+
+    // First get items from the current query that may have external references.
+    let result = _.find(results, result => result.namespace === Database.NAMESPACE.USER);
+    if (result) {
+      _.each(result.items, item => {
+        if (item.fkey) {
+          itemsWithForeignKeys.set(item.fkey, item);
         }
+      });
+    }
 
-        // Gather the set of foreign keys for external items.
-        let foreignKeys = [];
-        _.each(results, result => {
-          if (result.namespace && Database.isExternalNamespace(result.namespace)) {
-            _.each(result.items, item => {
-              // One more check on fkey, because query providers may return heterogeneous lists of items
-              // from different namespaces, some may not have foreign keys.
-              let fkey = ID.getForeignKey(item);
-              if (fkey && !itemsWithForeignKeys.get(fkey)) {
-                foreignKeys.push(fkey);
-              }
-            });
+    // Gather the set of foreign keys for external items.
+    let foreignKeys = [];
+    _.each(results, result => {
+      if (result.namespace && Database.isExternalNamespace(result.namespace)) {
+        _.each(result.items, item => {
+          // One more check on fkey, because query providers may return heterogeneous lists of items
+          // from different namespaces, some may not have foreign keys.
+          let fkey = ID.getForeignKey(item);
+          if (fkey) {
+            // Queue this up for a foreign-key lookup in the user store.
+            foreignKeys.push(fkey);
+            let existing = itemsWithForeignKeys.get(fkey);
+            if (existing) {
+              // Merge with result (from USER namespace above).
+              this._merge(existing, item);
+            }
           }
         });
+      }
+    });
 
-        // Load potentially matching items for external items.
-        let loading = [];
-        if (!_.isEmpty(foreignKeys)) {
-          loading.push(this._getItemsWithForeignKeys(context, root, foreignKeys).then(items => {
-            _.each(items, item => {
-              console.assert(item.fkey);
-              itemsWithForeignKeys.set(item.fkey, item);
-            });
-          }));
-        }
+    // Load potentially matching items for external items.
+    let loading = [];
+    if (!_.isEmpty(foreignKeys)) {
+      loading.push(this._getItemsWithForeignKeys(context, root, foreignKeys).then(items => {
+        _.each(items, item => {
+          console.assert(item.fkey);
+          // TODO(madadam): Merge instead of replace?
+          itemsWithForeignKeys.set(item.fkey, item);
+        });
+      }));
+    }
 
-        //
-        // Wait for items to load, then join items with external items.
-        //
-        return Promise.all(loading).then(() => {
+    //
+    // Wait for items to load, then join items with external items.
+    //
+    return Promise.all(loading).then(() => {
 
-          // Merge external items with stored items.
-          _.each(results, result => {
-            if (result.namespace && Database.isExternalNamespace(result.namespace)) {
-              _.each(result.items, item => {
-                let existing = itemsWithForeignKeys.get(ID.getForeignKey(item));
-                if (existing) {
-                  // TODO(burdon): Better merge (e.g., replace title?)
-                  console.log('MERGING: ' + JSON.stringify(existing));
-                  _.defaults(existing, item);
-                }
-              });
+      // Merge external items with stored items.
+      _.each(results, result => {
+        if (result.namespace && Database.isExternalNamespace(result.namespace)) {
+          _.each(result.items, item => {
+            let existing = itemsWithForeignKeys.get(ID.getForeignKey(item));
+            if (existing) {
+              this._merge(existing, item);
             }
           });
+        }
+      });
 
-          // Flatten the results and gather external items.
-          // TODO(burdon): Better ranking, sorting, etc. And global rank across processors?
-          let items = [];
-          _.each(results, result => {
-            _.each(result.items, item => {
-              let shouldPush = true;
-              if (result.namespace && Database.isExternalNamespace(result.namespace)) {
-                let fkey = ID.getForeignKey(item);
-                // If an item already exists, then it will be added above.
-                if (fkey && itemsWithForeignKeys.get(fkey)) {
-                  shouldPush = false;
-                }
-              }
-              shouldPush && items.push(item);
-            });
-          });
-
-          return items;
+      // Flatten the results and gather external items.
+      // TODO(burdon): Better ranking, sorting, etc. And global rank across processors?
+      let items = [];
+      let emittedKeys = new Map();
+      _.each(results, result => {
+        _.each(result.items, item => {
+          let fkey = item.fkey || ID.getForeignKey(item);
+          if (fkey) {
+            if (emittedKeys.get(fkey)) {
+              // Skip merged results that have already been emitted.
+              return;
+            }
+            // Check if there's a merged item that hasn't been emitted yet, and emit that.
+            let mergedItem = itemsWithForeignKeys.get(fkey);
+            if (mergedItem) {
+              emittedKeys.set(fkey, true);
+              item = mergedItem;
+            }
+          }
+          items.push(item);
         });
       });
+
+      return items;
+    });
   }
 
   /**
@@ -302,5 +334,12 @@ export class Database {
     return queryProcessor.queryItems(context, root, {
       fkeys: foreignKeys
     });
+  }
+
+  _merge(obj, source) {
+    // TODO(burdon): Better merge (e.g., replace title?)
+    console.log('MERGING: ' + JSON.stringify(obj));
+    _.defaults(obj, source);
+    return obj;
   }
 }

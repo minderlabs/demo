@@ -67,7 +67,7 @@ export class SlackQueryProcessor extends QueryProcessor {
     return {
       namespace: SlackQueryProcessor.NAMESPACE,
       type: 'Document',
-      id: idGenerator.createId(), // TODO(madadam): keep Slack message ID as foreign key.
+      id: idGenerator.createId(), // TODO(madadam): set foreign key -- permalink, or {channel.id}.{ts}.
       title: `@${match.username} on #${match.channel.name}: ${match.text}`,
 
       // TODO(madadam): Snippet.
