@@ -7,7 +7,7 @@ import express from 'express';
 import moment from 'moment';
 import request from 'request';
 
-import { Logger } from 'minder-core';
+import { Async, Logger } from 'minder-core';
 
 import { Const, FirebaseServerConfig } from '../common/defs';
 
@@ -129,59 +129,87 @@ export class ClientManager {
    * Clients are created at different times for different platforms.
    * Web: Created when the page is served.
    * CRX: Created when the app registers.
-   * @param userId
-   * @param platform
+   * @param {string} userId
+   * @param {string} platform
+   * @param {boolean} registered
+   * @param {string} messageToken
    * @returns {Promise<Client>}
    */
-  create(userId, platform) {
+  create(userId, platform, registered=false, messageToken=undefined) {
     console.assert(userId && platform, JSON.stringify({ userId, platform }));
 
+    let ts = moment().unix();
     let client = {
       id: this._idGenerator.createId('C-'),
       platform,
       userId,
-      messageToken: null,
-      created: moment().unix(),
-      registered: null
+      created: ts,
+      registered: registered && ts,
+      messageToken: messageToken
     };
 
-    // TODO(burdon): Make async.
-    this._clients.set(client.id, client);
-    logger.log('Created: ' + client.id);
-    return Promise.resolve(client);
+    logger.log('Created: ' + JSON.stringify(_.pick(client, ['platform', 'id'])));
+    return this.saveClient(client);
   }
 
   /**
    * Called by clients on start-up (and to refresh tokens, etc.)
    * NOTE: mobile devices requet ID here.
-   * @param userId
-   * @param platform
-   * @param clientId
-   * @param messageToken
+   * @param {string} userId
+   * @param {string} platform
+   * @param {string} clientId
+   * @param {string} messageToken
    * @returns {Promise<Client>}
    */
-  register(userId, platform, clientId, messageToken=undefined) {
-    console.assert(userId && platform, JSON.stringify({ userId, platform, clientId }));
+  register(userId, platform, clientId=undefined, messageToken=undefined) {
+    console.assert(userId && platform, JSON.stringify({ platform, userId }));
+    logger.log('Registering: ' + JSON.stringify({ platform, clientId }));
 
-    let client = clientId && this._clients.get(clientId);
-    if (!client) {
-      // Web clients should have been created on page load.
-      if (platform !== Const.PLATFORM.WEB) {
+    // Get existing client.
+    return Async.promiseOf(clientId && this.getClient(clientId)).then(client => {
+      if (client) {
+        // TODO(burdon): Check created time matches?
+        // Verify existing client matches registration.
+        // NOTE: In testing random number seed is the same, so there may be conflicts.
+        if (client.platform !== platform || client.userId !== userId) {
+          logger.warn('Existing client does not match: ' + JSON.stringify(client));
+          client = null;
+        }
+      } else if (clientId) {
         logger.warn('Invalid or expired client: ' + clientId);
       }
 
-      // Create the client.
-      client = this.create(userId, platform);
-    } else if (client.userId != userId) {
-      logger.error('Invalid user for client: ' + JSON.stringify({ clientId, userId }));
-      return null;
-    }
+      if (!client) {
+        // Create a new client if required.
+        return this.create(userId, platform, true, messageToken);
+      } else {
+        // Update the existing client.
+        return this.saveClient(_.assign(client, {
+          registered: moment().unix(),
+          messageToken
+        }));
+      }
+    }).then(client => {
+      logger.log('Registered: ' + JSON.stringify(client));
+      return client;
+    });
+  }
 
-    // Register the client.
-    client.messageToken = messageToken;
-    client.registered = moment().unix();
-    logger.log('Registered: ' + clientId);
-    return Promise.resolve(client);
+  // TODO(burdon): Make persistent.
+
+  getClient(clientId) {
+    return new Promise((resolve, reject) => {
+      console.assert(clientId);
+      resolve(this._clients.get(clientId));
+    });
+  }
+
+  saveClient(client) {
+    return new Promise((resolve, reject) => {
+      console.assert(client);
+      this._clients.set(client.id, client);
+      resolve(client);
+    });
   }
 
   /**

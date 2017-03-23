@@ -3,12 +3,8 @@
 //
 
 Logger.setLevel({
-  'bg':         Logger.Level.debug,
-  'auth':       Logger.Level.debug,
-  'client':     Logger.Level.debug,
-  'gcm':        Logger.Level.debug,
-  'net':        Logger.Level.info
-}, Logger.Level.info);
+  'net': Logger.Level.info
+}, Logger.Level.debug);
 
 import { ChromeMessageChannelDispatcher, ErrorUtil, EventHandler, Listeners, TypeUtil } from 'minder-core';
 
@@ -99,7 +95,6 @@ class BackgroundApp {
 
     this._authManager = new AuthManager(this._config);
 
-    // GCM Push Messenger.
     this._cloudMessenger = new GoogleCloudMessenger(this._config, this._eventHandler).listen(message => {
 
       // Push invalidation to clients.

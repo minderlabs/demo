@@ -2,6 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
+// TODO(burdon): Do this for other standard errors (per module?)
 // NOTE: Function ensures stack is preserved.
 export const NotAuthenticatedError = () => new Error('Not authenticated');
 

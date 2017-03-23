@@ -248,8 +248,6 @@ export class Resolvers {
       // NOTE: root is undefined for root-level queries.
       //
 
-      //const AuthError = new Error('Not authenticated.');
-
       RootQuery: {
 
         viewer: (root, args, context) => {
@@ -317,6 +315,7 @@ export class Resolvers {
       // NOTE: getUserFromHeader should have already thrown before getting here.
       throw NotAuthenticatedError();
     }
+
     if (!context.clientId) {
       throw new Error('Invalid client.');
     }

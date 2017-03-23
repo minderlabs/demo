@@ -21,26 +21,28 @@
             <a class="site-button"
                href="/user/logout">Logout</a>
           </div>
+        </div>
 
-          <div>
-            <h2>OAuth</h2>
-            {{#each providers}}
-            <div>{{{ html }}}</div>
-            {{/each}}
-          </div>
+        <div class="site-section">
+          <h2>OAuth</h2>
+          {{#each providers}}
+          <div>{{{ html }}}</div>
+          {{/each}}
+        </div>
 
-          <div>
-            <h2>User</h2>
-            <pre class="site-json">{{{ toJSONPretty user }}}</pre>
-          </div>
+        <div class="site-section">
+          <h2>User</h2>
+          <pre class="site-json">{{{ toJSONPretty user }}}</pre>
+        </div>
 
-          <div>
-            <h2>Groups</h2>
-            {{#each groups}}
-            <pre class="site-json">{{{ toJSONPretty . }}}</pre>
-            {{/each}}
-          </div>
+        <div class="site-section">
+          <h2>Groups</h2>
+          {{#each groups}}
+          <pre class="site-json">{{{ toJSONPretty . }}}</pre>
+          {{/each}}
+        </div>
 
+        <div class="site-section">
           <div>
             <button class="site-install-crx" onclick="installCrx()">Install Chrome Extension</button>
           </div>

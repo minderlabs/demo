@@ -142,16 +142,13 @@ export class FirebaseCloudMessenger extends CloudMessenger {
 
       .catch(error => {
         console.error(error);
-        switch (error.code) {
-          case 'messaging/permission-blocked': {
-            // TODO(burdon): Show UX warning.
-            // Permission not set (set in Chrome (i) button to the left of the URL bar).
-            break
-          }
-          case 'messaging/failed-serviceworker-registration': {
-            break
-          }
-        }
+
+        // Errors: error.code
+        // - messaging/permission-blocked
+        //   TODO(burdon): Show UX warning.
+        //   Permission not set (set in Chrome (i) button to the left of the URL bar).
+        // - messaging/failed-serviceworker-registration
+        //   Invalid Firebase console registration.
 
         logger.warn('FCM registration failed: ' + ErrorUtil.message(error.code));
       });

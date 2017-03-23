@@ -6,6 +6,8 @@ import _ from 'lodash';
 import express from 'express';
 import kue from 'kue';
 
+import { isAuthenticated } from 'minder-services';
+
 /**
  * Admin endpoints.
  */
@@ -32,7 +34,7 @@ export const adminRouter = (clientManager, firebase, options) => {
   //
   // Admin page.
   //
-  router.get('/', (req, res) => {
+  router.get('/', isAuthenticated('/home', true), (req, res) => {
     res.render('admin', {
       clients: clientManager.clients
     });
@@ -41,8 +43,8 @@ export const adminRouter = (clientManager, firebase, options) => {
   //
   // Admin API.
   //
-  // TODO(burdon): Auth.
-  router.post('/', (req, res) => {
+  // TODO(burdon): Check header.
+  router.post('/', isAuthenticated('/home', true), (req, res) => {
     let { action, clientId } = req.body;
 
     console.log('Admin command: %s', action);

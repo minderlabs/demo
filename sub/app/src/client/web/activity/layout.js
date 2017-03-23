@@ -50,7 +50,7 @@ export class Layout extends React.Component {
 
     switch (action) {
       case 'bug': {
-        console.warn(JSON.stringify(config));
+        console.warn(JSON.stringify(config, null, 2));
         break;
       }
 

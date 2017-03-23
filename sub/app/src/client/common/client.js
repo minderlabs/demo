@@ -72,7 +72,7 @@ export class ConnectionManager {
    *
    * [ConnectionManager] ==> [ClientManager]
    *
-   * @return {Promise<{Registration}>}
+   * @return {Promise<Registration>}
    */
   register() {
     if (this._cloudMessenger) {

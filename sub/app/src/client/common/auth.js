@@ -157,7 +157,7 @@ export class AuthManager {
    * Returns the user profile.
    *
    * @param credentials
-   * @returns {Promise<{UserProfile}>}
+   * @returns {Promise<UserProfile>}
    */
   registerUser(credentials) {
     let registerUrl = NetUtil.getUrl('/user/register', this._config.server);

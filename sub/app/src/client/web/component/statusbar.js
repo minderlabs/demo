@@ -101,9 +101,9 @@ export class StatusBar extends React.Component {
         icon: 'graphic_eq'
       },
       {
-        href: '/accounts',
-        title: 'Accounts',
-        icon: 'apps'
+        href: '/user/profile',
+        title: 'Profile',
+        icon: 'settings'
       },
     ];
 

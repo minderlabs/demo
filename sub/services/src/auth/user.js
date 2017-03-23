@@ -28,8 +28,19 @@ export class UserManager {
     if (authHeader) {
       console.assert(authHeader);
       let match = authHeader.match(/^Bearer (.+)$/);
-      return match && match[1];
+      console.assert(match, 'Invalid authorization header: ' + authHeader);
+      return match[1];
     }
+  }
+
+  /**
+   * Creates a valid authorization header.
+   * @param idToken
+   * @return {string}
+   */
+  static createIdHeader(idToken) {
+    console.assert(idToken, 'Invalid token.');
+    return 'Bearer ' + idToken;
   }
 
   /**
@@ -52,16 +63,6 @@ export class UserManager {
   }
 
   /**
-   * Gets the User item.
-   *
-   * @param userId
-   * @return {User}
-   */
-  getUserFromId(userId) {
-    return this._systemStore.getUser(userId);
-  }
-
-  /**
    * Returns the id_token for the user (for the default login OAuthProvider).
    *
    * @param user
@@ -71,6 +72,16 @@ export class UserManager {
     let provider = this._loginAuthProvider.providerId;
     let credentials = _.get(user, `credentials.${SystemStore.sanitizeKey(provider)}`);
     return credentials.id_token;
+  }
+
+  /**
+   * Gets the User item.
+   *
+   * @param userId
+   * @return {User}
+   */
+  getUserFromId(userId) {
+    return this._systemStore.getUser(userId);
   }
 
   /**
@@ -87,7 +98,7 @@ export class UserManager {
     let idToken = UserManager.getIdToken(headers);
     if (!idToken) {
       if (required) {
-        throw NotAuthenticatedError();
+        throw NotAuthenticatedError('Missing authorization header.');
       }
 
       return Promise.resolve(null);
@@ -105,8 +116,7 @@ export class UserManager {
           });
       })
       .catch(error => {
-        console.log('!!!!!!!!!!!!', error);
-        throw new NotAuthenticatedError(error);
+        throw NotAuthenticatedError(error);
       });
   }
 }
@@ -154,7 +164,7 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
     // JWT.
     let idToken = UserManager.getIdToken(req.headers);
     if (!idToken) {
-      throw new NotAuthenticatedError('Missing auth token.');
+      throw NotAuthenticatedError('Missing auth token.');
     }
 
     // All credentials.

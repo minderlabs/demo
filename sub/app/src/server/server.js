@@ -104,7 +104,8 @@ const app = express();
 
 const server = http.Server(app);
 
-const idGenerator = new IdGenerator(1000);
+// NOTE: Want repeatable IDs in dev but not production.
+const idGenerator = new IdGenerator((env !== 'production') && 1000);
 
 const clientManager = new ClientManager(idGenerator);
 
@@ -250,13 +251,17 @@ app.set('views', path.join(__dirname, MINDER_VIEWS_DIR));
 // Logging.
 //
 
-// TODO(burdon): ???
 if (env === 'production') {
+  // TODO(burdon): Implement prod logging.
   app.use('/', loggingRouter({}));
 } else {
   app.use((req, res, next) => {
-    logger.log(req.method, req.url);
-    next();  // Call actual route.
+    if (req.method === 'POST') {
+      logger.log(req.method, req.url);
+    }
+
+    // Continue to actual route.
+    next();
   });
 }
 
@@ -285,103 +290,11 @@ app.use(session({
 
 
 //
-// Home page.
-//
-
-app.get('/home', function(req, res) {
-  res.render('home', {
-    crxUrl: Const.CRX_URL(Const.CRX_ID),
-    login: true
-  });
-});
-
-app.get('/welcome', function(req, res) {
-  res.render('home', {});
-});
-
-
-//
-// Testing.
-//
-
-if (env !== 'production') {
-  app.get('/testing', testingRouter({}));
-}
-
-
-//
-// GraphQL
-//
-
-app.use(graphqlRouter(database, {
-  logging: true,
-  pretty: false,
-
-  // Use custom UX provided below.
-  graphiql: false,
-
-  //
-  // Gets the user context from the request headers (async).
-  // NOTE: The client must pass the same context shape to the matcher.
-  //
-  contextProvider: req => userManager.getUserFromHeader(req.headers)
-    .then(user => {
-      let context = {
-        userId: user && user.active && user.id,
-        clientId: req.headers[Const.HEADER.CLIENT_ID],
-        credentials: user.credentials
-      };
-
-      if (!user) {
-        return Promise.resolve(context);
-      } else {
-        // TODO(burdon): Get groups.
-        return systemStore.getGroup(user.id).then(group => _.assign(context, {
-          groupId: group.id
-        }));
-      }
-    })
-}));
-
-
-//
-// Custom GraphiQL.
-// TODO(burdon): Move to Util (how to use handlebars in external lib?)
-//
-
-const MINDER_NODE_MODULES_DIR =
-  _.get(process.env, 'MINDER_NODE_MODULES_DIR', (env === 'production') ? '../node_modules' : '../../node_modules');
-
-app.get('/node_modules', express.static(path.join(__dirname, MINDER_NODE_MODULES_DIR)));
-
-// TODO(burdon): Auth from cookie.
-app.get('/graphiql', isAuthenticated(), function(req, res) {
-
-  // TODO(burdon): Get idToken from credentials.
-  let idToken = loginAuthProvider.getIdToken(req.user);
-
-  res.render('graphiql', {
-    config: {
-      headers: [
-        {
-          name: 'Authorization',
-          value: idToken
-        },
-        {
-          name: Const.HEADER.CLIENT_ID,
-          value: req.query.clientId
-        }
-      ]
-    }
-  });
-});
-
-
-//
 // App services.
 // TODO(burdon): Factor out path constants (e.g., OAuthProvider.PATH).
 //
 
+// NOTE: This must be defined ("used') before other services.
 app.use(OAuthProvider.PATH, oauthRouter(userManager, systemStore, oauthRegistry, { app, env }));
 
 app.use('/user', loginRouter(userManager, oauthRegistry, systemStore, {
@@ -397,8 +310,97 @@ if (botkitManager) {
 
 
 //
+// Home page.
+//
+
+app.get('/home', function(req, res) {
+  res.render('home', {
+    crxUrl: Const.CRX_URL(Const.CRX_ID),
+    login: true
+  });
+});
+
+app.get('/welcome', isAuthenticated('/home'), function(req, res) {
+  res.render('home', {});
+});
+
+
+//
+// GraphQL
+//
+
+app.use(graphqlRouter(database, {
+  logging: true,
+  pretty: false,
+
+  // Use custom UX provided below.
+  graphiql: false,
+
+  // Asynchronously provides the request context.
+  contextProvider: req => userManager.getUserFromHeader(req.headers, true).then(user => {
+
+    // The database context (different from the Apollo context).
+    // NOTE: The client must pass the same context shape to the matcher.
+    let context = {
+      userId: user && user.active && user.id,
+      clientId: req.headers[Const.HEADER.CLIENT_ID],
+      credentials: user.credentials
+    };
+
+    if (!user) {
+      return Promise.resolve(context);
+    } else {
+      // TODO(burdon): Get groups.
+      return systemStore.getGroup(user.id).then(group => _.assign(context, {
+        groupId: group.id
+      }));
+    }
+  })
+}));
+
+
+//
+// Testing.
+//
+
+if (env !== 'production') {
+
+  //
+  // Custom GraphiQL.
+  // TODO(burdon): Move to Util (how to use handlebars in external lib?)
+  //
+
+  const MINDER_NODE_MODULES_DIR =
+    _.get(process.env, 'MINDER_NODE_MODULES_DIR', (env === 'production') ? '../node_modules' : '../../node_modules');
+
+  app.get('/node_modules', express.static(path.join(__dirname, MINDER_NODE_MODULES_DIR)));
+
+  app.get('/graphiql', isAuthenticated(), function(req, res) {
+    let idToken = userManager.getIdToken(req.user);
+    console.assert(idToken, 'Invalid token.');
+
+    res.render('graphiql', {
+      config: {
+        headers: [
+          {
+            name: 'Authorization',
+            value: UserManager.createIdHeader(idToken)
+          },
+          {
+            name: Const.HEADER.CLIENT_ID,
+            value: req.query.clientId
+          }
+        ]
+      }
+    });
+  });
+
+  app.use('/testing', testingRouter({}));
+}
+
+
+//
 // Admin.
-// TODO(burdon): SECURITY: Permissions!
 //
 
 app.use('/admin', adminRouter(clientManager, firebase, {

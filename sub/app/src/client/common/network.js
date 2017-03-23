@@ -300,7 +300,7 @@ export class ChromeNetworkInterface { // extends NetworkInterface {
   /**
    * Proxy request through the message sender.
    *
-   * @param {GraphQLRequest}
+   * @param {GraphQLRequest} gqlRequest
    * @return {Promise<GraphQLResult>}
    */
   query(gqlRequest) {

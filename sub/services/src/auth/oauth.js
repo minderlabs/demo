@@ -32,8 +32,8 @@ const logger = Logger.get('oauth');
  * Checks if the OAuth cookie has been set by passport.
  * NOTE: Browser prefetch may call methods twice.
  */
-// TODO(burdon): Admin option.
-export const isAuthenticated = (redirect=undefined) => (req, res, next) => {
+// TODO(burdon): Check is admin.
+export const isAuthenticated = (redirect=undefined, admin=false) => (req, res, next) => {
   if (req.isAuthenticated()) {
     logger.log('Authenticated user: ' + req.user.id);
     next();
@@ -247,8 +247,8 @@ export class OAuthProvider {
   // Register callbacks with OAuth providers.
   static OAUTH_CALLBACK = 'https://www.minderlabs.com/oauth/callback/';
 
-  // NOTE: Register "localhost.net" in /etc/hosts for tests (i.e., 127.0.0.1 localhost.net)
-  static OAUTH_TESTING_CALLBACK = 'http://localhost.net:3000/oauth/callback/';
+  // NOTE: Define /etc/hosts entry for docker machine.
+  static OAUTH_TESTING_CALLBACK = 'http://localhost:3000/oauth/callback/';
 
   /**
    * Passport normalizes profile. We store an abridged version of this.

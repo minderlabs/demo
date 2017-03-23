@@ -118,7 +118,7 @@ export class ItemStore extends QueryProcessor {
    * @param itemStore
    * @param context
    * @param itemMutations
-   * @return {Promise<[{Item}]>}
+   * @return {Promise<[Item]>}
    */
   static applyMutations(itemStore, context, itemMutations) {
     console.assert(itemStore && context && itemMutations);
