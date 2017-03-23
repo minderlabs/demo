@@ -22,12 +22,12 @@ export class AuthManager {
   /**
    * Return the authentication header.
    * https://en.wikipedia.org/wiki/Basic_access_authentication
-   * @param {string} id_token JWT token.
+   * @param {string} idToken JWT token.
    */
-  static getHeaders(id_token) {
-    console.assert(_.isString(id_token));
+  static getHeaders(idToken) {
+    console.assert(_.isString(idToken), 'Invalid token: ' + idToken);
     return {
-      'Authorization': 'Bearer ' + id_token
+      'Authorization': 'Bearer ' + idToken
     }
   }
 
@@ -49,7 +49,7 @@ export class AuthManager {
    *
    * @returns {string}
    */
-  getToken() {
+  get idToken() {
     console.assert(this._idToken);
     return this._idToken;
   }

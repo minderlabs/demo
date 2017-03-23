@@ -58,20 +58,16 @@ export class NetworkManager {
     this._logger = new NetworkLogger(this._config);
 
     /**
-     * Add headers for execution context (e.g., JWT Authentication header).
+     * Add headers for request context (e.g., (JWT) id_token Authentication header).
      */
     const addHeaders = {
       applyMiddleware: ({ request, options }, next) => {
-        let registration = this._connectionManager.registration;
-        console.assert(registration);
 
-        // Asynchronously add the JWT.
-        this._authManager.getToken().then(token => {
-          options.headers = _.assign(options.headers,
-            AuthManager.getHeaders(token),
-            ConnectionManager.getHeaders(registration.clientId));
-          next();
-        });
+        options.headers = _.assign(options.headers,
+          AuthManager.getHeaders(this._authManager.idToken),
+          ConnectionManager.getHeaders(this._connectionManager.registration.clientId));
+
+        next();
       }
     };
 

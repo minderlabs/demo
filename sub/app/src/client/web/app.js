@@ -46,6 +46,7 @@ export class WebApp extends BaseApp {
     this._connectionManager = new ConnectionManager(this._config, this._authManager, this._cloudMessenger);
 
     // Local transient items.
+    // TODO(burdon): Testing?
     /*
     let idGenerator = this._injector.get(IdGenerator);
     let matcher = this._injector.get(Matcher);

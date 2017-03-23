@@ -68,7 +68,9 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
       systemStore.getGroup(user.id).then(group => {
         console.assert(group, 'No group for user: ' + user.id);
 
+        //
         // Client app config.
+        //
         let config = _.defaults({
           root: Const.DOM_ROOT,
 
@@ -87,9 +89,12 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
 
         logger.log($$('Client config = %o', config));
 
+        //
         // Render page.
+        //
         res.render('app', {
           bundle: WEBPACK_BUNDLE[config.env],
+          loader: config.env === 'production',
           config
         });
       });

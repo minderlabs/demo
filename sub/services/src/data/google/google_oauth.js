@@ -114,9 +114,9 @@ export class GoogleOAuthProvider extends OAuthProvider {
         }
 
         let { iss, aud: clientId, sub: id, email, email_verified } = response.getPayload();
-        console.assert(iss === 'accounts.google.com');
-        console.assert(clientId === this._config.clientId);
-        console.assert(email_verified);
+        console.assert(iss.endsWith('accounts.google.com'), 'Invalid ISS: ' + iss);
+        console.assert(clientId === this._config.clientId, 'Invalid client ID: ' + clientId);
+        console.assert(email_verified, 'User not verified: ' + email);
 
         let tokenInfo = { id, email };
         logger.log('Decoded id_token:', JSON.stringify(tokenInfo));

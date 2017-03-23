@@ -4,8 +4,6 @@
 
 import _ from 'lodash';
 
-import { HttpUtil } from 'minder-core';
-
 import { Const } from '../../common/defs';
 
 import { AuthManager } from './auth';
@@ -23,7 +21,7 @@ export class ConnectionManager {
    * @param {string} clientId
    */
   static getHeaders(clientId) {
-    console.assert(clientId);
+    console.assert(_.isString(clientId), 'Invalid client ID: ' + clientId);
     return {
       [Const.HEADER.CLIENT_ID]: clientId
     };
@@ -36,22 +34,15 @@ export class ConnectionManager {
    * @param {AuthManager} authManager
    * @param {CloudMessenger} cloudMessenger
    */
-  constructor(config, authManager, cloudMessenger) {
-    console.assert(config && authManager && cloudMessenger);
+  constructor(config, authManager, cloudMessenger=undefined) {
+    console.assert(config && authManager);
     this._config = config;
     this._authManager = authManager;
     this._cloudMessenger = cloudMessenger;
 
     // The CRX token may be automatically refreshed (FCM).
-    this._cloudMessenger.onTokenUpdate(messageToken => {
-      logger.info('Token refreshed.');
-
-      // Get/refresh the auth token.
-      this._authManager.getToken().then(authToken => {
-
-        // Re-register the client.
-        this._doRegistration(authToken, messageToken);
-      })
+    this._cloudMessenger && this._cloudMessenger.onTokenUpdate(messageToken => {
+      this._requestRegistration(messageToken);
     });
   }
 
@@ -61,6 +52,7 @@ export class ConnectionManager {
    * Web apps have the registration information set by the server on page load, whereas the CRX
    * retrieves the registration when registering the client.
    *
+   * // TODO(burdon): Registration vs UserProfile (reconcile user/client registration).
    * {
    *   userId,
    *   groupId,       // TODO(burdon): Remove.
@@ -83,36 +75,53 @@ export class ConnectionManager {
    * @return {Promise<{Registration}>}
    */
   register() {
-    // Get the push channel token.
-    // TODO(burdon): Store the message token (for re-registration?)
-    return this._cloudMessenger.connect().then(messageToken => {
-      logger.log('Cloud Messenger connected.');
-
-      let registerUrl = NetUtil.getUrl('/client/register', this._config.server);
-
-      let platform = _.get(this._config, 'app.platform');
-      let clientId = _.get(this._config, 'registration.clientId');
-      if (!clientId && platform === Const.PLATFORM.WEB) {
-        console.assert(clientId);
-      }
-
-      let headers = AuthManager.getHeaders(this._authManager.getToken());
-      if (clientId) {
-        _.assign(headers, ConnectionManager.getHeaders(clientId));
-      }
-
-      let request = {
-        platform,
-        messageToken
-      };
-
-      // TODO(burdon): Configure Retry (perpetual with backoff for CRX?)
-      logger.log(`Registering client: ${clientId || platform} (${registerUrl})`);
-      return NetUtil.postJson(registerUrl, request, headers).then(registration => {
-        logger.info('Registered client: ' + JSON.stringify(registration));
-        _.set(this._config, 'registration', registration);
-        return registration;
+    if (this._cloudMessenger) {
+      return this._cloudMessenger.connect().then(messageToken => {
+        return this._requestRegistration(messageToken);
       });
+    } else {
+      return this._requestRegistration();
+    }
+  }
+
+  /**
+   * Sends the client registration request.
+   *
+   * @param messageToken
+   * @return {Promise.<{Registration}>}
+   * @private
+   */
+  _requestRegistration(messageToken=undefined) {
+
+    // Current client.
+    let clientId = _.get(this._config, 'registration.clientId');
+
+    // Assigned on load for Web clients.
+    let platform = _.get(this._config, 'app.platform');
+    if (!clientId && platform === Const.PLATFORM.WEB) {
+      console.assert(clientId);
+    }
+
+    let requestUrl = NetUtil.getUrl('/client/register', this._config.server);
+
+    let headers = AuthManager.getHeaders(this._authManager.idToken);
+    if (clientId) {
+      _.assign(headers, ConnectionManager.getHeaders(clientId));
+    }
+
+    let request = {
+      platform,
+      messageToken
+    };
+
+    // TODO(burdon): Configure Retry (perpetual with backoff for CRX?)
+    logger.log(`Registering client [${clientId}]: (${JSON.stringify(request)})`);
+    return NetUtil.postJson(requestUrl, request, headers).then(registration => {
+      logger.info('Registered: ' + JSON.stringify(registration));
+
+      // TODO(burdon): Store in config?
+      _.set(this._config, 'registration', registration);
+      return registration;
     });
   }
 
@@ -127,12 +136,17 @@ export class ConnectionManager {
       return Promise.resolve();
     }
 
-    let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/unregister');
+    // Current client.
+    let clientId = _.get(this._config, 'registration.clientId');
 
-    let headers = _.merge(
-      AuthManager.getHeaders(this._authManager.getToken()),
-      ConnectionManager.getHeaders(this.registration.clientId));
+    let requestUrl = NetUtil.getUrl('/client/unregister', this._config.server);
 
-    return NetUtil.postJson(url, {}, headers, async);
+    let headers = _.assign({},
+      AuthManager.getHeaders(this._authManager.idToken),
+      ConnectionManager.getHeaders(clientId));
+
+    return NetUtil.postJson(requestUrl, {}, headers, async).then(() => {
+      logger.log('Unregistered: ' + clientId);
+    });
   }
 }

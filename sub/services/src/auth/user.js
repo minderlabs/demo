@@ -105,6 +105,7 @@ export class UserManager {
           });
       })
       .catch(error => {
+        console.log('!!!!!!!!!!!!', error);
         throw new NotAuthenticatedError(error);
       });
   }
