@@ -62,9 +62,8 @@ export class WebApp extends BaseApp {
   postInit() {
 
     // Register client.
-    return this._authManager.authenticate().then(user => {
-
-      this._analytics.identify(user.uid);
+    return this._authManager.authenticate().then(userId => {
+      this._analytics.identify(userId);
 
       // TODO(burdon): Retry?
       return this._connectionManager.register().then(registration => {
@@ -75,7 +74,7 @@ export class WebApp extends BaseApp {
 
   terminate() {
     // Unregister client.
-    return this._connectionManager.unregister();
+    this._connectionManager && this._connectionManager.unregister();
   }
 
   get itemStore() {

@@ -76,6 +76,7 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
           graphiql: '/graphiql',
 
           // Authenticated user.
+          // TODO(burdon): UserProfile? Same response as /user/registration.
           registration: {
             idToken: idToken,
             userId: user.id,

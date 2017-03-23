@@ -154,13 +154,13 @@ class BackgroundApp {
         this._networkManager.init();
 
         // Triggers popup.
-        return this._authManager.authenticate().then(user => {
+        return this._authManager.authenticate().then(userId => {
 
           // TODO(burdon): This isn't a BaseApp anymore, we lost the analytics object.
-          this._analytics && this._analytics.identify(user.id);
+          this._analytics && this._analytics.identify(userId);
 
           // Register with server.
-          return this.connect().then(registration => {
+          return this.connect().then(() => {
 
             //
             // Handle system requests from other components (e.g., sidebar).

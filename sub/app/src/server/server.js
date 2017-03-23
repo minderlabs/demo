@@ -482,7 +482,6 @@ app.get(function(req, res) {
 // app.get(function(req, res, next) {
 //   return new Promise((resolve, reject) => {
 //     res.end();
-//     next();
 //   }).catch(next);
 // });
 //
@@ -501,9 +500,10 @@ app.get(function(error, req, res) {
 
 
 //
-// Test data.
+// Intitialize database.
 //
 
+// TODO(burdon): Remove from server startup except for testing. Use tools to configure DB.
 let loader = new Loader(database, testing);
 let loading = Promise.all([
   // Do in parallel.

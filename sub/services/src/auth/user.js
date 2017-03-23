@@ -42,25 +42,34 @@ export class UserManager {
     this._systemStore = systemStore;
   }
 
+  /**
+   * Gets the login OAuthProvider.
+   *
+   * @returns {OAuthProvider}
+   */
   get loginAuthProvider() {
     return this._loginAuthProvider;
   }
 
   /**
+   * Gets the User item.
    *
    * @param userId
+   * @return {User}
    */
   getUserFromId(userId) {
     return this._systemStore.getUser(userId);
   }
 
   /**
+   * Returns the id_token for the user (for the default login OAuthProvider).
    *
    * @param user
+   * @return {string}
    */
   getIdToken(user) {
     let provider = this._loginAuthProvider.providerId;
-    let credentials = `credentials.${SystemStore.sanitizeKey(provider)}`;
+    let credentials = _.get(user, `credentials.${SystemStore.sanitizeKey(provider)}`);
     return credentials.id_token;
   }
 
@@ -161,10 +170,7 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
         // Register user.
         // TODO(burdon): Active?
         systemStore.registerUser(userProfile, credentials, true).then(user => {
-
-          // Don't leak client ID.
-          res.send(_.omit(userProfile, ['userId']));
-          next();
+          res.send(userProfile);
         });
       });
     }).catch(next);
@@ -182,8 +188,6 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
         providers:  oauthRegistry.providers,
         crxUrl:     options.crxUrl
       });
-
-      next();
     })
     .catch(next);
   });

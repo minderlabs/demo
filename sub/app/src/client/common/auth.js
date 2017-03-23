@@ -41,7 +41,7 @@ export class AuthManager {
     this._config = config;
 
     // JWT.
-    this._token = null;
+    this._idToken = null;
   }
 
   /**
@@ -49,9 +49,9 @@ export class AuthManager {
    *
    * @returns {string}
    */
-  // TODO(burdon): Error handling.
   getToken() {
-    return this._token;
+    console.assert(this._idToken);
+    return this._idToken;
   }
 
   /**
@@ -64,20 +64,22 @@ export class AuthManager {
    * - Register the CRX with the Web Client OAuth callbacks:
    *   E.g., https://ofdkhkelcafdphpddfobhbbblgnloian.chromiumapp.org/google
    *
-   * @private
+   * @return {string} userId
    */
+  // TODO(burdon): Normalize userProfile and registration (see webAppRouter).
   authenticate() {
-    logger.log('Authenticating...');
-    return new Promise((resolve, reject) => {
 
-      // TODO(burdon): Return now if web.
-      // TODO(burdon): Standardize userProfile and registration.
-      let platform = _.get(this._config, 'app.platform');
-      if (platform === Const.PLATFORM.WEB) {
-        let registration = _.get(this._config.registration);
-        this._token = registration.idToken;
-        resolve(registration);
-      }
+    // Web is already authenticated.
+    let platform = _.get(this._config, 'app.platform');
+    if (platform === Const.PLATFORM.WEB) {
+      let registration = _.get(this._config, 'registration');
+      this._idToken = registration.idToken;
+      console.assert(this._idToken);
+      return Promise.resolve(registration.userId);
+    }
+
+    return new Promise((resolve, reject) => {
+      logger.log('Authenticating...');
 
       // TODO(burdon): Factor out client provider.
       const OAuthProvider = {
@@ -85,6 +87,7 @@ export class AuthManager {
 
         requestUrl: 'https://accounts.google.com/o/oauth2/auth',
 
+        // TODO(burdon): Client/Server consts.
         // https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation
         scope: [
           'openid',
@@ -140,10 +143,9 @@ export class AuthManager {
           provider: OAuthProvider.provider
         });
 
-        this._token = credentials.id_token;
+        this._idToken = credentials.id_token;
 
         this.registerUser(credentials).then(userProfile => {
-          console.log('############', JSON.stringify(userProfile, 0, 2));
           resolve(userProfile);
         });
       });

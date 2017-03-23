@@ -72,11 +72,13 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   //               https://www.npmjs.com/package/connect-redis
   //               https://www.npmjs.com/package/connect-memcached
 
+  // TODO(burdon): Cache token in session?
+
   /**
    * Serialize User Item to session state.
    */
   passport.serializeUser((user, done) => {
-    logger.log('===>> ' + JSON.stringify(_.pick(user, ['id', 'email'])));
+//  logger.log('===>> ' + JSON.stringify(_.pick(user, ['id', 'email'])));
     let { id } = user;
     done(null, { id });
   });
@@ -85,7 +87,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
    * Get session state and retrieve a User Item.
    */
   passport.deserializeUser((userInfo, done) => {
-    logger.log('<<=== ' + JSON.stringify(userInfo));
+//  logger.log('<<=== ' + JSON.stringify(userInfo));
     let { id } = userInfo;
     userManager.getUserFromId(id).then(user => {
       if (!user) {
