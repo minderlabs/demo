@@ -43,9 +43,9 @@ export const DefaultSettings = {
 export const KeyCodes = {
 
   TOGGLE: {
-    _KEYS_: ['⌥ Option', '\\'],
-    altKey: true,
-    keyCode: 220
+    _KEYS_: ['⌘ Command', '\''],
+    metaKey: true,
+    keyCode: 222
   }
 };
 

@@ -76,4 +76,6 @@ USER nx
 # https://docs.npmjs.com/misc/config#environment-variables
 #
 
+ENV MINDER_BOTKIT=true
+
 CMD [ "node", "dist/server.bundle.js" ]

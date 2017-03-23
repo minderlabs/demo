@@ -42,6 +42,9 @@ export class SidebarApp extends BaseApp {
 
           // Updated visibility.
           case SidebarCommand.UPDATE_VISIBILITY: {
+            if (message.visible) {
+              this._analytics && this._analytics.track('sidebar.open');
+            }
             this.store.dispatch(SidebarAction.updateVisibility(message.visible));
             break;
           }
@@ -81,7 +84,7 @@ export class SidebarApp extends BaseApp {
     // Connect to background page.
     this._router.connect();
 
-    // System commands form background page.
+    // System commands from background page.
     this._systemChannel.onMessage.addListener(message => {
       console.log('Command: ' + JSON.stringify(message));
       switch (message.command) {
@@ -121,6 +124,8 @@ export class SidebarApp extends BaseApp {
         .then(({ registration, server }) => {
           console.assert(registration && server);
           console.log('Registered: ' + JSON.stringify(registration));
+
+          this._analytics && this._analytics.identify(registration.userId);
 
           // Initialize the app.
           this.store.dispatch(AppAction.register(registration, server));

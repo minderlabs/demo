@@ -64,7 +64,12 @@ export class WebApp extends BaseApp {
     // Register client.
     return this._authManager.authenticate().then(user => {
 
-      this._analytics.identify(user.uid);
+      let attributes = _.omitBy({
+        email: user.email,
+        name: user.displayName,
+        avatar: user.photoURL
+      }, _.isNil);
+      this._analytics.identify(user.uid, attributes);
 
       // TODO(burdon): Retry?
       return this._connectionManager.register().then(registration => {

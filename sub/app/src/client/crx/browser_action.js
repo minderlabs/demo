@@ -7,7 +7,7 @@ import ReactDOM from 'react-dom';
 
 import { ChromeMessageChannel, ChromeMessageChannelRouter } from 'minder-core';
 
-import { SystemChannel } from './common';
+import { SystemChannel, SidebarCommand } from './common';
 
 import './browser_action.less';
 
@@ -52,6 +52,21 @@ class BrowserAction extends React.Component {
     });
   }
 
+  openSidebar() {
+    chrome.tabs.query({
+      active: true,
+      windowId: chrome.windows.WINDOW_ID_CURRENT
+    }, tabs => {
+      let tab = tabs[0];
+      console.assert(tab);
+      chrome.tabs.executeScript(tab.id, {
+        code: 'window.postMessage({command: "' + SidebarCommand.SET_VISIBILITY + '" }, "*");'
+      }, results => {
+        window.close();
+      });
+    });
+  }
+
   render() {
     let { url } = this.state;
 
@@ -61,6 +76,7 @@ class BrowserAction extends React.Component {
       <div className="crx-browser-action">
         <div className="crx-column">
           <button onClick={ this.handleAuthenticate.bind(this) }>Authenticate</button>
+          <button onClick={ this.openSidebar.bind(this) }>Open</button>
         </div>
       </div>
     );

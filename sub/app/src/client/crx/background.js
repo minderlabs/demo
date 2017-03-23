@@ -156,9 +156,6 @@ class BackgroundApp {
         // Triggers popup.
         return this._authManager.authenticate(true).then(user => {
 
-          // TODO(burdon): This isn't a BaseApp anymore, we lost the analytics object.
-          this._analytics && this._analytics.identify(user.uid);
-
           // Register with server.
           return this.connect().then(registration => {
 

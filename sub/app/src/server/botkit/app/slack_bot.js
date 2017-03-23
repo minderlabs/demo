@@ -5,6 +5,7 @@
 import _ from 'lodash';
 
 import { Database, Logger } from 'minder-core';
+import { SlackQueryProcessor } from 'minder-graphql';
 
 import { ActionDispatcher } from '../commands/action';
 import { PasteCommand } from '../commands/paste';
@@ -67,8 +68,11 @@ export class SlackBot {
           resolve(_.get(response, 'user'));
         });
     })
-      .then(user => {
-        let email = _.get(user, 'profile.email');
+      .then(userInfo => {
+        let email = _.get(userInfo, 'profile.email');
+        let fullName = _.get(userInfo, 'profile.real_name',
+          _.compact(_.at(userInfo, ['profile.first_name', 'profile.last_name'])).join(' '));
+        let slackUserId = userInfo.id;
         console.assert(email);
         // TODO(madadam): Query userStore by email.
         // For now, iterate through all users in the UserStore (via Database).
@@ -81,8 +85,15 @@ export class SlackBot {
           .then(items => {
             let user = _.find(items, { email });
             if (!user) {
-              // TODO(madadam): Synthesize transient user record?
-              return { email };
+              // Synthesize ephemeral Contact item with foreign key.
+              return {
+                type: 'Contact',
+                namespace: SlackQueryProcessor.NAMESPACE,
+                // TODO(madadam): generate random ID and stick this in fkey? See discussion in PR#81.
+                id: slackUserId, // Foreign key
+                title: fullName, // TODO(madadam): displayName?
+                email
+              };
             }
             return user;
           });
