@@ -157,6 +157,7 @@ export class GoogleOAuthProvider extends OAuthProvider {
       let oauthClient = this.createClient(credentials);
 
       // TODO(burdon): Factor out.
+      // https://developers.google.com/+/web/api/rest
       let plus = google.plus('v1');
       plus.people.get({
         userId: 'me',

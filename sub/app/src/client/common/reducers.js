@@ -15,7 +15,6 @@ export const GlobalAppReducer = (state, action) => {
   switch (action.type) {
 
     //
-    // TODO(burdon): Remove.
     // Listen for Apollo query results (and cached results).
     //
     case 'APOLLO_QUERY_RESULT':
@@ -24,23 +23,10 @@ export const GlobalAppReducer = (state, action) => {
 
       // Find the query matching Navbar updates.
       let query = state.apollo.queries[queryId];
-      if (_.get(query.metadata, 'subscription') == GlobalAppReducer.SUBSCRIPTION.NAVBAR_ITEM) {
-        let item = _.get(action, 'result.data.item');
-        if (item) {
-          return _.set(state, `${APP_NAMESPACE}.navbar.item`, item);
-        }
-      }
-      break;
     }
   }
 
   return state;
-};
-
-GlobalAppReducer.SUBSCRIPTION = {
-
-  // TODO(burdon): Rename FOCUSED_ITEM (not navbar depenendent).
-  NAVBAR_ITEM: 'NAVBAR_ITEM'
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -53,8 +39,6 @@ const APP_NAMESPACE = 'MINDER_APP';
  * Main App actions.
  */
 export class AppAction {
-
-  // TODO(burdon): Look for wrappers to make this simpler?
 
   static ACTION = {
     REGISTER:       `${APP_NAMESPACE}/REGISTER`,
@@ -155,6 +139,8 @@ export const AppReducer = (injector, config, registration=undefined) => {
       // TODO(burdon): Get search query (not just text).
       case AppAction.ACTION.SEARCH: {
         // TODO(madadam): Add delay or only log final query -- now we send an event for every keystroke, it's overkill.
+        // TODO(madadam): Remove user query from analytics events, for privacy. Search logs need to be handled with
+        // greater care.
         let analytics = state.injector.get(Analytics.INJECTOR_KEY);
         analytics && analytics.track('search', {text: action.value});
         return _.set(state, 'search.text', action.value);

@@ -36,22 +36,12 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
           if (!client) {
             logger.warn('Invalid client: ' + clientId);
             res.status(400).send({ message: 'Invalid client: ' + clientId });
-            return;
-          }
-
-          // Get group.
-          // TODO(burdon): Remove group.
-          return systemStore.getGroup(user.id)
-            .then(group => {
-
-              // Registration info.
-              res.send({
-                timestamp: client.registered,
-                userId: user.id,
-                clientId: client.id,
-                groupId: group.id   // TODO(burdon): Remove group.
-              });
+          } else {
+            // Registration info.
+            res.send({
+              client: _.pick(client, ['id', 'messageToken'])
             });
+          }
         })
       })
       .catch(next);

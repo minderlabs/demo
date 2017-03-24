@@ -257,13 +257,14 @@ export class OAuthProvider {
    * TODO(burdon): Document profile.
    *
    * @param userProfile
-   * @returns {UserProfile}
+   * @returns { id, email, displayName, photoUrl }
    */
   static getCanonicalUserProfile(userProfile) {
-    let { id, emails, displayName, imageUrl } = userProfile;
+    let { id, emails, displayName, photos } = userProfile;
     let email = _.get(_.find(emails, email => email.type === 'account'), 'value');
+    let photoUrl = photos && photos[0];
     return {
-      id, email, displayName, imageUrl
+      id, email, displayName, photoUrl
     };
   }
 

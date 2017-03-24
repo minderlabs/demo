@@ -149,10 +149,7 @@ class BackgroundApp {
         this._networkManager.init();
 
         // Triggers popup.
-        return this._authManager.authenticate().then(userId => {
-
-          // TODO(burdon): This isn't a BaseApp anymore, we lost the analytics object.
-          this._analytics && this._analytics.identify(userId);
+        return this._authManager.authenticate().then(userProfile => {
 
           // Register with server.
           return this.connect().then(() => {
@@ -230,28 +227,59 @@ class BackgroundApp {
       // Ping.
       case SystemChannel.PING: {
         return Promise.resolve({
+          // TODO(burdon): Factor out Util.
           timestamp: new Date().getTime()
         });
       }
 
-      // On sidebar startup.
-      case SystemChannel.REQUEST_REGISTRATION: {
-        let { server } = this._config;
-        let registration = this._connectionManager.registration;
-        if (!registration) {
-          throw new Error('Not registered.');
-        } else {
-          return Promise.resolve({ registration, server });
-        }
-      }
-
+      // Re-authenticate user.
       case SystemChannel.AUTHENTICATE: {
         return this._authManager.signout(true);
       }
 
-      case SystemChannel.REGISTER_CLIENT: {
+      // Re-connect client.
+      case SystemChannel.CONNECT: {
         return this.connect();
       }
+
+
+
+
+
+
+
+
+      // On sidebar startup.
+      case SystemChannel.REQUEST_REGISTRATION: {
+        let server = _.get(this._config, 'server');
+
+
+        // FRIDAY
+        // TODO(burdon): Replace REQUEST_REGISTRATION with CONNECTED broadcast; merge with FLUSH_CACHE (and send when ports connect if ready).
+        // TODO(burdon): Sidebar analytics.identify (CONNECTED sends userProfile).
+        // TODO(burdon): Sidebar waits for INIT message which fires reducer (app connected). Replace AppAction.register.
+        // TODO(burdon): Client uses Viewer context object (from query) not userProfile.
+        // TODO(burdon): Remove userProfile from being sent back from /user/register (and remove from Web App config).
+        // TODO(burdon): parse initial "default" projects (add label and set default project in context).
+        // TODO(burdon): Document plan to make groups plural in Resolvers, etc.
+
+        let registration = this._connectionManager.registration;
+        if (!registration) {
+          // TODO(burdon): Test client retry.
+          throw new Error('Not registered.');
+        } else {
+          return Promise.resolve({ server });
+        }
+      }
+
+
+
+
+
+
+
+
+
 
       default: {
         throw new Error('Invalid command: ' + request.command);

@@ -168,9 +168,9 @@ export class SystemStore extends DelegateItemStore {
    */
   registerUser(userProfile, credentials, active=false) {
     console.assert(userProfile && credentials);
-    let { id, email, displayName } = userProfile;
-    let { provider } = credentials;
+    let { id, email, displayName, photoUrl } = userProfile;
     console.assert(id && email, 'Invalid profile: ' + JSON.stringify(userProfile));
+    let { provider } = credentials;
     console.assert(provider, 'Invalid credentials: ' + JSON.stringify(credentials));
 
     //
@@ -187,7 +187,8 @@ export class SystemStore extends DelegateItemStore {
           id: SystemStore.createUserId(provider, id),
           active,
           email,
-          displayName
+          displayName,
+          photoUrl
         };
 
         SystemStore.updateUserCredential(user, credentials);
@@ -206,9 +207,6 @@ export class SystemStore extends DelegateItemStore {
 
           // Create new user record.
           return this.updateUser(user).then(user => {
-
-            console.log('222222', user.id, user.active);
-
             // Add user to group.
             if (user.active) {
 

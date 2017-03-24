@@ -52,7 +52,7 @@ export class BotKitManager {
       // that aren't available to bot users. When making web API requests that need those scopes, access that token
       // via bot.config.incoming_webhook.token.
       // https://api.slack.com/bot-users#bot-methods
-      scopes: ['commands', 'bot', 'incoming-webhook', 'search:read']
+      scopes: ['commands', 'bot', 'incoming-webhook', 'search:read', 'users:read', 'users:read.email']
     });
 
     this.slackbot = new SlackBot(this.controller, this._database);

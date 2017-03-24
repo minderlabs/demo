@@ -45,8 +45,7 @@ export class WebApp extends BaseApp {
     // Manages the client connection and registration.
     this._connectionManager = new ConnectionManager(this._config, this._authManager, this._cloudMessenger);
 
-    // Local transient items.
-    // TODO(burdon): Testing?
+    // TODO(burdon): Local transient item store.
     /*
     let idGenerator = this._injector.get(IdGenerator);
     let matcher = this._injector.get(Matcher);
@@ -63,8 +62,10 @@ export class WebApp extends BaseApp {
   postInit() {
 
     // Register client.
-    return this._authManager.authenticate().then(userId => {
-      this._analytics.identify(userId);
+    return this._authManager.authenticate().then(userProfile => {
+      // Map to Segment well-known fields (https://segment.com/docs/spec/identify/#traits).
+      let { id, email, displayName:name, photoUrl:avatar } = userProfile;
+      this._analytics.identify(id, _.omitBy({ email, name, avatar }, _.isNil));
 
       // TODO(burdon): Retry?
       return this._connectionManager.register().then(registration => {

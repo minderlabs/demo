@@ -155,6 +155,7 @@ export const Fragments = {
   UserFragment: gql`
     fragment UserFragment on User {
       title
+      email
   
       ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
         type

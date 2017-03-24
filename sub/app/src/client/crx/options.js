@@ -49,9 +49,9 @@ class Options extends React.Component {
     this._settings.reset();
   }
 
-  onRegister() {
+  onConnect() {
     return this._systemChannel.postMessage({
-      command: SystemChannel.REGISTER_CLIENT
+      command: SystemChannel.CONNECT
     }, true).then(response => {
       this.onRefresh();
     });
@@ -124,8 +124,8 @@ class Options extends React.Component {
 
           <div className="crx-section">
             <button onClick={ this.onReset.bind(this) }>Reset Settings</button>
-            <button onClick={ this.onAuthenticate.bind(this) }>Re-authenticate</button>
-            <button onClick={ this.onRegister.bind(this) }>Re-register</button>
+            <button onClick={ this.onAuthenticate.bind(this) }>Authenticate</button>
+            <button onClick={ this.onConnect.bind(this) }>Connect</button>
           </div>
 
           <div>

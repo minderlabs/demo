@@ -47,20 +47,12 @@ export class ConnectionManager {
   }
 
   /**
-   * Client registration (see clientRouter => ClientManager.register).
-   * NOTE: For client platform uniformity, the registration is stored in the config property.
-   * Web apps have the registration information set by the server on page load, whereas the CRX
-   * retrieves the registration when registering the client.
-   *
-   * // TODO(burdon): Registration vs UserProfile (reconcile user/client registration).
-   * {
-   *   userId,
-   *   groupId,       // TODO(burdon): Remove.
-   *   clientId
-   * }
+   * Returns the registered client ID.
    */
-  get registration() {
-    return _.get(this._config, 'registration');
+  get clientId() {
+    let clientId = _.get(this._config, 'client.id');
+    console.assert(clientId);
+    return clientId;
   }
 
   /**
@@ -77,10 +69,10 @@ export class ConnectionManager {
   register() {
     if (this._cloudMessenger) {
       return this._cloudMessenger.connect().then(messageToken => {
-        return this._requestRegistration(messageToken);
+        return this._registerClient(messageToken);
       });
     } else {
-      return this._requestRegistration();
+      return this._registerClient();
     }
   }
 
@@ -91,10 +83,10 @@ export class ConnectionManager {
    * @return {Promise.<{Registration}>}
    * @private
    */
-  _requestRegistration(messageToken=undefined) {
+  _registerClient(messageToken=undefined) {
 
     // Current client.
-    let clientId = _.get(this._config, 'registration.clientId');
+    let clientId = _.get(this._config, 'client.id');
 
     // Assigned on load for Web clients.
     let platform = _.get(this._config, 'app.platform');
@@ -116,12 +108,11 @@ export class ConnectionManager {
 
     // TODO(burdon): Configure Retry (perpetual with backoff for CRX?)
     logger.log(`Registering client [${clientId}]: (${JSON.stringify(request)})`);
-    return NetUtil.postJson(requestUrl, request, headers).then(registration => {
-      logger.info('Registered: ' + JSON.stringify(registration));
-
-      // TODO(burdon): Store in config?
-      _.set(this._config, 'registration', registration);
-      return registration;
+    return NetUtil.postJson(requestUrl, request, headers).then(result => {
+      logger.info('Registered: ' + JSON.stringify(result));
+      let { client } = result;
+      _.assign(this._config, { client });
+      return client;
     });
   }
 

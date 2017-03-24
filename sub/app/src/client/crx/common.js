@@ -43,9 +43,9 @@ export const DefaultSettings = {
 export const KeyCodes = {
 
   TOGGLE: {
-    _KEYS_: ['⌥ Option', '\\'],
-    altKey: true,
-    keyCode: 220
+    _KEYS_: ['⌘ Command', '\''],
+    metaKey: true,
+    keyCode: 222
   }
 };
 
@@ -70,13 +70,15 @@ export const SystemChannel = {
 
   // From options.
   AUTHENTICATE:           'AUTHENTICATE',
-  REGISTER_CLIENT:        'REGISTER_CLIENT',
+  CONNECT:                'CONNECT',
 
   // From sidebar.
   PING:                   'PING',
-  REQUEST_REGISTRATION:   'REQUEST_REGISTRATION',
 
   // To sidebar.
   FLUSH_CACHE:            'FLUSH_CACHE',
-  INVALIDATE:             'INVALIDATE'
+  INVALIDATE:             'INVALIDATE',
+
+  // TODO(burdon): Replace
+  REQUEST_REGISTRATION:   'REQUEST_REGISTRATION',
 };

@@ -6,7 +6,7 @@ import _ from 'lodash';
 import express from 'express';
 import moment from 'moment';
 
-import { $$, Logger } from 'minder-core';
+import { Logger, TypeUtil } from 'minder-core';
 
 import { isAuthenticated } from 'minder-services';
 
@@ -63,40 +63,42 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
     clientManager.create(user.id, Const.PLATFORM.WEB).then(client => {
       console.assert(client);
 
-      // Get group.
-      // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
-      systemStore.getGroup(user.id).then(group => {
-        console.assert(group, 'No group for user: ' + user.id);
+      //
+      // Client app config.
+      // NOTE: This is the canonical shape of the config object.
+      // The CRX has to construct this by registering the user (post auth) and client.
+      //
+      let config = _.defaults({
 
-        //
-        // Client app config.
-        //
-        let config = _.defaults({
-          root: Const.DOM_ROOT,
+        // DOM.
+        root: Const.DOM_ROOT,
 
-          graphql: '/graphql',
-          graphiql: '/graphiql',
+        // Paths.
+        graphql: '/graphql',
+        graphiql: '/graphiql',
 
-          // Authenticated user.
-          // TODO(burdon): UserProfile? Same response as /user/registration.
-          registration: {
-            idToken: idToken,
-            userId: user.id,
-            groupId: group.id,    // TODO(burdon): Remove.
-            clientId: client.id
-          }
-        }, options.config);
+        // Client registration.
+        client: _.pick(client, ['id', 'messageToken']),
 
-        logger.log($$('Client config = %o', config));
+        // User credentials.
+        credentials: {
+          idToken
+        },
 
-        //
-        // Render page.
-        //
-        res.render('app', {
-          bundle: WEBPACK_BUNDLE[config.env],
-          loader: config.env === 'production',
-          config
-        });
+        // Canonical profile.
+        userProfile: _.pick(user, ['id', 'email', 'displayName', 'photoUrl']),
+
+      }, options.config);
+
+      logger.log('Client config = ' + TypeUtil.stringify(config));
+
+      //
+      // Render page.
+      //
+      res.render('app', {
+        bundle: WEBPACK_BUNDLE[config.env],
+        loader: config.env === 'production',
+        config
       });
     }).catch(next);
   });

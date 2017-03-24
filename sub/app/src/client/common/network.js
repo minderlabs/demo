@@ -65,7 +65,7 @@ export class NetworkManager {
 
         options.headers = _.assign(options.headers,
           AuthManager.getHeaders(this._authManager.idToken),
-          ConnectionManager.getHeaders(this._connectionManager.registration.clientId));
+          ConnectionManager.getHeaders(this._connectionManager.clientId));
 
         next();
       }

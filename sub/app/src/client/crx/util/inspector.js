@@ -28,8 +28,13 @@ export class InspectorRegistry {
     // TODO(burdon): Wait for load. Match URL and dynamically find root each time.
     setTimeout(() => {
       _.each(this._inspectors, inspector => {
-        if (inspector.isValid()) {
-          let rootNode = inspector.getRootNode();
+        if (inspector.shouldObservePage()) {
+          let { context, rootNode } = inspector.getPageState();
+          if (context) {
+            // TODO(madadam): This happens too early, before the sidebar is loaded. Need to keep it cached
+            // and supply it when the sidebar is done loading.
+            callback(context);
+          }
           if (rootNode) {
             console.log('Inspector: ' + inspector.constructor.name);
             inspector.start(rootNode, callback);
@@ -79,10 +84,28 @@ class Inspector {
   }
 
   /**
-   * @return {boolean} Returns true if this inspector is valid.
+   * @return {boolean} Returns true if this inspector should start observers for the current page.
+   *
+   * Note that this is only called once, but in dynamic web apps, window.location.href can change
+   * without reloading the page. Observers are responsible for handling that.
    */
-  isValid() {
+  shouldObservePage() {
     return false;
+  }
+
+  /**
+   *
+   * @return {{context, rootNode}}
+   */
+  getPageState() {
+    return {
+      context: this.getInitialContext(),
+      rootNode: this.getRootNode()
+    }
+  }
+
+  getInitialContext() {
+    return null;
   }
 
   /**
@@ -109,7 +132,7 @@ export class TestInspector extends Inspector {
 
   static PATH = '/testing/crx';
 
-  isValid() {
+  shouldObservePage() {
     return document.location.href.endsWith(TestInspector.PATH);
   }
 
@@ -154,7 +177,7 @@ export class GmailInspector extends Inspector {
 
   static PATH = 'https://mail.google.com';
 
-  isValid() {
+  shouldObservePage() {
     return document.location.href.startsWith(GmailInspector.PATH);
   }
 
@@ -206,7 +229,7 @@ export class GoogleInboxInspector extends Inspector {
 
   static PATH = 'https://inbox.google.com';
 
-  isValid() {
+  shouldObservePage() {
     return document.location.href.startsWith(GoogleInboxInspector.PATH);
   }
 
@@ -247,4 +270,55 @@ export class GoogleInboxInspector extends Inspector {
 
     return context;
   }
+}
+
+/**
+ * Slack Inspector
+ */
+export class SlackInspector extends Inspector {
+
+  static PATH_RE = /https:\/\/([^\.]+)\.slack\.com\/messages\/([^\/]+)\//;
+
+  shouldObservePage() {
+    this._matches = document.location.href.match(SlackInspector.PATH_RE);
+    return this._matches;
+  }
+
+  getContextFromDocumentLocation() {
+    let context = [];
+    this._matches = document.location.href.match(SlackInspector.PATH_RE);
+    if (this._matches && this._matches.length == 3) {
+      context = [
+        {
+          key: 'slack_team',
+          value: {
+            string: this._matches[1]
+          }
+        },
+        {
+          key: 'slack_channel',
+          value: {
+            string: this._matches[2]
+          }
+        }
+      ]
+    }
+    // TODO(madadam): Unify other uses (email) and return context (array of KeyValues) not dict { context: [..] }.
+    return {
+      context
+    };
+  }
+
+  getInitialContext() {
+    return this.getContextFromDocumentLocation();
+  }
+
+  getRootNode() {
+    return $('#client_header')[0];
+  }
+
+  inspect(mutations) {
+    return this.getContextFromDocumentLocation();
+  }
+
 }

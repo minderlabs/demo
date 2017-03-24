@@ -162,6 +162,7 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
   router.post('/register', function(req, res, next) {
 
     // JWT.
+    // TODO(burdon): Create middleware alternative to isAuthenticated.
     let idToken = UserManager.getIdToken(req.headers);
     if (!idToken) {
       throw NotAuthenticatedError('Missing auth token.');
@@ -179,9 +180,18 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
         console.assert(tokenInfo.email  === userProfile.email);
 
         // Register user.
-        // TODO(burdon): Active?
-        systemStore.registerUser(userProfile, credentials, true).then(user => {
-          res.send(userProfile);
+        systemStore.registerUser(userProfile, credentials).then(user => {
+
+          // TODO(burdon): Remove.
+          systemStore.getGroup(user.id).then(group => {
+
+            // TODO(burdon): Only active if in group (i.e., whitelisted).
+            if (!group || !user.active) {
+              res.status(403).end();
+            } else {
+              res.send({ userProfile, groupId: group.id });
+            }
+          });
         });
       });
     }).catch(next);

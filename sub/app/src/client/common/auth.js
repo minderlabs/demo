@@ -17,7 +17,7 @@ const logger = Logger.get('auth');
  */
 export class AuthManager {
 
-  // TODO(burdon): Generalize for other clients (mobile, command linet)?
+  // TODO(burdon): Generalize for other clients (mobile, command line)?
 
   /**
    * Return the authentication header.
@@ -39,9 +39,6 @@ export class AuthManager {
   constructor(config) {
     console.assert(config);
     this._config = config;
-
-    // JWT.
-    this._idToken = null;
   }
 
   /**
@@ -50,8 +47,9 @@ export class AuthManager {
    * @returns {string}
    */
   get idToken() {
-    console.assert(this._idToken);
-    return this._idToken;
+    let idToken = _.get(this._config, 'credentials.idToken');
+    console.assert(idToken);
+    return idToken;
   }
 
   /**
@@ -64,20 +62,32 @@ export class AuthManager {
    * - Register the CRX with the Web Client OAuth callbacks:
    *   E.g., https://ofdkhkelcafdphpddfobhbbblgnloian.chromiumapp.org/google
    *
-   * @return {string} userId
+   * @return {UserProfile} User profile object { id, email, displayName, photoUrl }
    */
-  // TODO(burdon): Normalize userProfile and registration (see webAppRouter).
   authenticate() {
-
-    // Web is already authenticated.
     let platform = _.get(this._config, 'app.platform');
     if (platform === Const.PLATFORM.WEB) {
-      let registration = _.get(this._config, 'registration');
-      this._idToken = registration.idToken;
-      console.assert(this._idToken);
-      return Promise.resolve(registration.userId);
+      // Web is already authenticated and registered.
+      console.assert(this.idToken);
+      return Promise.resolve(_.get(this._config, 'userProfile'));
+    } else {
+      // Trigger OAuth flow.
+      return this._launchWebAuthFlow().then(credentials => {
+        return this._registerUser(credentials).then(userProfile => {
+          _.assign(this._config, { userProfile });
+          return userProfile;
+        });
+      });
     }
+  }
 
+  /**
+   * Triggers the OAuth flow if necessary, returning the credentials.
+   *
+   * @return {Promise}
+   * @private
+   */
+  _launchWebAuthFlow() {
     return new Promise((resolve, reject) => {
       logger.log('Authenticating...');
 
@@ -143,11 +153,7 @@ export class AuthManager {
           provider: OAuthProvider.provider
         });
 
-        this._idToken = credentials.id_token;
-
-        this.registerUser(credentials).then(userProfile => {
-          resolve(userProfile);
-        });
+        resolve(credentials);
       });
     });
   }
@@ -159,10 +165,15 @@ export class AuthManager {
    * @param credentials
    * @returns {Promise<UserProfile>}
    */
-  registerUser(credentials) {
+  _registerUser(credentials) {
     let registerUrl = NetUtil.getUrl('/user/register', this._config.server);
     let headers = AuthManager.getHeaders(credentials.id_token);
-    return NetUtil.postJson(registerUrl, { credentials }, headers);
+    return NetUtil.postJson(registerUrl, { credentials }, headers).then(result => {
+      let { userProfile } = result;
+
+      logger.log('Registered: ' + JSON.stringify(userProfile));
+      return userProfile;
+    });
   }
 
   /**

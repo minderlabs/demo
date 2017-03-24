@@ -97,7 +97,7 @@ export class TaskCard extends React.Component {
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired,
-    registration: React.PropTypes.object.isRequired
+    viewer: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -113,13 +113,13 @@ export class TaskCard extends React.Component {
   }
 
   handleTaskUpdate(item, mutations) {
-    let { registration: { userId }, mutator } = this.context;
+    let { viewer: {user}, mutator } = this.context;
 
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
       let { item:parent } = this.props;
-      AddCreateSubTask(mutator.batch(), userId, parent, mutations).commit();
+      AddCreateSubTask(mutator.batch(), user.id, parent, mutations).commit();
     }
   }
 
@@ -167,7 +167,7 @@ class TaskCanvasComponent extends React.Component {
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired,
-    registration: React.PropTypes.object.isRequired
+    viewer: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -217,13 +217,13 @@ class TaskCanvasComponent extends React.Component {
 
   handleTaskUpdate(item, mutations) {
     console.assert(mutations);
-    let { registration: { userId }, mutator } = this.context;
+    let { viewer: { user }, mutator } = this.context;
 
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
       let { item:parent } = this.props;
-      AddCreateSubTask(mutator.batch(), userId, parent, mutations).commit();
+      AddCreateSubTask(mutator.batch(), user.id, parent, mutations).commit();
     }
   }
 
@@ -256,9 +256,6 @@ class TaskCanvasComponent extends React.Component {
       let { item:task, refetch } = this.props;
       let { project, tasks } = task;
 
-      // TODO(burdon): Set group from project (remove groupId).
-      //groupId={ project.group.id }
-
       const levels = _.keys(TASK_LEVELS.properties).sort().map(level =>
         <option key={ level } value={ level }>{ TASK_LEVELS.properties[level].title }</option>);
 
@@ -286,8 +283,8 @@ class TaskCanvasComponent extends React.Component {
 
               <div className="ux-data-row">
                 <div className="ux-data-label">Assignee</div>
-                <MembersPicker
-                               value={ assigneeText || '' }
+                <MembersPicker value={ assigneeText || '' }
+                               groupId={ project.group.id }
                                onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
                                onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
               </div>
@@ -341,19 +338,10 @@ const MembersQuery = gql`
 `;
 
 const MembersPicker = compose(
-  connect((state, ownProps) => {
-    // TODO(burdon): Get from project.
-    let { registration: { groupId } } = AppAction.getState(state);
-
-    return {
-      groupId
-    }
-  }),
-
   graphql(MembersQuery, {
     options: (props) => {
-      // TODO(burdon): Get from project.
       let { groupId } = props;
+      console.assert(groupId);
 
       return {
         variables: {
