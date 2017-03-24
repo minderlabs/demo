@@ -65,13 +65,13 @@ export class AppAction {
   /**
    * Register client (after server connect).
    */
-  static register(registration, server=undefined) {
-    console.assert(registration);
+  static register(userProfile, server=undefined) {
+    console.assert(userProfile);
     return {
       type: AppAction.ACTION.REGISTER,
       value: {
-        server,
-        registration
+        userProfile,
+        server
       }
     };
   }
@@ -100,10 +100,10 @@ export class AppAction {
 /**
  * @param injector
  * @param config
- * @param registration
+ * @param userProfile
  * @constructor
  */
-export const AppReducer = (injector, config, registration=undefined) => {
+export const AppReducer = (injector, config, userProfile=undefined) => {
   console.assert(injector && config);
 
   const initialState = {
@@ -114,8 +114,9 @@ export const AppReducer = (injector, config, registration=undefined) => {
     // Client config.
     config: config,
 
-    // Client registration.
-    registration,
+    // User profile (from config or background page).
+    // NOTE: The React context contains the current Viewer (provided by the top-level Activity).
+    userProfile,
 
     // Search bar.
     search: {
@@ -133,7 +134,7 @@ export const AppReducer = (injector, config, registration=undefined) => {
     switch (action.type) {
 
       case AppAction.ACTION.REGISTER: {
-        return _.assign(state, _.pick(action.value, ['registration', 'server']));
+        return _.assign(state, _.pick(action.value, ['userProfile', 'server']));
       }
 
       // TODO(burdon): Get search query (not just text).

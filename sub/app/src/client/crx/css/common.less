@@ -22,15 +22,40 @@ label {
 }
 
 pre {
-  font-size: 11px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  margin: 0;
 }
 
 .crx-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.crx-section {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
   padding: 12px;
+}
+.crx-debug-section {
+  background-color: #F5F5F5;
+}
+
+.crx-expand {
+  flex-grow: 1;
+  flex-shrink: 1;
+  overflow: hidden;
+}
+
+.crx-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .crx-form {
-
   .crx-row {
     display: flex;
     flex-direction: row;
@@ -40,8 +65,4 @@ pre {
       width: 50px;
     }
   }
-}
-
-.crx-section {
-  padding: 8px 0;
 }

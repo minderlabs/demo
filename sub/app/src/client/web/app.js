@@ -68,8 +68,8 @@ export class WebApp extends BaseApp {
       this._analytics.identify(id, _.omitBy({ email, name, avatar }, _.isNil));
 
       // TODO(burdon): Retry?
-      return this._connectionManager.register().then(registration => {
-        this.store.dispatch(AppAction.register(registration));
+      return this._connectionManager.register().then(client => {
+        this.store.dispatch(AppAction.register(userProfile));
       });
     });
   }

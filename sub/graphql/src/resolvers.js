@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
-import { $$, Logger, NotAuthenticatedError, Database, ID, ItemStore, TypeUtil } from 'minder-core';
+import { $$, Logger, HttpError, Database, ID, ItemStore, TypeUtil } from 'minder-core';
 
 import Schema from './gql/schema.graphql';
 
@@ -44,7 +44,7 @@ export class Resolvers {
    * @param context
    * @param type
    * @param items
-   * @returns {*|Promise.<Item[]>}
+   * @returns {Promise<Item>}
    */
   static getItems(itemStore, context, type, items) {
     let itemIds = _.filter(items, item => _.isString(item));
@@ -137,7 +137,10 @@ export class Resolvers {
       User: {
 
         title: (root) => {
-          return root.displayName;
+          if (!root.displayName) {
+            logger.warn('Missing displayName: ' + root.id);
+          }
+          return root.displayName || '';
         },
 
         // TODO(burdon): Generalize for filtered items (like queryItems). Can reference context and root node.
@@ -313,11 +316,11 @@ export class Resolvers {
     if (!context.userId) {
       // TODO(burdon): Test user is active also.
       // NOTE: getUserFromHeader should have already thrown before getting here.
-      throw NotAuthenticatedError();
+      throw new HttpError(401);
     }
 
     if (!context.clientId) {
-      throw new Error('Invalid client.');
+      throw new HttpError('Invalid client.', 400);
     }
   }
 }

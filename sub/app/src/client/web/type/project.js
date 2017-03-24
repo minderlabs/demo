@@ -423,6 +423,7 @@ const ProjectBoardQuery = gql`
           }
         }
 
+        # TODO(burdon): Why 2-levels?
         tasks {
           ...TaskFragment
 

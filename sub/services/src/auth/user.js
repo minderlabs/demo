@@ -5,7 +5,7 @@
 import _ from 'lodash';
 import express from 'express';
 
-import { Logger, NotAuthenticatedError, SystemStore } from 'minder-core';
+import { Logger, HttpError, SystemStore } from 'minder-core';
 
 import { isAuthenticated } from './oauth';
 
@@ -98,7 +98,7 @@ export class UserManager {
     let idToken = UserManager.getIdToken(headers);
     if (!idToken) {
       if (required) {
-        throw NotAuthenticatedError('Missing authorization header.');
+        throw new HttpError('Missing authorization header.', 401);
       }
 
       return Promise.resolve(null);
@@ -114,9 +114,6 @@ export class UserManager {
             console.assert(user, 'Invalid User: ' + JSON.stringify(tokenInfo));
             return user;
           });
-      })
-      .catch(error => {
-        throw NotAuthenticatedError(error);
       });
   }
 }
@@ -161,11 +158,11 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
   //
   router.post('/register', function(req, res, next) {
 
-    // JWT.
-    // TODO(burdon): Create middleware alternative to isAuthenticated.
+    // Get ID token (JWT) from header.
+    // TODO(burdon): Create middleware version of isAuthenticated for headers.
     let idToken = UserManager.getIdToken(req.headers);
     if (!idToken) {
-      throw NotAuthenticatedError('Missing auth token.');
+      throw new HttpError('Missing auth token.', 401);
     }
 
     // All credentials.
@@ -187,7 +184,7 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
 
             // TODO(burdon): Only active if in group (i.e., whitelisted).
             if (!group || !user.active) {
-              res.status(403).end();
+              throw new HttpError('User not active.', 403);
             } else {
               res.send({ userProfile, groupId: group.id });
             }

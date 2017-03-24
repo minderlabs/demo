@@ -146,6 +146,8 @@ input ExpressionInput {
   comp: Comparator          # Default: EQ
   field: String
   value: ValueInput
+
+  # TODO(burdon): Document (accesses root).
   ref: String
 }
 
@@ -246,6 +248,7 @@ interface Item {
   bucket: ID                  # ID of User or Group (null for system item).
   type: String!
   id: ID!
+  # TODO(burdon): Multiple.
   fkey: String                # Foreign key.
   alias: String               # Short-name for URLs (unique, human-readable).
   created: Timestamp!
@@ -277,6 +280,7 @@ type User implements Item {
   # TODO(burdon): Part of contact?
   email: String
 
+  # TODO(burdon): Bi-directional.
   contact: Contact
 
   # TODO(burdon): Remove (only query via project links).

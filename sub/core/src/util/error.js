@@ -2,9 +2,74 @@
 // Copyright 2016 Minder Labs.
 //
 
-// TODO(burdon): Do this for other standard errors (per module?)
-// NOTE: Function ensures stack is preserved.
-export const NotAuthenticatedError = () => new Error('Not authenticated');
+import _ from 'lodash';
+
+//
+// https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+//
+const Errors = {
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  403: 'Forbidden',
+  404: 'Not Found',
+  500: 'Internal Server Error',
+  501: 'Not Implemented',
+  503: 'Service unavailable'
+};
+
+/**
+ * Custom HTTP error that preserves stack traces and can be used to wrap exceptions.
+ *
+ * @param {number|string|Error} message Original error, error message, or error code.
+ * @param {number} code HTTP code.
+ * @constructor
+ */
+export function HttpError(message, code=500) {
+
+  // Based on: http://stackoverflow.com/questions/1382107/whats-a-good-way-to-extend-error-in-javascript
+
+  if (_.isNumber(message)) {
+    code = message;
+    message = Errors[code];
+  }
+
+  Object.defineProperty(this, 'name', {
+    enumerable: false,
+    writable: false,
+    value: 'HttpError'
+  });
+
+  Object.defineProperty(this, 'message', {
+    enumerable: false,
+    writable: true,
+    value: '[' + code + '] ' + (message || Errors[code] || '')
+  });
+
+  Object.defineProperty(this, 'code', {
+    enumerable: false,
+    writable: true,
+    value: code
+  });
+
+  if (Error.hasOwnProperty('captureStackTrace')) { // V8
+    Error.captureStackTrace(this, HttpError);
+  } else {
+    Object.defineProperty(this, 'stack', {
+      enumerable: false,
+      writable: false,
+      value: (new Error(message)).stack
+    });
+  }
+}
+
+if (typeof Object.setPrototypeOf === 'function') {
+  Object.setPrototypeOf(HttpError.prototype, Error.prototype);
+} else {
+  HttpError.prototype = Object.create(Error.prototype, {
+    constructor: { value: HttpError }
+  });
+}
+
 
 /**
  * General error utils.

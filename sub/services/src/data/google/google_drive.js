@@ -58,7 +58,7 @@ class GoogleDriveClient {
       this._config.clientSecret
     );
 
-    let credentials = _.get(context, 'credentials.google_com');
+    let credentials = _.get(context, 'credentials.google');
     oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));
     return oauth2Client;
   }
@@ -132,8 +132,10 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
 
   static NAMESPACE = 'google.com/drive';
 
+  /**
+   * https://developers.google.com/drive/v3/web/search-parameters
+   */
   static makeDriveQuery(queryString) {
-    // https://developers.google.com/drive/v3/web/search-parameters
     return _.isEmpty(queryString) ? null : `fullText contains \'${queryString}\'`;
   }
 

@@ -256,6 +256,12 @@ class TaskCanvasComponent extends React.Component {
       let { item:task, refetch } = this.props;
       let { project, tasks } = task;
 
+      // TODO(burdon): This shouldn't happen. Apollo serving from cache?
+      if (!this.props.loading && !task.project) {
+        console.warn('Finished loading but missing project: ' + JSON.stringify(task));
+        return <div/>;
+      }
+
       const levels = _.keys(TASK_LEVELS.properties).sort().map(level =>
         <option key={ level } value={ level }>{ TASK_LEVELS.properties[level].title }</option>);
 
@@ -375,6 +381,12 @@ const TaskQuery = gql`
       
       # TODO(burdon): Possible bug (TaskFragment includes title, but sub tasks field also needs it).
       ... on Task {
+        project {
+          group {
+            id
+          }
+        }
+
         tasks {
           ...ItemFragment
           ...TaskFragment

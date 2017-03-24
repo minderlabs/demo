@@ -45,9 +45,10 @@ export class QueryProcessor {
    * @param filter
    * @param offset
    * @param count
-   * @return {Promise.<[Item]>} Retrieved items or [].
+   * @return {Promise<[Item]>} Retrieved items or [].
    */
   // TODO(burdon): Move offset, count into filter and rename filter=>query.
+  // TODO(burdon): Document root (see Matcher.matchComparatorExpression and ExpressionInput).
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     throw new Error('Not implemented');
   }
@@ -75,7 +76,7 @@ export class ItemStore extends QueryProcessor {
    * @param context
    * @param type
    * @param itemId
-   * @return {Promise.<Item>} Item or null.
+   * @return {Promise<Item>} Item or null.
    */
   getItem(context, type, itemId) {
     return this.getItems(context, type, [itemId]).then(items => items[0]);
@@ -85,7 +86,7 @@ export class ItemStore extends QueryProcessor {
    *
    * @param context
    * @param item
-   * @return {Promise.<Item>} Updated item.
+   * @return {Promise<Item>} Updated item.
    */
   upsertItem(context, item) {
     return this.upsertItems(context, [item]).then(items => items[0]);
@@ -96,7 +97,7 @@ export class ItemStore extends QueryProcessor {
    * @param context
    * @param type
    * @param itemIds
-   * @return {Promise.<[Item]>} Retrieved items or [].
+   * @return {Promise<[Item]>} Retrieved items or [].
    */
   getItems(context, type, itemIds=[]) {
     throw new Error('Not implemented');
@@ -106,7 +107,7 @@ export class ItemStore extends QueryProcessor {
    *
    * @param context
    * @param items
-   * @return {Promise.<[Item]>} Updated items.
+   * @return {Promise<[Item]>} Updated items.
    */
   upsertItems(context, items) {
     throw new Error('Not implemented');

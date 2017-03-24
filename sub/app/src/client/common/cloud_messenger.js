@@ -187,7 +187,7 @@ export class GoogleCloudMessenger extends CloudMessenger {
 
   connect() {
     return new Promise((resolve, reject) => {
-      logger.log('Requesting token...');
+      logger.log('Requesting message token...');
 
       // https://developers.google.com/cloud-messaging/chrome/client
       chrome.gcm.register([ String(GoogleApiConfig.projectNumber) ], messageToken => {

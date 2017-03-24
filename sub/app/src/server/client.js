@@ -7,7 +7,7 @@ import express from 'express';
 import moment from 'moment';
 import request from 'request';
 
-import { Async, Logger } from 'minder-core';
+import { Async, HttpError, Logger } from 'minder-core';
 
 import { Const, FirebaseServerConfig } from '../common/defs';
 
@@ -34,8 +34,7 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
         let clientId = req.headers[Const.HEADER.CLIENT_ID];
         clientManager.register(user.id, platform, clientId, messageToken).then(client => {
           if (!client) {
-            logger.warn('Invalid client: ' + clientId);
-            res.status(400).send({ message: 'Invalid client: ' + clientId });
+            throw new HttpError('Invalid client: ' + clientId, 400);
           } else {
             // Registration info.
             res.send({
@@ -224,7 +223,7 @@ export class ClientManager {
    * invalidation but may choose to ignore it.
    *
    * @param senderId Client ID of sender.
-   * @return {Promise.<*>|*}
+   * @return {Promise}
    */
   invalidateClients(senderId=undefined) {
 

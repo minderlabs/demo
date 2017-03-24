@@ -93,6 +93,7 @@ class Options extends React.Component {
     return (
       <div>
         <div className="crx-panel crx-form">
+
           <div className="crx-section">
             <label>
               <input type="checkbox"
@@ -111,32 +112,40 @@ class Options extends React.Component {
             </label>
           </div>
 
-          <div className="crx-section">
-            <h2>Debugging</h2>
-            <select name="settings_server"
-                    value={ settings.server }
-                    onChange={ this.onChangeValue.bind(this, 'server') }>
-              { _.map(Defs.SERVER, (option, type) =>
-              <option key={ option.value } value={ option.value }>{ option.title }</option>)
-              }
-            </select>
+          <div className="crx-section crx-debug-section">
+            <h3>Debugging</h3>
+            <div>
+              <select name="settings_server"
+                      value={ settings.server }
+                      onChange={ this.onChangeValue.bind(this, 'server') }>
+                { _.map(Defs.SERVER, (option, type) =>
+                <option key={ option.value } value={ option.value }>{ option.title }</option>)
+                }
+              </select>
+            </div>
           </div>
 
-          <div className="crx-section">
-            <button onClick={ this.onReset.bind(this) }>Reset Settings</button>
-            <button onClick={ this.onAuthenticate.bind(this) }>Authenticate</button>
-            <button onClick={ this.onConnect.bind(this) }>Connect</button>
-          </div>
-
-          <div>
+          <div className="crx-section crx-debug-section crx-expand">
+            <h3>Config</h3>
             <pre>
               { JSON.stringify(chrome.extension.getBackgroundPage().app.config, null, 2) }
             </pre>
-
-            <button onClick={ this.onRefresh.bind(this) }>Refresh</button>
           </div>
-        </div>
 
+          <div className="crx-section crx-debug-section">
+            <div className="crx-buttons">
+              <div>
+                <button onClick={ this.onReset.bind(this) }>Reset Settings</button>
+                <button onClick={ this.onAuthenticate.bind(this) }>Authenticate</button>
+                <button onClick={ this.onConnect.bind(this) }>Connect</button>
+              </div>
+              <div>
+                <button onClick={ this.onRefresh.bind(this) }>Refresh</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
     );
   }

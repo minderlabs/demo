@@ -17,8 +17,8 @@ import path from 'path';
 
 import {
   ErrorUtil,
+  HttpError,
   Logger,
-  NotAuthenticatedError,
   TypeUtil
 } from 'minder-core';
 
@@ -219,6 +219,7 @@ app.engine('handlebars', handlebars({
 
   defaultLayout: 'main',
 
+  // TODO(burdon): Factor out.
   helpers: {
     section: function(name, options) {
       if (!this.sections) { this.sections = {}; }
@@ -350,10 +351,12 @@ app.use(graphqlRouter(database, {
     if (!user) {
       return Promise.resolve(context);
     } else {
-      // TODO(burdon): Get groups.
-      return systemStore.getGroup(user.id).then(group => _.assign(context, {
-        groupId: group.id
-      }));
+      // TODO(burdon): Change to groups (update resolvers, matcher, query, etc.)
+      return systemStore.getGroup(user.id).then(group => {
+        return _.assign(context, {
+          groupId: group.id
+        })
+      });
     }
   })
 }));
@@ -445,7 +448,7 @@ app.use(webAppRouter(userManager, clientManager, systemStore, {
 // Server status.
 //
 
-app.get('/status', function(req, res) {
+app.get('/status', function(req, res, next) {
   res.setHeader('Content-Type', 'application/json');
   res.send(JSON.stringify({
     env,
@@ -464,21 +467,13 @@ app.get('/', function(req, res) {
 
 
 //
-// File not found.
-//
-
-app.get(function(req, res) {
-  // TODO(burdon): Special handling for JSON.
-  logger.log(`[404]: ${req.path}`);
-  res.status(404).end();
-});
-
-
-//
-// Error handling (e.g., uncaught exceptions).
+// Error handling middleware (e.g., uncaught exceptions).
 // https://expressjs.com/en/guide/error-handling.html
+// https://strongloop.com/strongblog/async-error-handling-expressjs-es7-promises-generators/
+// https://expressjs.com/en/starter/faq.html
 //
 // NOTE: Must be last.
+// NOTE: Must have all 4 args (error middleware signature).
 // NOTE: Async functions must call next() for subsequent middleware to be called.
 //
 // app.get(function(req, res, next) {
@@ -487,17 +482,33 @@ app.get(function(req, res) {
 //   }).catch(next);
 // });
 //
-// https://strongloop.com/strongblog/async-error-handling-expressjs-es7-promises-generators/
-//
 
-app.get(function(error, req, res) {
-  if (error === NotAuthenticatedError) {
-    res.status(401).end();
-    return;
+app.use(function(req, res, next) {
+  throw new HttpError(404);
+});
+
+app.use(function(err, req, res, next) {
+  let json = _.startsWith(req.headers['content-type'], 'application/json');
+
+  let code = err.code || 500;
+  if (code >= 500 || env !== 'production') {
+    logger.error(`[${req.method} ${req.url}]:`, err);
+
+    if (json) {
+      res.status(code).end();
+    } else {
+      // TODO(burdon): User facing page in prod.
+      res.render('error', { code, err });
+    }
+  } else {
+    logger.warn(`[${req.method} ${req.url}]:`, ErrorUtil.message(err));
+
+    if (json) {
+      res.status(err.code).end();
+    } else {
+      res.redirect('/');
+    }
   }
-
-  logger.error(error.stack);
-  res.status(500).end();
 });
 
 
@@ -506,6 +517,8 @@ app.get(function(error, req, res) {
 //
 
 // TODO(burdon): Remove from server startup except for testing. Use tools to configure DB.
+// TODO(burdon): parse initial "default" projects JSON file (add label and set default project in context).
+
 let loader = new Loader(database, testing);
 let loading = Promise.all([
   // Do in parallel.

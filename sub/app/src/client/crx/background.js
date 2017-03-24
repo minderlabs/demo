@@ -187,30 +187,30 @@ class BackgroundApp {
 
   /**
    *
-   * @returns {Promise.<{Registration}>}
+   * @returns {Promise<Registration>}
    */
   connect() {
     // Flush the cache.
     this._networkManager.init();
 
     // Re-register with server.
-    return this._connectionManager.register().then(registration => {
-      logger.log('Registered: ' + JSON.stringify(registration));
+    return this._connectionManager.register().then(client => {
+      logger.log('Registered: ' + TypeUtil.stringify(client));
       if (this._config.notifications) {
         this._notification.show('Minder', 'Registered App.');
       }
 
       // Save registration.
-      this._settings.set('registration', registration).then(() => {
+      this._settings.set('client', client).then(() => {
 
         // Broadcast reset to all clients (to reset cache).
         this._systemChannel.postMessage(null, {
-          command: SystemChannel.FLUSH_CACHE
+          command: SystemChannel.RESET
         });
 
         // Notify state changed.
         this._onChange.fireListeners();
-        return registration;
+        return client;
       });
     });
   }
@@ -242,44 +242,17 @@ class BackgroundApp {
         return this.connect();
       }
 
-
-
-
-
-
-
-
       // On sidebar startup.
-      case SystemChannel.REQUEST_REGISTRATION: {
+      case SystemChannel.REGISTER: {
         let server = _.get(this._config, 'server');
-
-
-        // FRIDAY
-        // TODO(burdon): Replace REQUEST_REGISTRATION with CONNECTED broadcast; merge with FLUSH_CACHE (and send when ports connect if ready).
-        // TODO(burdon): Sidebar analytics.identify (CONNECTED sends userProfile).
-        // TODO(burdon): Sidebar waits for INIT message which fires reducer (app connected). Replace AppAction.register.
-        // TODO(burdon): Client uses Viewer context object (from query) not userProfile.
-        // TODO(burdon): Remove userProfile from being sent back from /user/register (and remove from Web App config).
-        // TODO(burdon): parse initial "default" projects (add label and set default project in context).
-        // TODO(burdon): Document plan to make groups plural in Resolvers, etc.
-
-        let registration = this._connectionManager.registration;
-        if (!registration) {
+        let userProfile = _.get(this._config, 'userProfile');
+        if (!userProfile) {
           // TODO(burdon): Test client retry.
           throw new Error('Not registered.');
         } else {
-          return Promise.resolve({ server });
+          return Promise.resolve({ userProfile, server });
         }
       }
-
-
-
-
-
-
-
-
-
 
       default: {
         throw new Error('Invalid command: ' + request.command);
@@ -290,7 +263,7 @@ class BackgroundApp {
 
 window.app = new BackgroundApp();
 window.app.init().then(app => {
-  logger.info(JSON.stringify(app.config));
+  logger.info(TypeUtil.stringify(app.config, 2));
 
   // Listen for termination and inform scripts.
   // https://developer.chrome.com/extensions/runtime#event-onSuspend

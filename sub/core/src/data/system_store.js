@@ -81,7 +81,7 @@ export class SystemStore extends DelegateItemStore {
   /**
    * Update and existing user.
    * @param user
-   * @return {Promise.<Item>}
+   * @return {Promise<Item>}
    */
   updateUser(user) {
     return this.upsertItem(this._context, user);

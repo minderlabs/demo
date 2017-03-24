@@ -54,7 +54,6 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
   const path = new RegExp(options.root.replace('/', '\/') + '\/?(.*)');
   router.get(path, isAuthenticated('/user/login'), function(req, res, next) {
     let user = req.user;
-
     let idToken = userManager.getIdToken(user);
     console.assert(idToken, 'Invalid token for user: ' + JSON.stringify(_.pick(user, ['id', 'email'])));
 
@@ -82,7 +81,7 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
 
         // User credentials.
         credentials: {
-          idToken
+          id_token: idToken
         },
 
         // Canonical profile.

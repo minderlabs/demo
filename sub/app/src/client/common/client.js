@@ -64,7 +64,7 @@ export class ConnectionManager {
    *
    * [ConnectionManager] ==> [ClientManager]
    *
-   * @return {Promise<Registration>}
+   * @return {Promise<Client>}
    */
   register() {
     if (this._cloudMessenger) {
@@ -80,7 +80,7 @@ export class ConnectionManager {
    * Sends the client registration request.
    *
    * @param messageToken
-   * @return {Promise.<{Registration}>}
+   * @return {Promise<Client>}
    * @private
    */
   _registerClient(messageToken=undefined) {
@@ -101,10 +101,7 @@ export class ConnectionManager {
       _.assign(headers, ConnectionManager.getHeaders(clientId));
     }
 
-    let request = {
-      platform,
-      messageToken
-    };
+    let request = { platform, messageToken };
 
     // TODO(burdon): Configure Retry (perpetual with backoff for CRX?)
     logger.log(`Registering client [${clientId}]: (${JSON.stringify(request)})`);

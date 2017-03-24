@@ -47,8 +47,8 @@ export class AuthManager {
    * @returns {string}
    */
   get idToken() {
-    let idToken = _.get(this._config, 'credentials.idToken');
-    console.assert(idToken);
+    let idToken = _.get(this._config, 'credentials.id_token');
+    console.assert(idToken, 'Invalid token: ' + JSON.stringify(_.get(this._config, 'credentials')));
     return idToken;
   }
 
@@ -122,7 +122,6 @@ export class AuthManager {
         state: String(new Date().getTime())                                     // Check same state below.
       };
 
-      // TODO(burdon): Const.
       // TODO(burdon): Move auth to minder-core.
       let requestUrl = HttpUtil.toUrl(OAuthProvider.requestUrl, requestParams);
 
@@ -153,6 +152,9 @@ export class AuthManager {
           provider: OAuthProvider.provider
         });
 
+        // Update config.
+        _.assign(this._config, { credentials });
+
         resolve(credentials);
       });
     });
@@ -171,7 +173,7 @@ export class AuthManager {
     return NetUtil.postJson(registerUrl, { credentials }, headers).then(result => {
       let { userProfile } = result;
 
-      logger.log('Registered: ' + JSON.stringify(userProfile));
+      logger.log('Registered User: ' + JSON.stringify(userProfile));
       return userProfile;
     });
   }

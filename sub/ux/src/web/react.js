@@ -34,7 +34,7 @@ export class ReactUtil {
         return <div/>;
       }
     } else if (error) {
-      // NOTE: NetworkLogger logs to the console.
+      // Network errors are already logged.
       return (
         <div className="ux-error">{ cls.constructor.name + ': ' + String(error) }</div>
       );
@@ -44,6 +44,7 @@ export class ReactUtil {
         return render(cls.props, cls.context);
       } catch(error) {
         // TODO(burdon): Log if prod and show standard error.
+        console.error(error);
         let message = error.message || 'Error rendering.';
         return (
           <div className="ux-error">{ cls.constructor.name + ': ' + message }</div>

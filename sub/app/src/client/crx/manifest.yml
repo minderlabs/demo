@@ -70,7 +70,7 @@ permissions:
 
   - "http://127.0.0.1/*"
   - "http://localhost/*"
-  - "http://local-docker-machine/*"
+  - "http://dockermachine.net/*"
 
   - "https://accounts.google.com/o/oauth2/auth/*"
 

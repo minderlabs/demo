@@ -6,27 +6,9 @@ import _ from 'lodash';
 import express from 'express';
 import passport from 'passport';
 
-import { Logger, SystemStore } from 'minder-core';
+import { Logger, HttpError, SystemStore } from 'minder-core';
 
 const logger = Logger.get('oauth');
-
-
-// TODO(burdon): Use registration idToken in client headers (don't need to authenticate for Web).
-// TODO(burdon): Remove FB from client.
-// TODO(burdon): Remove FB from server.
-// TODO(burdon): Logout/invalidate.
-
-// TODO(burdon): Consistent error handling and logging (throw Error with 400, 401, 500, etc. and catch at end).
-// TODO(burdon): Remove FB OAuth config (incl. server OAuth registration from FB and Google consoles).
-// TODO(burdon): Only set user as active if joins group (via whitelist).
-// TODO(burdon): Clean-up OAuth providers.
-// TODO(burdon): Update credentials when access_token updated by refresh_token
-// TODO(burdon): graphiql: get token from cookie.
-// TODO(burdon): 401 and 500 handling.
-// TODO(burdon): Admin group and auth check.
-
-// TODO(burdon): Group ID by org?
-
 
 /**
  * Checks if the OAuth cookie has been set by passport.
@@ -42,8 +24,7 @@ export const isAuthenticated = (redirect=undefined, admin=false) => (req, res, n
     if (redirect) {
       res.redirect(redirect);
     } else {
-      // TODO(burdon): throw NotAuthenticatedError()?
-      res.status(401).end();
+      throw new HttpError(401);
     }
   }
 };
@@ -111,6 +92,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   let loginCallback = (accessToken, refreshToken, params, profile, done) => {
     console.assert(accessToken);
 
+    // TODO(burdon): Check expiration: https://www.npmjs.com/package/jwt-autorefresh
     let { id_token, token_type, expires_in } = params;
     console.assert(id_token && token_type && expires_in);
 
@@ -167,12 +149,11 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     // Registered OAuth request flow callback.
     //
     router.get('/callback/' + provider.providerId, passport.authenticate(provider.providerId, {
-      // TODO(burdon): Const.
       failureRedirect: '/home'
     }), (req, res) => {
       logger.log('Logged in: ' + JSON.stringify(_.pick(req.user, ['id', 'email'])));
 
-      // TODO(burdon): Redirect based on context.
+      // TODO(burdon): Redirect based on context (e.g., home/profile page).
       res.redirect('/app');
     });
   });
@@ -180,7 +161,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   //
   // OAuth test.
   //
-  router.get('/test', isAuthenticated('/xxx'), (req, res, next) => {
+  router.get('/test', isAuthenticated('/profile'), (req, res, next) => {
     let user = req.user;
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({

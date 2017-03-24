@@ -81,7 +81,7 @@ export class BaseApp {
 
   /**
    *
-   * @return {Promise.<T>}
+   * @return {Promise}
    */
   postInit() {}
 

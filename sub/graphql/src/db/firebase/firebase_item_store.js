@@ -95,17 +95,7 @@ export class FirebaseItemStore extends BaseItemStore {
       let items = [];
       _.each(buckets, typeMap => {
         _.each(typeMap, (itemMap, type) => {
-
-          // TODO(burdon): Iterator (by type?).
-          // NS/Type/Bucket/ID
-          // NS/Bucket/Type/ID == standars (separate user/group NS?)
-
           _.each(itemMap, (item, key) => {
-
-            // TODO(burdon): HOW TO KNOW TO FLATTEN?
-            // if (type === 'User')
-            // console.log('ITEM: >>>>>>>>>', TypeUtil.stringify(item, 2));
-
             items.push(item);
           });
         });

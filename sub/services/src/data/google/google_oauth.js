@@ -35,10 +35,16 @@ const logger = Logger.get('oauth.google');
  */
 export class GoogleOAuthProvider extends OAuthProvider {
 
+  // TODO(burdon): Update credentials when access_token updated by refresh_token.
+  // TODO(burdon): Remove FB OAuth config (incl. server OAuth registration from FB and Google consoles).
+
   // https://developers.google.com/identity/protocols/googlescopes
   static SCOPES = [
     'https://www.googleapis.com/auth/plus.me',
-    'https://www.googleapis.com/auth/userinfo.email'
+    'https://www.googleapis.com/auth/userinfo.email',
+
+    // TODO(burdon): Move to service defs.
+    'https://www.googleapis.com/auth/drive.readonly'
   ];
 
   constructor(config, scope=GoogleOAuthProvider.SCOPES, testing) {
@@ -125,7 +131,7 @@ export class GoogleOAuthProvider extends OAuthProvider {
    * https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=XXX
    */
   verifyIdToken(idToken) {
-    console.assert(idToken);
+    console.assert(idToken, 'Invalid token.');
 
     return new Promise((resolve, reject) => {
       let oauthClient = this.createClient();
