@@ -264,13 +264,6 @@ export class OAuthProvider {
   }
 
   /**
-   * Return a block of html for the /accounts management page.
-   */
-  get html() {
-    throw new Error('Not implemented');
-  }
-
-  /**
    * Creates the Passport strategy.
    * http://passportjs.org/docs/google
    *

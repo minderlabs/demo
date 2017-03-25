@@ -7,6 +7,8 @@ import google from 'googleapis';
 
 import { ErrorUtil, QueryProcessor } from 'minder-core';
 
+import { OAuthServiceProvider } from '../service';
+
 /**
  * Google API client.
  */
@@ -158,5 +160,19 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
     return this._driveClient.search(context, driveQuery, count).catch(error => {
       throw ErrorUtil.error('Google Drive', error);
     });
+  }
+}
+
+/**
+ *
+ */
+export class GoogleDriveServiceProvider extends OAuthServiceProvider {
+
+  constructor(authProvider) {
+    super(authProvider, GoogleDriveQueryProcessor.NAMESPACE, 'Google Drive');
+  }
+
+  get icon() {
+    return '/img/service/google_drive.png';
   }
 }
