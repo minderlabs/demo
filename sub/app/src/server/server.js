@@ -12,11 +12,11 @@ import session from 'express-session';
 import handlebars from 'express-handlebars';
 import favicon from 'serve-favicon';
 import http from 'http';
-import moment from 'moment';
 import path from 'path';
 
 import {
   ErrorUtil,
+  ExpressUtil,
   HttpError,
   Logger,
   TypeUtil
@@ -216,32 +216,8 @@ const MINDER_VIEWS_DIR = _.get(process.env, 'MINDER_VIEWS_DIR', './views');
 
 app.engine('handlebars', handlebars({
   layoutsDir: path.join(__dirname, MINDER_VIEWS_DIR, '/layouts'),
-
   defaultLayout: 'main',
-
-  // TODO(burdon): Factor out.
-  helpers: {
-    section: function(name, options) {
-      if (!this.sections) { this.sections = {}; }
-      this.sections[name] = options.fn(this);
-    },
-
-    toJSON: function(object) {
-      return JSON.stringify(object);
-    },
-
-    toJSONPretty: function(object) {
-      return TypeUtil.stringify(object, 2);
-    },
-
-    short: function(object) {
-      return TypeUtil.truncate(object, 24);
-    },
-
-    time: function(object) {
-      return object && moment.unix(object).fromNow();
-    }
-  }
+  helpers: ExpressUtil.Helpers
 }));
 
 app.set('view engine', 'handlebars');
@@ -366,7 +342,7 @@ app.use(graphqlRouter(database, {
 // Testing.
 //
 
-if (env !== 'production') {
+if (env !== 'production' || true) {
 
   //
   // Custom GraphiQL.

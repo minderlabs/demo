@@ -7,7 +7,7 @@ import google from 'googleapis';
 
 import { OAuth2Strategy as GoogleStrategy } from 'passport-google-oauth';
 
-import { Logger, SystemStore } from 'minder-core';
+import { Logger, HttpError, SystemStore } from 'minder-core';
 
 import { OAuthProvider } from '../../auth/oauth';
 
@@ -141,7 +141,7 @@ export class GoogleOAuthProvider extends OAuthProvider {
       oauthClient.verifyIdToken(idToken, this._config.clientId, (error, response) => {
         if (error) {
           console.error('Invalid id_token: ' + idToken);
-          throw new Error(error);
+          throw new HttpError(401);
         }
 
         let { iss, aud: clientId, sub: id, email, email_verified } = response.getPayload();

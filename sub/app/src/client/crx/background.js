@@ -248,6 +248,7 @@ class BackgroundApp {
         let userProfile = _.get(this._config, 'userProfile');
         if (!userProfile) {
           // TODO(burdon): Test client retry.
+          // TODO(burdon): Shouldn't be an exception: return backoff/retry request.
           throw new Error('Not registered.');
         } else {
           return Promise.resolve({ userProfile, server });
