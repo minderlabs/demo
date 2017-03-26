@@ -104,16 +104,6 @@ export class GoogleOAuthProvider extends OAuthProvider {
     return 'google';
   }
 
-  get html() {
-    // TODO(burdon): Use passport URL?
-    // https://developers.google.com/identity/branding-guidelines
-    return (
-      '<a href="' + this._oauthCallbackUrl + '">' +
-        '<img alt="Google Login" src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png">' +
-      '</a>'
-    );
-  }
-
   createStrategy(loginCallback) {
 
     // http://passportjs.org/docs/google

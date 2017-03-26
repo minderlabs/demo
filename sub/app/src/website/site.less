@@ -139,6 +139,42 @@ i.site-action:hover {
 .site-profile-window {
   width: 800px;
 }
+.site-services-window {
+  min-width: 600px;
+
+  .site-service-container {
+    display: flex;
+    flex-flow: row;
+
+    .site-service {
+      background-color: white;
+      box-shadow: 4px 4px 16px #DDD;
+
+      border-radius: 4px;
+      width: 150px;
+      height: 150px;
+      margin: 8px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      > div:first-child {
+        padding: 8px;
+        font-size: 20px;
+        color: #333;
+      }
+      > div:last-child {
+        display: flex;
+        flex-grow: 1;
+        align-items: center;
+      }
+    }
+    .site-service:hover {
+      box-shadow: 4px 4px 16px #BBB;
+    }
+  }
+}
 
 .site-section {
   display: flex;

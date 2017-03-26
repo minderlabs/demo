@@ -39,10 +39,12 @@ import {
 
   OAuthProvider,
   OAuthRegistry,
+  ServiceRegistry,
   UserManager,
 
   GoogleOAuthProvider,
   GoogleDriveQueryProcessor,
+  GoogleDriveServiceProvider,
 
   SlackServiceProvider,
   SlackQueryProcessor
@@ -124,14 +126,20 @@ const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credent
 // OAuth providers.
 //
 
-const loginAuthProvider =
+const googleAuthProvider =
   new GoogleOAuthProvider(GoogleApiConfig, GoogleApiConfig.authScopes, env !== 'production');
 
 const oauthRegistry = new OAuthRegistry()
-  .registerProvider(loginAuthProvider);
+  .registerProvider(googleAuthProvider);
 
-// TODO(burdon): Service provider.
-// .registerProvider(new SlackOAuthProvider());
+
+//
+// Service providers.
+//
+
+const serviceRegistry = new ServiceRegistry()
+  .registerProvider(new GoogleDriveServiceProvider(googleAuthProvider))
+  .registerProvider(new SlackServiceProvider());
 
 
 //
@@ -148,7 +156,7 @@ const userDataStore = testing ?
 const systemStore = new SystemStore(
   new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.SYSTEM, false));
 
-const userManager = new UserManager(loginAuthProvider, systemStore);
+const userManager = new UserManager(googleAuthProvider, systemStore);
 
 const database = new Database()
 
@@ -299,6 +307,12 @@ app.get('/home', function(req, res) {
 
 app.get('/welcome', isAuthenticated('/home'), function(req, res) {
   res.render('home', {});
+});
+
+app.get('/services', isAuthenticated('/home'), function(req, res) {
+  res.render('services', {
+    providers: serviceRegistry.providers
+  });
 });
 
 

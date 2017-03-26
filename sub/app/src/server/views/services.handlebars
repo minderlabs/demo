@@ -1,0 +1,33 @@
+{{#section 'head'}}
+  <link rel="stylesheet" href="/assets/website.css">
+{{/section}}
+
+<div class="site-container">
+  <div class="site-column">
+
+    <div class="site-window-container">
+      <div class="site-window site-services-window">
+
+        <div class="site-section">
+          <h1>Services</h1>
+        </div>
+
+        <div class="site-section">
+          <div class="site-service-container">
+            {{#each providers}}
+            <div class="site-service">
+              <div>{{{ name }}}</div>
+              <div>
+                <img src="{{{ icon }}}"/>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/website.bundle.js"></script>
+</div>

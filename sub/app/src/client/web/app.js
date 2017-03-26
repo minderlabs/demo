@@ -86,7 +86,7 @@ export class WebApp extends BaseApp {
   get providers() {
     return [
       Injector.provider(TypeRegistryFactory())
-    ]
+    ];
   }
 
   get globalReducer() {
