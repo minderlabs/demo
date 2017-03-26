@@ -29,6 +29,7 @@ export class InspectorRegistry {
     setTimeout(() => {
       _.each(this._inspectors, inspector => {
         if (inspector.shouldObservePage()) {
+          console.log('Inspector: ' + inspector.constructor.name);
           let { context, rootNode } = inspector.getPageState();
           if (context) {
             // TODO(madadam): This happens too early, before the sidebar is loaded. Need to keep it cached
@@ -36,7 +37,6 @@ export class InspectorRegistry {
             callback(context);
           }
           if (rootNode) {
-            console.log('Inspector: ' + inspector.constructor.name);
             inspector.start(rootNode, callback);
           }
         }
