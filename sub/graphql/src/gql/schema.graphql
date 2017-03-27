@@ -285,6 +285,8 @@ type User implements Item {
 
   # TODO(burdon): Remove (only query via project links).
   tasks(filter: FilterInput): [Task]!
+
+  groups: [Group]
 }
 
 type Group implements Item {
@@ -419,6 +421,7 @@ type Project implements Item {
   group: Group!
 
   # TODO(burdon): Directives for links. Other items (e.g., Contacts board).
+  # And/or add a FilterInput param here.
   tasks: [Task]!
 
   # TODO(burdon): Map type (array of typed values).
