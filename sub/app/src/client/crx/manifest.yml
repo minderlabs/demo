@@ -68,9 +68,11 @@ permissions:
   - tabs
   - gcm
 
-  - "http://localhost/*"
   - "http://127.0.0.1/*"
-  - "http://local-docker-machine/*"
+  - "http://localhost/*"
+  - "http://dockermachine.net/*"
+
+  - "https://accounts.google.com/o/oauth2/auth/*"
 
   - "*://minderlabs.com/*"
 
@@ -122,6 +124,7 @@ content_scripts:
 #     - "<all_urls>"
 
       - "http://localhost/testing/*"
+      - "http://localhost.net/testing/*"
 
       - "https://*.google.com/*"
       - "https://*.slack.com/*"
@@ -159,6 +162,8 @@ oauth2:
 
   # Create OAuth Client ID; Type: "Chrome App" (3/8/17)
   # NOTE: Requires consistent CRX ID (see key property above).
+  # NOTE: This is different from the "Web Client" Client ID.
+  # NOTE: This is legacy (required for Firebase Authentication).
   # https://console.developers.google.com/apis/credentials?project=minder-beta
   client_id: "189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com"
 

@@ -35,7 +35,6 @@ const app = new WebApp(config);
 //
 
 if (module.hot && _.get(config, 'env') === 'hot') {
-
   // TODO(burdon): Factor out path.
   // List modules that can be dynamically reloaded.
   module.hot.accept('./app', () => {

@@ -121,7 +121,7 @@ const ContextQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  let { config, injector, search } = AppAction.getState(state);
+  let { injector, config, search } = AppAction.getState(state);
   let platform = _.get(config, 'app.platform');
 
   // Current user context (e.g., host page).

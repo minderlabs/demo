@@ -6,6 +6,7 @@
 <div id="{{ config.root }}" class="app-web">
 
   {{!-- Loader gets replaced when app loads. --}}
+  {{#if loader}}
   <div>
     <div class="ux-loading-bar">
       <div class="ux-load-bar"></div>
@@ -17,12 +18,13 @@
       <h1>minder</h1>
     </div>
   </div>
+  {{/if}}
 
 </div>
 
 {{!-- Safestring syntax. --}}
 <script>
-  window.config = {{{ toJSON config }}};
+  window.config = {{{ json config }}};
 </script>
 
 <script src="/assets/{{ bundle }}.bundle.js"></script>

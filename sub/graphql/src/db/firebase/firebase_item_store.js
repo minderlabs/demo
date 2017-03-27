@@ -4,7 +4,9 @@
 
 import _ from 'lodash';
 
-import { BaseItemStore, QueryProcessor } from 'minder-core';
+import { BaseItemStore, Logger, QueryProcessor, TypeUtil } from 'minder-core';
+
+const logger = Logger.get('store.firebase');
 
 /**
  * Item store.
@@ -34,12 +36,14 @@ export class FirebaseItemStore extends BaseItemStore {
    */
   key(args=[]) {
     _.each(args, arg => console.assert(!_.isNil(arg), 'Invalid key: ' + JSON.stringify(args)));
+
     return '/' + this.namespace + '/' + args.join('/');
   }
 
   /**
    * Return root keys for all buckets accessible to this user.
-   * Override if no buckets (i.e., system store).
+   * Override if no buckets (i.e., sy
+   * stem store).
    * @param context
    * @param type
    * @returns {Array}
@@ -59,7 +63,7 @@ export class FirebaseItemStore extends BaseItemStore {
     return new Promise((resolve, reject) => {
       let ref = this._db.ref(this.key());
       ref.set(null, error => {
-        if (error) { reject(); } else { resolve(this); }
+        if (error) { reject(error); } else { resolve(this); }
       });
     });
   }
@@ -82,6 +86,8 @@ export class FirebaseItemStore extends BaseItemStore {
    *
    */
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+
+    // TODO(burdon): Buckets should return flattened roots?
 
     // Gather results for all buckets.
     let promises = _.map(this.getBucketKeys(context), key => this._getValue(key));
@@ -111,8 +117,11 @@ export class FirebaseItemStore extends BaseItemStore {
       let items = [];
       _.each(buckets, itemMap => {
         _.each(itemIds, itemId => {
-          let item = _.get(itemMap, itemId);
+          // IDs that contain slashes are hierarchical, so convert to dot paths.
+          let idPath = itemId.replace('/', '.');
+          let item = _.get(itemMap, idPath);
           if (item) {
+            // TODO(burdon): Push null so corresponds to itemIds?
             items.push(item);
           }
         });
@@ -142,7 +151,7 @@ export class FirebaseItemStore extends BaseItemStore {
         // https://firebase.google.com/docs/database/web/read-and-write
         let ref = this._db.ref(key);
         ref.set(item, error => {
-          if (error) { reject(); } else { resolve(item); }
+          if (error) { reject(error); } else { resolve(item); }
         });
       }));
     });

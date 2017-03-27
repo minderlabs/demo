@@ -6,9 +6,9 @@ import * as firebase from 'firebase';
 
 import { Async, ErrorUtil } from 'minder-core';
 
-import { GoogleApiConfig } from '../../common/defs';
+import { GoogleApiConfig, FirebaseAppConfig } from '../../common/defs';
 
-const logger = Logger.get('gcm');
+const logger = Logger.get('cloud');
 
 /**
  * Base class for Google Cloud Messaging.
@@ -105,6 +105,9 @@ export class FirebaseCloudMessenger extends CloudMessenger {
 
   connect() {
 
+    // https://console.firebase.google.com/project/minder-beta/overview
+    firebase.initializeApp(FirebaseAppConfig);
+
     // https://firebase.google.caom/docs/cloud-messaging/js/receive#handle_messages_when_your_web_app_is_in_the_foreground
     firebase.messaging().onMessage(data => {
       this.fireMessage(data);
@@ -114,6 +117,7 @@ export class FirebaseCloudMessenger extends CloudMessenger {
     // https://firebase.google.com/docs/cloud-messaging/js/client#monitor-token-refresh
     firebase.messaging().onTokenRefresh(() => {
       firebase.messaging().getToken().then(messageToken => {
+        logger.log('Token updated.');
         this._onTokenUpdate && this._onTokenUpdate(messageToken);
       });
     });
@@ -130,16 +134,23 @@ export class FirebaseCloudMessenger extends CloudMessenger {
             logger.warn('FCM Token expired.');
             return null;
           } else {
+            logger.log('Connected.');
             return messageToken;
           }
         });
       })
 
       .catch(error => {
-        // Permission not set (set in Chrome (i) button to the left of the URL bar).
-        // TODO(burdon): Show UX warning.
-        logger.warn('FCM registration failed: ' + ErrorUtil.message(error));
-        return null;
+        console.error(error);
+
+        // Errors: error.code
+        // - messaging/permission-blocked
+        //   TODO(burdon): Show UX warning.
+        //   Permission not set (set in Chrome (i) button to the left of the URL bar).
+        // - messaging/failed-serviceworker-registration
+        //   Invalid Firebase console registration.
+
+        logger.warn('FCM registration failed: ' + ErrorUtil.message(error.code));
       });
   }
 
@@ -176,7 +187,7 @@ export class GoogleCloudMessenger extends CloudMessenger {
 
   connect() {
     return new Promise((resolve, reject) => {
-      logger.log('Requesting token...');
+      logger.log('Requesting message token...');
 
       // https://developers.google.com/cloud-messaging/chrome/client
       chrome.gcm.register([ String(GoogleApiConfig.projectNumber) ], messageToken => {
@@ -184,14 +195,16 @@ export class GoogleCloudMessenger extends CloudMessenger {
           throw new Error(chrome.runtime.lastError);
         }
 
+        logger.log('Connected.');
         resolve(messageToken);
       });
     });
   }
 
   disconnect() {
-    chrome.gcm.unregister(() => {
+    return chrome.gcm.unregister(() => {
       console.assert(!runtime.lastError);
+      logger.log('Disconnected.');
     });
   }
 }

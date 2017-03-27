@@ -66,7 +66,6 @@ class ContentScript {
     // Grabs focus so that pressing enter causes toggle.
     this.button = $('<button>').appendTo(container)
       .append($('<img>')
-        .attr('title', KeyCodes.TOGGLE._KEYS_.join(' '))
         .attr('src', chrome.extension.getURL('img/icon_128.png')))
         .css('cursor', 'pointer')
       .click(() => {

@@ -13,6 +13,7 @@ import { ID } from 'minder-core';
 // created this bot, presumably the administrator. This may cause privacy leaks down the road, we may want
 // to introduce a special team account with more restricted permissions for this purpose.
 export class DatabaseContext {
+
   constructor(database, context) {
     this._database = database;
     this._context = context;
@@ -39,8 +40,9 @@ export class DatabaseContext {
   getUserFromMinderUserId(userId) {
     // NOTE: problem w/ resolver system again? Need to fetch the whole resolved object, not just the top-level
     // item with references left unresolved.
-    // NOTE: This is like AuthManager.getUserFromJWT, except it doesn't have the client-side JWT token, so it
+    // NOTE: This is like AuthManager.getUserFromIdToken, except it doesn't have the client-side JWT token, so it
     // doesn't set user.token.
+    // TODO(burdon): Get from UserManager! The system database will move to a different service.
     return this._database.getItem(this._context, 'User', userId);
   }
 

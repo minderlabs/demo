@@ -1,102 +1,96 @@
 {
-  "Items": {
-    "Folder": [
-      {
-        "id": "folder_inbox",
-        "order": 1,
-        "alias": "inbox",
-        "title": "Inbox",
-        "icon": "inbox",
-        "filter": {
-          "namespace": "user",
-          "matchAll": true,
-          "expr": {
-            "op": "AND",
-            "expr": [
-              {
-                "comp": "NE",
-                "field": "type",
-                "value": {
-                  "string": "Folder"
-                }
-              },
-              {
-                "comp": "GT",
-                "field": "modified",
-                "value": {
-                  "timestamp": -100000
-                }
+  "Folder": {
+
+    "inbox": {
+      "order": 1,
+      "title": "Inbox",
+      "icon": "inbox",
+      "filter": {
+        "namespace": "user",
+        "matchAll": true,
+        "expr": {
+          "op": "AND",
+          "expr": [
+            {
+              "comp": "NE",
+              "field": "type",
+              "value": {
+                "string": "Folder"
               }
-            ]
-          },
-          "orderBy": {
-            "field": "modified",
-            "order": "DESC"
-          },
-          "groupBy": true
-        }
-      },
-      {
-        "id": "folder_favorites",
-        "order": 3,
-        "alias": "favorites",
-        "title": "Favorites",
-        "icon": "star",
-        "filter": {
-          "labels": [
-            "_favorite"
-          ],
-          "groupBy": false
-        }
-      },
-      {
-        "id": "folder_projects",
-        "order": 4,
-        "alias": "projects",
-        "title": "Projects",
-        "icon": "assignment",
-        "filter": {
-          "type": "Project",
-          "groupBy": false
-        }
-      },
-      {
-        "id": "folder_tasks",
-        "order": 2,
-        "alias": "tasks",
-        "title": "Tasks",
-        "icon": "assignment_turned_in",
-        "filter": {
-          "type": "Task",
-          "expr": {
-            "op": "OR",
-            "expr": [
-              {
-                "ref": "$CONTEXT.userId",
-                "field": "owner"
-              },
-              {
-                "ref": "$CONTEXT.userId",
-                "field": "assignee"
+            },
+            {
+              "comp": "GT",
+              "field": "modified",
+              "value": {
+                "timestamp": -100000
               }
-            ]
-          },
-          "groupBy": false
-        }
-      },
-      {
-        "id": "folder_deleted",
-        "order": 5,
-        "alias": "deleted",
-        "title": "Deleted",
-        "icon": "delete",
-        "filter": {
-          "labels": [
-            "_deleted"
-          ],
-          "groupBy": false
-        }
+            }
+          ]
+        },
+        "orderBy": {
+          "field": "modified",
+          "order": "DESC"
+        },
+        "groupBy": true
       }
-    ]
+    },
+
+    "favorites": {
+      "order": 3,
+      "title": "Favorites",
+      "icon": "star",
+      "filter": {
+        "labels": [
+          "_favorite"
+        ],
+        "groupBy": false
+      }
+    },
+
+    "projects": {
+      "order": 4,
+      "alias": "projects",
+      "title": "Projects",
+      "icon": "assignment",
+      "filter": {
+        "type": "Project",
+        "groupBy": false
+      }
+    },
+
+    "tasks": {
+      "order": 2,
+      "title": "Tasks",
+      "icon": "assignment_turned_in",
+      "filter": {
+        "type": "Task",
+        "expr": {
+          "op": "OR",
+          "expr": [
+            {
+              "ref": "$CONTEXT.userId",
+              "field": "owner"
+            },
+            {
+              "ref": "$CONTEXT.userId",
+              "field": "assignee"
+            }
+          ]
+        },
+        "groupBy": false
+      }
+    },
+
+    "deleted": {
+      "order": 5,
+      "title": "Deleted",
+      "icon": "delete",
+      "filter": {
+        "labels": [
+          "_deleted"
+        ],
+        "groupBy": false
+      }
+    }
   }
 }

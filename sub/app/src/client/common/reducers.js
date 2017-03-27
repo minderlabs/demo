@@ -15,7 +15,6 @@ export const GlobalAppReducer = (state, action) => {
   switch (action.type) {
 
     //
-    // TODO(burdon): Remove.
     // Listen for Apollo query results (and cached results).
     //
     case 'APOLLO_QUERY_RESULT':
@@ -24,23 +23,10 @@ export const GlobalAppReducer = (state, action) => {
 
       // Find the query matching Navbar updates.
       let query = state.apollo.queries[queryId];
-      if (_.get(query.metadata, 'subscription') == GlobalAppReducer.SUBSCRIPTION.NAVBAR_ITEM) {
-        let item = _.get(action, 'result.data.item');
-        if (item) {
-          return _.set(state, `${APP_NAMESPACE}.navbar.item`, item);
-        }
-      }
-      break;
     }
   }
 
   return state;
-};
-
-GlobalAppReducer.SUBSCRIPTION = {
-
-  // TODO(burdon): Rename FOCUSED_ITEM (not navbar depenendent).
-  NAVBAR_ITEM: 'NAVBAR_ITEM'
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -53,8 +39,6 @@ const APP_NAMESPACE = 'MINDER_APP';
  * Main App actions.
  */
 export class AppAction {
-
-  // TODO(burdon): Look for wrappers to make this simpler?
 
   static ACTION = {
     REGISTER:       `${APP_NAMESPACE}/REGISTER`,
@@ -81,13 +65,13 @@ export class AppAction {
   /**
    * Register client (after server connect).
    */
-  static register(registration, server=undefined) {
-    console.assert(registration);
+  static register(userProfile, server=undefined) {
+    console.assert(userProfile);
     return {
       type: AppAction.ACTION.REGISTER,
       value: {
-        server,
-        registration
+        userProfile,
+        server
       }
     };
   }
@@ -116,10 +100,10 @@ export class AppAction {
 /**
  * @param injector
  * @param config
- * @param registration
+ * @param userProfile
  * @constructor
  */
-export const AppReducer = (injector, config, registration=undefined) => {
+export const AppReducer = (injector, config, userProfile=undefined) => {
   console.assert(injector && config);
 
   const initialState = {
@@ -130,8 +114,9 @@ export const AppReducer = (injector, config, registration=undefined) => {
     // Client config.
     config: config,
 
-    // Client registration.
-    registration,
+    // User profile (from config or background page).
+    // NOTE: The React context contains the current Viewer (provided by the top-level Activity).
+    userProfile,
 
     // Search bar.
     search: {
@@ -149,7 +134,7 @@ export const AppReducer = (injector, config, registration=undefined) => {
     switch (action.type) {
 
       case AppAction.ACTION.REGISTER: {
-        return _.assign(state, _.pick(action.value, ['registration', 'server']));
+        return _.assign(state, _.pick(action.value, ['userProfile', 'server']));
       }
 
       // TODO(burdon): Get search query (not just text).

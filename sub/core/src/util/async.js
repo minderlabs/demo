@@ -86,6 +86,17 @@ export class Async {
   }
 
   /**
+   * Returns the given promise if defined, otherwise a resolved value.
+   *
+   * @param maybePromise
+   * @param defaultValue
+   * @return {Promise}
+   */
+  static promiseOf(maybePromise=undefined, defaultValue=undefined) {
+    return maybePromise || Promise.resolve(defaultValue);
+  }
+
+  /**
    * Iterates the collection sequentially calling the async function for each.
    *
    * NOTE: Iterating an array of promises sequentially doesn't make sense since each promise will be invoked

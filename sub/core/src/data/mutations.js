@@ -261,7 +261,7 @@ class Batch {
         //
 
         // Update references.
-        TypeUtil.traverse(mutations, (value, key) => {
+        TypeUtil.traverse(mutations, (value) => {
           let id = _.get(value, 'value.id');
           if (id) {
             let match = id.match(/\$\{(.+)\}/);

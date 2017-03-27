@@ -90,7 +90,7 @@ export class SidebarApp extends BaseApp {
       switch (message.command) {
 
         // Reset Apollo client (flush cache); e.g., Backend re-connected.
-        case SystemChannel.FLUSH_CACHE: {
+        case SystemChannel.RESET: {
           this.resetStore();
           break;
         }
@@ -119,16 +119,17 @@ export class SidebarApp extends BaseApp {
     console.log('Getting registration...');
     return Async.retry(() => {
       return this._systemChannel.postMessage({
-        command: SystemChannel.REQUEST_REGISTRATION
+        command: SystemChannel.REGISTER
       }, true)
-        .then(({ registration, server }) => {
-          console.assert(registration && server);
-          console.log('Registered: ' + JSON.stringify(registration));
+        .then(({ userProfile, server }) => {
+          console.assert(userProfile && server);
+          console.log('Registered: ' + JSON.stringify(userProfile));
 
-          this._analytics && this._analytics.identify(registration.userId);
+          // Init analytics with the current user.
+          this._analytics && this._analytics.identify(userProfile.id);
 
           // Initialize the app.
-          this.store.dispatch(AppAction.register(registration, server));
+          this.store.dispatch(AppAction.register(userProfile, server));
 
           // Notify the content script.
           this._messenger.postMessage({ command: SidebarCommand.INITIALIZED });

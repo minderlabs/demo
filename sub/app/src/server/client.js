@@ -4,15 +4,16 @@
 
 import _ from 'lodash';
 import express from 'express';
-import bodyParser from 'body-parser';
 import moment from 'moment';
 import request from 'request';
 
-import { Logger } from 'minder-core';
+import { Async, HttpError, Logger } from 'minder-core';
 
 import { Const, FirebaseServerConfig } from '../common/defs';
 
 const logger = Logger.get('client');
+
+// TODO(burdon): Move to minder-services
 
 /**
  * Client endpoints.
@@ -21,37 +22,26 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
   console.assert(userManager && clientManager);
   let router = express.Router();
 
-  // JSON body.
-  router.use(bodyParser.json());
-
   //
   // Registers the client.
   //
   router.post('/register', function(req, res, next) {
-    return userManager.getUserFromHeader(req, true)
+    userManager.getUserFromHeader(req.headers, true)
       .then(user => {
         let { platform, messageToken } = req.body;
 
         // Register the client (and create it if necessary).
         let clientId = req.headers[Const.HEADER.CLIENT_ID];
-        let client = clientManager.register(user.id, platform, clientId, messageToken);
-        if (!client) {
-          return res.status(400).send({ message: 'Invalid client.' });
-        }
-
-        // Get group.
-        // TODO(burdon): Remove group.
-        return systemStore.getGroup(user.id)
-          .then(group => {
-
+        clientManager.register(user.id, platform, clientId, messageToken).then(client => {
+          if (!client) {
+            throw new HttpError('Invalid client: ' + clientId, 400);
+          } else {
             // Registration info.
             res.send({
-              timestamp: client.registered,
-              userId: user.id,
-              clientId: client.id,
-              groupId: group.id   // TODO(burdon): Remove group.
+              client: _.pick(client, ['id', 'messageToken'])
             });
-          });
+          }
+        })
       })
       .catch(next);
   });
@@ -60,7 +50,7 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
   // Unregisters the client.
   //
   router.post('/unregister', function(req, res, next) {
-    return userManager.getUserFromHeader(req, true)
+    return userManager.getUserFromHeader(req.headers, true)
       .then(user => {
         let clientId = req.headers[Const.HEADER.CLIENT_ID];
         clientManager.unregister(user.id, clientId);
@@ -128,58 +118,87 @@ export class ClientManager {
    * Clients are created at different times for different platforms.
    * Web: Created when the page is served.
    * CRX: Created when the app registers.
-   * @param userId
-   * @param platform
-   * @returns {Client}
+   * @param {string} userId
+   * @param {string} platform
+   * @param {boolean} registered
+   * @param {string} messageToken
+   * @returns {Promise<Client>}
    */
-  create(userId, platform) {
+  create(userId, platform, registered=false, messageToken=undefined) {
     console.assert(userId && platform, JSON.stringify({ userId, platform }));
 
+    let ts = moment().unix();
     let client = {
       id: this._idGenerator.createId('C-'),
       platform,
       userId,
-      messageToken: null,
-      created: moment().unix(),
-      registered: null
+      created: ts,
+      registered: registered && ts,
+      messageToken: messageToken
     };
 
-    this._clients.set(client.id, client);
-    logger.log('Created: ' + client.id);
-    return client;
+    logger.log('Created: ' + JSON.stringify(_.pick(client, ['platform', 'id'])));
+    return this.saveClient(client);
   }
 
   /**
    * Called by clients on start-up (and to refresh tokens, etc.)
    * NOTE: mobile devices requet ID here.
-   * @param userId
-   * @param platform
-   * @param clientId
-   * @param messageToken
-   * @returns {Client}
+   * @param {string} userId
+   * @param {string} platform
+   * @param {string} clientId
+   * @param {string} messageToken
+   * @returns {Promise<Client>}
    */
-  register(userId, platform, clientId, messageToken=undefined) {
-    console.assert(userId && platform, JSON.stringify({ userId, platform, clientId }));
+  register(userId, platform, clientId=undefined, messageToken=undefined) {
+    console.assert(userId && platform, JSON.stringify({ platform, userId }));
+    logger.log('Registering: ' + JSON.stringify({ platform, clientId }));
 
-    let client = clientId && this._clients.get(clientId);
-    if (!client) {
-      // Web clients should have been created on page load.
-      if (platform !== Const.PLATFORM.WEB) {
+    // Get existing client.
+    return Async.promiseOf(clientId && this.getClient(clientId)).then(client => {
+      if (client) {
+        // TODO(burdon): Check created time matches?
+        // Verify existing client matches registration.
+        // NOTE: In testing random number seed is the same, so there may be conflicts.
+        if (client.platform !== platform || client.userId !== userId) {
+          logger.warn('Existing client does not match: ' + JSON.stringify(client));
+          client = null;
+        }
+      } else if (clientId) {
         logger.warn('Invalid or expired client: ' + clientId);
       }
 
-      // Create the client.
-      client = this.create(userId, platform);
-    } else if (client.userId != userId) {
-      logger.error('Invalid user for client: ' + JSON.stringify({ clientId, userId }));
-      return null;
-    }
+      if (!client) {
+        // Create a new client if required.
+        return this.create(userId, platform, true, messageToken);
+      } else {
+        // Update the existing client.
+        return this.saveClient(_.assign(client, {
+          registered: moment().unix(),
+          messageToken
+        }));
+      }
+    }).then(client => {
+      logger.log('Registered: ' + JSON.stringify(client));
+      return client;
+    });
+  }
 
-    // Register the client.
-    client.messageToken = messageToken;
-    client.registered = moment().unix();
-    logger.log('Registered: ' + clientId);
-    return client;
+  // TODO(burdon): Make persistent.
+
+  getClient(clientId) {
+    return new Promise((resolve, reject) => {
+      console.assert(clientId);
+      resolve(this._clients.get(clientId));
+    });
+  }
+
+  saveClient(client) {
+    return new Promise((resolve, reject) => {
+      console.assert(client);
+      this._clients.set(client.id, client);
+      resolve(client);
+    });
   }
 
   /**
@@ -187,6 +206,7 @@ export class ClientManager {
    * @param userId
    * @param clientId
    */
+  // TODO(burdon): Async.
   unregister(userId, clientId) {
     console.assert(userId && clientId, JSON.stringify({ userId, clientId }));
 
@@ -203,7 +223,7 @@ export class ClientManager {
    * invalidation but may choose to ignore it.
    *
    * @param senderId Client ID of sender.
-   * @return {Promise.<*>|*}
+   * @return {Promise}
    */
   invalidateClients(senderId=undefined) {
 

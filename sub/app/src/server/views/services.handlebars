@@ -1,0 +1,44 @@
+{{#section 'head'}}
+  <link rel="stylesheet" href="/assets/website.css">
+{{/section}}
+
+<div class="site-container">
+  <div class="site-column">
+
+    <div class="site-window-container">
+      <div class="site-window site-services-window">
+
+        <div class="site-section">
+          <h1>Minder Services</h1>
+        </div>
+
+        <div class="site-section">
+          <div class="site-service-container">
+            {{#each providers}}
+            <div class="site-service">
+              <div>
+                <span>{{ title }}</span>
+              </div>
+              <div>
+                <a href="{{ link }}"><img src="{{ icon }}"/></a>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+
+        <div class="site-section">
+          <div class="site-buttons">
+            <div>
+              <a class="site-button" target="_blank"
+                 href="https://myaccount.google.com/permissions">Google App Permissions</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/website.bundle.js"></script>
+</div>

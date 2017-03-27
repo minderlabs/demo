@@ -7,6 +7,10 @@ import google from 'googleapis';
 
 import { ErrorUtil, QueryProcessor } from 'minder-core';
 
+import { OAuthServiceProvider } from '../service';
+
+const NAMESPACE = 'google.com/drive';
+
 /**
  * Google API client.
  */
@@ -27,7 +31,7 @@ class GoogleDriveClient {
     // it's an Item wrapper around external data.
 
     let item = {
-      namespace: GoogleDriveQueryProcessor.NAMESPACE,
+      namespace: NAMESPACE,
       type: 'Document',
       id: file.id,
       title: file.name
@@ -58,7 +62,7 @@ class GoogleDriveClient {
       this._config.clientSecret
     );
 
-    let credentials = _.get(context, 'credentials.google_com');
+    let credentials = _.get(context, 'credentials.google');
     oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));
     return oauth2Client;
   }
@@ -126,19 +130,19 @@ class GoogleDriveClient {
 }
 
 /**
- * Google Drive.
+ * Query processor.
  */
 export class GoogleDriveQueryProcessor extends QueryProcessor {
 
-  static NAMESPACE = 'google.com/drive';
-
+  /**
+   * https://developers.google.com/drive/v3/web/search-parameters
+   */
   static makeDriveQuery(queryString) {
-    // https://developers.google.com/drive/v3/web/search-parameters
     return _.isEmpty(queryString) ? null : `fullText contains \'${queryString}\'`;
   }
 
   constructor(idGenerator, config) {
-    super(GoogleDriveQueryProcessor.NAMESPACE);
+    super(NAMESPACE);
 
     this._driveClient = new GoogleDriveClient(idGenerator, config);
   }
@@ -156,5 +160,27 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
     return this._driveClient.search(context, driveQuery, count).catch(error => {
       throw ErrorUtil.error('Google Drive', error);
     });
+  }
+}
+
+/**
+ * Google Drive Service provider.
+ */
+export class GoogleDriveServiceProvider extends OAuthServiceProvider {
+
+  static SCOPES = [
+    'https://www.googleapis.com/auth/drive.readonly'
+  ];
+
+  constructor(authProvider) {
+    super(authProvider, NAMESPACE, GoogleDriveServiceProvider.SCOPES);
+  }
+
+  get title() {
+    return 'Google Drive';
+  }
+
+  get icon() {
+    return '/img/service/google_drive.png';
   }
 }

@@ -148,7 +148,9 @@ export class TypeUtil {
    * Returns the object.
    */
   static maybeSet(obj, path, val) {
-    !_.isNil(val) && _.set(obj, path, val);
+    if (!_.isNil(val)) {
+      _.set(obj, path, val);
+    }
     return obj;
   }
 
@@ -166,23 +168,45 @@ export class TypeUtil {
    * Iterates the collection sequentially calling the async function for each.
    *
    * @param obj
-   * @param f Function to call for each key x value. (value, key/index, root)
+   * @param f Function to call for each key x value. (root, value, key/index, path)
    */
   static traverse(obj, f) {
-    _.forIn(obj, (value, key) => {
-      f(value, key, obj);
-      if (_.isArray(value)) {
-        value.forEach((el, i) => {
-          f(el, i, value);
-          if (_.isObject(el)) {
-            TypeUtil.traverse(el, f);
+    const t = (obj, f, path='') => {
+      if (_.isArray(obj)) {
+        //
+        // Array
+        //
+
+        obj.forEach((value, i) => {
+          let p = path + '[' + i + ']';
+
+          // Callback with indexed value.
+          if (f(value, i, obj, p) === false) {
+            return;
           }
+
+          return t(value, f, p);
         });
-      } else if (_.isObject(value)) {
-        TypeUtil.traverse(obj[key], f);
+      } else if (_.isObject(obj)) {
+        //
+        // Object
+        //
+
+        _.forOwn(obj, (value, key) => {
+          let p = path + (path ? '.' : '') + key;
+
+          // Callback with keyed value.
+          if (f(value, key, obj, p) === false) {
+            return;
+          }
+
+          return t(value, f, p);
+        });
       }
-    });
-  }
+    };
+
+    return t(obj, f);
+  };
 }
 
 /**

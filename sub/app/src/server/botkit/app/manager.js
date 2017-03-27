@@ -6,7 +6,7 @@ import _ from 'lodash';
 import Botkit from 'botkit';
 import express from 'express';
 
-import { Logger } from 'minder-core';
+import { Logger, HttpError } from 'minder-core';
 
 import { SlackBot } from './slack_bot';
 
@@ -147,7 +147,7 @@ export const botkitRouter = (manager) => {
     .createHomepageEndpoint(router)
     .createOauthEndpoints(router, function(err, req, res) {
       if (err) {
-        res.status(500).send('ERROR: ' + err);
+        throw new HttpError(err);
       } else {
         // Redirect.
         // TODO(madadam): redirect back to /accounts once account info is displayed for already-connected services.

@@ -22,7 +22,3 @@ Logger.setLevel({
   'user'      : Logger.Level.debug,
 
 }, Logger.Level.info);
-
-export const TestConfig = {
-
-};

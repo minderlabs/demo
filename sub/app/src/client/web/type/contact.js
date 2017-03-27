@@ -26,7 +26,6 @@ export class ContactCard extends React.Component {
 
   static contextTypes = {
     mutator: React.PropTypes.object.isRequired,
-    registration: React.PropTypes.object.isRequired,
     viewer: React.PropTypes.object.isRequired,
   };
 
@@ -39,7 +38,7 @@ export class ContactCard extends React.Component {
   }
 
   handleItemUpdate(item, mutations) {
-    let { registration: { userId }, mutator } = this.context;
+    let { viewer: { user }, mutator } = this.context;
 
     if (item) {
       mutator.updateItem(item, mutations);
@@ -52,12 +51,12 @@ export class ContactCard extends React.Component {
 
       mutator.batch()
         .createItem('Task', _.concat(mutations, [
-          MutationUtil.createFieldMutation('bucket', 'string', userId),
+          MutationUtil.createFieldMutation('bucket', 'string', user.id),
           MutationUtil.createFieldMutation('project', 'id', project.id),
-          MutationUtil.createFieldMutation('owner', 'id', userId)
+          MutationUtil.createFieldMutation('owner', 'id', user.id)
         ]), 'new_task')
         .updateItem(parent, [
-          MutationUtil.createFieldMutation('bucket', 'string', userId),
+          MutationUtil.createFieldMutation('bucket', 'string', user.id),
           MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
         ])
         .updateItem(project, [
@@ -114,7 +113,7 @@ export class ContactCanvasComponent extends React.Component {
 
   static contextTypes = {
     mutator: React.PropTypes.object.isRequired,
-    registration: React.PropTypes.object.isRequired
+    viewer: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -128,7 +127,7 @@ export class ContactCanvasComponent extends React.Component {
 
   handleTaskUpdate(item, mutations) {
     console.assert(mutations);
-    let { registration: { userId }, mutator } = this.context;
+    let { mutator } = this.context;
 
     if (item) {
       mutator.updateItem(item, mutations);
