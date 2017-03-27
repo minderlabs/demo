@@ -19,12 +19,18 @@ export class AuthManager {
 
   // TODO(burdon): Generalize for other clients (mobile, command line)?
 
-  // TODO(burdon): Client/Server consts (OAuthProvider.DEFAULT_LOGIN_SCOPES).
+  // TODO(burdon): Does not return photoUrl.
+  // TODO(burdon): Client/Server consts (OAuthProvider.DEFAULT_LOGIN_SCOPES, GoogleOAuthProvider.LOGIN_SCOPES).
   // https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation
   static DEFAULT_LOGIN_SCOPES = [
     'openid',
     'profile',
-    'email'
+    'email',
+
+    'https://www.googleapis.com/auth/plus.me',
+    'https://www.googleapis.com/auth/plus.login',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile'
   ];
 
   /**
