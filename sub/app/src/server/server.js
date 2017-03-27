@@ -45,6 +45,7 @@ import {
   GoogleOAuthProvider,
   GoogleDriveQueryProcessor,
   GoogleDriveServiceProvider,
+  GoogleMailServiceProvider,
 
   SlackServiceProvider,
   SlackQueryProcessor
@@ -141,6 +142,7 @@ const oauthRegistry = new OAuthRegistry()
 
 const serviceRegistry = new ServiceRegistry()
   .registerProvider(new GoogleDriveServiceProvider(googleAuthProvider))
+  .registerProvider(new GoogleMailServiceProvider(googleAuthProvider))
   .registerProvider(new SlackServiceProvider());
 
 
@@ -312,6 +314,10 @@ app.get('/welcome', isAuthenticated('/home'), function(req, res) {
 });
 
 app.get('/services', isAuthenticated('/home'), function(req, res) {
+
+  // TODO(burdon): Compute state based on existance of scopes.
+//console.log(req.user);
+
   res.render('services', {
     providers: serviceRegistry.providers
   });

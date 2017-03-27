@@ -77,6 +77,6 @@ export class ServiceRegistry {
   }
 
   get providers() {
-    return Array.from(this._providers.values());
+    return Array.from(this._providers.values()).sort((a, b) => a.title.localeCompare(b.title));
   }
 }

@@ -9,6 +9,8 @@ import { ErrorUtil, QueryProcessor } from 'minder-core';
 
 import { OAuthServiceProvider } from '../service';
 
+const NAMESPACE = 'google.com/drive';
+
 /**
  * Google API client.
  */
@@ -29,7 +31,7 @@ class GoogleDriveClient {
     // it's an Item wrapper around external data.
 
     let item = {
-      namespace: GoogleDriveQueryProcessor.NAMESPACE,
+      namespace: NAMESPACE,
       type: 'Document',
       id: file.id,
       title: file.name
@@ -128,11 +130,9 @@ class GoogleDriveClient {
 }
 
 /**
- * Google Drive.
+ * Query processor.
  */
 export class GoogleDriveQueryProcessor extends QueryProcessor {
-
-  static NAMESPACE = 'google.com/drive';
 
   /**
    * https://developers.google.com/drive/v3/web/search-parameters
@@ -142,7 +142,7 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
   }
 
   constructor(idGenerator, config) {
-    super(GoogleDriveQueryProcessor.NAMESPACE);
+    super(NAMESPACE);
 
     this._driveClient = new GoogleDriveClient(idGenerator, config);
   }
@@ -173,7 +173,7 @@ export class GoogleDriveServiceProvider extends OAuthServiceProvider {
   ];
 
   constructor(authProvider) {
-    super(authProvider, GoogleDriveQueryProcessor.NAMESPACE, GoogleDriveServiceProvider.SCOPES);
+    super(authProvider, NAMESPACE, GoogleDriveServiceProvider.SCOPES);
   }
 
   get title() {
