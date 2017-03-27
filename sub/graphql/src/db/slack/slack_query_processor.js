@@ -80,12 +80,12 @@ export class SlackQueryProcessor extends QueryProcessor {
   /**
    *
    * @param slackUserIds array of slack user Ids.
-   * @return {Promise} of array of Person card items.
+   * @return {Promise} of array of Contact items.
    */
-  convertToPersonCards(slackUserIds, bot, slackApiToken) {
+  convertToContactItems(slackUserIds, bot, slackApiToken) {
     // TODO(madadam): Batch API calls? I don't see any support for batch in Slack API docs.
     let promises = _.map(slackUserIds, slackUserId => {
-      return this._botManager.slackbot.getUserInfo(slackUserId, bot, slackApiToken);
+      return this._botManager.slackbot.getContactForSlackUser(slackUserId, bot, slackApiToken);
     });
     return Promise.all(promises);
   }
@@ -123,7 +123,7 @@ export class SlackQueryProcessor extends QueryProcessor {
 
       // TODO(madadam): Get channel history to filter active/recent users; use slack bot's channel cache.
       return this.getUsersForChannel(slackChannel, bot, slackApiToken).then(slackUserIds => {
-        return this.convertToPersonCards(slackUserIds, bot, slackApiToken)
+        return this.convertToContactItems(slackUserIds, bot, slackApiToken)
           .then(results => {
             console.log('*** CONTEXT QUERY RESULTS ' + JSON.stringify(results)); // FIXME
             return results;
