@@ -515,7 +515,6 @@ app.use(function(err, req, res, next) {
 //
 
 // TODO(burdon): Remove from server startup except for testing. Use tools to configure DB.
-// TODO(burdon): parse initial "default" projects JSON file (add label and set default project in context).
 
 let loader = new Loader(database, testing);
 let loading = Promise.all([

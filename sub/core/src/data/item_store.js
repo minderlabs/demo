@@ -18,6 +18,7 @@ import { Transforms } from './transforms';
  */
 export class QueryProcessor {
 
+  // TODO(burdon): Move out of QueryProcessor.
   // TODO(burdon): Support multiple groups.
   static getBuckets(context) {
     let { groupId, userId } = context;
@@ -79,6 +80,7 @@ export class ItemStore extends QueryProcessor {
    * @return {Promise<Item>} Item or null.
    */
   getItem(context, type, itemId) {
+    console.assert(itemId, 'Invalid ID: ' + itemId);
     return this.getItems(context, type, [itemId]).then(items => items[0]);
   }
 

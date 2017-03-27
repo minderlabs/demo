@@ -92,6 +92,7 @@ export class SystemStore extends DelegateItemStore {
    * @param userId
    * @returns {Promise} Matching group (or null).
    */
+  // TODO(burdon): getGroups.
   getGroup(userId) {
     // TODO(burdon): Return multiple groups.
     return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {

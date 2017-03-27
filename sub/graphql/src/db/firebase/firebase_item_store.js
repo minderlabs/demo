@@ -112,11 +112,13 @@ export class FirebaseItemStore extends BaseItemStore {
 
     // Gather results for each bucket.
     // TODO(burdon): Maintain ID=>bucket index for ACL.
-    let promises = _.map(this.getBucketKeys(context, type), key => this._getValue(key));
-    return Promise.all(promises).then(buckets => {
+    let bucketKeys = this.getBucketKeys(context, type);
+    return Promise.all(_.map(bucketKeys, key => this._getValue(key))).then(buckets => {
       let items = [];
       _.each(buckets, itemMap => {
         _.each(itemIds, itemId => {
+          console.assert(itemId, 'Invalid ID: ', Array.from(buckets.keys()), itemIds);
+
           // IDs that contain slashes are hierarchical, so convert to dot paths.
           let idPath = itemId.replace('/', '.');
           let item = _.get(itemMap, idPath);

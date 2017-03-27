@@ -45,10 +45,10 @@ export class MemoryItemStore extends BaseItemStore {
     // Gather results for all buckets.
     let bucketItems = [];
     if (this._buckets) {
-      let keys = this.getBucketKeys(context);
+      let bucketKeys = this.getBucketKeys(context);
       this._items.forEach((item, key) => {
-        _.each(keys, k => {
-          if (key.startsWith(k)) {
+        _.each(bucketKeys, bucketKey => {
+          if (key.startsWith(bucketKey)) {
             bucketItems.push(item);
             return false;
           }
@@ -67,8 +67,8 @@ export class MemoryItemStore extends BaseItemStore {
 
     // Check all buckets.
     let items = [];
-    _.each(this.getBucketKeys(context, type), key => {
-      TypeUtil.maybeAppend(items, _.compact(_.map(itemIds, itemId => this._items.get(key + '/' + itemId))));
+    _.each(this.getBucketKeys(context, type), bucketId => {
+      TypeUtil.maybeAppend(items, _.compact(_.map(itemIds, itemId => this._items.get(bucketId + '/' + itemId))));
     });
 
     return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
