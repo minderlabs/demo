@@ -123,7 +123,7 @@ export class Resolvers {
         },
 
         projects: (root, args, context) => {
-          // NOTE: Group is in the system store, so we don't reference user store items.
+          // NOTE: Group Items should not directly reference User store items (so we query for them).
           let filter = {
             type: 'Project',
             expr: { field: "group", ref: "id" }
