@@ -60,3 +60,14 @@
   Create directories for self-contained modules that could reasonable be developed by different people. Or for
   cross cutting components of a larger system (e.g., DB, UI, logic).
 
+
+
+## 
+
+- TODO(burdon): Save PyCharm style settings.
+
+- https://google.github.io/styleguide/javascriptguide.xml
+
+- Parameter ordering: from least to most "significant":
+  Example: login(service, userId)
+  Rationale: "service" could be pushed down to a base class; it's "invariant" across multiple users.
