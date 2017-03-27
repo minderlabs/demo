@@ -30,20 +30,51 @@ export class ExpressUtil {
       this.sections[name] = options.fn(this);
     },
 
+    /**
+     * Encode URI.
+     * @param {string} value
+     * @return {string}
+     */
+    encodeURI: function(value) {
+      return encodeURIComponent(value);
+    },
+
+    /**
+     * Format JSON object.
+     * @param {object} object
+     * @param {number} indent
+     * @return {string}
+     */
     json: function(object, indent=0) {
       return JSON.stringify(object, null, indent);
     },
 
+    /**
+     * Abridged JSON (e.g., arrays => length only).
+     * @param {object} object
+     * @param {number} indent
+     * @return {string}
+     */
     jsonShort: function(object, indent=2) {
       return TypeUtil.stringify(object, indent);
     },
 
-    short: function(object) {
-      return TypeUtil.truncate(object, 24);
+    /**
+     * Short (possibly truncated) string.
+     * @param {value} value
+     * @return {string}
+     */
+    short: function(value) {
+      return TypeUtil.truncate(value, 24);
     },
 
-    time: function(object) {
-      return object && moment.unix(object).fromNow();
+    /**
+     * Human readable string.
+     * @param value
+     * @return {string}
+     */
+    time: function(value) {
+      return value && moment.unix(value).fromNow();
     }
   }
 }

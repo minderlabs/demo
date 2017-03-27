@@ -6,7 +6,7 @@ import _ from 'lodash';
 import express from 'express';
 import passport from 'passport';
 
-import { Logger, HttpError, SystemStore } from 'minder-core';
+import { Logger, HttpError, HttpUtil, SystemStore } from 'minder-core';
 
 const logger = Logger.get('oauth');
 
@@ -30,8 +30,7 @@ export const isAuthenticated = (redirect=undefined, admin=false) => (req, res, n
 };
 
 /**
- * Router for '/accounts' paths. Root /accounts page iterates over AccountManager.accounts exposing
- * account.signUpButtons() if not already connected, or account.info() if connected.
+ * Handles OAuth login flow.
  *
  * @param userManager
  * @param systemStore
@@ -81,7 +80,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
   /**
    * Called when OAuth login flow completes.
-   * TODO(burdon): Cite documentation for callback signature (params is not in the docs).
+   * TODO(burdon): Cite documentation for callback signature (params is not in the Passport docs).
    *
    * @param accessToken
    * @param refreshToken
@@ -89,7 +88,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
    * @param profile
    * @param done
    */
-  let loginCallback = (accessToken, refreshToken, params, profile, done) => {
+  let authCallback = (accessToken, refreshToken, params, profile, done) => {
     console.assert(accessToken);
 
     // TODO(burdon): Check expiration: https://www.npmjs.com/package/jwt-autorefresh
@@ -117,8 +116,8 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     let userProfile = OAuthProvider.getCanonicalUserProfile(profile);
 
     // Register/update user.
-    // TODO(burdon): Checking for and update existing user?
-    // TODO(burdon): Catch exceptions: throw 500.
+    // TODO(burdon): Update scopes.
+    // TODO(burdon): Register vs update?
     systemStore.registerUser(userProfile, credentials).then(user => {
       logger.log('OAuth callback: ' + JSON.stringify(_.pick(userProfile, ['id', 'email'])));
       done(null, user);
@@ -131,19 +130,33 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   _.each(oauthRegistry.providers, provider => {
     logger.log('Registering OAuth Strategy: ' + provider.providerId);
 
-    // TODO(burdon): Document.
-    let strategy = provider.createStrategy(loginCallback);
-    passport.use(strategy);
+    // Register the strategy.
+    passport.use(provider.createStrategy(authCallback));
 
     //
     // OAuth login.
+    // @param redirect On success URL.
     // http://passportjs.org/docs/google
-    // TODO(burdon): Google is specific so OAuthProvider should define router.
     //
-    router.get('/login/' + provider.providerId, passport.authenticate(provider.providerId, {
-      scope: provider.scopes,
-      approvalPrompt: 'force'
-    }));
+    // TODO(burdon): Handle 401.
+    router.get('/login/' + provider.providerId, (req, res, next) => {
+
+      // Dynamically configure the response.
+      // https://github.com/jaredhanson/passport-google-oauth2/issues/22 [3/27/17]
+      const processAuthRequest = passport.authenticate(provider.providerId, {
+
+        // Login scopes.
+        scope: provider.scopes,
+
+        // Incremental Auth.
+        include_granted_scopes: true,
+
+        // State passed to callback.
+        state: OAuthProvider.encodeState({ redirect: req.query.redirect || '/app' })
+      });
+
+      return processAuthRequest.call(null, req, res, next);
+    });
 
     //
     // Registered OAuth request flow callback.
@@ -153,8 +166,12 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     }), (req, res) => {
       logger.log('Logged in: ' + JSON.stringify(_.pick(req.user, ['id', 'email'])));
 
-      // TODO(burdon): Redirect based on context (e.g., home/profile page).
-      res.redirect('/app');
+      // TODO(burdon): Validate state.
+      // TODO(burdon): Update list of scopes?
+      let state = OAuthProvider.decodeState(req.query.state);
+      logger.log('State: ' + JSON.stringify(state));
+
+      res.redirect(_.get(state, 'redirect', '/home'));
     });
   });
 
@@ -172,7 +189,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   //
   // Logout.
   //
-  router.get('/logout/:providerId', (req, res, next) => {
+  router.get('/logout/:providerId', isAuthenticated('/home'), (req, res, next) => {
     let { providerId } = req.params;
     logger.log('Logout: ' + providerId);
 
@@ -216,20 +233,32 @@ export class OAuthRegistry {
  */
 export class OAuthProvider {
 
+  // TODO(burdon): Not used.
   static PATH = '/oauth';
 
-  // TODO(burdon): Document.
+  // Default OpenID Login scopes.
   static DEFAULT_LOGIN_SCOPES = [
     'openid',
     'profile',
     'email'
   ];
 
-  // Register callbacks with OAuth providers.
-  static OAUTH_CALLBACK = 'https://www.minderlabs.com/oauth/callback/';
+  /**
+   * Encode the OAuth state param.
+   *
+   * @param {object }state Redirect Url on successful OAuth.
+   *
+   * @return {string} Base64 encoded string.
+   */
+  static encodeState(state={}) {
+    // TODO(burdon): State should implement CSRF protection (and be stored in memcache).
+    return new Buffer(JSON.stringify(state)).toString('base64');
+  }
 
-  // NOTE: Define /etc/hosts entry for docker machine.
-  static OAUTH_TESTING_CALLBACK = 'http://localhost:3000/oauth/callback/';
+  static decodeState(state) {
+    console.assert(state);
+    return JSON.parse(Buffer.from(state, 'base64'));
+  }
 
   /**
    * Passport normalizes profile. We store an abridged version of this.
@@ -250,6 +279,23 @@ export class OAuthProvider {
   }
 
   /**
+   * @param providerId Provider ID from the Passport strategy (e.g., 'google').
+   * @param callbackUrl Registered OAuth callback.
+   */
+  constructor(providerId, callbackUrl) {
+    console.assert(providerId && callbackUrl);
+    this._providerId = providerId;
+    this._callbackUrl = HttpUtil.joinUrl(callbackUrl, SystemStore.sanitizeKey(providerId));
+  }
+
+  /**
+   * Passport provider ID.
+   */
+  get providerId() {
+    return this._providerId;
+  }
+
+  /**
    * Login scopes.
    */
   get scopes() {
@@ -257,9 +303,10 @@ export class OAuthProvider {
   }
 
   /**
-   * Passport provider ID (e.g., "google").
+   *
+   * @param scopes
    */
-  get providerId() {
+  createAuthUrl(scopes) {
     throw new Error('Not implemented');
   }
 

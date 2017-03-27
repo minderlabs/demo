@@ -6,7 +6,7 @@ import _ from 'lodash';
 
 import { HttpUtil } from 'minder-core';
 
-import { Const } from '../../common/defs';
+import { Const, GoogleApiConfig } from '../../common/defs';
 
 import { NetUtil } from './net';
 
@@ -18,6 +18,14 @@ const logger = Logger.get('auth');
 export class AuthManager {
 
   // TODO(burdon): Generalize for other clients (mobile, command line)?
+
+  // TODO(burdon): Client/Server consts (OAuthProvider.DEFAULT_LOGIN_SCOPES).
+  // https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation
+  static DEFAULT_LOGIN_SCOPES = [
+    'openid',
+    'profile',
+    'email'
+  ];
 
   /**
    * Return the authentication header.
@@ -94,28 +102,17 @@ export class AuthManager {
       // TODO(burdon): Factor out client provider.
       const OAuthProvider = {
         provider: 'google',
-
         requestUrl: 'https://accounts.google.com/o/oauth2/auth',
-
-        // TODO(burdon): Client/Server consts.
-        // https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation
-        scope: [
-          'openid',
-          'profile',
-          'email'
-        ]
+        scope: AuthManager.DEFAULT_LOGIN_SCOPES
       };
-
-      // TODO(burdon): Const.
-      // NOTE: This is NOT the Chrome Extension's Client ID (in the manifest).
-      const webClientId = '189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com';
 
       // Get the access and id tokens.
       // NOTE: We don't require offline access (refresh_token) since this is requested when registering services.
       // NOTE: If did request "offline" then requesting both access and id tokens would fail.
+      // NOTE: The clientId is the Web Client, NOT the Chrome Extension's Client ID (in the manifest).
       // https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters
       let requestParams = {
-        client_id: webClientId,
+        client_id: GoogleApiConfig.clientId,
         response_type: 'token id_token',                                        // access_token and id_token (JWT).
         redirect_uri: chrome.identity.getRedirectURL(OAuthProvider.provider),   // Registered URL.
         scope: OAuthProvider.scope.join(' '),

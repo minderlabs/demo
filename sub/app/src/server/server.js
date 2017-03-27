@@ -35,7 +35,7 @@ import {
 import {
   isAuthenticated,
   oauthRouter,
-  loginRouter,
+  userRouter,
 
   OAuthProvider,
   OAuthRegistry,
@@ -56,7 +56,7 @@ import {
   graphqlRouter
 } from 'minder-graphql';
 
-import { Const, FirebaseAppConfig, GoogleApiConfig, SlackConfig } from '../common/defs';
+import { Const, FirebaseAppConfig, GoogleApiConfig, OAuthConfig, SlackConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { webAppRouter, hotRouter } from './app';
@@ -126,9 +126,11 @@ const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credent
 // OAuth providers.
 //
 
-const googleAuthProvider =
-  new GoogleOAuthProvider(GoogleApiConfig, GoogleApiConfig.authScopes, env !== 'production');
+const oauthCallbackUrl = (testing ? OAuthConfig.TESTING_CALLBACK : OAuthConfig.CALLBACK);
 
+const googleAuthProvider = new GoogleOAuthProvider(GoogleApiConfig, oauthCallbackUrl);
+
+// TODO(burdon): Rename LoginRegistry? (i.e., which login mechanisms are displayed).
 const oauthRegistry = new OAuthRegistry()
   .registerProvider(googleAuthProvider);
 
@@ -282,7 +284,7 @@ app.use(session({
 // NOTE: This must be defined ("used') before other services.
 app.use(OAuthProvider.PATH, oauthRouter(userManager, systemStore, oauthRegistry, { app, env }));
 
-app.use('/user', loginRouter(userManager, oauthRegistry, systemStore, {
+app.use('/user', userRouter(userManager, oauthRegistry, systemStore, {
   env,
   crxUrl: Const.CRX_URL(Const.CRX_ID)
 }));

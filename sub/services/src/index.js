@@ -2,7 +2,6 @@
 // Copyright 2017 Minder Labs.
 //
 
-export * from './defs';
 export * from './auth/oauth';
 export * from './auth/user';
 

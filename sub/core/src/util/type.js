@@ -148,7 +148,9 @@ export class TypeUtil {
    * Returns the object.
    */
   static maybeSet(obj, path, val) {
-    !_.isNil(val) && _.set(obj, path, val);
+    if (!_.isNil(val)) {
+      _.set(obj, path, val);
+    }
     return obj;
   }
 

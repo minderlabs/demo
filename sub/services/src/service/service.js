@@ -2,6 +2,10 @@
 // Copyright 2017 Minder Labs.
 //
 
+import _ from 'lodash';
+
+import { OAuthProvider } from '../auth/oauth';
+
 /**
  * Service providers retrieve, sync and index external data items.
  */
@@ -9,24 +13,28 @@ export class ServiceProvider {
 
   /**
    * @param {string} id
-   * @param {string} name
    */
-  constructor(id, name) {
-    console.assert(id && name);
+  constructor(id) {
+    console.assert(id);
     this._id = id;
-    this._name = name;
   }
 
   get id() {
     return this._id;
   }
 
-  get name() {
-    return this._name;
+  get title() {
+    throw new Error('Not implemented');
   }
 
-  // TODO(burdon): How to package resources across modules.
-  get icon() {}
+  // TODO(burdon): How to package resources across modules?
+  get icon() {
+    throw new Error('Not implemented');
+  }
+
+  get link() {
+    throw new Error('Not implemented');
+  }
 }
 
 /**
@@ -37,12 +45,19 @@ export class OAuthServiceProvider extends ServiceProvider {
   /**
    * @param {OAuthProvider} authProvider
    * @param {string} id
-   * @param {string} name
+   * @param {[string]} scopes
    */
-  constructor(authProvider, id, name) {
-    super(id, name);
-    console.assert(authProvider);
+  constructor(authProvider, id, scopes) {
+    super(id);
+    console.assert(authProvider && _.isArray(scopes));
     this._authProvider = authProvider;
+
+    // Adds minimal OpenID scopes (ID, email) requird by passport.
+    this._scopes = _.concat(OAuthProvider.DEFAULT_LOGIN_SCOPES, scopes);
+  }
+
+  get link() {
+    return this._authProvider.createAuthUrl(this._scopes);
   }
 }
 

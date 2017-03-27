@@ -18,6 +18,9 @@ const logger = Logger.get('oauth.google');
  *
  * https://developers.google.com/identity/protocols/OAuth2WebServer
  *
+ * https://github.com/googleapis/googleapis
+ * https://groups.google.com/forum/#!forum/oauth2-dev
+ *
  * ### Node ###
  * Officially "supported" Node ("google") librarys:
  * https://github.com/google/google-api-nodejs-client
@@ -32,51 +35,35 @@ const logger = Logger.get('oauth.google');
  * chrome://identity-internals (revoke auth)>.
  * https://myaccount.google.com/permissions (revoke app permissions).
  * https://www.googleapis.com/oauth2/v1/tokeninfo?{id_token|access_token}=XXX (validate token).
+ * https://console.developers.google.com/apis/credentials?project=minder-beta
  */
 export class GoogleOAuthProvider extends OAuthProvider {
 
   // TODO(burdon): Update credentials when access_token updated by refresh_token.
-  // TODO(burdon): Remove FB OAuth config (incl. server OAuth registration from FB and Google consoles).
 
+  // TODO(burdon): Implement revoke.
+  // https://developers.google.com/identity/protocols/OAuth2UserAgent#tokenrevoke
+
+  // TODO(burdon): See "prompt" argument.
+  // https://developers.google.com/identity/protocols/OAuth2WebServer#redirecting
+
+  // https://myaccount.google.com/permissions
   // https://developers.google.com/identity/protocols/googlescopes
-  static SCOPES = [
+  static LOGIN_SCOPES = [
     'https://www.googleapis.com/auth/plus.me',
+    'https://www.googleapis.com/auth/plus.login',
     'https://www.googleapis.com/auth/userinfo.email',
-
-    // TODO(burdon): Move to service defs.
-    'https://www.googleapis.com/auth/drive.readonly'
+    'https://www.googleapis.com/auth/userinfo.profile'
   ];
 
-  constructor(config, scope=GoogleOAuthProvider.SCOPES, testing) {
-    super();
+  constructor(config, callbackUrl) {
+    super('google', callbackUrl);
 
     // Contains OAuth registration.
     this._config = config;
-
-    // https://console.developers.google.com/apis/credentials?project=minder-beta
-    this._callbackUrl = (testing ? OAuthProvider.OAUTH_TESTING_CALLBACK : OAuthProvider.OAUTH_CALLBACK) +
-      SystemStore.sanitizeKey(this.providerId);
-
-    // TODO(burdon): Implement revoke.
-    // https://developers.google.com/identity/protocols/OAuth2UserAgent#tokenrevoke
-
-    // TODO(burdon): See "prompt" argument.
-    // https://developers.google.com/identity/protocols/OAuth2WebServer#redirecting
-
-    // TODO(burdon): Move to service.
-    // TODO(burdon): Use passport directly?
-    // NOTE: The refresh_token is only returned when it is FIRST REQUESTED.
-    // We need to unregister offline access then re-request it to obtain the token.
-    // This can be done manually via: https://myaccount.google.com/permissions
-    // https://github.com/google/google-api-nodejs-client
-    this._oauthCallbackUrl = this.createClient(null, this._callbackUrl).generateAuthUrl({
-      access_type: 'offline',
-      scope: GoogleOAuthProvider.SCOPES
-    });
   }
 
   /**
-   *
    * @param credentials
    * @param callback
    * @return {google.auth.OAuth2}
@@ -100,12 +87,39 @@ export class GoogleOAuthProvider extends OAuthProvider {
     return oauthClient;
   }
 
-  get providerId() {
-    return 'google';
+  //
+  // OAuthProvider interface.
+  //
+
+  get scopes() {
+    return GoogleOAuthProvider.LOGIN_SCOPES;
+  }
+
+  /**
+   * Services use this URL to request access scopes and offline access.
+   *
+   * https://myaccount.google.com/permissions
+   * https://github.com/google/google-api-nodejs-client
+   *
+   * @param scopes
+   * @return {string}
+   */
+  createAuthUrl(scopes) {
+    return this.createClient(null, this._callbackUrl).generateAuthUrl({
+
+      // NOTE: By default, the refresh_token is only returned when it is FIRST REQUESTED.
+      // http://googlecode.blogspot.com/2011/10/upcoming-changes-to-oauth-20-endpoint.html (Change #3)
+      // The following args force the user's consent.
+      approval_prompt: 'force',
+      access_type: 'offline',
+
+      scope: scopes,
+
+      state: OAuthProvider.encodeState({ redirect: '/services', scopes })
+    });
   }
 
   createStrategy(loginCallback) {
-
     // http://passportjs.org/docs/google
     // https://github.com/jaredhanson/passport-google-oauth
     // https://github.com/jaredhanson/passport-google-oauth2
@@ -183,3 +197,4 @@ export class GoogleOAuthProvider extends OAuthProvider {
     });
   }
 }
+

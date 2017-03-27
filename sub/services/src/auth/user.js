@@ -22,7 +22,9 @@ export class UserManager {
    * @param headers HTTP request headers.
    * @returns {string} Unverified token or undefined.
    */
-  static getIdToken(headers) {
+  static getIdTokenFromHeaders(headers) {
+    console.assert(headers);
+
     // NOTE: Express headers are lowercase.
     const authHeader = headers['authorization'];
     if (authHeader) {
@@ -95,7 +97,7 @@ export class UserManager {
     console.assert(headers);
 
     // Token set in apollo client's network interface middleware.
-    let idToken = UserManager.getIdToken(headers);
+    let idToken = UserManager.getIdTokenFromHeaders(headers);
     if (!idToken) {
       if (required) {
         throw new HttpError('Missing authorization header.', 401);
@@ -111,7 +113,10 @@ export class UserManager {
         let userId = SystemStore.createUserId(this._loginAuthProvider.providerId, id);
         return this._systemStore.getUser(userId)
           .then(user => {
-            console.assert(user, 'Invalid User: ' + JSON.stringify(tokenInfo));
+            if (!user) {
+              throw new HttpError('Invalid User: ' + JSON.stringify(tokenInfo), 401);
+            }
+
             return user;
           });
       });
@@ -127,7 +132,7 @@ export class UserManager {
  * @param options
  * @returns {Router}
  */
-export const loginRouter = (userManager, oauthRegistry, systemStore, options) => {
+export const userRouter = (userManager, oauthRegistry, systemStore, options) => {
   console.assert(userManager && oauthRegistry && systemStore);
 
   // OAuth provider used for login.
@@ -160,7 +165,7 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
 
     // Get ID token (JWT) from header.
     // TODO(burdon): Create middleware version of isAuthenticated for headers.
-    let idToken = UserManager.getIdToken(req.headers);
+    let idToken = UserManager.getIdTokenFromHeaders(req.headers);
     if (!idToken) {
       throw new HttpError('Missing auth token.', 401);
     }
@@ -203,7 +208,7 @@ export const loginRouter = (userManager, oauthRegistry, systemStore, options) =>
       res.render('profile', {
         user,
         groups:     [ group ],
-        id_token:   userManager.getIdToken(user),
+        id_token:   UserManager.getIdTokenFromHeaders(user),
         providers:  oauthRegistry.providers,
         crxUrl:     options.crxUrl
       });

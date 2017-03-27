@@ -10,14 +10,18 @@ import { ServiceProvider } from '../service';
 export class SlackServiceProvider extends ServiceProvider {
 
   constructor() {
-    super('slack', 'Slack');
+    super('slack');
   }
 
-  get link() {
-    return '/botkit/login'
+  get title() {
+    return 'Slack';
   }
 
   get icon() {
     return '/img/service/slack.png';
+  }
+
+  get link() {
+    return '/botkit/login'
   }
 }

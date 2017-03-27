@@ -46,6 +46,11 @@ h1, h2, h3 {
   color: #444;
 }
 
+pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -140,7 +145,7 @@ i.site-action:hover {
   width: 800px;
 }
 .site-services-window {
-  min-width: 600px;
+  width: 624px; // 2x12 + 4x150
 
   .site-service-container {
     display: flex;
@@ -227,6 +232,11 @@ i.site-action:hover {
 
   a {
     font-size: 16px;
+    margin-right: 12px;
+  }
+
+  a.site-img {
+    font-size: 0;
   }
 
   button {
@@ -239,8 +249,6 @@ i.site-action:hover {
   color: #333;
   background-color: #DDD;
   padding: 16px;
-  white-space: pre-wrap;
-  word-break: break-all;
 }
 
 //

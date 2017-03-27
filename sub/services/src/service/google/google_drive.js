@@ -164,12 +164,20 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
 }
 
 /**
- *
+ * Google Drive Service provider.
  */
 export class GoogleDriveServiceProvider extends OAuthServiceProvider {
 
+  static SCOPES = [
+    'https://www.googleapis.com/auth/drive.readonly'
+  ];
+
   constructor(authProvider) {
-    super(authProvider, GoogleDriveQueryProcessor.NAMESPACE, 'Google Drive');
+    super(authProvider, GoogleDriveQueryProcessor.NAMESPACE, GoogleDriveServiceProvider.SCOPES);
+  }
+
+  get title() {
+    return 'Google Drive';
   }
 
   get icon() {

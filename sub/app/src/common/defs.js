@@ -45,6 +45,7 @@ export const FirebaseTestingAppConfig = {
  * Analytics
  */
 export const AnalyticsConfig = {
+
   // Google Analytics
   // https://analytics.google.com/analytics/web/#management/Settings/a82404502w137842039p142136815/
   googleAnalyticsTrackingId: 'UA-82404502-2',
@@ -68,6 +69,8 @@ export const FirebaseServerConfig = {
  */
 export const GoogleApiConfig = {
 
+  // TODO(burdon): Uppercase.
+
   // https://console.cloud.google.com/iam-admin/settings/project?project=minder-beta
   projectNumber: 189079594739,
 
@@ -75,23 +78,28 @@ export const GoogleApiConfig = {
   // Web application credentials.
   // https://console.developers.google.com/apis/credentials/oauthclient/189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com?project=minder-beta
   clientId: '189079594739-s67su4gkudu0058ub4lpcr3tnp3fslgj.apps.googleusercontent.com',
-  clientSecret: 'WZypHT09Z8Fy8NHVKY3qmMFt',
+  clientSecret: 'WZypHT09Z8Fy8NHVKY3qmMFt'
+};
 
-  // https://myaccount.google.com/permissions
-  // TODO(madadam): Scopes for a specific service should be specified by that service provider.
-  authScopes: [
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-    'https://www.googleapis.com/auth/plus.login',
-    'https://www.googleapis.com/auth/drive.readonly'
-  ]
+/**
+ * OAuth2 Config
+ */
+export const OAuthConfig = {
+
+  // TODO(burdon): Move to ENV?
+  // Register callbacks with OAuth providers.
+  CALLBACK: 'https://www.minderlabs.com/oauth/callback',
+
+  // NOTE: Define /etc/hosts entry for docker machine.
+  TESTING_CALLBACK: 'http://localhost:3000/oauth/callback'
 };
 
 /**
  * https://api.slack.com/apps
  */
 export const SlackConfig = {
-  // "Minder dev" app, as of 20170127.
+
+  // "Minder dev" app, as of 01/27/17.
   clientId: '53451657299.53512586673',
   clientSecret: 'a0efe3524ec77b352f253dc2c4b0e612'
 };

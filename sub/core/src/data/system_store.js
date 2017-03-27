@@ -166,6 +166,7 @@ export class SystemStore extends DelegateItemStore {
    *
    * @returns {Promise<User>}
    */
+  // TODO(burdon): Register vs update?
   registerUser(userProfile, credentials, active=false) {
     console.assert(userProfile && credentials);
     let { id, email, displayName, photoUrl } = userProfile;

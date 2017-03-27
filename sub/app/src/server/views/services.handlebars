@@ -16,9 +16,11 @@
           <div class="site-service-container">
             {{#each providers}}
             <div class="site-service">
-              <div>{{{ name }}}</div>
               <div>
-                <img src="{{{ icon }}}"/>
+                <span>{{ title }}</span>
+              </div>
+              <div>
+                <a href="{{ link }}"><img src="{{ icon }}"/></a>
               </div>
             </div>
             {{/each}}
