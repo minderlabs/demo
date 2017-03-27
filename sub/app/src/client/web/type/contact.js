@@ -66,6 +66,13 @@ export class ContactCard extends React.Component {
     }
   }
 
+  userTasksDebugString(user) {
+    let project = _.get(user, 'groups[0].projects[0]');
+    if (project) {
+      return `${project.tasks.length} tasks in project ${project.title}`;
+    }
+  }
+
   render() {
     let { item:contact } = this.props;
     let { email, tasks, user } = contact;
@@ -79,7 +86,7 @@ export class ContactCard extends React.Component {
           </div>
           { user &&
           <div className="ux-data-row">
-            <div className="ux-text">[User with { user.ownerTasks.length } tasks]</div>
+            <div className="ux-text">[{ this.userTasksDebugString(user) }]</div>
           </div>
           }
         </div>
@@ -182,7 +189,7 @@ const ContactQuery = gql`
   }
 
   ${Fragments.ItemFragment}
-  ${Fragments.ContactFragment}  
+  ${Fragments.ContactFragment}
 `;
 
 export const ContactCanvas = compose(

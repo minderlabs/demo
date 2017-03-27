@@ -22,6 +22,33 @@ const ValueFragment = gql`
   }
 `;
 
+const UserTasksFragment = gql`
+  fragment UserTasksFragment on User {
+    title
+    email
+    groups {
+      type
+      id
+      title
+      projects {
+        type
+        id
+        title
+        tasks {
+          type
+          id
+          title
+          status
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+`;
+
 export const Fragments = {
 
   // TODO(burdon): Warning: fragment with name ItemFragment already exists.
@@ -53,9 +80,11 @@ export const Fragments = {
         status
       }
       user {
-        ...UserFragment
+        ...UserTasksFragment
       }
     }
+    
+    ${UserTasksFragment}
   `,
 
   // TODO(burdon): Move url, iconUrl to ItemFragment
