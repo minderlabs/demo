@@ -125,7 +125,6 @@ export class SlackQueryProcessor extends QueryProcessor {
       return this.getUsersForChannel(slackChannel, bot, slackApiToken).then(slackUserIds => {
         return this.convertToContactItems(slackUserIds, bot, slackApiToken)
           .then(results => {
-            console.log('*** CONTEXT QUERY RESULTS ' + JSON.stringify(results)); // FIXME
             return results;
           })
       });
