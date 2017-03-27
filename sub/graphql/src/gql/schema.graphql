@@ -326,6 +326,8 @@ type Contact implements Item {
 
   email: String
 
+  user: User
+
   # TODO(burdon): Implement as links.
   tasks: [Task]!
 }
