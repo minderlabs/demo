@@ -188,10 +188,13 @@ export class SystemStore extends DelegateItemStore {
           id: SystemStore.createUserId(provider, id),
           active,
           email,
-          displayName,
-          photoUrl
+          displayName
         };
 
+        // Optional values.
+        _.assign(user, _.compact({ photoUrl }));
+
+        // Set credentials.
         SystemStore.updateUserCredential(user, credentials);
 
         //

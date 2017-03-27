@@ -208,7 +208,7 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
       res.render('profile', {
         user,
         groups:     [ group ],
-        id_token:   UserManager.getIdTokenFromHeaders(user),
+        idToken:    userManager.getIdToken(user),
         providers:  oauthRegistry.providers,
         crxUrl:     options.crxUrl
       });
