@@ -66,7 +66,7 @@ const dragSpec = {
       id: props.data
     };
 
-    // Set the drop zone height.
+    // Set the drop zone height (to be the same as the dragging element).
     const styleId = 'style-root';
     let styleRoot = $('#' + styleId);
     if (!styleRoot.length) {
