@@ -416,6 +416,7 @@ type Project implements Item {
   description: String
   labels: [String]
 
+  # TODO(burdon): Might not be associted with a Group (e.g., private Project).
   group: Group!
 
   # TODO(burdon): Directives for links. Other items (e.g., Contacts board).
@@ -454,18 +455,6 @@ type Task implements Item {
 # Root Viewer for authenticated User.
 #===================================================================================================
 
-# TODO(burdon): Combine into Viewer registration (replace /client/register)? Or top-level register query.
-# TODO(burdon): Use consistently (client/background/connection manager) + Redux state/context.
-type Registration {
-
-  userId: String!
-
-  # TODO(burdon): Multiple groups?
-  groupId: String!
-
-  clientId: String!
-}
-
 type Client {
 
   id: String!
@@ -476,8 +465,8 @@ type Viewer {
   # Authenticated user.
   user: User!
 
-  # TODO(burdon): Multiple groups?
-  group: Group!
+  # All Groups User belongs to.
+  groups: [Group]
 
   # Folders.
   folders: [Folder]!

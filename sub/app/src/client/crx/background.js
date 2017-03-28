@@ -6,7 +6,9 @@ Logger.setLevel({
   'net': Logger.Level.info
 }, Logger.Level.debug);
 
-import { ChromeMessageChannelDispatcher, ErrorUtil, EventHandler, Listeners, TypeUtil } from 'minder-core';
+import moment from 'moment';
+
+import { Async, ChromeMessageChannelDispatcher, ErrorUtil, EventHandler, Listeners, TypeUtil } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -55,7 +57,7 @@ class BackgroundApp {
    * @returns {boolean} true if reconnect is needed (e.g., server changed).
    */
   static UpdateConfig(config, settings) {
-    let restart = (config.server != settings.server);
+    let restart = (config.server !== settings.server);
 
     _.assign(config, settings, {
       graphql: settings.server + '/graphql',
@@ -148,35 +150,39 @@ class BackgroundApp {
         // Initialize the network manager.
         this._networkManager.init();
 
-        // Triggers popup.
-        return this._authManager.authenticate().then(userProfile => {
+        // Retry until succeeds.
+        return Async.retry(() => {
 
-          // Register with server.
-          return this.connect().then(() => {
+          // May trigger Auth dialog.
+          return this._authManager.authenticate().then(userProfile => {
 
-            //
-            // Handle system requests from other components (e.g., sidebar).
-            //
-            this._systemChannel = this._dispatcher.listen(SystemChannel.CHANNEL, this.onSystemCommand.bind(this));
+            // Register with server.
+            return this.connect();
+          });
+        }).then(() => {
 
-            //
-            // Proxy GraphQL requests from other components (e.g., sidebar).
-            // http://dev.apollodata.com/core/network.html#custom-network-interface
-            // See also ChromeNetworkInterface
-            //
-            this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, request => {
-              return this._networkManager.networkInterface.query(request);
-            });
+          //
+          // Handle system requests from other components (e.g., sidebar).
+          //
+          this._systemChannel = this._dispatcher.listen(SystemChannel.CHANNEL, this.onSystemCommand.bind(this));
 
-            //
-            // Listen for settings updates (e.g., from options page).
-            //
-            this._settings.onChange.addListener(settings => {
-              let reconnect = BackgroundApp.UpdateConfig(this._config, settings);
-              if (reconnect) {
-                return this.connect();
-              }
-            });
+          //
+          // Proxy GraphQL requests from other components (e.g., sidebar).
+          // http://dev.apollodata.com/core/network.html#custom-network-interface
+          // See also ChromeNetworkInterface
+          //
+          this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, request => {
+            return this._networkManager.networkInterface.query(request);
+          });
+
+          //
+          // Listen for settings updates (e.g., from options page).
+          //
+          this._settings.onChange.addListener(settings => {
+            let reconnect = BackgroundApp.UpdateConfig(this._config, settings);
+            if (reconnect) {
+              return this.connect();
+            }
           });
         });
       })
@@ -264,7 +270,7 @@ class BackgroundApp {
 
 window.app = new BackgroundApp();
 window.app.init().then(app => {
-  logger.info(TypeUtil.stringify(app.config, 2));
+  logger.info('Initialized: ' + moment().format('YYYY-MM-DD HH:mm Z') + '\n' + TypeUtil.stringify(app.config, 2));
 
   // Listen for termination and inform scripts.
   // https://developer.chrome.com/extensions/runtime#event-onSuspend

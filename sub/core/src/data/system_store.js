@@ -43,6 +43,8 @@ export class SystemStore extends DelegateItemStore {
 
   constructor(itemStore) {
     super(itemStore);
+
+    // TODO(burdon): The system store shouldn't use buckets.
     this._context = {
       groupId: 'system'
     };
@@ -92,10 +94,9 @@ export class SystemStore extends DelegateItemStore {
    * @param userId
    * @returns {Promise} Matching group (or null).
    */
-  getGroup(userId) {
-    // TODO(burdon): Return multiple groups.
+  getGroups(userId) {
     return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
-      return _.find(groups, group => _.indexOf(group.members, userId) != -1);
+      return _.filter(groups, group => _.indexOf(group.members, userId) !== -1);
     });
   }
 
@@ -107,7 +108,7 @@ export class SystemStore extends DelegateItemStore {
   getGroupByWhitelist(email) {
     // TODO(burdon): Return multiple groups.
     return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
-      return _.find(groups, group => _.indexOf(group.whitelist, email) != -1);
+      return _.find(groups, group => _.indexOf(group.whitelist, email) !== -1);
     });
   }
 
@@ -118,7 +119,7 @@ export class SystemStore extends DelegateItemStore {
    * @return {*}
    */
   maybeAddUserToGroup(user, group) {
-    if (_.indexOf(group.members, user.id) != -1) {
+    if (_.indexOf(group.members, user.id) !== -1) {
       return Promise.resolve(user);
     }
 
@@ -188,10 +189,13 @@ export class SystemStore extends DelegateItemStore {
           id: SystemStore.createUserId(provider, id),
           active,
           email,
-          displayName,
-          photoUrl
+          displayName
         };
 
+        // Optional values.
+        _.assign(user, _.compact({ photoUrl }));
+
+        // Set credentials.
         SystemStore.updateUserCredential(user, credentials);
 
         //

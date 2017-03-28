@@ -50,8 +50,12 @@ export class GoogleOAuthProvider extends OAuthProvider {
   // https://myaccount.google.com/permissions
   // https://developers.google.com/identity/protocols/googlescopes
   static LOGIN_SCOPES = [
+    // https://developers.google.com/+/web/api/rest/latest/people/get#response
     'https://www.googleapis.com/auth/plus.me',
+
+    // https://developers.google.com/+/web/api/rest/oauth (includes "profile")
     'https://www.googleapis.com/auth/plus.login',
+
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile'
   ];

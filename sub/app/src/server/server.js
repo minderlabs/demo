@@ -349,10 +349,9 @@ app.use(graphqlRouter(database, {
     if (!user) {
       return Promise.resolve(context);
     } else {
-      // TODO(burdon): Change to groups (update resolvers, matcher, query, etc.)
-      return systemStore.getGroup(user.id).then(group => {
+      return systemStore.getGroups(user.id).then(groups => {
         return _.assign(context, {
-          groupId: group.id
+          groupIds: _.map(groups, group => group.id)
         })
       });
     }
@@ -515,7 +514,6 @@ app.use(function(err, req, res, next) {
 //
 
 // TODO(burdon): Remove from server startup except for testing. Use tools to configure DB.
-// TODO(burdon): parse initial "default" projects JSON file (add label and set default project in context).
 
 let loader = new Loader(database, testing);
 let loading = Promise.all([

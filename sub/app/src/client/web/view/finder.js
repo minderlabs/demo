@@ -170,7 +170,7 @@ export default compose(
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {
         _.each(viewer.folders, folder => {
-          if (folder.alias == ownProps.folder) {
+          if (folder.alias === ownProps.folder) {
             filter = JSON.parse(folder.filter);
             return false;
           }

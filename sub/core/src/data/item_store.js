@@ -18,10 +18,14 @@ import { Transforms } from './transforms';
  */
 export class QueryProcessor {
 
-  // TODO(burdon): Support multiple groups.
+  /**
+   * Get buckets from the context.
+   * @param context
+   * @returns [{string}] Unordered array of buckets.
+   */
   static getBuckets(context) {
-    let { groupId, userId } = context;
-    return _.compact([ groupId, userId ]);
+    let { userId, groupIds } = context;
+    return _.compact(_.concat(userId, groupIds));
   }
 
   static DEFAULT_COUNT = 20;
@@ -79,6 +83,7 @@ export class ItemStore extends QueryProcessor {
    * @return {Promise<Item>} Item or null.
    */
   getItem(context, type, itemId) {
+    console.assert(itemId, 'Invalid ID: ' + itemId);
     return this.getItems(context, type, [itemId]).then(items => items[0]);
   }
 

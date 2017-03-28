@@ -19,6 +19,14 @@ const logger = Logger.get('randomizer');
 export class Randomizer {
 
   /**
+   * @param property Named property.
+   * @param generator Generator returns a Promise.
+   */
+  static property(property, generator) {
+    return { property, generator };
+  }
+
+  /**
    * @param generators
    * @param linkers
    * @param options
@@ -58,11 +66,11 @@ export class Randomizer {
       };
 
       // Process fields in order (since may be dependent).
-      let fields = this._generators[type];
-      return Async.iterateWithPromises(fields, (fieldGenerator, field) => {
-        return Promise.resolve(fieldGenerator(item, context, this)).then(value => {
+      let propertyGenerators = this._generators[type];
+      return Async.iterateWithPromises(propertyGenerators, ({ property, generator }) => {
+        return Promise.resolve(generator(item, context, this)).then(value => {
           if (!_.isNil(value)) {
-            _.set(item, field, value);
+            _.set(item, property, value);
           }
 
           return item;

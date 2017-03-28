@@ -19,12 +19,18 @@ export class AuthManager {
 
   // TODO(burdon): Generalize for other clients (mobile, command line)?
 
-  // TODO(burdon): Client/Server consts (OAuthProvider.DEFAULT_LOGIN_SCOPES).
+  // TODO(burdon): Does not return photoUrl.
+  // TODO(burdon): Client/Server consts (OAuthProvider.DEFAULT_LOGIN_SCOPES, GoogleOAuthProvider.LOGIN_SCOPES).
   // https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation
   static DEFAULT_LOGIN_SCOPES = [
     'openid',
     'profile',
-    'email'
+    'email',
+
+    'https://www.googleapis.com/auth/plus.me',
+    'https://www.googleapis.com/auth/plus.login',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile'
   ];
 
   /**
@@ -124,10 +130,13 @@ export class AuthManager {
 
       let options = {
         url: requestUrl,
+
+        // Show login screen if necessary.
         interactive: true
       };
 
       // https://developer.chrome.com/apps/identity#method-launchWebAuthFlow
+      // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/identity/launchWebAuthFlow
       chrome.identity.launchWebAuthFlow(options, callbackUrl => {
         if (chrome.runtime.lastError) {
           // "Authorization page could not be loaded" masks all errors.

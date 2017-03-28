@@ -339,7 +339,7 @@ export class BaseApp {
    * </Activity>
    */
   render(App) {
-    logger.info($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._config, 'env')));
+    logger.info($$('### [%s %s] ###', moment().format('YYYY-MM-DD HH:mm Z'), _.get(this._config, 'env')));
 
     // Construct app.
     const app = (

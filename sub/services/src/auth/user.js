@@ -183,17 +183,11 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
 
         // Register user.
         systemStore.registerUser(userProfile, credentials).then(user => {
+          if (!user.active) {
+            throw new HttpError('User not active.', 403);
+          }
 
-          // TODO(burdon): Remove.
-          systemStore.getGroup(user.id).then(group => {
-
-            // TODO(burdon): Only active if in group (i.e., whitelisted).
-            if (!group || !user.active) {
-              throw new HttpError('User not active.', 403);
-            } else {
-              res.send({ userProfile, groupId: group.id });
-            }
-          });
+          res.send({ userProfile });
         });
       });
     }).catch(next);
@@ -204,11 +198,11 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
   //
   router.get('/profile', isAuthenticated('/home'), function(req, res, next) {
     let user = req.user;
-    return systemStore.getGroup(user.id).then(group => {
+    return systemStore.getGroups(user.id).then(groups => {
       res.render('profile', {
         user,
-        groups:     [ group ],
-        id_token:   UserManager.getIdTokenFromHeaders(user),
+        groups:     groups,
+        idToken:    userManager.getIdToken(user),
         providers:  oauthRegistry.providers,
         crxUrl:     options.crxUrl
       });

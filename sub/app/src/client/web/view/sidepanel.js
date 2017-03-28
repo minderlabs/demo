@@ -7,7 +7,7 @@ import { compose } from 'react-apollo';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ID, SubscriptionWrapper } from 'minder-core';
+import { ID, SubscriptionWrapper, TypeUtil } from 'minder-core';
 import { List, ListItem, ReactUtil } from 'minder-ux';
 
 import { Path } from '../../common/path';
@@ -73,9 +73,8 @@ class SidePanel extends React.Component {
       );
 
       let folders = viewer.folders;
-      let group = viewer.group;
-      let groups = [ group ];
-      let projects = group.projects;
+      let groups = viewer.groups;
+      let projects = TypeUtil.flattenArrays(_.map(groups, group => group.projects));
 
       return (
         <div className="app-sidepanel">
@@ -114,7 +113,7 @@ const SidebarQuery = gql`
         title
       }
 
-      group {
+      groups {
         type
         id
         title

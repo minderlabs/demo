@@ -100,7 +100,7 @@ export class ItemRenderer {
     let promises = [];
 
     if (item.type === 'Task') {
-      if (_.get(item, 'status') == TASK_LEVELS.COMPLETE) {
+      if (_.get(item, 'status') === TASK_LEVELS.COMPLETE) {
         ItemRenderer._maybeAddField(result, 'Status', 'Done', IS_SHORT_FIELD);
         TypeUtil.maybeSet(this.result, 'color', 'good');
       } else {
@@ -147,13 +147,13 @@ export class ItemRenderer {
   // TODO(madadam): Dead code? Decide if we still want this index-based selection mechanism, or delete.
   _getFooter() {
     let parts = [];
-    if (this._index > 0 || this._index == 0) { // JS WTF: null >= 0 is true.
+    if (this._index > 0 || this._index === 0) { // JS WTF: null >= 0 is true.
       // TODO(madadam): less geeky affordance that describes what index is for. Alias, short name, nickname, number?
       //parts.push('Index: ' + this._index);
     }
     if (!this._pretty) {
       // Debug mode, add system labels to footer.
-      let systemLabels = _.filter(this._item.labels, label => { return label && label[0] == '_'});
+      let systemLabels = _.filter(this._item.labels, label => { return label && label[0] === '_'});
       systemLabels = _.map(systemLabels, label => { return label.substring(1); });
       parts.push('System labels: ' + _.join(systemLabels, ", "));
     }
@@ -188,7 +188,7 @@ export class ItemRenderer {
 
   _colorLabel(label, color) {
     let item = this._item;
-    if (item.label && item.label.indexOf(label) != -1) {
+    if (item.label && item.label.indexOf(label) !== -1) {
       TypeUtil.maybeSet(this.result, 'color', color);
     }
   }
