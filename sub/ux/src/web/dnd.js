@@ -217,13 +217,13 @@ export class DragOrderModel {
       }
 
       // Check has a currently valid order.
-      if (!meta) { // || meta.listId != listId) {
+      if (!meta) { // || meta.listId !== listId) {
 
         // Find next valid order value.
         let nextOrder = previousOrder + 1;
         for (let j = i + 1; j < _.size(items); j++) {
           let nextMeta = this._itemMeta.get(items[j].id);
-          if (nextMeta && nextMeta.listId == listId) {
+          if (nextMeta && nextMeta.listId === listId) {
             nextOrder = nextMeta.order;
             break;
           }

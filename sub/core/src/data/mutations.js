@@ -142,7 +142,7 @@ export class MutationUtil {
       field: 'labels',
       value: {
         set: [{
-          add: set == true,
+          add: set === true,
           value: {
             string: label
           }

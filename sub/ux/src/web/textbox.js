@@ -20,7 +20,7 @@ export class TextBox extends React.Component {
    */
   static filter(keyCode, callback) {
     return (event) => {
-      if (event.keyCode == keyCode) {
+      if (event.keyCode === keyCode) {
         callback(event.target.value);
       }
     }

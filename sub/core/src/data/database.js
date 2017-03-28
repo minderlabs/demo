@@ -186,7 +186,7 @@ export class Database {
     // Fan-out queries across all query providers.
     //
     let promises = _.map(Array.from(this._queryProcessors.values()), queryProcessor => {
-      if (filter.namespace && queryProcessor.namespace != filter.namespace) {
+      if (filter.namespace && queryProcessor.namespace !== filter.namespace) {
         return Promise.resolve([]);
       }
 

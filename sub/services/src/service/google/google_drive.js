@@ -94,7 +94,7 @@ class GoogleDriveClient {
    * Recursively fetches pages for the specified number of results.
    */
   _fetchAll(client, driveQuery, maxResults, pageToken=undefined) {
-    if (maxResults == 0) {
+    if (maxResults === 0) {
       return Promise.resolve([]);
     }
 

@@ -153,19 +153,19 @@ describe('Reducers:', () => {
     let match = matcher.matchItem(context, {}, filter, item);
 
     // Ignore if matches and already exists.
-    let idx = _.findIndex(_.get(previousResult, 'item.project.tasks'), i => i.id == item.id);
-    let change = (match && idx == -1) || (!match && idx != -1);
+    let idx = _.findIndex(_.get(previousResult, 'item.project.tasks'), i => i.id === item.id);
+    let change = (match && idx === -1) || (!match && idx !== -1);
     return change && {
       item: {
         project: {
           tasks: {
             $apply: (items) => {
-              if (idx == -1) {
+              if (idx === -1) {
                 // Insert.
                 return [...items, item];
               } else {
                 // Remove.
-                return _.filter(items, i => i.id != item.id);
+                return _.filter(items, i => i.id !== item.id);
               }
             }
           }

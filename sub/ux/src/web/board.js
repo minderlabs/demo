@@ -58,7 +58,7 @@ export class Board extends React.Component {
     console.assert(listId && itemId);
     let { items, columns } = this.state;
 
-    let column = _.find(columns, column => column.id == listId);
+    let column = _.find(columns, column => column.id === listId);
     let item = _.find(items, item => item.id === itemId);
     console.assert(item);
 
@@ -85,7 +85,7 @@ export class Board extends React.Component {
     let columnsDivs = columns.map(column => {
 
       // Get items for column (in order).
-      let columnItems = _.filter(items, item => column.id == columnMapper(columns, item));
+      let columnItems = _.filter(items, item => column.id === columnMapper(columns, item));
 
       return (
         <div key={ column.id } className="ux-board-column">

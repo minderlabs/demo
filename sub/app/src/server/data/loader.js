@@ -107,7 +107,7 @@ export class Loader {
       // Add User IDs of whitelisted users.
       _.each(groups, group => {
         group.members = _.compact(_.map(users, user => {
-          if (_.indexOf(group.whitelist, user.email) != -1) {
+          if (_.indexOf(group.whitelist, user.email) !== -1) {
             return user.id;
           }
         }));
@@ -139,7 +139,7 @@ export class Loader {
     return itemStore.queryItems(context, {}, { type: 'Project' }).then(projects => {
 
       // Look for default project.
-      let project = _.find(projects, project => (_.indexOf(project.labels, '_default') != -1));
+      let project = _.find(projects, project => (_.indexOf(project.labels, '_default') !== -1));
       if (project) {
         return project;
       } else {

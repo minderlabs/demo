@@ -84,7 +84,7 @@ export class Resolvers {
       //
 
       /**
-       * Milliseconds since Unix epoch (_.now() == new Date().getTime()).
+       * Milliseconds since Unix epoch (_.now() === new Date().getTime()).
        */
       Timestamp: {
         __serialize: value => value,

@@ -169,7 +169,7 @@ export class ContextManager {
         let current = this.findMatch(items, item);
         if (current) {
           // Promote to front.
-          _.remove(items, i => i.id == current.id);
+          _.remove(items, i => i.id === current.id);
           items.unshift(current);
         } else {
           // Prepend context item.

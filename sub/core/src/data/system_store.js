@@ -96,7 +96,7 @@ export class SystemStore extends DelegateItemStore {
    */
   getGroups(userId) {
     return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
-      return _.filter(groups, group => _.indexOf(group.members, userId) != -1);
+      return _.filter(groups, group => _.indexOf(group.members, userId) !== -1);
     });
   }
 
@@ -108,7 +108,7 @@ export class SystemStore extends DelegateItemStore {
   getGroupByWhitelist(email) {
     // TODO(burdon): Return multiple groups.
     return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
-      return _.find(groups, group => _.indexOf(group.whitelist, email) != -1);
+      return _.find(groups, group => _.indexOf(group.whitelist, email) !== -1);
     });
   }
 
@@ -119,7 +119,7 @@ export class SystemStore extends DelegateItemStore {
    * @return {*}
    */
   maybeAddUserToGroup(user, group) {
-    if (_.indexOf(group.members, user.id) != -1) {
+    if (_.indexOf(group.members, user.id) !== -1) {
       return Promise.resolve(user);
     }
 

@@ -219,7 +219,7 @@ export class Provider {
 
 /**
  * Dyamically returns the give property from the object.
- * new PropertyProvider({ foo: { bar: 100 } }, 'foo.bar').value == 100;
+ * new PropertyProvider({ foo: { bar: 100 } }, 'foo.bar').value === 100;
  */
 export class PropertyProvider extends Provider {
 

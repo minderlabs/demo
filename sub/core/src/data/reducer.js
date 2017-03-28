@@ -95,14 +95,14 @@ class Reducer {
   static listApplicator(matcher, context, filter, updatedItem) {
     return (items) => {
       // TODO(burdon): Make sure matches.
-      let taskIdx = _.findIndex(items, item => item.id == updatedItem.id);
-      if (taskIdx == -1) {
+      let taskIdx = _.findIndex(items, item => item.id === updatedItem.id);
+      if (taskIdx === -1) {
         // Append.
         return [...items, updatedItem];
       } else {
         // TODO(burdon): Use push/remove instead?
         return _.compact(_.map(items, item => {
-          if (item.id == updatedItem.id) {
+          if (item.id === updatedItem.id) {
             // Remove if doesn't match filter.
             if (matcher.matchItem(context, {}, filter, updatedItem)) {
               return updatedItem;
@@ -371,7 +371,7 @@ export class ItemReducer extends Reducer {
    *
    * Example:
    * Reducer = (matcher, context, previousResult, updatedItem) => {
-   *   if (updatedItem.type == 'Task') {
+   *   if (updatedItem.type === 'Task') {
    *     return {
    *       items:  $push: [ updatedItem ]
    *     }

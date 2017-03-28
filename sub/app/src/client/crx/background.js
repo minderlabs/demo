@@ -57,7 +57,7 @@ class BackgroundApp {
    * @returns {boolean} true if reconnect is needed (e.g., server changed).
    */
   static UpdateConfig(config, settings) {
-    let restart = (config.server != settings.server);
+    let restart = (config.server !== settings.server);
 
     _.assign(config, settings, {
       graphql: settings.server + '/graphql',

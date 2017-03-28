@@ -35,9 +35,9 @@ const TaskStatus = ListItem.createInlineComponent((props, context) => {
 
   // TODO(burdon): Const for status levels.
   // TODO(burdon): Generalize status (mapping to board column model).
-  let icon = (item.status == 3) ? 'done' : 'check_box_outline_blank';
+  let icon = (item.status === 3) ? 'done' : 'check_box_outline_blank';
   const toggleStatus = () => {
-    let status = (item.status == 0) ? 3 : 0;
+    let status = (item.status === 0) ? 3 : 0;
     context.onItemUpdate(item, [
       MutationUtil.createFieldMutation('status', 'int', status)
     ]);
@@ -178,7 +178,7 @@ class TaskCanvasComponent extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     let { item } = nextProps;
-    if (_.get(item, 'id') != this.state.itemId) {
+    if (_.get(item, 'id') !== this.state.itemId) {
       this.setState({
         itemId:         _.get(item, 'id'),
         assigneeText:   _.get(item, 'assignee.title'),
