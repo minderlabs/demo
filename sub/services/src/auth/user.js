@@ -183,17 +183,11 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
 
         // Register user.
         systemStore.registerUser(userProfile, credentials).then(user => {
+          if (!user.active) {
+            throw new HttpError('User not active.', 403);
+          }
 
-          // TODO(burdon): Remove.
-          systemStore.getGroup(user.id).then(group => {
-
-            // TODO(burdon): Only active if in group (i.e., whitelisted).
-            if (!group || !user.active) {
-              throw new HttpError('User not active.', 403);
-            } else {
-              res.send({ userProfile, groupId: group.id });
-            }
-          });
+          res.send({ userProfile });
         });
       });
     }).catch(next);

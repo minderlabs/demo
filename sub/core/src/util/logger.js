@@ -43,7 +43,8 @@ function singleton() {
  */
 class Logger {
 
-  static TIMESTAMP = 'hh:mm:ss.SSS';
+  // 'YYYY-MM-DD HH:mm Z'
+  static TIMESTAMP = 'HH:mm:ss.SSS';
 
   static root = new Logger('root');
 

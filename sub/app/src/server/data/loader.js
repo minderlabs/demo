@@ -113,9 +113,13 @@ export class Loader {
         }));
       });
 
+      // Create default project for each Group.
       let promises = _.map(groups, group => {
         return this.initProjects(group)
       });
+
+      // TODO(burdon): Create default project for each User.
+      // TODO(burdon): Do test data generation after this.
 
       return Promise.all(promises).then(() => {
         return systemStore.upsertItems({}, groups);

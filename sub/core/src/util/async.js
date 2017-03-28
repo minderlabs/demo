@@ -49,18 +49,18 @@ export class Async {
 
   /**
    * Retry the promise with back-off.
-   * @param {Function} promise Function to execute returning a promise.
+   * @param {Function} fn Function to execute returning a promise.
    * @param {number} retries
    * @param {number} delay
    * @param {number} maxDelay
    * @returns {Promise}
    */
-  static retry(promise, retries=-1, delay=1000, maxDelay=60*1000) {
+  static retry(fn, retries=-1, delay=1000, maxDelay=60*1000) {
     let attempt = 0;
 
     const doRetry = () => {
       return new Promise((resolve, reject) => {
-        promise(attempt)
+        fn(attempt)
 
           // OK.
           .then(value => {
@@ -75,7 +75,7 @@ export class Async {
               setTimeout(() => {
                 attempt++;
                 delay = Math.min(delay * 2, maxDelay);
-                resolve(doRetry(promise));
+                resolve(doRetry(fn));
               }, delay);
             }
           });

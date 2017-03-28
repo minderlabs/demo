@@ -130,10 +130,13 @@ export class AuthManager {
 
       let options = {
         url: requestUrl,
+
+        // Show login screen if necessary.
         interactive: true
       };
 
       // https://developer.chrome.com/apps/identity#method-launchWebAuthFlow
+      // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/identity/launchWebAuthFlow
       chrome.identity.launchWebAuthFlow(options, callbackUrl => {
         if (chrome.runtime.lastError) {
           // "Authorization page could not be loaded" masks all errors.

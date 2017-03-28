@@ -138,7 +138,7 @@ export const hotRouter = (options) => {
 
   // https://github.com/glenjamin/webpack-hot-middleware
   router.use(webpackHotMiddleware(compiler, {
-    log: (msg) => console.log('### [%s] %s ###', moment().format('hh:mm:ss'), msg)
+    log: (msg) => console.log('### [%s] %s ###', moment().format('YYYY-MM-DD HH:mm Z'), msg)
   }));
 
   return router;

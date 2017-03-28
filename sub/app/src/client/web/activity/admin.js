@@ -37,6 +37,7 @@ class AdminActivity extends React.Component {
   );
 
   state = {
+    // Active Group.
     groupId: null
   };
 

@@ -307,11 +307,11 @@ export class ChromeMessageChannelDispatcher {
         }
       } else {
         // TODO(burdon): Buffer or retry?
-        console.warn('Listener not registered: ' + header.channel);
+        console.warn('Listener not yet registered: ' + header.channel);
         this._receiver.postMessage(client, {}, {
           id: header.id,
           channel: header.channel,
-          error: 'Listener not registered.'
+          error: 'Listener not yet registered.'
         });
       }
     });
