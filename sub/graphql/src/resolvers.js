@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { GraphQLSchema, Kind } from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
 
-import { $$, Logger, NotAuthenticatedError, Database, ID, ItemStore, TypeUtil } from 'minder-core';
+import { $$, Logger, HttpError, Database, ID, ItemStore, TypeUtil } from 'minder-core';
 
 import Schema from './gql/schema.graphql';
 
@@ -44,7 +44,7 @@ export class Resolvers {
    * @param context
    * @param type
    * @param items
-   * @returns {*|Promise.<Item[]>}
+   * @returns {Promise<Item>}
    */
   static getItems(itemStore, context, type, items) {
     let itemIds = _.filter(items, item => _.isString(item));
@@ -84,7 +84,7 @@ export class Resolvers {
       //
 
       /**
-       * Milliseconds since Unix epoch (_.now() == new Date().getTime()).
+       * Milliseconds since Unix epoch (_.now() === new Date().getTime()).
        */
       Timestamp: {
         __serialize: value => value,
@@ -123,7 +123,7 @@ export class Resolvers {
         },
 
         projects: (root, args, context) => {
-          // NOTE: Group is in the system store, so we don't reference user store items.
+          // NOTE: Group Items should not directly reference User store items (so we query for them).
           let filter = {
             type: 'Project',
             expr: { field: "group", ref: "id" }
@@ -135,6 +135,13 @@ export class Resolvers {
       },
 
       User: {
+
+        title: (root) => {
+          if (!root.displayName) {
+            logger.warn('Missing displayName: ' + root.id);
+          }
+          return root.displayName || '';
+        },
 
         // TODO(burdon): Generalize for filtered items (like queryItems). Can reference context and root node.
         tasks: (root, args, context) => {
@@ -223,10 +230,9 @@ export class Resolvers {
           return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', userId);
         },
 
-        // TODO(burdon): Replace with "groups" and lookup without context.
-        group: (root, args, context) => {
-          let { groupId } = context;
-          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', groupId);
+        groups: (root, args, context) => {
+          let { groupIds } = context;
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItems(context, 'Group', groupIds);
         },
 
         folders: (root, args, context) => {
@@ -243,8 +249,6 @@ export class Resolvers {
       // Queries
       // NOTE: root is undefined for root-level queries.
       //
-
-      //const AuthError = new Error('Not authenticated.');
 
       RootQuery: {
 
@@ -311,10 +315,11 @@ export class Resolvers {
     if (!context.userId) {
       // TODO(burdon): Test user is active also.
       // NOTE: getUserFromHeader should have already thrown before getting here.
-      throw NotAuthenticatedError();
+      throw new HttpError(401);
     }
+
     if (!context.clientId) {
-      throw new Error('Invalid client.');
+      throw new HttpError('Invalid client.', 400);
     }
   }
 }

@@ -123,17 +123,17 @@ export class Transforms {
 
     // Find the object to mutate (the object in the array that matches the predicate).
     let key = Matcher.scalarValue(predicate.value);
-    let idx = _.findIndex(map, v => _.get(v, predicate.key) == key);
+    let idx = _.findIndex(map, v => _.get(v, predicate.key) === key);
 
     // NOTE: Must be object mutation (which mutates to object matching the predicate).
     let value = mutation.value.object;
     if (value === undefined) {
-      if (idx != -1) {
+      if (idx !== -1) {
         // Remove.
         map.splice(idx, 1);
       }
     } else {
-      if (idx == -1) {
+      if (idx === -1) {
         // Append.
         map.push(Transforms.applyObjectMutations({
           [predicate.key]: key
@@ -159,7 +159,7 @@ export class Transforms {
     let value = Matcher.scalarValue(mutation.value);
     console.assert(value !== undefined);
 
-    if (mutation.add == false) {
+    if (mutation.add === false) {
       _.pull(set, value);
     } else {
       set = _.union(set, [value]);
@@ -186,7 +186,7 @@ export class Transforms {
     if (value === undefined) {
       array.splice(idx, 1)
     } else {
-      if (idx == -1) {
+      if (idx === -1) {
         array.push(value);
       } else {
         array.splice(idx, 0, value);

@@ -7,13 +7,16 @@ import google from 'googleapis';
 
 import { ErrorUtil, QueryProcessor } from 'minder-core';
 
+import { OAuthServiceProvider } from '../service';
+
+const NAMESPACE = 'google.com/drive';
+
 /**
  * Google API client.
  */
 class GoogleDriveClient {
 
   // TODO(burdon): Generalize client.
-  // TODO(burdon): Handle expiration: Query failed: Error: No access or refresh token is set.
 
   /**
    * Convert Drive result to a schema object Item.
@@ -25,10 +28,10 @@ class GoogleDriveClient {
    */
   static resultToItem(idGenerator, file) {
     // TODO(madadam): This makes a transient Item that isn't written into the item store;
-    // it's an Item wrapper around foreign data.
+    // it's an Item wrapper around external data.
 
     let item = {
-      namespace: GoogleDriveQueryProcessor.NAMESPACE,
+      namespace: NAMESPACE,
       type: 'Document',
       id: file.id,
       title: file.name
@@ -50,6 +53,7 @@ class GoogleDriveClient {
     this._drive = google.drive('v3');
   }
 
+  // TODO(burdon): Factor out (see oauth.js).
   _getOAuthClient(context) {
     // TODO(madadam): Avoid creating a new OAuth2 client every request. Just pass access token?
     // If not, then cache the clients by context.userId.
@@ -57,12 +61,10 @@ class GoogleDriveClient {
       this._config.clientId,
       this._config.clientSecret
     );
-    oauth2Client.credentials = { access_token: this._getAccessToken(context) };
-    return oauth2Client;
-  }
 
-  _getAccessToken(context) {
-    return _.get(context, 'user.credentials.google_com.accessToken');
+    let credentials = _.get(context, 'credentials.google');
+    oauth2Client.setCredentials(_.pick(credentials, ['access_token', 'refresh_token']));
+    return oauth2Client;
   }
 
   /**
@@ -92,7 +94,7 @@ class GoogleDriveClient {
    * Recursively fetches pages for the specified number of results.
    */
   _fetchAll(client, driveQuery, maxResults, pageToken=undefined) {
-    if (maxResults == 0) {
+    if (maxResults === 0) {
       return Promise.resolve([]);
     }
 
@@ -128,19 +130,19 @@ class GoogleDriveClient {
 }
 
 /**
- * Google Drive.
+ * Query processor.
  */
 export class GoogleDriveQueryProcessor extends QueryProcessor {
 
-  static NAMESPACE = 'google.com/drive';
-
+  /**
+   * https://developers.google.com/drive/v3/web/search-parameters
+   */
   static makeDriveQuery(queryString) {
-    // https://developers.google.com/drive/v3/web/search-parameters
     return _.isEmpty(queryString) ? null : `fullText contains \'${queryString}\'`;
   }
 
   constructor(idGenerator, config) {
-    super(GoogleDriveQueryProcessor.NAMESPACE);
+    super(NAMESPACE);
 
     this._driveClient = new GoogleDriveClient(idGenerator, config);
   }
@@ -158,5 +160,27 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
     return this._driveClient.search(context, driveQuery, count).catch(error => {
       throw ErrorUtil.error('Google Drive', error);
     });
+  }
+}
+
+/**
+ * Google Drive Service provider.
+ */
+export class GoogleDriveServiceProvider extends OAuthServiceProvider {
+
+  static SCOPES = [
+    'https://www.googleapis.com/auth/drive.readonly'
+  ];
+
+  constructor(authProvider) {
+    super(authProvider, NAMESPACE, GoogleDriveServiceProvider.SCOPES);
+  }
+
+  get title() {
+    return 'Google Drive';
+  }
+
+  get icon() {
+    return '/img/service/google_drive.png';
   }
 }

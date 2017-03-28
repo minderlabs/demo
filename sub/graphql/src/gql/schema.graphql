@@ -146,6 +146,8 @@ input ExpressionInput {
   comp: Comparator          # Default: EQ
   field: String
   value: ValueInput
+
+  # TODO(burdon): Document (accesses root).
   ref: String
 }
 
@@ -154,6 +156,8 @@ input OrderByInput {
   order: Order              # Default: ASC
 }
 
+# TODO(burdon): Rename QueryInput.
+# TODO(burdon): Move paging here.
 input FilterInput {
 
   # Data store namespace (e.g., system for User, etc.)
@@ -182,6 +186,10 @@ input FilterInput {
   # Group results.
   # TODO(madadam): Specify aggregation key here?
   groupBy: Boolean
+
+  # Context information, as KeyValue pairs extracted from the user's environment or recent history.
+  # Used for "queryless" search or for context-sensitive ranking.
+  context: [KeyValue]
 }
 
 #===================================================================================================
@@ -240,6 +248,7 @@ interface Item {
   bucket: ID                  # ID of User or Group (null for system item).
   type: String!
   id: ID!
+  # TODO(burdon): Multiple.
   fkey: String                # Foreign key.
   alias: String               # Short-name for URLs (unique, human-readable).
   created: Timestamp!
@@ -271,6 +280,7 @@ type User implements Item {
   # TODO(burdon): Part of contact?
   email: String
 
+  # TODO(burdon): Bi-directional.
   contact: Contact
 
   # TODO(burdon): Remove (only query via project links).
@@ -315,6 +325,8 @@ type Contact implements Item {
   labels: [String]
 
   email: String
+
+  user: User
 
   # TODO(burdon): Implement as links.
   tasks: [Task]!
@@ -404,6 +416,7 @@ type Project implements Item {
   description: String
   labels: [String]
 
+  # TODO(burdon): Might not be associted with a Group (e.g., private Project).
   group: Group!
 
   # TODO(burdon): Directives for links. Other items (e.g., Contacts board).
@@ -442,18 +455,6 @@ type Task implements Item {
 # Root Viewer for authenticated User.
 #===================================================================================================
 
-# TODO(burdon): Combine into Viewer registration (replace /client/register)? Or top-level register query.
-# TODO(burdon): Use consistently (client/background/connection manager) + Redux state/context.
-type Registration {
-
-  userId: String!
-
-  # TODO(burdon): Multiple groups?
-  groupId: String!
-
-  clientId: String!
-}
-
 type Client {
 
   id: String!
@@ -464,8 +465,8 @@ type Viewer {
   # Authenticated user.
   user: User!
 
-  # TODO(burdon): Multiple groups?
-  group: Group!
+  # All Groups User belongs to.
+  groups: [Group]
 
   # Folders.
   folders: [Folder]!

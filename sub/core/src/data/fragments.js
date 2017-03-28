@@ -43,6 +43,7 @@ export const Fragments = {
   // Item Types.
   //
 
+  // TODO(burdon): Don't reference other fragments?
   ContactFragment: gql`
     fragment ContactFragment on Contact {
       email
@@ -51,6 +52,9 @@ export const Fragments = {
         id
         title
         status
+      }
+      user {
+        ...UserFragment
       }
     }
   `,
@@ -155,6 +159,7 @@ export const Fragments = {
   UserFragment: gql`
     fragment UserFragment on User {
       title
+      email
   
       ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
         type

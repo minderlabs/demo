@@ -127,6 +127,7 @@ const CardItemFragment = gql`
   ${Fragments.DocumentFragment}
   ${Fragments.ProjectFragment}
   ${Fragments.TaskFragment}
+  ${Fragments.UserFragment}
 `;
 
 const CardSearchQuery = gql`

@@ -110,16 +110,18 @@ const ContextQuery = gql`
   query ContextQuery($filter: FilterInput!) {
     contextItems: search(filter: $filter) {
       ...ItemFragment
+      ...UserFragment
       ...ContactFragment
     }
   }
 
   ${Fragments.ItemFragment}
+  ${Fragments.UserFragment}
   ${Fragments.ContactFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  let { config, injector, search } = AppAction.getState(state);
+  let { injector, config, search } = AppAction.getState(state);
   let platform = _.get(config, 'app.platform');
 
   // Current user context (e.g., host page).
@@ -168,7 +170,7 @@ export default compose(
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {
         _.each(viewer.folders, folder => {
-          if (folder.alias == ownProps.folder) {
+          if (folder.alias === ownProps.folder) {
             filter = JSON.parse(folder.filter);
             return false;
           }

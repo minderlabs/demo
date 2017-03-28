@@ -58,6 +58,7 @@ key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv9GnZhQDH73nz/WXaO2WDpMTpYuFwU
 #
 
 permissions:
+  - activeTab
   - background
   - contextMenus
   - identity              # Required for OAuth.
@@ -67,9 +68,11 @@ permissions:
   - tabs
   - gcm
 
-  - "http://localhost/*"
   - "http://127.0.0.1/*"
-  - "http://local-docker-machine/*"
+  - "http://localhost/*"
+  - "http://dockermachine.net/*"
+
+  - "https://accounts.google.com/o/oauth2/auth/*"
 
   - "*://minderlabs.com/*"
 
@@ -121,8 +124,10 @@ content_scripts:
 #     - "<all_urls>"
 
       - "http://localhost/testing/*"
+      - "http://localhost.net/testing/*"
 
       - "https://*.google.com/*"
+      - "https://*.slack.com/*"
 
     js:
       # NOTE: Cannot be symlink (must be copied).
@@ -157,6 +162,8 @@ oauth2:
 
   # Create OAuth Client ID; Type: "Chrome App" (3/8/17)
   # NOTE: Requires consistent CRX ID (see key property above).
+  # NOTE: This is different from the "Web Client" Client ID.
+  # NOTE: This is legacy (required for Firebase Authentication).
   # https://console.developers.google.com/apis/credentials?project=minder-beta
   client_id: "189079594739-p1shfct6nh1rcf84edupn05fl4qmtmgk.apps.googleusercontent.com"
 
@@ -176,8 +183,10 @@ oauth2:
 # Firebase API:
 # https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
 #
+# Segment analytics pulls in other scripts depending on which integrations are enabled.
+# https://segment.com/minderlabs/sources/jsweb/integrations
 
-content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com https://minderlabs.com; object-src 'self'"
+content_security_policy: "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com https://cdn.segment.com https://www.google-analytics.com https://www.googleadservices.com https://*.intercom.io https://js.intercomcdn.com https://minderlabs.com; object-src 'self'"
 
 #
 # https://developer.chrome.com/extensions/manifest/externally_connectable

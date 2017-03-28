@@ -35,9 +35,9 @@ const TaskStatus = ListItem.createInlineComponent((props, context) => {
 
   // TODO(burdon): Const for status levels.
   // TODO(burdon): Generalize status (mapping to board column model).
-  let icon = (item.status == 3) ? 'done' : 'check_box_outline_blank';
+  let icon = (item.status === 3) ? 'done' : 'check_box_outline_blank';
   const toggleStatus = () => {
-    let status = (item.status == 0) ? 3 : 0;
+    let status = (item.status === 0) ? 3 : 0;
     context.onItemUpdate(item, [
       MutationUtil.createFieldMutation('status', 'int', status)
     ]);
@@ -97,7 +97,7 @@ export class TaskCard extends React.Component {
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired,
-    registration: React.PropTypes.object.isRequired
+    viewer: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -113,13 +113,13 @@ export class TaskCard extends React.Component {
   }
 
   handleTaskUpdate(item, mutations) {
-    let { registration: { userId }, mutator } = this.context;
+    let { viewer: {user}, mutator } = this.context;
 
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
       let { item:parent } = this.props;
-      AddCreateSubTask(mutator.batch(), userId, parent, mutations).commit();
+      AddCreateSubTask(mutator.batch(), user.id, parent, mutations).commit();
     }
   }
 
@@ -167,7 +167,7 @@ class TaskCanvasComponent extends React.Component {
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired,
-    registration: React.PropTypes.object.isRequired
+    viewer: React.PropTypes.object.isRequired
   };
 
   static propTypes = {
@@ -178,7 +178,7 @@ class TaskCanvasComponent extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     let { item } = nextProps;
-    if (_.get(item, 'id') != this.state.itemId) {
+    if (_.get(item, 'id') !== this.state.itemId) {
       this.setState({
         itemId:         _.get(item, 'id'),
         assigneeText:   _.get(item, 'assignee.title'),
@@ -217,13 +217,13 @@ class TaskCanvasComponent extends React.Component {
 
   handleTaskUpdate(item, mutations) {
     console.assert(mutations);
-    let { registration: { userId }, mutator } = this.context;
+    let { viewer: { user }, mutator } = this.context;
 
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
       let { item:parent } = this.props;
-      AddCreateSubTask(mutator.batch(), userId, parent, mutations).commit();
+      AddCreateSubTask(mutator.batch(), user.id, parent, mutations).commit();
     }
   }
 
@@ -256,8 +256,11 @@ class TaskCanvasComponent extends React.Component {
       let { item:task, refetch } = this.props;
       let { project, tasks } = task;
 
-      // TODO(burdon): Set group from project (remove groupId).
-      //groupId={ project.group.id }
+      // TODO(burdon): This shouldn't happen. Apollo serving from cache?
+      if (!this.props.loading && !task.project) {
+        console.warn('Finished loading but missing project: ' + JSON.stringify(task));
+        return <div/>;
+      }
 
       const levels = _.keys(TASK_LEVELS.properties).sort().map(level =>
         <option key={ level } value={ level }>{ TASK_LEVELS.properties[level].title }</option>);
@@ -286,8 +289,8 @@ class TaskCanvasComponent extends React.Component {
 
               <div className="ux-data-row">
                 <div className="ux-data-label">Assignee</div>
-                <MembersPicker
-                               value={ assigneeText || '' }
+                <MembersPicker value={ assigneeText || '' }
+                               groupId={ project.group.id }
                                onTextChange={ this.handleSetText.bind(this, 'assigneeText') }
                                onItemSelect={ this.handleSetItem.bind(this, 'assignee') }/>
               </div>
@@ -341,19 +344,10 @@ const MembersQuery = gql`
 `;
 
 const MembersPicker = compose(
-  connect((state, ownProps) => {
-    // TODO(burdon): Get from project.
-    let { registration: { groupId } } = AppAction.getState(state);
-
-    return {
-      groupId
-    }
-  }),
-
   graphql(MembersQuery, {
     options: (props) => {
-      // TODO(burdon): Get from project.
       let { groupId } = props;
+      console.assert(groupId);
 
       return {
         variables: {
@@ -387,6 +381,12 @@ const TaskQuery = gql`
       
       # TODO(burdon): Possible bug (TaskFragment includes title, but sub tasks field also needs it).
       ... on Task {
+        project {
+          group {
+            id
+          }
+        }
+
         tasks {
           ...ItemFragment
           ...TaskFragment

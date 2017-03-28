@@ -26,6 +26,6 @@ export class FirebaseSystemStore extends FirebaseItemStore {
    * The system root key doesn't specify a bucket.
    */
   getBucketKeys(context, type=undefined) {
-    return [ this.key(_.compact([ type ])) ];
+    return [this.key(_.compact([ type ]))];
   }
 }

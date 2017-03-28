@@ -4,8 +4,7 @@
 
 import _ from 'lodash';
 
-import { Logger, Database, ID, TypeUtil } from 'minder-core';
-import { Resolvers } from 'minder-graphql';
+import { Logger, Database, TypeUtil } from 'minder-core';
 
 const logger = Logger.get('loader');
 
@@ -28,101 +27,131 @@ export class Loader {
    * Parse data file.
    * @param data JSON data file.
    * @param namespace
+   * @param index Regular expression to identify items.
    */
-  parse(data, namespace=Database.NAMESPACE.USER) {
-    return this.parseItems(_.get(data, 'Items'), namespace)
-      .then(() => this.parseMutations(_.get(data, 'Mutations'), namespace));
-  }
+  parse(data, namespace=Database.NAMESPACE.USER, index) {
+    console.assert(data && namespace && index);
+    logger.log('Parsing data: ' + index);
 
-  /**
-   * Parse item defs.
-   */
-  parseItems(itemsByType, namespace) {
-
-    // In testing use alias as ID (for test file ID resolution).
+    // Build map of items.
     let itemsByAlias = new Map();
+    TypeUtil.traverse(data, (value, key, root, path) => {
+      let match = path.match(index);
+      if (match) {
+        let item = value;
+        let type = match[1];
+        match.splice(0, 2);
 
-    // Iterate each item by type.
-    let parsedItems = TypeUtil.flattenArrays(_.map(itemsByType, (items, type) => {
-
-      // Iterate items.
-      return _.map(items, (item) => {
+        item.alias = match.join('/');
         item.type = type;
 
-        // If testing, use alias as ID.
-        if (this._testing && item.alias) {
-          itemsByAlias.set(item.alias, item);
-          item.id = item.alias;
-        }
-
-        // TODO(burdon): Factor out special type handling.
-        // NOTE: The GraphQL schema defines filter as an input type.
-        // In order to "store" the filter within the Folder's filter property, we need
-        // to serialize it to a string (otherwise we need to create parallel output type defs).
         switch (type) {
-
-          case 'Project': {
-            item.bucket = item.group;
-            break;
-          }
-
           case 'Folder': {
             item.filter = JSON.stringify(item.filter);
             break;
           }
         }
 
-        return item;
-      });
-    }));
-
-    return this._database.getItemStore(namespace).upsertItems({}, parsedItems);
-  }
-
-  /**
-   * Parse item mutations.
-   */
-  parseMutations(itemMutations, namespace) {
-    if (!itemMutations) {
-      return Promise.resolve([]);
-    }
-
-    // Translate local IDs to remote IDs.
-    TypeUtil.traverse(itemMutations, (value, key, root) => {
-      if (key === '@itemId') {
-        delete root['@itemId'];
-        let { type, id:localId } = value;
-        root.itemId = ID.toGlobalId(type, localId);
+//      console.log(item.alias + ' = ' + TypeUtil.stringify(item));
+        itemsByAlias.set(item.alias, item);
+        return false;
       }
     });
 
+    let aliases = Array.from(itemsByAlias.keys());
+
+    // Filter for items with matching aliases.
+    let filter = {
+      expr: {
+        op: 'OR',
+        expr: _.map(aliases, alias => ({
+          field: 'alias',
+          value: {
+            string: alias
+          }
+        }))
+      }
+    };
+
+    // Lookup up items with alias.
     let itemStore = this._database.getItemStore(namespace);
-    return Resolvers.processMutations(itemStore, {}, itemMutations);
+    return itemStore.queryItems({}, {}, filter).then(matchedItems => {
+
+      // Update ID of mapped items and merge.
+      _.each(matchedItems, item => {
+        let alias = item.alias;
+        let parsed = itemsByAlias.get(alias);
+
+        // Merge.
+        _.assign(item, parsed);
+        itemsByAlias.set(alias, item);
+      });
+
+      let items = Array.from(itemsByAlias.values());
+
+      return itemStore.upsertItems({}, items);
+    });
   }
 
   /**
    * Initialize group members.
    */
   initGroups() {
+    let systemStore = this._database.getItemStore(Database.NAMESPACE.SYSTEM);
+
     return Promise.all([
-      this._database.getItemStore(Database.NAMESPACE.SYSTEM).queryItems({}, {}, { type: 'Group' }),
-      this._database.getItemStore(Database.NAMESPACE.SYSTEM).queryItems({}, {}, { type: 'User'  })
+      systemStore.queryItems({}, {}, { type: 'Group' }),
+      systemStore.queryItems({}, {}, { type: 'User'  })
     ]).then(([ groups, users ]) => {
 
       // Add User IDs of whitelisted users.
       _.each(groups, group => {
         group.members = _.compact(_.map(users, user => {
-          if (_.indexOf(group.whitelist, user.email) != -1) {
+          if (_.indexOf(group.whitelist, user.email) !== -1) {
             return user.id;
           }
         }));
       });
 
-      _.each(groups, group => {
-        logger.log('Group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+      // Create default project for each Group.
+      let promises = _.map(groups, group => {
+        return this.initProjects(group)
       });
 
-      return this._database.getItemStore(Database.NAMESPACE.SYSTEM).upsertItems({}, groups);
+      // TODO(burdon): Create default project for each User.
+      // TODO(burdon): Do test data generation after this.
+
+      return Promise.all(promises).then(() => {
+        return systemStore.upsertItems({}, groups);
+      });
+    });
+  }
+
+  /**
+   * Provision default project for group.
+   * @param group
+   */
+  initProjects(group) {
+    logger.log('Group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+
+    let context = { groupIds: [group.id] };
+    let itemStore = this._database.getItemStore(Database.NAMESPACE.USER);
+    return itemStore.queryItems(context, {}, { type: 'Project' }).then(projects => {
+
+      // Look for default project.
+      let project = _.find(projects, project => (_.indexOf(project.labels, '_default') !== -1));
+      if (project) {
+        return project;
+      } else {
+        // Create it.
+        return itemStore.upsertItem(context, {
+          bucket: group.id,
+          group: group.id,
+          type: 'Project',
+          labels: ['_default'],
+          title: 'Default Project'
+        });
+      }
     });
   }
 }

@@ -4,7 +4,6 @@
 
 import _ from 'lodash';
 import express from 'express';
-import bodyParser from 'body-parser';
 
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
@@ -59,9 +58,6 @@ export const graphqlRouter = (database, options) => {
 
   let router = express.Router();
 
-  // JSON body.
-  router.use(bodyParser.json());
-
   // Add logging to path (must go first).
   if (options.logging) {
    router.use(options.graphql, graphqlLogger(options));
@@ -81,7 +77,7 @@ export const graphqlRouter = (database, options) => {
     //
     // http://dev.apollodata.com/tools/graphql-server/setup.html#graphqlOptions
     //
-    // TODO(burdon): Move to const.
+    // TODO(burdon): Const?
     let graphqlOptions = {
 
       // TODO(burdon): Enforce.
@@ -131,6 +127,9 @@ export const graphqlRouter = (database, options) => {
       // Don't dump resolver exceptions (caught by logger above).
       debug: false
     };
+
+    // TODO(burdon): If an exception is thrown no options are returned, which causes:
+    // TypeError: Cannot read property 'formatError' of undefined
 
     //
     // Provide the request context for resolvers (e.g., authenticated user).

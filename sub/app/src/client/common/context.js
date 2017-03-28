@@ -52,11 +52,16 @@ export class ContextManager {
 
     // TODO(burdon): Convert to map and use _.toArray()
     // Transient items indexed by foreign key (i.e., email).
-    this._transientItems = {};
+    this._transientItems = new Map();
 
+    this._cache = this.clearCache();
+  }
+
+  clearCache() {
     // Cached items matching the current context.
     // NOTE: Plain object map instead of Map so can be iterated using _.find().
     this._cache = {};
+    return this._cache;
   }
 
   /**
@@ -65,7 +70,12 @@ export class ContextManager {
    * @returns {FilterInput} Context filter or undefined.
    */
   getFilter() {
+
+    // TODO(madadam): Unify email stuff to be keyValue pairs with key 'email', and rewrite the query
+    // on the server side like follows.
+
     // TODO(burdon): Email-specific.
+    // TODO(burdon): Push DOM node (server does more processing -- incl. creating transient item?)
     let emails = _.compact(_.map(_.get(this._context, 'items'), item => item.email));
     if (emails.length) {
       return {
@@ -80,6 +90,13 @@ export class ContextManager {
           }))
         }
       };
+    }
+
+    // TODO(madadam): this._context should be the KeyValue array, get rid of extra level of object.
+    if (this._context.context) {
+      return {
+        context: this._context.context
+      }
     }
   }
 
@@ -97,10 +114,10 @@ export class ContextManager {
       if (item.email) {
         // TODO(burdon): Update (rather than replace) old transient item (keep ID).
         // TODO(burdon): Potentially update stored item with additional context?
-        this._transientItems[item.email] = _.defaults(item, {
+        this._transientItems.set(item.email, _.defaults(item, {
           namespace: Database.NAMESPACE.LOCAL,
           id: this._idGenerator.createId()
-        });
+        }));
       }
     });
 
@@ -115,8 +132,10 @@ export class ContextManager {
   updateCache(items) {
     logger.log('Updated cache: ' + JSON.stringify(_.map(items, i => _.pick(i, ['id', 'type', 'email']))));
 
-    // TODO(burdon): Reset cache.
+    this.clearCache();
+
     _.each(items, item => {
+      // TODO(madadam): cache by foreign key instead of email?
       let email = item.email;
       console.assert(email);
       this._cache[email] = item;
@@ -131,28 +150,40 @@ export class ContextManager {
    */
   injectItems(items) {
 
+    let itemsByKey = new Map();
+
     // For each transient item in the context.
     _.each(_.get(this._context, 'items'), item => {
+      // TODO(madadam): Use id or foreign key as key.
       if (item.email) {
-        item = this._transientItems[item.email];
+        item = this._transientItems.get(item.email);
 
         // Replace the transient item with the stored cached item.
         let match = this.findMatch(this._cache, item);
         if (match) {
           item = match;
+          itemsByKey.set(item.email, item);
         }
 
         // Look for item in current list.
         let current = this.findMatch(items, item);
         if (current) {
           // Promote to front.
-          _.remove(items, i => i.id == current.id);
+          _.remove(items, i => i.id === current.id);
           items.unshift(current);
         } else {
           // Prepend context item.
           items.unshift(item);
         }
       }
+    });
+
+    // Inject remaining cached items that *didn't* match any of the "contextual" (synthetic client-side) items.
+    _.each(this._cache, item => {
+      if (item.email && itemsByKey.get(item.email)) {
+        return;
+      }
+      items.push(item);
     });
 
     return items;

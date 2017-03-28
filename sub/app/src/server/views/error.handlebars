@@ -4,23 +4,13 @@
 
 <div class="site-container">
   <div class="site-column">
-
     <div class="site-window-container">
-      <div class="site-window">
+      <div class="site-window site-admin-window">
         <div class="site-section">
-          <h1>Accounts</h1>
-
-          {{#each accounts}}
-          <h2>{{ name }}</h2>
-          <div>
-          {{{ infoHtml }}}
-          </div>
-          {{/each}}
-
+          <h1>Error {{ code }}</h1>
+          <pre>{{ err.stack }}</pre>
         </div>
       </div>
     </div>
   </div>
-
-  <script src="/assets/website.bundle.js"></script>
 </div>

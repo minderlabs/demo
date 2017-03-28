@@ -13,6 +13,6 @@ Logger.setLevel({
   'auth':       Logger.Level.debug,
   'client':     Logger.Level.debug,
   'mutations':  Logger.Level.debug,
-  'gcm':        Logger.Level.debug
+  'cloud':      Logger.Level.debug
 
 }, Logger.Level.info);

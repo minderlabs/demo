@@ -22,7 +22,7 @@ module.exports = _.merge(baseConfig, {
 
   // https://webpack.github.io/docs/configuration.html#node
   node: {
-    // Otherwise __dirname == '/'
+    // Otherwise __dirname === '/'
     __dirname: false,
 
     // http://webpack.github.io/docs/configuration.html#node

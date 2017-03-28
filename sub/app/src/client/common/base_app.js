@@ -13,7 +13,7 @@ import ApolloClient from 'apollo-client';
 import moment from 'moment';
 
 import { ErrorUtil, EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
-import { Analytics, GoogleAnalytics } from './analytics';
+import { Analytics, SegmentAnalytics } from './analytics';
 
 import { ContextManager } from './context';
 
@@ -38,7 +38,7 @@ export class BaseApp {
     // Manages Apollo query subscriptions.
     this._queryRegistry = new QueryRegistry();
 
-    this._analytics = new GoogleAnalytics(this._config);
+    this._analytics = new SegmentAnalytics(this._config);
 
     // Global error handling.
     ErrorUtil.handleErrors(window, error => this.onError(error));
@@ -49,10 +49,12 @@ export class BaseApp {
 
   onError(error) {
     logger.error(error);
+    let message = ErrorUtil.message(error);
     this._eventHandler.emit({
       type: 'error',
-      message: ErrorUtil.message(error)
+      message: message
     });
+    this._analytics && this._analytics.track('error', { message });
   }
 
   /**
@@ -79,7 +81,7 @@ export class BaseApp {
 
   /**
    *
-   * @return {Promise.<T>}
+   * @return {Promise}
    */
   postInit() {}
 
@@ -337,7 +339,7 @@ export class BaseApp {
    * </Activity>
    */
   render(App) {
-    logger.info($$('### [%s %s] ###', moment().format('hh:mm:ss'), _.get(this._config, 'env')));
+    logger.info($$('### [%s %s] ###', moment().format('YYYY-MM-DD HH:mm Z'), _.get(this._config, 'env')));
 
     // Construct app.
     const app = (

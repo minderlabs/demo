@@ -6,6 +6,7 @@
 export const Defs = {
 
   SERVER: {
+    // TODO(burdon): dockerhost.net config.
     DEV:  { value: 'http://localhost:3000',             title: 'localhost' },
     PROD: { value: 'https://demo-dev.minderlabs.com',   title: 'https://demo-dev.minderlabs.com' }
   }
@@ -28,21 +29,21 @@ export const DefaultSettings = {
 
   // App server (e.g., dev, prod).
   server: Defs.SERVER.PROD.title,
-
-  // Client registration.
-  registration: {}
 };
 
 /**
  * Keys
- * Properties (other than "hint") should match the keydown event.
+ * Properties (other than "_KEYS_") should match the keydown event.
+ * https://css-tricks.com/snippets/javascript/javascript-keycodes
+ * https://developer.mozilla.org/en-US/docs/Web/Events/keydown
+ * http://keycode.info
  */
 export const KeyCodes = {
 
   TOGGLE: {
-    hint: '⌘-/',
+    _KEYS_: ['⌘ Command', '\''],
     metaKey: true,
-    keyCode: 191
+    keyCode: 222
   }
 };
 
@@ -63,17 +64,17 @@ export const SidebarCommand = {
  */
 export const SystemChannel = {
 
-  CHANNEL:                'system',
-
-  // From options.
-  AUTHENTICATE:           'AUTHENTICATE',
-  REGISTER_CLIENT:        'REGISTER_CLIENT',
+  CHANNEL:                'system',               // Channel name.
 
   // From sidebar.
-  PING:                   'PING',
-  REQUEST_REGISTRATION:   'REQUEST_REGISTRATION',
+  PING:                   'PING',                 // Testing.
+  REGISTER:               'REGISTER',             // Registers the client with the background page.
+
+  // From options.
+  AUTHENTICATE:           'AUTHENTICATE',         // Trigger authentication.
+  CONNECT:                'CONNECT',              // Trigger client registration.
 
   // To sidebar.
-  FLUSH_CACHE:            'FLUSH_CACHE',
-  INVALIDATE:             'INVALIDATE'
+  RESET:                  'RESET',                // Reset client database (e.g., server changed).
+  INVALIDATE:             'INVALIDATE',           // Invalidate queries.
 };

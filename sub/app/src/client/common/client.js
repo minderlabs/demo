@@ -4,11 +4,10 @@
 
 import _ from 'lodash';
 
-import { HttpUtil } from 'minder-core';
-
 import { Const } from '../../common/defs';
 
 import { AuthManager } from './auth';
+import { NetUtil } from './net';
 
 const logger = Logger.get('client');
 
@@ -22,7 +21,7 @@ export class ConnectionManager {
    * @param {string} clientId
    */
   static getHeaders(clientId) {
-    console.assert(clientId);
+    console.assert(_.isString(clientId), 'Invalid client ID: ' + clientId);
     return {
       [Const.HEADER.CLIENT_ID]: clientId
     };
@@ -35,98 +34,82 @@ export class ConnectionManager {
    * @param {AuthManager} authManager
    * @param {CloudMessenger} cloudMessenger
    */
-  constructor(config, authManager, cloudMessenger) {
-    console.assert(config && authManager && cloudMessenger);
+  constructor(config, authManager, cloudMessenger=undefined) {
+    console.assert(config && authManager);
     this._config = config;
     this._authManager = authManager;
     this._cloudMessenger = cloudMessenger;
 
     // The CRX token may be automatically refreshed (FCM).
-    this._cloudMessenger.onTokenUpdate(messageToken => {
-      logger.info('Token refreshed.');
-
-      // Get/refresh the auth token.
-      this._authManager.getToken().then(authToken => {
-
-        // Re-register the client.
-        this._doRegistration(authToken, messageToken);
-      })
+    this._cloudMessenger && this._cloudMessenger.onTokenUpdate(messageToken => {
+      this._requestRegistration(messageToken);
     });
   }
 
   /**
-   * Client registration (see clientRouter => ClientManager.register).
-   * NOTE: For client platform uniformity, the registration is stored in the config property.
-   * Web apps have the registration information set by the server on page load, whereas the CRX
-   * retrieves the registration when registering the client.
-   *
-   * {
-   *   userId,
-   *   groupId,       // TODO(burdon): Remove.
-   *   clientId
-   * }
+   * Returns the registered client ID.
    */
-  get registration() {
-    return _.get(this._config, 'registration');
+  get clientId() {
+    let clientId = _.get(this._config, 'client.id');
+    console.assert(clientId);
+    return clientId;
   }
 
   /**
    * Register the client with the server.
-   * Web clients are served from the server, which configures registration properties (see appRouter).
+   * Web clients are served from the server, which configures registration properties (see webAppRouter).
    * CRX and mobile clients must register to obtain this information (e.g., clientId).
    * Clients also register their Cloud Messaging (FCM, GCM) tokens (which may need to be refreshed).
    * Client must also provide the clientId to request headers.
    *
    * [ConnectionManager] ==> [ClientManager]
    *
-   * @return {Promise<{Registration}>}
+   * @return {Promise<Client>}
    */
   register() {
-    // Get the auth token.
-    return this._authManager.getToken().then(authToken => {
-
-      // Get the push channel token.
-      // TODO(burdon): Store the message token.
+    if (this._cloudMessenger) {
       return this._cloudMessenger.connect().then(messageToken => {
-        logger.log('Cloud Messenger connected.');
-
-        // Register the client.
-        return this._doRegistration(authToken, messageToken);
+        return this._registerClient(messageToken);
       });
-    });
+    } else {
+      return this._registerClient();
+    }
   }
 
   /**
-   * @param authToken
+   * Sends the client registration request.
+   *
    * @param messageToken
-   * @return {Promise<{Registration}>}
+   * @return {Promise<Client>}
    * @private
    */
-  _doRegistration(authToken, messageToken) {
-    let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/register');
+  _registerClient(messageToken=undefined) {
 
+    // Current client.
+    let clientId = _.get(this._config, 'client.id');
+
+    // Assigned on load for Web clients.
     let platform = _.get(this._config, 'app.platform');
-    let clientId = _.get(this._config, 'registration.clientId');
     if (!clientId && platform === Const.PLATFORM.WEB) {
       console.assert(clientId);
     }
 
-    let headers = AuthManager.getHeaders(authToken);
+    let requestUrl = NetUtil.getUrl('/client/register', this._config.server);
+
+    let headers = AuthManager.getHeaders(this._authManager.idToken);
     if (clientId) {
       _.assign(headers, ConnectionManager.getHeaders(clientId));
     }
 
-    let request = {
-      platform,
-      messageToken
-    };
+    let request = { platform, messageToken };
 
     // TODO(burdon): Configure Retry (perpetual with backoff for CRX?)
-    logger.log(`Registering client: ${clientId || platform} (${url})`);
-    return ConnectionManager.postJson(url, request, headers).then(registration => {
-      logger.info('Registered client: ' + JSON.stringify(registration));
-      _.set(this._config, 'registration', registration);
-      return registration;
+    logger.log(`Registering client [${clientId}]: (${JSON.stringify(request)})`);
+    return NetUtil.postJson(requestUrl, request, headers).then(result => {
+      logger.info('Registered: ' + JSON.stringify(result));
+      let { client } = result;
+      _.assign(this._config, { client });
+      return client;
     });
   }
 
@@ -141,42 +124,17 @@ export class ConnectionManager {
       return Promise.resolve();
     }
 
-    return this._authManager.getToken().then(authToken => {
-      let url = HttpUtil.joinUrl(this._config.server || HttpUtil.getServerUrl(), '/client/unregister');
+    // Current client.
+    let clientId = _.get(this._config, 'registration.clientId');
 
-      let headers = _.merge(
-        AuthManager.getHeaders(authToken), ConnectionManager.getHeaders(this.registration.clientId));
+    let requestUrl = NetUtil.getUrl('/client/unregister', this._config.server);
 
-      return ConnectionManager.postJson(url, {}, headers, async);
-    });
-  }
+    let headers = _.assign({},
+      AuthManager.getHeaders(this._authManager.idToken),
+      ConnectionManager.getHeaders(clientId));
 
-  /**
-   * AJAX Post.
-   *
-   * @param url
-   * @param data
-   * @param headers
-   * @param async
-   * @return {Promise}
-   */
-  // TODO(burdon): Factor out (without dependency on $).
-  static postJson(url, data, headers={}, async=true) {
-    console.assert(url && data && headers);
-    return new Promise((resolve, reject) => {
-      $.ajax({
-        type: 'POST',
-        url,
-        async,
-        headers,
-
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        data: JSON.stringify(data),
-
-        success: response => { resolve(response) },
-        error: (xhr, textStatus, error) => { reject(error) }
-      });
+    return NetUtil.postJson(requestUrl, {}, headers, async).then(() => {
+      logger.log('Unregistered: ' + clientId);
     });
   }
 }

@@ -46,18 +46,33 @@ h1, h2, h3 {
   color: #444;
 }
 
+pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 table {
   width: 100%;
+  border-collapse: collapse;
 }
-table th {
+table thead {
+  background-color: #DDD;
+}
+table thead th {
   font-weight: 100;
   text-align: left;
-}
-table td {
+  text-transform: uppercase;
+  font-size: 12px;
   padding-right: 1em;
 }
-table td:last-child {
+table tbody td {
+  padding-right: 1em;
+}
+table tbody td:last-child {
   padding-right: 0;
+}
+table tbody tr:nth-child(odd) {
+  background-color: white;
 }
 
 input, button {
@@ -81,6 +96,10 @@ i.site-action:hover {
   color: #999;
 }
 
+//
+// Site
+//
+
 .site-header {
   display: flex;
   margin-bottom: 16px;
@@ -97,6 +116,39 @@ i.site-action:hover {
   font-size: 30px;
   color: #185588;
 }
+
+//
+// https://developers.google.com/identity/sign-in/web/build-button
+// https://developers.google.com/identity/branding-guidelines
+//
+
+.site-login {
+  width: 191px;
+  height: 46px;
+  content: url("/img/btn_google_signin_light_normal_web.png");
+}
+.site-login:hover {
+  content: url("/img/btn_google_signin_light_focus_web.png");
+}
+.site-login:active {
+  content: url("/img/btn_google_signin_light_pressed_web.png");
+}
+
+.site-install-crx {
+  width: 191px;
+  height: 46px;
+  content: url("/img/btn_chrome_extension_normal.png");
+}
+.site-install-crx:hover {
+  content: url("/img/btn_chrome_extension_focus.png");
+}
+.site-install-crx:active {
+  content: url("/img/btn_chrome_extension_pressed.png");
+}
+
+//
+// Layout.
+//
 
 .site-container {
   display: flex;
@@ -124,17 +176,56 @@ i.site-action:hover {
   flex-direction: column;
   background-color: whitesmoke;
   box-shadow: 4px 4px 16px darkslategray;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
-.site-admin-window {
-  min-width: 1000px;
+
+.site-profile-window {
+  width: 800px;
+}
+
+.site-services-window {
+  width: 688px; // 2x12 + 4x(150+16)
+
+  .site-service-container {
+    display: flex;
+    flex-flow: row;
+
+    .site-service {
+      background-color: white;
+      box-shadow: 4px 4px 16px #DDD;
+
+      border-radius: 4px;
+      width: 150px;
+      height: 150px;
+      margin: 8px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      > div:first-child {
+        padding: 8px;
+        font-size: 20px;
+        color: #333;
+      }
+      > div:last-child {
+        display: flex;
+        flex-grow: 1;
+        align-items: center;
+      }
+    }
+    .site-service:hover {
+      box-shadow: 4px 4px 16px #BBB;
+    }
+  }
 }
 
 .site-section {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  padding: 8px;
+  padding: 12px;
 }
 .site-section-expand {
   flex-grow: 1;
@@ -169,19 +260,34 @@ i.site-action:hover {
   flex-grow: 1;
 }
 
-.site-buttonbar {
+.site-buttons {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: baseline;
 
-  .site-install-crx {
-    font-size: small;
+  div {
+    font-size: 0;
+  }
+
+  a {
+    font-size: 16px;
+    margin-right: 12px;
+    cursor: pointer;
+  }
+
+  a.site-img {
+    font-size: 0;
+  }
+
+  button {
+    font-size: 16px;
   }
 }
 
 .site-json {
   margin: 0;
-  color: darkcyan;
-  white-space: pre-wrap;
+  color: #333;
+  background-color: #DDD;
+  padding: 16px;
 }
