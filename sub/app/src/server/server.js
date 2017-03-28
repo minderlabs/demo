@@ -19,11 +19,11 @@ import {
   ExpressUtil,
   HttpError,
   Logger,
-  TypeUtil
 } from 'minder-core';
 
 // TODO(burdon): minder-data.
 import {
+  AuthUtil,
   Database,
   IdGenerator,
   Matcher,
@@ -379,18 +379,15 @@ if (env !== 'production' || true) {
     let idToken = userManager.getIdToken(req.user);
     console.assert(idToken, 'Invalid token.');
 
+    let headers = {
+      [Const.HEADER.CLIENT_ID]: req.query.clientId
+    };
+
+    AuthUtil.setAuthHeader(headers, idToken);
+
     res.render('graphiql', {
       config: {
-        headers: [
-          {
-            name: 'Authorization',
-            value: UserManager.createIdHeader(idToken)
-          },
-          {
-            name: Const.HEADER.CLIENT_ID,
-            value: req.query.clientId
-          }
-        ]
+        headers
       }
     });
   });

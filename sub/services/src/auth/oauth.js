@@ -6,7 +6,7 @@ import _ from 'lodash';
 import express from 'express';
 import passport from 'passport';
 
-import { Logger, HttpError, HttpUtil, SystemStore } from 'minder-core';
+import { AuthUtil, Logger, HttpError, HttpUtil, SystemStore } from 'minder-core';
 
 const logger = Logger.get('oauth');
 
@@ -236,13 +236,6 @@ export class OAuthProvider {
   // TODO(burdon): Not used.
   static PATH = '/oauth';
 
-  // Default OpenID Login scopes.
-  static DEFAULT_LOGIN_SCOPES = [
-    'openid',
-    'profile',
-    'email'
-  ];
-
   /**
    * Encode the OAuth state param.
    *
@@ -299,7 +292,7 @@ export class OAuthProvider {
    * Login scopes.
    */
   get scopes() {
-    return OAuthProvider.DEFAULT_LOGIN_SCOPES;
+    return AuthUtil.OPENID_LOGIN_SCOPES;
   }
 
   /**

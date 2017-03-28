@@ -4,6 +4,8 @@
 
 import _ from 'lodash';
 
+import { AuthUtil } from 'minder-core';
+
 import { Const } from '../../common/defs';
 
 import { AuthManager } from './auth';
@@ -18,13 +20,15 @@ export class ConnectionManager {
 
   /**
    * Client ID header.
+   * @param headers
    * @param {string} clientId
+   * @returns headers
    */
-  static getHeaders(clientId) {
-    console.assert(_.isString(clientId), 'Invalid client ID: ' + clientId);
-    return {
+  static setClientHeader(headers, clientId) {
+    console.assert(_.isString(clientId), 'Invalid client ID.');
+    return _.assign(headers, {
       [Const.HEADER.CLIENT_ID]: clientId
-    };
+    });
   }
 
   /**
@@ -85,20 +89,19 @@ export class ConnectionManager {
    */
   _registerClient(messageToken=undefined) {
 
-    // Current client.
-    let clientId = _.get(this._config, 'client.id');
-
     // Assigned on load for Web clients.
     let platform = _.get(this._config, 'app.platform');
-    if (!clientId && platform === Const.PLATFORM.WEB) {
-      console.assert(clientId);
-    }
 
     let requestUrl = NetUtil.getUrl('/client/register', this._config.server);
 
-    let headers = AuthManager.getHeaders(this._authManager.idToken);
+    let headers = AuthUtil.setAuthHeader({}, this._authManager.idToken);
+
+    let clientId = _.get(this._config, 'client.id');
     if (clientId) {
-      _.assign(headers, ConnectionManager.getHeaders(clientId));
+      ConnectionManager.setClientHeader(headers, clientId);
+    } else {
+      // Web client should have ID.
+      console.assert(platform !== Const.PLATFORM.WEB);
     }
 
     let request = { platform, messageToken };
@@ -124,14 +127,11 @@ export class ConnectionManager {
       return Promise.resolve();
     }
 
-    // Current client.
-    let clientId = _.get(this._config, 'registration.clientId');
-
     let requestUrl = NetUtil.getUrl('/client/unregister', this._config.server);
 
-    let headers = _.assign({},
-      AuthManager.getHeaders(this._authManager.idToken),
-      ConnectionManager.getHeaders(clientId));
+    let headers = {};
+    AuthUtil.setAuthHeader(headers, this._authManager.idToken);
+    ConnectionManager.setClientHeader(headers, _.get(this._config, 'client.id'));
 
     return NetUtil.postJson(requestUrl, {}, headers, async).then(() => {
       logger.log('Unregistered: ' + clientId);

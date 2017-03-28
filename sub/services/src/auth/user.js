@@ -5,7 +5,7 @@
 import _ from 'lodash';
 import express from 'express';
 
-import { Logger, HttpError, SystemStore } from 'minder-core';
+import { AuthUtil, Logger, HttpError, SystemStore } from 'minder-core';
 
 import { isAuthenticated } from './oauth';
 
@@ -15,35 +15,6 @@ const logger = Logger.get('user');
  * Manage authentication.
  */
 export class UserManager {
-
-  /**
-   * Gets the (JWT) id_token from the request headers.
-   *
-   * @param headers HTTP request headers.
-   * @returns {string} Unverified token or undefined.
-   */
-  static getIdTokenFromHeaders(headers) {
-    console.assert(headers);
-
-    // NOTE: Express headers are lowercase.
-    const authHeader = headers['authorization'];
-    if (authHeader) {
-      console.assert(authHeader);
-      let match = authHeader.match(/^Bearer (.+)$/);
-      console.assert(match, 'Invalid authorization header: ' + authHeader);
-      return match[1];
-    }
-  }
-
-  /**
-   * Creates a valid authorization header.
-   * @param idToken
-   * @return {string}
-   */
-  static createIdHeader(idToken) {
-    console.assert(idToken, 'Invalid token.');
-    return 'Bearer ' + idToken;
-  }
 
   /**
    * @param loginAuthProvider OAuth provider.
@@ -97,7 +68,7 @@ export class UserManager {
     console.assert(headers);
 
     // Token set in apollo client's network interface middleware.
-    let idToken = UserManager.getIdTokenFromHeaders(headers);
+    let idToken = AuthUtil.getIdTokenFromHeaders(headers);
     if (!idToken) {
       if (required) {
         throw new HttpError('Missing authorization header.', 401);
@@ -165,7 +136,7 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
 
     // Get ID token (JWT) from header.
     // TODO(burdon): Create middleware version of isAuthenticated for headers.
-    let idToken = UserManager.getIdTokenFromHeaders(req.headers);
+    let idToken = AuthUtil.getIdTokenFromHeaders(req.headers);
     if (!idToken) {
       throw new HttpError('Missing auth token.', 401);
     }
