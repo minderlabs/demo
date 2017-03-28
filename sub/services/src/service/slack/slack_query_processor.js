@@ -78,14 +78,40 @@ export class SlackQueryProcessor extends QueryProcessor {
   }
 
   /**
+   * Get a (possibly synthetic) Minder Contact item for each slack user.
+   * If a corresponding Minder User object can be found (matching on email), include it as contact.user.
    *
    * @param slackUserIds array of slack user Ids.
-   * @return {Promise} of array of Person card items.
+   * @return {Promise} of array of Contact items.
    */
-  convertToPersonCards(slackUserIds, bot, slackApiToken) {
+  convertToContactItems(bot, slackApiToken, slackUserIds) {
     // TODO(madadam): Batch API calls? I don't see any support for batch in Slack API docs.
     let promises = _.map(slackUserIds, slackUserId => {
-      return this._botManager.slackbot.getUserInfo(slackUserId, bot, slackApiToken);
+      return this._botManager.slackbot.getSlackUserInfo(bot, slackApiToken, slackUserId)
+        .then(userInfo => {
+          let email = _.get(userInfo, 'profile.email');
+          console.assert(email);
+          let fullName = _.get(userInfo, 'profile.real_name',
+            _.compact(_.at(userInfo, ['profile.first_name', 'profile.last_name'])).join(' '));
+          // Synthesize ephemeral Contact item with foreign key.
+          let contact = {
+            type: 'Contact',
+            namespace: SlackQueryProcessor.NAMESPACE,
+            // TODO(madadam): generate random ID and stick this in fkey? See discussion in PR#81.
+            id: userInfo.id, // Foreign key = slack user id.
+            title: fullName, // TODO(madadam): displayName?
+            email
+          };
+
+          return this._botManager.slackbot.getUserByEmail(email)
+            .then(user => {
+              if (user) {
+                // Sanitize out internal stuff.
+                contact.user = _.omit(user, ['credentials']);
+              }
+              return contact;
+            });
+        });
     });
     return Promise.all(promises);
   }
@@ -95,7 +121,7 @@ export class SlackQueryProcessor extends QueryProcessor {
    * @param slackChannelId
    * @return {Array}
    */
-  getUsersForChannel(slackChannelId, bot, slackApiToken) {
+  getUsersForChannel(bot, slackApiToken, slackChannelId) {
     return new Promise((resolve, reject) => {
       bot.api.channels.info(
         { token: slackApiToken, channel: slackChannelId },
@@ -122,10 +148,9 @@ export class SlackQueryProcessor extends QueryProcessor {
       let slackApiToken = _.get(bot, 'config.incoming_webhook.token'); // same as bot.config.bot.app_token?
 
       // TODO(madadam): Get channel history to filter active/recent users; use slack bot's channel cache.
-      return this.getUsersForChannel(slackChannel, bot, slackApiToken).then(slackUserIds => {
-        return this.convertToPersonCards(slackUserIds, bot, slackApiToken)
+      return this.getUsersForChannel(bot, slackApiToken, slackChannel).then(slackUserIds => {
+        return this.convertToContactItems(bot, slackApiToken, slackUserIds)
           .then(results => {
-            console.log('*** CONTEXT QUERY RESULTS ' + JSON.stringify(results)); // FIXME
             return results;
           })
       });

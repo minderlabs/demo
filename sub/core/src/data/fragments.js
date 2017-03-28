@@ -52,6 +52,9 @@ export const Fragments = {
         title
         status
       }
+      user {
+        ...UserFragment
+      }
     }
   `,
 
