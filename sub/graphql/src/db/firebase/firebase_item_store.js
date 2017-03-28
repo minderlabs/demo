@@ -111,7 +111,7 @@ export class FirebaseItemStore extends BaseItemStore {
   getItems(context, type, itemIds) {
 
     // Gather results for each bucket.
-    // TODO(burdon): Maintain ID=>bucket index for ACL.
+    // TODO(burdon): Either the ID needs to contain the bucket (pref), or a separate ID => bucket index is maintained.
     let bucketKeys = this.getBucketKeys(context, type);
     return Promise.all(_.map(bucketKeys, key => this._getValue(key))).then(buckets => {
       let items = [];
@@ -122,8 +122,8 @@ export class FirebaseItemStore extends BaseItemStore {
           // IDs that contain slashes are hierarchical, so convert to dot paths.
           let idPath = itemId.replace('/', '.');
           let item = _.get(itemMap, idPath);
+          // TODO(burdon): Currently this method queries each bucket for each ID (so might not be here).
           if (item) {
-            // TODO(burdon): Push null so corresponds to itemIds?
             items.push(item);
           }
         });

@@ -198,10 +198,10 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
   //
   router.get('/profile', isAuthenticated('/home'), function(req, res, next) {
     let user = req.user;
-    return systemStore.getGroup(user.id).then(group => {
+    return systemStore.getGroups(user.id).then(groups => {
       res.render('profile', {
         user,
-        groups:     [ group ],
+        groups:     groups,
         idToken:    userManager.getIdToken(user),
         providers:  oauthRegistry.providers,
         crxUrl:     options.crxUrl

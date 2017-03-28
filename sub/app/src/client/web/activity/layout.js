@@ -88,6 +88,17 @@ export class Layout extends React.Component {
         content = children;
       }
 
+      let links = _.compact(_.map(viewer.groups, group => {
+        // Don't show private group.
+        if (group.bucket !== viewer.user.id) {
+          return (
+            <li key={ group.id }>
+              <Link to={ Path.canvas(ID.toGlobalId('Group', group.id)) }>{ group.title }</Link>
+            </li>
+          );
+        }
+      }));
+
       return (
         <div className="ux-fullscreen">
           <div className={ DomUtil.className('ux-main-layout', 'ux-column', 'app-layout-' + platform, className) }>
@@ -101,9 +112,7 @@ export class Layout extends React.Component {
               </div>
               <div>
                 <ul className="ux-inline">
-                  <li>
-                    <Link to={ Path.canvas(ID.toGlobalId('Group', viewer.group.id)) }>{ viewer.group.title }</Link>
-                  </li>
+                  { links }
 
                   <li>
                     <a target="MINDER_PROFILE" href="/user/profile">{ viewer.user.title }</a>

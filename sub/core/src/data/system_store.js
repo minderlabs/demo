@@ -43,6 +43,8 @@ export class SystemStore extends DelegateItemStore {
 
   constructor(itemStore) {
     super(itemStore);
+
+    // TODO(burdon): The system store shouldn't use buckets.
     this._context = {
       groupId: 'system'
     };
@@ -92,11 +94,9 @@ export class SystemStore extends DelegateItemStore {
    * @param userId
    * @returns {Promise} Matching group (or null).
    */
-  // TODO(burdon): getGroups.
-  getGroup(userId) {
-    // TODO(burdon): Return multiple groups.
+  getGroups(userId) {
     return this.queryItems(this._context, {}, { type: 'Group' }).then(groups => {
-      return _.find(groups, group => _.indexOf(group.members, userId) != -1);
+      return _.filter(groups, group => _.indexOf(group.members, userId) != -1);
     });
   }
 

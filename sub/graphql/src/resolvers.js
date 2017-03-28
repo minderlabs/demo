@@ -230,10 +230,9 @@ export class Resolvers {
           return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', userId);
         },
 
-        // TODO(burdon): Replace with "groups" and lookup without context.
-        group: (root, args, context) => {
-          let { groupId } = context;
-          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', groupId);
+        groups: (root, args, context) => {
+          let { groupIds } = context;
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItems(context, 'Group', groupIds);
         },
 
         folders: (root, args, context) => {

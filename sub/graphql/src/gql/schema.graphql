@@ -463,8 +463,8 @@ type Viewer {
   # Authenticated user.
   user: User!
 
-  # TODO(burdon): Multiple groups?
-  group: Group!
+  # All Groups User belongs to.
+  groups: [Group]
 
   # Folders.
   folders: [Folder]!

@@ -134,7 +134,7 @@ export class Loader {
   initProjects(group) {
     logger.log('Group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
 
-    let context = { groupId: group.id };
+    let context = { groupIds: [group.id] };
     let itemStore = this._database.getItemStore(Database.NAMESPACE.USER);
     return itemStore.queryItems(context, {}, { type: 'Project' }).then(projects => {
 
