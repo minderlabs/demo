@@ -6,7 +6,6 @@ import ReactGA from 'react-ga';
 
 import { AnalyticsConfig } from '../../common/defs';
 
-
 const INJECTOR_KEY = 'INJECTOR_KEY_ANALYTICS';
 
 /**
@@ -20,10 +19,12 @@ export class Analytics {
 
   /**
    * Injector key to inject Analytics subclasses. For example:
-   *   Injector.provider(new GoogleAnalytics(), Analytics.INJECTOR_KEY);
-   *   ...
-   *   let analytics = injector.get(Analytics.INJECTOR_KEY);
+   *
+   * Injector.provider(new GoogleAnalytics(), Analytics.INJECTOR_KEY);
+   * ...
+   * let analytics = injector.get(Analytics.INJECTOR_KEY);
    */
+  // TODO(burdon): Why is this needed?
   static get INJECTOR_KEY() {
     return INJECTOR_KEY;
   }
@@ -49,8 +50,13 @@ export class Analytics {
    * @param attributes dict of user attributes, e.g. email.
    */
   identify(userId, attributes) {
+    throw new Error('Not implemented.');
   }
 
+  /**
+   *
+   * @param location
+   */
   pageview(location) {
     throw new Error('Not implemented.');
   }
@@ -62,7 +68,6 @@ export class Analytics {
    * Mixpanel:          event(name, params)
    * Intercom:          event(name, params) // https://developers.intercom.com/reference#events
    * GoogleAnalytics:   event(category, action, label, numeric_value)
-   *
    */
   track(name, params) {
     throw new Error('Not implemented.');
@@ -91,7 +96,7 @@ export class SegmentAnalytics extends Analytics {
 
     this.analytics = function() {
       // https://segment.com/docs/sources/website/analytics.js/quickstart/
-      var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src="https://cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="4.0.0";
+      let analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src="https://cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="4.0.0";
       analytics.load(AnalyticsConfig.segmentWriteKey);
       analytics.page();}
       return analytics;

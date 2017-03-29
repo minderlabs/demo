@@ -9,10 +9,12 @@ import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-rou
 import ReduxThunk from 'redux-thunk'
 import reduceReducers from 'reduce-reducers';
 import ApolloClient from 'apollo-client';
-
 import moment from 'moment';
 
-import { ErrorUtil, EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry } from 'minder-core';
+import {
+  ErrorUtil, EventHandler, ID, IdGenerator, Injector, Matcher, QueryParser, QueryRegistry, TypeUtil
+} from 'minder-core';
+
 import { Analytics, SegmentAnalytics } from './analytics';
 
 import { ContextManager } from './context';
@@ -54,6 +56,7 @@ export class BaseApp {
       type: 'error',
       message: message
     });
+
     this._analytics && this._analytics.track('error', { message });
   }
 
@@ -74,7 +77,7 @@ export class BaseApp {
       .then(() => this.initRouter())
       .then(() => this.postInit())
       .then(() => {
-        logger.info($$('Config = %o', this._config));
+        logger.info('Config = ' + TypeUtil.stringify(this._config, 2));
         return this;
       });
   }

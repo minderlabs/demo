@@ -125,6 +125,7 @@ export const Const = {
   APP_VERSION: "0.1.13",
 
   // NOTE: Express lowercases headers.
+  // TODO(burdon): Move to minder-core.
   HEADER: {
 
     // Client ID set by server (Web) or on registration (CRX, mobile).

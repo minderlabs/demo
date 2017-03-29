@@ -12,6 +12,7 @@ import './web/css/mixin.less';
 export * from './web/board';
 export * from './web/dnd';
 export * from './web/list';
+export * from './web/net';
 export * from './web/picker';
 export * from './web/react';
 export * from './web/redux';

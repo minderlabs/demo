@@ -7,7 +7,7 @@ import google from 'googleapis';
 
 import { OAuth2Strategy as GoogleStrategy } from 'passport-google-oauth';
 
-import { Logger, HttpError, SystemStore } from 'minder-core';
+import { AuthDefs, HttpError, Logger } from 'minder-core';
 
 import { OAuthProvider } from '../../auth/oauth';
 
@@ -47,19 +47,6 @@ export class GoogleOAuthProvider extends OAuthProvider {
   // TODO(burdon): See "prompt" argument.
   // https://developers.google.com/identity/protocols/OAuth2WebServer#redirecting
 
-  // https://myaccount.google.com/permissions
-  // https://developers.google.com/identity/protocols/googlescopes
-  static LOGIN_SCOPES = [
-    // https://developers.google.com/+/web/api/rest/latest/people/get#response
-    'https://www.googleapis.com/auth/plus.me',
-
-    // https://developers.google.com/+/web/api/rest/oauth (includes "profile")
-    'https://www.googleapis.com/auth/plus.login',
-
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile'
-  ];
-
   constructor(config, callbackUrl) {
     super('google', callbackUrl);
 
@@ -96,7 +83,7 @@ export class GoogleOAuthProvider extends OAuthProvider {
   //
 
   get scopes() {
-    return GoogleOAuthProvider.LOGIN_SCOPES;
+    return AuthDefs.GOOGLE_LOGIN_SCOPES;
   }
 
   /**

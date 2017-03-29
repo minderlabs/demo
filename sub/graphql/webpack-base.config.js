@@ -53,7 +53,8 @@ module.exports = {
         exclude: [/node_modules/],  // Don't transpile deps.
         include: [
           path.resolve(__dirname, 'src'),
-          path.resolve(__dirname, '../core/src')
+          path.resolve(__dirname, '../core/src'),
+          path.resolve(__dirname, '../services/src')
         ],
         loader: 'babel-loader'
       },
@@ -62,7 +63,7 @@ module.exports = {
 
   // https://www.npmjs.com/package/webpack-link
   // Comma separated list (or --link=minder-core)
-  link: 'minder-core',
+  link: 'minder-core, minder-services',
 
   plugins: [
 
@@ -74,6 +75,9 @@ module.exports = {
     new webpackLinkPlugin({
       'minder-core': [
         path.resolve(__dirname, '../core')
+      ],
+      'minder-services': [
+        path.resolve(__dirname, '../services')
       ]
     }),
 

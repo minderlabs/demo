@@ -2,6 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -13,15 +14,14 @@ import 'graphiql/graphiql.css';
 
 console.log('Config = %s', JSON.stringify(window.config) );
 
-let headers = {
-  'Accept': 'application/json',
-  'Content-Type': 'application/json'
-};
+//
+// Set request headers (incl. Auth and client ID).
+//
 
-// Add auth header.
-window.config.headers.forEach(header => {
-  headers[header.name] = header.value;
-});
+let headers = _.assign({
+  'Accept':       'application/json',
+  'Content-Type': 'application/json'
+}, window.config.headers);
 
 //
 // Custom fetcher.

@@ -5,8 +5,8 @@
 import React from 'react';
 import { Link } from 'react-router';
 
-import { DomUtil, ID} from 'minder-core';
-import { ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
+import { DomUtil, ID, TypeUtil } from 'minder-core';
+import { NetUtil, ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
 import { Path } from '../../common/path';
@@ -45,16 +45,32 @@ export class Layout extends React.Component {
       .listen('network.out',  event => { this.refs.status && this.refs.status.networkOut(); });
   }
 
+  // TODO(burdon): Dispatch to ActionHandler (Toolbar introspects to show buttons).
   handleToolbarAction(action) {
     let { config } = this.context;
 
     switch (action) {
+
+      // Debug info.
       case 'bug': {
-        console.warn(JSON.stringify(config, null, 2));
+        console.warn('DEBUG\n' + JSON.stringify(config, null, 2));
         break;
       }
 
-      case 'refresh': {
+      // Refresh JWT.
+      case 'refresh_id_token': {
+        // TODO(burdon): Dispatch to ActionHandler (callback to set config (and timer)). Redux?
+        // https://medium.com/javascript-and-opinions/redux-side-effects-and-you-66f2e0842fc3
+        // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
+        NetUtil.getJson('/user/refresh_id_token', {}, {}, true).then(result => {
+          _.assign(config, { credentials: _.get(result, 'credentials') });
+          console.log('Updated credentials: ' + TypeUtil.stringify(config.credentials, 2));
+        });
+        break;
+      }
+
+      // Refresh queries.
+      case 'invalidate_queries': {
         this.context.queryRegistry.invalidate();
         break;
       }

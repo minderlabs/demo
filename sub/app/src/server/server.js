@@ -13,17 +13,18 @@ import handlebars from 'express-handlebars';
 import favicon from 'serve-favicon';
 import http from 'http';
 import path from 'path';
+import uuid from 'node-uuid';
 
 import {
   ErrorUtil,
   ExpressUtil,
   HttpError,
   Logger,
-  TypeUtil
 } from 'minder-core';
 
 // TODO(burdon): minder-data.
 import {
+  AuthUtil,
   Database,
   IdGenerator,
   Matcher,
@@ -33,6 +34,7 @@ import {
 } from 'minder-core';
 
 import {
+  getIdToken,
   isAuthenticated,
   oauthRouter,
   userRouter,
@@ -84,6 +86,8 @@ ErrorUtil.handleErrors(process, error => {
 //
 // Env.
 //
+
+// TODO(burdon): Const for all ENV vars.
 
 // TODO(burdon): Move to Config.
 const Config = {
@@ -268,13 +272,21 @@ app.use(express.static(path.join(__dirname, MINDER_PUBLIC_DIR)));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.use(cookieParser());  // TODO(burdon): Remove (moved to passport).
+app.use(cookieParser());
 
+
+//
+// Sessions required for Passport.
 // https://github.com/expressjs/session
+//
+
+const MINDER_SESSION_SECRET = _.get(process.env, 'MINDER_SESSION_SECRET', 'minder-testing-secret');
+
 app.use(session({
-  secret: 'minder-secret',                      // TODO(burdon): Move to Const.
-  resave: false,                                // Don't write to the store if not modified.
-  saveUninitialized: false                      // Don't save new sessions that haven't been initialized.
+  secret: MINDER_SESSION_SECRET,
+  resave: false,                    // Don't write to the store if not modified.
+  saveUninitialized: false,         // Don't save new sessions that haven't been initialized.
+  genid: req => uuid.v4()
 }));
 
 
@@ -299,7 +311,7 @@ if (botkitManager) {
 
 
 //
-// Home page.
+// User pages.
 //
 
 app.get('/home', function(req, res) {
@@ -314,10 +326,7 @@ app.get('/welcome', isAuthenticated('/home'), function(req, res) {
 });
 
 app.get('/services', isAuthenticated('/home'), function(req, res) {
-
-  // TODO(burdon): Compute state based on existance of scopes.
-//console.log(req.user);
-
+  // TODO(burdon): Service state (e.g., errors, 401) from ServiceStore.
   res.render('services', {
     providers: serviceRegistry.providers
   });
@@ -336,7 +345,9 @@ app.use(graphqlRouter(database, {
   graphiql: false,
 
   // Asynchronously provides the request context.
-  contextProvider: req => userManager.getUserFromHeader(req.headers, true).then(user => {
+  contextProvider: (req) => {
+    let user = req.user;
+    console.assert(user);
 
     // The database context (different from the Apollo context).
     // NOTE: The client must pass the same context shape to the matcher.
@@ -355,7 +366,7 @@ app.use(graphqlRouter(database, {
         })
       });
     }
-  })
+  }
 }));
 
 
@@ -387,21 +398,14 @@ if (env !== 'production' || true) {
   app.get('/node_modules', express.static(path.join(__dirname, MINDER_NODE_MODULES_DIR)));
 
   app.get('/graphiql', isAuthenticated(), function(req, res) {
-    let idToken = userManager.getIdToken(req.user);
-    console.assert(idToken, 'Invalid token.');
+
+    let headers = {};
+    AuthUtil.setAuthHeader(headers, getIdToken(req.user));
+    headers[Const.HEADER.CLIENT_ID] = req.query.clientId;
 
     res.render('graphiql', {
       config: {
-        headers: [
-          {
-            name: 'Authorization',
-            value: UserManager.createIdHeader(idToken)
-          },
-          {
-            name: Const.HEADER.CLIENT_ID,
-            value: req.query.clientId
-          }
-        ]
+        headers
       }
     });
   });
