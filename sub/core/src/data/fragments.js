@@ -74,6 +74,7 @@ export const Fragments = {
   // Item Types.
   //
 
+  // TODO(burdon): Don't reference other fragments?
   ContactFragment: gql`
     fragment ContactFragment on Contact {
       email

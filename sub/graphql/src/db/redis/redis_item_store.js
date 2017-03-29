@@ -27,9 +27,7 @@ export class RedisItemStore extends BaseItemStore {
   // https://github.com/NodeRedis/node_redis#rediscreateclient
   static client(options) {
     let { db } = options;
-    return redis.createClient({
-      db
-    });
+    return redis.createClient({ db });
   }
 
   constructor(idGenerator, matcher, client, namespace) {
@@ -45,23 +43,27 @@ export class RedisItemStore extends BaseItemStore {
     this._client.flushdb();
   }
 
+  getBucketKeys(context) {
+    let { userId, groupIds } = context;
+
+    let keys = [this._key.toKey({ bucket: userId })];
+
+    _.each(groupIds, groupId => {
+      keys.push(this._key.toKey({ bucket: groupId }));
+    });
+
+    return keys;
+  }
+
   //
   // QueryProcessor interface.
   //
 
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
-    let { groupId, userId } = context;
+    let { userId, groupIds } = context;
 
     // Gather results for each bucket.
-    let promises = [];
-
-    if (groupId) {
-      promises.push(this._client.keysAsync(this._key.toKey({ bucket: groupId })));
-    }
-
-    if (userId) {
-      promises.push(this._client.keysAsync(this._key.toKey({ bucket: userId })));
-    }
+    let promises = _.map(this.getBucketKeys(context), key => this._client.keysAsync(key));
 
     // Get all keys.
     // TODO(burdon): Eventually get keys from Elasticsearch.
@@ -85,12 +87,15 @@ export class RedisItemStore extends BaseItemStore {
   //
 
   getItems(context, type, itemIds=[]) {
-    let { groupId:bucket } = context;
+    let { userId, groupIds } = context;
 
-    let keys = _.map(itemIds, itemId => this._key.toKey({ bucket, type, itemId }));
-    return this._client.mgetAsync(keys).then(values => _.map(values, value => {
-      return JSON.parse(value);
-    }));
+    // TODO(burdon): Either the ID needs to contain the bucket (pref), or a separate ID => bucket index is maintained.
+    // let keys = _.map(itemIds, itemId => this._key.toKey({ bucket, type, itemId }));
+    // return this._client.mgetAsync(keys).then(values => _.map(values, value => {
+    //   return JSON.parse(value);
+    // }));
+
+    throw new Error('Not implemented');
   }
 
   upsertItems(context, items) {

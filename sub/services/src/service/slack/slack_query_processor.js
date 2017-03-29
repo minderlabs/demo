@@ -22,7 +22,7 @@ class QueryUtil {
     _.each(_.get(filter, 'context', []), keyValue => {
       if (keyValue.key === key) {
         let types = _.keys(keyValue.value);
-        if (types.length != 1) {
+        if (types.length !== 1) {
           throw new Error('ValueInput must have exactly one value: ' + JSON.stringify(types));
         }
         value = keyValue.value[types[0]];

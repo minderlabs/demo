@@ -77,7 +77,7 @@ class CloudMessenger {
     this._eventHandler.emit({ type: 'network.in' });
 
     // Ignore invalidations from self.
-    if (_.get(this._config, 'registration.clientId') != data.senderId || data.force) {
+    if (_.get(this._config, 'registration.clientId') !== data.senderId || data.force) {
       // TODO(burdon): Use collapse key to determine if first message can be skipped.
       this._messages.push(data);
       this._timeout(() => {

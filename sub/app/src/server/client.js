@@ -239,7 +239,7 @@ export class ClientManager {
       }
     });
 
-    if (_.size(messageTokenMap) == 0) {
+    if (_.size(messageTokenMap) === 0) {
       return Promise.resolve();
     }
 
@@ -324,7 +324,7 @@ export class ClientManager {
       // https://firebase.google.com/docs/cloud-messaging/server
       logger.log('Sending message: ' + messageToken, JSON.stringify(data));
       request.post(options, (error, response, body) => {
-        if (error || response.statusCode != 200) {
+        if (error || response.statusCode !== 200) {
           throw new Error(`Messaging Error [${response.statusCode}]: ${error || response.statusMessage}`);
         } else {
           resolve();

@@ -92,7 +92,7 @@ const ViewerQuery = gql`
         title
       }
 
-      group {
+      groups {
         type
         id
         title

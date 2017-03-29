@@ -26,47 +26,47 @@ export class TestGenerator {
     // TODO(burdon): Return mutations (to multiple items)? Are IDs resolved?
     // TODO(burdon): Create mutations with references (like client side mutator transaction).
 
-    'Project': {
+    'Project': [
 
-      bucket: (item, context) => context.groupId,
+      Randomizer.property('bucket', (item, context, randomizer) => randomizer.chance.pickone(context.groupIds)),
 
-      group: (item, context) => context.groupId,
+      Randomizer.property('group', (item, context) => item.bucket),
 
-      title: (item, context, randomizer) =>
-        randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) }),
-    },
+      Randomizer.property('title', (item, context, randomizer) =>
+        randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) })),
+    ],
 
-    'Task': {
+    'Task': [
 
-      bucket: (item, context) => context.groupId,
+      Randomizer.property('bucket', (item, context, randomizer) => randomizer.chance.pickone(context.groupIds)),
 
       // TODO(burdon): Set owner for all types in Randomizer?
-      owner: (item, context) => context.userId,
+      Randomizer.property('owner', (item, context) => context.userId),
 
-      labels: (item, context, randomizer) =>
-        randomizer.chance.bool({ likelihood: 20 }) ? ['_favorite'] : [],
+      Randomizer.property('labels', (item, context, randomizer) =>
+        randomizer.chance.bool({ likelihood: 20 }) ? ['_favorite'] : []),
 
-      title: (item, context, randomizer) =>
-        randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) }),
+      Randomizer.property('title', (item, context, randomizer) =>
+        randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) })),
 
-      description: (item, context, randomizer) =>
-        randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 10, max: 20 }) }),
+      Randomizer.property('description', (item, context, randomizer) =>
+        randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 10, max: 20 }) })),
 
-      status: (item, context, randomizer) => randomizer.chance.natural({ min: 0, max: 3 }),
+      Randomizer.property('status', (item, context, randomizer) => randomizer.chance.natural({ min: 0, max: 3 })),
 
-      assignee: (item, context, randomizer) => {
+      Randomizer.property('assignee', (item, context, randomizer) => {
         if (randomizer.chance.bool()) {
-          let { groupId } = context;
-          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', groupId)
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', item.bucket)
             .then(group => {
               console.assert(group);
               return randomizer.chance.pickone(group.members);
             });
         }
-      },
+      }),
 
-      project: (item, context, randomizer) => {
-        return database.getQueryProcessor(Database.NAMESPACE.USER).queryItems(context, {}, {
+      // TODO(burdon): Do this first and "cache" the group in the context?
+      Randomizer.property('project', (item, context, randomizer) => {
+        return database.getQueryProcessor(Database.NAMESPACE.USER).queryItems({ groupIds: [item.bucket] }, {}, {
           type: 'Project'
         }).then(projects => {
           if (_.isEmpty(projects)) {
@@ -77,27 +77,26 @@ export class TestGenerator {
           let project = randomizer.chance.pickone(projects);
           return project.id;
         });
-      },
+      }),
 
-      tasks: (item, context, randomizer) => {
-        let { groupId, userId } = context;
-        console.assert(groupId && userId);
+      Randomizer.property('tasks', (item, context, randomizer) => {
+        let { userId } = context;
         let num = randomizer.chance.natural({ min: 0, max: 5 });
         if (num) {
           // TODO(burdon): Reuse generator? (but same project).
           return database.getItemStore(Database.NAMESPACE.USER).upsertItems(context, _.times(num, i => ({
             type: 'Task',
-            bucket: context.groupId,
+            bucket: item.bucket,
             title: randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) }),
             project: item.project,
-            owner: context.userId,
+            owner: userId,
             status: randomizer.chance.bool() ? 0 : 3
           }))).then(items => {
             return _.map(items, item => item.id);
           });
         }
-      }
-    }
+      })
+    ]
   });
 
   /**
@@ -158,8 +157,7 @@ export class TestGenerator {
               }
             }).then(groups => {
               return Promise.all(_.map(groups, group => {
-                let { id:groupId } = group;
-                let context = { groupId, userId };
+                let context = { userId, groupIds: [group.id] };
 
                 //
                 // Generate data items for each user.

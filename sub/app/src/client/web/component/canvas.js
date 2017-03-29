@@ -132,7 +132,7 @@ export class Canvas extends React.Component {
    * Auto-save when item chages.
    */
   componentWillReceiveProps(nextProps) {
-    if (_.get(this.state, 'id') != _.get(nextProps, 'item.id')) {
+    if (_.get(this.state, 'id') !== _.get(nextProps, 'item.id')) {
       this.setState(_.pick(nextProps.item, ['id', 'title', 'description']));
     }
   }

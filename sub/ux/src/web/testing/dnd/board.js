@@ -49,9 +49,9 @@ class ItemModel {
   setPos(item, pos=null) {
     if (pos === null) {
       // Get sorted items for column (without current).
-      let items = _.filter(this.getItems(item.label), i => i.id != item.id);
+      let items = _.filter(this.getItems(item.label), i => i.id !== item.id);
       let size = _.size(items);
-      if (size == 0) {
+      if (size === 0) {
         // First in column.
         pos = 1;
       } else {
@@ -71,13 +71,13 @@ class ItemModel {
   }
 
   getItem(id) {
-    let idx = _.findIndex(this.items, item => item.id == id);
-    return idx == -1 ? null : this.items[idx];
+    let idx = _.findIndex(this.items, item => item.id === id);
+    return idx === -1 ? null : this.items[idx];
   }
 
   getItems(label) {
     // Get items in order.
-    return _.sortBy(_.filter(this.items, item => item.label == label), item => this.itemPos[item.id]);
+    return _.sortBy(_.filter(this.items, item => item.label === label), item => this.itemPos[item.id]);
   }
 }
 
