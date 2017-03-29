@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { print } from 'graphql/language/printer';
 import { createNetworkInterface } from 'apollo-client';
 
-import { AuthDefs, AuthUtil, UpsertItemsMutationName, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
+import { AuthUtil, UpsertItemsMutationName, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
