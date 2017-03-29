@@ -4,16 +4,18 @@
 
 'use strict';
 
+const _ = require('./node_modules/lodash/lodash');
+const defaults = require('../tools/src/grunt/defaults');
+
 /**
  * Grunt config.
  */
 module.exports = (grunt) => {
-
   require('time-grunt')(grunt);
 
-  grunt.config.init({
+  defaults.init(grunt);
 
-    pkg: grunt.file.readJSON('package.json'),
+  grunt.config.init(_.assign(defaults.config(grunt), {
 
     clean: {
       all: [
@@ -135,7 +137,7 @@ module.exports = (grunt) => {
     webpack: {
       crx: require('./webpack-crx.config.js')
     },
-  });
+  }));
 
   // https://github.com/gruntjs/grunt-contrib-clean
   grunt.loadNpmTasks('grunt-contrib-clean');

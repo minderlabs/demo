@@ -10,7 +10,8 @@ const defaults = require('../tools/src/grunt/defaults');
 /**
  * Grunt config.
  */
-module.exports = function(grunt) {
+module.exports = (grunt) => {
+  require('time-grunt')(grunt);
 
   defaults.init(grunt);
 

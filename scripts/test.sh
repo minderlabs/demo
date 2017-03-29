@@ -4,14 +4,11 @@
 # Run node tests.
 #
 
-DIRS=(
-  'sub/core'
-  'sub/graphql'
-)
+MODULES=( "core" "graphql" )
 
-for dir in $"${DIRS[@]}"; do
-  echo "\n### [$dir] ###"
-  pushd $dir
+for mod in $"${MODULES[@]}"; do
+  echo "\n### [$mod] ###"
+  pushd sub/$mod
   npm test
   popd
 done
