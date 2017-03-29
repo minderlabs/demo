@@ -5,10 +5,9 @@
 import _ from 'lodash';
 
 import { AuthUtil, HttpUtil } from 'minder-core';
+import { NetUtil } from 'minder-ux';
 
 import { Const, GoogleApiConfig } from '../../common/defs';
-
-import { NetUtil } from './net';
 
 const logger = Logger.get('auth');
 

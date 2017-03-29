@@ -5,11 +5,11 @@
 import _ from 'lodash';
 
 import { AuthUtil } from 'minder-core';
+import { NetUtil } from 'minder-ux';
 
 import { Const } from '../../common/defs';
 
 import { AuthManager } from './auth';
-import { NetUtil } from './net';
 
 const logger = Logger.get('client');
 
@@ -133,7 +133,7 @@ export class ConnectionManager {
     AuthUtil.setAuthHeader(headers, this._authManager.idToken);
     ConnectionManager.setClientHeader(headers, _.get(this._config, 'client.id'));
 
-    return NetUtil.postJson(requestUrl, {}, headers, async).then(() => {
+    return NetUtil.postJson(requestUrl, {}, headers, { async }).then(() => {
       logger.log('Unregistered: ' + clientId);
     });
   }

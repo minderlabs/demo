@@ -4,7 +4,10 @@
 
 import _ from 'lodash';
 import express from 'express';
+import jwt from 'jsonwebtoken';
+import moment from 'moment';
 import passport from 'passport';
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 
 import { AuthUtil, Logger, HttpError, HttpUtil, SystemStore } from 'minder-core';
 
@@ -30,7 +33,35 @@ export const isAuthenticated = (redirect=undefined, admin=false) => (req, res, n
 };
 
 /**
- * Handles OAuth login flow.
+ * Requires JWT Auth header to be set.
+ */
+// TODO(burdon): Handle JWT decoding errors (JwtStrategy.prototype.authenticate)?
+export const hasJwtHeader = () => passport.authenticate('jwt', { session: false });
+
+/**
+ * Returns the current User's session.
+ * @param {User} user
+ * @return {{id_token, id_token_exp }}
+ */
+export const getUserSession = (user) => {
+  return user.session;
+};
+
+/**
+ * Returns the (JWT) id_token from the session state (cached in the User object).
+ * @param {User} user
+ * @return {string}
+ */
+export const getIdToken = (user) => {
+  let session = getUserSession(user);
+  console.assert(session.id_token, 'Invalid token for user: ' + JSON.stringify(_.pick(user, ['id', 'email'])));
+  return session.id_token;
+};
+
+/**
+ * Handles OAuth login flow:
+ *
+ * /app => /user/login => /oauth/login/google => /oauth/callback/google => /app
  *
  * @param userManager
  * @param systemStore
@@ -52,23 +83,56 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   //               https://www.npmjs.com/package/connect-redis
   //               https://www.npmjs.com/package/connect-memcached
 
-  // TODO(burdon): Cache token in session?
-
   /**
-   * Serialize User Item to session state.
+   * Serialize User Item to session store.
    */
   passport.serializeUser((user, done) => {
-//  logger.log('===>> ' + JSON.stringify(_.pick(user, ['id', 'email'])));
-    let { id } = user;
-    done(null, { id });
+//  logger.log('===>> ' + JSON.stringify(_.pick(user, ['id', 'email', 'session'])));
+    done(null, _.pick(user, [ 'id', 'session' ]));
   });
 
   /**
-   * Get session state and retrieve a User Item.
+   * Retrieve User Item given session state.
+   * Sets req.user
    */
   passport.deserializeUser((userInfo, done) => {
 //  logger.log('<<=== ' + JSON.stringify(userInfo));
-    let { id } = userInfo;
+    let { id, session } = userInfo;
+    userManager.getUserFromId(id).then(user => {
+      if (!user) {
+        logger.warn('Invalid User ID: ' + id);
+      }
+
+      user.session = session;
+
+      done(null, user);
+    });
+  });
+
+  //
+  // Custom JWT Strategy.
+  // NOTE: Doesn't use session by default.
+  //
+
+  // TODO(burdon): env
+  const MINDER_JWT_SECRET = 'minder-jwt-secret';
+  const MINDER_JWT_AUDIENCE = 'minderlabs.com';
+
+  // https://www.npmjs.com/package/passport-jwt
+  passport.use(new JwtStrategy({
+
+    authScheme:         AuthUtil.JWT_SCHEME,
+    jwtFromRequest:     ExtractJwt.fromAuthHeader(),    // 'authorization: JWT xxx'
+    secretOrKey:        MINDER_JWT_SECRET,
+    audience:           MINDER_JWT_AUDIENCE,
+
+    passReqToCallback:  true
+
+//  ignoreExpiration:   true
+
+  }, (req, payload, done) => {
+
+    let { id } = payload.data;
     userManager.getUserFromId(id).then(user => {
       if (!user) {
         logger.warn('Invalid User ID: ' + id);
@@ -76,7 +140,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
       done(null, user);
     });
-  });
+  }));
 
   /**
    * Called when OAuth login flow completes.
@@ -91,9 +155,8 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   let authCallback = (accessToken, refreshToken, params, profile, done) => {
     console.assert(accessToken);
 
-    // TODO(burdon): Check expiration: https://www.npmjs.com/package/jwt-autorefresh
-    let { id_token, token_type, expires_in } = params;
-    console.assert(id_token && token_type && expires_in);
+    let { id_token, token_type } = params;
+    console.assert(id_token && token_type);
 
     let { provider, id } = profile;
     console.assert(provider && id);
@@ -101,13 +164,11 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     let credentials = {
       provider,
       id,
-      id_token,                           // JWT
-      access_token: accessToken,
       token_type,
-      expires_in                          // Access token expiration.
+      access_token: accessToken
     };
 
-    // NOTE: Only provided when first requested.
+    // NOTE: Only provided when first requested (unless forced).
     if (refreshToken) {
       credentials.refresh_token = refreshToken;
     }
@@ -116,10 +177,32 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     let userProfile = OAuthProvider.getCanonicalUserProfile(profile);
 
     // Register/update user.
-    // TODO(burdon): Update scopes.
     // TODO(burdon): Register vs update?
     systemStore.registerUser(userProfile, credentials).then(user => {
       logger.log('OAuth callback: ' + JSON.stringify(_.pick(userProfile, ['id', 'email'])));
+
+      //
+      // Create the custom JWT token.
+      // https://www.npmjs.com/package/jsonwebtoken
+      //
+      let id_token_exp = moment().add(...AuthUtil.JWT_EXPIRATION).unix();
+      let idToken = jwt.sign({
+        aud: MINDER_JWT_AUDIENCE,
+        exp: id_token_exp,
+        data: {
+          id: user.id
+        }
+      }, MINDER_JWT_SECRET);
+
+      // Sets the transient User property (which is stored in the session store).
+      _.assign(user, {
+        session: {
+          id_token: idToken,
+          id_token_exp
+        }
+      });
+
+      // Sets req.user.
       done(null, user);
     });
   };
@@ -141,6 +224,17 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     // TODO(burdon): Handle 401.
     router.get('/login/' + provider.providerId, (req, res, next) => {
 
+      // Callback state.
+      let state = {
+        redirect: req.query.redirect || '/app'
+      };
+
+      // Handle JSONP.
+      if (req.query.redirect === 'jsonp') {
+        console.assert(req.query.callback);
+        state.jsonp_callback = req.query.callback;
+      }
+
       // Dynamically configure the response.
       // https://github.com/jaredhanson/passport-google-oauth2/issues/22 [3/27/17]
       const processAuthRequest = passport.authenticate(provider.providerId, {
@@ -152,7 +246,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
         include_granted_scopes: true,
 
         // State passed to callback.
-        state: OAuthProvider.encodeState({ redirect: req.query.redirect || '/app' })
+        state: OAuthProvider.encodeState(state)
       });
 
       return processAuthRequest.call(null, req, res, next);
@@ -164,26 +258,31 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     router.get('/callback/' + provider.providerId, passport.authenticate(provider.providerId, {
       failureRedirect: '/home'
     }), (req, res) => {
-      logger.log('Logged in: ' + JSON.stringify(_.pick(req.user, ['id', 'email'])));
+      let user = req.user;
+      logger.log('Logged in: ' + JSON.stringify(_.pick(user, ['id', 'email'])));
 
       // TODO(burdon): Validate state.
-      // TODO(burdon): Update list of scopes?
       let state = OAuthProvider.decodeState(req.query.state);
       logger.log('State: ' + JSON.stringify(state));
 
-      res.redirect(_.get(state, 'redirect', '/home'));
-    });
-  });
+      // Redirect after successful callback.
+      let redirect = _.get(state, 'redirect', '/home');
 
-  //
-  // OAuth test.
-  //
-  router.get('/test', isAuthenticated('/profile'), (req, res, next) => {
-    let user = req.user;
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify({
-      user
-    }, null, 2));
+      // JSONP callback (see NetUtil).
+      if (redirect === 'jsonp') {
+        // https://auth0.com/docs/tokens/refresh-token
+        let response = {
+          credentials: _.pick(getUserSession(user), ['id_token', 'id_token_exp'])
+        };
+
+        // Send script that invokes JSONP callback.
+        let jsonp_callback = _.get(state, 'jsonp_callback');
+        res.send(`${jsonp_callback}(${JSON.stringify(response)});`);
+        return;
+      }
+
+      res.redirect(redirect);
+    });
   });
 
   //
@@ -192,6 +291,10 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   router.get('/logout/:providerId', isAuthenticated('/home'), (req, res, next) => {
     let { providerId } = req.params;
     logger.log('Logout: ' + providerId);
+
+    // NOTE: Doesn't reset cookie (would logout all Google apps).
+    // http://passportjs.org/docs/logout
+    req.logout();
 
     // TODO(burdon): Logout/invalidate.
     let provider = oauthRegistry.getProvider(providerId);

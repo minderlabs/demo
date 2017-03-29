@@ -6,6 +6,16 @@ import _ from 'lodash';
 
 /**
  * Client/Server OAuth/JWT utils and defs.
+ *
+ * Resources:
+ * https://www.npmjs.com/package/jsonwebtoken
+ * https://www.npmjs.com/package/passport-jwt
+ * https://github.com/apollo-passport/apollo-passport
+ * https://dev-blog.apollodata.com/a-guide-to-authentication-in-graphql-e002a4039d1
+ *
+ * Security:
+ * https://www.sjoerdlangkemper.nl/2016/09/28/attacking-jwt-authentication/
+ * https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Requests_with_credentials
  */
 export class AuthUtil {
 
@@ -37,25 +47,10 @@ export class AuthUtil {
     'https://www.googleapis.com/auth/userinfo.profile'
   ];
 
-  /**
-   * Gets the (JWT) id_token from the request headers.
-   * NOTE: Express lowercases all headers.
-   *
-   * @param headers HTTP request headers.
-   * @returns {string} Unverified token or undefined.
-   */
-  static getIdTokenFromHeaders(headers) {
-    console.assert(headers);
+  static JWT_SCHEME = 'JWT';
 
-    // NOTE: Express headers are lowercase.
-    const authHeader = headers['authorization'];
-    if (authHeader) {
-      console.assert(authHeader);
-      let match = authHeader.match(/^JWT (.+)$/);
-      console.assert(match, 'Invalid authorization header: ' + authHeader);
-      return match[1];
-    }
-  }
+  // momentjs format.
+  static JWT_EXPIRATION = [24, 'hours'];
 
   /**
    * Sets the authorization header from the (JWT) id_token.
@@ -68,7 +63,7 @@ export class AuthUtil {
     console.assert(_.isString(idToken), 'Invalid JWT token.');
 
     return _.assign(headers, {
-      'authorization': 'JWT ' + idToken
+      'Authorization': AuthUtil.JWT_SCHEME + ' ' + idToken
     });
   }
 }

@@ -2,12 +2,11 @@
 // Copyright 2016 Minder Labs.
 //
 
-import _ from 'lodash';
 import express from 'express';
 
-import { AuthUtil, Logger, HttpError, SystemStore } from 'minder-core';
+import { AuthUtil, Logger, HttpError } from 'minder-core';
 
-import { isAuthenticated } from './oauth';
+import { getIdToken, hasJwtHeader, isAuthenticated } from './oauth';
 
 const logger = Logger.get('user');
 
@@ -36,18 +35,6 @@ export class UserManager {
   }
 
   /**
-   * Returns the id_token for the user (for the default login OAuthProvider).
-   *
-   * @param user
-   * @return {string}
-   */
-  getIdToken(user) {
-    let provider = this._loginAuthProvider.providerId;
-    let credentials = _.get(user, `credentials.${SystemStore.sanitizeKey(provider)}`);
-    return credentials.id_token;
-  }
-
-  /**
    * Gets the User item.
    *
    * @param userId
@@ -55,42 +42,6 @@ export class UserManager {
    */
   getUserFromId(userId) {
     return this._systemStore.getUser(userId);
-  }
-
-  /**
-   * Returns the user associated with the id_token in the request header.
-   *
-   * @param headers HTTP request headers.
-   * @param required If true and no token or no user is found then throws NotAuthenticatedError.
-   * @returns {Promise<User>}
-   */
-  getUserFromHeader(headers, required=false) {
-    console.assert(headers);
-
-    // Token set in apollo client's network interface middleware.
-    let idToken = AuthUtil.getIdTokenFromHeaders(headers);
-    if (!idToken) {
-      if (required) {
-        throw new HttpError('Missing authorization header.', 401);
-      }
-
-      return Promise.resolve(null);
-    }
-
-    // Decode the token.
-    return this._loginAuthProvider.verifyIdToken(idToken)
-      .then(tokenInfo => {
-        let { id } = tokenInfo;
-        let userId = SystemStore.createUserId(this._loginAuthProvider.providerId, id);
-        return this._systemStore.getUser(userId)
-          .then(user => {
-            if (!user) {
-              throw new HttpError('Invalid User: ' + JSON.stringify(tokenInfo), 401);
-            }
-
-            return user;
-          });
-      });
   }
 }
 
@@ -114,7 +65,7 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
   //
   // Login.
   //
-  router.use('/login', function(req, res) {
+  router.get('/login', function(req, res) {
     // TODO(burdon): Path const.
     res.redirect('/oauth/login/' + loginAuthProvider.providerId);
   });
@@ -122,7 +73,7 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
   //
   // Logout.
   //
-  router.use('/logout', function(req, res) {
+  router.get('/logout', function(req, res) {
     // http://passportjs.org/docs/logout
     req.logout();
     // TODO(burdon): Path const.
@@ -130,36 +81,33 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
   });
 
   //
-  // Handle user registration.
+  // Refresh (JWT) id_token (jsonp request).
   //
-  router.post('/register', function(req, res, next) {
+  // Redirect flow:
+  // /refresh => /oauth/login/google => accounts.google.com/o/oauth2/v2/auth => /oauth/callback/google
+  //
+  router.get('/refresh_id_token', (req, res) => {
+    res.redirect('/oauth/login/' + loginAuthProvider.providerId + '?redirect=jsonp&callback=' + req.query.callback);
+  });
 
-    // Get ID token (JWT) from header.
-    // TODO(burdon): Create middleware version of isAuthenticated for headers.
-    let idToken = AuthUtil.getIdTokenFromHeaders(req.headers);
-    if (!idToken) {
-      throw new HttpError('Missing auth token.', 401);
-    }
+  //
+  // Handle User registration.
+  //
+  router.post('/register', hasJwtHeader(), function(req, res, next) {
 
-    // All credentials.
+    // Access credentials (from client login flow).
     let { credentials } = req.body;
 
-    // Decode the (JWT) id_token.
-    loginAuthProvider.verifyIdToken(idToken).then(tokenInfo => {
+    // Use the access_token to request the user's profile.
+    loginAuthProvider.getUserProfile(credentials).then(userProfile => {
 
-      // Use the access_token to request the user's profile.
-      loginAuthProvider.getUserProfile(credentials).then(userProfile => {
-        console.assert(tokenInfo.id     === userProfile.id);
-        console.assert(tokenInfo.email  === userProfile.email);
+      // Register user.
+      systemStore.registerUser(userProfile, credentials).then(user => {
+        if (!user.active) {
+          throw new HttpError('User not active.', 403);
+        }
 
-        // Register user.
-        systemStore.registerUser(userProfile, credentials).then(user => {
-          if (!user.active) {
-            throw new HttpError('User not active.', 403);
-          }
-
-          res.send({ userProfile });
-        });
+        res.send({ userProfile });
       });
     }).catch(next);
   });
@@ -173,7 +121,7 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
       res.render('profile', {
         user,
         groups:     groups,
-        idToken:    userManager.getIdToken(user),
+        idToken:    getIdToken(user),
         providers:  oauthRegistry.providers,
         crxUrl:     options.crxUrl
       });
