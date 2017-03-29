@@ -152,7 +152,7 @@ export class Resolvers {
         groups: (root) => {
           // TODO(madadam): Intersect with groups visible to the Viewer.
           // TODO(madadam): Different interface to get SystemStore. getGroup() is not a method of ItemStore interface.
-          return [ database.getItemStore(Database.NAMESPACE.SYSTEM).getGroup(root.id) ];
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getGroups(root.id);
         }
       },
 

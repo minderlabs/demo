@@ -80,7 +80,7 @@ export class AuthManager {
    */
   authenticate() {
     let platform = _.get(this._config, 'app.platform');
-    if (platform === Const.PLATFORM.WEB) {
+    if (platform === Const.PLATFORM.WEB || true) { // FIXME
       // Web is already authenticated and registered.
       console.assert(this.idToken);
       return Promise.resolve(_.get(this._config, 'userProfile'));

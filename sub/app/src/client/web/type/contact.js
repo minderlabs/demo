@@ -28,6 +28,9 @@ import { TaskCard, TaskListItemRenderer } from './task';
  */
 const AddCreateContactTask = (params) => {
   let { batch, bucketId, project, owner, assignee, parent, mutations } = params;
+  console.assert(bucketId);
+  console.assert(project);
+  console.assert(owner);
   let fieldMutations = _.compact([
     MutationUtil.createFieldMutation('bucket', 'string', bucketId),
     MutationUtil.createFieldMutation('project', 'id', project.id),
@@ -66,26 +69,26 @@ export class ContactCard extends React.Component {
   /**
    *
    * @param project Project that owns this item.
+   * @param owner User object, if not null new tasks are assigned to this User, otherwise to the Viewer.
    * @param assignee User object, if not null new tasks are assigned to this User.
    * @param item Item to update.
    * @param mutations
    */
-  handleItemUpdate(project, assignee, item, mutations) {
+  handleItemUpdate(project, owner, assignee, item, mutations) {
     let { viewer: { user }, mutator } = this.context;
+    owner = owner || user;
 
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
       let { item:parent } = this.props;
 
-      console.assert(project);
-
       let createParams = {
         batch: mutator.batch(),
         bucketId: user.id,
         project,
         parent,
-        owner: user,
+        owner,
         assignee,
         mutations
       };
@@ -107,7 +110,8 @@ export class ContactCard extends React.Component {
    * @param assignee User object, assigned new tasks.
    * @return {XML}
    */
-  taskSection(project, items, assignee) {
+  taskSection(project, items, owner, assignee) {
+    console.assert(assignee);
     let header = `Tasks for ${assignee.title}`;
     let ref = `tasks_${assignee.id}`;
     return (
@@ -123,7 +127,7 @@ export class ContactCard extends React.Component {
                   data={ assignee.id }
                   items={ items }
                   itemRenderer={ TaskListItemRenderer }
-                  onItemUpdate={ this.handleItemUpdate.bind(this, project, assignee) }/>
+                  onItemUpdate={ this.handleItemUpdate.bind(this, project, owner, assignee) }/>
           </div>
 
           <div className="ux-card-footer">
@@ -134,13 +138,20 @@ export class ContactCard extends React.Component {
     );
   }
 
+  // TODO(madadam): To util.
+  getProjectFromGroupsByLabel(groups, label) {
+    let projects = _.flatten(_.map(groups, group => _.get(group, 'projects', [])));
+    return _.find(projects, project => { return _.indexOf(project.labels, label) !== -1 });
+  }
+
   render() {
     let { viewer } = this.context;
     let { item:contact } = this.props;
     let { email, tasks, user } = contact;
 
-    // TODO(madadam): Get project by label '_default'.
-    let project = user && _.get(user, 'groups[0].projects[0]');
+    let project = user && this.getProjectFromGroupsByLabel(user.groups, '_default');
+
+    let isContactSelf = (user && viewer.user.id === user.id);
 
     // Sort all tasks for this project into groups based on assignee.
     // TODO(madadam): Refactor ItemUtil.groupBy?
@@ -150,7 +161,13 @@ export class ContactCard extends React.Component {
       let tasksForMe = _.filter(_.get(project, 'tasks', []), item => {
         let assignee = _.get(item, 'assignee.id');
         let owner = _.get(item, 'owner.id');
-        return assignee == viewer.user.id && owner == user.id;
+
+        if (isContactSelf) {
+          // Special case of self-view, owner can be anyone (show all my tasks).
+          return assignee == viewer.user.id;
+        } else {
+          return assignee == viewer.user.id && owner == user.id;
+        }
       });
 
       let tasksForThem = _.filter(_.get(project, 'tasks', []), item => {
@@ -159,15 +176,14 @@ export class ContactCard extends React.Component {
         return assignee == user.id && owner == viewer.user.id;
       });
 
-      tasksForMeSection = this.taskSection(project, tasksForMe, viewer.user);
-      if (viewer.user.id !== user.id) {
-        // When a user sees her own Contact card, don't show this section. (Also avoids duplicate ref ids).
-        tasksForThemSection = this.taskSection(project, tasksForThem, user);
+      tasksForMeSection = this.taskSection(project, tasksForMe, user, viewer.user);
+      if (!isContactSelf) {
+        // When a user sees her own Contact card, don't show this section.
+        tasksForThemSection = this.taskSection(project, tasksForThem, viewer.user, user);
       }
     }
 
-    // TODO(burdon): Add to default project.
-    let defaultProject = _.get(this.context.viewer, 'group.projects[0]');
+    let defaultProject = this.getProjectFromGroupsByLabel(this.context.viewer.groups, '_default');
 
     return (
       <Card ref="card" item={ contact }>
@@ -196,7 +212,7 @@ export class ContactCard extends React.Component {
             <List ref="tasks"
                   items={ tasks }
                   itemRenderer={ TaskListItemRenderer }
-                  onItemUpdate={ this.handleItemUpdate.bind(this, defaultProject, null) }/>
+                  onItemUpdate={ this.handleItemUpdate.bind(this, defaultProject, null, null) }/>
           </div>
 
           <div className="ux-card-footer">
