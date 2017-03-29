@@ -127,6 +127,7 @@ const mapStateToProps = (state, ownProps) => {
   let idGenerator = injector.get(IdGenerator);
 
   // TODO(burdon): Move to layout config.
+  let platform = _.get(config, 'app.platform');
   let listType = (platform === Const.PLATFORM.CRX) ? 'card' : 'list';
 
   // Construct filter (from sidebar context or searchbar).
@@ -135,7 +136,6 @@ const mapStateToProps = (state, ownProps) => {
 
   // CRX app context.
   let contextManager = null;
-  let platform = _.get(config, 'app.platform');
   if (platform === Const.PLATFORM.CRX) {
     // Current user context (e.g., host inspector transient items).
     // TODO(burdon): Binds to context action; should trigger context to requery.

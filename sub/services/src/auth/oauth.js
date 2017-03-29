@@ -79,6 +79,8 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
   let router = express.Router();
 
+  //
+  // Configure session store.
   // TODO(burdon): Session store: https://github.com/expressjs/session#compatible-session-stores
   //               https://www.npmjs.com/package/connect-redis
   //               https://www.npmjs.com/package/connect-memcached
@@ -112,13 +114,13 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   //
   // Custom JWT Strategy.
   // NOTE: Doesn't use session by default.
+  // https://www.npmjs.com/package/passport-jwt
   //
 
   // TODO(burdon): env
   const MINDER_JWT_SECRET = 'minder-jwt-secret';
   const MINDER_JWT_AUDIENCE = 'minderlabs.com';
 
-  // https://www.npmjs.com/package/passport-jwt
   passport.use(new JwtStrategy({
 
     authScheme:         AuthUtil.JWT_SCHEME,
@@ -126,16 +128,16 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     secretOrKey:        MINDER_JWT_SECRET,
     audience:           MINDER_JWT_AUDIENCE,
 
+    // TODO(burdon): Implement auth-refresh.
+    ignoreExpiration:   true,
+
     passReqToCallback:  true
-
-//  ignoreExpiration:   true
-
   }, (req, payload, done) => {
 
     let { id } = payload.data;
     userManager.getUserFromId(id).then(user => {
       if (!user) {
-        logger.warn('Invalid User ID: ' + id);
+        return done('Invalid User ID: ' + id, false);
       }
 
       done(null, user);
