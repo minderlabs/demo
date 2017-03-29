@@ -62,7 +62,7 @@ export class MutationUtil {
    */
   static getUpsertItemsMutationResult(action, optimistic=true) {
     if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === UpsertItemsMutationName) {
-      if (optimistic || !_.get(action, 'result.data.optimistic')) {
+      if (optimistic || !_.get(action, 'result.data.optimistic')) {   // TODO(burdon): ???
         return _.get(action.result.data, UpsertItemsMutationPath);
       }
     }

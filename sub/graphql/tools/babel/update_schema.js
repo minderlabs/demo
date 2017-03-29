@@ -11,8 +11,9 @@ import path from 'path';
 
 import { graphql }  from 'graphql';
 import { introspectionQuery } from 'graphql/utilities';
-import { makeExecutableSchema } from 'graphql-tools';
+import { concatenateTypeDefs, makeExecutableSchema } from 'graphql-tools';
 
+import Framework from '../../src/gql/framework.graphql';
 import Schema from '../../src/gql/schema.graphql';
 
 const dist = path.join(__dirname, '../../dist');
@@ -24,14 +25,13 @@ if (!fs.existsSync(dist)) {
 
 //
 // Creates JSON schema definition for Pycharm GraphQL plugin.
-// TODO(burdon): Factor out with schema.js
 //
 
 (async () => {
   console.log('Creating schema...');
   try {
     const schema = makeExecutableSchema({
-      typeDefs: Schema
+      typeDefs: concatenateTypeDefs([Framework, Schema])
     });
 
     let result = await (graphql(schema, introspectionQuery));
