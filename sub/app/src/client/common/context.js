@@ -183,7 +183,13 @@ export class ContextManager {
       if (item.email && itemsByKey.get(item.email)) {
         return;
       }
-      items.push(item);
+      let match = this.findMatch(items, item);
+      if (match) {
+        // TODO(madadam): Merge helper.
+        _.defaults(match, item);
+      } else {
+        items.push(item);
+      }
     });
 
     return items;

@@ -7,7 +7,7 @@ import gql from 'graphql-tag';
 // TODO(burdon): Refine fragments returned by mutation.
 
 // NOTE: When the Project Detail card adds a new Task, unless "on Project { tasks {} }" is
-// declared in the mutation, then thhe Project Board canvas will not be updated.
+// declared in the mutation, then the Project Board canvas will not be updated.
 
 const ValueFragment = gql`
   fragment ValueFragment on Value {
@@ -24,6 +24,7 @@ const ValueFragment = gql`
 
 const UserTasksFragment = gql`
   fragment UserTasksFragment on User {
+    id
     title
     email
     groups {
@@ -34,18 +35,21 @@ const UserTasksFragment = gql`
         type
         id
         title
+        labels
         tasks {
           type
           id
           title
           status
-          __typename
+          owner {
+            id
+          }
+          assignee {
+            id
+          }
         }
-        __typename
       }
-      __typename
     }
-    __typename
   }
 `;
 
@@ -79,12 +83,24 @@ export const Fragments = {
         title
         status
       }
-      user {
-        ...UserTasksFragment
-      }
     }
-    
-    ${UserTasksFragment}
+  `,
+
+  ContactTasksFragment: gql`
+      fragment ContactTasksFragment on Contact {
+          email
+          tasks {
+              type
+              id
+              title
+              status
+          }
+          user {
+              ...UserTasksFragment
+          }
+      }
+
+      ${UserTasksFragment}
   `,
 
   // TODO(burdon): Move url, iconUrl to ItemFragment

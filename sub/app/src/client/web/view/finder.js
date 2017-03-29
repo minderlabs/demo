@@ -110,14 +110,12 @@ const ContextQuery = gql`
   query ContextQuery($filter: FilterInput!) {
     contextItems: search(filter: $filter) {
       ...ItemFragment
-      ...UserFragment
-      ...ContactFragment
+      ...ContactTasksFragment
     }
   }
 
   ${Fragments.ItemFragment}
-  ${Fragments.UserFragment}
-  ${Fragments.ContactFragment}
+  ${Fragments.ContactTasksFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
