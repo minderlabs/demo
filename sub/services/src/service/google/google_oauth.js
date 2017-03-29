@@ -7,7 +7,7 @@ import google from 'googleapis';
 
 import { OAuth2Strategy as GoogleStrategy } from 'passport-google-oauth';
 
-import { AuthUtil, HttpError, Logger } from 'minder-core';
+import { AuthDefs, HttpError, Logger } from 'minder-core';
 
 import { OAuthProvider } from '../../auth/oauth';
 
@@ -83,7 +83,7 @@ export class GoogleOAuthProvider extends OAuthProvider {
   //
 
   get scopes() {
-    return AuthUtil.GOOGLE_LOGIN_SCOPES;
+    return AuthDefs.GOOGLE_LOGIN_SCOPES;
   }
 
   /**

@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { AuthUtil } from 'minder-core';
+import { AuthDefs, AuthUtil } from 'minder-core';
 import { NetUtil } from 'minder-ux';
 
 import { Const } from '../../common/defs';

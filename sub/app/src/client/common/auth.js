@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { AuthUtil, HttpUtil } from 'minder-core';
+import { AuthDefs, AuthUtil, HttpUtil } from 'minder-core';
 import { NetUtil } from 'minder-ux';
 
 import { Const, GoogleApiConfig } from '../../common/defs';
@@ -92,7 +92,7 @@ export class AuthManager {
       const OAuthProvider = {
         provider: 'google',
         requestUrl: 'https://accounts.google.com/o/oauth2/auth',
-        scope: AuthUtil.GOOGLE_LOGIN_SCOPES
+        scope: AuthDefs.GOOGLE_LOGIN_SCOPES
       };
 
       // Get the access and id tokens.

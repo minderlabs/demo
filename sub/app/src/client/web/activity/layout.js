@@ -53,13 +53,15 @@ export class Layout extends React.Component {
 
       // Debug info.
       case 'bug': {
-        console.warn(JSON.stringify(config, null, 2));
+        console.warn('DEBUG\n' + JSON.stringify(config, null, 2));
         break;
       }
 
       // Refresh JWT.
       case 'refresh_id_token': {
-        // TODO(burdon): Dispatch to ActionHandler (callback to set config (and timer)).
+        // TODO(burdon): Dispatch to ActionHandler (callback to set config (and timer)). Redux?
+        // https://medium.com/javascript-and-opinions/redux-side-effects-and-you-66f2e0842fc3
+        // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
         NetUtil.getJson('/user/refresh_id_token', {}, {}, true).then(result => {
           _.assign(config, { credentials: _.get(result, 'credentials') });
           console.log('Updated credentials: ' + TypeUtil.stringify(config.credentials, 2));

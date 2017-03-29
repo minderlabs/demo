@@ -56,6 +56,7 @@ export class BaseApp {
       type: 'error',
       message: message
     });
+
     this._analytics && this._analytics.track('error', { message });
   }
 

@@ -31,12 +31,15 @@ const mapStateToProps = (state, ownProps) => {
   let appState = AppAction.getState(state);
   let { config, injector } = appState;
 
-  let analytics       = injector.get(Analytics.INJECTOR_KEY);
-  let idGenerator     = injector.get(IdGenerator);
   let typeRegistry    = injector.get(TypeRegistry);
   let queryRegistry   = injector.get(QueryRegistry);
   let eventHandler    = injector.get(EventHandler);
   let contextManager  = injector.get(ContextManager);
+
+  // TODO(burdon): Why is this here? Only accessed in reducer (not context).
+  let analytics       = injector.get(Analytics.INJECTOR_KEY);
+
+  let idGenerator     = injector.get(IdGenerator);
 
   // CRX Navigator opens in new window (overridden in mapDispatchToProps for web).
   let navigator = undefined;
@@ -46,16 +49,15 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     config,
-
-    analytics,
     typeRegistry,
     queryRegistry,
     eventHandler,
     contextManager,
     navigator,
 
-    // Required by Mutator.
-    idGenerator
+    analytics,
+
+    idGenerator       // Required by Mutator
   };
 };
 

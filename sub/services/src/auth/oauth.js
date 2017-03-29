@@ -9,7 +9,7 @@ import moment from 'moment';
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 
-import { AuthUtil, Logger, HttpError, HttpUtil, SystemStore } from 'minder-core';
+import { AuthDefs, Logger, HttpError, HttpUtil, SystemStore } from 'minder-core';
 
 const logger = Logger.get('oauth');
 
@@ -123,7 +123,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
   passport.use(new JwtStrategy({
 
-    authScheme:         AuthUtil.JWT_SCHEME,
+    authScheme:         AuthDefs.JWT_SCHEME,
     jwtFromRequest:     ExtractJwt.fromAuthHeader(),    // 'authorization: JWT xxx'
     secretOrKey:        MINDER_JWT_SECRET,
     audience:           MINDER_JWT_AUDIENCE,
@@ -187,9 +187,10 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
       // Create the custom JWT token.
       // https://www.npmjs.com/package/jsonwebtoken
       //
-      let id_token_exp = moment().add(...AuthUtil.JWT_EXPIRATION).unix();
+      let id_token_exp = moment().add(...AuthDefs.JWT_EXPIRATION).unix();
       let idToken = jwt.sign({
         aud: MINDER_JWT_AUDIENCE,
+        iat: moment().unix(),
         exp: id_token_exp,
         data: {
           id: user.id
@@ -397,7 +398,7 @@ export class OAuthProvider {
    * Login scopes.
    */
   get scopes() {
-    return AuthUtil.OPENID_LOGIN_SCOPES;
+    return AuthDefs.OPENID_LOGIN_SCOPES;
   }
 
   /**

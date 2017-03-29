@@ -21,7 +21,7 @@ export class NetUtil {
   }
 
   /**
-   * POST JSON.
+   * POST JSON request.
    *
    * NOTE: By default, doesn't pass cookies. To enable:
    *
@@ -58,7 +58,7 @@ export class NetUtil {
   }
 
   /**
-   * GET JSON.
+   * GET JSON request.
    *
    * @param url
    * @param args

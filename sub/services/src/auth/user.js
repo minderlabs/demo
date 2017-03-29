@@ -4,7 +4,7 @@
 
 import express from 'express';
 
-import { AuthUtil, Logger, HttpError } from 'minder-core';
+import { AuthDefs, Logger, HttpError } from 'minder-core';
 
 import { getIdToken, hasJwtHeader, isAuthenticated } from './oauth';
 

@@ -5,7 +5,7 @@
 import _ from 'lodash';
 
 /**
- * Client/Server OAuth/JWT utils and defs.
+ * Client/Server OAuth/JWT defs.
  *
  * Resources:
  * https://www.npmjs.com/package/jsonwebtoken
@@ -17,7 +17,7 @@ import _ from 'lodash';
  * https://www.sjoerdlangkemper.nl/2016/09/28/attacking-jwt-authentication/
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Requests_with_credentials
  */
-export class AuthUtil {
+export class AuthDefs {
 
   //
   // OpenID Login scopes.
@@ -51,6 +51,12 @@ export class AuthUtil {
 
   // momentjs format.
   static JWT_EXPIRATION = [24, 'hours'];
+}
+
+/**
+ * Utils.
+ */
+export class AuthUtil {
 
   /**
    * Sets the authorization header from the (JWT) id_token.
@@ -63,7 +69,7 @@ export class AuthUtil {
     console.assert(_.isString(idToken), 'Invalid JWT token.');
 
     return _.assign(headers, {
-      'Authorization': AuthUtil.JWT_SCHEME + ' ' + idToken
+      'Authorization': AuthDefs.JWT_SCHEME + ' ' + idToken
     });
   }
 }
