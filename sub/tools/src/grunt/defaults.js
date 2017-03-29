@@ -19,13 +19,14 @@ function config(grunt) {
       outdated: {
         options: {
           updateType: 'report',
-          semver: true,
+          semver: false,
           packages: {
             devDependencies: true,
             dependencies: true
           }
         }
       },
+
       update: {
         options: {
           updateType: 'force',
@@ -35,10 +36,21 @@ function config(grunt) {
             dependencies: true
           }
         }
+      },
+
+      prompt: {
+        options: {
+          updateType: 'prompt',
+          semver: false,                  // Prompt to update to latest.
+          packages: {
+            devDependencies: true,
+            dependencies: true
+          }
+        }
       }
     }
   }
-};
+}
 
 /**
  * npm install --save-dev grunt-dev-update
@@ -52,6 +64,7 @@ function init(grunt) {
 
   grunt.registerTask('npm-outdated', ['devUpdate:outdated']);
   grunt.registerTask('npm-update', ['devUpdate:update']);
+  grunt.registerTask('npm-prompt', ['devUpdate:prompt']);
 }
 
 module.exports = { config, init };

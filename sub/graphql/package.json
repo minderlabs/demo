@@ -9,7 +9,7 @@
   },
   "main": "src/index.js",
   "devDependencies": {
-    "babel-cli": "*",
+    "babel-cli": "^6.16.0",
     "babel-core": "^6.17.0",
     "babel-loader": "^6.2.5",
     "babel-plugin-inline-import": "^2.0.4",
@@ -67,7 +67,7 @@
     "lodash": "^4.17.2",
     "minder-core": "0.1.0",
     "minder-services": "0.1.0",
-    "moment": "*",
+    "moment": "^2.18.1",
     "redis": "^2.6.3"
   },
   "scripts": {

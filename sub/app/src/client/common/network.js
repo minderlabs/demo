@@ -3,7 +3,7 @@
 //
 
 import _ from 'lodash';
-import { print } from 'graphql-tag/printer';                // TODO(burdon): Deprecated.
+import { print } from 'graphql/language/printer';
 import { createNetworkInterface } from 'apollo-client';
 
 import { AuthDefs, AuthUtil, UpsertItemsMutationName, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
