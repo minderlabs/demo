@@ -51,13 +51,49 @@ export class SlackBot {
   }
 
   /**
-   * Get minder user object from UserStore, for slack userId.
-   * @param slackUserId
+   * Get Minder User object from UserStore, for slack userId.
    * @param bot
    * @param slackApiToken token for Slack API.
-   * @return Promise of user object.
+   * @param slackUserId
+   * @return Promise of User object.
    */
-  getUserInfo(slackUserId, bot, slackApiToken) {
+  getUserInfo(bot, slackApiToken, slackUserId) {
+    return this.getSlackUserInfo(bot, slackApiToken, slackUserId)
+      .then(userInfo => {
+        let email = _.get(userInfo, 'profile.email');
+        return this.getUserByEmail(email);
+      });
+  }
+
+  /**
+   * Get Minder User object from UserStore, by email.
+   * @param email
+   * @return Promise of User object.
+   */
+  getUserByEmail(email) {
+    console.assert(email);
+    // TODO(madadam): Query userStore by email.
+    // For now, iterate through all users in the UserStore (via Database).
+    let filter = {
+      type: 'User',
+    };
+    let queryProcessor = this.database.getQueryProcessor(Database.NAMESPACE.SYSTEM);
+    console.assert(queryProcessor);
+    return queryProcessor.queryItems({}, {}, filter)
+      .then(items => {
+        let user = _.find(items, { email });
+        return user;
+      });
+  }
+
+  /**
+   * Get Slack API user object, for slack userId.
+   * @param bot
+   * @param slackApiToken token for Slack API.
+   * @param slackUserId
+   * @return Promise of Slack user object.
+   */
+  getSlackUserInfo(bot, slackApiToken, slackUserId) {
     return new Promise((resolve, reject) => {
       bot.api.users.info(
         {token: slackApiToken, user: slackUserId},
@@ -67,37 +103,7 @@ export class SlackBot {
           }
           resolve(_.get(response, 'user'));
         });
-    })
-      .then(userInfo => {
-        let email = _.get(userInfo, 'profile.email');
-        let fullName = _.get(userInfo, 'profile.real_name',
-          _.compact(_.at(userInfo, ['profile.first_name', 'profile.last_name'])).join(' '));
-        let slackUserId = userInfo.id;
-        console.assert(email);
-        // TODO(madadam): Query userStore by email.
-        // For now, iterate through all users in the UserStore (via Database).
-        let filter = {
-          type: 'User',
-        };
-        let queryProcessor = this.database.getQueryProcessor(Database.NAMESPACE.SYSTEM);
-        console.assert(queryProcessor);
-        return queryProcessor.queryItems({}, {}, filter)
-          .then(items => {
-            let user = _.find(items, { email });
-            if (!user) {
-              // Synthesize ephemeral Contact item with foreign key.
-              return {
-                type: 'Contact',
-                namespace: SlackQueryProcessor.NAMESPACE,
-                // TODO(madadam): generate random ID and stick this in fkey? See discussion in PR#81.
-                id: slackUserId, // Foreign key
-                title: fullName, // TODO(madadam): displayName?
-                email
-              };
-            }
-            return user;
-          });
-      });
+    });
   }
 
   /**
@@ -116,7 +122,7 @@ export class SlackBot {
         let slackUserId = message.user;
         let slackApiToken = _.get(bot, 'config.incoming_webhook.token'); // same as bot.config.bot.app_token?
 
-        this.getUserInfo(slackUserId, bot, slackApiToken)
+        this.getUserInfo(bot, slackApiToken, slackUserId)
           .then(userInfo => {
             let context = {
               user: userInfo
@@ -151,7 +157,7 @@ export class SlackBot {
       let slackUserId = message.user;
       let slackApiToken = _.get(bot, 'config.incoming_webhook.token'); // same as bot.config.bot.app_token?
 
-      this.getUserInfo(slackUserId, bot, slackApiToken)
+      this.getUserInfo(bot, slackApiToken, slackUserId)
         .then(userInfo => {
           let context = {
             user: userInfo

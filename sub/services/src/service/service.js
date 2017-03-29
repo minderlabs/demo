@@ -4,6 +4,8 @@
 
 import _ from 'lodash';
 
+import { AuthUtil } from 'minder-core';
+
 import { OAuthProvider } from '../auth/oauth';
 
 /**
@@ -53,7 +55,7 @@ export class OAuthServiceProvider extends ServiceProvider {
     this._authProvider = authProvider;
 
     // Adds minimal OpenID scopes (ID, email) requird by passport.
-    this._scopes = _.concat(OAuthProvider.DEFAULT_LOGIN_SCOPES, scopes);
+    this._scopes = _.concat(AuthUtil.OPENID_LOGIN_SCOPES, scopes);
   }
 
   get link() {

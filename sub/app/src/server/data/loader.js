@@ -93,32 +93,65 @@ export class Loader {
     });
   }
 
-  // TODO(burdon): Map queries from bucket (for item stores).
-  // TODO(burdon): Create project for each group.
-
   /**
    * Initialize group members.
    */
   initGroups() {
+    let systemStore = this._database.getItemStore(Database.NAMESPACE.SYSTEM);
+
     return Promise.all([
-      this._database.getItemStore(Database.NAMESPACE.SYSTEM).queryItems({}, {}, { type: 'Group' }),
-      this._database.getItemStore(Database.NAMESPACE.SYSTEM).queryItems({}, {}, { type: 'User'  })
+      systemStore.queryItems({}, {}, { type: 'Group' }),
+      systemStore.queryItems({}, {}, { type: 'User'  })
     ]).then(([ groups, users ]) => {
 
       // Add User IDs of whitelisted users.
       _.each(groups, group => {
         group.members = _.compact(_.map(users, user => {
-          if (_.indexOf(group.whitelist, user.email) != -1) {
+          if (_.indexOf(group.whitelist, user.email) !== -1) {
             return user.id;
           }
         }));
       });
 
-      _.each(groups, group => {
-        logger.log('Group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+      // Create default project for each Group.
+      let promises = _.map(groups, group => {
+        return this.initProjects(group)
       });
 
-      return this._database.getItemStore(Database.NAMESPACE.SYSTEM).upsertItems({}, groups);
+      // TODO(burdon): Create default project for each User.
+      // TODO(burdon): Do test data generation after this.
+
+      return Promise.all(promises).then(() => {
+        return systemStore.upsertItems({}, groups);
+      });
+    });
+  }
+
+  /**
+   * Provision default project for group.
+   * @param group
+   */
+  initProjects(group) {
+    logger.log('Group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
+
+    let context = { groupIds: [group.id] };
+    let itemStore = this._database.getItemStore(Database.NAMESPACE.USER);
+    return itemStore.queryItems(context, {}, { type: 'Project' }).then(projects => {
+
+      // Look for default project.
+      let project = _.find(projects, project => (_.indexOf(project.labels, '_default') !== -1));
+      if (project) {
+        return project;
+      } else {
+        // Create it.
+        return itemStore.upsertItem(context, {
+          bucket: group.id,
+          group: group.id,
+          type: 'Project',
+          labels: ['_default'],
+          title: 'Default Project'
+        });
+      }
     });
   }
 }

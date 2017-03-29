@@ -7,8 +7,7 @@ import express from 'express';
 import moment from 'moment';
 
 import { Logger, TypeUtil } from 'minder-core';
-
-import { isAuthenticated } from 'minder-services';
+import { isAuthenticated, getUserSession } from 'minder-services';
 
 import { Const } from '../common/defs';
 
@@ -49,13 +48,11 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
   //
   // Web app.
   // Path: /\/app\/(.*)/
-  // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
+  // TODO(burdon): /app could be on separate subdomin (e.g., app.minderlabs.com/inbox)?
   //
   const path = new RegExp(options.root.replace('/', '\/') + '\/?(.*)');
   router.get(path, isAuthenticated('/user/login'), function(req, res, next) {
     let user = req.user;
-    let idToken = userManager.getIdToken(user);
-    console.assert(idToken, 'Invalid token for user: ' + JSON.stringify(_.pick(user, ['id', 'email'])));
 
     // Create the client.
     // TODO(burdon): Client should register (might store ID -- esp. if has worker, etc.)
@@ -80,9 +77,7 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
         client: _.pick(client, ['id', 'messageToken']),
 
         // User credentials.
-        credentials: {
-          id_token: idToken
-        },
+        credentials: _.pick(getUserSession(user), ['id_token', 'id_token_exp']),
 
         // Canonical profile.
         userProfile: _.pick(user, ['id', 'email', 'displayName', 'photoUrl']),
@@ -138,7 +133,7 @@ export const hotRouter = (options) => {
 
   // https://github.com/glenjamin/webpack-hot-middleware
   router.use(webpackHotMiddleware(compiler, {
-    log: (msg) => console.log('### [%s] %s ###', moment().format('hh:mm:ss'), msg)
+    log: (msg) => console.log('### [%s] %s ###', moment().format('YYYY-MM-DD HH:mm Z'), msg)
   }));
 
   return router;

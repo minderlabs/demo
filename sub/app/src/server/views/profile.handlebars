@@ -45,12 +45,16 @@
                  href="/services">Services</a>
               <a class="site-button" target="_blank"
                  href="https://myaccount.google.com/permissions">Google App Permissions</a>
+
+              <!--
               <a class="site-button" target="_blank"
-                 href="https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={{ id_token }}">Test ID Token</a>
+                 onclick="return testToken('{{ idToken }}')">Test ID Token</a>
+                 -->
             </div>
           </div>
         </div>
         <pre class="site-json">{{{ json user 2 }}}</pre>
+        <pre class="site-json" id="token"></pre>
 
         <div class="site-section">
           <h2>Groups</h2>
@@ -72,5 +76,28 @@
       chrome.webstore.install('{{ crxUrl }}', () => { console.log('OK') }, error => { console.error(error) });
       return false;
     }
+
+    /*
+    // TODO(burdon): Verifies Google JWT only.
+    function testToken(idToken) {
+      Site.getJson('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + idToken).then(response => {
+
+        function format(ts) {
+          let m = moment.unix(ts);
+          return m.format('YYYY-MM-DD HH:mm Z') + ' (' + m.fromNow();
+        }
+
+        _.assign(response, {
+          iat: response.iat + ': ' + format(response.iat),
+          exp: response.exp + ': ' + format(response.exp)
+        });
+
+        $('#token').text(JSON.stringify(response, 0, 2));
+      });
+
+      return false;
+    }
+    */
+
   </script>
 </div>

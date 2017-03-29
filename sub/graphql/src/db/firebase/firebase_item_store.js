@@ -111,17 +111,19 @@ export class FirebaseItemStore extends BaseItemStore {
   getItems(context, type, itemIds) {
 
     // Gather results for each bucket.
-    // TODO(burdon): Maintain ID=>bucket index for ACL.
-    let promises = _.map(this.getBucketKeys(context, type), key => this._getValue(key));
-    return Promise.all(promises).then(buckets => {
+    // TODO(burdon): Either the ID needs to contain the bucket (pref), or a separate ID => bucket index is maintained.
+    let bucketKeys = this.getBucketKeys(context, type);
+    return Promise.all(_.map(bucketKeys, key => this._getValue(key))).then(buckets => {
       let items = [];
       _.each(buckets, itemMap => {
         _.each(itemIds, itemId => {
+          console.assert(itemId, 'Invalid ID: ', Array.from(buckets.keys()), itemIds);
+
           // IDs that contain slashes are hierarchical, so convert to dot paths.
           let idPath = itemId.replace('/', '.');
           let item = _.get(itemMap, idPath);
+          // TODO(burdon): Currently this method queries each bucket for each ID (so might not be here).
           if (item) {
-            // TODO(burdon): Push null so corresponds to itemIds?
             items.push(item);
           }
         });
@@ -143,7 +145,7 @@ export class FirebaseItemStore extends BaseItemStore {
       // NOTE: Bucket is optional for some stores (e.g., system).
       let { bucket, type, id:itemId } = item;
       console.assert(type && itemId);
-      console.assert(this._buckets == !_.isNil(bucket), 'Invalid bucket: ' + bucket);
+      console.assert(this._buckets === !_.isNil(bucket), 'Invalid bucket: ' + bucket);
 
       promises.push(new Promise((resolve, reject) => {
         let key = this.key(_.compact([ bucket, type, itemId ]));

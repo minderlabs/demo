@@ -84,7 +84,7 @@ export class Resolvers {
       //
 
       /**
-       * Milliseconds since Unix epoch (_.now() == new Date().getTime()).
+       * Milliseconds since Unix epoch (_.now() === new Date().getTime()).
        */
       Timestamp: {
         __serialize: value => value,
@@ -123,7 +123,7 @@ export class Resolvers {
         },
 
         projects: (root, args, context) => {
-          // NOTE: Group is in the system store, so we don't reference user store items.
+          // NOTE: Group Items should not directly reference User store items (so we query for them).
           let filter = {
             type: 'Project',
             expr: { field: "group", ref: "id" }
@@ -230,10 +230,9 @@ export class Resolvers {
           return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'User', userId);
         },
 
-        // TODO(burdon): Replace with "groups" and lookup without context.
-        group: (root, args, context) => {
-          let { groupId } = context;
-          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItem(context, 'Group', groupId);
+        groups: (root, args, context) => {
+          let { groupIds } = context;
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItems(context, 'Group', groupIds);
         },
 
         folders: (root, args, context) => {

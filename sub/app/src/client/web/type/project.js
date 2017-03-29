@@ -116,8 +116,8 @@ class ProjectBoardCanvasComponent extends React.Component {
           return -1;
         }
 
-        let idx = _.findIndex(columns, column => column.value == _.get(item, 'status'));
-        return (idx != -1) && columns[idx].id;
+        let idx = _.findIndex(columns, column => column.value === _.get(item, 'status'));
+        return (idx !== -1) && columns[idx].id;
       },
 
       onCreateMutations: (bucket, userId, column) => {
@@ -128,7 +128,7 @@ class ProjectBoardCanvasComponent extends React.Component {
       },
 
       onDropMutations: (item, column) => {
-        return (column.value != _.get(item, 'status')) && [
+        return (column.value !== _.get(item, 'status')) && [
           MutationUtil.createFieldMutation('status', 'int', column.value)
         ];
       }
@@ -159,8 +159,8 @@ class ProjectBoardCanvasComponent extends React.Component {
           return -1;
         }
 
-        let idx = _.findIndex(columns, column => column.value == _.get(item, 'assignee.id'));
-        return (idx == -1) ? ProjectBoardCanvasComponent.COLUMN_ICEBOX : columns[idx].id;
+        let idx = _.findIndex(columns, column => column.value === _.get(item, 'assignee.id'));
+        return (idx === -1) ? ProjectBoardCanvasComponent.COLUMN_ICEBOX : columns[idx].id;
       },
 
       onCreateMutations: (bucket, userId, column) => {
@@ -169,7 +169,7 @@ class ProjectBoardCanvasComponent extends React.Component {
         ];
 
         // TODO(burdon): Optimistic concurrency fail (need to patch from cache).
-        if (column.id != ProjectBoardCanvasComponent.COLUMN_ICEBOX) {
+        if (column.id !== ProjectBoardCanvasComponent.COLUMN_ICEBOX) {
           mutations.push(MutationUtil.createFieldMutation('assignee', 'id', column.value));
         }
 
@@ -177,8 +177,8 @@ class ProjectBoardCanvasComponent extends React.Component {
       },
 
       onDropMutations: (item, column) => {
-        if (column.value != _.get(item, 'assignee.id')) {
-          return (column.id == ProjectBoardCanvasComponent.COLUMN_ICEBOX) ? [
+        if (column.value !== _.get(item, 'assignee.id')) {
+          return (column.id === ProjectBoardCanvasComponent.COLUMN_ICEBOX) ? [
             MutationUtil.createFieldMutation('assignee') // Set null.
           ] : [
             MutationUtil.createFieldMutation('assignee', 'id', column.value)
@@ -348,7 +348,7 @@ class ProjectBoardCanvasComponent extends React.Component {
       let items = _.get(project, 'tasks', []);
 
       // Get the appropriate board.
-      let board = _.find(_.get(project, 'boards'), board => board.alias == boardAlias);
+      let board = _.find(_.get(project, 'boards'), board => board.alias === boardAlias);
       itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
 
       return (

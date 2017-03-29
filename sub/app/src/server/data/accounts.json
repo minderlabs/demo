@@ -22,13 +22,13 @@
 
     "testers": {
       "rich_burdon_gmail_com": {
-        "title": "Rich Private",
+        "title": "Rich (Private)",
         "whitelist": [
           "rich.burdon@gmail.com"
         ]
       },
       "adam_b_gmail_com": {
-        "title": "Adam Private",
+        "title": "Adam (Private)",
         "whitelist": [
           "adam.b@gmail.com"
         ]

@@ -103,8 +103,8 @@ const GraphReducer = (matcher, context, previousResult, updatedItem) => {
   let { item:group } = previousResult;
 
   if (updatedItem.type === 'Project' && updatedItem.group === previousResult.id) {
-    let projectIdx = _.findIndex(group.projects, project => project.id == updatedItem.group);
-    if (projectIdx == -1) {
+    let projectIdx = _.findIndex(group.projects, project => project.id === updatedItem.group);
+    if (projectIdx === -1) {
       return {
         item: {
           projects: {

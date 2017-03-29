@@ -96,6 +96,10 @@ i.site-action:hover {
   color: #999;
 }
 
+//
+// Site
+//
+
 .site-header {
   display: flex;
   margin-bottom: 16px;
@@ -112,6 +116,39 @@ i.site-action:hover {
   font-size: 30px;
   color: #185588;
 }
+
+//
+// https://developers.google.com/identity/sign-in/web/build-button
+// https://developers.google.com/identity/branding-guidelines
+//
+
+.site-login {
+  width: 191px;
+  height: 46px;
+  content: url("/img/btn_google_signin_light_normal_web.png");
+}
+.site-login:hover {
+  content: url("/img/btn_google_signin_light_focus_web.png");
+}
+.site-login:active {
+  content: url("/img/btn_google_signin_light_pressed_web.png");
+}
+
+.site-install-crx {
+  width: 191px;
+  height: 46px;
+  content: url("/img/btn_chrome_extension_normal.png");
+}
+.site-install-crx:hover {
+  content: url("/img/btn_chrome_extension_focus.png");
+}
+.site-install-crx:active {
+  content: url("/img/btn_chrome_extension_pressed.png");
+}
+
+//
+// Layout.
+//
 
 .site-container {
   display: flex;
@@ -139,11 +176,14 @@ i.site-action:hover {
   flex-direction: column;
   background-color: whitesmoke;
   box-shadow: 4px 4px 16px darkslategray;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
+
 .site-profile-window {
   width: 800px;
 }
+
 .site-services-window {
   width: 688px; // 2x12 + 4x(150+16)
 
@@ -233,6 +273,7 @@ i.site-action:hover {
   a {
     font-size: 16px;
     margin-right: 12px;
+    cursor: pointer;
   }
 
   a.site-img {
@@ -249,33 +290,4 @@ i.site-action:hover {
   color: #333;
   background-color: #DDD;
   padding: 16px;
-}
-
-//
-// https://developers.google.com/identity/sign-in/web/build-button
-// https://developers.google.com/identity/branding-guidelines
-//
-
-.site-login {
-  width: 191px;
-  height: 46px;
-  content: url("/img/btn_google_signin_light_normal_web.png");
-}
-.site-login:hover {
-  content: url("/img/btn_google_signin_light_focus_web.png");
-}
-.site-login:active {
-  content: url("/img/btn_google_signin_light_pressed_web.png");
-}
-
-.site-install-crx {
-  width: 191px;
-  height: 46px;
-  content: url("/img/btn_chrome_extension_normal.png");
-}
-.site-install-crx:hover {
-  content: url("/img/btn_chrome_extension_focus.png");
-}
-.site-install-crx:active {
-  content: url("/img/btn_chrome_extension_pressed.png");
 }

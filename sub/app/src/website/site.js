@@ -2,6 +2,9 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
+import moment from 'moment';
+
 import { Words } from './words';
 
 import './site.less';
@@ -37,6 +40,21 @@ class Site {
       });
     });
   }
+
+  /**
+   * Get JSON request.
+   * @param url
+   * @return {Promise}
+   */
+  static getJson(url) {
+    return new Promise((resolve, reject) => {
+      $.getJSON(url, data => resolve(data));
+    });
+  }
 }
+
+window._ = _;
+window.moment = moment;
+window.$ = $;
 
 window.Site = Site;

@@ -44,12 +44,12 @@ export class WindowMessenger {
     window.addEventListener('message', event => {
       let { data } = event;
 
-      if (origin && origin != event.origin) {
+      if (origin && origin !== event.origin) {
         return;
       }
 
       // Since we're listening on the window there may be many posters (e.g., different frames).
-      if (data.channel != this._channel) {
+      if (data.channel !== this._channel) {
         return;
       }
 
@@ -110,7 +110,7 @@ export class KeyListener {
       this._bindings.forEach((callback, spec) => {
 
         // Match keys against event.
-        if (_.every(_.omit(spec, ['_KEYS_']), (value, key) => event[key] == value)) {
+        if (_.every(_.omit(spec, ['_KEYS_']), (value, key) => event[key] === value)) {
           event.preventDefault();
           callback();
         }

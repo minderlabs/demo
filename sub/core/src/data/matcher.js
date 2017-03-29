@@ -52,20 +52,19 @@ export class Matcher {
     }
 
     // Bucket match (ACL filtering).
-    // TODO(burdon): Support multiple groups?
     if (item.bucket &&
-        item.bucket !== _.get(context, 'userId') &&
-        item.bucket !== _.get(context, 'groupId')) {
+        _.get(context, 'userId') !== item.bucket &&
+        _.indexOf(_.get(context, 'groupIds'), item.bucket) === -1) {
       return false;
     }
 
     // Matches given IDs.
-    if (filter.ids && _.indexOf(filter.ids, item.id) != -1) {
+    if (filter.ids && _.indexOf(filter.ids, item.id) !== -1) {
       return true;
     }
 
     // Matches given foreign keys.
-    if (filter.fkeys && _.indexOf(filter.fkeys, item.fkey) != -1) {
+    if (filter.fkeys && _.indexOf(filter.fkeys, item.fkey) !== -1) {
       return true;
     }
 
@@ -83,8 +82,8 @@ export class Matcher {
 
     // Deleted.
     // TODO(burdon): Intersection.
-    if (_.indexOf(item.labels, '_deleted') != -1 &&
-        _.indexOf(filter.labels, '_deleted') == -1) { // TODO(burdon): Const.
+    if (_.indexOf(item.labels, '_deleted') !== -1 &&
+        _.indexOf(filter.labels, '_deleted') === -1) { // TODO(burdon): Const.
       return false;
     }
 
@@ -103,7 +102,7 @@ export class Matcher {
 
     // Text match.
     let text = _.lowerCase(filter.text);
-    if (text && _.lowerCase(item.title).indexOf(text) == -1) {
+    if (text && _.lowerCase(item.title).indexOf(text) === -1) {
       return false;
     }
 
@@ -112,7 +111,7 @@ export class Matcher {
 
   matchLabels(labels, item) {
     let posLabels = _.filter(labels, label => !_.startsWith(label, '!'));
-    if (!_.isEmpty(posLabels) && _.intersection(posLabels, item.labels).length == 0) {
+    if (!_.isEmpty(posLabels) && _.intersection(posLabels, item.labels).length === 0) {
       return false;
     }
 
@@ -302,7 +301,7 @@ export class Matcher {
   }
 
   static isIn(fieldValue, inputValue, not) {
-    return (_.indexOf(fieldValue, Matcher.scalarValue(inputValue)) == -1) ? not : !not;
+    return (_.indexOf(fieldValue, Matcher.scalarValue(inputValue)) === -1) ? not : !not;
   }
 
   static isEqualTo(fieldValue, inputValue, not) {
@@ -311,7 +310,7 @@ export class Matcher {
     // NOTE: Double equals matches null and undefined.
     if (inputValue.null === true) {
       // TODO(burdon): Check how "null" is actually stored (unlike undefined).
-      return fieldValue == null;
+      return fieldValue === null;
     }
 
     let match = false;

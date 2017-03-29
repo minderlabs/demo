@@ -47,13 +47,13 @@ export class QueryParser {
     _.each(text.split(/\s+/), (str) => {
 
       // Type.
-      if (str[0] == '@') {
+      if (str[0] === '@') {
         filter.type = str.substring(1);
         return;
       }
 
       // Labels.
-      if (str[0] == '#') {
+      if (str[0] === '#') {
         switch (str.substring(1)) {
           case 'fav': {
             filter.labels.push('_favorite');  // TODO(burdon): Const.

@@ -214,8 +214,8 @@ describe('Transforms:', () => {
 
     let result = Transforms.applyObjectMutations(object, mutations);
 
-    expect(_.get(_.find(_.get(result, 'colors'), color => color.alias == 'red'), 'labels')).to.have.length(4);
-    expect(_.get(_.find(_.get(result, 'colors'), color => color.alias == 'green'), 'labels')).to.have.length(2);
-    expect(_.findIndex(_.get(result, 'colors'), color => color.alias == 'blue')).to.equal(-1);
+    expect(_.get(_.find(_.get(result, 'colors'), color => color.alias === 'red'), 'labels')).to.have.length(4);
+    expect(_.get(_.find(_.get(result, 'colors'), color => color.alias === 'green'), 'labels')).to.have.length(2);
+    expect(_.findIndex(_.get(result, 'colors'), color => color.alias === 'blue')).to.equal(-1);
   });
 });

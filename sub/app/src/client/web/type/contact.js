@@ -68,7 +68,7 @@ export class ContactCard extends React.Component {
 
   render() {
     let { item:contact } = this.props;
-    let { email, tasks } = contact;
+    let { email, tasks, user } = contact;
 
     return (
       <Card ref="card" item={ contact }>
@@ -77,6 +77,11 @@ export class ContactCard extends React.Component {
             <i className="ux-icon">email</i>
             <div className="ux-text">{ email }</div>
           </div>
+          { user &&
+          <div className="ux-data-row">
+            <div className="ux-text">[User with { user.ownerTasks.length } tasks]</div>
+          </div>
+          }
         </div>
 
         { !_.isEmpty(tasks) &&

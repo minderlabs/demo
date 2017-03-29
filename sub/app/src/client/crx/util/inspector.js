@@ -287,7 +287,7 @@ export class SlackInspector extends Inspector {
   getContextFromDocumentLocation() {
     let context = [];
     this._matches = document.location.href.match(SlackInspector.PATH_RE);
-    if (this._matches && this._matches.length == 3) {
+    if (this._matches && this._matches.length === 3) {
       context = [
         {
           key: 'slack_team',

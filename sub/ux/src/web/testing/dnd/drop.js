@@ -29,7 +29,7 @@ class CardDrop extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.pos != this.state.pos) {
+    if (nextProps.pos !== this.state.pos) {
       this.setState({
         pos: nextProps.pos
       });
@@ -80,7 +80,7 @@ const dropSpec = {
     console.log('Drop: ' + item.id, label, pos);
 
     // Can't drop onto placeholder for self.
-    if (previous != item.id) {
+    if (previous !== item.id) {
 
       // NOTE: Observer patter is required to repaint from the root. Otherwise:
       // warning.js?8a56:36 Warning: setState(...):
