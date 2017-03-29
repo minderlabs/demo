@@ -139,7 +139,8 @@ const mapStateToProps = (state, ownProps) => {
   if (platform === Const.PLATFORM.CRX) {
     // Current user context (e.g., host inspector transient items).
     // TODO(burdon): Binds to context action; should trigger context to requery.
-    contextManager = injector.get(ContextManager).updateContext(ContextAction.getState(state));
+    let contextState = ContextAction.getState(state);
+    contextManager = injector.get(ContextManager).updateContext(contextState);
   }
 
   return {

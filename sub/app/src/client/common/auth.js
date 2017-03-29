@@ -64,12 +64,7 @@ export class AuthManager {
    * @return {UserProfile} User profile object { id, email, displayName, photoUrl }
    */
   authenticate() {
-    let platform = _.get(this._config, 'app.platform');
-    if (platform === Const.PLATFORM.WEB) {
-      // Web is already authenticated and registered.
-      console.assert(this.idToken);
-      return Promise.resolve(_.get(this._config, 'userProfile'));
-    } else {
+    if (_.get(window, 'chrome.identity')) {
       // Trigger OAuth flow.
       return this._launchWebAuthFlow().then(credentials => {
         return this._registerUser(credentials).then(userProfile => {
@@ -77,6 +72,10 @@ export class AuthManager {
           return userProfile;
         });
       });
+    } else {
+      // Web is already authenticated and registered.
+      console.assert(this.idToken);
+      return Promise.resolve(_.get(this._config, 'userProfile'));
     }
   }
 
