@@ -10,6 +10,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import { GraphQLError, BREAK } from 'graphql';
 
 import { ErrorUtil, Logger } from 'minder-core';
+import { hasJwtHeader } from 'minder-services';
 
 import { Resolvers } from './resolvers';
 import { graphqlLogger } from './util/logger';
@@ -32,6 +33,7 @@ const logger = Logger.get('gql');
  */
 export const graphqlRouter = (database, options) => {
   console.assert(database);
+
   options = _.defaults(options, {
     graphql: '/graphql',
     graphiql: '/graphiql'
@@ -60,7 +62,7 @@ export const graphqlRouter = (database, options) => {
 
   // Add logging to path (must go first).
   if (options.logging) {
-   router.use(options.graphql, graphqlLogger(options));
+    router.use(options.graphql, graphqlLogger(options));
   }
 
   //
@@ -71,7 +73,7 @@ export const graphqlRouter = (database, options) => {
   // Which is subtlely different from the graphql implementation:
   // https://github.com/graphql/express-graphql
   //
-  router.use(options.graphql, graphqlExpress(request => {
+  router.post(options.graphql, hasJwtHeader(), graphqlExpress(req => {
     const startTime = Date.now();
 
     //
@@ -136,7 +138,7 @@ export const graphqlRouter = (database, options) => {
     // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
     //
     if (options.contextProvider) {
-      return options.contextProvider(request).then(context => {
+      return options.contextProvider(req).then(context => {
         console.assert(context);
         return _.defaults(graphqlOptions, { context });
       });

@@ -125,7 +125,7 @@ export class ContextManager {
   }
 
   /**
-   * Updates the cache with either items from the containing List's HOC query, or with mutated items.
+   * Updates the cache with results from the ContextQuery.
    *
    * @param items
    */
@@ -146,10 +146,9 @@ export class ContextManager {
    * Inject contextual items into the current list results.
    *
    * @param items Items returned by the List's HOC query.
-   * @return {*}
+   * @return {[{Item]}
    */
   injectItems(items) {
-
     let itemsByKey = new Map();
 
     // For each transient item in the context.

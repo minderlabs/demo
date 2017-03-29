@@ -45,8 +45,11 @@
                  href="/services">Services</a>
               <a class="site-button" target="_blank"
                  href="https://myaccount.google.com/permissions">Google App Permissions</a>
+
+              <!--
               <a class="site-button" target="_blank"
                  onclick="return testToken('{{ idToken }}')">Test ID Token</a>
+                 -->
             </div>
           </div>
         </div>
@@ -74,6 +77,8 @@
       return false;
     }
 
+    /*
+    // TODO(burdon): Verifies Google JWT only.
     function testToken(idToken) {
       Site.getJson('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + idToken).then(response => {
 
@@ -92,6 +97,7 @@
 
       return false;
     }
+    */
 
   </script>
 </div>

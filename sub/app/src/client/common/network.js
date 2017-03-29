@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { print } from 'graphql-tag/printer';                // TODO(burdon): Deprecated.
 import { createNetworkInterface } from 'apollo-client';
 
-import { UpsertItemsMutationName, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
+import { AuthUtil, UpsertItemsMutationName, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -21,6 +21,7 @@ const logger = Logger.get('net');
 export class NetworkManager {
 
   /**
+   * Manages teh Apollo network interface.
    *
    * @param {object }config
    * @param {AuthManager} authManager
@@ -63,9 +64,11 @@ export class NetworkManager {
     const addHeaders = {
       applyMiddleware: ({ request, options }, next) => {
 
-        options.headers = _.assign(options.headers,
-          AuthManager.getHeaders(this._authManager.idToken),
-          ConnectionManager.getHeaders(this._connectionManager.clientId));
+        // Auth.
+        options.headers = AuthUtil.setAuthHeader(options.headers, this._authManager.idToken);
+
+        // Client.
+        options.headers = ConnectionManager.setClientHeader(options.headers, this._connectionManager.clientId);
 
         next();
       }
