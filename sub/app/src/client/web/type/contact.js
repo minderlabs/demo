@@ -20,6 +20,11 @@ import { TaskCard, TaskListItemRenderer } from './task';
 // Components.
 //-------------------------------------------------------------------------------------------------
 
+// TODO(madadam): Bug when a contact is edited twice without being reloaded -- the system clones the
+// ephemeral Contact both times, resulting in duplicate Contact records in the user store.
+// The Contact needs to be invalidated in the client after the first mutation, so the ephemeral contact
+// is replaced with the new permanent item.
+
 /**
  * Create a sequence (batch) of mutations that create and update a new Task.
  * @param params
