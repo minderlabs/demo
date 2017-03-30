@@ -8,16 +8,16 @@ import moment from 'moment';
 import request from 'request';
 
 import { Async, HttpError, Logger } from 'minder-core';
+import { hasJwtHeader } from 'minder-services';
 
 import { Const, FirebaseServerConfig } from '../common/defs';
 
 const logger = Logger.get('client');
 
-// TODO(burdon): Move to minder-services
-
 /**
  * Client endpoints.
  */
+// TODO(burdon): Move to minder-services
 export const clientRouter = (userManager, clientManager, systemStore, options={}) => {
   console.assert(userManager && clientManager);
   let router = express.Router();
@@ -25,38 +25,32 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
   //
   // Registers the client.
   //
-  router.post('/register', function(req, res, next) {
-    userManager.getUserFromHeader(req.headers, true)
-      .then(user => {
-        let { platform, messageToken } = req.body;
+  router.post('/register', hasJwtHeader(), function(req, res) {
+    let { platform, messageToken } = req.body;
+    let user = req.user;
 
-        // Register the client (and create it if necessary).
-        let clientId = req.headers[Const.HEADER.CLIENT_ID];
-        clientManager.register(user.id, platform, clientId, messageToken).then(client => {
-          if (!client) {
-            throw new HttpError('Invalid client: ' + clientId, 400);
-          } else {
-            // Registration info.
-            res.send({
-              client: _.pick(client, ['id', 'messageToken'])
-            });
-          }
-        })
-      })
-      .catch(next);
+    // Register the client (and create it if necessary).
+    let clientId = req.headers[Const.HEADER.CLIENT_ID];
+    clientManager.register(user.id, platform, clientId, messageToken).then(client => {
+      if (!client) {
+        throw new HttpError('Invalid client: ' + clientId, 400);
+      } else {
+        res.send({
+          client: _.pick(client, ['id', 'messageToken'])
+        });
+      }
+    })
   });
 
   //
   // Unregisters the client.
   //
-  router.post('/unregister', function(req, res, next) {
-    return userManager.getUserFromHeader(req.headers, true)
-      .then(user => {
-        let clientId = req.headers[Const.HEADER.CLIENT_ID];
-        clientManager.unregister(user.id, clientId);
-        res.end();
-      })
-      .catch(next);
+  router.post('/unregister', hasJwtHeader(), function(req, res, next) {
+    let clientId = req.headers[Const.HEADER.CLIENT_ID];
+    let user = req.user;
+    clientManager.unregister(user.id, clientId);
+
+    res.end();
   });
 
   return router;

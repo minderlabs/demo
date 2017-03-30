@@ -67,7 +67,7 @@ export class MutationUtil {
    */
   static getUpsertItemsMutationResult(action, optimistic=true) {
     if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === UpsertItemsMutationName) {
-      if (optimistic || !_.get(action, 'result.data.optimistic')) {
+      if (optimistic || !_.get(action, 'result.data.optimistic')) {   // TODO(burdon): ???
         return _.get(action.result.data, UpsertItemsMutationPath);
       }
     }
@@ -389,7 +389,7 @@ export class Mutator {
    * @param mutations
    * @param namespace
    * @param [itemMap] Optional map of cached items.
-   * @return {Item} Optimisitc result (NOTE: this will change if the item is being copied).
+   * @return {Item} Optimistic result (NOTE: this will change if the item is being copied).
    */
   updateItem(item, mutations, namespace, itemMap=undefined) {
     mutations = _.compact(_.concat(mutations));

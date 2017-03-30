@@ -5,10 +5,12 @@
 import _ from 'lodash';
 
 import { GraphQLSchema, Kind } from 'graphql';
+import { concatenateTypeDefs } from 'graphql-tools';
 import { introspectionQuery } from 'graphql/utilities';
 
 import { $$, Logger, HttpError, Database, ID, ItemStore, TypeUtil } from 'minder-core';
 
+import Framework from './gql/framework.graphql';
 import Schema from './gql/schema.graphql';
 
 const logger = Logger.get('resolver');
@@ -34,7 +36,7 @@ export class Resolvers {
   }
 
   static get typeDefs() {
-    return Schema;
+    return concatenateTypeDefs([Framework, Schema])
   }
 
   /**

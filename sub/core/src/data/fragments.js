@@ -90,23 +90,23 @@ export const Fragments = {
   `,
 
   ContactTasksFragment: gql`
-      fragment ContactTasksFragment on Contact {
-          email
-          tasks {
-              type
-              id
-              title
-              status
-          }
-          user {
-              ...UserTasksFragment
-          }
+    fragment ContactTasksFragment on Contact {
+      email
+      tasks {
+        type
+        id
+        title
+        status
       }
+      user {
+        ...UserTasksFragment
+      }
+    }
 
-      ${UserTasksFragment}
+    ${UserTasksFragment}
   `,
 
-  // TODO(burdon): Move url, iconUrl to ItemFragment
+  // TODO(burdon): Move url, iconUrl to ItemFragment.
   DocumentFragment: gql`
     fragment DocumentFragment on Document {
       url

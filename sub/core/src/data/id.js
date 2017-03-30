@@ -109,6 +109,9 @@ export class ID {
  */
 export class IdGenerator {
 
+  // TODO(burdon): node-uuid (client/server?)
+  // https://www.npmjs.com/package/uuid
+
   // TODO(burdon): Factor out random.
   // TODO(burdon): Ensure consistent with server.
   constructor(seed=undefined) {

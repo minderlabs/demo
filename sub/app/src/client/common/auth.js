@@ -4,11 +4,10 @@
 
 import _ from 'lodash';
 
-import { HttpUtil } from 'minder-core';
+import { AuthDefs, AuthUtil, HttpUtil } from 'minder-core';
+import { NetUtil } from 'minder-ux';
 
 import { Const, GoogleApiConfig } from '../../common/defs';
-
-import { NetUtil } from './net';
 
 const logger = Logger.get('auth');
 
@@ -19,20 +18,6 @@ export class AuthManager {
 
   // TODO(burdon): Generalize for other clients (mobile, command line)?
 
-  // TODO(burdon): Does not return photoUrl.
-  // TODO(burdon): Client/Server consts (OAuthProvider.DEFAULT_LOGIN_SCOPES, GoogleOAuthProvider.LOGIN_SCOPES).
-  // https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation
-  static DEFAULT_LOGIN_SCOPES = [
-    'openid',
-    'profile',
-    'email',
-
-    'https://www.googleapis.com/auth/plus.me',
-    'https://www.googleapis.com/auth/plus.login',
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile'
-  ];
-
   /**
    * Return the authentication header.
    * https://en.wikipedia.org/wiki/Basic_access_authentication
@@ -41,7 +26,7 @@ export class AuthManager {
   static getHeaders(idToken) {
     console.assert(_.isString(idToken), 'Invalid token: ' + idToken);
     return {
-      'Authorization': 'Bearer ' + idToken
+      'Authorization': 'JWT ' + idToken
     }
   }
 
@@ -79,12 +64,7 @@ export class AuthManager {
    * @return {UserProfile} User profile object { id, email, displayName, photoUrl }
    */
   authenticate() {
-    let platform = _.get(this._config, 'app.platform');
-    if (platform === Const.PLATFORM.WEB || true) { // FIXME
-      // Web is already authenticated and registered.
-      console.assert(this.idToken);
-      return Promise.resolve(_.get(this._config, 'userProfile'));
-    } else {
+    if (_.get(window, 'chrome.identity')) {
       // Trigger OAuth flow.
       return this._launchWebAuthFlow().then(credentials => {
         return this._registerUser(credentials).then(userProfile => {
@@ -92,6 +72,10 @@ export class AuthManager {
           return userProfile;
         });
       });
+    } else {
+      // Web is already authenticated and registered.
+      console.assert(this.idToken);
+      return Promise.resolve(_.get(this._config, 'userProfile'));
     }
   }
 
@@ -105,11 +89,10 @@ export class AuthManager {
     return new Promise((resolve, reject) => {
       logger.log('Authenticating...');
 
-      // TODO(burdon): Factor out client provider.
       const OAuthProvider = {
         provider: 'google',
         requestUrl: 'https://accounts.google.com/o/oauth2/auth',
-        scope: AuthManager.DEFAULT_LOGIN_SCOPES
+        scope: AuthDefs.GOOGLE_LOGIN_SCOPES
       };
 
       // Get the access and id tokens.
@@ -175,7 +158,9 @@ export class AuthManager {
    */
   _registerUser(credentials) {
     let registerUrl = NetUtil.getUrl('/user/register', this._config.server);
-    let headers = AuthManager.getHeaders(credentials.id_token);
+
+    let headers = AuthUtil.setAuthHeader({}, credentials.id_token);
+
     return NetUtil.postJson(registerUrl, { credentials }, headers).then(result => {
       let { userProfile } = result;
 

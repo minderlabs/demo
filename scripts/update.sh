@@ -9,8 +9,10 @@
 # https://facebook.github.io/react/warnings/refs-must-have-owner.html#multiple-copies-of-react
 #
 
-for module in "app" "scheduler"; do
-  pushd sub/$module
+MODULES=( "app" "scheduler" )
+
+for mod in ${MODULES[@]}; do
+  pushd sub/$mod
   npm-workspace install
   popd
 done
