@@ -384,7 +384,7 @@ export class Mutator {
    * @param mutations
    * @param namespace
    * @param [itemMap] Optional map of cached items.
-   * @return {Item} Optimisitc result (NOTE: this will change if the item is being copied).
+   * @return {Item} Optimistic result (NOTE: this will change if the item is being copied).
    */
   updateItem(item, mutations, namespace, itemMap=undefined) {
     mutations = _.compact(_.concat(mutations));
