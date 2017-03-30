@@ -31,7 +31,7 @@ export class Settings {
     // TODO(burdon): 'sync' across machines.
     // https://developer.chrome.com/extensions/storage#event-onChanged
     chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName == 'local') {
+      if (areaName === 'local') {
         // Update changes.
         _.each(changes, (value, key) => {
           if (value.newValue) {

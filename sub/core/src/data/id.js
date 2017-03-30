@@ -92,11 +92,14 @@ export class ID {
   /**
    * Creates a foreign key.
    * @param item
-   * @return {string}
+   * @return {string} or null if the foreign key cannot be created.
    */
   static getForeignKey(item) {
-    console.assert(item && item.namespace && item.id, 'Cannot create FK: ' + JSON.stringify(item));
-    return item.namespace + '/' + item.id;
+    if (item && item.namespace && item.id) {
+      return item.namespace + '/' + item.id;
+    } else {
+      return null;
+    }
   }
 }
 
@@ -105,6 +108,9 @@ export class ID {
  * NOTE: Use same seed for in-memory datastore testing. With persistent store MUST NOT be constant.
  */
 export class IdGenerator {
+
+  // TODO(burdon): node-uuid (client/server?)
+  // https://www.npmjs.com/package/uuid
 
   // TODO(burdon): Factor out random.
   // TODO(burdon): Ensure consistent with server.

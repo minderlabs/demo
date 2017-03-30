@@ -1,13 +1,38 @@
 {
-  "Items": {
-    "Group": [
-      {
-        "id": "minder-admin",
-        "title": "Minder Admin",
+  "Group": {
+
+    "_": {
+      "admin": {
+        "title": "Admin",
         "whitelist": [
           "eng-admin@minderlabs.com"
         ]
       }
-    ]
+    },
+
+    "minderlabs_com": {
+      "eng" : {
+        "title": "Minder Eng",
+        "whitelist": [
+          "adam@minderlabs.com",
+          "rich@minderlabs.com"
+        ]
+      }
+    },
+
+    "testers": {
+      "rich_burdon_gmail_com": {
+        "title": "Rich (Private)",
+        "whitelist": [
+          "rich.burdon@gmail.com"
+        ]
+      },
+      "adam_b_gmail_com": {
+        "title": "Adam (Private)",
+        "whitelist": [
+          "adam.b@gmail.com"
+        ]
+      }
+    }
   }
 }

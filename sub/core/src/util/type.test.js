@@ -46,7 +46,7 @@ describe('TypeUtil:', () => {
     };
 
     let x = [];
-    TypeUtil.traverse(obj, (value, key) => {
+    TypeUtil.traverse(obj, (value) => {
       let id = _.get(value, 'value.id');
       if (id) {
         x.push(id);

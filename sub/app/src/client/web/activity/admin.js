@@ -37,6 +37,7 @@ class AdminActivity extends React.Component {
   );
 
   state = {
+    // Active Group.
     groupId: null
   };
 
@@ -54,9 +55,9 @@ class AdminActivity extends React.Component {
       // Join email whitelist with actual members.
       let whitelist = null;
       if (groupId) {
-        let group = _.find(groups, group => group.id == groupId);
+        let group = _.find(groups, group => group.id === groupId);
         whitelist = _.map(group.whitelist, email => {
-          let user = _.find(group.members, member => member.email == email);
+          let user = _.find(group.members, member => member.email === email);
           return {
             id: email,
             title: email,

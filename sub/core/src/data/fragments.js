@@ -43,6 +43,7 @@ export const Fragments = {
   // Item Types.
   //
 
+  // TODO(burdon): Don't reference other Item fragments.
   ContactFragment: gql`
     fragment ContactFragment on Contact {
       email
@@ -55,7 +56,11 @@ export const Fragments = {
     }
   `,
 
-  // TODO(burdon): Move url, iconUrl to ItemFragment
+      // user {
+      //   ...UserFragment
+      // }
+
+  // TODO(burdon): Move url, iconUrl to ItemFragment.
   DocumentFragment: gql`
     fragment DocumentFragment on Document {
       url
@@ -155,6 +160,7 @@ export const Fragments = {
   UserFragment: gql`
     fragment UserFragment on User {
       title
+      email
   
       ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
         type

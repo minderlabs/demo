@@ -24,6 +24,13 @@ ENV PORT=3000
 ENV NODE_ENV=production
 
 #
+# Server config.
+#
+
+# Gen 3/9/17: uuid.v4()
+ENV MINDER_SESSION_SECRET="d932db47-85a2-45d9-a4d6-aa7b87ea9702"
+
+#
 # Create the nx user and home directory.
 # https://docs.docker.com/articles/dockerfile_best-practices/#user
 # http://stackoverflow.com/questions/24308760/running-app-inside-docker-as-non-root-user
@@ -75,5 +82,7 @@ USER nx
 # TODO(burdon): Logging.
 # https://docs.npmjs.com/misc/config#environment-variables
 #
+
+ENV MINDER_BOTKIT=true
 
 CMD [ "node", "dist/server.bundle.js" ]

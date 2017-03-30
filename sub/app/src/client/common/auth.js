@@ -3,33 +3,30 @@
 //
 
 import _ from 'lodash';
-import * as firebase from 'firebase';
 
-import { Const, FirebaseAppConfig, GoogleApiConfig } from '../../common/defs';
+import { AuthDefs, AuthUtil, HttpUtil } from 'minder-core';
+import { NetUtil } from 'minder-ux';
+
+import { Const, GoogleApiConfig } from '../../common/defs';
 
 const logger = Logger.get('auth');
 
 /**
- * Manages user authentication.
- * Uses Firebase (all authentication performed by client).
- *
- * https://firebase.google.com/docs/auth
- * https://firebase.google.com/docs/reference/node/firebase.auth.Auth
- *
- * https://console.firebase.google.com/project/minder-beta
- * 1). Create project (minder-beta)
- * 2). Configure Auth providers (e.g., Google)
+ * Manages Web Client authentication.
  */
 export class AuthManager {
 
+  // TODO(burdon): Generalize for other clients (mobile, command line)?
+
   /**
    * Return the authentication header.
-   * @param {string} token JWT token.
+   * https://en.wikipedia.org/wiki/Basic_access_authentication
+   * @param {string} idToken JWT token.
    */
-  static getHeaders(token) {
-    console.assert(token);
+  static getHeaders(idToken) {
+    console.assert(_.isString(idToken), 'Invalid token: ' + idToken);
     return {
-      [Const.HEADER.AUTHORIZATION]: 'Bearer ' + token
+      'Authorization': 'JWT ' + idToken
     }
   }
 
@@ -41,210 +38,162 @@ export class AuthManager {
   constructor(config) {
     console.assert(config);
     this._config = config;
-
-    // https://console.firebase.google.com/project/minder-beta/overview
-    firebase.initializeApp(FirebaseAppConfig);
-
-    // Google scopes.
-    this._authProvider = new firebase.auth.GoogleAuthProvider();
-    _.each(GoogleApiConfig.authScopes, scope => {
-      this._authProvider.addScope(scope);
-    });
-
-    // Unsubscribe function.
-    this._unsubscribe = null;
   }
 
   /**
-   * Subscribe to auth change updates and trigger auth as needed.
-   * @param force If true, then trigger authentication if logged out.
-   * @return {Promise<User>}
-   */
-  authenticate(force=false) {
-    this._unsubscribe && this._unsubscribe();
-
-    return new Promise((resolve, reject) => {
-
-      // TODO(burdon): Handle errors.
-      // Check for auth changes (e.g., expired).
-      // NOTE: This is triggered immediately if already authenticated.
-      // https://firebase.google.com/docs/auth/web/manage-users#get_the_currently_signed-in_user
-      // https://firebase.google.com/docs/reference/node/firebase.auth.Auth#onAuthStateChanged
-      this._unsubscribe = firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-          logger.log('Authenticated: ' + user.email);
-          resolve(user);
-        } else {
-          // NOTE: This is called if the user logs out from elsewhere.
-          // So, by default we don't prompt (unless CRX).
-          logger.log('Signed out.');
-          return force ? this._doAuth() : Promise.resolve(null);
-        }
-      });
-    });
-  }
-
-  /**
-   * Asynchronously returns the JWT token. Refreshes the token if necessary.
-   * @return {Promise<JWT>}
-   */
-  getToken() {
-    let user = firebase.auth().currentUser;
-
-    // https://firebase.google.com/docs/reference/js/firebase.User#getToken
-    return user.getToken();
-  }
-
-  /**
-   * Sign-out and optionally reauthanticate.
-   * @param reauthenticate
-   */
-  signout(reauthenticate=true) {
-    return new Promise((resolve, reject) => {
-      chrome.identity.getAuthToken({
-        // Don't force login if already expired.
-        interactive: false
-      }, accessToken => {
-        if (chrome.runtime.lastError) {
-          throw new Error(chrome.runtime.lastError);
-        }
-
-        // Already expired.
-        if (!accessToken) {
-          resolve();
-        } else {
-          // Remove cached token if present.
-          // https://developer.chrome.com/apps/identity#method-removeCachedAuthToken
-          logger.log('Removing cached token...');
-          chrome.identity.removeCachedAuthToken({ token: accessToken }, () => {
-            if (chrome.runtime.lastError) {
-              throw new Error(chrome.runtime.lastError);
-            }
-
-            // https://firebase.google.com/docs/reference/js/firebase.auth
-            // Automatically re-authenticates (triggers onAuthStateChanged above).
-            logger.log('Signing out...');
-            firebase.auth().signOut().then(resolve);
-          });
-        }
-      });
-    });
-  }
-
-  /**
-   * Authenticate the user (based on platform).
+   * Returns the JWT (id_token).
    *
-   * @return {Promise<User>}
-   * @private
+   * @returns {string}
    */
-  _doAuth() {
-    if (_.get(this._config, 'app.platform') === Const.PLATFORM.CRX) {
-      return this._doAuthChromeExtension();
+  get idToken() {
+    let idToken = _.get(this._config, 'credentials.id_token');
+    console.assert(idToken, 'Invalid token: ' + JSON.stringify(_.get(this._config, 'credentials')));
+    return idToken;
+  }
+
+  /**
+   * Uses the OpenID OAuth2 mechanism to obtain the Google id_token (and refresh_token).
+   * NOTE: The "official" Google API (chrome.identity.getAuthToken) only returns the access_token.
+   *
+   * NOTES:
+   * - Update the manifest's OAuth client ID.
+   * - Update the manifest Key property (ensures the dev and published CRX IDs are the same).
+   * - Register the CRX with the Web Client OAuth callbacks:
+   *   E.g., https://ofdkhkelcafdphpddfobhbbblgnloian.chromiumapp.org/google
+   *
+   * @return {UserProfile} User profile object { id, email, displayName, photoUrl }
+   */
+  authenticate() {
+    if (_.get(window, 'chrome.identity')) {
+      // Trigger OAuth flow.
+      return this._launchWebAuthFlow().then(credentials => {
+        return this._registerUser(credentials).then(userProfile => {
+          _.assign(this._config, { userProfile });
+          return userProfile;
+        });
+      });
     } else {
-      return this._doAuthWebApp();
+      // Web is already authenticated and registered.
+      console.assert(this.idToken);
+      return Promise.resolve(_.get(this._config, 'userProfile'));
     }
   }
 
   /**
-   * Show web popup.
+   * Triggers the OAuth flow if necessary, returning the credentials.
    *
-   * @return {Promise<User>}
+   * @return {Promise}
    * @private
    */
-  _doAuthWebApp() {
-    logger.log('Authenticating Web app...');
+  _launchWebAuthFlow() {
+    return new Promise((resolve, reject) => {
+      logger.log('Authenticating...');
 
-    // NOTE: Triggers state change above.
-    // https://firebase.google.com/docs/reference/js/firebase.auth.Auth.html#signInWithPopup
-    return firebase.auth().signInWithPopup(this._authProvider)
-      .then(result => {
-        return firebase.auth().currentUser;
-      })
-      .catch(error => {
-        logger.error('Sign-in failed:', JSON.stringify(error));
+      const OAuthProvider = {
+        provider: 'google',
+        requestUrl: 'https://accounts.google.com/o/oauth2/auth',
+        scope: AuthDefs.GOOGLE_LOGIN_SCOPES
+      };
+
+      // Get the access and id tokens.
+      // NOTE: We don't require offline access (refresh_token) since this is requested when registering services.
+      // NOTE: If did request "offline" then requesting both access and id tokens would fail.
+      // NOTE: The clientId is the Web Client, NOT the Chrome Extension's Client ID (in the manifest).
+      // https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters
+      let requestParams = {
+        client_id: GoogleApiConfig.clientId,
+        response_type: 'token id_token',                                        // access_token and id_token (JWT).
+        redirect_uri: chrome.identity.getRedirectURL(OAuthProvider.provider),   // Registered URL.
+        scope: OAuthProvider.scope.join(' '),
+        state: String(new Date().getTime())                                     // Check same state below.
+      };
+
+      // TODO(burdon): Move auth to minder-core.
+      let requestUrl = HttpUtil.toUrl(OAuthProvider.requestUrl, requestParams);
+
+      let options = {
+        url: requestUrl,
+
+        // Show login screen if necessary.
+        interactive: true
+      };
+
+      // https://developer.chrome.com/apps/identity#method-launchWebAuthFlow
+      // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/identity/launchWebAuthFlow
+      chrome.identity.launchWebAuthFlow(options, callbackUrl => {
+        if (chrome.runtime.lastError) {
+          // "Authorization page could not be loaded" masks all errors.
+          // To debug right-click to Copy Link Address to browser (logged URL on console is truncated).
+          // Errors:
+          // "redirect_uri_mismatch"    Registered URL.
+          // "invalid_client"           Web Client ID does not match.
+          logger.info('Auth: ' + requestUrl);
+          logger.info(JSON.stringify(requestParams, null, 2));
+          throw new Error(chrome.runtime.lastError.message);
+        }
+
+        let responseParams = HttpUtil.parseUrlParams(callbackUrl, '#');
+//      logger.log('===>>>', JSON.stringify(requestParams, null, 2));
+//      logger.log('<<<===', JSON.stringify(responseParams, null, 2));
+        console.assert(responseParams.state === requestParams.state, 'Invalid state.');
+
+        let credentials = _.assign(_.pick(responseParams, ['access_token', 'id_token']), {
+          provider: OAuthProvider.provider
+        });
+
+        // Update config.
+        _.assign(this._config, { credentials });
+
+        resolve(credentials);
       });
+    });
   }
 
   /**
-   * Create OAuth client ID (Chrome App) [store in manifset].
-   * https://console.developers.google.com/apis/credentials?project=minder-beta
-   * https://chrome.google.com/webstore/detail/minder/dkgefopdlgadfghkepoipjbiajpfkfpl
-   * Prod: dkgefopdlgadfghkepoipjbiajpfkfpl
-   * 189079594739-ngfnpmj856f7i0afsd6dka4712i0urij.apps.googleusercontent.com (Generated 1/24/17)
-   * Dev:  ghakkkmnmckhhjangmlfnkpolkgahehp
-   * 189079594739-fmlffnn0o5ka1nej028t44lp2v6knon7.apps.googleusercontent.com (Generated 1/25/17)
-   * https://github.com/firebase/quickstart-js/blob/master/auth/chromextension/credentials.js
+   * Registers the user with the (JWT) id_token returned from the OAuth login flow.
+   * Returns the user profile.
    *
-   * @return {Promise<User>}
-   * @private
+   * @param credentials
+   * @returns {Promise<UserProfile>}
    */
-  _doAuthChromeExtension() {
-    logger.log('Authenticating CRX app...');
+  _registerUser(credentials) {
+    let registerUrl = NetUtil.getUrl('/user/register', this._config.server);
 
+    let headers = AuthUtil.setAuthHeader({}, credentials.id_token);
+
+    return NetUtil.postJson(registerUrl, { credentials }, headers).then(result => {
+      let { userProfile } = result;
+
+      logger.log('Registered User: ' + JSON.stringify(userProfile));
+      return userProfile;
+    });
+  }
+
+  /**
+   * Sign-out and optionally reauthanticate.
+   *
+   * @param reauthenticate
+   * @returns {Promise}
+   */
+  signout(reauthenticate=true) {
+    logger.log('Signing out...');
+
+    // NOTE: We don't have an access token.
+    // https://developer.chrome.com/apps/identity#method-removeCachedAuthToken
+
+    // https://accounts.google.com/o/oauth2/revoke?token={token}
+
+    // TODO(burdon): onSignInChanged
+    // http://stackoverflow.com/questions/26080632/how-do-i-log-out-of-a-chrome-identity-oauth-provider
     return new Promise((resolve, reject) => {
-
-      // TODO(burdon): "For a good user experience..."
-      // https://developer.chrome.com/apps/identity#method-getAuthToken
-
-      // NOTE: The OAuth2 token uses the scopes defined in the manifest (can be overridden below).
-      // NOTE: Can only be accessed from the background page.
-      // NOTE: This hangs if the manifest's oauth2 client_id is wrong (e.g., prod vs. dev).
-      // https://developer.chrome.com/apps/app_identity
-      // https://developer.chrome.com/apps/identity#method-getAuthToken
-      // ERROR: OAuth2 request failed: Service responded with error: 'bad client id: UNSUPPORTED'
-      // => OAuth2 Credentials don't match CRX ID (must be Type: Chrome App).
-      chrome.identity.getAuthToken({
-
-        // Open Google login page if token has expired; if false, then fail.
-        interactive: true,
-
-        // Scopes matching the manifest.
-        scopes: GoogleApiConfig.authScopes
-
-      }, accessToken => {
-        if (chrome.runtime.lastError) {
-          throw new Error(chrome.runtime.lastError);
+      chrome.identity.launchWebAuthFlow({
+        url: 'https://accounts.google.com/logout'
+      }, tokenUrl => {
+        if (reauthenticate) {
+          this.authenticate().then(resolve);
+        } else {
+          return resolve();
         }
-
-        // Troubleshooting:
-        // Error: signInWithCredential => INVALID_REQUEST_URI
-        // https://github.com/firebase/quickstart-js/issues/98 [burdon 1/25/17]
-        // FB says Chrome auth isn't supported (email to me 1/25/17 and old support thread 6/22/16):
-        // http://stackoverflow.com/questions/37865434/firebase-auth-with-facebook-oauth-credential-from-google-extension
-        // But:
-        // https://github.com/firebase/quickstart-js/tree/master/auth/chromextension
-        // https://groups.google.com/forum/#!msg/firebase-talk/HgntKvXHEcY/vu6dCgbuGwAJ (demo)
-        // https://chrome.google.com/webstore/detail/firebase-auth-in-chrome-e/lpgchdfbjddonaolofeijjackhnhnlla/related
-        // > Ensure Chrome App OAuth Client
-        // > Client ID to manifest
-        // > Add published extension key to manifest
-        // > Add Google OAuth Client ID to Firebase Google Auth whitelist
-        // https://console.developers.google.com/apis/credentials?project=minder-beta
-        // https://console.firebase.google.com/project/minder-beta/authentication/providers
-
-        // Get Google-specific credentials.
-        // https://firebase.google.com/docs/reference/js/firebase.auth.GoogleAuthProvider
-        let credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
-
-        // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#signInWithCredential
-        firebase.auth().signInWithCredential(credential)
-          .then(result => {
-            let user = firebase.auth().currentUser;
-            resolve(user);
-          })
-          .catch(error => {
-            logger.error('Sign-in failed:', JSON.stringify(error));
-
-            // The OAuth token might have been invalidated; remove the token and try again.
-            if (error.code === 'auth/invalid-credential') {
-              chrome.identity.removeCachedAuthToken({ token: accessToken }, () => {
-                this._doAuthChromeExtension().then(user => resolve(user));
-              });
-            }
-
-            // TODO(burdon): Hangs if user closes Login page?
-            reject(error);
-          });
       });
     });
   }

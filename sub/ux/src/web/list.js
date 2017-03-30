@@ -113,8 +113,6 @@ export class List extends React.Component {
     className:          React.PropTypes.string,
     highlight:          React.PropTypes.bool,
 
-    showAdd:            React.PropTypes.bool,
-
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
     itemClassName:      React.PropTypes.string,
     itemRenderer:       React.PropTypes.func,
@@ -138,7 +136,7 @@ export class List extends React.Component {
     items: this.props.items || [],
     itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
     itemEditor: this.props.itemEditor || List.DefaultItemEditor,
-    showAdd: this.props.showAdd,
+    showAdd: false,
     editedItem: null
   };
 
@@ -275,7 +273,7 @@ export class List extends React.Component {
         let itemOrder = actualOrder || previousOrder + 1;
 
         // Calculate the dropzone order (i.e., midway between the previous and current item).
-        let dropOrder = (previousOrder == 0) ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
+        let dropOrder = (previousOrder === 0) ? previousOrder : DragOrderModel.split(previousOrder, itemOrder);
 
         // Drop zone above each item.
         listItem = (
@@ -406,7 +404,7 @@ export class ListItem extends React.Component {
     let { item } = context;
 
     // TODO(burdon): Generalize to toggle any icon.
-    let set = _.indexOf(item.labels, '_favorite') != -1;
+    let set = _.indexOf(item.labels, '_favorite') !== -1;
     const handleToggleLabel = () => {
       context.onItemUpdate(item, [
         MutationUtil.createLabelMutation('_favorite', !set)
@@ -448,7 +446,7 @@ export class ListItem extends React.Component {
 
     const handleDelete = () => {
       context.onItemUpdate(item, [
-        MutationUtil.createDeleteMutation(_.findIndex(item.labels, '_deleted') == -1)
+        MutationUtil.createDeleteMutation(_.findIndex(item.labels, '_deleted') === -1)
       ]);
     };
 

@@ -6,7 +6,8 @@ import _ from 'lodash';
 import express from 'express';
 import moment from 'moment';
 
-import { $$, Logger } from 'minder-core';
+import { Logger, TypeUtil } from 'minder-core';
+import { isAuthenticated, getUserSession } from 'minder-services';
 
 import { Const } from '../common/defs';
 
@@ -34,65 +35,66 @@ const WEBPACK_BUNDLE = {
  * @param options
  * @returns {Router}
  */
-export const appRouter = (userManager, clientManager, systemStore, options) => {
+export const webAppRouter = (userManager, clientManager, systemStore, options) => {
   console.assert(userManager && clientManager);
+
   const router = express.Router();
 
+  //
   // Webpack assets.
+  //
   router.use('/assets', express.static(options.assets));
 
-  // Path: /\/app\/(.*)/
-  // TODO(burdon): /app should be on separate subdomin (e.g., app.minderlabs.com/inbox)?
-  const path = new RegExp(options.root.replace('/', '\/') + '\/?(.*)');
-
+  //
   // Web app.
-  router.get(path, function(req, res, next) {
-    return userManager.getUserFromCookie(req)
-      .then(user => {
-        if (!user) {
-          // TODO(burdon): Create Router object rather than hardcoding path.
-          res.redirect('/');
-        } else {
-          // Create the client.
-          // TODO(burdon): Client should register (might store ID -- esp. if has worker, etc.)
-          let client = clientManager.create(user.id, Const.PLATFORM.WEB);
+  // Path: /\/app\/(.*)/
+  // TODO(burdon): /app could be on separate subdomin (e.g., app.minderlabs.com/inbox)?
+  //
+  const path = new RegExp(options.root.replace('/', '\/') + '\/?(.*)');
+  router.get(path, isAuthenticated('/user/login'), function(req, res, next) {
+    let user = req.user;
 
-          // Get group.
-          // TODO(burdon): Client shouldn't need this (i.e., implicit by current canvas context).
-          return systemStore.getGroup(user.id)
-            .then(group => {
-              // Client app config.
-              let config = _.defaults({
-                root: Const.DOM_ROOT,
+    // Create the client.
+    // TODO(burdon): Client should register (might store ID -- esp. if has worker, etc.)
+    clientManager.create(user.id, Const.PLATFORM.WEB).then(client => {
+      console.assert(client);
 
-                graphql: '/graphql',
-                graphiql: '/graphiql',
+      //
+      // Client app config.
+      // NOTE: This is the canonical shape of the config object.
+      // The CRX has to construct this by registering the user (post auth) and client.
+      //
+      let config = _.defaults({
 
-                // Authenticated user.
-                registration: {
-                  userId:   user.id,
-                  groupId:  group.id,    // TODO(burdon): Remove.
-                  clientId: client.id
-                }
-              }, options.config);
+        // DOM.
+        root: Const.DOM_ROOT,
 
-              logger.log($$('Client options = %o', config));
+        // Paths.
+        graphql: '/graphql',
+        graphiql: '/graphiql',
 
-              // Render page.
-              res.render('app', {
-                bundle: WEBPACK_BUNDLE[config.env],
-                config
-              });
-            });
-        }
-      })
-      .catch(next);
-  });
+        // Client registration.
+        client: _.pick(client, ['id', 'messageToken']),
 
-  // Status
-  router.get('/status', function(req, res) {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(options.config, null, 2));
+        // User credentials.
+        credentials: _.pick(getUserSession(user), ['id_token', 'id_token_exp']),
+
+        // Canonical profile.
+        userProfile: _.pick(user, ['id', 'email', 'displayName', 'photoUrl']),
+
+      }, options.config);
+
+      logger.log('Client config = ' + TypeUtil.stringify(config));
+
+      //
+      // Render page.
+      //
+      res.render('app', {
+        bundle: WEBPACK_BUNDLE[config.env],
+        loader: config.env === 'production',
+        config
+      });
+    }).catch(next);
   });
 
   return router;
@@ -131,7 +133,7 @@ export const hotRouter = (options) => {
 
   // https://github.com/glenjamin/webpack-hot-middleware
   router.use(webpackHotMiddleware(compiler, {
-    log: (msg) => console.log('### [%s] %s ###', moment().format('hh:mm:ss'), msg)
+    log: (msg) => console.log('### [%s] %s ###', moment().format('YYYY-MM-DD HH:mm Z'), msg)
   }));
 
   return router;

@@ -6,7 +6,7 @@ import _ from 'lodash';
 import Botkit from 'botkit';
 import express from 'express';
 
-import { Logger } from 'minder-core';
+import { Logger, HttpError } from 'minder-core';
 
 import { SlackBot } from './slack_bot';
 
@@ -52,7 +52,7 @@ export class BotKitManager {
       // that aren't available to bot users. When making web API requests that need those scopes, access that token
       // via bot.config.incoming_webhook.token.
       // https://api.slack.com/bot-users#bot-methods
-      scopes: ['commands', 'bot', 'incoming-webhook', 'search:read']
+      scopes: ['commands', 'bot', 'incoming-webhook', 'search:read', 'users:read', 'users:read.email']
     });
 
     this.slackbot = new SlackBot(this.controller, this._database);
@@ -147,7 +147,7 @@ export const botkitRouter = (manager) => {
     .createHomepageEndpoint(router)
     .createOauthEndpoints(router, function(err, req, res) {
       if (err) {
-        res.status(500).send('ERROR: ' + err);
+        throw new HttpError(err);
       } else {
         // Redirect.
         // TODO(madadam): redirect back to /accounts once account info is displayed for already-connected services.

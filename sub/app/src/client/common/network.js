@@ -3,10 +3,10 @@
 //
 
 import _ from 'lodash';
-import { print } from 'graphql-tag/printer';
+import { print } from 'graphql-tag/printer';                // TODO(burdon): Deprecated.
 import { createNetworkInterface } from 'apollo-client';
 
-import { UpsertItemsMutationName, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
+import { AuthDefs, AuthUtil, UpsertItemsMutationName, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -21,6 +21,7 @@ const logger = Logger.get('net');
 export class NetworkManager {
 
   /**
+   * Manages teh Apollo network interface.
    *
    * @param {object }config
    * @param {AuthManager} authManager
@@ -58,20 +59,18 @@ export class NetworkManager {
     this._logger = new NetworkLogger(this._config);
 
     /**
-     * Add headers for execution context (e.g., JWT Authentication header).
+     * Add headers for request context (e.g., (JWT) id_token Authentication header).
      */
     const addHeaders = {
       applyMiddleware: ({ request, options }, next) => {
-        let registration = this._connectionManager.registration;
-        console.assert(registration);
 
-        // Asynchronously add the JWT.
-        this._authManager.getToken().then(token => {
-          options.headers = _.assign(options.headers,
-            AuthManager.getHeaders(token),
-            ConnectionManager.getHeaders(registration.clientId));
-          next();
-        });
+        // Auth.
+        options.headers = AuthUtil.setAuthHeader(options.headers, this._authManager.idToken);
+
+        // Client.
+        options.headers = ConnectionManager.setClientHeader(options.headers, this._connectionManager.clientId);
+
+        next();
       }
     };
 
@@ -304,7 +303,7 @@ export class ChromeNetworkInterface { // extends NetworkInterface {
   /**
    * Proxy request through the message sender.
    *
-   * @param {GraphQLRequest}
+   * @param {GraphQLRequest} gqlRequest
    * @return {Promise<GraphQLResult>}
    */
   query(gqlRequest) {

@@ -74,6 +74,14 @@ export class StatusBar extends React.Component {
     this.error(false);
   }
 
+  showHelp(showHelp=true) {
+    if (showHelp) {
+      window.Intercom('show');
+    } else {
+      window.Intercom('hide');
+    }
+  }
+
   render() {
     let { config } = this.context;
     let { error, networkIn, networkOut } = this.state;
@@ -101,10 +109,10 @@ export class StatusBar extends React.Component {
         icon: 'graphic_eq'
       },
       {
-        href: '/accounts',
-        title: 'Accounts',
-        icon: 'apps'
-      },
+        href: '/user/profile',
+        title: 'Profile',
+        icon: 'settings'
+      }
     ];
 
     return (
@@ -120,13 +128,19 @@ export class StatusBar extends React.Component {
             </a>
             ))
           }
+
+          <i className="ux-icon ux-icon-action" title="Get help"
+             onClick={ this.showHelp.bind(this) }>live_help</i>
         </div>
 
         <div className="app-status-info">{ config.app.version }</div>
 
         <div>
+          <i className="ux-icon ux-icon-action" title="Refresh JWT"
+             onClick={ this.handleAction.bind(this, 'refresh_id_token') }>security</i>
+
           <i className="ux-icon ux-icon-action" title="Refresh queries"
-             onClick={ this.handleAction.bind(this, 'refresh') }>refresh</i>
+             onClick={ this.handleAction.bind(this, 'invalidate_queries') }>refresh</i>
 
           <i className={ DomUtil.className('app-icon-network-in', 'ux-icon', networkIn && 'ux-icon-on') }></i>
           <i className={ DomUtil.className('app-icon-network-out', 'ux-icon', networkOut && 'ux-icon-on') }></i>

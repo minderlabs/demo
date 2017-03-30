@@ -20,9 +20,10 @@
           <div>{{ message }}</div>
 
           {{#if login}}
-          <div class="site-buttonbar">
-            <button onclick="login()">Login</button>
-            <button class="site-install-crx" onclick="installCrx()">Install Chrome Extension</button>
+          <div class="site-buttons">
+            <a href="/user/login">
+              <img class="site-login" alt="Google Login">
+            </a>
           </div>
           {{/if}}
         </div>
@@ -38,6 +39,7 @@
   </div>
 </div>
 
+<<<<<<< HEAD
 <script src="/assets/website.bundle.js"></script>
 <script>
   new Words().start(3, 30);
@@ -55,3 +57,11 @@
     chrome.webstore.install('{{ crxUrl }}', () => { console.log('OK') }, error => { console.error(error) });
   }
 </script>
+=======
+  <script src="/assets/website.bundle.js"></script>
+  <script>
+    // Animation.
+    new Words().start(3, 30);
+  </script>
+</div>
+>>>>>>> master

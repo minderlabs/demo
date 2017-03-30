@@ -2,25 +2,29 @@
 // Copyright 2016 Minder Labs.
 //
 
-import { TestConfig } from './config';
+import './config';
 
 import _ from 'lodash';
-import path from 'path';
-import http from 'http';
-import express from 'express';
-import handlebars from 'express-handlebars';
+import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
+import express from 'express';
+import session from 'express-session';
+import handlebars from 'express-handlebars';
 import favicon from 'serve-favicon';
-import moment from 'moment';
+import http from 'http';
+import path from 'path';
+import uuid from 'node-uuid';
 
 import {
   ErrorUtil,
+  ExpressUtil,
+  HttpError,
   Logger,
-  NotAuthenticatedError,
-  TypeUtil
 } from 'minder-core';
 
+// TODO(burdon): minder-data.
 import {
+  AuthUtil,
   Database,
   IdGenerator,
   Matcher,
@@ -30,19 +34,35 @@ import {
 } from 'minder-core';
 
 import {
+  getIdToken,
+  isAuthenticated,
+  oauthRouter,
+  userRouter,
+
+  OAuthProvider,
+  OAuthRegistry,
+  ServiceRegistry,
+  UserManager,
+
+  GoogleOAuthProvider,
+  GoogleDriveQueryProcessor,
+  GoogleDriveServiceProvider,
+  GoogleMailServiceProvider,
+
+  SlackServiceProvider,
+  SlackQueryProcessor
+} from 'minder-services';
+
+import {
   Firebase,
   FirebaseItemStore,
-  GoogleDriveQueryProcessor,
-  SlackQueryProcessor,
   graphqlRouter
 } from 'minder-graphql';
 
-import { Const, FirebaseAppConfig, GoogleApiConfig, SlackConfig } from '../common/defs';
+import { Const, FirebaseAppConfig, GoogleApiConfig, OAuthConfig, SlackConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
-import { appRouter, hotRouter } from './app';
-import { accountsRouter, AccountManager, SlackAccountHandler } from './accounts';
-import { loginRouter, UserManager } from './user';
+import { webAppRouter, hotRouter } from './app';
 import { botkitRouter, BotKitManager } from './botkit/app/manager';
 import { clientRouter, ClientManager } from './client';
 import { loggingRouter } from './logger';
@@ -67,6 +87,8 @@ ErrorUtil.handleErrors(process, error => {
 // Env.
 //
 
+// TODO(burdon): Const for all ENV vars.
+
 // TODO(burdon): Move to Config.
 const Config = {
   MEMCACHE_HOST: _.get(process.env, 'MEMCACHE_SERVICE_HOST', '127.0.0.1'),
@@ -89,7 +111,8 @@ const app = express();
 
 const server = http.Server(app);
 
-const idGenerator = new IdGenerator(1000);
+// NOTE: Want repeatable IDs in dev but not production.
+const idGenerator = new IdGenerator((env !== 'production') && 1000);
 
 const clientManager = new ClientManager(idGenerator);
 
@@ -102,6 +125,30 @@ const matcher = new Matcher();
 //
 
 const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credentialPath']));
+
+
+//
+// OAuth providers.
+//
+
+const oauthCallbackUrl = (testing ? OAuthConfig.TESTING_CALLBACK : OAuthConfig.CALLBACK);
+
+const googleAuthProvider = new GoogleOAuthProvider(GoogleApiConfig, oauthCallbackUrl);
+
+// TODO(burdon): Rename LoginRegistry? (i.e., which login mechanisms are displayed).
+const oauthRegistry = new OAuthRegistry()
+  .registerProvider(googleAuthProvider);
+
+
+//
+// Service providers.
+//
+
+const serviceRegistry = new ServiceRegistry()
+  .registerProvider(new GoogleDriveServiceProvider(googleAuthProvider))
+  .registerProvider(new GoogleMailServiceProvider(googleAuthProvider))
+  .registerProvider(new SlackServiceProvider());
+
 
 //
 // Database.
@@ -117,7 +164,7 @@ const userDataStore = testing ?
 const systemStore = new SystemStore(
   new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.SYSTEM, false));
 
-const userManager = new UserManager(firebase, systemStore);
+const userManager = new UserManager(googleAuthProvider, systemStore);
 
 const database = new Database()
 
@@ -137,15 +184,6 @@ const database = new Database()
     // Notify clients of changes.
     clientManager.invalidateClients(context.clientId);
   });
-
-
-//
-// OAuth accounts.
-// TODO(burdon): Reconcile with UserManager.
-//
-
-const accountManager = new AccountManager()
-  .registerHandler('Slack', new SlackAccountHandler());
 
 
 //
@@ -174,27 +212,6 @@ if (_.get(process.env, 'MINDER_BOTKIT', false)) {
     .registerQueryProcessor(new SlackQueryProcessor(idGenerator, botkitManager));
 }
 
-//
-// Data initialization.
-//
-
-let loader = new Loader(database, testing);
-
-logger.log('Loading data...');
-let loading = Promise.all([
-  // Do in parallel.
-  loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM),
-  loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS)
-]).then(() => {
-  logger.log('Initializing groups...');
-  return loader.initGroups().then(() => {
-    if (testing) {
-      logger.log('Generating test data...');
-      return new TestGenerator(database).generate();
-    }
-  });
-});
-
 
 //
 // Hot loader.
@@ -215,31 +232,8 @@ const MINDER_VIEWS_DIR = _.get(process.env, 'MINDER_VIEWS_DIR', './views');
 
 app.engine('handlebars', handlebars({
   layoutsDir: path.join(__dirname, MINDER_VIEWS_DIR, '/layouts'),
-
   defaultLayout: 'main',
-
-  helpers: {
-    section: function(name, options) {
-      if (!this.sections) { this.sections = {}; }
-      this.sections[name] = options.fn(this);
-    },
-
-    toJSON: function(object) {
-      return JSON.stringify(object);
-    },
-
-    toJSONPretty: function(object) {
-      return TypeUtil.stringify(object, 2);
-    },
-
-    short: function(object) {
-      return TypeUtil.truncate(object, 24);
-    },
-
-    time: function(object) {
-      return object && moment.unix(object).fromNow();
-    }
-  }
+  helpers: ExpressUtil.Helpers
 }));
 
 app.set('view engine', 'handlebars');
@@ -251,46 +245,91 @@ app.set('views', path.join(__dirname, MINDER_VIEWS_DIR));
 //
 
 if (env === 'production') {
+  // TODO(burdon): Implement prod logging.
   app.use('/', loggingRouter({}));
 } else {
-  app.use('/testing', testingRouter({}));
+  app.use((req, res, next) => {
+    if (req.method === 'POST') {
+      logger.log(req.method, req.url);
+    }
+
+    // Continue to actual route.
+    next();
+  });
 }
 
 
 //
-// Public assets.
-// https://expressjs.com/en/starter/static-files.html
+// Middleware.
 //
 
 const MINDER_PUBLIC_DIR = _.get(process.env, 'MINDER_PUBLIC_DIR', './public');
 
+// https://expressjs.com/en/starter/static-files.html
 app.use(favicon(path.join(__dirname, MINDER_PUBLIC_DIR, '/favicon.ico')));
 app.use(express.static(path.join(__dirname, MINDER_PUBLIC_DIR)));
 
-
-//
-// Home page.
-//
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.use(cookieParser());
 
-app.get('/home', function(req, res, next) {
-  return userManager.getUserFromCookie(req)
-    .then(user => {
-      if (user) {
-        res.redirect(Const.APP_PATH);
-      } else {
-        res.render('home', {
-          crxUrl: Const.CRX_URL(Const.CRX_ID),
-          login: true
-        });
-      }
-    })
-    .catch(next);
+
+//
+// Sessions required for Passport.
+// https://github.com/expressjs/session
+//
+
+const MINDER_SESSION_SECRET = _.get(process.env, 'MINDER_SESSION_SECRET', 'minder-testing-secret');
+
+app.use(session({
+  secret: MINDER_SESSION_SECRET,
+  resave: false,                    // Don't write to the store if not modified.
+  saveUninitialized: false,         // Don't save new sessions that haven't been initialized.
+  genid: req => uuid.v4()
+}));
+
+
+//
+// App services.
+// TODO(burdon): Factor out path constants (e.g., OAuthProvider.PATH).
+//
+
+// NOTE: This must be defined ("used') before other services.
+app.use(OAuthProvider.PATH, oauthRouter(userManager, systemStore, oauthRegistry, { app, env }));
+
+app.use('/user', userRouter(userManager, oauthRegistry, systemStore, {
+  env,
+  crxUrl: Const.CRX_URL(Const.CRX_ID)
+}));
+
+app.use('/client', clientRouter(userManager, clientManager, systemStore));
+
+if (botkitManager) {
+  app.use('/botkit', botkitRouter(botkitManager));
+}
+
+
+//
+// User pages.
+//
+
+app.get('/home', function(req, res) {
+  res.render('home', {
+    crxUrl: Const.CRX_URL(Const.CRX_ID),
+    login: true
+  });
 });
 
-app.get('/welcome', function(req, res) {
+app.get('/welcome', isAuthenticated('/home'), function(req, res) {
   res.render('home', {});
+});
+
+app.get('/services', isAuthenticated('/home'), function(req, res) {
+  // TODO(burdon): Service state (e.g., errors, 401) from ServiceStore.
+  res.render('services', {
+    providers: serviceRegistry.providers
+  });
 });
 
 
@@ -305,34 +344,37 @@ app.use(graphqlRouter(database, {
   // Use custom UX provided below.
   graphiql: false,
 
-  //
-  // Gets the user context from the request headers (async).
-  // NOTE: The client must pass the same context shape to the matcher.
-  //
-  contextProvider: request => userManager.getUserFromHeader(request)
-    .then(user => {
-      let context = {
-        userId: user && user.active && user.id,
-        clientId: request.headers[Const.HEADER.CLIENT_ID]
-      };
+  // Asynchronously provides the request context.
+  contextProvider: (req) => {
+    let user = req.user;
+    console.assert(user);
 
-      if (!user) {
-        return Promise.resolve(context);
-      } else {
-        // TODO(burdon): Get groups.
-        return systemStore.getGroup(user.id).then(group => _.assign(context, {
-          groupId: group.id
-        }));
-      }
-    })
+    // The database context (different from the Apollo context).
+    // NOTE: The client must pass the same context shape to the matcher.
+    let context = {
+      userId: user && user.active && user.id,
+      clientId: req.headers[Const.HEADER.CLIENT_ID],
+      credentials: user.credentials
+    };
+
+    if (!user) {
+      return Promise.resolve(context);
+    } else {
+      return systemStore.getGroups(user.id).then(groups => {
+        return _.assign(context, {
+          groupIds: _.map(groups, group => group.id)
+        })
+      });
+    }
+  }
 }));
 
 
 //
-// Custom GraphiQL.
-// TODO(burdon): Move to Util (how to use handlebars in external lib?)
+// Testing.
 //
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 let staticPath = (env === 'production') ?
   path.join(__dirname, '../node_modules') :
@@ -341,38 +383,39 @@ let staticPath = (env === 'production') ?
 const MINDER_NODE_MODULES_DIR =
   _.get(process.env, 'MINDER_NODE_MODULES_DIR', (env === 'production') ? '../node_modules' : '../../node_modules');
 >>>>>>> master
+=======
+if (env !== 'production' || true) {
+>>>>>>> master
 
-app.use('/node_modules', express.static(path.join(__dirname, MINDER_NODE_MODULES_DIR)));
+  //
+  // Custom GraphiQL.
+  // TODO(burdon): Move to Util (how to use handlebars in external lib?)
+  //
 
-app.get('/graphiql', function(req, res) {
-  return userManager.getUserFromCookie(req)
-    .then(user => {
-      if (!user) {
-        return res.redirect('/home');
+  const MINDER_NODE_MODULES_DIR =
+    _.get(process.env, 'MINDER_NODE_MODULES_DIR', (env === 'production') ? '../node_modules' : '../../node_modules');
+
+  app.get('/node_modules', express.static(path.join(__dirname, MINDER_NODE_MODULES_DIR)));
+
+  app.get('/graphiql', isAuthenticated(), function(req, res) {
+
+    let headers = {};
+    AuthUtil.setAuthHeader(headers, getIdToken(req.user));
+    headers[Const.HEADER.CLIENT_ID] = req.query.clientId;
+
+    res.render('graphiql', {
+      config: {
+        headers
       }
-
-      // See NetworkLogger.
-      res.render('graphiql', {
-        config: {
-          headers: [
-            {
-              name: Const.HEADER.AUTHORIZATION,
-              value: `Bearer ${user.token}`
-            },
-            {
-              name: Const.HEADER.CLIENT_ID,
-              value: req.query.clientId
-            }
-          ]
-        }
-      });
+    });
   });
-});
+
+  app.use('/testing', testingRouter({}));
+}
 
 
 //
 // Admin.
-// TODO(burdon): SECURITY: Permissions!
 //
 
 app.use('/admin', adminRouter(clientManager, firebase, {
@@ -381,27 +424,13 @@ app.use('/admin', adminRouter(clientManager, firebase, {
 
 
 //
-// App services.
-//
-
-app.use('/user', loginRouter(userManager, accountManager, systemStore, { env }));
-
-app.use('/client', clientRouter(userManager, clientManager, systemStore));
-
-if (botkitManager) {
-  app.use('/botkit', botkitRouter(botkitManager));
-}
-
-app.use(accountsRouter(accountManager));
-
-//
 // Web App.
 //
 
 const MINDER_ASSETS_DIR =
   _.get(process.env, 'MINDER_ASSETS_DIR', (env === 'production') ? '.' : '../../dist');
 
-app.use(appRouter(userManager, clientManager, systemStore, {
+app.use(webAppRouter(userManager, clientManager, systemStore, {
 
   // App root path.
   root: Const.APP_PATH,
@@ -428,47 +457,92 @@ app.use(appRouter(userManager, clientManager, systemStore, {
 
 
 //
-// Catch-all (last).
+// Server status.
 //
 
-app.use('/', function(req, res) {
+app.get('/status', function(req, res, next) {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify({
+    env,
+    version: Const.APP_VERSION
+  }, null, 2));
+});
+
+
+//
+// Redirect root.
+//
+
+app.get('/', function(req, res) {
   res.redirect('/home');
 });
 
 
 //
-// File not found.
-//
-
-app.use(function(req, res) {
-  logger.log(`[404]: ${req.path}`);
-  res.status(404).end();
-});
-
-
-//
-// Error handling (e.g., uncaught exceptions).
+// Error handling middleware (e.g., uncaught exceptions).
 // https://expressjs.com/en/guide/error-handling.html
+// https://strongloop.com/strongblog/async-error-handling-expressjs-es7-promises-generators/
+// https://expressjs.com/en/starter/faq.html
 //
 // NOTE: Must be last.
+// NOTE: Must have all 4 args (error middleware signature).
 // NOTE: Async functions must call next() for subsequent middleware to be called.
 //
-// app.use(function(req, res, next) {
+// app.get(function(req, res, next) {
 //   return new Promise((resolve, reject) => {
 //     res.end();
 //   }).catch(next);
 // });
 //
-// https://strongloop.com/strongblog/async-error-handling-expressjs-es7-promises-generators/
+
+app.use(function(req, res, next) {
+  throw new HttpError(404);
+});
+
+app.use(function(err, req, res, next) {
+  let json = _.startsWith(req.headers['content-type'], 'application/json');
+
+  let code = err.code || 500;
+  if (code >= 500 || env !== 'production') {
+    logger.error(`[${req.method} ${req.url}]:`, err);
+
+    if (json) {
+      res.status(code).end();
+    } else {
+      // TODO(burdon): User facing page in prod.
+      res.render('error', { code, err });
+    }
+  } else {
+    logger.warn(`[${req.method} ${req.url}]:`, ErrorUtil.message(err));
+
+    if (json) {
+      res.status(err.code).end();
+    } else {
+      res.redirect('/');
+    }
+  }
+});
+
+
+//
+// Intitialize database.
 //
 
-app.use(function(error, req, res, next) {
-  if (error === NotAuthenticatedError) {
-    return res.status(401).end();
-  }
+// TODO(burdon): Remove from server startup except for testing. Use tools to configure DB.
 
-  logger.error(error.stack);
-  res.status(500).end();
+let loader = new Loader(database, testing);
+let loading = Promise.all([
+  // Do in parallel.
+  loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM, /^(Group)\.(.+)\.(.+)$/),
+  loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS, /^(Folder)\.(.+)$/)
+]).then(() => {
+  logger.log('Initializing groups...');
+  return loader.initGroups().then(() => {
+    if (testing) {
+      logger.log('Generating test data...');
+      return new TestGenerator(database).generate();
+    }
+  });
 });
 
 

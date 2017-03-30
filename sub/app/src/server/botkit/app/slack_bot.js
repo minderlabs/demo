@@ -5,6 +5,7 @@
 import _ from 'lodash';
 
 import { Database, Logger } from 'minder-core';
+import { SlackQueryProcessor } from 'minder-graphql';
 
 import { ActionDispatcher } from '../commands/action';
 import { PasteCommand } from '../commands/paste';
@@ -50,13 +51,49 @@ export class SlackBot {
   }
 
   /**
-   * Get minder user object from UserStore, for slack userId.
-   * @param slackUserId
+   * Get Minder User object from UserStore, for slack userId.
    * @param bot
    * @param slackApiToken token for Slack API.
-   * @return Promise of user object.
+   * @param slackUserId
+   * @return Promise of User object.
    */
-  getUserInfo(slackUserId, bot, slackApiToken) {
+  getUserInfo(bot, slackApiToken, slackUserId) {
+    return this.getSlackUserInfo(bot, slackApiToken, slackUserId)
+      .then(userInfo => {
+        let email = _.get(userInfo, 'profile.email');
+        return this.getUserByEmail(email);
+      });
+  }
+
+  /**
+   * Get Minder User object from UserStore, by email.
+   * @param email
+   * @return Promise of User object.
+   */
+  getUserByEmail(email) {
+    console.assert(email);
+    // TODO(madadam): Query userStore by email.
+    // For now, iterate through all users in the UserStore (via Database).
+    let filter = {
+      type: 'User',
+    };
+    let queryProcessor = this.database.getQueryProcessor(Database.NAMESPACE.SYSTEM);
+    console.assert(queryProcessor);
+    return queryProcessor.queryItems({}, {}, filter)
+      .then(items => {
+        let user = _.find(items, { email });
+        return user;
+      });
+  }
+
+  /**
+   * Get Slack API user object, for slack userId.
+   * @param bot
+   * @param slackApiToken token for Slack API.
+   * @param slackUserId
+   * @return Promise of Slack user object.
+   */
+  getSlackUserInfo(bot, slackApiToken, slackUserId) {
     return new Promise((resolve, reject) => {
       bot.api.users.info(
         {token: slackApiToken, user: slackUserId},
@@ -66,27 +103,7 @@ export class SlackBot {
           }
           resolve(_.get(response, 'user'));
         });
-    })
-      .then(user => {
-        let email = _.get(user, 'profile.email');
-        console.assert(email);
-        // TODO(madadam): Query userStore by email.
-        // For now, iterate through all users in the UserStore (via Database).
-        let filter = {
-          type: 'User',
-        };
-        let queryProcessor = this.database.getQueryProcessor(Database.NAMESPACE.SYSTEM);
-        console.assert(queryProcessor);
-        return queryProcessor.queryItems({}, {}, filter)
-          .then(items => {
-            let user = _.find(items, { email });
-            if (!user) {
-              // TODO(madadam): Synthesize transient user record?
-              return { email };
-            }
-            return user;
-          });
-      });
+    });
   }
 
   /**
@@ -105,7 +122,7 @@ export class SlackBot {
         let slackUserId = message.user;
         let slackApiToken = _.get(bot, 'config.incoming_webhook.token'); // same as bot.config.bot.app_token?
 
-        this.getUserInfo(slackUserId, bot, slackApiToken)
+        this.getUserInfo(bot, slackApiToken, slackUserId)
           .then(userInfo => {
             let context = {
               user: userInfo
@@ -140,7 +157,7 @@ export class SlackBot {
       let slackUserId = message.user;
       let slackApiToken = _.get(bot, 'config.incoming_webhook.token'); // same as bot.config.bot.app_token?
 
-      this.getUserInfo(slackUserId, bot, slackApiToken)
+      this.getUserInfo(bot, slackApiToken, slackUserId)
         .then(userInfo => {
           let context = {
             user: userInfo

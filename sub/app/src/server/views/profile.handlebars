@@ -9,43 +9,59 @@
   <div class="site-column">
 
     <div class="site-window-container">
-      <div class="site-window site-admin-window">
+      <div class="site-window site-profile-window">
 
         <div class="site-section">
           <h1>Profile</h1>
-          <div>
-            <a class="site-button" target="_blank"
-               href="/home">Home</a>
-            <a class="site-button" target="_blank"
-               href="https://myaccount.google.com/permissions">Google App Permissions</a>
-            <a class="site-button"
-               href="/user/logout">Logout</a>
-          </div>
-
-          <div>
-            <h2>OAuth</h2>
-            {{#each accounts}}
-            <div>{{{ infoHtml }}}</div>
-            {{/each}}
-          </div>
-
-          <div>
-            <h2>User</h2>
-            <pre class="site-json">{{{ toJSONPretty user }}}</pre>
-          </div>
-
-          <div>
-            <h2>Groups</h2>
-            {{#each groups}}
-            <pre class="site-json">{{{ toJSONPretty . }}}</pre>
-            {{/each}}
-          </div>
-
-          <div>
-            <h2>CRX</h2>
-            <button class="site-install-crx" onclick="installCrx()">Install Chrome Extension</button>
+          <div class="site-buttons">
+            <div>
+              <a class="site-button" target="_blank"
+                 href="/home">Home</a>
+              <a class="site-button"
+                 href="/user/logout">Logout</a>
+            </div>
           </div>
         </div>
+
+        <div class="site-section">
+          <div class="site-buttons">
+            <div>
+              <a class="site-img" href="/user/login?redirect={{ encodeURI loginRedirect }}">
+                <img class="site-login" alt="Google Login">
+              </a>
+
+              <a class="site-img" onclick="return installCrx()">
+                <img class="site-install-crx" alt="Chrome Extension">
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="site-section">
+          <h2>User</h2>
+          <div class="site-buttons">
+            <div>
+              <a class="site-button" target="_blank"
+                 href="/services">Services</a>
+              <a class="site-button" target="_blank"
+                 href="https://myaccount.google.com/permissions">Google App Permissions</a>
+
+              <!--
+              <a class="site-button" target="_blank"
+                 onclick="return testToken('{{ idToken }}')">Test ID Token</a>
+                 -->
+            </div>
+          </div>
+        </div>
+        <pre class="site-json">{{{ json user 2 }}}</pre>
+        <pre class="site-json" id="token"></pre>
+
+        <div class="site-section">
+          <h2>Groups</h2>
+        </div>
+        {{#each groups}}
+        <pre class="site-json">{{{ json . 2 }}}</pre>
+        {{/each}}
       </div>
     </div>
   </div>
@@ -55,8 +71,33 @@
     new Words().start(3, 30);
 
     function installCrx() {
+      // NOTE: Only works from https (prod).
       // https://developer.chrome.com/webstore/inline_installation
       chrome.webstore.install('{{ crxUrl }}', () => { console.log('OK') }, error => { console.error(error) });
+      return false;
     }
+
+    /*
+    // TODO(burdon): Verifies Google JWT only.
+    function testToken(idToken) {
+      Site.getJson('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + idToken).then(response => {
+
+        function format(ts) {
+          let m = moment.unix(ts);
+          return m.format('YYYY-MM-DD HH:mm Z') + ' (' + m.fromNow();
+        }
+
+        _.assign(response, {
+          iat: response.iat + ': ' + format(response.iat),
+          exp: response.exp + ': ' + format(response.exp)
+        });
+
+        $('#token').text(JSON.stringify(response, 0, 2));
+      });
+
+      return false;
+    }
+    */
+
   </script>
 </div>

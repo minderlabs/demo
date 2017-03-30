@@ -110,48 +110,46 @@ const ContextQuery = gql`
   query ContextQuery($filter: FilterInput!) {
     contextItems: search(filter: $filter) {
       ...ItemFragment
+      ...UserFragment
       ...ContactFragment
     }
   }
 
   ${Fragments.ItemFragment}
+  ${Fragments.UserFragment}
   ${Fragments.ContactFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  let { config, injector, search } = AppAction.getState(state);
-  let platform = _.get(config, 'app.platform');
-
-  // Current user context (e.g., host page).
-  let context = ContextAction.getState(state);
-
-  // CRX app context.
-  let contextManager = null;
-  if (platform === Const.PLATFORM.CRX) {
-    // TODO(burdon): Binds to context action; should trigger context requery.
-    contextManager = injector.get(ContextManager).updateContext(context);
-  }
-
-  // TODO(burdon): Move to layout config.
-  let listType = (platform === Const.PLATFORM.CRX) ? 'card' : 'list';
+  let { injector, config, search } = AppAction.getState(state);
 
   // Required by Mutator.
   let idGenerator = injector.get(IdGenerator);
 
+  // TODO(burdon): Move to layout config.
+  let platform = _.get(config, 'app.platform');
+  let listType = (platform === Const.PLATFORM.CRX) ? 'card' : 'list';
+
   // Construct filter (from sidebar context or searchbar).
   let queryParser = injector.get(QueryParser);
   let filter = queryParser.parse(search.text);
-  if (context && context.filter && !search.text) {
-    filter = context.filter
+
+  // CRX app context.
+  let contextManager = null;
+  if (platform === Const.PLATFORM.CRX) {
+    // Current user context (e.g., host inspector transient items).
+    // TODO(burdon): Binds to context action; should trigger context to requery.
+    let contextState = ContextAction.getState(state);
+    contextManager = injector.get(ContextManager).updateContext(contextState);
   }
 
   return {
-    idGenerator,
     contextManager,
+    idGenerator,
     listType,
     filter,
-    search
-  }
+    search,
+  };
 };
 
 export default compose(
@@ -161,6 +159,7 @@ export default compose(
 
   // Query.
   graphql(FoldersQuery, {
+
     props: ({ ownProps, data }) => {
       let { loading, error, viewer } = data;
       let { filter } = ownProps;
@@ -168,7 +167,7 @@ export default compose(
       // Create list filter (if not overridden by text search above).
       if (viewer && QueryParser.isEmpty(filter)) {
         _.each(viewer.folders, folder => {
-          if (folder.alias == ownProps.folder) {
+          if (folder.alias === ownProps.folder) {
             filter = JSON.parse(folder.filter);
             return false;
           }
@@ -220,6 +219,6 @@ export default compose(
         }
       };
     }
-  }),
+  })
 
 )(SubscriptionWrapper(Finder));

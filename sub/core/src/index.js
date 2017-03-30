@@ -6,12 +6,14 @@ export * from './util/async';
 export * from './util/dom';
 export * from './util/event';
 export * from './util/error';
+export * from './util/express';
 export * from './util/http';
 export * from './util/injector';
 export * from './util/type';
 
 export * from './util/chrome/messaging';
 
+export * from './data/auth';
 export * from './data/database';
 export * from './data/fragments';
 export * from './data/id';

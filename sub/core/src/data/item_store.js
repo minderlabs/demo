@@ -18,10 +18,14 @@ import { Transforms } from './transforms';
  */
 export class QueryProcessor {
 
-  // TODO(burdon): Support multiple groups.
+  /**
+   * Get buckets from the context.
+   * @param context
+   * @returns [{string}] Unordered array of buckets.
+   */
   static getBuckets(context) {
-    let { groupId, userId } = context;
-    return _.compact([ groupId, userId ]);
+    let { userId, groupIds } = context;
+    return _.compact(_.concat(userId, groupIds));
   }
 
   static DEFAULT_COUNT = 20;
@@ -45,8 +49,10 @@ export class QueryProcessor {
    * @param filter
    * @param offset
    * @param count
-   * @return {Promise.<[Item]>} Retrieved items or [].
+   * @return {Promise<[Item]>} Retrieved items or [].
    */
+  // TODO(burdon): Move offset, count into filter and rename filter=>query.
+  // TODO(burdon): Document root (see Matcher.matchComparatorExpression and ExpressionInput).
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
     throw new Error('Not implemented');
   }
@@ -74,9 +80,10 @@ export class ItemStore extends QueryProcessor {
    * @param context
    * @param type
    * @param itemId
-   * @return {Promise.<Item>} Item or null.
+   * @return {Promise<Item>} Item or null.
    */
   getItem(context, type, itemId) {
+    console.assert(itemId, 'Invalid ID: ' + itemId);
     return this.getItems(context, type, [itemId]).then(items => items[0]);
   }
 
@@ -84,7 +91,7 @@ export class ItemStore extends QueryProcessor {
    *
    * @param context
    * @param item
-   * @return {Promise.<Item>} Updated item.
+   * @return {Promise<Item>} Updated item.
    */
   upsertItem(context, item) {
     return this.upsertItems(context, [item]).then(items => items[0]);
@@ -95,7 +102,7 @@ export class ItemStore extends QueryProcessor {
    * @param context
    * @param type
    * @param itemIds
-   * @return {Promise.<[Item]>} Retrieved items or [].
+   * @return {Promise<[Item]>} Retrieved items or [].
    */
   getItems(context, type, itemIds=[]) {
     throw new Error('Not implemented');
@@ -105,7 +112,7 @@ export class ItemStore extends QueryProcessor {
    *
    * @param context
    * @param items
-   * @return {Promise.<[Item]>} Updated items.
+   * @return {Promise<[Item]>} Updated items.
    */
   upsertItems(context, items) {
     throw new Error('Not implemented');
@@ -117,7 +124,7 @@ export class ItemStore extends QueryProcessor {
    * @param itemStore
    * @param context
    * @param itemMutations
-   * @return {Promise<[{Item}]>}
+   * @return {Promise<[Item]>}
    */
   static applyMutations(itemStore, context, itemMutations) {
     console.assert(itemStore && context && itemMutations);
@@ -200,7 +207,7 @@ export class BaseItemStore extends ItemStore {
    * @return {*}
    */
   onUpdate(item) {
-    console.assert(item && item.type, 'Invalid item: ' + JSON.stringify(item));
+    console.assert(item && item.type, 'Invalid item: ' + TypeUtil.stringify(item));
 
     // Client created items set the ID.
     if (!item.id) {
@@ -394,13 +401,13 @@ export class ItemUtil {
     //
 
     if (missingGroupItemsByType.size) {
-      let promsies = [];
+      let promises = [];
 
       missingGroupItemsByType.forEach((items, type) => {
-        promsies.push(itemStore.getItems(context, type, _.map(items, item => item.id)));
+        promises.push(itemStore.getItems(context, type, _.map(items, item => item.id)));
       });
 
-      return Promise.all(promsies).then(results => {
+      return Promise.all(promises).then(results => {
         _.each(results, items => {
           _.each(items, item => {
 

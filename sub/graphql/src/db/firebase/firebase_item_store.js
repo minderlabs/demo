@@ -4,7 +4,9 @@
 
 import _ from 'lodash';
 
-import { BaseItemStore, QueryProcessor } from 'minder-core';
+import { BaseItemStore, Logger, QueryProcessor, TypeUtil } from 'minder-core';
+
+const logger = Logger.get('store.firebase');
 
 /**
  * Item store.
@@ -34,12 +36,14 @@ export class FirebaseItemStore extends BaseItemStore {
    */
   key(args=[]) {
     _.each(args, arg => console.assert(!_.isNil(arg), 'Invalid key: ' + JSON.stringify(args)));
+
     return '/' + this.namespace + '/' + args.join('/');
   }
 
   /**
    * Return root keys for all buckets accessible to this user.
-   * Override if no buckets (i.e., system store).
+   * Override if no buckets (i.e., sy
+   * stem store).
    * @param context
    * @param type
    * @returns {Array}
@@ -59,7 +63,7 @@ export class FirebaseItemStore extends BaseItemStore {
     return new Promise((resolve, reject) => {
       let ref = this._db.ref(this.key());
       ref.set(null, error => {
-        if (error) { reject(); } else { resolve(this); }
+        if (error) { reject(error); } else { resolve(this); }
       });
     });
   }
@@ -83,6 +87,8 @@ export class FirebaseItemStore extends BaseItemStore {
    */
   queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
 
+    // TODO(burdon): Buckets should return flattened roots?
+
     // Gather results for all buckets.
     let promises = _.map(this.getBucketKeys(context), key => this._getValue(key));
     return Promise.all(promises).then(buckets => {
@@ -105,13 +111,18 @@ export class FirebaseItemStore extends BaseItemStore {
   getItems(context, type, itemIds) {
 
     // Gather results for each bucket.
-    // TODO(burdon): Maintain ID=>bucket index for ACL.
-    let promises = _.map(this.getBucketKeys(context, type), key => this._getValue(key));
-    return Promise.all(promises).then(buckets => {
+    // TODO(burdon): Either the ID needs to contain the bucket (pref), or a separate ID => bucket index is maintained.
+    let bucketKeys = this.getBucketKeys(context, type);
+    return Promise.all(_.map(bucketKeys, key => this._getValue(key))).then(buckets => {
       let items = [];
       _.each(buckets, itemMap => {
         _.each(itemIds, itemId => {
-          let item = _.get(itemMap, itemId);
+          console.assert(itemId, 'Invalid ID: ', Array.from(buckets.keys()), itemIds);
+
+          // IDs that contain slashes are hierarchical, so convert to dot paths.
+          let idPath = itemId.replace('/', '.');
+          let item = _.get(itemMap, idPath);
+          // TODO(burdon): Currently this method queries each bucket for each ID (so might not be here).
           if (item) {
             items.push(item);
           }
@@ -134,7 +145,7 @@ export class FirebaseItemStore extends BaseItemStore {
       // NOTE: Bucket is optional for some stores (e.g., system).
       let { bucket, type, id:itemId } = item;
       console.assert(type && itemId);
-      console.assert(this._buckets == !_.isNil(bucket), 'Invalid bucket: ' + bucket);
+      console.assert(this._buckets === !_.isNil(bucket), 'Invalid bucket: ' + bucket);
 
       promises.push(new Promise((resolve, reject) => {
         let key = this.key(_.compact([ bucket, type, itemId ]));
@@ -142,7 +153,7 @@ export class FirebaseItemStore extends BaseItemStore {
         // https://firebase.google.com/docs/database/web/read-and-write
         let ref = this._db.ref(key);
         ref.set(item, error => {
-          if (error) { reject(); } else { resolve(item); }
+          if (error) { reject(error); } else { resolve(item); }
         });
       }));
     });

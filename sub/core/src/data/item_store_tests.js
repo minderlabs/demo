@@ -17,7 +17,7 @@ export const ItemStoreTests = (expect, storeFactory) => {
 
       // TODO(burdon): Test user and group bucket.
       let context = {
-        groupId: 'test-bucket'
+        groupIds: ['test-bucket']
       };
 
       let root = {};

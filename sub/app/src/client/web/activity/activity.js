@@ -29,15 +29,17 @@ import { TypeRegistry } from '../../web/framework/type_registry';
  */
 const mapStateToProps = (state, ownProps) => {
   let appState = AppAction.getState(state);
-  let { config, registration, injector } = appState;
-  console.assert(registration, 'Not registered.');
+  let { config, injector } = appState;
 
-  let analytics       = injector.get(Analytics.INJECTOR_KEY);
-  let idGenerator     = injector.get(IdGenerator);
   let typeRegistry    = injector.get(TypeRegistry);
   let queryRegistry   = injector.get(QueryRegistry);
   let eventHandler    = injector.get(EventHandler);
   let contextManager  = injector.get(ContextManager);
+
+  // TODO(burdon): Why is this here? Only accessed in reducer (not context).
+  let analytics       = injector.get(Analytics.INJECTOR_KEY);
+
+  let idGenerator     = injector.get(IdGenerator);
 
   // CRX Navigator opens in new window (overridden in mapDispatchToProps for web).
   let navigator = undefined;
@@ -47,17 +49,15 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     config,
-    registration,
-
-    analytics,
     typeRegistry,
     queryRegistry,
     eventHandler,
     contextManager,
     navigator,
 
-    // Required by Mutator.
-    idGenerator
+    analytics,
+
+    idGenerator       // Required by Mutator
   };
 };
 
@@ -83,9 +83,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 //-------------------------------------------------------------------------------------------------
 
 // Top-level query provided in context.
-// TODO(burdon): Remove Group.
-// TODO(burdon): Remove Project.
-// TODO(burdon): Pre-populate from server in DOM?
 
 const ViewerQuery = gql`
   query ViewerQuery {
@@ -97,7 +94,7 @@ const ViewerQuery = gql`
         title
       }
 
-      group {
+      groups {
         type
         id
         title
@@ -135,7 +132,6 @@ export class Activity {
 
       // Apollo viewer query.
       graphql(ViewerQuery, {
-
         props: ({ ownProps, data }) => {
           return _.pick(data, ['loading', 'error', 'viewer'])
         }
@@ -151,33 +147,28 @@ export class Activity {
 
   static childContextTypes = {
     config:           React.PropTypes.object,
-    registration:     React.PropTypes.object,
     typeRegistry:     React.PropTypes.object,
     queryRegistry:    React.PropTypes.object,
     eventHandler:     React.PropTypes.object,
     contextManager:   React.PropTypes.object,
     navigator:        React.PropTypes.object,
     mutator:          React.PropTypes.object,
-
     viewer:           React.PropTypes.object
   };
 
   static getChildContext(props) {
     let {
       config,
-      registration,
       typeRegistry,
       queryRegistry,
       eventHandler,
       contextManager,
       navigator,
       mutator,
-
       viewer
     } = props;
 
     console.assert(config);
-    console.assert(registration);
     console.assert(typeRegistry);
     console.assert(queryRegistry);
     console.assert(eventHandler);
@@ -187,14 +178,12 @@ export class Activity {
 
     return {
       config,
-      registration,
       typeRegistry,
       queryRegistry,
       eventHandler,
       contextManager,
       navigator,
       mutator,
-
       viewer
     };
   }

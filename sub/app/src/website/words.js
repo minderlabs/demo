@@ -64,7 +64,7 @@ export class Words {
 
     let self = this;
     function update() {
-      if (words.size == 0) {
+      if (words.size === 0) {
         words = new Map(Words.words());
       }
 

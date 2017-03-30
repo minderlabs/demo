@@ -3,14 +3,12 @@
 //
 
 Logger.setLevel({
-  'bg':         Logger.Level.debug,
-  'auth':       Logger.Level.debug,
-  'client':     Logger.Level.debug,
-  'gcm':        Logger.Level.debug,
-  'net':        Logger.Level.info
-}, Logger.Level.info);
+  'net': Logger.Level.info
+}, Logger.Level.debug);
 
-import { ChromeMessageChannelDispatcher, ErrorUtil, EventHandler, Listeners, TypeUtil } from 'minder-core';
+import moment from 'moment';
+
+import { Async, ChromeMessageChannelDispatcher, ErrorUtil, EventHandler, Listeners, TypeUtil } from 'minder-core';
 
 import { Const } from '../../common/defs';
 
@@ -59,7 +57,7 @@ class BackgroundApp {
    * @returns {boolean} true if reconnect is needed (e.g., server changed).
    */
   static UpdateConfig(config, settings) {
-    let restart = (config.server != settings.server);
+    let restart = (config.server !== settings.server);
 
     _.assign(config, settings, {
       graphql: settings.server + '/graphql',
@@ -99,7 +97,6 @@ class BackgroundApp {
 
     this._authManager = new AuthManager(this._config);
 
-    // GCM Push Messenger.
     this._cloudMessenger = new GoogleCloudMessenger(this._config, this._eventHandler).listen(message => {
 
       // Push invalidation to clients.
@@ -153,37 +150,39 @@ class BackgroundApp {
         // Initialize the network manager.
         this._networkManager.init();
 
-        // Triggers popup.
-        return this._authManager.authenticate(true).then(user => {
+        // Retry until succeeds.
+        return Async.retry(() => {
 
-          this._analytics.identify(user.uid);
+          // May trigger Auth dialog.
+          return this._authManager.authenticate().then(userProfile => {
 
-          // Register with server.
-          return this.connect().then(registration => {
+            // Register with server.
+            return this.connect();
+          });
+        }).then(() => {
 
-            //
-            // Handle system requests from other components (e.g., sidebar).
-            //
-            this._systemChannel = this._dispatcher.listen(SystemChannel.CHANNEL, this.onSystemCommand.bind(this));
+          //
+          // Handle system requests from other components (e.g., sidebar).
+          //
+          this._systemChannel = this._dispatcher.listen(SystemChannel.CHANNEL, this.onSystemCommand.bind(this));
 
-            //
-            // Proxy GraphQL requests from other components (e.g., sidebar).
-            // http://dev.apollodata.com/core/network.html#custom-network-interface
-            // See also ChromeNetworkInterface
-            //
-            this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, request => {
-              return this._networkManager.networkInterface.query(request);
-            });
+          //
+          // Proxy GraphQL requests from other components (e.g., sidebar).
+          // http://dev.apollodata.com/core/network.html#custom-network-interface
+          // See also ChromeNetworkInterface
+          //
+          this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, request => {
+            return this._networkManager.networkInterface.query(request);
+          });
 
-            //
-            // Listen for settings updates (e.g., from options page).
-            //
-            this._settings.onChange.addListener(settings => {
-              let reconnect = BackgroundApp.UpdateConfig(this._config, settings);
-              if (reconnect) {
-                return this.connect();
-              }
-            });
+          //
+          // Listen for settings updates (e.g., from options page).
+          //
+          this._settings.onChange.addListener(settings => {
+            let reconnect = BackgroundApp.UpdateConfig(this._config, settings);
+            if (reconnect) {
+              return this.connect();
+            }
           });
         });
       })
@@ -194,30 +193,30 @@ class BackgroundApp {
 
   /**
    *
-   * @returns {Promise.<{Registration}>}
+   * @returns {Promise<Registration>}
    */
   connect() {
     // Flush the cache.
     this._networkManager.init();
 
     // Re-register with server.
-    return this._connectionManager.register().then(registration => {
-      logger.log('Registered: ' + JSON.stringify(registration));
+    return this._connectionManager.register().then(client => {
+      logger.log('Registered: ' + TypeUtil.stringify(client));
       if (this._config.notifications) {
         this._notification.show('Minder', 'Registered App.');
       }
 
       // Save registration.
-      this._settings.set('registration', registration).then(() => {
+      this._settings.set('client', client).then(() => {
 
         // Broadcast reset to all clients (to reset cache).
         this._systemChannel.postMessage(null, {
-          command: SystemChannel.FLUSH_CACHE
+          command: SystemChannel.RESET
         });
 
         // Notify state changed.
         this._onChange.fireListeners();
-        return registration;
+        return client;
       });
     });
   }
@@ -234,27 +233,32 @@ class BackgroundApp {
       // Ping.
       case SystemChannel.PING: {
         return Promise.resolve({
+          // TODO(burdon): Factor out Util.
           timestamp: new Date().getTime()
         });
       }
 
-      // On sidebar startup.
-      case SystemChannel.REQUEST_REGISTRATION: {
-        let { server } = this._config;
-        let registration = this._connectionManager.registration;
-        if (!registration) {
-          throw new Error('Not registered.');
-        } else {
-          return Promise.resolve({ registration, server });
-        }
-      }
-
+      // Re-authenticate user.
       case SystemChannel.AUTHENTICATE: {
         return this._authManager.signout(true);
       }
 
-      case SystemChannel.REGISTER_CLIENT: {
+      // Re-connect client.
+      case SystemChannel.CONNECT: {
         return this.connect();
+      }
+
+      // On sidebar startup.
+      case SystemChannel.REGISTER: {
+        let server = _.get(this._config, 'server');
+        let userProfile = _.get(this._config, 'userProfile');
+        if (!userProfile) {
+          // TODO(burdon): Test client retry.
+          // TODO(burdon): Shouldn't be an exception: return backoff/retry request.
+          throw new Error('Not registered.');
+        } else {
+          return Promise.resolve({ userProfile, server });
+        }
       }
 
       default: {
@@ -266,7 +270,7 @@ class BackgroundApp {
 
 window.app = new BackgroundApp();
 window.app.init().then(app => {
-  logger.info(JSON.stringify(app.config));
+  logger.info('Initialized: ' + moment().format('YYYY-MM-DD HH:mm Z') + '\n' + TypeUtil.stringify(app.config, 2));
 
   // Listen for termination and inform scripts.
   // https://developer.chrome.com/extensions/runtime#event-onSuspend

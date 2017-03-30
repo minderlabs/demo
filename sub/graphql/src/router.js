@@ -4,13 +4,13 @@
 
 import _ from 'lodash';
 import express from 'express';
-import bodyParser from 'body-parser';
 
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema } from 'graphql-tools';
 import { GraphQLError, BREAK } from 'graphql';
 
 import { ErrorUtil, Logger } from 'minder-core';
+import { hasJwtHeader } from 'minder-services';
 
 import { Resolvers } from './resolvers';
 import { graphqlLogger } from './util/logger';
@@ -33,6 +33,7 @@ const logger = Logger.get('gql');
  */
 export const graphqlRouter = (database, options) => {
   console.assert(database);
+
   options = _.defaults(options, {
     graphql: '/graphql',
     graphiql: '/graphiql'
@@ -59,12 +60,9 @@ export const graphqlRouter = (database, options) => {
 
   let router = express.Router();
 
-  // JSON body.
-  router.use(bodyParser.json());
-
   // Add logging to path (must go first).
   if (options.logging) {
-   router.use(options.graphql, graphqlLogger(options));
+    router.use(options.graphql, graphqlLogger(options));
   }
 
   //
@@ -75,13 +73,13 @@ export const graphqlRouter = (database, options) => {
   // Which is subtlely different from the graphql implementation:
   // https://github.com/graphql/express-graphql
   //
-  router.use(options.graphql, graphqlExpress(request => {
+  router.post(options.graphql, hasJwtHeader(), graphqlExpress(req => {
     const startTime = Date.now();
 
     //
     // http://dev.apollodata.com/tools/graphql-server/setup.html#graphqlOptions
     //
-    // TODO(burdon): Move to const.
+    // TODO(burdon): Const?
     let graphqlOptions = {
 
       // TODO(burdon): Enforce.
@@ -132,12 +130,15 @@ export const graphqlRouter = (database, options) => {
       debug: false
     };
 
+    // TODO(burdon): If an exception is thrown no options are returned, which causes:
+    // TypeError: Cannot read property 'formatError' of undefined
+
     //
     // Provide the request context for resolvers (e.g., authenticated user).
     // http://dev.apollodata.com/tools/graphql-tools/resolvers.html#Resolver-function-signature
     //
     if (options.contextProvider) {
-      return options.contextProvider(request).then(context => {
+      return options.contextProvider(req).then(context => {
         console.assert(context);
         return _.defaults(graphqlOptions, { context });
       });

@@ -59,7 +59,7 @@
         </div>
 
         <div class="site-section">
-          <div class="site-buttonbar">
+          <div class="site-buttons">
             <div>
               <button onclick="flush()">Flush Clients</button>
               <button onclick="schedule()">Test Scheduler</button>
@@ -99,17 +99,17 @@
     }
 
     function flush() {
-      Site.post('/admin', { action: 'client.flush' }).then(() => {
+      Site.postJson('/admin', { action: 'client.flush' }).then(() => {
         document.location.reload();
       });
     }
 
     function invalidate(clientId) {
-      Site.post('/admin', { action: 'client.invalidate', clientId: clientId });
+      Site.postJson('/admin', { action: 'client.invalidate', clientId: clientId });
     }
 
     function schedule() {
-      Site.post('/admin', { action: 'schedule.test' });
+      Site.postJson('/admin', { action: 'schedule.test' });
     }
   </script>
 </div>
