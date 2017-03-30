@@ -141,7 +141,6 @@ export class AuthManager {
         // FIXME
         //console.assert(responseParams.state === requestParams.state, 'Invalid state.');
 
-        console.assert(responseParams.config);
         console.log('*** AUTH RETURNED ' + JSON.stringify(responseParams)); // FIXME
         let config = {
           credentials: _.pick(responseParams, ['id_token', 'id_token_exp', 'provider']),
