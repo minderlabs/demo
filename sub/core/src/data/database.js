@@ -257,12 +257,6 @@ export class ResultMerger {
           if (fkey) {
             // Queue this up for a foreign-key lookup in the user store.
             foreignKeys.push(fkey);
-            // FIXME: I think this merge is unnecessary here -- it will be repeated below. Try omitting.
-            let existing = itemsWithForeignKeys.get(fkey);
-            if (existing) {
-              // Merge with result (from USER namespace above).
-              this._merge(existing, item);
-            }
           }
         });
       }
@@ -338,10 +332,7 @@ export class ResultMerger {
   }
 
   _merge(obj, source) {
-    // TODO(burdon): Better merge (e.g., replace title?)
-    console.log('MERGING: ' + JSON.stringify(obj));
-    // FIXME: ItemUtil.mergeItems().
-    _.merge(obj, _.omit(source, ['id', 'namespace']));
+    ItemUtil.mergeItems(obj, source, [], ['id', 'namespace']);
     return obj;
   }
 }
