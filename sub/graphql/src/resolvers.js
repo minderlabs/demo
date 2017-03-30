@@ -276,9 +276,9 @@ export class Resolvers {
         search: (root, args, context) => {
           Resolvers.checkAuthentication(context);
 
-          let { filter, offset, count, groupBy } = args;
+          let { filter } = args;
 
-          return database.search(context, root, filter, offset, count, groupBy);
+          return database.search(context, root, filter);
         }
       },
 

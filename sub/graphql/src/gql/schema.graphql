@@ -261,7 +261,7 @@ type RootQuery {
   item(itemId: ID!): Item!
 
   # Search.
-  search(filter: FilterInput, offset: Int, count: Int): [Item]!
+  search(filter: FilterInput): [Item]!
 }
 
 #===================================================================================================

@@ -180,6 +180,10 @@ input FilterInput {
   # Match empty filter.
   matchAll: Boolean
 
+  # Paging.
+  offset: Int
+  count: Int
+
   # Sort order.
   orderBy: OrderByInput
 
