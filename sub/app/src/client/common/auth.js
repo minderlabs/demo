@@ -66,11 +66,9 @@ export class AuthManager {
   authenticate() {
     if (_.get(window, 'chrome.identity')) {
       // Trigger OAuth flow.
-      return this._launchWebAuthFlow().then(credentials => {
-        return this._registerUser(credentials).then(userProfile => {
-          _.assign(this._config, { userProfile });
-          return userProfile;
-        });
+      return this._launchWebAuthFlow().then(userProfile => {
+        _.assign(this._config, { userProfile });
+        return userProfile;
       });
     } else {
       // Web is already authenticated and registered.
@@ -91,7 +89,8 @@ export class AuthManager {
 
       const OAuthProvider = {
         provider: 'google',
-        requestUrl: 'https://accounts.google.com/o/oauth2/auth',
+        requestUrl: 'http://localhost:3000/oauth/login/google', // FIXME config
+        //requestUrl: 'https://accounts.google.com/o/oauth2/auth',
         scope: AuthDefs.GOOGLE_LOGIN_SCOPES
       };
 
@@ -101,14 +100,16 @@ export class AuthManager {
       // NOTE: The clientId is the Web Client, NOT the Chrome Extension's Client ID (in the manifest).
       // https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters
       let requestParams = {
-        client_id: GoogleApiConfig.clientId,
-        response_type: 'token id_token',                                        // access_token and id_token (JWT).
-        redirect_uri: chrome.identity.getRedirectURL(OAuthProvider.provider),   // Registered URL.
-        scope: OAuthProvider.scope.join(' '),
-        state: String(new Date().getTime())                                     // Check same state below.
+        //client_id: GoogleApiConfig.clientId,
+        //response_type: 'token id_token',                                        // access_token and id_token (JWT).
+        //redirect_uri: chrome.identity.getRedirectURL(OAuthProvider.provider),   // Registered URL.
+        redirect: chrome.identity.getRedirectURL(OAuthProvider.provider),   // Registered URL.
+        //scope: OAuthProvider.scope.join(' '),
+        //state: String(new Date().getTime())                                     // Check same state below.
       };
 
       // TODO(burdon): Move auth to minder-core.
+      // FIXME: don't need this now, just redirect?
       let requestUrl = HttpUtil.toUrl(OAuthProvider.requestUrl, requestParams);
 
       let options = {
@@ -132,19 +133,27 @@ export class AuthManager {
           throw new Error(chrome.runtime.lastError.message);
         }
 
-        let responseParams = HttpUtil.parseUrlParams(callbackUrl, '#');
+
+        // FIXME delim
+        let responseParams = HttpUtil.parseUrlParams(callbackUrl);
 //      logger.log('===>>>', JSON.stringify(requestParams, null, 2));
 //      logger.log('<<<===', JSON.stringify(responseParams, null, 2));
-        console.assert(responseParams.state === requestParams.state, 'Invalid state.');
+        // FIXME
+        //console.assert(responseParams.state === requestParams.state, 'Invalid state.');
 
-        let credentials = _.assign(_.pick(responseParams, ['access_token', 'id_token']), {
-          provider: OAuthProvider.provider
-        });
+        console.assert(responseParams.config);
+        console.log('*** AUTH RETURNED ' + JSON.stringify(responseParams)); // FIXME
+        let config = {
+          credentials: _.pick(responseParams, ['id_token', 'id_token_exp', 'provider']),
+          // TODO(madadam): Factor out with WebAppRouter.
+          userProfile: _.pick(responseParams, ['email', 'displayName', 'photoUrl'])
+        };
+        console.log('*** PARSED CONFIG ' + JSON.stringify(config)); // FIXME
 
         // Update config.
-        _.assign(this._config, { credentials });
+        _.assign(this._config, config);
 
-        resolve(credentials);
+        resolve(_.get(config, 'userProfile'));
       });
     });
   }

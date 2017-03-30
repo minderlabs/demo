@@ -182,6 +182,8 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     // TODO(burdon): Register vs update?
     systemStore.registerUser(userProfile, credentials).then(user => {
       logger.log('OAuth callback: ' + JSON.stringify(_.pick(userProfile, ['id', 'email'])));
+      console.log('**** USER: ' + JSON.stringify(user)); // FIXME
+      console.log('**** CREDENTIALS: ' + JSON.stringify(credentials)); // FIXME
 
       //
       // Create the custom JWT token.
@@ -263,6 +265,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     }), (req, res) => {
       let user = req.user;
       logger.log('Logged in: ' + JSON.stringify(_.pick(user, ['id', 'email'])));
+      console.log('*** USER in callback: ' + JSON.stringify(user)); // FIXME
 
       // TODO(burdon): Validate state.
       let state = OAuthProvider.decodeState(req.query.state);
@@ -284,6 +287,24 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
         return;
       }
 
+      // FIXME: only do this for CRX case (redirect_type=crx), based on param in request.
+      if (true) {
+        // This isn't a JSON response, needs to be encoded as URL params. It's easier to flatten the config.
+        let response  = _.assign(
+          // credentials
+          _.pick(getUserSession(user), ['id_token', 'id_token_exp']),
+          // TODO(madadam): Is credentials.provider necessary? Only for /user/register, which is being deprecated.
+          { provider: provider.providerId },
+
+          // userProfile
+          // TODO(madadam): Factor out with WebAppRouter.
+          _.pick(user, ['email', 'displayName', 'photoUrl'])
+        );
+
+        console.log('*** REDIRECT RESPONSE: ' + JSON.stringify(response)); // FIXME
+        redirect = HttpUtil.toUrl(redirect, response);
+        console.log('*** REDIRECTING TO ' + redirect); // FIXME
+      }
       res.redirect(redirect);
     });
   });

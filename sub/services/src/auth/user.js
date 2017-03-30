@@ -95,6 +95,10 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
   //
   router.post('/register', hasJwtHeader(), function(req, res, next) {
 
+    // FIXME -- see if userProfile already created, and don't bother getting it again.
+    // FIXME why does the CRX even need to call this?
+    let user = req.user;
+
     // Access credentials (from client login flow).
     let { credentials } = req.body;
 
