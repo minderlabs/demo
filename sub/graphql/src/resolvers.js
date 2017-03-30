@@ -222,6 +222,25 @@ export class Resolvers {
           } else {
             return [];
           }
+        },
+
+        user: (root, args, context) => {
+          if (root.email) {
+            // TODO(madadam): Factor out with Slackbot.getUserByEmail.
+            let queryProcessor = database.getQueryProcessor(Database.NAMESPACE.SYSTEM);
+            console.assert(queryProcessor);
+            // TODO(madadam): Query by email. For now iterate over all users.
+            let filter = {
+              type: 'User',
+            };
+            return queryProcessor.queryItems({}, {}, filter)
+              .then(items => {
+                let user = _.find(items, { email: root.email });
+                return user;
+              });
+          } else {
+            return null;
+          }
         }
       },
 

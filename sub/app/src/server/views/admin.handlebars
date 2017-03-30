@@ -63,6 +63,7 @@
             <div>
               <button onclick="flush()">Flush Clients</button>
               <button onclick="schedule()">Test Scheduler</button>
+              <button onclick="reset_database()">Reset Database (local only)</button>
             </div>
 
             <div>
@@ -110,6 +111,10 @@
 
     function schedule() {
       Site.postJson('/admin', { action: 'schedule.test' });
+    }
+
+    function reset_database() {
+      Site.postJson('/admin', { action: 'database.reset' });
     }
   </script>
 </div>

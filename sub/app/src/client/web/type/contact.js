@@ -20,10 +20,6 @@ import { TaskCard, TaskListItemRenderer } from './task';
 // Components.
 //-------------------------------------------------------------------------------------------------
 
-// TODO(madadam): Bug when a contact is edited twice without being reloaded -- the system clones the
-// ephemeral Contact both times, resulting in duplicate Contact records in the user store.
-// The Contact needs to be invalidated in the client after the first mutation, so the ephemeral contact
-// is replaced with the new permanent item.
 
 /**
  * Create a sequence (batch) of mutations that create and update a new Task.
@@ -32,9 +28,10 @@ import { TaskCard, TaskListItemRenderer } from './task';
  * @constructor
  */
 const AddCreateContactTask = (params) => {
-  let { batch, bucketId, project, owner, assignee, parent, mutations } = params;
+  let { batch, bucketId, project, owner, assignee, parent, linkToParent, mutations } = params;
   console.assert(bucketId);
   console.assert(project);
+  console.assert(parent);
   console.assert(owner);
   let fieldMutations = _.compact([
     MutationUtil.createFieldMutation('bucket', 'string', bucketId),
@@ -46,7 +43,7 @@ const AddCreateContactTask = (params) => {
     .createItem('Task', _.concat(mutations, fieldMutations), 'new_task')
     .updateItem(parent, [
       MutationUtil.createFieldMutation('bucket', 'string', bucketId),
-      MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+      linkToParent && MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
     ])
     .updateItem(project, [
       MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
@@ -74,12 +71,13 @@ export class ContactCard extends React.Component {
   /**
    *
    * @param project Project that owns this item.
+   * @param parent Item, if not null new tasks are linked to this item.
    * @param owner User object, if not null new tasks are assigned to this User, otherwise to the Viewer.
    * @param assignee User object, if not null new tasks are assigned to this User.
    * @param item Item to update.
    * @param mutations
    */
-  handleItemUpdate(project, owner, assignee, item, mutations) {
+  handleItemUpdate(project, owner, assignee, linkToParent, item, mutations) {
     let { viewer: { user }, mutator } = this.context;
     owner = owner || user;
 
@@ -93,6 +91,7 @@ export class ContactCard extends React.Component {
         bucketId: user.id,
         project,
         parent,
+        linkToParent,
         owner,
         assignee,
         mutations
@@ -132,7 +131,7 @@ export class ContactCard extends React.Component {
                   data={ assignee.id }
                   items={ items }
                   itemRenderer={ TaskListItemRenderer }
-                  onItemUpdate={ this.handleItemUpdate.bind(this, project, owner, assignee) }/>
+                  onItemUpdate={ this.handleItemUpdate.bind(this, project, owner, assignee, false) }/>
           </div>
 
           <div className="ux-card-footer">
@@ -217,7 +216,7 @@ export class ContactCard extends React.Component {
             <List ref="tasks"
                   items={ tasks }
                   itemRenderer={ TaskListItemRenderer }
-                  onItemUpdate={ this.handleItemUpdate.bind(this, defaultProject, null, null) }/>
+                  onItemUpdate={ this.handleItemUpdate.bind(this, defaultProject, null, null, true) }/>
           </div>
 
           <div className="ux-card-footer">

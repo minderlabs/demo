@@ -42,4 +42,8 @@ export class TestItemStore extends ItemStore {
       return this._itemStore.upsertItems(context, items);
     });
   }
+
+  clear() {
+    this._itemStore.clear && this._itemStore.clear();
+  }
 }

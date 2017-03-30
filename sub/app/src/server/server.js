@@ -403,7 +403,34 @@ if (env !== 'production' || true) {
 // Admin.
 //
 
-app.use('/admin', adminRouter(clientManager, firebase, {
+/**
+ * Initialize the database.
+ * @return {Promise.<TResult>}
+ */
+// TODO(burdon): Remove from server startup except for testing. Use tools to configure DB.
+function resetDatabase() {
+  _.each([Database.NAMESPACE.USER, Database.NAMESPACE.SETTINGS], namespace => {
+    let itemStore = database.getItemStore(namespace);
+    itemStore.clear && itemStore.clear();
+  });
+
+  let loader = new Loader(database, testing);
+  return Promise.all([
+    // Do in parallel.
+    loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM, /^(Group)\.(.+)\.(.+)$/),
+    loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS, /^(Folder)\.(.+)$/)
+  ]).then(() => {
+    logger.log('Initializing groups...');
+    return loader.initGroups().then(() => {
+      if (testing) {
+        logger.log('Generating test data...');
+        return new TestGenerator(database).generate();
+      }
+    });
+  });
+}
+
+app.use('/admin', adminRouter(clientManager, firebase, resetDatabase, {
   scheduler: (env === 'production')
 }));
 
@@ -509,33 +536,12 @@ app.use(function(err, req, res, next) {
 });
 
 
-//
-// Intitialize database.
-//
-
-// TODO(burdon): Remove from server startup except for testing. Use tools to configure DB.
-
-let loader = new Loader(database, testing);
-let loading = Promise.all([
-  // Do in parallel.
-  loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM, /^(Group)\.(.+)\.(.+)$/),
-  loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS, /^(Folder)\.(.+)$/)
-]).then(() => {
-  logger.log('Initializing groups...');
-  return loader.initGroups().then(() => {
-    if (testing) {
-      logger.log('Generating test data...');
-      return new TestGenerator(database).generate();
-    }
-  });
-});
-
 
 //
 // Start-up.
 //
 
-loading.then(() => {
+resetDatabase().then(() => {
   logger.log('Starting minder-app-server');
 
   server.listen(port, host, () => {
