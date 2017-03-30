@@ -10,7 +10,7 @@ const defaults = require('../tools/src/grunt/defaults');
 /**
  * Grunt config.
  */
-module.exports = function(grunt) {
+module.exports = (grunt) => {
 
   defaults.init(grunt);
 

@@ -191,7 +191,9 @@ export class ListReducer extends Reducer {
         // https://github.com/apollostack/apollo-client/blob/master/src/ApolloClient.ts
         return {
           variables: {
-            filter, count, offset: 0
+            filter,
+            count,
+            offset: 0
           },
 
           reducer: (previousResult, action) => {
@@ -297,9 +299,10 @@ export class ListReducer extends Reducer {
     // Path to items in result.
     let path = this._path;
 
-    // Items in current list.
+    // Items in current list (previous result).
     let currentItems = _.get(previousResult, path);
 
+    // Look for existing item.
     let exists = _.findIndex(currentItems, item => item.id === updatedItem.id) !== -1;
 
     //

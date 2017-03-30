@@ -136,6 +136,7 @@ const mapStateToProps = (state, ownProps) => {
 
   // CRX app context.
   let contextManager = null;
+  // TODO(burdon): Not just CRX.
   if (platform === Const.PLATFORM.CRX) {
     // Current user context (e.g., host inspector transient items).
     // TODO(burdon): Binds to context action; should trigger context to requery.
