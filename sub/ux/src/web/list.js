@@ -272,7 +272,7 @@ export class List extends React.Component {
 
     let previousOrder = 0;
     let rows = _.map(items, item => {
-      console.assert(item);
+      console.assert(item && item.type && item.id, 'Invalid Item: ' + JSON.stringify(item));
 
       let itemKey = item.id;
       if (keyMap.get(itemKey)) {
