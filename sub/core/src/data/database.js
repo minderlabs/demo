@@ -6,10 +6,10 @@ import _ from 'lodash';
 
 import { ID } from './id';
 import { ErrorUtil } from '../util/error';
+import { TypeUtil } from '../util/type';
 
 import { ItemUtil, ItemStore, QueryProcessor } from './item_store';
 
-import $$ from '../util/format';
 import Logger from '../util/logger';
 
 const logger = Logger.get('db');
@@ -161,11 +161,11 @@ export class Database {
   /**
    * @returns {Promise}
    */
-  search(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
-    logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
+  search(context, root={}, filter={}) {
+    logger.log('Search: ' + TypeUtil.stringify(filter));
 
     let itemStore = this.getItemStore();
-    return this._searchAll(context, root, filter, offset, count)
+    return this._searchAll(context, root, filter)
       .then(items => {
         return filter.groupBy ? ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS) : items
       });
@@ -177,10 +177,8 @@ export class Database {
    *
    * @returns {Promise}
    */
-  _searchAll(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
-    logger.log($$('SEARCH[%s:%s]: %O', offset, count, filter));
-
-    // TODO(burdon): Unit test!
+  // TODO(burdon): Unit test.
+  _searchAll(context, root={}, filter={}) {
 
     //
     // Fan-out queries across all query providers.
@@ -191,7 +189,7 @@ export class Database {
       }
 
       // TODO(madadam): Pagination over the merged result set. Need to over-fetch from each provider.
-      return queryProcessor.queryItems(context, root, filter, offset, count)
+      return queryProcessor.queryItems(context, root, filter)
         .then(items => {
           return {
             namespace: queryProcessor.namespace,

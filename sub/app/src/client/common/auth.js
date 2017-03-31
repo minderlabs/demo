@@ -137,6 +137,7 @@ export class AuthManager {
 //      logger.log('<<<===', JSON.stringify(responseParams, null, 2));
         console.assert(responseParams.state === requestParams.state, 'Invalid state.');
 
+        // TODO(burdon): Google credentials.
         let credentials = _.assign(_.pick(responseParams, ['access_token', 'id_token']), {
           provider: OAuthProvider.provider
         });
@@ -154,8 +155,9 @@ export class AuthManager {
    * Returns the user profile.
    *
    * @param credentials
-   * @returns {Promise<UserProfile>}
+   * @returns {Promise<{UserProfile}>}
    */
+  // TODO(burdon): Remove (move to server).
   _registerUser(credentials) {
     let registerUrl = NetUtil.getUrl('/user/register', this._config.server);
 

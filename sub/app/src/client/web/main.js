@@ -17,6 +17,14 @@ const config = _.defaultsDeep(window.config, {
 
   debug: (window.config.env !== 'production'),
 
+  // Framework debug options.
+  options: {
+    reducer: true,
+    optimistic: true,
+    invalidation: true
+//  networkDelay: 1000
+  },
+
   app: {
     platform: DomUtil.isMobile() ? Const.PLATFORM.MOBILE : Const.PLATFORM.WEB
   }
