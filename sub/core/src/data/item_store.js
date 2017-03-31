@@ -28,6 +28,7 @@ export class QueryProcessor {
     return _.compact(_.concat(userId, groupIds));
   }
 
+  // TODO(burdon): Remove.
   static DEFAULT_COUNT = 20;
 
   /**
@@ -47,13 +48,10 @@ export class QueryProcessor {
    * @param context
    * @param root
    * @param filter
-   * @param offset
-   * @param count
    * @return {Promise<[Item]>} Retrieved items or [].
    */
-  // TODO(burdon): Move offset, count into filter and rename filter=>query.
   // TODO(burdon): Document root (see Matcher.matchComparatorExpression and ExpressionInput).
-  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}) {
     throw new Error('Not implemented');
   }
 }
@@ -176,8 +174,8 @@ export class DelegateItemStore extends ItemStore {
     this._itemStore = itemStore;
   }
 
-  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
-    return this._itemStore.queryItems(context, root, filter, offset, count);
+  queryItems(context, root={}, filter={}) {
+    return this._itemStore.queryItems(context, root, filter);
   }
 
   getItems(context, type, itemIds=[]) {
@@ -231,12 +229,10 @@ export class BaseItemStore extends ItemStore {
    * @param context
    * @param root
    * @param filter
-   * @param offset
-   * @param count
    * @returns {Array}
    */
   // TODO(burdon): Rename filter and sort.
-  filterItems(itemIterator, context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  filterItems(itemIterator, context, root={}, filter={}) {
     let items = [];
 
     // Match items.
@@ -250,6 +246,7 @@ export class BaseItemStore extends ItemStore {
     items = ItemUtil.sortItems(items, filter);
 
     // Page.
+    let { offset=0, count=ItemStore.DEFAULT_COUNT } = filter;
     items = _.slice(items, offset, offset + count);
 
     return items;
@@ -309,7 +306,6 @@ export class ItemUtil {
    * @param items
    * @param groupSpecs Map of Type => { parentType, parentKey, parentMember }
    * @returns {Promise<[Item]>} ordered item results.
-   * @private
    */
   static groupBy(itemStore, context, items, groupSpecs) {
     console.assert(itemStore && context && items && groupSpecs);

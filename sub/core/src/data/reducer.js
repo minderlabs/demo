@@ -212,8 +212,6 @@ export class ListReducer extends Reducer {
         return {
           variables: {
             filter,
-            count,
-            offset: 0
           },
 
           reducer: (previousResult, action) => {
@@ -247,7 +245,7 @@ export class ListReducer extends Reducer {
           fetchMoreItems: () => {
             return data.fetchMore({
               variables: {
-                filter, count, offset: items.length
+                filter
               },
 
               updateQuery: (previousResult, { fetchMoreResult }) => {
@@ -420,16 +418,22 @@ export class ItemReducer extends Reducer {
       // Map properties to query.
       // http://dev.apollodata.com/react/queries.html#graphql-options
       options: (props) => {
-        let { matcher, context, itemId } = props;
+        let { config, matcher, context, itemId } = props;
+
+        // Options enable disabling of reducer for debugging.
+        let reducer;
+        if (_.get(config, 'options.reducer')) {
+          reducer = (previousResult, action) => {
+            return itemReducer.reduceItem(matcher, context, previousResult, action);
+          };
+        }
 
         return {
           variables: {
             itemId
           },
 
-          reducer: (previousResult, action) => {
-            return itemReducer.reduceItem(matcher, context, previousResult, action);
-          }
+          reducer
         };
       },
 
