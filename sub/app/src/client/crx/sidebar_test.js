@@ -60,6 +60,7 @@ app.init().then(() => {
       t3: { type: 'Contact', title: 'Catherine',  email: 'catherine@example.com'      },
       t4: { type: 'Contact', title: 'David',      email: 'david@example.com'          },
       t5: { type: 'Contact', title: 'Emiko',      email: 'emiko@example.com'          },
+      t6: { title: 'slack_channel 1', context: [{ key: 'slack_channel',     value: { string: 'C4BPPS9RC' }}]    },
     };
 
     let select = $('<select>').appendTo(root)
@@ -68,9 +69,15 @@ app.init().then(() => {
       .css('bottom', 0)
       .change(event => {
         let item = window.ITEMS[$(event.target).val()];
+        let context = null;
+        if (item && item.context) {
+          context = { context: item.context };
+        } else if (item) {
+          context = { items: [item] };
+        }
         let action = {
           type: 'MINDER_CONTEXT/UPDATE',
-          context: item ? { items: [item] } : null
+          context: context
         };
 
         window.minder.store.dispatch(action);
