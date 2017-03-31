@@ -102,14 +102,14 @@ export class List extends React.Component {
   static defaultProps = {
     highlight: true,
 
-    itemEditor: List.DefaultItemEditor,
+    itemEditor:   List.DefaultItemEditor,
     itemRenderer: List.DefaultItemRenderer
   };
 
   state = {
     items: this.props.items || [],
 
-    itemEditor: this.props.itemEditor || List.DefaultItemEditor,
+    itemEditor:   this.props.itemEditor   || List.DefaultItemEditor,
     itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
 
     addItem: false,     // { boolean }
@@ -248,6 +248,7 @@ export class List extends React.Component {
   */
 
   render() {
+
     // NOTE: data is a user-label to identify the list.
     let { itemClassName, itemOrderModel, itemInjector, data } = this.props;
     let { items, itemRenderer, itemEditor, addItem, editItem } = this.state;
@@ -549,9 +550,9 @@ export class ListItem extends React.Component {
   });
 
   /**
-   * <ListItem.Delete/>
+   * <ListItem.DeleteButton/>
    */
-  static Delete = ListItem.createInlineComponent((props, context) => {
+  static DeleteButton = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
 
     const handleDelete = () => {

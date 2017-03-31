@@ -47,11 +47,11 @@ export const BasicListItemRenderer = (typeRegistry) => (item) => {
   return (
     <ListItem item={ item }>
       <ListItem.Favorite/>
-      <ListItem.Title select={ true }/>
+      <ListItem.Text value={ item.title } select={ true }/>
       <CustomColumn typeRegistry={ typeRegistry }/>
       <div className="ux-icons ux-noshrink">
         <CustomIcon typeRegistry={ typeRegistry }/>
-        <ListItem.Delete/>
+        <ListItem.DeleteButton/>
       </div>
     </ListItem>
   );
