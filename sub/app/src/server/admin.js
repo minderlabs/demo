@@ -36,14 +36,14 @@ export const adminRouter = (clientManager, firebase, options) => {
   //
   router.get('/', isAuthenticated('/home', true), (req, res) => {
     res.render('admin', {
-      clients: clientManager.clients
+      clients: clientManager.clients,
+      canResetDatabase: !_.isNil(options.handleDatabaseReset)
     });
   });
 
   //
   // Admin API.
   //
-  // TODO(burdon): Check header.
   router.post('/', isAuthenticated('/home', true), (req, res) => {
     let { action, clientId } = req.body;
 
@@ -62,6 +62,13 @@ export const adminRouter = (clientManager, firebase, options) => {
 
       case 'schedule.test': {
         queue && queue.create('test', {}).save();
+        break;
+      }
+
+      case 'database.reset': {
+        options.handleDatabaseReset && options.handleDatabaseReset().then(() => {
+          console.log('Reset Database');
+        });
         break;
       }
     }

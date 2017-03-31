@@ -2,9 +2,17 @@
 // Copyright 2017 Minder Labs.
 //
 
-import { Database } from 'minder-core';
+import { Database, ItemUtil } from 'minder-core';
 
 const logger = Logger.get('context');
+
+const addLabel = (item, label) => {
+  if (!item.labels) {
+    item.labels = [];
+  }
+  item.labels.push(label);
+  return item;
+}
 
 /**
  * Application Context.
@@ -182,7 +190,12 @@ export class ContextManager {
       if (item.email && itemsByKey.get(item.email)) {
         return;
       }
-      items.push(item);
+      let match = this.findMatch(items, item);
+      if (match) {
+        ItemUtil.mergeItems(match, item);
+      } else {
+        items.push(item);
+      }
     });
 
     return items;

@@ -11,6 +11,7 @@ import Logger from '../util/logger';
 
 import { ID } from './id';
 import { MutationUtil } from './mutations';
+import { ItemUtil } from './item_store';
 
 const logger = Logger.get('reducer');
 
@@ -35,6 +36,25 @@ update.extend('$remove', (item, items) => {
 update.extend('$replace', (spec, items) => {
   let { id, item } = spec;
   return _.map(items, i => { return i.id === id ? item : i });
+});
+
+/**
+ * Merge spec.item into the item in items with matching id.
+ * { items: $deepMerge: { id, item } }
+ * @returns new array.
+ */
+update.extend('$deepMerge', (spec, items) => {
+  let { id, item, clearFields, omitFields } = spec;
+  clearFields = clearFields || [];
+  omitFields = omitFields || [];
+  return _.map(items, i => {
+    if (i.id === id) {
+      ItemUtil.clearFields(i, clearFields);
+      return ItemUtil.mergeItems(i, item, omitFields);
+    } else {
+      return i;
+    }
+  });
 });
 
 //
@@ -243,16 +263,16 @@ export class ListReducer extends Reducer {
   /**
    * Execute the reducer.
    *
-   * @param matcher
+   * @param matcher determines if items still match the query, if not null.
    * @param context
-   * @param filter
+   * @param filter used to determine if items still match the query.
    * @param previousResult
    * @param action
    *
    * @returns {*} Updated cache result.
    */
   reduceItems(matcher, context, filter, previousResult, action) {
-    console.assert(matcher && context && filter && previousResult && action);
+    console.assert(context && previousResult && action);
     let updatedItems = MutationUtil.getUpsertItemsMutationResult(action);
     if (updatedItems) {
       try {
@@ -279,9 +299,9 @@ export class ListReducer extends Reducer {
    * Get the default list transformation.
    * https://github.com/kolodny/immutability-helper
    *
-   * @param matcher
+   * @param matcher determines if items still match the query, if not null.
    * @param context
-   * @param filter
+   * @param filter used to determine if items still match the query.
    * @param previousResult
    * @param updatedItem
    * @returns {object} Transform function.
@@ -301,25 +321,32 @@ export class ListReducer extends Reducer {
     let currentItems = _.get(previousResult, path);
 
     // Look for existing item.
-    let exists = _.findIndex(currentItems, item => item.id === updatedItem.id) !== -1;
+    let current = _.find(currentItems, item => item.id === updatedItem.id);
 
     //
-    // Replace the item if it's an update to an external item.
+    // Merge the item if it's an update to an external item.
     // TODO(burdon): This should apply to Item reducer also.
     //
 
-    if (updatedItem.fkey && !exists) {
-      let current  = _.find(currentItems, item => item.namespace && (ID.getForeignKey(item) === updatedItem.fkey));
-      if (current) {
+    if (updatedItem.fkey && !current) {
+      let currentExternal  = _.find(currentItems, item => item.namespace && (ID.getForeignKey(item) === updatedItem.fkey));
+
+      if (currentExternal) {
         return {
           [path]: {
-            $replace: {
-              id: current.id,
-              item: updatedItem
+            $deepMerge: {
+              id: currentExternal.id,
+              item: updatedItem,
+              clearFields: ['namespace']
             }
           }
         };
       }
+    }
+
+    if (_.isNil(matcher)) {
+      // Disable matcher-based transforms.
+      return null;
     }
 
     //
@@ -340,7 +367,7 @@ export class ListReducer extends Reducer {
     // Insert the item if it doesn't already exist (but matches).
     //
 
-    if (!exists) {
+    if (!current) {
       // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
       return {
         [path]: {
