@@ -278,20 +278,26 @@ export class ItemUtil {
   }
 
   /**
+   * Clear fields from an item, in place.
+   * @param item
+   * @param fields array of field names to clear from item.
+   * @return item original item
+   */
+  static clearFields(item, fields=[]) {
+    // NOTE: Don't use _.omit because it would a copy of item, and we want to merge in place.
+    _.each(fields, field => _.unset(item, field));
+    return item;
+  }
+
+  /**
    * Merge source into item, in place.
    * @param item
    * @param source
-   * @param clearFields array of field names to clear from item before merging.
    * @param omitFields array of field names to omit from source when merging.
    * @return Merged item.
    */
-  static mergeItems(item, source, clearFields=[], omitFields=[]) {
-    // NOTE: Don't use _.omit because it would a copy of item, and we want to merge in place.
-    _.each(clearFields, field => {
-      delete item[field];
-    });
-    _.merge(item, _.omit(_.omitBy(source, _.isNil), omitFields));
-    return item;
+  static mergeItems(item, source, omitFields=[]) {
+    return _.merge(item, _.omit(_.omitBy(source, _.isNil), omitFields));
   };
 
   /**

@@ -434,8 +434,9 @@ function resetDatabase() {
   });
 }
 
-app.use('/admin', adminRouter(clientManager, firebase, resetDatabase, {
-  scheduler: (env === 'production')
+app.use('/admin', adminRouter(clientManager, firebase, {
+  scheduler: (env === 'production'),
+  handleDatabaseReset: (env !== 'production' ? () => { return resetDatabase(); } : null)
 }));
 
 
@@ -545,7 +546,12 @@ app.use(function(err, req, res, next) {
 // Start-up.
 //
 
-resetDatabase().then(() => {
+// Promises.
+let startup = [
+  resetDatabase()
+];
+
+Promise.all(startup).then(() => {
   logger.log('Starting minder-app-server');
 
   server.listen(port, host, () => {

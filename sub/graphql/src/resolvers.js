@@ -231,14 +231,19 @@ export class Resolvers {
             // TODO(madadam): Factor out with Slackbot.getUserByEmail.
             let queryProcessor = database.getQueryProcessor(Database.NAMESPACE.SYSTEM);
             console.assert(queryProcessor);
-            // TODO(madadam): Query by email. For now iterate over all users.
             let filter = {
               type: 'User',
+              expr: {
+                field: 'email',
+                value: { string: root.email }
+              }
             };
             return queryProcessor.queryItems({}, {}, filter)
               .then(items => {
-                let user = _.find(items, { email: root.email });
-                return user;
+                if (items.length > 0) {
+                  console.assert(items.length === 1);
+                  return items[0];
+                }
               });
           } else {
             return null;

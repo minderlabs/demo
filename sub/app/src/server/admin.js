@@ -11,7 +11,7 @@ import { isAuthenticated } from 'minder-services';
 /**
  * Admin endpoints.
  */
-export const adminRouter = (clientManager, firebase, resetDatabase, options) => {
+export const adminRouter = (clientManager, firebase, options) => {
   console.assert(clientManager && firebase);
   let router = express.Router();
 
@@ -36,7 +36,8 @@ export const adminRouter = (clientManager, firebase, resetDatabase, options) => 
   //
   router.get('/', isAuthenticated('/home', true), (req, res) => {
     res.render('admin', {
-      clients: clientManager.clients
+      clients: clientManager.clients,
+      canResetDatabase: !_.isNil(options.handleDatabaseReset)
     });
   });
 
@@ -65,7 +66,7 @@ export const adminRouter = (clientManager, firebase, resetDatabase, options) => 
       }
 
       case 'database.reset': {
-        resetDatabase && resetDatabase().then(() => {
+        options.handleDatabaseReset && options.handleDatabaseReset().then(() => {
           console.log('Reset Database');
         });
         break;

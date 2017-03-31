@@ -22,33 +22,82 @@ import { TaskCard, TaskListItemRenderer } from './task';
 
 
 /**
- * Create a sequence (batch) of mutations that create and update a new Task.
- * @param params
- * @return {Batch}
- * @constructor
+ * Mutation helper to create a sequence (batch) of mutations that create and update a new Task.
  */
-const AddCreateContactTask = (params) => {
-  let { batch, bucketId, project, owner, assignee, parent, linkToParent, mutations } = params;
-  console.assert(bucketId);
-  console.assert(project);
-  console.assert(parent);
-  console.assert(owner);
-  let fieldMutations = _.compact([
-    MutationUtil.createFieldMutation('bucket', 'string', bucketId),
-    MutationUtil.createFieldMutation('project', 'id', project.id),
-    MutationUtil.createFieldMutation('owner', 'id', owner.id),
-    assignee && MutationUtil.createFieldMutation('assignee', 'id', assignee.id)
-  ]);
-  return batch
-    .createItem('Task', _.concat(mutations, fieldMutations), 'new_task')
-    .updateItem(parent, [
-      MutationUtil.createFieldMutation('bucket', 'string', bucketId),
-      linkToParent && MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
-    ])
-    .updateItem(project, [
+class CreateContactTask {
+
+  constructor(batch, mutations=[]) {
+    console.assert(batch);
+    this._batch = batch;
+
+    // Copy the array.
+    this._mutations = _.compact(mutations);
+
+    this._parent = null;
+    this._parentMutations = [];
+
+    this._project = null;
+    this._projectMutations = [];
+  }
+
+  bucket(bucketId) {
+    console.assert(bucketId);
+    this._mutations.push(MutationUtil.createFieldMutation('bucket', 'string', bucketId));
+    return this;
+  }
+
+  owner(owner) {
+    if (owner) {
+      this._mutations.push(MutationUtil.createFieldMutation('owner', 'id', owner.id));
+    }
+    return this;
+  }
+
+  assignee(assignee) {
+    if (assignee) {
+      this._mutations.push(MutationUtil.createFieldMutation('assignee', 'id', assignee.id));
+    }
+    return this;
+  }
+
+  /**
+   * Add the task to this project.
+   * @param project
+   * @return {CreateContactTask}
+   */
+  project(project) {
+    console.assert(project);
+    this._mutations.push(MutationUtil.createFieldMutation('project', 'id', project.id));
+    this._project = project;
+    this._projectMutations = _.concat(this._projectMutations, [
       MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
     ]);
-};
+    return this;
+  }
+
+  /**
+   * @param parent
+   * @param bucketId set bucketID on this parent (possibly cloning external item).
+   * @param linkToParent if true, link the task to this parent.
+   */
+  parent(parent, bucketId, linkToParent=true) {
+    console.assert(parent);
+    this._parent = parent;
+    this._parentMutations = _.concat(this._parentMutations, [
+      MutationUtil.createFieldMutation('bucket', 'string', bucketId),
+      linkToParent && MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+    ]);
+    return this;
+  }
+
+  commit() {
+    this._batch.createItem('Task', this._mutations, 'new_task');
+    this._parent && this._batch.updateItem(this._parent, this._parentMutations);
+    this._project && this._batch.updateItem(this._project,this._projectMutations);
+    this._batch.commit();
+  }
+
+}
 
 /**
  * Card.
@@ -63,6 +112,21 @@ export class ContactCard extends React.Component {
   static propTypes = {
     item: React.PropTypes.object.isRequired
   };
+
+  // TODO(madadam): debugging cruft, delete.
+  static projectDebugString(project) {
+    if (project) {
+      return `${project.tasks.length} tasks in project ${project.title}`;
+    }
+  }
+
+  static getProjectFromGroupsByLabel(groups, label) {
+    return _.chain(groups)
+      .map(group => _.get(group, 'projects'))
+      .flatten()
+      .find(project => _.indexOf(project.labels, label) !== -1)
+      .value();
+  }
 
   handleTaskAdd(ref) {
     this.refs[ref].addItem();
@@ -86,24 +150,13 @@ export class ContactCard extends React.Component {
     } else {
       let { item:parent } = this.props;
 
-      let createParams = {
-        batch: mutator.batch(),
-        bucketId: user.id,
-        project,
-        parent,
-        linkToParent,
-        owner,
-        assignee,
-        mutations
-      };
-      AddCreateContactTask(createParams).commit();
-    }
-  }
-
-  // TODO(madadam): debugging cruft, delete.
-  projectDebugString(project) {
-    if (project) {
-      return `${project.tasks.length} tasks in project ${project.title}`;
+      new CreateContactTask(mutator.batch(), mutations)
+        .bucket(user.id)
+        .owner(owner)
+        .assignee(assignee)
+        .project(project)
+        .parent(parent, user.id, linkToParent)
+        .commit();
     }
   }
 
@@ -142,52 +195,46 @@ export class ContactCard extends React.Component {
     );
   }
 
-  // TODO(madadam): To util.
-  getProjectFromGroupsByLabel(groups, label) {
-    let projects = _.flatten(_.map(groups, group => _.get(group, 'projects', [])));
-    return _.find(projects, project => { return _.indexOf(project.labels, label) !== -1 });
-  }
-
   render() {
     let { viewer } = this.context;
     let { item:contact } = this.props;
     let { email, tasks, user } = contact;
 
-    let project = user && this.getProjectFromGroupsByLabel(user.groups, '_default');
+    let project = user && ContactCard.getProjectFromGroupsByLabel(user.groups, '_default');
 
     let isContactSelf = (user && viewer.user.id === user.id);
 
     // Sort all tasks for this project into groups based on assignee.
     // TODO(madadam): Refactor ItemUtil.groupBy?
-    let tasksForMeSection = null;
-    let tasksForThemSection = null;
+    let assignedToViewerSection = null;
+    let assignedToContactSection = null;
     if (project) {
-      let tasksForMe = _.filter(_.get(project, 'tasks', []), item => {
+      let assignedToViewer = _.filter(_.get(project, 'tasks'), item => {
         let assignee = _.get(item, 'assignee.id');
         let owner = _.get(item, 'owner.id');
 
         if (isContactSelf) {
           // Special case of self-view, owner can be anyone (show all my tasks).
-          return assignee == viewer.user.id;
+          return assignee === viewer.user.id;
         } else {
-          return assignee == viewer.user.id && owner == user.id;
+          return assignee === viewer.user.id && owner === user.id;
         }
       });
 
-      let tasksForThem = _.filter(_.get(project, 'tasks', []), item => {
+      let assignedToContact = _.filter(_.get(project, 'tasks'), item => {
         let assignee = _.get(item, 'assignee.id');
         let owner = _.get(item, 'owner.id');
-        return assignee == user.id && owner == viewer.user.id;
+        return assignee === user.id && owner === viewer.user.id;
       });
 
-      tasksForMeSection = this.taskSection(project, tasksForMe, user, viewer.user);
+      assignedToViewerSection = this.taskSection(project, assignedToViewer, user, viewer.user);
       if (!isContactSelf) {
         // When a user sees her own Contact card, don't show this section.
-        tasksForThemSection = this.taskSection(project, tasksForThem, viewer.user, user);
+        assignedToContactSection = this.taskSection(project, assignedToContact, viewer.user, user);
       }
     }
 
-    let defaultProject = this.getProjectFromGroupsByLabel(this.context.viewer.groups, '_default');
+    let defaultProject = ContactCard.getProjectFromGroupsByLabel(this.context.viewer.groups, '_default');
 
     return (
       <Card ref="card" item={ contact }>
@@ -198,13 +245,13 @@ export class ContactCard extends React.Component {
           </div>
           { user &&
           <div className="ux-data-row">
-            <div className="ux-text">[{ this.projectDebugString(project) }]</div>
+            <div className="ux-text">[{ ContactCard.projectDebugString(project) }]</div>
           </div>
           }
         </div>
 
-        { tasksForMeSection }
-        { tasksForThemSection }
+        { assignedToViewerSection }
+        { assignedToContactSection }
 
         { !_.isEmpty(tasks) &&
         <div className="ux-section-header">
