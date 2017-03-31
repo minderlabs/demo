@@ -19,14 +19,17 @@
     }
   }
 
-  > .ux-list-item {
+  .ux-list-item {
     padding: 0 4px;
 
     i.ux-icon-hover {
       visibility: hidden;
     }
   }
-  > .ux-list-item:hover {
+
+  // Only hover icons in rows directly under the list item.
+  // Prevents grandchildren from being activated when grandfather list-item has mouse over.
+  .ux-list-item > .ux-row:hover {
     i.ux-icon-hover {
       visibility: visible;
     }

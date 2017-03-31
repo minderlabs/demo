@@ -90,7 +90,7 @@ export class TestGenerator {
             title: randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) }),
             project: item.project,
             owner: userId,
-            status: randomizer.chance.bool() ? 0 : 3
+            status: randomizer.chance.bool() ? 0 : 3  // TODO(burdon): Use const.
           }))).then(items => {
             return _.map(items, item => item.id);
           });

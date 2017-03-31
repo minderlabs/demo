@@ -31,18 +31,19 @@ import './task.less';
 const TaskStatus = ListItem.createInlineComponent((props, context) => {
   let { item } = context;
 
-  // TODO(burdon): Use Const for status levels.
   // TODO(burdon): Generalize status (mapping to board column model).
-  let icon = (item.status === 3) ? 'done' : 'check_box_outline_blank';
+  let icon = (item.status === TASK_LEVELS.COMPLETE) ? 'done' : 'check_box_outline_blank';
   const toggleStatus = () => {
-    let status = (item.status === 0) ? 3 : 0;
+    let status = (item.status === TASK_LEVELS.UNSTARTED) ? TASK_LEVELS.COMPLETE : TASK_LEVELS.UNSTARTED;
     context.onItemUpdate(item, [
       MutationUtil.createFieldMutation('status', 'int', status)
     ]);
   };
 
   return (
-    <i className="ux-icon ux-icon-checkbox" onClick={ toggleStatus }>{ icon }</i>
+    <div>
+      <i className="ux-icon ux-icon-checkbox" onClick={ toggleStatus }>{ icon }</i>
+    </div>
   );
 });
 
@@ -147,8 +148,8 @@ export class TaskCard extends React.Component {
           <List ref="tasks"
                 className="ux-list-tasks"
                 items={ tasks }
-                itemRenderer={ TaskItemRenderer }
                 itemEditor={ TaskItemEditor }
+                itemRenderer={ TaskItemRenderer }
 //              onItemSelect={ this.handleTaskSelect.bind(this) }
                 onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
 
