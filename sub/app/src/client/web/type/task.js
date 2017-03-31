@@ -54,6 +54,7 @@ export const TaskItemRenderer = (item) => {
     <ListItem item={ item }>
       <TaskStatus/>
       <ListItem.Text value={ item.title }/>
+      <ListItem.EditButton/>
     </ListItem>
   );
 };
@@ -66,6 +67,7 @@ export const TaskItemEditor = (item) => {
     <ListItemEditor item={ item }>
       <ListItem.Icon icon="check_box_outline_blank"/>
       <ListItem.Text field="title"/>
+      <ListItem.EditorButtons/>
     </ListItemEditor>
   );
 };

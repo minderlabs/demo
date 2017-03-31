@@ -14,7 +14,7 @@ import { ItemDragSource, ItemDropTarget, DragOrderModel } from './dnd';
 import './list.less';
 
 //
-// Drag and Drop.
+// Drag and Drop wrappers.
 //
 
 const ListItemDragSource = ItemDragSource('ListItem');
@@ -51,7 +51,7 @@ export class List extends React.Component {
     );
   };
 
-  static DefaultEditableItemRenderer = (item, list) => {
+  static DefaultEditableItemRenderer = (item) => {
     return (
       <ListItem item={ item }>
         <ListItem.Text value={ item.title }/>
@@ -79,16 +79,19 @@ export class List extends React.Component {
   };
 
   static propTypes = {
-    data:               React.PropTypes.string,     // Custom data.
+    data:               React.PropTypes.string,     // Custom data/label.
 
     className:          React.PropTypes.string,
     highlight:          React.PropTypes.bool,
 
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
+
     itemClassName:      React.PropTypes.string,
     itemEditor:         React.PropTypes.func,
     itemRenderer:       React.PropTypes.func,
     itemOrderModel:     React.PropTypes.object,     // Order model for drag and drop.
+
+    // TODO(burdon): Should this happen outside of the List (i.e., before properties are set instead?)
     itemInjector:       React.PropTypes.func,       // Modify results.
 
     onItemUpdate:       React.PropTypes.func,
@@ -98,17 +101,19 @@ export class List extends React.Component {
 
   static defaultProps = {
     highlight: true,
-    itemRenderer: List.DefaultItemRenderer,
-    itemEditor: List.DefaultItemEditor
+
+    itemEditor: List.DefaultItemEditor,
+    itemRenderer: List.DefaultItemRenderer
   };
 
   state = {
     items: this.props.items || [],
+
     itemEditor: this.props.itemEditor || List.DefaultItemEditor,
     itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
 
-    addItem: false,
-    editItem: null
+    addItem: false,     // { boolean }
+    editItem: null      // { string:ID }
   };
 
   componentWillReceiveProps(nextProps) {
@@ -128,7 +133,7 @@ export class List extends React.Component {
 
   set itemEditor(itemEditor) {
     this.setState({
-      itemEditor: itemEditor || List.DefaultItemRenderer
+      itemEditor: itemEditor || List.DefaultItemEditor
     });
   }
 
@@ -331,6 +336,10 @@ export class List extends React.Component {
       );
     }
 
+    //
+    // Layout.
+    //
+
     // TODO(burdon): Editor should be in separate div (not part of scroll container).
     let className = DomUtil.className('ux-list', this.props.className, this.props.highlight && 'ux-list-highlight');
     return (
@@ -345,8 +354,8 @@ export class List extends React.Component {
 }
 
 //
-// To child <ListItem/> components.
-// Enable sub-components to access the item and handlers.
+// Context for child <ListItem/> components.
+// Enable sub-components to access the item and list handlers.
 //
 const ListItemChildContextTypes = {
 
@@ -366,7 +375,7 @@ const ListItemChildContextTypes = {
 /**
  * List item component (and sub-components).
  *
- * const itemRenderer = (item) => (
+ * const customItemRenderer = (item) => (
  *   <ListItem item={ item }>
  *     <ListItem.Text value={ item.title }/>
  *   </ListItem>
