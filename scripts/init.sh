@@ -15,6 +15,7 @@ brew install docker
 brew install docker-machine
 brew cask install virtualbox
 
+npm install -g npm-check-updates
 npm install -g firebase-tools
 npm install -g grunt
 npm install -g karma-cli
