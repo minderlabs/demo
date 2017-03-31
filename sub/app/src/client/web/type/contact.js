@@ -64,9 +64,9 @@ export class ContactCard extends React.Component {
    * @param {Project} project Project that owns this item.
    * @param {User|null} owner User object, if not null new tasks are assigned to this User, otherwise to the Viewer.
    * @param {User} assignee User object, if not null new tasks are assigned to this User.
-   * @param {boolean} linkToParent
+   * @param {boolean} linkToContact
    */
-  handleTaskUpdate(item=null, mutations, project, owner=null, assignee=null, linkToParent=false) {
+  handleTaskUpdate(item=null, mutations, project, owner=null, assignee=null, linkToContact=false) {
     console.assert(project && owner && assignee);
     let { viewer: { user }, mutator } = this.context;
 
@@ -75,7 +75,7 @@ export class ContactCard extends React.Component {
     if (item) {
       mutator.updateItem(item, mutations);
     } else {
-      let { item:parent } = this.props;
+      let { item:contact } = this.props;
 
       mutator.batch()
 
@@ -94,9 +94,9 @@ export class ContactCard extends React.Component {
 
         // Parent Contact.
         // TODO(burdon): Why is the bucket changed? (should be immutable).
-        .updateItem(parent, [
+        .updateItem(contact, [
           MutationUtil.createFieldMutation('bucket', 'string', user.id),
-          linkToParent && MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+          linkToContact && MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
         ])
 
         .commit();
