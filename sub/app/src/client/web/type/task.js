@@ -11,7 +11,7 @@ import gql from 'graphql-tag';
 import { ID, Fragments, ItemReducer, MutationUtil } from 'minder-core';
 import { List, ListItem, ListItemEditor, Picker, ReactUtil } from 'minder-ux';
 
-import { TASK_LEVELS } from '../../../common/defs';
+import { TASK_LEVELS } from '../../../common/const';
 
 import { Path } from '../../common/path';
 

@@ -6,6 +6,8 @@ import _ from 'lodash';
 
 import { Logger, Database, ID, MutationUtil, Randomizer, Transforms } from 'minder-core';
 
+import { TASK_LEVELS } from '../../common/const';
+
 const logger = Logger.get('testing');
 
 /**
@@ -52,7 +54,10 @@ export class TestGenerator {
       Randomizer.property('description', (item, context, randomizer) =>
         randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 10, max: 20 }) })),
 
-      Randomizer.property('status', (item, context, randomizer) => randomizer.chance.natural({ min: 0, max: 3 })),
+      Randomizer.property('status', (item, context, randomizer) => randomizer.chance.natural({
+        min: TASK_LEVELS.UNSTARTED,
+        max: TASK_LEVELS.BLOCKED
+      })),
 
       Randomizer.property('assignee', (item, context, randomizer) => {
         if (randomizer.chance.bool()) {
@@ -90,7 +95,7 @@ export class TestGenerator {
             title: randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) }),
             project: item.project,
             owner: userId,
-            status: randomizer.chance.bool() ? 0 : 3  // TODO(burdon): Use const.
+            status: randomizer.chance.bool() ? TASK_LEVELS.UNSTARTED : TASK_LEVELS.COMPLETE
           }))).then(items => {
             return _.map(items, item => item.id);
           });

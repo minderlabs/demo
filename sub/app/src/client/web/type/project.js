@@ -10,6 +10,8 @@ import gql from 'graphql-tag';
 import { Fragments, DomUtil, ID, ItemReducer, MutationUtil } from 'minder-core';
 import { Board, DragOrderModel, List, ReactUtil, connectWithRef } from 'minder-ux';
 
+import { TASK_LEVELS } from '../../../common/const';
+
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
@@ -96,13 +98,14 @@ class ProjectBoardCanvasComponent extends React.Component {
      */
     status: {
 
+      // TODO(burdon): Generate from Const.
       // Columns (from board metadata).
       columns: (project, board) => {
         const COLUMNS = [
-          { "id": "c1", "value": { "int": 0 }, "title": "Unstarted" },
-          { "id": "c2", "value": { "int": 1 }, "title": "Active"    },
-          { "id": "c3", "value": { "int": 2 }, "title": "Complete"  },
-          { "id": "c4", "value": { "int": 3 }, "title": "Blocked"   }
+          { "id": "c1", "value": { "int": TASK_LEVELS.UNSTARTED }, "title": TASK_LEVELS.properties[TASK_LEVELS.UNSTARTED].title },
+          { "id": "c2", "value": { "int": TASK_LEVELS.ACTIVE    }, "title": TASK_LEVELS.properties[TASK_LEVELS.ACTIVE].title    },
+          { "id": "c3", "value": { "int": TASK_LEVELS.COMPLETE  }, "title": TASK_LEVELS.properties[TASK_LEVELS.COMPLETE].title  },
+          { "id": "c4", "value": { "int": TASK_LEVELS.BLOCKED   }, "title": TASK_LEVELS.properties[TASK_LEVELS.BLOCKED].title   }
         ];
 
         return _.map(COLUMNS, column => ({
