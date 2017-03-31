@@ -2,16 +2,17 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 const _ = require('lodash');
 const path = require('path');
-const webpack = require('webpack');
 
 const baseConfig = require('./webpack-base.config.js');
 
 //
 // Webpack client configuration.
+//
+// Testing:
+// npm start
+// http://localhost:8080/
 //
 
 module.exports = _.merge(baseConfig, {
@@ -23,7 +24,6 @@ module.exports = _.merge(baseConfig, {
   devtool: '#eval-source-map',
 
   entry: {
-
     test: [
       path.resolve(baseConfig.context, 'src/web/testing/test.js'),
     ]

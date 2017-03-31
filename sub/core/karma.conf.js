@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
 const webpack = require('webpack');
 
 const webpackConfig = require('./webpack-karma.config.js');

@@ -38,7 +38,8 @@ export class Loader {
     TypeUtil.traverse(data, (value, key, root, path) => {
       let match = path.match(index);
       if (match) {
-        let item = value;
+        // Deep copy, otherwise parse() wouldn't be idempotent because we'd be mutating arguments.
+        let item = _.cloneDeep(value);
         let type = match[1];
         match.splice(0, 2);
 

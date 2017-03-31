@@ -5,8 +5,6 @@
 // https://webpack.github.io/docs/configuration.html
 //
 
-'use strict';
-
 const _ = require('lodash');
 
 const baseConfig = require('./webpack-base.config.js');

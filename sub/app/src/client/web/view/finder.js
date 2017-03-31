@@ -8,7 +8,7 @@ import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 import { IdGenerator, QueryParser, SubscriptionWrapper } from 'minder-core';
-import { Fragments } from 'minder-core';
+import { Fragments, ListReducer } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -16,6 +16,7 @@ import { AppAction, ContextAction } from '../../common/reducers';
 import { ContextManager } from '../../common/context';
 
 import { BasicSearchList, CardSearchList, BasicListItemRenderer } from '../framework/lists';
+import { connectReducer } from '../framework/connector';
 import { Card } from '../component/card';
 
 import './finder.less';
@@ -57,6 +58,9 @@ class Finder extends React.Component {
       if (contextManager) {
         itemInjector = (items) => contextManager.injectItems(items);
       }
+
+      // TODO(burdon): FIX!
+      listType = 'card';
 
       let list;
       switch (listType) {
@@ -105,19 +109,16 @@ const FoldersQuery = gql`
 `;
 
 // TODO(burdon): Add Projects query.
-// TODO(burdon): Common reducer for queries (not bound to list).
 const ContextQuery = gql`
   query ContextQuery($filter: FilterInput!) {
     contextItems: search(filter: $filter) {
       ...ItemFragment
-      ...UserFragment
-      ...ContactFragment
+      ...ContactTasksFragment
     }
   }
 
   ${Fragments.ItemFragment}
-  ${Fragments.UserFragment}
-  ${Fragments.ContactFragment}
+  ${Fragments.ContactTasksFragment}
 `;
 
 const mapStateToProps = (state, ownProps) => {
@@ -153,6 +154,9 @@ const mapStateToProps = (state, ownProps) => {
   };
 };
 
+// TODO(burdon): Common reducer for queries (not bound to list).
+let contextReducer = new ListReducer(ContextQuery);
+
 export default compose(
 
   // Redux.
@@ -184,7 +188,7 @@ export default compose(
   }),
 
   // Query.
-  graphql(ContextQuery, {
+  connectReducer(graphql(ContextQuery, {
 
     options: (props) => {
       let { contextManager } = props;
@@ -198,6 +202,12 @@ export default compose(
       return {
         variables: {
           filter
+        },
+
+        reducer: (previousResult, action) => {
+          // NOTE: passing a null matcher. ContextQuery results don't match a simple filter.
+          const nullMatcher = null;
+          return contextReducer.reduceItems(nullMatcher, props.context, null, previousResult, action);
         }
       };
     },
@@ -220,6 +230,6 @@ export default compose(
         }
       };
     }
-  })
+  }))
 
 )(SubscriptionWrapper(Finder));

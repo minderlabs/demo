@@ -11,7 +11,7 @@ import { List, ReactUtil } from 'minder-ux';
 
 import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
-import { TaskCard, TaskListItemRenderer } from './task';
+import { TaskItemEditor, TaskItemRenderer } from './task';
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -61,8 +61,8 @@ class UserCanvasComponent extends React.Component {
             <List ref="tasks"
                   className="ux-list-tasks"
                   items={ ownerTasks }
-                  itemRenderer={ TaskListItemRenderer }
-                  itemEditor={ TaskCard.TaskEditor }
+                  itemEditor={ TaskItemEditor }
+                  itemRenderer={ TaskItemRenderer }
                   onItemSelect={ this.handleItemSelect.bind(this) }
                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>
           </div>
@@ -73,8 +73,8 @@ class UserCanvasComponent extends React.Component {
             </div>
             <List items={ assigneeTasks }
                   className="ux-list-tasks"
-                  itemRenderer={ TaskListItemRenderer }
-                  itemEditor={ TaskCard.TaskEditor }
+                  itemEditor={ TaskItemEditor }
+                  itemRenderer={ TaskItemRenderer }
                   onItemSelect={ this.handleItemSelect.bind(this) }
                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>
           </div>

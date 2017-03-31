@@ -21,11 +21,16 @@ const logger = Logger.get('mutations');
 // TODO(burdon): Extend fragments returned.
 //
 
+// TODO(madadam): Think more about "thin vs fat" fragments for the generic mutation.
+// Since we're using a single generic mutation type, it has to be configured to retrieve
+// any data needed by any component, including detailed nested objects (e.g. ContactTaskFragment).
+// Unclear if there's a material downside to this, but it feels wrong.
+
 export const UpsertItemsMutation = gql`
   mutation UpsertItemsMutation($mutations: [ItemMutationInput]!) {
     upsertItems(mutations: $mutations) {
       ...ItemFragment
-      ...ContactFragment
+      ...ContactTasksFragment
       ...TaskFragment
       ...ProjectFragment
       ...ProjectBoardFragment
@@ -33,7 +38,7 @@ export const UpsertItemsMutation = gql`
   }
   
   ${Fragments.ItemFragment}
-  ${Fragments.ContactFragment}
+  ${Fragments.ContactTasksFragment}
   ${Fragments.TaskFragment}
   ${Fragments.ProjectFragment}
   ${Fragments.ProjectBoardFragment}
