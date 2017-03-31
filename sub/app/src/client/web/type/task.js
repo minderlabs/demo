@@ -66,7 +66,7 @@ export const TaskItemEditor = (item) => {
   return (
     <ListItemEditor item={ item }>
       <ListItem.Icon icon="check_box_outline_blank"/>
-      <ListItem.Text field="title"/>
+      <ListItem.Edit field="title"/>
       <ListItem.EditorButtons/>
     </ListItemEditor>
   );
@@ -149,7 +149,7 @@ export class TaskCard extends React.Component {
                 items={ tasks }
                 itemRenderer={ TaskItemRenderer }
                 itemEditor={ TaskItemEditor }
-                onItemSelect={ this.handleTaskSelect.bind(this) }
+//              onItemSelect={ this.handleTaskSelect.bind(this) }
                 onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
 
           { mutator && task.project &&

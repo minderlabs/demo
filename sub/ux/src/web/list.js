@@ -503,7 +503,7 @@ export class ListItem extends React.Component {
     let value = _.get(item, field);
 
     return (
-      <TextBox ref={ c => (textbox = c) }
+      <TextBox ref={ el => (textbox = el) }
                className="ux-expand"
                autoFocus={ true }
                value={ value }
