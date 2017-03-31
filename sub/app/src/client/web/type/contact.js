@@ -26,6 +26,8 @@ import { TaskItemEditor, TaskItemRenderer } from './task';
  */
 export class ContactCard extends React.Component {
 
+  // TODO(burdon): This is a very specialized ContactCard. Factor out sections.
+
   static contextTypes = {
     mutator: React.PropTypes.object.isRequired,
     viewer: React.PropTypes.object.isRequired,
@@ -55,16 +57,19 @@ export class ContactCard extends React.Component {
   }
 
   /**
+   * Create/update task.
    *
-   * @param project Project that owns this item.
-   * @param parent Item, if not null new tasks are linked to this item.
-   * @param owner User object, if not null new tasks are assigned to this User, otherwise to the Viewer.
-   * @param assignee User object, if not null new tasks are assigned to this User.
-   * @param item Item to update.
-   * @param mutations
+   * @param {Item} item Item to update.
+   * @param {[Mutation]} mutations
+   * @param {Project} project Project that owns this item.
+   * @param {User|null} owner User object, if not null new tasks are assigned to this User, otherwise to the Viewer.
+   * @param {User} assignee User object, if not null new tasks are assigned to this User.
+   * @param {boolean} linkToParent
    */
-  handleItemUpdate(project, owner, assignee, linkToParent, item, mutations) {
+  handleTaskUpdate(item=null, mutations, project, owner=null, assignee=null, linkToParent=false) {
+    console.assert(project && owner && assignee);
     let { viewer: { user }, mutator } = this.context;
+
     owner = owner || user;
 
     if (item) {
@@ -73,52 +78,64 @@ export class ContactCard extends React.Component {
       let { item:parent } = this.props;
 
       mutator.batch()
+
+        // New task.
         .createItem('Task', _.concat(mutations, [
           MutationUtil.createFieldMutation('bucket', 'string', user.id),
           MutationUtil.createFieldMutation('project', 'id', project.id),
           MutationUtil.createFieldMutation('owner', 'id', owner.id),
           assignee && MutationUtil.createFieldMutation('assignee', 'id', assignee.id)
         ]), 'new_task')
+
+        // Parent project.
+        .updateItem(project, [
+          MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+        ])
+
+        // Parent Contact.
+        // TODO(burdon): Why is the bucket changed? (should be immutable).
         .updateItem(parent, [
           MutationUtil.createFieldMutation('bucket', 'string', user.id),
           linkToParent && MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
         ])
-        .updateItem(project, [
-          MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
-        ])
+
         .commit();
     }
   }
 
   /**
    *
-   * @param items Items
-   * @param project Project that owns new tasks.
-   * @param assignee User object, assigned new tasks.
+   * @param {[Item]} items Items
+   * @param {Project} project Project that owns new tasks.
+   * @param {User} owner
+   * @param {User} assignee
    * @return {XML}
    */
   taskSection(project, items, owner, assignee) {
-    console.assert(assignee);
-    let header = `Tasks for ${assignee.title}`;
+    console.assert(project && items && owner && assignee);
+
     let ref = `tasks_${assignee.id}`;
+    let header = `Tasks for ${assignee.title}`;
+
+    const handleTaskUpdate = (item, mutations) => {
+      this.handleTaskUpdate(item, mutations, project, owner, assignee);
+    };
+
     return (
       <div key={ assignee.id }>
-        { !_.isEmpty(items) &&
         <div className="ux-section-header">
-          <h3>{ header }</h3>
+          <h3 className="ux-expand">{ header }</h3>
+          <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this, ref) }/>
         </div>
-        }
+
         <div className="ux-list-tasks">
           <div className="ux-scroll-container">
             <List ref={ ref }
                   data={ assignee.id }
                   items={ items }
-                  itemRenderer={ TaskListItemRenderer }
-                  onItemUpdate={ this.handleItemUpdate.bind(this, project, owner, assignee, false) }/>
-          </div>
-
-          <div className="ux-card-footer">
-            <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this, ref) }/>
+                  itemEditor={ TaskItemEditor }
+                  itemRenderer={ TaskItemRenderer }
+                  onItemUpdate={ handleTaskUpdate }/>
           </div>
         </div>
       </div>
@@ -126,11 +143,12 @@ export class ContactCard extends React.Component {
   }
 
   render() {
-    let { viewer } = this.context;
+    let { config, viewer } = this.context;
     let { item:contact } = this.props;
     let { email, tasks, user } = contact;
 
-    let project = user && ContactCard.getProjectFromGroupsByLabel(user.groups, '_default');
+    let defaultProject = ContactCard.getProjectFromGroupsByLabel(viewer.groups, '_default');
+    let userProject = user && ContactCard.getProjectFromGroupsByLabel(user.groups, '_default');
 
     let isContactSelf = (user && viewer.user.id === user.id);
 
@@ -138,8 +156,8 @@ export class ContactCard extends React.Component {
     // TODO(madadam): Refactor ItemUtil.groupBy?
     let assignedToViewerSection = null;
     let assignedToContactSection = null;
-    if (project) {
-      let assignedToViewer = _.filter(_.get(project, 'tasks'), item => {
+    if (userProject) {
+      let assignedToViewer = _.filter(_.get(userProject, 'tasks'), item => {
         let assignee = _.get(item, 'assignee.id');
         let owner = _.get(item, 'owner.id');
 
@@ -151,20 +169,23 @@ export class ContactCard extends React.Component {
         }
       });
 
-      let assignedToContact = _.filter(_.get(project, 'tasks'), item => {
+      let assignedToContact = _.filter(_.get(userProject, 'tasks'), item => {
         let assignee = _.get(item, 'assignee.id');
         let owner = _.get(item, 'owner.id');
         return assignee === user.id && owner === viewer.user.id;
       });
 
-      assignedToViewerSection = this.taskSection(project, assignedToViewer, user, viewer.user);
+      assignedToViewerSection = this.taskSection(userProject, assignedToViewer, user, viewer.user);
+
+      // When a user sees her own Contact card, don't show this section.
       if (!isContactSelf) {
-        // When a user sees her own Contact card, don't show this section.
-        assignedToContactSection = this.taskSection(project, assignedToContact, viewer.user, user);
+        assignedToContactSection = this.taskSection(userProject, assignedToContact, viewer.user, user);
       }
     }
 
-    let defaultProject = ContactCard.getProjectFromGroupsByLabel(this.context.viewer.groups, '_default');
+    const handleTaskUpdate = (item, mutations) => {
+      this.handleTaskUpdate(item, mutations, defaultProject, null, null, true)
+    };
 
     return (
       <Card ref="card" item={ contact }>
@@ -173,9 +194,10 @@ export class ContactCard extends React.Component {
             <i className="ux-icon">email</i>
             <div className="ux-text">{ email }</div>
           </div>
-          { user &&
+
+          { config.debug && user &&
           <div className="ux-data-row">
-            <div className="ux-text">[{ ContactCard.projectDebugString(project) }]</div>
+            <div className="ux-text">[{ ContactCard.projectDebugString(userProject) }]</div>
           </div>
           }
         </div>
@@ -183,21 +205,17 @@ export class ContactCard extends React.Component {
         { assignedToViewerSection }
         { assignedToContactSection }
 
-        { !_.isEmpty(tasks) &&
         <div className="ux-section-header">
-          <h3>Tasks</h3>
+          <h3 className="ux-expand">Tasks</h3>
+          <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this, 'tasks') }/>
         </div>
-        }
         <div className="ux-list-tasks">
           <div className="ux-scroll-container">
             <List ref="tasks"
                   items={ tasks }
+                  itemEditor={ TaskItemEditor }
                   itemRenderer={ TaskItemRenderer }
-                  onItemUpdate={ this.handleItemUpdate.bind(this, defaultProject, null, null, true) }/>
-          </div>
-
-          <div className="ux-card-footer">
-            <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this, 'tasks') }/>
+                  onItemUpdate={ handleTaskUpdate }/>
           </div>
         </div>
       </Card>
@@ -224,7 +242,7 @@ export class ContactCanvasComponent extends React.Component {
     return [];
   }
 
-  handleTaskUpdate(item, mutations) {
+  handleTaskUpdate(item=null, mutations) {
     console.assert(mutations);
     let { mutator } = this.context;
 
