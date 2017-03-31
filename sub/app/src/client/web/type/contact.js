@@ -22,84 +22,6 @@ import { TaskCard, TaskListItemRenderer } from './task';
 
 
 /**
- * Mutation helper to create a sequence (batch) of mutations that create and update a new Task.
- */
-class CreateContactTask {
-
-  constructor(batch, mutations=[]) {
-    console.assert(batch);
-    this._batch = batch;
-
-    // Copy the array.
-    this._mutations = _.compact(mutations);
-
-    this._parent = null;
-    this._parentMutations = [];
-
-    this._project = null;
-    this._projectMutations = [];
-  }
-
-  bucket(bucketId) {
-    console.assert(bucketId);
-    this._mutations.push(MutationUtil.createFieldMutation('bucket', 'string', bucketId));
-    return this;
-  }
-
-  owner(owner) {
-    if (owner) {
-      this._mutations.push(MutationUtil.createFieldMutation('owner', 'id', owner.id));
-    }
-    return this;
-  }
-
-  assignee(assignee) {
-    if (assignee) {
-      this._mutations.push(MutationUtil.createFieldMutation('assignee', 'id', assignee.id));
-    }
-    return this;
-  }
-
-  /**
-   * Add the task to this project.
-   * @param project
-   * @return {CreateContactTask}
-   */
-  project(project) {
-    console.assert(project);
-    this._mutations.push(MutationUtil.createFieldMutation('project', 'id', project.id));
-    this._project = project;
-    this._projectMutations = _.concat(this._projectMutations, [
-      MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
-    ]);
-    return this;
-  }
-
-  /**
-   * @param parent
-   * @param bucketId set bucketID on this parent (possibly cloning external item).
-   * @param linkToParent if true, link the task to this parent.
-   */
-  parent(parent, bucketId, linkToParent=true) {
-    console.assert(parent);
-    this._parent = parent;
-    this._parentMutations = _.concat(this._parentMutations, [
-      MutationUtil.createFieldMutation('bucket', 'string', bucketId),
-      linkToParent && MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
-    ]);
-    return this;
-  }
-
-  commit() {
-    this._batch.createItem('Task', this._mutations, 'new_task');
-    this._parent && this._batch.updateItem(this._parent, this._parentMutations);
-    this._project && this._batch.updateItem(this._project,this._projectMutations);
-    this._batch.commit();
-  }
-
-}
-
-/**
  * Card.
  */
 export class ContactCard extends React.Component {
@@ -150,12 +72,20 @@ export class ContactCard extends React.Component {
     } else {
       let { item:parent } = this.props;
 
-      new CreateContactTask(mutator.batch(), mutations)
-        .bucket(user.id)
-        .owner(owner)
-        .assignee(assignee)
-        .project(project)
-        .parent(parent, user.id, linkToParent)
+      mutator.batch()
+        .createItem('Task', _.concat(mutations, [
+          MutationUtil.createFieldMutation('bucket', 'string', user.id),
+          MutationUtil.createFieldMutation('project', 'id', project.id),
+          MutationUtil.createFieldMutation('owner', 'id', owner.id),
+          assignee && MutationUtil.createFieldMutation('assignee', 'id', assignee.id)
+        ]), 'new_task')
+        .updateItem(parent, [
+          MutationUtil.createFieldMutation('bucket', 'string', user.id),
+          linkToParent && MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+        ])
+        .updateItem(project, [
+          MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+        ])
         .commit();
     }
   }
