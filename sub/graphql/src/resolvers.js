@@ -149,6 +149,12 @@ export class Resolvers {
         tasks: (root, args, context) => {
           let { filter } = args || {};
           return database.getItemStore().queryItems(context, root, filter);
+        },
+
+        groups: (root) => {
+          // TODO(madadam): Intersect with groups visible to the Viewer.
+          // TODO(madadam): Different interface to get SystemStore. getGroup() is not a method of ItemStore interface.
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getGroups(root.id);
         }
       },
 
@@ -217,6 +223,30 @@ export class Resolvers {
             return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', root.tasks);
           } else {
             return [];
+          }
+        },
+
+        user: (root, args, context) => {
+          if (root.email) {
+            // TODO(madadam): Factor out with Slackbot.getUserByEmail.
+            let queryProcessor = database.getQueryProcessor(Database.NAMESPACE.SYSTEM);
+            console.assert(queryProcessor);
+            let filter = {
+              type: 'User',
+              expr: {
+                field: 'email',
+                value: { string: root.email }
+              }
+            };
+            return queryProcessor.queryItems({}, {}, filter)
+              .then(items => {
+                if (items.length > 0) {
+                  console.assert(items.length === 1);
+                  return items[0];
+                }
+              });
+          } else {
+            return null;
           }
         }
       },

@@ -10,6 +10,8 @@ import gql from 'graphql-tag';
 import { Fragments, DomUtil, ID, ItemReducer, MutationUtil } from 'minder-core';
 import { Board, DragOrderModel, List, ReactUtil, connectWithRef } from 'minder-ux';
 
+import { TASK_LEVELS } from '../../../common/const';
+
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
@@ -17,7 +19,7 @@ import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
-import { TaskListItemRenderer } from './task';
+import { TaskItemEditor, TaskItemRenderer } from './task';
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -63,7 +65,8 @@ export class ProjectCard extends React.Component {
           <div className="ux-scroll-container">
             <List ref="tasks"
                   items={ tasks }
-                  itemRenderer={ TaskListItemRenderer }
+                  itemEditor={ TaskItemEditor }
+                  itemRenderer={ TaskItemRenderer }
                   onItemSelect={ this.handleItemSelect.bind(this) }
                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>
           </div>
@@ -95,20 +98,15 @@ class ProjectBoardCanvasComponent extends React.Component {
      */
     status: {
 
+      COLUMNS: _.map(TASK_LEVELS.properties, (def, value) => ({
+        id: 'C-' + value,
+        title: def.title,
+        value: parseInt(value)
+      })),
+
       // Columns (from board metadata).
       columns: (project, board) => {
-        const COLUMNS = [
-          { "id": "c1", "value": { "int": 0 }, "title": "Unstarted" },
-          { "id": "c2", "value": { "int": 1 }, "title": "Active"    },
-          { "id": "c3", "value": { "int": 2 }, "title": "Complete"  },
-          { "id": "c4", "value": { "int": 3 }, "title": "Blocked"   }
-        ];
-
-        return _.map(COLUMNS, column => ({
-          id:     column.id,
-          value:  column.value.int,
-          title:  column.title
-        }));
+        return ProjectBoardCanvasComponent.BoardAdapters.status.COLUMNS;
       },
 
       columnMapper: (userId) => (columns, item) => {

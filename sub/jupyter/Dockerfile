@@ -40,7 +40,7 @@ COPY start-notebook.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/start-notebook.sh
 
 COPY jupyter_notebook_config.py $HOME/.jupyter/
-COPY bashrc $HOME/.bashrc
+COPY bashrc.txt $HOME/.bashrc
 COPY vimrc $HOME/.vimrc
 
 COPY requirements.txt $HOME/

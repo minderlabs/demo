@@ -14,16 +14,40 @@ body {
 
 #test-container {
   display: flex;
+  flex-direction: column;
 
   width: 800px;
   background-color: whitesmoke;
   box-shadow: 4px 4px 16px #999;
 }
 
-.ux-scroll-container {
-  background-color: white;
+.test-panel {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
-.ux-bar {
-  background-color: aquamarine;
+.test-header {
+  background-color: cadetblue;
+  padding: 4px;
+
+  select {
+    border: none;
+    background-color: transparent;
+  }
+}
+
+.test-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  .ux-bar {
+    background-color: #F5F5F5;
+    padding: 4px;
+  }
+
+  .ux-list {
+    background-color: white;
+  }
 }

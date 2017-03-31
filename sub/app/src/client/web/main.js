@@ -21,8 +21,8 @@ const config = _.defaultsDeep(window.config, {
   options: {
     reducer: true,
     optimistic: true,
-    invalidation: true
-//  networkDelay: 1000
+    invalidation: true,
+//  networkDelay: 500
   },
 
   app: {

@@ -142,7 +142,7 @@ export class Activity {
       connectors = _.concat(connectors, arguments);
     }
 
-    return compose(... connectors);
+    return compose(...connectors);
   };
 
   static childContextTypes = {

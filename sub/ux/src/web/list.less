@@ -19,8 +19,20 @@
     }
   }
 
-  > .ux-list-item {
+  .ux-list-item {
     padding: 0 4px;
+
+    i.ux-icon-hover {
+      visibility: hidden;
+    }
+  }
+
+  // Only hover icons in rows directly under the list item.
+  // Prevents grandchildren from being activated when grandfather list-item has mouse over.
+  .ux-list-item > .ux-row:hover {
+    i.ux-icon-hover {
+      visibility: visible;
+    }
   }
 
   .ux-list-editor { // Undo hover.
@@ -90,7 +102,6 @@
   }
 }
 
-// TODO(burdon): Option to inhibit scrollbar.
 .ux-list::-webkit-scrollbar {
   width: 2px;
 }

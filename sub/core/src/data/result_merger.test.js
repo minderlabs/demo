@@ -106,7 +106,7 @@ describe('ResultMerger:', () => {
       });
   });
 
-  it('Does NOT merges user-space result with User store', (done) => {
+  it('Does NOT merge user-space result with User store', (done) => {
 
     // We don't need to merge in this case -- if there's a USER-namespace result, presumably it's
     // complete and we don't need to re-fetch the item from the UserStore.
@@ -177,6 +177,9 @@ describe('ResultMerger:', () => {
           .then(items => {
             expect(items).to.have.lengthOf(1);
             expect(_.get(items[0], 'project')).to.equal('project-1');
+            // Merged items with fkey shouldn't have a namespace anymore.
+            expect(_.get(items[0], 'namespace')).to.equal(undefined);
+            expect(_.get(items[0], 'fkey')).to.equal('test.com/foreign_key_1');
             done();
           });
       });
@@ -226,6 +229,8 @@ describe('ResultMerger:', () => {
             expect(items).to.have.lengthOf(1);
             expect(_.get(items[0], 'project')).to.equal('project-1');
             expect(_.get(items[0], 'description')).to.equal('A task');
+            expect(_.get(items[0], 'namespace')).to.equal(undefined);
+            expect(_.get(items[0], 'fkey')).to.equal('test.com/foreign_key_1');
             // TODO(madadam): another test w/ conflicting fields, which wins (store or external result)?
             done();
           });

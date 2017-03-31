@@ -418,8 +418,36 @@ if (env !== 'production' || true) {
 // Admin.
 //
 
+/**
+ * Initialize the database.
+ * @return {Promise.<TResult>}
+ */
+// TODO(burdon): Remove from server startup except for testing. Use tools to configure DB.
+function resetDatabase() {
+  _.each([Database.NAMESPACE.USER, Database.NAMESPACE.SETTINGS], namespace => {
+    let itemStore = database.getItemStore(namespace);
+    itemStore.clear && itemStore.clear();
+  });
+
+  let loader = new Loader(database, testing);
+  return Promise.all([
+    // Do in parallel.
+    loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM, /^(Group)\.(.+)\.(.+)$/),
+    loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS, /^(Folder)\.(.+)$/)
+  ]).then(() => {
+    logger.log('Initializing groups...');
+    return loader.initGroups().then(() => {
+      if (testing) {
+        logger.log('Generating test data...');
+        return new TestGenerator(database).generate();
+      }
+    });
+  });
+}
+
 app.use('/admin', adminRouter(clientManager, firebase, {
-  scheduler: (env === 'production')
+  scheduler: (env === 'production'),
+  handleDatabaseReset: (env !== 'production' ? () => { return resetDatabase(); } : null)
 }));
 
 
@@ -524,33 +552,17 @@ app.use(function(err, req, res, next) {
 });
 
 
-//
-// Intitialize database.
-//
-
-// TODO(burdon): Remove from server startup except for testing. Use tools to configure DB.
-
-let loader = new Loader(database, testing);
-let loading = Promise.all([
-  // Do in parallel.
-  loader.parse(require('./data/accounts.json'), Database.NAMESPACE.SYSTEM, /^(Group)\.(.+)\.(.+)$/),
-  loader.parse(require('./data/folders.json'), Database.NAMESPACE.SETTINGS, /^(Folder)\.(.+)$/)
-]).then(() => {
-  logger.log('Initializing groups...');
-  return loader.initGroups().then(() => {
-    if (testing) {
-      logger.log('Generating test data...');
-      return new TestGenerator(database).generate();
-    }
-  });
-});
-
 
 //
 // Start-up.
 //
 
-loading.then(() => {
+// Promises.
+let startup = [
+  resetDatabase()
+];
+
+Promise.all(startup).then(() => {
   logger.log('Starting minder-app-server');
 
   server.listen(port, host, () => {

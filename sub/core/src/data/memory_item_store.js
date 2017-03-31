@@ -86,4 +86,12 @@ export class MemoryItemStore extends BaseItemStore {
       return clonedItem;
     }));
   }
+
+  /**
+   * Reset the store, for debugging.
+   */
+  clear() {
+    this._items = new Map();
+    return Promise.resolve();
+  }
 }

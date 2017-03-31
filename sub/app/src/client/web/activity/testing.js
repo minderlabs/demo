@@ -50,6 +50,9 @@ class TestingActivity extends React.Component {
       let { viewer, typeRegistry, items } = this.props;
       let { listType } = this.state;
 
+      // TODO(burdon): Viewer null initially (Activity query not yet satisfied -- need to declare below?)
+      console.log('::::::::::::', viewer);
+
       let itemRenderer = null;
       switch (listType) {
         case 'card': {
@@ -110,9 +113,50 @@ const TestQuery = gql`
   ${Fragments.TaskFragment}
 `;
 
+//
+// Tasks are merged (i.e., status + assigee); sub Tasks of Project are isolated with separate/munged "project/task" IDs.
+//
+const TestMergedItemsQuery = gql`
+  query TestQuery {
+    items: search(filter: { type: "Task", expr: { field: "status", value: { int: 1 } } }) {
+      id
+      type
+      title
+
+      ... on Task {
+        status
+      }
+    }
+
+    moreTasks: search(filter: { type: "Task" }) {
+      id
+      type
+      title
+      
+      ... on Task {
+        assignee {
+          title
+        }
+      }
+    }
+    
+    otherStuff: search(filter: { type: "Project" }) {
+      id
+      type
+      title
+      
+      ... on Project {
+        tasks {
+          title
+        }
+      }
+    }
+  }  
+`;
+
 export default Activity.compose(
 
-  graphql(TestQuery, {
+  graphql(TestMergedItemsQuery, {
     options: (props) => ({
       variables: {
         filter: { type: 'Task' }

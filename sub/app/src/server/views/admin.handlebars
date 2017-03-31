@@ -63,6 +63,9 @@
             <div>
               <button onclick="flush()">Flush Clients</button>
               <button onclick="schedule()">Test Scheduler</button>
+              {{#if canResetDatabase }}
+              <button onclick="resetDatabase()">Reset Database</button>
+              {{/if}}
             </div>
 
             <div>
@@ -111,5 +114,11 @@
     function schedule() {
       Site.postJson('/admin', { action: 'schedule.test' });
     }
+
+    {{#if canResetDatabase }}
+    function resetDatabase() {
+      Site.postJson('/admin', { action: 'database.reset' });
+    }
+    {{/if}}
   </script>
 </div>

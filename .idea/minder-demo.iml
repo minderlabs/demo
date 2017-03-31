@@ -13,6 +13,7 @@
       <excludeFolder url="file://$MODULE_DIR$/sub/site/node_modules" />
       <excludeFolder url="file://$MODULE_DIR$/sub/tools/venv" />
       <excludeFolder url="file://$MODULE_DIR$/sub/tools/virtual_env" />
+      <excludeFolder url="file://$MODULE_DIR$/sub/ux/dist" />
       <excludeFolder url="file://$MODULE_DIR$/sub/web/dist" />
       <excludeFolder url="file://$MODULE_DIR$/sub/web/node_modules" />
     </content>

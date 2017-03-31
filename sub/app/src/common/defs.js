@@ -7,6 +7,9 @@ import path from 'path';
 
 const MINDER_CONF_DIR =  _.get(process.env, 'MINDER_CONF_DIR', './conf');
 
+// TODO(burdon): Rename config.
+// TODO(burdon): Uppercase defs.
+
 /**
  * Client configuration.
  * https://console.firebase.google.com/project/minder-beta/overview
@@ -27,7 +30,7 @@ export const FirebaseAppConfig = {
   credentialPath: path.join(__dirname, MINDER_CONF_DIR, '/minder-beta-44ee54278556.json')
 };
 
-// TODO(burdon): Manage configs.
+// TODO(burdon): Config selectors.
 export const FirebaseTestingAppConfig = {
   apiKey: 'AIzaSyCY0hLfIzi7czDCZWpPn91h8phr5wm7uTI',
   authDomain: 'minder-qa.firebaseapp.com',
@@ -68,8 +71,6 @@ export const FirebaseServerConfig = {
  * Project Config: minder-beta
  */
 export const GoogleApiConfig = {
-
-  // TODO(burdon): Uppercase.
 
   // https://console.cloud.google.com/iam-admin/settings/project?project=minder-beta
   projectNumber: 189079594739,
@@ -138,23 +139,4 @@ export const Const = {
   // https://chrome.google.com/webstore/developer/edit/ofdkhkelcafdphpddfobhbbblgnloian
   CRX_ID: 'ofdkhkelcafdphpddfobhbbblgnloian',
   CRX_URL: crxId => 'https://chrome.google.com/webstore/detail/' + crxId
-};
-
-// TODO(burdon): Find a better place for non-deployment related app constants.
-// Enums with properties in javascript:
-// https://stijndewitt.com/2014/01/26/enums-in-javascript/
-export const TASK_LEVELS = {
-
-  UNSTARTED: 0,
-  ACTIVE:    1,
-  COMPLETE:  2,
-  BLOCKED:   3,
-
-  // TODO(burdon): Move out of this map.
-  properties: {
-    0: { title: 'Unstarted'},
-    1: { title: 'Active'},
-    2: { title: 'Complete'},
-    3: { title: 'Blocked'}
-  }
 };
