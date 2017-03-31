@@ -95,8 +95,8 @@ const BasicItemFragment = gql`
 `;
 
 const BasicSearchQuery = gql`
-  query BasicSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
-    search(filter: $filter, offset: $offset, count: $count) {
+  query BasicSearchQuery($filter: FilterInput) {
+    search(filter: $filter) {
       ...BasicItemFragment
     }
   }
@@ -130,8 +130,8 @@ const CardItemFragment = gql`
 `;
 
 const CardSearchQuery = gql`
-  query CardSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
-    search(filter: $filter, offset: $offset, count: $count) {
+  query CardSearchQuery($filter: FilterInput) {
+    search(filter: $filter) {
       ...CardItemFragment
 
       ... on Task {
@@ -153,8 +153,8 @@ export const CardSearchList = connectReducer(ListReducer.graphql(CardSearchQuery
 //-------------------------------------------------------------------------------------------------
 
 export const SimpleSearchQuery = gql`
-  query SimpleSearchQuery($filter: FilterInput, $offset: Int, $count: Int) {
-    search(filter: $filter, offset: $offset, count: $count) {
+  query SimpleSearchQuery($filter: FilterInput) {
+    search(filter: $filter) {
       id
       type      
       title
@@ -166,11 +166,11 @@ export const ItemsQueryWrapper = graphql(SimpleSearchQuery, {
 
   // http://dev.apollodata.com/react/queries.html#graphql-options
   options: (props) => {
-    let { filter, count } = props;
+    let { filter } = props;
 
     return {
       variables: {
-        filter, count, offset: 0
+        filter
       }
     }
   },
@@ -178,7 +178,7 @@ export const ItemsQueryWrapper = graphql(SimpleSearchQuery, {
   // http://dev.apollodata.com/react/queries.html#graphql-props-option
   props: ({ ownProps, data }) => {
     let { search:items } = data;
-    let { filter, count } = ownProps;
+    let { filter } = ownProps;
 
     return {
       items,
@@ -193,9 +193,11 @@ export const ItemsQueryWrapper = graphql(SimpleSearchQuery, {
       // http://dev.apollodata.com/react/pagination.html
       // http://dev.apollodata.com/react/cache-updates.html#fetchMore
       fetchMoreItems: () => {
+        filter.offset = (filter.offset || 0) + items.length;
+
         return data.fetchMore({
           variables: {
-            filter, count, offset: items.length
+            filter
           },
 
           // TODO(burdon): Use update({ $push }).

@@ -5,7 +5,7 @@
 import _ from 'lodash';
 import google from 'googleapis';
 
-import { ErrorUtil, QueryProcessor } from 'minder-core';
+import { ErrorUtil, ItemStore, QueryProcessor } from 'minder-core';
 
 import { OAuthServiceProvider } from '../service';
 
@@ -151,12 +151,13 @@ export class GoogleDriveQueryProcessor extends QueryProcessor {
   // QueryProcessor API.
   //
 
-  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}) {
     let driveQuery = GoogleDriveQueryProcessor.makeDriveQuery(filter.text);
     if (!driveQuery) {
       return Promise.resolve([]);
     }
 
+    let count = filter.count || ItemStore.DEFAULT_COUNT;
     return this._driveClient.search(context, driveQuery, count).catch(error => {
       throw ErrorUtil.error('Google Drive', error);
     });

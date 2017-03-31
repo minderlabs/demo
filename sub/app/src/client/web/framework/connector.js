@@ -15,7 +15,7 @@ import { AppAction } from '../../common/reducers';
 //-------------------------------------------------------------------------------------------------
 
 const mapStateToProps = (state, ownProps) => {
-  let { injector, userProfile } = AppAction.getState(state);
+  let { injector, config, userProfile } = AppAction.getState(state);
   let { userId } = userProfile;
 
   let matcher = injector.get(Matcher);
@@ -23,6 +23,7 @@ const mapStateToProps = (state, ownProps) => {
   return {
 
     // Required by HOC reducers.
+    config,
     matcher,
 
     // Matcher's context used by HOC reducers.
