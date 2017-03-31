@@ -182,8 +182,6 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     // TODO(burdon): Register vs update?
     systemStore.registerUser(userProfile, credentials).then(user => {
       logger.log('OAuth callback: ' + JSON.stringify(_.pick(userProfile, ['id', 'email'])));
-      console.log('**** USER: ' + JSON.stringify(user)); // FIXME
-      console.log('**** CREDENTIALS: ' + JSON.stringify(credentials)); // FIXME
 
       //
       // Create the custom JWT token.
@@ -231,7 +229,9 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
       // Callback state.
       let state = {
-        redirect: req.query.redirect || '/app'
+        redirect: req.query.redirect || '/app',
+        redirectType: req.query.redirectType,
+        requestId: req.query.requestId
       };
 
       // Handle JSONP.
@@ -265,7 +265,6 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     }), (req, res) => {
       let user = req.user;
       logger.log('Logged in: ' + JSON.stringify(_.pick(user, ['id', 'email'])));
-      console.log('*** USER in callback: ' + JSON.stringify(user)); // FIXME
 
       // TODO(burdon): Validate state.
       let state = OAuthProvider.decodeState(req.query.state);
@@ -273,9 +272,11 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
       // Redirect after successful callback.
       let redirect = _.get(state, 'redirect', '/home');
+      let redirectType = _.get(state, 'redirectType');
+      let requestId = _.get(state, 'requestId');
 
       // JSONP callback (see NetUtil).
-      if (redirect === 'jsonp') {
+      if (redirectType === 'jsonp') {
         // https://auth0.com/docs/tokens/refresh-token
         let response = {
           credentials: _.pick(getUserSession(user), ['id_token', 'id_token_exp'])
@@ -287,10 +288,11 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
         return;
       }
 
-      // FIXME: only do this for CRX case (redirect_type=crx), based on param in request.
-      if (true) {
-        // This isn't a JSON response, needs to be encoded as URL params. It's easier to flatten the config.
+      if (redirectType === 'crx') {
+        // This isn't a JSON response, it needs to be encoded as URL params. It's easier to flatten the config.
         let response  = _.assign(
+          { requestId },
+
           // credentials
           _.pick(getUserSession(user), ['id_token', 'id_token_exp']),
           // TODO(madadam): Is credentials.provider necessary? Only for /user/register, which is being deprecated.
@@ -301,9 +303,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
           _.pick(user, ['email', 'displayName', 'photoUrl'])
         );
 
-        console.log('*** REDIRECT RESPONSE: ' + JSON.stringify(response)); // FIXME
         redirect = HttpUtil.toUrl(redirect, response);
-        console.log('*** REDIRECTING TO ' + redirect); // FIXME
       }
       res.redirect(redirect);
     });
