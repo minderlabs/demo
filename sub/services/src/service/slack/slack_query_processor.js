@@ -138,7 +138,7 @@ export class SlackQueryProcessor extends QueryProcessor {
   // QueryProcessor API.
   //
 
-  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}) {
     let slackChannel = QueryUtil.getContextKey(filter, 'slack_channel');
 
     if (filter.text || !slackChannel) {

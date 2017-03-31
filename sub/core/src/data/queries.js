@@ -14,9 +14,7 @@ const logger = Logger.get('sub');
 export class QueryRegistry {
 
   // HOC.
-  static subscribe() {
-
-  }
+  static subscribe() {}
 
   static createId() {
     return _.uniqueId('S-');
@@ -25,7 +23,9 @@ export class QueryRegistry {
   // TODO(burdon): Factor out (move to minder-core).
   // http://dev.apollodata.com/core/apollo-client-api.html#QuerySubscription
 
-  constructor() {
+  constructor(config) {
+    console.assert(config);
+    this._config = config;
     this._components = new Map();
   }
 
@@ -55,10 +55,12 @@ export class QueryRegistry {
    * Manually refetch registered queries.
    */
   invalidate() {
-    logger.log(`Refetching queries: ${this._components.size}`);
-    this._components.forEach(registration => {
-      registration.refetch();
-    });
+    if (_.get(config, 'options.invalidate')) {
+      logger.log(`Refetching queries: ${this._components.size}`);
+      this._components.forEach(registration => {
+        registration.refetch();
+      });
+    }
   }
 }
 

@@ -267,21 +267,33 @@ export class List extends React.Component {
     // Rows.
     //
 
+    // Debug-only.
+    let keyMap = new Map();
+
     let previousOrder = 0;
     let rows = _.map(items, item => {
       console.assert(item);
+
+      let itemKey = item.id;
+      if (keyMap.get(itemKey)) {
+        console.warn('Repeated item [' + itemKey + ']: ' +
+          JSON.stringify(_.pick(item, ['type', 'title'])) + ' == ' +
+          JSON.stringify(_.pick(keyMap.get(itemKey), ['type', 'title'])));
+      } else {
+        keyMap.set(itemKey, item);
+      }
 
       // Primary item.
       let listItem;
       if (item.id === editItem) {
         listItem = (
-          <div key={ item.id } className={ DomUtil.className('ux-list-item', 'ux-list-editor', itemClassName) }>
+          <div key={ itemKey } className={ DomUtil.className('ux-list-item', 'ux-list-editor', itemClassName) }>
             { itemEditor(item, this) }
           </div>
         );
       } else {
         listItem = (
-          <div key={ item.id } className={ DomUtil.className('ux-list-item', itemClassName) }>
+          <div key={ itemKey } className={ DomUtil.className('ux-list-item', itemClassName) }>
             { itemRenderer(item, this) }
           </div>
         );
@@ -299,7 +311,7 @@ export class List extends React.Component {
 
         // Drop zone above each item.
         listItem = (
-          <ListItemDropTarget key={ item.id }
+          <ListItemDropTarget key={ itemKey }
                               data={ data }
                               order={ dropOrder }
                               onDrop={ this.handleItemDrop.bind(this) }>

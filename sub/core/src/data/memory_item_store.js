@@ -39,7 +39,7 @@ export class MemoryItemStore extends BaseItemStore {
     }
   }
 
-  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}) {
     console.assert(context && root && filter);
 
     // Gather results for all buckets.
@@ -58,7 +58,7 @@ export class MemoryItemStore extends BaseItemStore {
       bucketItems = this._items;
     }
 
-    let items = this.filterItems(bucketItems, context, root, filter, offset, count);
+    let items = this.filterItems(bucketItems, context, root, filter);
     return Promise.resolve(_.map(items, item => TypeUtil.clone(item)));
   }
 

@@ -98,21 +98,15 @@ class ProjectBoardCanvasComponent extends React.Component {
      */
     status: {
 
-      // TODO(burdon): Generate from Const.
+      COLUMNS: _.map(TASK_LEVELS.properties, (def, value) => ({
+        id: 'C-' + value,
+        title: def.title,
+        value: parseInt(value)
+      })),
+
       // Columns (from board metadata).
       columns: (project, board) => {
-        const COLUMNS = [
-          { "id": "c1", "value": { "int": TASK_LEVELS.UNSTARTED }, "title": TASK_LEVELS.properties[TASK_LEVELS.UNSTARTED].title },
-          { "id": "c2", "value": { "int": TASK_LEVELS.ACTIVE    }, "title": TASK_LEVELS.properties[TASK_LEVELS.ACTIVE].title    },
-          { "id": "c3", "value": { "int": TASK_LEVELS.COMPLETE  }, "title": TASK_LEVELS.properties[TASK_LEVELS.COMPLETE].title  },
-          { "id": "c4", "value": { "int": TASK_LEVELS.BLOCKED   }, "title": TASK_LEVELS.properties[TASK_LEVELS.BLOCKED].title   }
-        ];
-
-        return _.map(COLUMNS, column => ({
-          id:     column.id,
-          value:  column.value.int,
-          title:  column.title
-        }));
+        return ProjectBoardCanvasComponent.BoardAdapters.status.COLUMNS;
       },
 
       columnMapper: (userId) => (columns, item) => {

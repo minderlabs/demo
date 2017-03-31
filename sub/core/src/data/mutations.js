@@ -55,14 +55,18 @@ export class MutationUtil {
    *
    * @param action Redux action.
    * @param optimistic If true then also return optimistic results.
+   *
    * NOTE: The optimistic results may not have well-formed items (e.g., linked items may just have string IDs),
    * so in some cases (e.g., Finder's ContextHandler) we may want to skip these partial results.
    *
    * @returns root result object or undefined.
    */
   static getUpsertItemsMutationResult(action, optimistic=true) {
+    // Filter for UpsertItemsMutationName mutations.
     if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === UpsertItemsMutationName) {
-      if (optimistic || !_.get(action, 'result.data.optimistic')) {   // TODO(burdon): ???
+
+      // Filter-out optimistic updates if required.
+      if (optimistic || !_.get(action, 'result.data.optimistic')) {
         return _.get(action.result.data, UpsertItemsMutationPath);
       }
     }
@@ -298,7 +302,8 @@ export class Mutator {
       // NOTE: dependencies must previously have been injected into the properties.
       //
       props: ({ ownProps, mutate }) => {
-        let mutator = new Mutator(ownProps.idGenerator, ownProps.analytics, mutate);
+        let { config, idGenerator, analytics } = ownProps;
+        let mutator = new Mutator(config, idGenerator, analytics, mutate);
         return {
           mutator
         };
@@ -307,12 +312,31 @@ export class Mutator {
   }
 
   /**
+   * Create the optimistic result.
+   *
+   * http://dev.apollodata.com/react/mutations.html#optimistic-ui
+   *
+   * @param item
+   */
+  static optimisticResponse(item) {
+    return {
+      // Add hint for reducer.
+      optimistic: true,
+
+      // Root.
+      [UpsertItemsMutationPath]: [ item ]
+    };
+  }
+
+  /**
+   * @param config
    * @param idGenerator
    * @param analytics
    * @param mutate Function provided by apollo.
    */
-  constructor(idGenerator, analytics, mutate) {
-    console.assert(idGenerator && analytics && mutate);
+  constructor(config, idGenerator, analytics, mutate) {
+    console.assert(config, idGenerator && analytics && mutate);
+    this._config = config;
     this._idGenerator = idGenerator;
     this._analytics = analytics;
     this._mutate = mutate;
@@ -335,6 +359,7 @@ export class Mutator {
   createItem(type, mutations, namespace=undefined) {
     mutations = _.compact(_.concat(mutations));
 
+    // TODO(burdon): Unit test.
     // Create optimistic result.
     let itemId = this._idGenerator.createId();
     let item = Transforms.applyObjectMutations({
@@ -364,13 +389,7 @@ export class Mutator {
         ]
       },
 
-      // http://dev.apollodata.com/react/mutations.html#optimistic-ui
-      optimisticResponse: {
-        optimistic: true,
-        upsertItems: [
-          item
-        ]
-      }
+      optimisticResponse: _.get(this._config, 'options.optimistic') && Mutator.optimisticResponse(item)
     });
 
     this._analytics && this._analytics.track('item.create', { label: type });
@@ -391,6 +410,7 @@ export class Mutator {
 
     //
     // Special handling for non-USER namespace.
+    // TODO(burdon): Unit test.
     // TODO(burdon): Fall through to standard update processing below (NOT CREATE)?
     //
 
@@ -478,13 +498,7 @@ export class Mutator {
         ]
       },
 
-      // http://dev.apollodata.com/react/mutations.html#optimistic-ui
-      optimisticResponse: {
-        optimistic: true,
-        upsertItems: [
-          item
-        ]
-      }
+      optimisticResponse: _.get(this._config, 'options.optimistic') && Mutator.optimisticResponse(item)
     });
 
     this._analytics && this._analytics.track('item.edit', { label: item.type });

@@ -104,6 +104,17 @@ export class NetworkManager {
     };
 
     /**
+     * Debugging delay.
+     */
+    const delayRequest = (delay=1000) => ({
+      applyMiddleware: ({ request, options }, next) => {
+        setTimeout(() => {
+          next();
+        }, delay);
+      }
+    });
+
+    /**
      * Intercept request.
      * http://dev.apollodata.com/core/network.html#networkInterfaceMiddleware
      */
@@ -193,18 +204,26 @@ export class NetworkManager {
     // TODO(burdon): Testing (mockNetworkInterface).
     // https://github.com/apollographql/apollo-client/blob/a86acf25df5eaf0fdaab264fd16c2ed22657e65c/test/customResolvers.ts
 
+    let middleware = [
+      addHeaders,
+      fixFetchMoreBug,
+      logRequest
+    ];
+
+    let afterware = [
+      logResponse
+    ];
+
+    // Debugging delay.
+    let delay = _.get(this._config, 'options.networkDelay');
+    if (delay) {
+      middleware.push(delayRequest(delay));
+    }
+
     // Create HTTPFetchNetworkInterface
-    let networkInterface = createNetworkInterface({
-      uri: this._config.graphql
-    })
-      .use([
-        addHeaders,
-        fixFetchMoreBug,
-        logRequest
-      ])
-      .useAfter([
-        logResponse
-      ]);
+    let networkInterface = createNetworkInterface({ uri: this._config.graphql })
+      .use(middleware)
+      .useAfter(afterware);
 
     if (localItemStore) {
       this._networkInterface = CachingNetworkInterface.createNetworkInterface(localItemStore, networkInterface);

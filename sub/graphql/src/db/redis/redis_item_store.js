@@ -59,7 +59,7 @@ export class RedisItemStore extends BaseItemStore {
   // QueryProcessor interface.
   //
 
-  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}) {
     let { userId, groupIds } = context;
 
     // Gather results for each bucket.
@@ -77,7 +77,7 @@ export class RedisItemStore extends BaseItemStore {
       return this._client.mgetAsync(keys)
         .then(values => {
           let items = _.map(values, value => JSON.parse(value));
-          return this.filterItems(items, context, root, filter, offset, count)
+          return this.filterItems(items, context, root, filter)
         });
     });
   }
