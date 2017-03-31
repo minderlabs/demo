@@ -65,7 +65,7 @@ export const DebugListItemRenderer = (item) => {
     <ListItem item={ item } className="ux-column">
       <ListItem.Favorite/>
       <div>
-        <ListItem.Title select={ true }/>
+        <ListItem.Text value={ item.title }/>
         <ListItem.Debug/>
       </div>
     </ListItem>

@@ -45,13 +45,13 @@ export class TextBox extends React.Component {
     delay: 100
   };
 
-  state = {
-    value: '',
-    readOnly: false
-  };
-
   constructor() {
     super(...arguments);
+
+    this.state = {
+      readOnly: false,
+      value: this.props.value
+    };
 
     this._timeout = Async.timeout(this.props.delay);
   }
@@ -67,15 +67,10 @@ export class TextBox extends React.Component {
    * https://facebook.github.io/react/docs/react-component.html#componentwillreceiveprops
    */
   componentWillReceiveProps(nextProps) {
-    let state = {
-      readOnly: nextProps.clickToEdit
-    };
-
-    if (this.state.readOnly) {
-      state.value = nextProps.value || '';
-    }
-
-    this.setState(state);
+    this.setState({
+      readOnly: nextProps.clickToEdit,
+      value: nextProps.value
+    });
   }
 
   get value() {
@@ -137,7 +132,7 @@ export class TextBox extends React.Component {
       case 27: {
         this.setState({
           value: this.props.value,
-          readOnly: this.props.clickToEdit
+          readOnly: true,
         }, () => {
           this.props.onCancel && this.props.onCancel(this.props.value, event);
         });
@@ -155,7 +150,7 @@ export class TextBox extends React.Component {
       this.setState({
         readOnly: false
       }, () => {
-        this.refs.input.focus();
+        this.focus();
       });
     }
   }
@@ -174,7 +169,7 @@ export class TextBox extends React.Component {
       return (
         <input ref="input"
                type="text"
-               value={ value }
+               value={ value || '' }
                className={ DomUtil.className('ux-textbox', className) }
                spellCheck={ false }
                autoFocus={ autoFocus ? 'autoFocus' : '' }

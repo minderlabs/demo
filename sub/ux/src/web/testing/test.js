@@ -17,13 +17,60 @@ import './test.less';
 // TODO(burdon): Proxy to allow routes.
 // http://stackoverflow.com/questions/26203725/how-to-allow-for-webpack-dev-server-to-allow-entry-points-from-react-router
 
+class KitchenSink extends React.Component {
+
+  static Components = [
+    {
+      id: 'list',
+      name: 'List',
+      render: () => <TestList/>
+    },
+    {
+      id: 'board',
+      name: 'Board',
+      render: () => <TestBoard/>
+    },
+    {
+      id: 'drag',
+      name: 'Drag',
+      render: () => <TestDragBoard/>
+    }
+  ];
+
+  state = {
+    component: KitchenSink.Components[0]
+  };
+
+  handleSelectChanged(event) {
+    this.setState({
+      component: _.find(KitchenSink.Components, component => component.id === event.target.value)
+    });
+  }
+
+  render() {
+    let { component } = this.state;
+
+    return (
+      <div className="test-panel">
+        <div className="test-header">
+          <select value={ component.id } onChange={ this.handleSelectChanged.bind(this) }>
+          { _.map(KitchenSink.Components, component => (
+            <option key={ component.id } value={ component.id }>{ component.name }</option>
+          ))}
+          </select>
+        </div>
+
+        <div className="test-container">
+          { component.render() }
+        </div>
+      </div>
+    );
+  }
+}
+
 const App = (
   <Router history={ browserHistory }>
-    {/*
-    <Route path="/" component={ TestList }/>
-    <Route path="/" component={ TestDragBoard }/>
-    */}
-    <Route path="/" component={ TestBoard }/>
+    <Route path="/" component={ KitchenSink }/>
   </Router>
 );
 

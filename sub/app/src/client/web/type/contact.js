@@ -13,7 +13,7 @@ import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
-import { TaskCard, TaskListItemRenderer } from './task';
+import { TaskItemEditor, TaskItemRenderer } from './task';
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -93,7 +93,7 @@ export class ContactCard extends React.Component {
           <div className="ux-scroll-container">
             <List ref="tasks"
                   items={ tasks }
-                  itemRenderer={ TaskListItemRenderer }
+                  itemRenderer={ TaskItemRenderer }
                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>
           </div>
 
@@ -159,8 +159,8 @@ export class ContactCanvasComponent extends React.Component {
             <List ref="tasks"
                   className="ux-list-tasks"
                   items={ tasks }
-                  itemRenderer={ TaskListItemRenderer }
-                  itemEditor={ TaskCard.TaskEditor }
+                  itemEditor={ TaskItemEditor }
+                  itemRenderer={ TaskItemRenderer }
                   onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
           </div>
         </Canvas>

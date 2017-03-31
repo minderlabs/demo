@@ -4,18 +4,16 @@
 
 import _ from 'lodash';
 import React from 'react';
-import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, Fragments, ItemReducer, MutationUtil } from 'minder-core';
-import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
+import { List, ListItem, ListItemEditor, Picker, ReactUtil } from 'minder-ux';
 
 import { TASK_LEVELS } from '../../../common/defs';
 
 import { Path } from '../../common/path';
-import { AppAction } from '../../common/reducers';
 
 import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
@@ -51,12 +49,24 @@ const TaskStatus = ListItem.createInlineComponent((props, context) => {
 /**
  * Renders task title and status checkbox.
  */
-export const TaskListItemRenderer = (item) => {
+export const TaskItemRenderer = (item) => {
   return (
     <ListItem item={ item }>
       <TaskStatus/>
-      <ListItem.Title/>
+      <ListItem.Text value={ item.title }/>
     </ListItem>
+  );
+};
+
+/**
+ * Renders task editor.
+ */
+export const TaskItemEditor = (item) => {
+  return (
+    <ListItemEditor item={ item }>
+      <ListItem.Icon icon="check_box_outline_blank"/>
+      <ListItem.Text field="title"/>
+    </ListItemEditor>
   );
 };
 
@@ -86,13 +96,6 @@ const AddCreateSubTask = (batch, userId, parent, mutations) => {
  * Card.
  */
 export class TaskCard extends React.Component {
-
-  static TaskEditor = (props) => {
-    let icon = <i className="material-icons">check_box_outline_blank</i>;
-    return (
-      <List.ItemEditor icon={ icon } { ...props }/>
-    );
-  };
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
@@ -142,8 +145,8 @@ export class TaskCard extends React.Component {
           <List ref="tasks"
                 className="ux-list-tasks"
                 items={ tasks }
-                itemRenderer={ TaskListItemRenderer }
-                itemEditor={ TaskCard.TaskEditor }
+                itemRenderer={ TaskItemRenderer }
+                itemEditor={ TaskItemEditor }
                 onItemSelect={ this.handleTaskSelect.bind(this) }
                 onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
 
@@ -313,8 +316,8 @@ class TaskCanvasComponent extends React.Component {
             <List ref="tasks"
                   className="ux-list-tasks"
                   items={ tasks }
-                  itemRenderer={ TaskListItemRenderer }
-                  itemEditor={ TaskCard.TaskEditor }
+                  itemEditor={ TaskItemEditor }
+                  itemRenderer={ TaskItemRenderer }
                   onItemSelect={ this.handleTaskSelect.bind(this) }
                   onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
           </div>

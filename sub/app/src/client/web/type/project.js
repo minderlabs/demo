@@ -17,7 +17,7 @@ import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
-import { TaskListItemRenderer } from './task';
+import { TaskItemRenderer } from './task';
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -63,7 +63,7 @@ export class ProjectCard extends React.Component {
           <div className="ux-scroll-container">
             <List ref="tasks"
                   items={ tasks }
-                  itemRenderer={ TaskListItemRenderer }
+                  itemRenderer={ TaskItemRenderer }
                   onItemSelect={ this.handleItemSelect.bind(this) }
                   onItemUpdate={ this.handleItemUpdate.bind(this) }/>
           </div>
