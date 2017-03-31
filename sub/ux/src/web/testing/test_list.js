@@ -22,7 +22,7 @@ export default class TestList extends React.Component {
     <ListItemEditor item={ item }>
       <ListItem.Icon icon="check_box_outline_blank"/>
       <ListItem.Edit field="title"/>
-      <ListItem.EditButtons/>
+      <ListItem.EditorButtons/>
     </ListItemEditor>
   );
 
@@ -30,7 +30,7 @@ export default class TestList extends React.Component {
     <ListItem item={ item }>
       <ListItem.Icon icon="check_box_outline_blank"/>
       <ListItem.Text value={ item.title }/>
-      <ListItem.Icon icon="edit" onClick={ item => list.editItem(item.id) }/>
+      <ListItem.EditButton/>
     </ListItem>
   );
 
@@ -68,7 +68,7 @@ export default class TestList extends React.Component {
 
       Transforms.applyObjectMutations(item, mutations);
       let items = this.state.items;
-      item.push(item);
+      items.push(item);
 
       this.setState({
         items
@@ -88,7 +88,7 @@ export default class TestList extends React.Component {
     return (
       <div className="ux-column">
         <div className="ux-bar">
-          <i className="ux-icon ux-icon-action" onClick={ this.handleItemAdd.bind(this) }>add</i>
+          <i className="ux-icon ux-icon-action ux-icon-large ux-icon-add" onClick={ this.handleItemAdd.bind(this) }/>
         </div>
 
         <div className="ux-expand">

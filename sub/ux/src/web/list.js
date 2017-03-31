@@ -38,7 +38,7 @@ export class List extends React.Component {
     return (
       <ListItemEditor item={ item }>
         <ListItem.Edit field="title"/>
-        <ListItem.EditButtons/>
+        <ListItem.EditorButtons/>
       </ListItemEditor>
     );
   };
@@ -55,7 +55,7 @@ export class List extends React.Component {
     return (
       <ListItem item={ item }>
         <ListItem.Text value={ item.title }/>
-        <ListItem.Icon icon="edit" onClick={ item => list.editItem(item.id) }/>
+        <ListItem.EditButton/>
       </ListItem>
     );
   };
@@ -72,11 +72,8 @@ export class List extends React.Component {
   // Context passed to ListItem and inline widgets.
   //
   static childContextTypes = {
-    // TODO(burdon): Pass all mutations through list callback?
-    // TODO(burdon): At least require to be passed into List (otherwise relies on ancestors which is leaky).
-    mutator:            React.PropTypes.object,
-
     onItemSelect:       React.PropTypes.func,
+    onItemEdit:         React.PropTypes.func,
     onItemUpdate:       React.PropTypes.func,
     onItemCancel:       React.PropTypes.func
   };
@@ -94,7 +91,6 @@ export class List extends React.Component {
     itemOrderModel:     React.PropTypes.object,     // Order model for drag and drop.
     itemInjector:       React.PropTypes.func,       // Modify results.
 
-    mutator:            React.PropTypes.object,     // TODO(burdon): Remove (must call onItemUpdate).
     onItemUpdate:       React.PropTypes.func,
     onItemSelect:       React.PropTypes.func,
     onItemDrop:         React.PropTypes.func
@@ -124,6 +120,7 @@ export class List extends React.Component {
   getChildContext() {
     return {
       onItemSelect: this.handleItemSelect.bind(this),
+      onItemEdit:   this.handleItemEdit.bind(this),
       onItemUpdate: this.handleItemUpdate.bind(this),
       onItemCancel: this.handleItemCancel.bind(this)
     };
@@ -182,6 +179,14 @@ export class List extends React.Component {
   handleItemSelect(item) {
     // TODO(burdon): Provide selection model.
     this.props.onItemSelect && this.props.onItemSelect(item);
+  }
+
+  /**
+   * Set edit mode.
+   * @param id
+   */
+  handleItemEdit(id) {
+    this.editItem(id);
   }
 
   /**
@@ -315,21 +320,18 @@ export class List extends React.Component {
 
     //
     // Editor.
-    // TODO(burdon): By default at the bottom.
     //
 
     let editor;
     if (addItem) {
-      // TODO(burdon): Editor should be in separate div (not part of scroll container).
       editor = (
         <div className={ DomUtil.className('ux-list-item', 'ux-list-editor', itemClassName) }>
           { itemEditor(null, this) }
         </div>
       );
-
-      console.log(editor);
     }
 
+    // TODO(burdon): Editor should be in separate div (not part of scroll container).
     let className = DomUtil.className('ux-list', this.props.className, this.props.highlight && 'ux-list-highlight');
     return (
       <div className={ className }>
@@ -347,13 +349,16 @@ export class List extends React.Component {
 // Enable sub-components to access the item and handlers.
 //
 const ListItemChildContextTypes = {
+
+  // Item.
   item: React.PropTypes.object,
 
-  // Parent component.
+  // ListItem component.
   listItem: React.PropTypes.object,
 
-  // Inherit these from parent List.
+  // Inherited from List component.
   onItemSelect: React.PropTypes.func,
+  onItemEdit:   React.PropTypes.func,
   onItemUpdate: React.PropTypes.func,
   onItemCancel: React.PropTypes.func
 };
@@ -480,7 +485,7 @@ export class ListItem extends React.Component {
 
     const handleCancel = () => { onItemCancel(); };
 
-    // Sets callback (e.g., when <ListItem.EditButtons/> saves).
+    // Sets callback (e.g., when <ListItem.EditorButtons/> saves).
     listItem.setOnSave(() => {
       handleSave();
     });
@@ -498,9 +503,9 @@ export class ListItem extends React.Component {
   });
 
   /**
-   * <ListItem.EditButtons/>
+   * <ListItem.EditorButtons/>
    */
-  static EditButtons = ListItem.createInlineComponent((props, context) => {
+  static EditorButtons = ListItem.createInlineComponent((props, context) => {
     let { listItem, onItemCancel } = context;
 
     const handleSave = () => {
@@ -511,8 +516,25 @@ export class ListItem extends React.Component {
 
     return (
       <div>
-        <i className="ux-icon ux-icon-action ux-icon-save" onClick={ handleSave }>check</i>
-        <i className="ux-icon ux-icon-action ux-icon-cancel" onClick={ handleCancel }>cancel</i>
+        <i className="ux-icon ux-icon-action ux-icon-save" onClick={ handleSave }/>
+        <i className="ux-icon ux-icon-action ux-icon-cancel" onClick={ handleCancel }/>
+      </div>
+    )
+  });
+
+  /**
+   * <ListItem.EditButton/>
+   */
+  static EditButton = ListItem.createInlineComponent((props, context) => {
+    let { item, onItemEdit } = context;
+
+    const handleEdit = () => {
+      onItemEdit(item.id);
+    };
+
+    return (
+      <div>
+        <i className="ux-icon ux-icon-action ux-icon-hover ux-icon-edit" onClick={ handleEdit }/>
       </div>
     )
   });

@@ -21,6 +21,15 @@
 
   > .ux-list-item {
     padding: 0 4px;
+
+    i.ux-icon-hover {
+      visibility: hidden;
+    }
+  }
+  > .ux-list-item:hover {
+    i.ux-icon-hover {
+      visibility: visible;
+    }
   }
 
   .ux-list-editor { // Undo hover.
@@ -90,7 +99,6 @@
   }
 }
 
-// TODO(burdon): Option to inhibit scrollbar.
 .ux-list::-webkit-scrollbar {
   width: 2px;
 }

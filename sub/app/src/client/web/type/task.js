@@ -31,7 +31,7 @@ import './task.less';
 const TaskStatus = ListItem.createInlineComponent((props, context) => {
   let { item } = context;
 
-  // TODO(burdon): Const for status levels.
+  // TODO(burdon): Use Const for status levels.
   // TODO(burdon): Generalize status (mapping to board column model).
   let icon = (item.status === 3) ? 'done' : 'check_box_outline_blank';
   const toggleStatus = () => {
