@@ -102,6 +102,9 @@ const port = _.get(process.env, 'PORT', 3000);
 
 const testing = (env !== 'production');
 
+// NOTE: Want repeatable IDs in dev but not production.
+const idGenerator = new IdGenerator((env !== 'production') && 1234);
+
 
 //
 // Express.
@@ -110,9 +113,6 @@ const testing = (env !== 'production');
 const app = express();
 
 const server = http.Server(app);
-
-// NOTE: Want repeatable IDs in dev but not production.
-const idGenerator = new IdGenerator((env !== 'production') && 1000);
 
 const clientManager = new ClientManager(idGenerator);
 
@@ -159,10 +159,10 @@ const settingsStore = new MemoryItemStore(idGenerator, matcher, Database.NAMESPA
 const userDataStore = testing ?
   // TODO(burdon): Config file for testing options.
   new TestItemStore(new MemoryItemStore(idGenerator, matcher, Database.NAMESPACE.USER), { delay: 0 }) :
-  new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.USER, true);
+  new FirebaseItemStore(new IdGenerator(), matcher, firebase.db, Database.NAMESPACE.USER, true);
 
 const systemStore = new SystemStore(
-  new FirebaseItemStore(idGenerator, matcher, firebase.db, Database.NAMESPACE.SYSTEM, false));
+  new FirebaseItemStore(new IdGenerator(), matcher, firebase.db, Database.NAMESPACE.SYSTEM, false));
 
 const userManager = new UserManager(googleAuthProvider, systemStore);
 

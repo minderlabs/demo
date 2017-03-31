@@ -85,7 +85,7 @@ export class FirebaseItemStore extends BaseItemStore {
   /**
    *
    */
-  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}) {
 
     // TODO(burdon): Buckets should return flattened roots?
 
@@ -101,7 +101,7 @@ export class FirebaseItemStore extends BaseItemStore {
         });
       });
 
-      return this.filterItems(items, context, root, filter, offset, count);
+      return this.filterItems(items, context, root, filter);
     });
   }
 
