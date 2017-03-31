@@ -332,7 +332,7 @@ export class ResultMerger {
   }
 
   _merge(obj, source) {
-    ItemUtil.mergeItems(obj, source, [], ['id', 'namespace']);
+    ItemUtil.mergeItems(obj, source, ['id', 'namespace']);
     return obj;
   }
 }

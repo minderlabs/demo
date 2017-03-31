@@ -47,9 +47,15 @@ update.extend('$deepMerge', (spec, items) => {
   let { id, item, clearFields, omitFields } = spec;
   clearFields = clearFields || [];
   omitFields = omitFields || [];
-  return _.map(items, i => { return i.id === id ? ItemUtil.mergeItems(i, item, clearFields, omitFields) : i });
+  return _.map(items, i => {
+    if (i.id === id) {
+      ItemUtil.clearFields(i, clearFields);
+      return ItemUtil.mergeItems(i, item, omitFields);
+    } else {
+      return i;
+    }
+  });
 });
-
 
 //
 // In general, Apollo cannot know how to update its cache after a mutation.

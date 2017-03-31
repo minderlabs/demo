@@ -92,5 +92,6 @@ export class MemoryItemStore extends BaseItemStore {
    */
   clear() {
     this._items = new Map();
+    return Promise.resolve();
   }
 }
