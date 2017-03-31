@@ -25,9 +25,9 @@ export class TestItemStore extends ItemStore {
     });
   }
 
-  queryItems(context, root={}, filter={}, offset=0, count=QueryProcessor.DEFAULT_COUNT) {
+  queryItems(context, root={}, filter={}) {
     return Async.delay(this._options.delay).then(() => {
-      return this._itemStore.queryItems(context, root, filter, offset, count);
+      return this._itemStore.queryItems(context, root, filter);
     });
   }
 

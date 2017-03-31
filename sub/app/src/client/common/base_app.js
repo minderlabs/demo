@@ -38,7 +38,7 @@ export class BaseApp {
 
     // TODO(burdon): Experimental (replace with Apollo directives).
     // Manages Apollo query subscriptions.
-    this._queryRegistry = new QueryRegistry();
+    this._queryRegistry = new QueryRegistry(config);
 
     this._analytics = new SegmentAnalytics(this._config);
 
