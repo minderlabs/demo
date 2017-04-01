@@ -14,7 +14,7 @@ import { ItemDragSource, ItemDropTarget, DragOrderModel } from './dnd';
 import './list.less';
 
 //
-// Drag and Drop.
+// Drag and Drop wrappers.
 //
 
 const ListItemDragSource = ItemDragSource('ListItem');
@@ -30,13 +30,32 @@ const ListItemDropTarget = ItemDropTarget('ListItem');
  */
 export class List extends React.Component {
 
-  /**
-   * Default item renderer.
-   */
+  //
+  // Default renderers.
+  //
+
+  static DefaultItemEditor = (item) => {
+    return (
+      <ListItemEditor item={ item }>
+        <ListItem.Edit field="title"/>
+        <ListItem.EditorButtons/>
+      </ListItemEditor>
+    );
+  };
+
   static DefaultItemRenderer = (item) => {
     return (
       <ListItem item={ item }>
-        <ListItem.Title/>
+        <ListItem.Text value={ item.title }/>
+      </ListItem>
+    );
+  };
+
+  static DefaultEditableItemRenderer = (item) => {
+    return (
+      <ListItem item={ item }>
+        <ListItem.Text value={ item.title }/>
+        <ListItem.EditButton/>
       </ListItem>
     );
   };
@@ -49,78 +68,32 @@ export class List extends React.Component {
     );
   };
 
-  /**
-   * Inline editor.
-   */
-  static ItemEditor = React.createClass({
-
-    handleSave() {
-      let { item, onSave } = this.props;
-      let title = this.refs.title.value;
-
-      onSave(item, [
-        MutationUtil.createFieldMutation('title', 'string', title)
-      ]);
-    },
-
-    handleCancel() {
-      let { onCancel } = this.props;
-
-      onCancel();
-    },
-
-    render() {
-      let { item, icon } = this.props;
-      let { title } = item || {};
-
-      return (
-        <div className="ux-row ux-data-row">
-          { icon }
-
-          <TextBox ref="title" className="ux-expand"
-                   value={ title }
-                   autoFocus={ true }
-                   onEnter={ this.handleSave }
-                   onCancel={ this.handleCancel }/>
-
-          <div>
-            <i className="ux-icon ux-icon-action ux-icon-save" onClick={ this.handleSave }>check</i>
-            <i className="ux-icon ux-icon-action ux-icon-cancel" onClick={ this.handleCancel }>cancel</i>
-          </div>
-        </div>
-      );
-    }
-  });
-
-  static DefaultItemEditor = (props) => {
-    return (
-      <List.ItemEditor { ...props }/>
-    );
-  };
-
   //
   // Context passed to ListItem and inline widgets.
   //
   static childContextTypes = {
-    mutator:            React.PropTypes.object,
     onItemSelect:       React.PropTypes.func,
-    onItemUpdate:       React.PropTypes.func
+    onItemEdit:         React.PropTypes.func,
+    onItemUpdate:       React.PropTypes.func,
+    onItemCancel:       React.PropTypes.func
   };
 
   static propTypes = {
-    data:               React.PropTypes.string,     // Custom data.
+    data:               React.PropTypes.string,     // Custom data/label.
 
     className:          React.PropTypes.string,
     highlight:          React.PropTypes.bool,
 
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
+
     itemClassName:      React.PropTypes.string,
-    itemRenderer:       React.PropTypes.func,
     itemEditor:         React.PropTypes.func,
+    itemRenderer:       React.PropTypes.func,
     itemOrderModel:     React.PropTypes.object,     // Order model for drag and drop.
+
+    // TODO(burdon): Should this happen outside of the List (i.e., before properties are set instead?)
     itemInjector:       React.PropTypes.func,       // Modify results.
 
-    mutator:            React.PropTypes.object,     // TODO(burdon): Remove (must call onItemUpdate).
     onItemUpdate:       React.PropTypes.func,
     onItemSelect:       React.PropTypes.func,
     onItemDrop:         React.PropTypes.func
@@ -128,16 +101,19 @@ export class List extends React.Component {
 
   static defaultProps = {
     highlight: true,
-    itemRenderer: List.DefaultItemRenderer,
-    itemEditor: List.DefaultItemEditor
+
+    itemEditor:   List.DefaultItemEditor,
+    itemRenderer: List.DefaultItemRenderer
   };
 
   state = {
     items: this.props.items || [],
+
+    itemEditor:   this.props.itemEditor   || List.DefaultItemEditor,
     itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
-    itemEditor: this.props.itemEditor || List.DefaultItemEditor,
-    showAdd: false,
-    editedItem: null
+
+    addItem: false,     // { boolean }
+    editItem: null      // { string:ID }
   };
 
   componentWillReceiveProps(nextProps) {
@@ -149,8 +125,16 @@ export class List extends React.Component {
   getChildContext() {
     return {
       onItemSelect: this.handleItemSelect.bind(this),
-      onItemUpdate: this.handleItemUpdate.bind(this)
+      onItemEdit:   this.handleItemEdit.bind(this),
+      onItemUpdate: this.handleItemUpdate.bind(this),
+      onItemCancel: this.handleItemCancel.bind(this)
     };
+  }
+
+  set itemEditor(itemEditor) {
+    this.setState({
+      itemEditor: itemEditor || List.DefaultItemEditor
+    });
   }
 
   set itemRenderer(itemRenderer) {
@@ -159,15 +143,37 @@ export class List extends React.Component {
     });
   }
 
-  set itemEditor(itemEditor) {
-    this.setState({
-      itemEditor: itemEditor || List.DefaultItemRenderer
-    });
+  /**
+   * Set editor to add new item.
+   */
+  addItem() {
+    if (!this.props.onItemUpdate) {
+      console.warn('Read-only list.');
+      return;
+    }
+
+    // TODO(burdon): Set focus on editor.
+    if (!this.state.addItem) {
+      this.setState({
+        addItem: true,
+        editItem: null
+      });
+    }
   }
 
-  addItem(item) {
+  /**
+   * Edit item for given ID.
+   * @param {string} id
+   */
+  editItem(id=undefined) {
+    if (!this.props.onItemUpdate) {
+      console.warn('Read-only list.');
+      return;
+    }
+
     this.setState({
-      showAdd: true
+      addItem: false,
+      editItem: id
     });
   }
 
@@ -176,9 +182,16 @@ export class List extends React.Component {
    * @param {Item} item Item to select or null to cancel.
    */
   handleItemSelect(item) {
-
-    // TODO(burdon): Should provide selection model.
+    // TODO(burdon): Provide selection model.
     this.props.onItemSelect && this.props.onItemSelect(item);
+  }
+
+  /**
+   * Set edit mode.
+   * @param id
+   */
+  handleItemEdit(id) {
+    this.editItem(id);
   }
 
   /**
@@ -188,28 +201,29 @@ export class List extends React.Component {
    */
   handleItemUpdate(item, mutations) {
     console.assert(mutations);
-    if (!this.props.onItemUpdate) {
-      console.warning('Immutable list (set onItemUpdate property).');
-    } else {
-      this.props.onItemUpdate && this.props.onItemUpdate(item, mutations);
+    console.assert(this.props.onItemUpdate);
 
-      // Cancel inline editing.
-      if (this.state.showAdd) {
-        this.setState({
-          showAdd: false,
-          editedItem: null
-        });
-      }
-    }
+    this.props.onItemUpdate(item, mutations);
+
+    this.handleItemCancel();
   }
 
+  /**
+   * Cancel adding or editing item.
+   */
   handleItemCancel() {
     this.setState({
-      showAdd: false,
-      editedItem: null
+      addItem: false,
+      editItem: null
     });
   }
 
+  /**
+   * Handle item drop.
+   * @param dropItem
+   * @param data
+   * @param order
+   */
   handleItemDrop(dropItem, data, order) {
     console.assert(dropItem && dropItem.id);
 
@@ -234,9 +248,10 @@ export class List extends React.Component {
   */
 
   render() {
+
     // NOTE: data is a user-label to identify the list.
     let { itemClassName, itemOrderModel, itemInjector, data } = this.props;
-    let { items, itemRenderer } = this.state;
+    let { items, itemRenderer, itemEditor, addItem, editItem } = this.state;
 
     // Sort items by order model.
     if (itemOrderModel) {
@@ -257,9 +272,7 @@ export class List extends React.Component {
 
     let previousOrder = 0;
     let rows = _.map(items, item => {
-      if (!item) {
-        console.error(items);
-      }
+      console.assert(item && item.type && item.id, 'Invalid Item: ' + JSON.stringify(item));
 
       let itemKey = item.id;
       if (keyMap.get(itemKey)) {
@@ -271,11 +284,20 @@ export class List extends React.Component {
       }
 
       // Primary item.
-      let listItem = (
-        <div key={ itemKey } className={ DomUtil.className('ux-list-item', itemClassName) }>
-          { itemRenderer(item) }
-        </div>
-      );
+      let listItem;
+      if (item.id === editItem) {
+        listItem = (
+          <div key={ itemKey } className={ DomUtil.className('ux-list-item', 'ux-list-editor', itemClassName) }>
+            { itemEditor(item, this) }
+          </div>
+        );
+      } else {
+        listItem = (
+          <div key={ itemKey } className={ DomUtil.className('ux-list-item', itemClassName) }>
+            { itemRenderer(item, this) }
+          </div>
+        );
+      }
 
       // If supports dragging, wrap with drag container.
       // TODO(burdon): Drop target isn't necessarily required on list.
@@ -316,27 +338,28 @@ export class List extends React.Component {
 
     //
     // Editor.
-    // TODO(burdon): By default at the bottom.
-    // TODO(burdon): Distinguish create/update for handleItemUpdate callback.
     //
 
-    let editor = null;
-    if (this.state.showAdd) {
-      const Editor = this.state.itemEditor;
+    let editor;
+    if (addItem) {
       editor = (
-        <div className="ux-list-item ux-list-editor">
-          <Editor item={ this.state.editedItem }
-                  onSave={ this.handleItemUpdate.bind(this) }
-                  onCancel={ this.handleItemCancel.bind(this) }/>
+        <div className={ DomUtil.className('ux-list-item', 'ux-list-editor', itemClassName) }>
+          { itemEditor(null, this) }
         </div>
       );
     }
 
+    //
+    // Layout.
+    //
+
+    // TODO(burdon): Editor should be in separate div (not part of scroll container).
     let className = DomUtil.className('ux-list', this.props.className, this.props.highlight && 'ux-list-highlight');
     return (
       <div className={ className }>
         { rows }
         { lastDropTarget }
+
         { editor }
       </div>
     );
@@ -344,23 +367,30 @@ export class List extends React.Component {
 }
 
 //
-// To child <ListItem/> components.
-// Enable sub-components to access the item and handlers.
+// Context for child <ListItem/> components.
+// Enable sub-components to access the item and list handlers.
 //
 const ListItemChildContextTypes = {
+
+  // Item.
   item: React.PropTypes.object,
 
-  // Inherit these from parent List.
+  // ListItem component.
+  listItem: React.PropTypes.object,
+
+  // Inherited from List component.
   onItemSelect: React.PropTypes.func,
-  onItemUpdate: React.PropTypes.func
+  onItemEdit:   React.PropTypes.func,
+  onItemUpdate: React.PropTypes.func,
+  onItemCancel: React.PropTypes.func
 };
 
 /**
  * List item component (and sub-components).
  *
- * const itemRenderer = (item) => (
+ * const customItemRenderer = (item) => (
  *   <ListItem item={ item }>
- *     <ListItem.Title/>
+ *     <ListItem.Text value={ item.title }/>
  *   </ListItem>
  * )
  */
@@ -395,16 +425,21 @@ export class ListItem extends React.Component {
   static Icon = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
 
+    let attrs = {};
+    if (props.onClick) {
+      attrs.onClick = () => { props.onClick(item); }
+    }
+
     let icon = props.icon || item.icon || '';
     if (icon.startsWith('http') || icon.startsWith('/')) {
       return (
-        <i className="ux-icon ux-icon-img">
+        <i className="ux-icon ux-icon-img" {...attrs}>
           <img src={ icon }/>
         </i>
       );
     } else {
       return (
-        <i className="ux-icon">{ icon }</i>
+        <i className="ux-icon" {...attrs}>{ icon }</i>
       );
     }
   });
@@ -429,31 +464,107 @@ export class ListItem extends React.Component {
   });
 
   /**
-   * <ListItem.Title select={ true }/>
+   * <ListItem.Text value={ item.title } select={ true }/>
    */
-  static Title = ListItem.createInlineComponent((props, context) => {
+  static Text = ListItem.createInlineComponent((props, context) => {
     let { item, onItemSelect } = context;
-    let { select=true } = props;
+    let { value, select=true } = props;
 
-    // NOTE: Use onMouseDown instead of onClick (happens before onBlur for focusable components).
+    let className = DomUtil.className('ux-expand', 'ux-text', select && 'ux-selector');
+    let attrs = {};
     if (select) {
-      return (
-        <div className="ux-expand ux-text ux-selector"
-             onMouseDown={ select && onItemSelect.bind(null, item) }>
-          { item.title }
-        </div>
-      );
-    } else {
-      return (
-        <div className="ux-expand ux-text">{ item.title }</div>
-      );
+      // NOTE: Use onMouseDown instead of onClick (happens before onBlur for focusable components).
+      attrs = {
+        onMouseDown: onItemSelect.bind(null, item)
+      }
     }
+
+    return (
+      <div className={ className } {...attrs}>{ value }</div>
+    );
   });
 
   /**
-   * <ListItem.Delete/>
+   * <ListItem.Edit field="title"/>
    */
-  static Delete = ListItem.createInlineComponent((props, context) => {
+  static Edit = ListItem.createInlineComponent((props, context) => {
+    let { listItem, item, onItemUpdate, onItemCancel } = context;
+    let { field } = props;
+
+    // Stateless functions can't use ref directly, but we can make a local reference.
+    let textbox;
+
+    const handleSave = () => {
+      let value = textbox.value;
+      if (!value) {
+        return onItemCancel();
+      }
+
+      onItemUpdate(item, [
+        MutationUtil.createFieldMutation(field, 'string', value)
+      ]);
+    };
+
+    const handleCancel = () => { onItemCancel(); };
+
+    // Sets callback (e.g., when <ListItem.EditorButtons/> saves).
+    listItem.setOnSave(() => {
+      handleSave();
+    });
+
+    let value = _.get(item, field);
+
+    return (
+      <TextBox ref={ el => (textbox = el) }
+               className="ux-expand"
+               autoFocus={ true }
+               value={ value }
+               onEnter={ handleSave }
+               onCancel={ handleCancel }/>
+    );
+  });
+
+  /**
+   * <ListItem.EditorButtons/>
+   */
+  static EditorButtons = ListItem.createInlineComponent((props, context) => {
+    let { listItem, onItemCancel } = context;
+
+    const handleSave = () => {
+      listItem.save();
+    };
+
+    const handleCancel = () => { onItemCancel(); };
+
+    return (
+      <div>
+        <i className="ux-icon ux-icon-action ux-icon-save" onClick={ handleSave }/>
+        <i className="ux-icon ux-icon-action ux-icon-cancel" onClick={ handleCancel }/>
+      </div>
+    )
+  });
+
+  /**
+   * <ListItem.EditButton/>
+   */
+  static EditButton = ListItem.createInlineComponent((props, context) => {
+    let { item, onItemEdit } = context;
+
+    const handleEdit = () => {
+      onItemEdit(item.id);
+    };
+
+    return (
+      <div>
+        <i className="ux-icon ux-icon-action ux-icon-hover ux-icon-edit" onClick={ handleEdit }/>
+      </div>
+    )
+  });
+
+  /**
+   * <ListItem.DeleteButton/>
+   */
+  static DeleteButton = ListItem.createInlineComponent((props, context) => {
     let { item } = context;
 
     const handleDelete = () => {
@@ -471,8 +582,7 @@ export class ListItem extends React.Component {
   // Provided by renderer.
   //
   static propTypes = {
-    // TODO(burdon): Highlight on/off.
-    item: React.PropTypes.object.isRequired,
+    item: React.PropTypes.object,
     className: React.PropTypes.string,
   };
 
@@ -481,7 +591,8 @@ export class ListItem extends React.Component {
   //
   static contextTypes = {
     onItemSelect: React.PropTypes.func.isRequired,
-    onItemUpdate: React.PropTypes.func
+    onItemUpdate: React.PropTypes.func.isRequired,
+    onItemCancel: React.PropTypes.func.isRequired
   };
 
   //
@@ -490,11 +601,42 @@ export class ListItem extends React.Component {
   //
   static childContextTypes = ListItemChildContextTypes;
 
+  constructor() {
+    super();
+
+    this._onSave = null;
+  }
+
+  setOnSave(callback) {
+    this._onSave = callback;
+  }
+
+  save() {
+    this._onSave && this._onSave();
+  }
+
   getChildContext() {
     return {
-      item: this.props.item
+      item: this.props.item,
+      listItem: this
     }
   }
+
+  render() {
+    let { children, className } = this.props;
+
+    return (
+      <div className={ DomUtil.className('ux-row', 'ux-data-row', className) }>
+        { children }
+      </div>
+    );
+  }
+}
+
+/**
+ * ListItem editor.
+ */
+export class ListItemEditor extends ListItem {
 
   render() {
     let { children, className } = this.props;

@@ -2,9 +2,7 @@
 // Copyright 2016 Minder Labs.
 //
 
-'use strict';
-
-var _ = require('lodash');
+const _ = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
 const webpackLinkPlugin = require('webpack-link');

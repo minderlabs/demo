@@ -4,85 +4,100 @@
 
 import React from 'react';
 
-import { List, ListItem, TextBox } from '../../index';
+import { Transforms } from 'minder-core';
+
+import { List, ListItem, ListItemEditor } from '../../index';
 
 /**
  * Test List.
  */
 export default class TestList extends React.Component {
 
-  // TODO(burdon): ux-core matcher with test store.
+  static id = 0;
+  static createid() {
+    return 'I-' + ++TestList.id;
+  }
+
+  static ItemEditor = (item, list) => (
+    <ListItemEditor item={ item }>
+      <ListItem.Icon icon="check_box_outline_blank"/>
+      <ListItem.Edit field="title"/>
+      <ListItem.EditorButtons/>
+    </ListItemEditor>
+  );
+
+  static ItemRenderer = (item, list) => (
+    <ListItem item={ item }>
+      <ListItem.Icon icon="check_box_outline_blank"/>
+      <ListItem.Text value={ item.title }/>
+      <ListItem.EditButton/>
+    </ListItem>
+  );
 
   constructor() {
     super(...arguments);
 
-    // NOTE: The textbox state should be maintained in the parent container.
-    this.state = {
-      value: 'test',
-      item: null
-    };
-
     this.state = {
       items: [{
-        id: 'I-0',
+        id: TestList.createid(),
         title: 'A very very very very very very very long title.'
       }]
     };
 
     for (let i = 1; i < 50; i++) {
       this.state.items.push({
-        id: 'I-' + i,
+        id: TestList.createid(),
         title: 'Item ' + i
       });
     }
-
-    this.itemRenderer = (item) => (
-      <ListItem item={ item }>
-        <ListItem.Icon icon="person_outline"/>
-        <ListItem.Title/>
-        <ListItem.Icon icon="edit"/>
-      </ListItem>
-    );
   }
 
-  handleChange(value) {
-    this.setState({
-      value: value
-    });
+  handleItemAdd() {
+    this.refs.list.addItem();
   }
 
-  handleSelect(item) {
+  handleItemUpdate(item, mutations) {
+    if (item) {
+      Transforms.applyObjectMutations(item, mutations);
+
+      this.forceUpdate();
+    } else {
+      item = {
+        id: TestList.createid()
+      };
+
+      Transforms.applyObjectMutations(item, mutations);
+      let items = this.state.items;
+      items.push(item);
+
+      this.setState({
+        items
+      });
+    }
+  }
+
+  handleItemSelect(item) {
     this.setState({
       item: item
     })
   }
 
-  // TODO(burdon): Textbox bug due to Redux?
-
   render() {
-    let { value, item, items } = this.state;
+    let { item, items } = this.state;
 
     return (
       <div className="ux-column">
         <div className="ux-bar">
-          <h1 className="ux-expand">Test View</h1>
-        </div>
-
-        <div className="ux-row ux-data-row">
-          <TextBox className="ux-expand"
-                   value={ value }
-                   autoFocus={ true }
-                   onChange={ this.handleChange.bind(this) }/>
-        </div>
-
-        <div className="ux-row ux-data-row">
-          <div className="ux-text ux-text-nocollapse">{ value }</div>
+          <i className="ux-icon ux-icon-action ux-icon-large ux-icon-add" onClick={ this.handleItemAdd.bind(this) }/>
         </div>
 
         <div className="ux-expand">
-          <List items={ items }
-                itemRenderer={ this.itemRenderer }
-                onItemSelect={ this.handleSelect.bind(this) }/>
+          <List ref="list"
+                items={ items }
+                itemEditor={ TestList.ItemEditor }
+                itemRenderer={ TestList.ItemRenderer }
+                onItemUpdate={ this.handleItemUpdate.bind(this) }
+                onItemSelect={ this.handleItemSelect.bind(this) }/>
         </div>
 
         <div className="ux-bar">

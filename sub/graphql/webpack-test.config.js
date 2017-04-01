@@ -6,8 +6,6 @@
 // https://www.npmjs.com/package/mocha-webpack
 //
 
-'use strict';
-
 const _ = require('lodash');
 
 // TODO(burdon): Error: Cannot resolve module 'hiredis' (can't resolve node_modules/redis-commands/commands.json)

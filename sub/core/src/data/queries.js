@@ -55,12 +55,10 @@ export class QueryRegistry {
    * Manually refetch registered queries.
    */
   invalidate() {
-    if (_.get(config, 'options.invalidate')) {
-      logger.log(`Refetching queries: ${this._components.size}`);
-      this._components.forEach(registration => {
-        registration.refetch();
-      });
-    }
+    logger.log(`Refetching queries: ${this._components.size}`);
+    this._components.forEach(registration => {
+      registration.refetch();
+    });
   }
 }
 

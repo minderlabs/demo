@@ -4,18 +4,16 @@
 
 import _ from 'lodash';
 import React from 'react';
-import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
 import { ID, Fragments, ItemReducer, MutationUtil } from 'minder-core';
-import { List, ListItem, Picker, ReactUtil } from 'minder-ux';
+import { List, ListItem, ListItemEditor, Picker, ReactUtil } from 'minder-ux';
 
-import { TASK_LEVELS } from '../../../common/defs';
+import { TASK_LEVELS } from '../../../common/const';
 
 import { Path } from '../../common/path';
-import { AppAction } from '../../common/reducers';
 
 import { connectReducer } from '../framework/connector';
 import { Canvas } from '../component/canvas';
@@ -33,30 +31,45 @@ import './task.less';
 const TaskStatus = ListItem.createInlineComponent((props, context) => {
   let { item } = context;
 
-  // TODO(burdon): Const for status levels.
   // TODO(burdon): Generalize status (mapping to board column model).
-  let icon = (item.status === 3) ? 'done' : 'check_box_outline_blank';
+  let icon = (item.status === TASK_LEVELS.COMPLETE) ? 'done' : 'check_box_outline_blank';
   const toggleStatus = () => {
-    let status = (item.status === 0) ? 3 : 0;
+    let status = (item.status === TASK_LEVELS.UNSTARTED) ? TASK_LEVELS.COMPLETE : TASK_LEVELS.UNSTARTED;
     context.onItemUpdate(item, [
       MutationUtil.createFieldMutation('status', 'int', status)
     ]);
   };
 
   return (
-    <i className="ux-icon ux-icon-checkbox" onClick={ toggleStatus }>{ icon }</i>
+    <div>
+      <i className="ux-icon ux-icon-checkbox" onClick={ toggleStatus }>{ icon }</i>
+    </div>
   );
 });
 
 /**
  * Renders task title and status checkbox.
  */
-export const TaskListItemRenderer = (item) => {
+export const TaskItemRenderer = (item) => {
   return (
     <ListItem item={ item }>
       <TaskStatus/>
-      <ListItem.Title/>
+      <ListItem.Text value={ item.title }/>
+      <ListItem.EditButton/>
     </ListItem>
+  );
+};
+
+/**
+ * Renders task editor.
+ */
+export const TaskItemEditor = (item) => {
+  return (
+    <ListItemEditor item={ item }>
+      <ListItem.Icon icon="check_box_outline_blank"/>
+      <ListItem.Edit field="title"/>
+      <ListItem.EditorButtons/>
+    </ListItemEditor>
   );
 };
 
@@ -86,13 +99,6 @@ const AddCreateSubTask = (batch, userId, parent, mutations) => {
  * Card.
  */
 export class TaskCard extends React.Component {
-
-  static TaskEditor = (props) => {
-    let icon = <i className="material-icons">check_box_outline_blank</i>;
-    return (
-      <List.ItemEditor icon={ icon } { ...props }/>
-    );
-  };
 
   static contextTypes = {
     navigator: React.PropTypes.object.isRequired,
@@ -142,9 +148,9 @@ export class TaskCard extends React.Component {
           <List ref="tasks"
                 className="ux-list-tasks"
                 items={ tasks }
-                itemRenderer={ TaskListItemRenderer }
-                itemEditor={ TaskCard.TaskEditor }
-                onItemSelect={ this.handleTaskSelect.bind(this) }
+                itemEditor={ TaskItemEditor }
+                itemRenderer={ TaskItemRenderer }
+//              onItemSelect={ this.handleTaskSelect.bind(this) }
                 onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
 
           { mutator && task.project &&
@@ -313,8 +319,8 @@ class TaskCanvasComponent extends React.Component {
             <List ref="tasks"
                   className="ux-list-tasks"
                   items={ tasks }
-                  itemRenderer={ TaskListItemRenderer }
-                  itemEditor={ TaskCard.TaskEditor }
+                  itemEditor={ TaskItemEditor }
+                  itemRenderer={ TaskItemRenderer }
                   onItemSelect={ this.handleTaskSelect.bind(this) }
                   onItemUpdate={ this.handleTaskUpdate.bind(this) }/>
           </div>

@@ -193,6 +193,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
         iat: moment().unix(),
         exp: id_token_exp,
         data: {
+          // TODO(burdon): Add clientId for extra security.
           id: user.id
         }
       }, MINDER_JWT_SECRET);
