@@ -66,11 +66,9 @@ export class AuthManager {
   authenticate() {
     if (_.get(window, 'chrome.identity')) {
       // Trigger OAuth flow.
-      return this._launchWebAuthFlow().then(credentials => {
-        return this._registerUser(credentials).then(userProfile => {
-          _.assign(this._config, { userProfile });
-          return userProfile;
-        });
+      return this._launchWebAuthFlow().then(userProfile => {
+        _.assign(this._config, { userProfile });
+        return userProfile;
       });
     } else {
       // Web is already authenticated and registered.
@@ -91,21 +89,14 @@ export class AuthManager {
 
       const OAuthProvider = {
         provider: 'google',
-        requestUrl: 'https://accounts.google.com/o/oauth2/auth',
+        requestUrl: NetUtil.getUrl('/oauth/login/google', this._config.server),
         scope: AuthDefs.GOOGLE_LOGIN_SCOPES
       };
 
-      // Get the access and id tokens.
-      // NOTE: We don't require offline access (refresh_token) since this is requested when registering services.
-      // NOTE: If did request "offline" then requesting both access and id tokens would fail.
-      // NOTE: The clientId is the Web Client, NOT the Chrome Extension's Client ID (in the manifest).
-      // https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters
       let requestParams = {
-        client_id: GoogleApiConfig.clientId,
-        response_type: 'token id_token',                                        // access_token and id_token (JWT).
-        redirect_uri: chrome.identity.getRedirectURL(OAuthProvider.provider),   // Registered URL.
-        scope: OAuthProvider.scope.join(' '),
-        state: String(new Date().getTime())                                     // Check same state below.
+        redirect: chrome.identity.getRedirectURL(OAuthProvider.provider),   // Registered URL.
+        redirectType: 'crx',
+        requestId: String(new Date().getTime())                             // Verified below.
       };
 
       // TODO(burdon): Move auth to minder-core.
@@ -132,20 +123,21 @@ export class AuthManager {
           throw new Error(chrome.runtime.lastError.message);
         }
 
-        let responseParams = HttpUtil.parseUrlParams(callbackUrl, '#');
+        let responseParams = HttpUtil.parseUrlParams(callbackUrl);
 //      logger.log('===>>>', JSON.stringify(requestParams, null, 2));
 //      logger.log('<<<===', JSON.stringify(responseParams, null, 2));
-        console.assert(responseParams.state === requestParams.state, 'Invalid state.');
+        console.assert(responseParams.requestId === requestParams.requestId, 'Invalid state.');
 
-        // TODO(burdon): Google credentials.
-        let credentials = _.assign(_.pick(responseParams, ['access_token', 'id_token']), {
-          provider: OAuthProvider.provider
-        });
+        let config = {
+          credentials: _.pick(responseParams, ['id_token', 'id_token_exp', 'provider']),
+          // TODO(madadam): Factor out with WebAppRouter.
+          userProfile: _.pick(responseParams, ['email', 'displayName', 'photoUrl'])
+        };
 
         // Update config.
-        _.assign(this._config, { credentials });
+        _.assign(this._config, config);
 
-        resolve(credentials);
+        resolve(_.get(config, 'userProfile'));
       });
     });
   }

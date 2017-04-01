@@ -230,7 +230,9 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
       // Callback state.
       let state = {
-        redirect: req.query.redirect || '/app'
+        redirect: req.query.redirect || '/app',
+        redirectType: req.query.redirectType,
+        requestId: req.query.requestId
       };
 
       // Handle JSONP.
@@ -271,9 +273,11 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
 
       // Redirect after successful callback.
       let redirect = _.get(state, 'redirect', '/home');
+      let redirectType = _.get(state, 'redirectType');
+      let requestId = _.get(state, 'requestId');
 
       // JSONP callback (see NetUtil).
-      if (redirect === 'jsonp') {
+      if (redirectType === 'jsonp') {
         // https://auth0.com/docs/tokens/refresh-token
         let response = {
           credentials: _.pick(getUserSession(user), ['id_token', 'id_token_exp'])
@@ -285,6 +289,23 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
         return;
       }
 
+      if (redirectType === 'crx') {
+        // This isn't a JSON response, it needs to be encoded as URL params. It's easier to flatten the config.
+        let response  = _.assign(
+          { requestId },
+
+          // credentials
+          _.pick(getUserSession(user), ['id_token', 'id_token_exp']),
+          // TODO(madadam): Is credentials.provider necessary? Only for /user/register, which is being deprecated.
+          { provider: provider.providerId },
+
+          // userProfile
+          // TODO(madadam): Factor out with WebAppRouter.
+          _.pick(user, ['email', 'displayName', 'photoUrl'])
+        );
+
+        redirect = HttpUtil.toUrl(redirect, response);
+      }
       res.redirect(redirect);
     });
   });

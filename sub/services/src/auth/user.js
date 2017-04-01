@@ -87,12 +87,13 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
   // /refresh => /oauth/login/google => accounts.google.com/o/oauth2/v2/auth => /oauth/callback/google
   //
   router.get('/refresh_id_token', (req, res) => {
-    res.redirect('/oauth/login/' + loginAuthProvider.providerId + '?redirect=jsonp&callback=' + req.query.callback);
+    res.redirect('/oauth/login/' + loginAuthProvider.providerId + '?redirectType=jsonp&callback=' + req.query.callback);
   });
 
   //
   // Handle User registration.
   //
+  // TODO(madadam): Deprecate this. Client gets userProfile during auth now.
   router.post('/register', hasJwtHeader(), function(req, res, next) {
 
     // Access credentials (from client login flow).
