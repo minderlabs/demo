@@ -25,8 +25,8 @@ export class StatusBar extends React.Component {
     super(...arguments);
 
     this._timer = {
-      networkIn: Async.timeout(750),
-      networkOut: Async.timeout(500)
+      networkIn: Async.delay(750),
+      networkOut: Async.delay(500)
     };
 
     this.state = {

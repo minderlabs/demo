@@ -2,8 +2,6 @@
 // Copyright 2016 Minder Labs.
 //
 
-// TODO(burdon): Rename app_reducers.
-
 import { Analytics } from './analytics'
 
 //-------------------------------------------------------------------------------------------------
@@ -23,10 +21,12 @@ export const GlobalAppReducer = (state, action) => {
 
       // Find the query matching Navbar updates.
       let query = state.apollo.queries[queryId];
+      return state;
     }
-  }
 
-  return state;
+    default:
+      return state;
+  }
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -129,30 +129,38 @@ export const AppReducer = (injector, config, userProfile=undefined) => {
     }
   };
 
+  // NOTE: Don't modify state directly.
+  // https://github.com/reactjs/redux/blob/master/docs/Troubleshooting.md
   return (state=initialState, action) => {
 //  console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
     switch (action.type) {
 
       case AppAction.ACTION.REGISTER: {
-        return _.assign(state, _.pick(action.value, ['userProfile', 'server']));
+        return _.assign({}, state, _.pick(action.value, ['userProfile', 'server']));
       }
 
       // TODO(burdon): Get search query (not just text).
       case AppAction.ACTION.SEARCH: {
-        // TODO(madadam): Add delay or only log final query -- now we send an event for every keystroke, it's overkill.
-        // TODO(madadam): Remove user query from analytics events, for privacy.
-        //                Search logs need to be handled with greater care.
+        // TODO(madadam): Sanitize logs for privacy; Remove user query from analytics events.
         let analytics = state.injector.get(Analytics.INJECTOR_KEY);
-        analytics && analytics.track('search', {text: action.value});
-        return _.set(state, 'search.text', action.value);
+        analytics && analytics.track('search', { text: action.value });
+
+        return _.assign({}, state, {
+          search: {
+            text: action.value
+          }
+        });
       }
 
       case AppAction.ACTION.CANVAS_STATE: {
-        return _.set(state, 'canvas', action.value);
+        return _.assign({}, state, {
+          canvas: action.value
+        });
       }
-    }
 
-    return state
+      default:
+        return state
+    }
   };
 };
 
@@ -199,9 +207,11 @@ export const ContextReducer = (state=ContextAction.initialState, action) => {
   switch (action.type) {
 
     case ContextAction.ACTION.UPDATE_CONTEXT: {
-      return action.context || {};
+      return _.assign({}, state, action.context);
     }
-  }
 
-  return state;
+    default:
+      return state;
+  }
 };
+

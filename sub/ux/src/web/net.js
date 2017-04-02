@@ -16,7 +16,7 @@ export class NetUtil {
    * @param server
    * @returns {string}
    */
-  static getUrl(path, server=undefined, ) {
+  static getUrl(path, server=undefined) {
     return HttpUtil.joinUrl(server || HttpUtil.getServerUrl(), path);
   }
 
@@ -50,6 +50,7 @@ export class NetUtil {
         success: response => {
           resolve(response)
         },
+
         error: (xhr, textStatus, error) => {
           reject(error)
         }
@@ -78,13 +79,14 @@ export class NetUtil {
         success: response => {
           resolve(response)
         },
+
         error: (xhr, textStatus, error) => {
           reject(error)
         }
       };
 
       //
-      // JSONP appends a callback param; the server responds with a script that invokes this function.
+      // JSONP appends the callback param; the server responds with a script that invokes this function.
       // NOTE: Under the covers a <script> tag is created that loads and evals the script.
       // https://www.html5rocks.com/en/tutorials/cors/
       // https://developer.chrome.com/extensions/xhr
