@@ -321,15 +321,15 @@ export class Mutator {
    *
    * http://dev.apollodata.com/react/mutations.html#optimistic-ui
    *
-   * @param item
+   * @param {[Item]} items
    */
-  static optimisticResponse(item) {
+  static optimisticResponse(items) {
     return {
       // Add hint for reducer.
       optimistic: true,
 
       // Root.
-      [UpsertItemsMutationPath]: [ item ]
+      [UpsertItemsMutationPath]: items
     };
   }
 
@@ -364,14 +364,20 @@ export class Mutator {
   createItem(type, mutations, namespace=undefined) {
     mutations = _.compact(_.concat(mutations));
 
-    // TODO(burdon): Unit test.
-    // Create optimistic result.
     let itemId = this._idGenerator.createId();
+
+    // TODO(burdon): Unit test.
     let item = Transforms.applyObjectMutations({
       __typename: type,
       type,
       id: itemId
     }, mutations);
+
+    // Create optimistic result.
+    let optimisticResponse;
+    if (_.get(this._config, 'options.optimistic')) {
+      optimisticResponse = Mutator.optimisticResponse([item]);
+    }
 
     // TODO(burdon): Look-up references (e.g., assignee).
     // TODO(burdon): Pass query result to bacth for optimistic result.
@@ -394,7 +400,7 @@ export class Mutator {
         ]
       },
 
-      optimisticResponse: _.get(this._config, 'options.optimistic') && Mutator.optimisticResponse(item)
+      optimisticResponse
     });
 
     this._analytics && this._analytics.track('item.create', { label: type });
@@ -428,8 +434,6 @@ export class Mutator {
 
         let cloneMutations = _.concat(
 
-          // TODO(burdon): Add email as fkey.
-
           // Mutations to clone the item's properties.
           // TODO(burdon): Remove mutations for current properties below.
           MutationUtil.cloneItem(item),
@@ -440,8 +444,10 @@ export class Mutator {
 
         logger.log('Cloning local item: ' + JSON.stringify(item));
         let clonedItem = this.createItem(item.type, cloneMutations);
-        item.fkey = clonedItem.id;
-        return clonedItem;
+        return _.assign(clonedItem, {
+          // TODO(burdon): Add email as fkey.
+          fkey: clonedItem.id
+        });
       } else {
 
         //
@@ -468,23 +474,29 @@ export class Mutator {
     }
 
     //
-    // Regular mutation of USER item.
+    // Regular mutation of User item.
     //
 
-    // Create optimistic result.
-    Transforms.applyObjectMutations(item, mutations);
+    let optimisticResponse;
+    if (_.get(this._config, 'options.optimistic')) {
 
-    // Check for ID references to recently created items.
-    // TODO(burdon): Add item property to value.id (set by mutation creator).
-    if (itemMap) {
-      TypeUtil.traverse(item, (value, key, root) => {
-        if (_.isString(value)) {
-          let match = itemMap.get(value);
-          if (match) {
-            _.set(root, key, match);
+      // Create optimistic result.
+      item = Transforms.applyObjectMutations(TypeUtil.clone(item), mutations);
+
+      // Check for ID references to recently created items.
+      // TODO(burdon): Add item property to value.id (set by mutation creator).
+      if (itemMap) {
+        TypeUtil.traverse(item, (value, key, root) => {
+          if (_.isString(value)) {
+            let match = itemMap.get(value);
+            if (match) {
+              _.set(root, key, match);
+            }
           }
-        }
-      });
+        });
+      }
+
+      optimisticResponse = Mutator.optimisticResponse([item]);
     }
 
     //
@@ -503,7 +515,7 @@ export class Mutator {
         ]
       },
 
-      optimisticResponse: _.get(this._config, 'options.optimistic') && Mutator.optimisticResponse(item)
+      optimisticResponse
     });
 
     this._analytics && this._analytics.track('item.edit', { label: item.type });
