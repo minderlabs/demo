@@ -3,11 +3,13 @@
 //
 
 import React from 'react';
+import { connect } from 'react-redux';
 import { Link } from 'react-router';
 
 import { DomUtil, ID, TypeUtil } from 'minder-core';
 import { NetUtil, ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 
+import { AppAction } from '../../common/reducers';
 import { Const } from '../../../common/defs';
 import { Path } from '../../common/path';
 
@@ -21,7 +23,7 @@ import './layout.less';
 /**
  * Layout for all containers.
  */
-export class Layout extends React.Component {
+export class LayoutComponent extends React.Component {
 
   static contextTypes = {
     config: React.PropTypes.object.isRequired,
@@ -54,7 +56,7 @@ export class Layout extends React.Component {
 
       // Debug info.
       case 'bug': {
-        console.warn('DEBUG\n' + JSON.stringify(config, null, 2));
+        this.props.toggleDebugPanel();
         break;
       }
 
@@ -86,7 +88,7 @@ export class Layout extends React.Component {
   render() {
     return ReactUtil.render(this, () => {
       let { config, viewer, typeRegistry } = this.context;
-      let { navbar, finder, children, className } = this.props;
+      let { debug, navbar, finder, children, className } = this.props;
       let platform = _.get(config, 'app.platform');
 
       let sidePanel = <SidePanel typeRegistry={ typeRegistry }/>;
@@ -121,7 +123,7 @@ export class Layout extends React.Component {
         }
       }));
 
-      let debugPanel = <DebugPanel/>;
+      let debugPanel = debug.showPanel && <DebugPanel/>;
 
       return (
         <div className="ux-fullscreen">
@@ -161,7 +163,7 @@ export class Layout extends React.Component {
               </div>
             </Sidebar>
 
-            {/* Debug popup */}
+            {/* Debug */}
             { debugPanel }
 
             {/* Footer */}
@@ -174,3 +176,18 @@ export class Layout extends React.Component {
     });
   }
 }
+
+const mapStateToProps = (state, ownProps) => {
+  let { debug } = AppAction.getState(state);
+  return {
+    debug
+  };
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    toggleDebugPanel: () => { dispatch(AppAction.toggleDebugPanel()); }
+  }
+};
+
+export const Layout = connect(mapStateToProps, mapDispatchToProps)(LayoutComponent);
