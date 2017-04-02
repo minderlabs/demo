@@ -72,9 +72,14 @@ export class ConnectionManager {
    */
   register() {
     if (this._cloudMessenger) {
-      return this._cloudMessenger.connect().then(messageToken => {
-        return this._registerClient(messageToken);
-      });
+      return this._cloudMessenger.connect()
+        .then(messageToken => {
+          return this._registerClient(messageToken);
+        })
+        .catch(error => {
+          logger.warn(error);
+          return this._registerClient();
+        });
     } else {
       return this._registerClient();
     }

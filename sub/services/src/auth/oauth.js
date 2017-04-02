@@ -171,6 +171,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     };
 
     // NOTE: Only provided when first requested (unless forced).
+    // https://auth0.com/docs/tokens/refresh-token
     if (refreshToken) {
       credentials.refresh_token = refreshToken;
     }
@@ -227,18 +228,22 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     //
     // TODO(burdon): Handle 401.
     router.get('/login/' + provider.providerId, (req, res, next) => {
+      let { redirectType, redirectUrl='/app', requestId } = req.query;
 
       // Callback state.
-      let state = {
-        redirect: req.query.redirect || '/app',
-        redirectType: req.query.redirectType,
-        requestId: req.query.requestId
-      };
+      let state = { redirectType, redirectUrl, requestId };
 
-      // Handle JSONP.
-      if (req.query.redirect === 'jsonp') {
-        console.assert(req.query.callback);
-        state.jsonp_callback = req.query.callback;
+      switch (redirectType) {
+
+        //
+        // Web client request (JSONP since cross-domain redirect).
+        //
+        case 'jsonp': {
+          let { callback } = req.query;
+          console.assert(callback);
+          state.jsonp_callback = callback;
+          break;
+        }
       }
 
       // Dynamically configure the response.
@@ -255,6 +260,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
         state: OAuthProvider.encodeState(state)
       });
 
+      logger.log('Logging in: ' + JSON.stringify(state));
       return processAuthRequest.call(null, req, res, next);
     });
 
@@ -262,51 +268,75 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
     // Registered OAuth request flow callback.
     //
     router.get('/callback/' + provider.providerId, passport.authenticate(provider.providerId, {
+      // TODO(burdon): Handle JSONP/CRX failure.
       failureRedirect: '/home'
     }), (req, res) => {
       let user = req.user;
-      logger.log('Logged in: ' + JSON.stringify(_.pick(user, ['id', 'email'])));
-
-      // TODO(burdon): Validate state.
       let state = OAuthProvider.decodeState(req.query.state);
-      logger.log('State: ' + JSON.stringify(state));
+      logger.log('Logged in: ' + JSON.stringify(_.pick(user, ['id', 'email'])) + ' [' + JSON.stringify(state) + ']');
 
-      // Redirect after successful callback.
-      let redirect = _.get(state, 'redirect', '/home');
-      let redirectType = _.get(state, 'redirectType');
-      let requestId = _.get(state, 'requestId');
+      let { redirectType } = state;
+      switch (redirectType) {
 
-      // JSONP callback (see NetUtil).
-      if (redirectType === 'jsonp') {
-        // https://auth0.com/docs/tokens/refresh-token
-        let response = {
-          credentials: _.pick(getUserSession(user), ['id_token', 'id_token_exp'])
-        };
+        //
+        // JSONP callback for cross-domain requests from client (result passed to script callback):
+        //
+        // /user/refresh_id_token
+        //   => /oauth/login/google
+        //     => accounts.google.com/o/oauth2/v2/auth
+        //       => /oauth/callback/google
+        //         <script>callback({ ... })</script>
+        //
+        case 'jsonp': {
+          let { jsonp_callback } = state;
 
-        // Send script that invokes JSONP callback.
-        let jsonp_callback = _.get(state, 'jsonp_callback');
-        res.send(`${jsonp_callback}(${JSON.stringify(response)});`);
-        return;
+          let response = {
+            credentials: _.pick(getUserSession(user), ['id_token', 'id_token_exp'])
+          };
+
+          // Send script that invokes JSONP callback.
+          res.send(`${jsonp_callback}(${JSON.stringify(response)});`);
+          break;
+        }
+
+        //
+        // CRX Auth flow (result encoded in URL params):
+        //
+        // chrome.identity.launchWebAuthFlow (CRX)
+        //   => /oauth/login/google
+        //     => https://accounts.google.com/o/oauth2/auth
+        //       => /oauth/callback/google
+        //         => https://ofdkhkelcafdphpddfobhbbblgnloian.chromiumapp.org/google (CRX)
+        //
+        case 'crx': {
+          let { redirectUrl, requestId  } = state;
+
+          let response = {
+            requestId,
+
+            // TODO(burdon): Remove.
+            provider: provider.providerId,
+
+            // Credentials.
+            credentials: JSON.stringify(_.pick(getUserSession(user), ['id_token', 'id_token_exp'])),
+
+            // Canonical profile.
+            userProfile: JSON.stringify(_.pick(user, ['email', 'displayName', 'photoUrl']))
+          };
+
+          // This isn't a JSON response, it needs to be encoded as URL params. It's easier to flatten the config.
+          res.redirect(HttpUtil.toUrl(redirectUrl, response));
+          break;
+        }
+
+        //
+        // Redirect after successful callback.
+        //
+        default:
+          let { redirectUrl='/home' } = state;
+          res.redirect(redirectUrl);
+          break;
       }
-
-      if (redirectType === 'crx') {
-        // This isn't a JSON response, it needs to be encoded as URL params. It's easier to flatten the config.
-        let response  = _.assign(
-          { requestId },
-
-          // credentials
-          _.pick(getUserSession(user), ['id_token', 'id_token_exp']),
-          // TODO(madadam): Is credentials.provider necessary? Only for /user/register, which is being deprecated.
-          { provider: provider.providerId },
-
-          // userProfile
-          // TODO(madadam): Factor out with WebAppRouter.
-          _.pick(user, ['email', 'displayName', 'photoUrl'])
-        );
-
-        redirect = HttpUtil.toUrl(redirect, response);
-      }
-      res.redirect(redirect);
     });
   });
 

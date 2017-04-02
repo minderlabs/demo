@@ -42,6 +42,7 @@ export class HttpUtil {
    * @param delim By default '?' but could be '#' for a URL fragment.
    */
   static parseUrlParams(url=document.location.href, delim='?') {
+    url = url.replace(/#$/, '');  // Remove trailing hash.
     let search = url.substring(url.indexOf(delim) + 1);
     return _.fromPairs(_.map(search.split('&'), keyValue => {
       let parts = keyValue.split('=');
@@ -51,11 +52,12 @@ export class HttpUtil {
 
   /**
    * Creates a well-formed URL.
-   * @param url
-   * @param params
+   * @param {string} url
+   * @param {object} params
    * @returns {string}
    */
   static toUrl(url, params) {
+    console.assert(url);
     return url.replace(/\/$/, '') + '?' + HttpUtil.toUrlArgs(params);
   }
 

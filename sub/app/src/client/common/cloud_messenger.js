@@ -15,7 +15,7 @@ const logger = Logger.get('cloud');
  */
 class CloudMessenger {
 
-  // TODO(burdon): Provide callback to reregister with server when token expires.
+  // TODO(burdon): Provide callback to re-register with server when token expires.
 
   /**
    * Registers client (and push socket).
@@ -32,7 +32,7 @@ class CloudMessenger {
 
     // Timer to prevent multiple push invalidations within time period.
     this._messages = [];
-    this._timeout = Async.timeout(1000);
+    this._delay = Async.delay(1000);
   }
 
   /**
@@ -80,7 +80,7 @@ class CloudMessenger {
     if (_.get(this._config, 'registration.clientId') !== data.senderId || data.force) {
       // TODO(burdon): Use collapse key to determine if first message can be skipped.
       this._messages.push(data);
-      this._timeout(() => {
+      this._delay(() => {
         if (this._messages.length > 1) {
           logger.warn('Collapsing messages: ' + JSON.stringify(this._messages));
         }
@@ -99,6 +99,8 @@ class CloudMessenger {
  * NOTE: Uses a service worker, which requires serving a manifest.json which contains the gcm_sender_id.
  */
 export class FirebaseCloudMessenger extends CloudMessenger {
+
+  static TIMEOUT = 3000;
 
   // TODO(burdon): Instance API (server side admin for client).
   // https://developers.google.com/instance-id/reference/server#get_information_about_app_instances
@@ -122,36 +124,37 @@ export class FirebaseCloudMessenger extends CloudMessenger {
       });
     });
 
-    // https://firebase.google.com/docs/cloud-messaging/js/client#request_permission_to_receive_notifications
-    return firebase.messaging().requestPermission()
-      .then(() => {
+    return Async.abortAfter(() => {
 
-        // NOTE: Requires HTTPS (for Service workers); localhost supported for development.
-        // https://developers.google.com/web/fundamentals/getting-started/primers/service-workers#you_need_https
-        logger.log('Requesting message token...');
-        return firebase.messaging().getToken().then(messageToken => {
-          if (!messageToken) {
-            logger.warn('FCM Token expired.');
-            return null;
-          } else {
+      // https://firebase.google.com/docs/cloud-messaging/js/client#request_permission_to_receive_notifications
+      return firebase.messaging().requestPermission()
+        .then(() => {
+
+          // NOTE: Requires HTTPS (for Service workers); localhost supported for development.
+          // https://developers.google.com/web/fundamentals/getting-started/primers/service-workers#you_need_https
+          logger.log('Requesting message token...');
+          return firebase.messaging().getToken().then(messageToken => {
+            if (!messageToken) {
+              throw new Error('FCM Token expired.');
+            }
+
             logger.log('Connected.');
             return messageToken;
-          }
+          });
+        })
+
+        .catch(error => {
+
+          // Errors: error.code
+          // - messaging/permission-blocked
+          //   TODO(burdon): Show UX warning.
+          //   Permission not set (set in Chrome (i) button to the left of the URL bar).
+          // - messaging/failed-serviceworker-registration
+          //   Invalid Firebase console registration.
+          throw new Error('FCM registration failed: ' + ErrorUtil.message(error.code));
         });
-      })
 
-      .catch(error => {
-        console.error(error);
-
-        // Errors: error.code
-        // - messaging/permission-blocked
-        //   TODO(burdon): Show UX warning.
-        //   Permission not set (set in Chrome (i) button to the left of the URL bar).
-        // - messaging/failed-serviceworker-registration
-        //   Invalid Firebase console registration.
-
-        logger.warn('FCM registration failed: ' + ErrorUtil.message(error.code));
-      });
+    }, FirebaseCloudMessenger.TIMEOUT);
   }
 
   disconnect() {}
