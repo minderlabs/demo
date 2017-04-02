@@ -109,7 +109,7 @@ export class GoogleOAuthProvider extends OAuthProvider {
       // Incremental Auth.
       include_granted_scopes: true,
 
-      state: OAuthProvider.encodeState({ redirect: '/services', scopes })
+      state: OAuthProvider.encodeState({ redirectUrl: '/services', scopes })
     });
   }
 

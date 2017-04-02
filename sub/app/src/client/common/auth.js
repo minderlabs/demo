@@ -65,7 +65,7 @@ export class AuthManager {
    */
   authenticate() {
     if (_.get(window, 'chrome.identity')) {
-      // Trigger OAuth flow.
+      // CRX OAuth flow.
       return this._launchWebAuthFlow().then(userProfile => {
         _.assign(this._config, { userProfile });
         return userProfile;
@@ -87,6 +87,7 @@ export class AuthManager {
     return new Promise((resolve, reject) => {
       logger.log('Authenticating...');
 
+      // TODO(burdon): Factor out.
       const OAuthProvider = {
         provider: 'google',
         requestUrl: NetUtil.getUrl('/oauth/login/google', this._config.server),
@@ -94,16 +95,13 @@ export class AuthManager {
       };
 
       let requestParams = {
-        redirect: chrome.identity.getRedirectURL(OAuthProvider.provider),   // Registered URL.
         redirectType: 'crx',
-        requestId: String(new Date().getTime())                             // Verified below.
+        redirectUrl: chrome.identity.getRedirectURL(OAuthProvider.provider),    // Registered URL.
+        requestId: String(Date.now())                                           // Verified below.
       };
 
-      // TODO(burdon): Move auth to minder-core.
-      let requestUrl = HttpUtil.toUrl(OAuthProvider.requestUrl, requestParams);
-
       let options = {
-        url: requestUrl,
+        url: HttpUtil.toUrl(OAuthProvider.requestUrl, requestParams),
 
         // Show login screen if necessary.
         interactive: true
@@ -118,48 +116,20 @@ export class AuthManager {
           // Errors:
           // "redirect_uri_mismatch"    Registered URL.
           // "invalid_client"           Web Client ID does not match.
-          logger.info('Auth: ' + requestUrl);
-          logger.info(JSON.stringify(requestParams, null, 2));
           throw new Error(chrome.runtime.lastError.message);
         }
 
-        let responseParams = HttpUtil.parseUrlParams(callbackUrl);
-//      logger.log('===>>>', JSON.stringify(requestParams, null, 2));
-//      logger.log('<<<===', JSON.stringify(responseParams, null, 2));
-        console.assert(responseParams.requestId === requestParams.requestId, 'Invalid state.');
-
-        let config = {
-          credentials: _.pick(responseParams, ['id_token', 'id_token_exp', 'provider']),
-          // TODO(madadam): Factor out with WebAppRouter.
-          userProfile: _.pick(responseParams, ['email', 'displayName', 'photoUrl'])
-        };
+        let callbackArgs = HttpUtil.parseUrlParams(callbackUrl);
+        console.assert(callbackArgs.requestId === requestParams.requestId, 'Invalid state.');
 
         // Update config.
-        _.assign(this._config, config);
+        _.assign(this._config, {
+          credentials: JSON.parse(callbackArgs.credentials),
+          userProfile: JSON.parse(callbackArgs.userProfile)
+        });
 
-        resolve(_.get(config, 'userProfile'));
+        resolve(_.get(this._config, 'userProfile'));
       });
-    });
-  }
-
-  /**
-   * Registers the user with the (JWT) id_token returned from the OAuth login flow.
-   * Returns the user profile.
-   *
-   * @param credentials
-   * @returns {Promise<{UserProfile}>}
-   */
-  // TODO(burdon): Remove (move to server).
-  _registerUser(credentials) {
-    let registerUrl = NetUtil.getUrl('/user/register', this._config.server);
-
-    let headers = AuthUtil.setAuthHeader({}, credentials.id_token);
-
-    return NetUtil.postJson(registerUrl, { credentials }, headers).then(result => {
-      let { userProfile } = result;
-
-      logger.log('Registered User: ' + JSON.stringify(userProfile));
-      return userProfile;
     });
   }
 

@@ -4,7 +4,7 @@
 
 import express from 'express';
 
-import { AuthDefs, Logger, HttpError } from 'minder-core';
+import { Logger, HttpUtil } from 'minder-core';
 
 import { getIdToken, hasJwtHeader, isAuthenticated } from './oauth';
 
@@ -83,34 +83,14 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
   //
   // Refresh (JWT) id_token (jsonp request).
   //
-  // Redirect flow:
-  // /refresh => /oauth/login/google => accounts.google.com/o/oauth2/v2/auth => /oauth/callback/google
-  //
   router.get('/refresh_id_token', (req, res) => {
-    res.redirect('/oauth/login/' + loginAuthProvider.providerId + '?redirectType=jsonp&callback=' + req.query.callback);
-  });
+    let { callback } = req.query;
+    console.assert(callback);
 
-  //
-  // Handle User registration.
-  //
-  // TODO(madadam): Deprecate this. Client gets userProfile during auth now.
-  router.post('/register', hasJwtHeader(), function(req, res, next) {
-
-    // Access credentials (from client login flow).
-    let { credentials } = req.body;
-
-    // Use the access_token to request the user's profile.
-    loginAuthProvider.getUserProfile(credentials).then(userProfile => {
-
-      // Register user.
-      systemStore.registerUser(userProfile, credentials).then(user => {
-        if (!user.active) {
-          throw new HttpError('User not active.', 403);
-        }
-
-        res.send({ userProfile });
-      });
-    }).catch(next);
+    res.redirect(HttpUtil.toUrl('/oauth/login/' + loginAuthProvider.providerId, {
+      redirectType: 'jsonp',
+      callback
+    }));
   });
 
   //
@@ -121,7 +101,7 @@ export const userRouter = (userManager, oauthRegistry, systemStore, options) => 
     return systemStore.getGroups(user.id).then(groups => {
       res.render('profile', {
         user,
-        groups:     groups,
+        groups,
         idToken:    getIdToken(user),
         providers:  oauthRegistry.providers,
         crxUrl:     options.crxUrl

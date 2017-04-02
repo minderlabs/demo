@@ -53,7 +53,7 @@ export class TextBox extends React.Component {
       value: this.props.value
     };
 
-    this._timeout = Async.timeout(this.props.delay);
+    this._delay = Async.delay(this.props.delay);
   }
 
   // TODO(burdon): Colors, pointer, etc.
@@ -86,7 +86,7 @@ export class TextBox extends React.Component {
   }
 
   focus() {
-    this.refs.input.focus();
+    this.refs.input && this.refs.input.focus();
   }
 
   /**
@@ -94,7 +94,7 @@ export class TextBox extends React.Component {
    * @param now Do it immediately.
    */
   fireTextChange(now=false) {
-    this._timeout(() => {
+    this._delay(() => {
       this.props.onChange && this.props.onChange(this.state.value);
     }, now);
   }

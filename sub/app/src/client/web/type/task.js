@@ -82,13 +82,14 @@ export const TaskItemEditor = (item) => {
  * @return {Batch}
  * @constructor
  */
+// TODO(burdon): Factor out helpers.
 const AddCreateSubTask = (batch, userId, parent, mutations) => {
   return batch
     .createItem('Task', _.concat(mutations, [
       MutationUtil.createFieldMutation('bucket',  'string', parent.bucket),
       MutationUtil.createFieldMutation('project', 'id',     parent.project.id),
       MutationUtil.createFieldMutation('owner',   'id',     userId),
-      MutationUtil.createFieldMutation('status',  'int',    0),
+      MutationUtil.createFieldMutation('status',  'int',    TASK_LEVELS.UNSTARTED),
     ]), 'new_task')
     .updateItem(parent, [
       MutationUtil.createSetMutation('tasks', 'id', '${new_task}')

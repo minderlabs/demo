@@ -106,7 +106,8 @@ export const SidebarReducer = (state=SidebarAction.initalState, action) => {
         visible: action.visible
       });
     }
-  }
 
-  return state;
+    default:
+      return state;
+  }
 };

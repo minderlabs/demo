@@ -26,19 +26,19 @@ export class TestItemStore extends ItemStore {
   }
 
   queryItems(context, root={}, filter={}) {
-    return Async.delay(this._options.delay).then(() => {
+    return Async.timeout(this._options.delay).then(() => {
       return this._itemStore.queryItems(context, root, filter);
     });
   }
 
   getItems(context, type, itemIds) {
-    return Async.delay(this._options.delay).then(() => {
+    return Async.timeout(this._options.delay).then(() => {
       return this._itemStore.getItems(context, type, itemIds);
     });
   }
 
   upsertItems(context, items) {
-    return Async.delay(this._options.delay).then(() => {
+    return Async.timeout(this._options.delay).then(() => {
       return this._itemStore.upsertItems(context, items);
     });
   }

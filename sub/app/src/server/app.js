@@ -76,11 +76,10 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
         // Client registration.
         client: _.pick(client, ['id', 'messageToken']),
 
-        // User credentials.
+        // Credentials.
         credentials: _.pick(getUserSession(user), ['id_token', 'id_token_exp']),
 
         // Canonical profile.
-        // TODO(madadam): Factor out with oauth.js.
         userProfile: _.pick(user, ['email', 'displayName', 'photoUrl']),
 
       }, options.config);
