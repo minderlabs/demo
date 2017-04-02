@@ -28,7 +28,6 @@ export class SearchBar extends React.Component {
   }
 
   handleSearch(event) {
-    console.log('::::::::::::', this.refs.text.value);
     this.props.onSearch(this.refs.text.value);
   }
 
