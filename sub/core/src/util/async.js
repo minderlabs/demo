@@ -10,24 +10,26 @@ import _ from 'lodash';
 export class Async {
 
   /**
-   * Creates promise for timeout.
-   * @param ts
+   * Wraps the timeout in a Promise.
+   *
+   * @param {number} t in ms.
    * @return {Promise}
    */
-  static delay(ts) {
+  static timeout(t) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve();
-      }, ts);
+      }, t);
     });
   }
 
   /**
    * Cancelable timeout function.
-   * @param delay
+   *
+   * @param {number} t in ms.
    * @returns {function(*)}
    */
-  static timeout(delay=500) {
+  static delay(t=500) {
     let timeout = null;
 
     /**
@@ -42,22 +44,49 @@ export class Async {
         timeout = setTimeout(() => {
           timeout = null;
           callback()
-        }, now ? 0 : delay);
+        }, now ? 0 : t);
       }
     }
   };
 
   /**
+   * Aborts promise if times out.
+   *
+   * @param {Function} fn Function to execute returning a Promise.
+   * @param {number} t Timeout in ms.
+   * @return {Promise}
+   */
+  static abortAfter(fn, t=1000) {
+    console.assert(fn);
+
+    return new Promise((resolve, reject) => {
+      let timeout = setTimeout(() => {
+        reject(`Timed out (${t})`);
+      }, t);
+
+      fn()
+        .then(value => {
+          clearTimeout(timeout);
+          resolve(value);
+        })
+        .catch(error => {
+          reject(error);
+        });
+    });
+  }
+
+  /**
    * Retry the promise with back-off.
-   * @param {Function} fn Function to execute returning a promise.
+   * @param {Function} fn Function to execute returning a Promise.
    * @param {number} retries
    * @param {number} delay
    * @param {number} maxDelay
    * @returns {Promise}
    */
   static retry(fn, retries=-1, delay=1000, maxDelay=60*1000) {
-    let attempt = 0;
+    console.assert(fn);
 
+    let attempt = 0;
     const doRetry = () => {
       return new Promise((resolve, reject) => {
         fn(attempt)
