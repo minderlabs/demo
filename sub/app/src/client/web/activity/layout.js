@@ -14,6 +14,7 @@ import { Path } from '../../common/path';
 import SidePanel from '../view/sidepanel';
 
 import { StatusBar } from '../component/statusbar';
+import { DebugPanel } from '../component/debug';
 
 import './layout.less';
 
@@ -115,6 +116,8 @@ export class Layout extends React.Component {
         }
       }));
 
+      let debugPanel = <DebugPanel/>;
+
       return (
         <div className="ux-fullscreen">
           <div className={ DomUtil.className('ux-main-layout', 'ux-column', 'app-layout-' + platform, className) }>
@@ -152,6 +155,9 @@ export class Layout extends React.Component {
                 { content }
               </div>
             </Sidebar>
+
+            {/* Debug popup */}
+            { debugPanel }
 
             {/* Footer */}
             <div className="app-footer">
