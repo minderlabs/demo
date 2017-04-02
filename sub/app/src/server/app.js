@@ -76,11 +76,11 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
         // Client registration.
         client: _.pick(client, ['id', 'messageToken']),
 
-        // User credentials.
+        // Credentials.
         credentials: _.pick(getUserSession(user), ['id_token', 'id_token_exp']),
 
         // Canonical profile.
-        userProfile: _.pick(user, ['id', 'email', 'displayName', 'photoUrl']),
+        userProfile: _.pick(user, ['email', 'displayName', 'photoUrl']),
 
       }, options.config);
 

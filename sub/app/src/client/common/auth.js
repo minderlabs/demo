@@ -65,12 +65,10 @@ export class AuthManager {
    */
   authenticate() {
     if (_.get(window, 'chrome.identity')) {
-      // Trigger OAuth flow.
-      return this._launchWebAuthFlow().then(credentials => {
-        return this._registerUser(credentials).then(userProfile => {
-          _.assign(this._config, { userProfile });
-          return userProfile;
-        });
+      // CRX OAuth flow.
+      return this._launchWebAuthFlow().then(userProfile => {
+        _.assign(this._config, { userProfile });
+        return userProfile;
       });
     } else {
       // Web is already authenticated and registered.
@@ -89,30 +87,21 @@ export class AuthManager {
     return new Promise((resolve, reject) => {
       logger.log('Authenticating...');
 
+      // TODO(burdon): Factor out.
       const OAuthProvider = {
         provider: 'google',
-        requestUrl: 'https://accounts.google.com/o/oauth2/auth',
+        requestUrl: NetUtil.getUrl('/oauth/login/google', this._config.server),
         scope: AuthDefs.GOOGLE_LOGIN_SCOPES
       };
 
-      // Get the access and id tokens.
-      // NOTE: We don't require offline access (refresh_token) since this is requested when registering services.
-      // NOTE: If did request "offline" then requesting both access and id tokens would fail.
-      // NOTE: The clientId is the Web Client, NOT the Chrome Extension's Client ID (in the manifest).
-      // https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters
       let requestParams = {
-        client_id: GoogleApiConfig.clientId,
-        response_type: 'token id_token',                                        // access_token and id_token (JWT).
-        redirect_uri: chrome.identity.getRedirectURL(OAuthProvider.provider),   // Registered URL.
-        scope: OAuthProvider.scope.join(' '),
-        state: String(new Date().getTime())                                     // Check same state below.
+        redirectType: 'crx',
+        redirectUrl: chrome.identity.getRedirectURL(OAuthProvider.provider),    // Registered URL.
+        requestId: String(Date.now())                                           // Verified below.
       };
 
-      // TODO(burdon): Move auth to minder-core.
-      let requestUrl = HttpUtil.toUrl(OAuthProvider.requestUrl, requestParams);
-
       let options = {
-        url: requestUrl,
+        url: HttpUtil.toUrl(OAuthProvider.requestUrl, requestParams),
 
         // Show login screen if necessary.
         interactive: true
@@ -127,47 +116,20 @@ export class AuthManager {
           // Errors:
           // "redirect_uri_mismatch"    Registered URL.
           // "invalid_client"           Web Client ID does not match.
-          logger.info('Auth: ' + requestUrl);
-          logger.info(JSON.stringify(requestParams, null, 2));
           throw new Error(chrome.runtime.lastError.message);
         }
 
-        let responseParams = HttpUtil.parseUrlParams(callbackUrl, '#');
-//      logger.log('===>>>', JSON.stringify(requestParams, null, 2));
-//      logger.log('<<<===', JSON.stringify(responseParams, null, 2));
-        console.assert(responseParams.state === requestParams.state, 'Invalid state.');
-
-        // TODO(burdon): Google credentials.
-        let credentials = _.assign(_.pick(responseParams, ['access_token', 'id_token']), {
-          provider: OAuthProvider.provider
-        });
+        let callbackArgs = HttpUtil.parseUrlParams(callbackUrl);
+        console.assert(callbackArgs.requestId === requestParams.requestId, 'Invalid state.');
 
         // Update config.
-        _.assign(this._config, { credentials });
+        _.assign(this._config, {
+          credentials: JSON.parse(callbackArgs.credentials),
+          userProfile: JSON.parse(callbackArgs.userProfile)
+        });
 
-        resolve(credentials);
+        resolve(_.get(this._config, 'userProfile'));
       });
-    });
-  }
-
-  /**
-   * Registers the user with the (JWT) id_token returned from the OAuth login flow.
-   * Returns the user profile.
-   *
-   * @param credentials
-   * @returns {Promise<{UserProfile}>}
-   */
-  // TODO(burdon): Remove (move to server).
-  _registerUser(credentials) {
-    let registerUrl = NetUtil.getUrl('/user/register', this._config.server);
-
-    let headers = AuthUtil.setAuthHeader({}, credentials.id_token);
-
-    return NetUtil.postJson(registerUrl, { credentials }, headers).then(result => {
-      let { userProfile } = result;
-
-      logger.log('Registered User: ' + JSON.stringify(userProfile));
-      return userProfile;
     });
   }
 
