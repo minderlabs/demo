@@ -41,6 +41,7 @@ const APP_NAMESPACE = 'MINDER_APP';
 export class AppAction {
 
   static ACTION = {
+    DEBUG:          `${APP_NAMESPACE}/DEBUG`,
     REGISTER:       `${APP_NAMESPACE}/REGISTER`,
     SEARCH:         `${APP_NAMESPACE}/SEARCH`,
     CANVAS_STATE:   `${APP_NAMESPACE}/CANVAS_STATE`
@@ -61,6 +62,19 @@ export class AppAction {
   // http://redux.js.org/docs/advanced/AsyncActions.html
   // http://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559
   //
+
+  static toggleDebugInfo() {
+    return {
+      type: AppAction.ACTION.DEBUG,
+      showInfo: -1                      // true | false | -1 (toggle)
+    };
+  }
+  static toggleDebugPanel() {
+    return {
+      type: AppAction.ACTION.DEBUG,
+      showPanel: -1                     // true | false | -1 (toggle)
+    };
+  }
 
   /**
    * Register client (after server connect).
@@ -114,6 +128,12 @@ export const AppReducer = (injector, config, userProfile=undefined) => {
     // Client config.
     config: config,
 
+    // Debugging options.
+    debug: {
+      showInfo: true,
+      showPanel: false
+    },
+
     // User profile (from config or background page).
     // NOTE: The React context contains the current Viewer (provided by the top-level Activity).
     userProfile,
@@ -134,6 +154,16 @@ export const AppReducer = (injector, config, userProfile=undefined) => {
   return (state=initialState, action) => {
 //  console.log('ACTION[%s]: %s', action.type, JSON.stringify(state));
     switch (action.type) {
+
+      case AppAction.ACTION.DEBUG: {
+        let { debug } = state;
+        let { showInfo, showPanel } = action;
+
+        if (showInfo === -1) { showInfo = !debug.showInfo; }
+        if (showPanel === -1) { showPanel = !debug.showPanel; }
+
+        return _.assign({}, state, { debug: { showInfo, showPanel } });
+      }
 
       case AppAction.ACTION.REGISTER: {
         return _.assign({}, state, _.pick(action.value, ['userProfile', 'server']));

@@ -9,7 +9,6 @@
   },
   "main": "src/index.js",
   "devDependencies": {
-    "apollo-client": "^1.0.1",
     "babel-cli": "^6.24.0",
     "babel-loader": "^6.4.1",
     "babel-preset-es2015": "^6.24.0",
