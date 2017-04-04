@@ -9,8 +9,8 @@
   "watch": [
     "src/server",
     "../core/src",
-    "../services/src",
-    "../graphql/src"
+    "../graphql/src",
+    "../services/src"
   ],
 
   "ignore": [

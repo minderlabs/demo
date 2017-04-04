@@ -97,6 +97,8 @@ export class Settings {
         let values = _.set(this._values, property, value);
         chrome.storage.local.set(values, resolve);
       }
+    }).then(() => {
+      return this.load();
     });
   }
 

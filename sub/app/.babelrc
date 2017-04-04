@@ -10,6 +10,7 @@
     "react"
   ],
 
+  // TODO(burdon): Remove?
   "plugins": [
 
     // Used for async/wait support and other ES6 built-ins.

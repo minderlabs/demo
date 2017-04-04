@@ -121,7 +121,7 @@ export const hotRouter = (options) => {
   const webpackHotMiddleware = require('webpack-hot-middleware');
 
   // Config.
-  const webpackConfig = require('../../webpack.config');
+  const webpackConfig = require('../../webpack-web.config');
 
   // https://github.com/webpack/webpack-dev-middleware
   const compiler = webpack(webpackConfig);
