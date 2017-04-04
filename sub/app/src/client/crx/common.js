@@ -18,17 +18,21 @@ export const Defs = {
  */
 export const DefaultSettings = {
 
-  // Show notification messages.
-  notifications: false,
-
-  // Auto-open the sidebar if context changes.
-  autoopen: false,
-
-  // Navigate to web-app.
-  webapp: true,
-
   // App server (e.g., dev, prod).
-  server: Defs.SERVER.PROD.title,
+  server: Defs.SERVER.PROD.value,
+
+  // TODO(burdon): Overlay on config: crx: {},
+  crx: {
+
+    // Show notification messages.
+    notifications: false,
+
+    // Auto-open the sidebar if context changes.
+    autoOpen: false,
+
+    // Navigate to web-app.
+    openTab: true
+  }
 };
 
 /**

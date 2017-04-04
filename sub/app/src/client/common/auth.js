@@ -116,7 +116,7 @@ export class AuthManager {
           // Errors:
           // "redirect_uri_mismatch"    Registered URL.
           // "invalid_client"           Web Client ID does not match.
-          throw new Error(chrome.runtime.lastError.message);
+          throw new Error(chrome.runtime.lastError.message + ' [' + options.url + ']');
         }
 
         let callbackArgs = HttpUtil.parseUrlParams(callbackUrl);
