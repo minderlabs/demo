@@ -32,7 +32,7 @@ module.exports = _.merge(baseConfig, {
 
   // Source map shows original source and line numbers (and works with hot loader).
   // https://webpack.github.io/docs/configuration.html#devtool
-  devtool: '#eval-source-map',
+  devtool: '#source-map',
 
   entry: {
     server: [
@@ -50,10 +50,12 @@ module.exports = _.merge(baseConfig, {
     publicPath: '/assets/' // Path for webpack-dev-server
   },
 
+  // https://www.npmjs.com/package/webpack-node-externals
   externals: [nodeExternals({
     whitelist: [
       'minder-core',
-      'minder-graphql'
+      'minder-graphql',
+      'minder-services'
     ]}
   )]
 });
