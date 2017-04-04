@@ -22,7 +22,6 @@ import {
   Logger,
 } from 'minder-core';
 
-// TODO(burdon): minder-data.
 import {
   AuthUtil,
   Database,
@@ -59,7 +58,7 @@ import {
   graphqlRouter
 } from 'minder-graphql';
 
-import { Const, FirebaseAppConfig, GoogleApiConfig, OAuthConfig, SlackConfig } from '../common/defs';
+import { Const, FirebaseAppConfig, GoogleApiConfig, SlackConfig } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { webAppRouter, hotRouter } from './app';
@@ -72,7 +71,6 @@ import { Loader } from './data/loader';
 import { TestGenerator } from './data/testing';
 
 const logger = Logger.get('server');
-
 
 //
 // Error handling.
@@ -131,9 +129,9 @@ const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credent
 // OAuth providers.
 //
 
-const oauthCallbackUrl = (testing ? OAuthConfig.TESTING_CALLBACK : OAuthConfig.CALLBACK);
+const serverUrl = _.get(process.env, 'MINDER_SERVER_URL', 'http://localhost:3000');
 
-const googleAuthProvider = new GoogleOAuthProvider(GoogleApiConfig, oauthCallbackUrl);
+const googleAuthProvider = new GoogleOAuthProvider(GoogleApiConfig, serverUrl);
 
 // TODO(burdon): Rename LoginRegistry? (i.e., which login mechanisms are displayed).
 const oauthRegistry = new OAuthRegistry()

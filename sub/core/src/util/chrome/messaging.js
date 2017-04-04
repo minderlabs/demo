@@ -27,7 +27,7 @@ export class ChromeMessageSender {
    * @param {object} options
    */
   constructor(channel=undefined, options=undefined) {
-    this._channel = channel || 'Client-' + new Date().getTime();  // TODO(burdon): Random.
+    this._channel = channel || 'Client-' + Date.now();  // TODO(burdon): Random.
     this._options = options || {
       reconnect: true
     };
@@ -84,7 +84,7 @@ export class ChromeMessageSender {
 
     header = _.merge({}, header, {
       id: _.uniqueId('M-'),
-      timestamp: new Date().getTime()
+      timestamp: Date.now()
     });
 
     let message = { header, data };
@@ -148,7 +148,7 @@ export class ChromeMessageReceiver {
    */
   postMessage(client, data, header=undefined) {
     header = _.merge({}, header, {
-      timestamp: new Date().getTime()
+      timestamp: Date.now()
     });
 
     let message = { header, data };

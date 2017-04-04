@@ -6,7 +6,9 @@ import React from 'react';
 import { createMemoryHistory, IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { ApolloProvider } from 'react-apollo';
 
-import { Async, Injector, ChromeMessageChannel, ChromeMessageChannelRouter, WindowMessenger } from 'minder-core';
+import { 
+  Async, Injector, ChromeMessageChannel, ChromeMessageChannelRouter, Logger, WindowMessenger 
+} from 'minder-core';
 
 import { Path } from '../../common/path';
 import { BaseApp } from '../../common/base_app';
@@ -18,6 +20,8 @@ import { SystemChannel, SidebarCommand } from '../common';
 import { SidebarAction, SidebarReducer } from '../sidebar/reducers';
 
 import FinderActivity from '../../web/activity/finder';
+
+const logger = Logger.get('sidebar');
 
 /**
  * Main sidebar app.
@@ -37,14 +41,20 @@ export class SidebarApp extends BaseApp {
     this._messenger = new WindowMessenger(config.channel)
       .attach(parent)
       .listen(message => {
-        console.log('Command: ' + JSON.stringify(message));
+        logger.log('Command: ' + JSON.stringify(message));
+
         switch (message.command) {
 
           // Updated visibility.
           case SidebarCommand.UPDATE_VISIBILITY: {
+            if (!this.initialized) {
+              break;
+            }
+
             if (message.visible) {
               this._analytics && this._analytics.track('sidebar.open');
             }
+
             this.store.dispatch(SidebarAction.updateVisibility(message.visible));
             break;
           }
@@ -86,7 +96,7 @@ export class SidebarApp extends BaseApp {
 
     // System commands from background page.
     this._systemChannel.onMessage.addListener(message => {
-      console.log('Command: ' + JSON.stringify(message));
+      logger.log('Command: ' + JSON.stringify(message));
       switch (message.command) {
 
         // Reset Apollo client (flush cache); e.g., Backend re-connected.
@@ -116,14 +126,14 @@ export class SidebarApp extends BaseApp {
 
     // Register with the background page to obtain the CRX registration (userId, clientId) and server.
     // NOTE: Retry in case background page hasn't registered with the server yet (race condition).
-    console.log('Getting registration...');
+    logger.log('Registering client...');
     return Async.retry(() => {
       return this._systemChannel.postMessage({
         command: SystemChannel.REGISTER
       }, true)
         .then(({ userProfile, server }) => {
           console.assert(userProfile && server);
-          console.log('Registered: ' + JSON.stringify(userProfile));
+          logger.log('Registered: ' + JSON.stringify(userProfile));
 
           // Init analytics with the current user.
           this._analytics && this._analytics.identify(userProfile.id);

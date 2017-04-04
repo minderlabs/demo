@@ -57,7 +57,7 @@ class BackgroundApp {
    * @returns {boolean} true if reconnect is needed (e.g., server changed).
    */
   static UpdateConfig(config, settings) {
-    let restart = (config.server !== settings.server);
+    let restart = config.server !== settings.server;
 
     _.assign(config, settings, {
       graphql: settings.server + '/graphql',
@@ -147,6 +147,16 @@ class BackgroundApp {
       .then(settings => {
         BackgroundApp.UpdateConfig(this._config, settings);
 
+        //
+        // Listen for settings updates (e.g., from options page).
+        //
+        this._settings.onChange.addListener(settings => {
+          let reconnect = BackgroundApp.UpdateConfig(this._config, settings);
+          if (reconnect) {
+            return this.connect();
+          }
+        });
+
         // Initialize the network manager.
         this._networkManager.init();
 
@@ -174,16 +184,6 @@ class BackgroundApp {
           this._dispatcher.listen(ChromeNetworkInterface.CHANNEL, request => {
             return this._networkManager.networkInterface.query(request);
           });
-
-          //
-          // Listen for settings updates (e.g., from options page).
-          //
-          this._settings.onChange.addListener(settings => {
-            let reconnect = BackgroundApp.UpdateConfig(this._config, settings);
-            if (reconnect) {
-              return this.connect();
-            }
-          });
         });
       })
       .then(() => {
@@ -202,7 +202,7 @@ class BackgroundApp {
     // Re-register with server.
     return this._connectionManager.register().then(client => {
       logger.log('Registered: ' + TypeUtil.stringify(client));
-      if (this._config.notifications) {
+      if (_.get(this._config, 'settings.notifications')) {
         this._notification.show('Minder', 'Registered App.');
       }
 
@@ -234,7 +234,7 @@ class BackgroundApp {
       case SystemChannel.PING: {
         return Promise.resolve({
           // TODO(burdon): Factor out Util.
-          timestamp: new Date().getTime()
+          timestamp: Date.now()
         });
       }
 

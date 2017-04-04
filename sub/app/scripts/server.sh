@@ -4,7 +4,7 @@
 # Tests the server bundle (use to test Dockerfile).
 #
 
-webpack
+#webpack
 webpack --config webpack-server.config.js
 
 export MINDER_CONF_DIR='../src/common/conf/'

@@ -21,7 +21,7 @@ const Level = {
 //
 
 const levels = {
-  ID: new Date().getTime()
+  ID: Date.now()
 };
 
 if (typeof window !== 'undefined' && !window.__LOGGER_LEVELS) {

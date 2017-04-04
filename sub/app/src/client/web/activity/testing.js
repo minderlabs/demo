@@ -51,7 +51,9 @@ class TestingActivity extends React.Component {
       let { listType } = this.state;
 
       // TODO(burdon): Viewer null initially (Activity query not yet satisfied -- need to declare below?)
-      console.log('::::::::::::', viewer);
+      if (!viewer) {
+        console.warn('Viewer not loaded.');
+      }
 
       let itemRenderer = null;
       switch (listType) {
