@@ -27,8 +27,13 @@ ENV NODE_ENV=production
 # Server config.
 #
 
+ENV MINDER_SERVER_URL='https://demo-dev.minderlabs.com'
+
 # Gen 3/9/17: uuid.v4()
 ENV MINDER_SESSION_SECRET="d932db47-85a2-45d9-a4d6-aa7b87ea9702"
+
+# Gen 4/3/17: uuid.v4()
+ENV MINDER_JWT_SECRET="5b08d61a-e3d1-4c96-b695-3f594c77f68a"
 
 #
 # Create the nx user and home directory.

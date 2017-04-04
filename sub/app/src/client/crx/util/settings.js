@@ -6,6 +6,9 @@ import { Listeners } from 'minder-core';
 
 /**
  * Chrome store abstraction.
+ *
+ * https://developer.chrome.com/extensions/storage
+ * https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API#localStorage
  */
 export class Settings {
 
@@ -17,10 +20,6 @@ export class Settings {
 
     // Default options (specify all keys).
     this._defaults = defaults || {};
-
-    // https://developer.chrome.com/extensions/storage
-    // https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API#localStorage
-    this._store = chrome.storage.local;
 
     // Cached values.
     this._values = {};
@@ -48,6 +47,7 @@ export class Settings {
       }
     });
 
+    // Public member to add handlers.
     this.onChange = new Listeners();
   }
 
@@ -76,7 +76,7 @@ export class Settings {
   reset() {
     this._values = {};
     return new Promise((resolve, reject) => {
-      this._store.clear(() => {
+      chrome.storage.local.clear(() => {
         chrome.storage.local.set(this._defaults, resolve);
       });
     });
@@ -86,13 +86,16 @@ export class Settings {
    * Sets the names property
    * @param {string} property
    * @param value If undefined, removes the property.
+   * @returns {Promise}
    */
   set(property, value=undefined) {
     return new Promise((resolve, reject) => {
       if (value === undefined) {
         chrome.storage.local.remove(property, resolve);
       } else {
-        chrome.storage.local.set({ [property]: value }, resolve);
+        // Overwrites existing.
+        let values = _.set(this._values, property, value);
+        chrome.storage.local.set(values, resolve);
       }
     });
   }

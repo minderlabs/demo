@@ -19,10 +19,6 @@ import './options.less';
  */
 class Options extends React.Component {
 
-  state = {
-    settings: {}
-  };
-
   constructor() {
     super(...arguments);
 
@@ -80,7 +76,9 @@ class Options extends React.Component {
       }
     }
 
-    this._settings.set(property, value);
+    this._settings.set(property, value).then(() => {
+      this.forceUpdate();
+    });
   }
 
   onRefresh() {
@@ -88,7 +86,7 @@ class Options extends React.Component {
   }
 
   render() {
-    let { settings } = this.state;
+    let settings = this._settings.values;
 
     return (
       <div>
@@ -97,18 +95,18 @@ class Options extends React.Component {
           <div className="crx-section">
             <label>
               <input type="checkbox"
-                     value={ settings.notifications }
-                     onChange={ this.onChangeValue.bind(this, 'notifications') }/> Desktop Notifications
+                     checked={ _.get(settings, 'crx.notifications') }
+                     onChange={ this.onChangeValue.bind(this, 'crx.notifications') }/> Desktop notifications.
             </label>
             <label>
               <input type="checkbox"
-                     value={ settings.autoopen }
-                     onChange={ this.onChangeValue.bind(this, 'autoopen') }/> Auto-open Sidebar
+                     checked={ _.get(settings, 'crx.autoOpen') }
+                     onChange={ this.onChangeValue.bind(this, 'crx.autoOpen') }/> Auto-open on update.
             </label>
             <label>
               <input type="checkbox"
-                     value={ settings.webapp }
-                     onChange={ this.onChangeValue.bind(this, 'webapp') }/> Navigate to Web App
+                     checked={ _.get(settings, 'crx.openTab') }
+                     onChange={ this.onChangeValue.bind(this, 'crx.openTab') }/> Open links in new tab.
             </label>
           </div>
 

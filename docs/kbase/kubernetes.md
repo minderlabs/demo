@@ -109,6 +109,7 @@ from docker hub), see [image pull secrets](http://kubernetes.io/docs/user-guide/
 When running on AWS, the most convenient thing is to host images on ECR.
 
 To push an image to ECR:
+
 1. Run `docker login`, this prints the command with credentials:
     ```
     aws ecr get-login --region us-east-1

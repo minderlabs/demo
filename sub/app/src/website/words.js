@@ -52,7 +52,7 @@ export class Words {
     let words = new Map(Words.words());
 
     let period = 1000;
-    let ts = new Date().getTime() / 1000;
+    let ts = Date.now() / 1000;
 
     function timer(period) {
       return new Promise(function(resolve) {
@@ -79,7 +79,7 @@ export class Words {
     function next(period) {
       let running = true;
 
-      let p = (new Date().getTime() / 1000) - ts;
+      let p = (Date.now() / 1000) - ts;
 //    console.log('T:', p, period);
 
       if (time > 0 && p > time) {

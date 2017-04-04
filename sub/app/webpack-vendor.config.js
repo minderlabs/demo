@@ -11,6 +11,9 @@ const baseConfig = require('./webpack-base.config.js');
 //
 // Webpack client configuration.
 //
+// Library bundles:
+// https://robertknight.github.io/posts/webpack-dll-plugins
+//
 
 module.exports = _.merge(baseConfig, {
 

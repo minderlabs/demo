@@ -2,6 +2,10 @@
 // Copyright 2017 Minder Labs.
 //
 
+import { Logger } from 'minder-core';
+
+const logger = Logger.get('inspector');
+
 /**
  * Registry of inspectors.
  */
@@ -29,7 +33,7 @@ export class InspectorRegistry {
     setTimeout(() => {
       _.each(this._inspectors, inspector => {
         if (inspector.shouldObservePage()) {
-          console.log('Inspector: ' + inspector.constructor.name);
+          logger.log('Inspector: ' + inspector.constructor.name);
           let { context, rootNode } = inspector.getPageState();
           if (context) {
             // TODO(madadam): This happens too early, before the sidebar is loaded. Need to keep it cached
@@ -61,7 +65,7 @@ class Inspector {
     // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
     this._observer = new MutationObserver(mutations => {
       let context = this.inspect(mutations);
-      console.log('Context: ' + JSON.stringify(context));
+      logger.log('Context: ' + JSON.stringify(context));
       if (this._callback && context) {
         this._callback(context);
       }
