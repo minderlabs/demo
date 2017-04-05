@@ -100,6 +100,7 @@ const ViewerQuery = gql`
         title
 
         projects {
+          bucket
           type
           id
           type

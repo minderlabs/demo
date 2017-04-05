@@ -131,9 +131,10 @@ module.exports = (grunt) => {
     // https://webpack.github.io/docs/usage-with-grunt.html
     // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
     // webpack -d --config webpack-crx.config.js --display-modules --progress
-    // TODO(burdon): Debug options.
     webpack: {
-      crx: require('./webpack-crx.config.js')
+      srv: require('./webpack-srv.config.js'),
+      web: require('./webpack-web.config.js'),
+      crx: require('./webpack-crx.config.js'),
     },
   }));
 
@@ -170,5 +171,6 @@ module.exports = (grunt) => {
 
   grunt.registerTask('default', ['build']);
   grunt.registerTask('build', ['clean', 'webpack']);
-  grunt.registerTask('build-crx', ['webpack:crx', 'convert:yml2json', 'copy:crx', 'crx:minder', 'compress:crx'])
+  grunt.registerTask('pack-crx', ['build-crx', 'crx:minder', 'compress:crx']);
+  grunt.registerTask('build-crx', ['webpack:crx', 'convert:yml2json', 'copy:crx']);
 };

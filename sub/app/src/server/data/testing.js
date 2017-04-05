@@ -171,9 +171,9 @@ export class TestGenerator {
                   // TODO(burdon): Add default label for private project.
                   // TODO(burdon): Auto-provision project when creating a group.
                   .then(() =>
-                    this.generateItems(context, 'Project', 1))
+                    this.generateItems(context, 'Project', 0))
                   .then(() =>
-                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 5, max: 20 })));
+                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 1, max: 1 })));
               }));
             });
         }));

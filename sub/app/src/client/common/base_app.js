@@ -33,6 +33,8 @@ export class BaseApp {
     console.assert(config);
     this._config = config;
 
+    this._initialized = false;
+
     // Event bus propagates events (e.g., error messages) to components.
     this._eventHandler = new EventHandler();
 
@@ -47,6 +49,10 @@ export class BaseApp {
 
     // Debugging.
     _.set(window, 'minder', this);
+  }
+
+  get initialized() {
+    return this._initialized;
   }
 
   onError(error) {
@@ -78,6 +84,7 @@ export class BaseApp {
       .then(() => this.postInit())
       .then(() => {
         logger.info('Config = ' + TypeUtil.stringify(this._config, 2));
+        this._initialized = true;
         return this;
       });
   }

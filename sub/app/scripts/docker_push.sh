@@ -98,7 +98,12 @@ webpack --config webpack-server.config.js
 # Create package.json for Dockerfile's npm install.
 #
 
-../tools/src/python/create_package_file.py dist/package.json
+../tools/src/python/create_package_file.py --output dist/package.json \
+  --pkg minder-core       \
+  --pkg minder-graphql    \
+  --pkg minder-scheduler  \
+  --pkg minder-services   \
+  --pkg minder-ux
 
 #
 # Build docker image.
@@ -120,14 +125,16 @@ case "$DOCKER_REPO" in
   ecr)
     # Login to AWS ECR.
     # https://forums.aws.amazon.com/thread.jspa?messageID=692733
-    eval $(AWS_PROFILE=minder aws ecr get-login)
+    eval $(AWS_PROFILE=minder aws ecr get-login --region us-east-1)
     ;;
 esac
 
 #
-# https://console.aws.amazon.com/iam/
 # NOTE: On error check ~/.aws/credentials matches IAM keys.
+# Check "aws ecr get-login --region us-east-1" (will fail if credentials don't match).
+# NOTE: export AWS_PROFILE=minder (or [minder] in credentials).
 # NOTE: Check also not clobbered by AWS_SECRET_ACCESS_KEY, etc.
+# https://console.aws.amazon.com/iam/home?region=us-east-1#/users [Security credentials]
 #
 
 docker push ${NAMESPACE}/${REPO}:${VERSION}
@@ -147,15 +154,16 @@ kubectl delete $(kubectl get pods -l run=$RUN_LABEL -o name)
 # https://console.aws.amazon.com/ecs/home?region=us-east-1#/repositories/${TAG}#images;tagStatus=ALL
 # NOTE: kubectl replace -f demo.yml
 #
-# Dashboard
+# Dashboard (Logs)
 # https://api.dev.k.minderlabs.com/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard
+# NOTE: Click advanced to proceed.
 # username=admin; password in ~/.kube/config
 #
 
 STATUS_URL="https://demo-dev.minderlabs.com/status"
 LOCAL_VERSION=$(cat "package.json" | jq '.version')
 
-until [ ${LOCAL_VERSION} = $(curl -s ${STATUS_URL} | jq '.app.version') ]; do
+until [ ${LOCAL_VERSION} = $(curl -s ${STATUS_URL} | jq '.version') ]; do
   echo "Waiting..."
   sleep 5
 done

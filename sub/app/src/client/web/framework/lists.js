@@ -149,7 +149,7 @@ export const CardSearchList = connectReducer(ListReducer.graphql(CardSearchQuery
 
 //-------------------------------------------------------------------------------------------------
 // Simple List.
-// TODO(burdon): Obsolete: replace with above.
+// TODO(burdon): Obsolete: replace with above (Used by ItemPicker.)
 //-------------------------------------------------------------------------------------------------
 
 export const SimpleSearchQuery = gql`

@@ -21,6 +21,29 @@ import { Card } from '../component/card';
 
 import './task.less';
 
+/**
+ * Add mutations to the batch to create the new item and add it to the parent.
+ * @param mutator
+ * @param {User} user
+ * @param {Task} parent
+ * @param mutations
+ * @return {Batch}
+ * @constructor
+ */
+// TODO(burdon): Factor out helpers.
+const AddCreateSubTask = (mutator, user, parent, mutations) => {
+  return mutator
+    .batch(parent.project.bucket)
+    .createItem('Task', _.concat(mutations, [
+      MutationUtil.createFieldMutation('project', 'id',   parent.project.id),
+      MutationUtil.createFieldMutation('owner',   'id',   user.id),
+      MutationUtil.createFieldMutation('status',  'int',  TASK_LEVELS.UNSTARTED),
+    ]), 'new_task')
+    .updateItem(parent, [
+      MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+    ]);
+};
+
 //-------------------------------------------------------------------------------------------------
 // Components.
 //-------------------------------------------------------------------------------------------------
@@ -74,29 +97,6 @@ export const TaskItemEditor = (item) => {
 };
 
 /**
- * Add mutations to the batch to create the new item and add it to the parent.
- * @param batch
- * @param userId
- * @param parent
- * @param mutations
- * @return {Batch}
- * @constructor
- */
-// TODO(burdon): Factor out helpers.
-const AddCreateSubTask = (batch, userId, parent, mutations) => {
-  return batch
-    .createItem('Task', _.concat(mutations, [
-      MutationUtil.createFieldMutation('bucket',  'string', parent.bucket),
-      MutationUtil.createFieldMutation('project', 'id',     parent.project.id),
-      MutationUtil.createFieldMutation('owner',   'id',     userId),
-      MutationUtil.createFieldMutation('status',  'int',    TASK_LEVELS.UNSTARTED),
-    ]), 'new_task')
-    .updateItem(parent, [
-      MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
-    ]);
-};
-
-/**
  * Card.
  */
 export class TaskCard extends React.Component {
@@ -123,10 +123,10 @@ export class TaskCard extends React.Component {
     let { viewer: {user}, mutator } = this.context;
 
     if (item) {
-      mutator.updateItem(item, mutations);
+      mutator.batch(item.bucket).updateItem(item, mutations).commit();
     } else {
       let { item:parent } = this.props;
-      AddCreateSubTask(mutator.batch(), user.id, parent, mutations).commit();
+      AddCreateSubTask(mutator, user, parent, mutations).commit();
     }
   }
 
@@ -230,7 +230,7 @@ class TaskCanvasComponent extends React.Component {
       mutator.updateItem(item, mutations);
     } else {
       let { item:parent } = this.props;
-      AddCreateSubTask(mutator.batch(), user.id, parent, mutations).commit();
+      AddCreateSubTask(mutator, user, parent, mutations).commit();
     }
   }
 

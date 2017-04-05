@@ -2,15 +2,17 @@
 // Copyright 2017 Minder Labs.
 //
 
-import { WindowMessenger, HttpUtil, KeyListener } from 'minder-core';
+import { HttpUtil, KeyListener, Logger, WindowMessenger } from 'minder-core';
 
 import { SidebarCommand, KeyCodes } from './common';
 import { InspectorRegistry, GmailInspector, GoogleInboxInspector, SlackInspector, TestInspector } from './util/inspector';
 
 import './content_script.less';
 
+const logger = Logger.get('cs');
+
 // Unique ID for this content script.
-const scriptId = new Date().getTime();
+const scriptId = Date.now();
 
 /**
  * Content Script is loaaded on all pages declared in the manifest.
@@ -39,12 +41,12 @@ const scriptId = new Date().getTime();
  */
 class ContentScript {
 
-  // TODO(burdon): Remove jquery.
+  // TODO(burdon): Remove jquery (smaller footprint).
 
   static manifest = chrome.runtime.getManifest();
 
   constructor() {
-    console.log(`${ContentScript.manifest.name} ${ContentScript.manifest.version}`);
+    logger.log(`${ContentScript.manifest.name} ${ContentScript.manifest.version}`);
 
     // Root element.
     let container = $('<div>').appendTo(document.body)
@@ -104,14 +106,15 @@ class ContentScript {
     // Listen for messages from the SidebarApp (frame).
     //
     this.sidebar.messenger.listen(message => {
-      console.log('Message: ' + message.command);
+      logger.log('Message: ' + message.command);
+
       switch (message.command) {
 
         //
         // Errors.
         //
         case SidebarCommand.ERROR: {
-          console.error('Sidebar Error: ' + message.message);
+          logger.error('Sidebar Error: ' + message.message);
           break;
         }
 
@@ -123,6 +126,7 @@ class ContentScript {
           setTimeout(() => {
             this.sidebar.initialized().open().then(visible => updateVisibility(visible));
           }, 500);
+
           break;
         }
 
@@ -145,7 +149,7 @@ class ContentScript {
         }
 
         default: {
-          console.error('Unknown command: ' + message.command);
+          logger.error('Unknown command: ' + message.command);
         }
       }
     });
@@ -261,7 +265,12 @@ class Frame {
 
   initialized() {
     this._messenger.attach(this._frame[0].contentWindow);
-    this._blocking && this._blocking(true);
+
+    // Resolve blocking promise.
+    if (this._blocking) {
+      this._blocking(true);
+      this._blocking = null;
+    }
 
     return this;
   }
@@ -282,11 +291,15 @@ class Frame {
 
       // Resolve when sidebar has loaded (and the INITIALIZED message is received).
       return new Promise((resolve, reject) => {
-        console.log('Loading sidebar...');
+        logger.log('Loading sidebar...');
         this._blocking = resolve;
         this._onLoading && this._onLoading();
       });
     } else {
+      if (this._blocking) {
+        return Promise.reject('Not initialized.');
+      }
+
       this._root.addClass('crx-open');
       return Promise.resolve(true);
     }
@@ -301,6 +314,7 @@ class Frame {
     if (unload) {
       this._frame.attr('src', 'about:blank');
     }
+
     return Promise.resolve(false);
   }
 

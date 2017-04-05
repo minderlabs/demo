@@ -111,13 +111,7 @@ def main(argv):
     parser.add_argument('--file',           required=True)
     parser.add_argument('--publish',        action='store_true')
 
-    print argv
-
     args = parser.parse_args(argv[1:])
-
-    print args
-    exit
-
 
     # Authenticate (open browser).
     credentials = get_token(args.client_id, args.client_secret, args)

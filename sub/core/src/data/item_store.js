@@ -259,6 +259,31 @@ export class BaseItemStore extends ItemStore {
 export class ItemUtil {
 
   /**
+   * Get a map of items by a particular field.
+   * @param {[Item]} items
+   * @param {string} path
+   * @returns {Map}
+   */
+  static createItemMap(items, path='id') {
+    let itemMap = new Map();
+    _.each(items, item => {
+      let key = _.get(item, path);
+      if (key === undefined) {
+        return;
+      }
+
+      let existing = itemMap.get(key);
+      if (existing) {
+        console.warn(`Duplicate key[${key}]:`, existing.id, item.id);
+      }
+
+      itemMap.set(key, item);
+    });
+
+    return itemMap;
+  }
+
+  /**
    * Sort items.
    * @param items
    * @param filter

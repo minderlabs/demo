@@ -91,9 +91,6 @@ export class List extends React.Component {
     itemRenderer:       React.PropTypes.func,
     itemOrderModel:     React.PropTypes.object,     // Order model for drag and drop.
 
-    // TODO(burdon): Should this happen outside of the List (i.e., before properties are set instead?)
-    itemInjector:       React.PropTypes.func,       // Modify results.
-
     onItemUpdate:       React.PropTypes.func,
     onItemSelect:       React.PropTypes.func,
     onItemDrop:         React.PropTypes.func
@@ -250,17 +247,12 @@ export class List extends React.Component {
   render() {
 
     // NOTE: data is a user-label to identify the list.
-    let { itemClassName, itemOrderModel, itemInjector, data } = this.props;
+    let { itemClassName, itemOrderModel, data } = this.props;
     let { items, itemRenderer, itemEditor, addItem, editItem } = this.state;
 
     // Sort items by order model.
     if (itemOrderModel) {
       items = itemOrderModel.getOrderedItems(items);
-    }
-
-    // Augment items (e.g., from app context).
-    if (itemInjector) {
-      items = itemInjector(items);
     }
 
     //

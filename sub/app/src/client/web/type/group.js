@@ -47,9 +47,8 @@ class GroupCanvasComponent extends React.Component {
       console.warn('Not implemented.');
     } else {
       mutator
-        .batch()
+        .batch(group.id)
         .createItem('Project', _.concat(mutations, [
-          MutationUtil.createFieldMutation('bucket', 'string', group.id),
           MutationUtil.createFieldMutation('group', 'id', group.id)
         ]), 'new_project')
         .commit();

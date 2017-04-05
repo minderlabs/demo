@@ -20,12 +20,17 @@
   "dependencies": {
     "express": "^4.15.2",
     "googleapis": "^18.0.0",
+    "js-beautify": "^1.6.12",
     "jsonwebtoken": "^7.3.0",
     "lodash": "^4.17.4",
     "minder-core": "0.1.0",
     "moment": "^2.18.1",
     "passport": "^0.3.2",
     "passport-google-oauth": "^1.0.0",
-    "passport-jwt": "^2.2.1"
+    "passport-jwt": "^2.2.1",
+    "swig": "^1.4.2"
+  },
+  "//": {
+    "googleapis": "Requires additional deps [swig, js-beautify]. Also, must install googleapis in dependent module (e.g., sub/app)"
   }
 }

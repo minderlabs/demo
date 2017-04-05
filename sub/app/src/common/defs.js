@@ -83,19 +83,6 @@ export const GoogleApiConfig = {
 };
 
 /**
- * OAuth2 Config
- */
-export const OAuthConfig = {
-
-  // TODO(burdon): Move to ENV?
-  // Register callbacks with OAuth providers.
-  CALLBACK: 'https://www.minderlabs.com/oauth/callback',
-
-  // NOTE: Define /etc/hosts entry for docker machine.
-  TESTING_CALLBACK: 'http://localhost:3000/oauth/callback'
-};
-
-/**
  * https://api.slack.com/apps
  */
 export const SlackConfig = {

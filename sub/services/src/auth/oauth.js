@@ -117,8 +117,8 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   // https://www.npmjs.com/package/passport-jwt
   //
 
-  // TODO(burdon): env
-  const MINDER_JWT_SECRET = 'minder-jwt-secret';
+  const MINDER_JWT_SECRET = _.get(process.env, 'MINDER_JWT_SECRET', 'minder-jwt-secret');
+
   const MINDER_JWT_AUDIENCE = 'minderlabs.com';
 
   passport.use(new JwtStrategy({
@@ -431,12 +431,12 @@ export class OAuthProvider {
 
   /**
    * @param providerId Provider ID from the Passport strategy (e.g., 'google').
-   * @param callbackUrl Registered OAuth callback.
+   * @param serverUrl
    */
-  constructor(providerId, callbackUrl) {
-    console.assert(providerId && callbackUrl);
+  constructor(providerId, serverUrl) {
+    console.assert(providerId && serverUrl);
     this._providerId = providerId;
-    this._callbackUrl = HttpUtil.joinUrl(callbackUrl, SystemStore.sanitizeKey(providerId));
+    this._callbackUrl = HttpUtil.joinUrl(serverUrl, '/oauth/callback/' + SystemStore.sanitizeKey(providerId));
   }
 
   /**

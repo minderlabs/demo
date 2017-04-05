@@ -41,7 +41,7 @@ class Finder extends React.Component {
   }
 
   handleItemUpdate(item, mutations) {
-    this.context.mutator.updateItem(item, mutations);
+    this.context.mutator.batch(item.bucket).updateItem(item, mutations).commit();
   }
 
   render() {
@@ -53,8 +53,8 @@ class Finder extends React.Component {
         <div className="ux-debug ux-font-xsmall">{ JSON.stringify(filter) }</div>
       );
 
-      // Inject items into list if the context manager is present.
-      let itemInjector = undefined;
+      // Inject items into list (via reducer) if the context manager is present.
+      let itemInjector;
       if (contextManager) {
         itemInjector = (items) => contextManager.injectItems(items);
       }
@@ -66,9 +66,9 @@ class Finder extends React.Component {
       switch (listType) {
         case 'card':
           list = <CardSearchList filter={ _.defaults(filter, { groupBy: true }) }
+                                 itemInjector={ itemInjector }
                                  highlight={ false }
                                  className="ux-card-list"
-                                 itemInjector={ itemInjector }
                                  itemRenderer={ Card.ItemRenderer(typeRegistry) }
                                  onItemUpdate={ this.handleItemUpdate.bind(this) }/>;
           break;
