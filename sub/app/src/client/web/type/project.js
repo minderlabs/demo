@@ -47,7 +47,7 @@ export class ProjectCard extends React.Component {
     let { mutator } = this.context;
 
     if (item) {
-      mutator.updateItem(item, mutations);
+      mutator.batch(item.bucket).updateItem(item, mutations).commit();
     } else {
       // TODO(burdon): Add task to project.
       console.warn('Not implemented.');
@@ -247,12 +247,12 @@ class ProjectBoardCanvasComponent extends React.Component {
     let { viewer: { user }, mutator } = this.context;
 
     if (item) {
-      mutator.updateItem(item, mutations);
+      mutator.batch(item.bucket).updateItem(item, mutations).commit();
     } else {
       let { item:project } = this.props;
 
       mutator
-        .batch()
+        .batch(project.bucket)
         .createItem('Task', [
           this.boardAdapter.onCreateMutations(project.bucket, user.id, column),
           MutationUtil.createFieldMutation('owner', 'id', user.id),
@@ -272,7 +272,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
     // TODO(burdon): Batch.
     // Update item for column.
-    let batch = mutator.batch();
+    let batch = mutator.batch(project.bucket);
     let dropMutations = this.boardAdapter.onDropMutations(item, column);
     if (dropMutations) {
       batch.updateItem(item, dropMutations);

@@ -120,7 +120,7 @@ const baseConfig = {
     // Automatically include packages without import statement.
     new webpack.ProvidePlugin({ _: 'lodash' }),
     new webpack.ProvidePlugin({ $: 'jquery' }),
-    new webpack.ProvidePlugin({ $$: 'minder-core/src/util/format' }),       // TODO(burdon): Remove.
+    new webpack.ProvidePlugin({ $$: 'minder-core/src/util/format' }),
     new webpack.ProvidePlugin({ Logger: 'minder-core/src/util/logger' })
   ]
 };

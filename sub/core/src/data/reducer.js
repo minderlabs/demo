@@ -223,11 +223,16 @@ export class ListReducer extends Reducer {
       // Configure props passed to component.
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
-        let { matcher, filter, count } = ownProps;
+        let { matcher, filter, itemInjector } = ownProps;
         let { loading, error, refetch } = data;
 
         // Get query result.
         let items = listReducer.getResult(data, []);
+
+        // Inject additional items (e.g., from context).
+        if (itemInjector) {
+          items = itemInjector(items);
+        }
 
         return {
           loading,

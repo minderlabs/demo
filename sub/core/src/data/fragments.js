@@ -5,6 +5,7 @@
 import gql from 'graphql-tag';
 
 // TODO(burdon): Refine fragments returned by mutation.
+// TODO(burdon): Organize into slices.
 
 // NOTE: When the Project Detail card adds a new Task, unless "on Project { tasks {} }" is
 // declared in the mutation, then the Project Board canvas will not be updated.
@@ -22,20 +23,23 @@ const ValueFragment = gql`
   }
 `;
 
+// TODO(burdon): Move.
 const UserTasksFragment = gql`
   fragment UserTasksFragment on User {
-    id
-    title
     email
+
     groups {
       type
       id
       title
+
       projects {
+        bucket
         type
         id
         title
         labels
+
         tasks {
           type
           id
@@ -60,11 +64,12 @@ export const Fragments = {
   ItemFragment: gql`
     fragment ItemFragment on Item {
       namespace
-      fkey
       bucket
       type
       id
+      fkey
       labels
+
       title
       description
     }
@@ -76,10 +81,10 @@ export const Fragments = {
 
   ContactFragment: gql`
     fragment ContactFragment on Contact {
-      id
       email
       title
       fkey
+
       tasks {
         type
         id
@@ -92,12 +97,14 @@ export const Fragments = {
   ContactTasksFragment: gql`
     fragment ContactTasksFragment on Contact {
       email
+
       tasks {
         type
         id
         title
         status
       }
+
       user {
         ...UserTasksFragment
       }
@@ -116,30 +123,24 @@ export const Fragments = {
 
   GroupFragment: gql`
     fragment GroupFragment on Group {
-      id
+
       members {
         type
         id
         title
         email
       }
+
       projects {
         type
         id
-        title
+        titlec
       }
     }
   `,
 
   TaskFragment: gql`
     fragment TaskFragment on Task {
-      bucket
-      type
-      id
-  
-      # TODO(burdon): Already in ItemFragment.
-      title
-      description
   
       project {
         id
@@ -185,6 +186,7 @@ export const Fragments = {
       boards {
         alias
         title
+
         columns {
           id
           title
@@ -192,6 +194,7 @@ export const Fragments = {
             ...ValueFragment
           }
         }
+
         itemMeta {
           itemId
           listId
@@ -205,7 +208,6 @@ export const Fragments = {
 
   UserFragment: gql`
     fragment UserFragment on User {
-      title
       email
   
       ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {

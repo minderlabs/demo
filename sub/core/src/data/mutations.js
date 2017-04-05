@@ -80,17 +80,22 @@ export class MutationUtil {
   /**
    * Create mutations to clone the given item.
    *
+   * @param {string} bucket
    * @param {Item} item
    * @return {[Mutation]}
    */
-  static cloneItem(item) {
-    console.assert(item && item.title);
+  static cloneItem(bucket, item) {
+    console.assert(bucket && item);
+
+    console.log('######################### CLONE #############', JSON.stringify(item, 0, 2));
 
     let mutations = [
-      MutationUtil.createFieldMutation('title', 'string', item.title)
+      MutationUtil.createFieldMutation('bucket', 'string', bucket)
     ];
 
-    // TODO(burdon): Introspect type map?
+    // TODO(burdon): Introspect type map.
+    mutations.push(MutationUtil.createFieldMutation('title', 'string', item.title));
+
     if (item.email) {
       mutations.push(MutationUtil.createFieldMutation('email', 'string', item.email));
     }
@@ -172,7 +177,7 @@ export class MutationUtil {
 /*
  * TODO(burdon): id values should include item for optimistic responses.
  *
- * mutator.batch()
+ * mutator.batch(bucket)
  *   .createItem('Task', [{
  *     field: 'title',
  *     value: {
@@ -196,12 +201,12 @@ class Batch {
   /**
    * Batch is used to exec multiple mutations in one transaction.
    * @param mutator
-   * @param namespace If defined, overrides the default namespace.
+   * @param bucket
    */
-  constructor(mutator, namespace=undefined) {
-    console.assert(mutator);
+  constructor(mutator, bucket) {
+    console.assert(mutator && bucket);
     this._mutator = mutator;
-    this._namespace = namespace;
+    this._bucket = bucket;
     this._operations = [];
   }
 
@@ -258,7 +263,7 @@ class Batch {
         // Create item.
         //
 
-        item = this._mutator.createItem(type, mutations, this._namespace);
+        item = this._mutator._createItem(this._bucket, type, mutations);
         itemsById.set(item.id, item);
 
         if (name) {
@@ -282,7 +287,7 @@ class Batch {
         });
 
         // Update item.
-        this._mutator.updateItem(item, mutations, this._namespace, itemsById);
+        this._mutator._updateItem(this._bucket, item, mutations, itemsById);
       }
     });
   }
@@ -347,22 +352,24 @@ export class Mutator {
     this._mutate = mutate;
   }
 
-  batch() {
-    return new Batch(this);
+  batch(bucket) {
+    console.assert(bucket);
+    return new Batch(this, bucket);
   }
-
-  // TODO(burdon): Remove non-batch operations.
 
   /**
    * Executes a create item mutation.
    *
+   * @param {string} bucket
    * @param {string} type
    * @param mutations
-   * @param namespace
    * @return {Item} Optimistic result.
    */
-  createItem(type, mutations, namespace=undefined) {
+  _createItem(bucket, type, mutations) {
     mutations = _.compact(_.concat(mutations));
+
+    // Set bucket.
+    mutations.push(MutationUtil.createFieldMutation('bucket', 'string', bucket));
 
     let itemId = this._idGenerator.createId();
 
@@ -388,12 +395,12 @@ export class Mutator {
     // Submit mutation.
     //
 
-    logger.log('createItem: ' + TypeUtil.stringify({ item: { type, id: itemId }, mutations }));
+    logger.log('createItem: ' + TypeUtil.stringify({ bucket, item: { type, id: itemId }, mutations }));
     this._mutate({
       variables: {
-        namespace,
         mutations: [
           {
+            bucket,
             itemId: ID.toGlobalId(type, itemId),
             mutations
           }
@@ -410,13 +417,13 @@ export class Mutator {
   /**
    * Executes an update item mutation.
    *
+   * @param {string} bucket
    * @param {Item} item
    * @param mutations
-   * @param namespace
    * @param [itemMap] Optional map of cached items.
    * @return {Item} Optimistic result (NOTE: this will change if the item is being copied).
    */
-  updateItem(item, mutations, namespace, itemMap=undefined) {
+  _updateItem(bucket, item, mutations, itemMap=undefined) {
     mutations = _.compact(_.concat(mutations));
 
     //
@@ -436,14 +443,14 @@ export class Mutator {
 
           // Mutations to clone the item's properties.
           // TODO(burdon): Remove mutations for current properties below.
-          MutationUtil.cloneItem(item),
+          MutationUtil.cloneItem(bucket, item),
 
           // Current mutations.
           mutations
         );
 
         logger.log('Cloning local item: ' + JSON.stringify(item));
-        let clonedItem = this.createItem(item.type, cloneMutations);
+        let clonedItem = this._createItem(bucket, item.type, cloneMutations);
         return _.assign(clonedItem, {
           // TODO(burdon): Add email as fkey.
           fkey: clonedItem.id
@@ -462,14 +469,14 @@ export class Mutator {
 
           // Mutations to clone the item's properties.
           // TODO(burdon): Remove mutations for current properties below.
-          MutationUtil.cloneItem(item),
+          MutationUtil.cloneItem(bucket, item),
 
           // Current mutations.
           mutations
         );
 
         logger.log('Cloning external item: ' + JSON.stringify(item));
-        return this.createItem(item.type, cloneMutations);
+        return this._createItem(bucket, item.type, cloneMutations);
       }
     }
 
@@ -484,7 +491,7 @@ export class Mutator {
       item = Transforms.applyObjectMutations(TypeUtil.clone(item), mutations);
 
       // Check for ID references to recently created items.
-      // TODO(burdon): Add item property to value.id (set by mutation creator).
+      // TODO(burdon): Remove itemMap: Add item property to value.id (set by mutation creator).
       if (itemMap) {
         TypeUtil.traverse(item, (value, key, root) => {
           if (_.isString(value)) {
@@ -503,12 +510,12 @@ export class Mutator {
     // Submit mutation.
     //
 
-    logger.log('updateItem: ' + TypeUtil.stringify({ item: _.pick(item, 'type', 'id'), mutations }));
+    logger.log('updateItem: ' + TypeUtil.stringify({ bucket, item: _.pick(item, 'type', 'id'), mutations }));
     this._mutate({
       variables: {
-        namespace,
         mutations: [
           {
+            bucket,
             itemId: ID.toGlobalId(item.type, item.id),
             mutations
           }

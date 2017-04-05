@@ -277,6 +277,9 @@ input ItemMutationInput {
   # Item to mutate.
   itemId: ID!
 
+  # Bucket.
+  bucket: String!
+
   # Array of generic mutations.
   mutations: [ObjectMutationInput]!
 }

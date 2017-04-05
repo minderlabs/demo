@@ -30,8 +30,7 @@
     "passport-jwt": "^2.2.1",
     "swig": "^1.4.2"
   },
-  "//" : {
-    "googleapis":
-      "Requires additional deps [swig, js-beautify]. Also, must install googleapis in dependent module (e.g., sub/app)"
+  "//": {
+    "googleapis": "Requires additional deps [swig, js-beautify]. Also, must install googleapis in dependent module (e.g., sub/app)"
   }
 }

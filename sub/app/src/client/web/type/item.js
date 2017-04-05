@@ -81,9 +81,9 @@ export class ItemCanvasHeaderComponent extends React.Component {
     let { item } = this.props;
 
     if (title !== item.title) {
-      mutator.updateItem(item, [
+      mutator.batch(item.bucket).updateItem(item, [
         MutationUtil.createFieldMutation('title', 'string', title)
-      ]);
+      ]).commit();
     }
   }
 

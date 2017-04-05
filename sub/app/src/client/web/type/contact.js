@@ -20,7 +20,6 @@ import { TaskItemEditor, TaskItemRenderer } from './task';
 // Components.
 //-------------------------------------------------------------------------------------------------
 
-
 /**
  * Card.
  */
@@ -29,6 +28,7 @@ export class ContactCard extends React.Component {
   // TODO(burdon): This is a very specialized ContactCard. Factor out sections.
 
   static contextTypes = {
+    config: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired,
     viewer: React.PropTypes.object.isRequired,
   };
@@ -36,13 +36,6 @@ export class ContactCard extends React.Component {
   static propTypes = {
     item: React.PropTypes.object.isRequired
   };
-
-  // TODO(madadam): debugging cruft, delete.
-  static projectDebugString(project) {
-    if (project) {
-      return `${project.tasks.length} tasks in project ${project.title}`;
-    }
-  }
 
   static getProjectFromGroupsByLabel(groups, label) {
     return _.chain(groups)
@@ -62,28 +55,28 @@ export class ContactCard extends React.Component {
    * @param {Item} item Item to update.
    * @param {[Mutation]} mutations
    * @param {Project} project Project that owns this item.
-   * @param {User|null} owner User object, if not null new tasks are assigned to this User, otherwise to the Viewer.
    * @param {User} assignee User object, if not null new tasks are assigned to this User.
-   * @param {boolean} linkToContact
    */
-  handleTaskUpdate(item=null, mutations, project, owner=null, assignee=null, linkToContact=false) {
-    console.assert(project && owner && assignee);
-    let { viewer: { user }, mutator } = this.context;
+  handleTaskUpdate(item=null, mutations, project, assignee=null) {
+    console.assert(project && mutations);
+    console.assert(project.bucket && project.type && project.id);
 
-    owner = owner || user;
+    let { mutator } = this.context;
 
     if (item) {
-      mutator.updateItem(item, mutations);
+      mutator.batch(project.bucket).updateItem(item, mutations).commit();
     } else {
+      let { viewer: { user } } = this.context;
       let { item:contact } = this.props;
 
-      mutator.batch()
+      // TODO(burdon): Factor out Task creation (see task.js).
+      // Create Task and add to Project.
+      mutator.batch(project.bucket)
 
         // New task.
         .createItem('Task', _.concat(mutations, [
-          MutationUtil.createFieldMutation('bucket', 'string', user.id),
           MutationUtil.createFieldMutation('project', 'id', project.id),
-          MutationUtil.createFieldMutation('owner', 'id', owner.id),
+          MutationUtil.createFieldMutation('owner',   'id', user.id),
           assignee && MutationUtil.createFieldMutation('assignee', 'id', assignee.id)
         ]), 'new_task')
 
@@ -92,11 +85,10 @@ export class ContactCard extends React.Component {
           MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
         ])
 
-        // Parent Contact.
-        // TODO(burdon): Why is the bucket changed? (should be immutable).
+        // Update contact.
+        // TODO(burdon): Bidirectional links?
         .updateItem(contact, [
-          MutationUtil.createFieldMutation('bucket', 'string', user.id),
-          linkToContact && MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+          MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
         ])
 
         .commit();
@@ -104,13 +96,13 @@ export class ContactCard extends React.Component {
   }
 
   /**
-   *
    * @param {[Item]} items Items
    * @param {Project} project Project that owns new tasks.
    * @param {User} owner
    * @param {User} assignee
    * @return {XML}
    */
+  /*
   taskSection(project, items, owner, assignee) {
     console.assert(project && items && owner && assignee);
 
@@ -141,15 +133,17 @@ export class ContactCard extends React.Component {
       </div>
     );
   }
+  */
 
   render() {
     let { config, viewer } = this.context;
     let { item:contact } = this.props;
-    let { email, tasks, user } = contact;
+    let { user, email, tasks } = contact;
 
     let defaultProject = ContactCard.getProjectFromGroupsByLabel(viewer.groups, '_default');
-    let userProject = user && ContactCard.getProjectFromGroupsByLabel(user.groups, '_default');
 
+    /*
+    let userProject = user && ContactCard.getProjectFromGroupsByLabel(user.groups, '_default');
     let isContactSelf = (user && viewer.user.id === user.id);
 
     // Sort all tasks for this project into groups based on assignee.
@@ -182,9 +176,10 @@ export class ContactCard extends React.Component {
         assignedToContactSection = this.taskSection(userProject, assignedToContact, viewer.user, user);
       }
     }
+    */
 
     const handleTaskUpdate = (item, mutations) => {
-      this.handleTaskUpdate(item, mutations, defaultProject, null, null, true)
+      this.handleTaskUpdate(item, mutations, defaultProject)
     };
 
     return (
@@ -195,18 +190,16 @@ export class ContactCard extends React.Component {
             <div className="ux-text">{ email }</div>
           </div>
 
-          { config.debug && user &&
+          { config.debug &&
           <div className="ux-data-row">
-            <div className="ux-text">[{ ContactCard.projectDebugString(userProject) }]</div>
+            <div className="ux-debug">{ JSON.stringify(_.pick(defaultProject, ['bucket', 'type', 'id', 'title'])) }</div>
           </div>
           }
         </div>
 
-        { assignedToViewerSection }
-        { assignedToContactSection }
-
+        {/* Private tasks for Contact. */}
         <div className="ux-section-header">
-          <h3 className="ux-expand">Tasks</h3>
+          <h3 className="ux-expand">Notes</h3>
           <i className="ux-icon ux-icon-add" onClick={ this.handleTaskAdd.bind(this, 'tasks') }/>
         </div>
         <div className="ux-list-tasks">
@@ -218,6 +211,12 @@ export class ContactCard extends React.Component {
                   onItemUpdate={ handleTaskUpdate }/>
           </div>
         </div>
+
+        {/*
+        { assignedToViewerSection }
+        { assignedToContactSection }
+        */}
+
       </Card>
     );
   }

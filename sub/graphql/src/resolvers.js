@@ -217,7 +217,6 @@ export class Resolvers {
 
       Contact: {
 
-        // TODO(burdon): Links.
         tasks: (root, args, context) => {
           if (root.tasks) {
             return database.getItemStore(Database.NAMESPACE.USER).getItems(context, 'Task', root.tasks);
@@ -322,6 +321,8 @@ export class Resolvers {
 
         upsertItems: (root, args, context) => {
           Resolvers.checkAuthentication(context);
+
+          // TODO(burdon): Enforce bucket.
 
           let { namespace=Database.NAMESPACE.USER, mutations } = args;
           logger.log($$('UPDATE[%s]: %o', namespace, mutations));
