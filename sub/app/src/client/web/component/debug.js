@@ -38,6 +38,11 @@ export class DebugPanel extends React.Component {
 
     // console.warn('DEBUG\n' + JSON.stringify(config, null, 2));
 
+    // TODO(burdon): Show network requests #.
+    // TODO(burdon): D3 graph popup.
+    // TODO(burdon): Move reconnect button here. Fire Redux action.
+
+
     return (
       <div className="app-debug-panel ux-text-noselect">
         <h3>Debug Settings</h3>

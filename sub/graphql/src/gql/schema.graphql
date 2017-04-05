@@ -189,11 +189,11 @@ type Project implements Item {
   description: String
   labels: [String]
 
-  # TODO(burdon): Might not be associted with a Group (e.g., private Project).
+  # All projects are owned by a Group (each User has a private Group).
   group: Group!
 
-  # TODO(burdon): Directives for links. Other items (e.g., Contacts board).
-  # And/or add a FilterInput param here.
+  # TODO(burdon): Don't expose "Links" to the GQL. Instead multiple child types (WRITE-UP).
+  # TODO(burdon): Different sub-types (e.g., Pipeline with orgs/contacts and separate boards).
   tasks: [Task]!
 
   # TODO(burdon): Map type (array of typed values).
@@ -213,11 +213,10 @@ type Task implements Item {
   description: String
   labels: [String]
 
-  # TODO(burdon): Implement via links?
+  # All tasks belong to a project.
   project: Project
 
   # Sub-tasks.
-  # TODO(burdon): Resolver should flatten the query to return the hierarchical set?
   tasks: [Task]!
 
   owner: User!

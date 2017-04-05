@@ -29,6 +29,19 @@ scalar Timestamp
 
 # TODO(burdon): Directives (for subscriptions, links, etc.)
 
+
+# TODO(burdon): Key. Use in each Item? other Meta data types.
+# TODO(burdon): Move Item def here?
+
+type Key {
+  namespace:  String
+  bucket:     String
+  type:       String
+  id:         ID!
+}
+
+
+
 #===================================================================================================
 # Core.
 # TODO(burdon): Factor out to minder-framework.
