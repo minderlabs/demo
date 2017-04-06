@@ -205,7 +205,25 @@ export class ListReducer extends Reducer {
       // http://dev.apollodata.com/react/queries.html#graphql-options
       // http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient\.query
       options: (props) => {
-        let { matcher, filter, count } = props;
+        let { matcher, filter } = props;
+
+
+
+
+
+
+
+        // TODO(burdon): Debug.
+        filter = {};
+
+
+
+
+
+
+
+
+
 
         // TODO(burdon): Generates a new callback each time rendered. Create property for class.
         // https://github.com/apollostack/apollo-client/blob/master/src/ApolloClient.ts

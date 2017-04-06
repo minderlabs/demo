@@ -395,6 +395,10 @@ export class Mutator {
     // Submit mutation.
     //
 
+    // TODO(burdon): READ THIS: Update cache.
+    // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-update
+    // http://dev.apollodata.com/react/cache-updates.html
+
     logger.log('createItem: ' + TypeUtil.stringify({ bucket, item: { type, id: itemId }, mutations }));
     this._mutate({
       variables: {

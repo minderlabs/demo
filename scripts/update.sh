@@ -17,11 +17,11 @@ for mod in ${WORKSPACE_MODULES[@]}; do
   popd
 done
 
-MODULES=( "app" "core" "graphql" "scheduler" "services" "ux" )
-
 #
 # List and update deps.
 #
+
+MODULES=( "app" "core" "graphql" "scheduler" "services" "ux" )
 
 UPDATE=0
 for i in "$@"

@@ -89,6 +89,7 @@ type Contact implements Item {
   bucket: ID
   type: String!
   id: ID!
+  # TODO(burdon): Key.
   fkey: String
   alias: String
   created: Timestamp!

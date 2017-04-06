@@ -6,6 +6,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
+import update from 'immutability-helper';
 
 import { IdGenerator, QueryParser, SubscriptionWrapper } from 'minder-core';
 import { Fragments, ListReducer } from 'minder-core';
@@ -154,9 +155,6 @@ const mapStateToProps = (state, ownProps) => {
   };
 };
 
-// TODO(burdon): Common reducer for queries (not bound to list).
-let contextReducer = new ListReducer(ContextQuery);
-
 export default compose(
 
   // Redux.
@@ -205,20 +203,47 @@ export default compose(
         },
 
         reducer: (previousResult, action) => {
-          // NOTE: passing a null matcher. ContextQuery results don't match a simple filter.
-          const nullMatcher = null;
-          return contextReducer.reduceItems(nullMatcher, props.context, null, previousResult, action);
+
+
+
+
+
+
+          // TODO(burdon): Replace based on FKEY.
+          console.log('??????????????????', action, filter, previousResult);
+          let item = _.get(action, 'result.data.upsertItems[0]');
+          if (item) {
+            return update(previousResult, {
+              contextItems: {
+                $unshift: [item]
+              }
+            });
+          }
+
+
+
+
+
+
+
+
+
+
+          // NOTE: Null matcher since ContextQuery results don't match a simple filter.
+          //return contextReducer.reduceItems(null, props.context, null, previousResult, action);
+          return previousResult;
         }
       };
     },
 
     props: ({ ownProps, data }) => {
-      let { contextItems } = data;
       let { contextManager } = ownProps;
+      let { contextItems } = data;
 
       // Update context.
       if (contextManager) {
-        contextManager.updateCache(contextItems);
+        console.log('<><><><><><><', data);
+        contextManager.updateContextItems(contextItems);
       }
 
       return {
