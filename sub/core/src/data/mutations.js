@@ -351,7 +351,7 @@ export class Mutator {
   }
 
   batch(bucket) {
-    console.assert(bucket);
+    console.assert(bucket, 'Invalid bucket.');
     return new Batch(this, bucket);
   }
 

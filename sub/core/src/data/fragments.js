@@ -23,31 +23,42 @@ const ValueFragment = gql`
   }
 `;
 
-// TODO(burdon): Move.
+//
+// Minimal Item fields.
+//
+const ItemMetaFragment = gql`
+  fragment ItemMetaFragment on Item {
+    bucket
+    type
+    id
+    
+    title
+  }
+`;
+
+// TODO(burdon): Non-external fragment defs?
+
 const UserTasksFragment = gql`
   fragment UserTasksFragment on User {
     email
 
     groups {
-      type
-      id
-      title
+      ...ItemMetaFragment
 
       projects {
-        bucket
-        type
-        id
-        title
+        ...ItemMetaFragment
+
         labels
 
         tasks {
-          type
-          id
-          title
+          ...ItemMetaFragment
+
           status
+
           owner {
             id
           }
+
           assignee {
             id
           }
@@ -55,6 +66,8 @@ const UserTasksFragment = gql`
       }
     }
   }
+
+  ${ItemMetaFragment}
 `;
 
 export const Fragments = {
@@ -68,42 +81,36 @@ export const Fragments = {
   
       viewer {
         user {
-          type
-          id
-          title
+          ...ItemMetaFragment
         }
   
         groups {
-          type
-          id
-          title
+          ...ItemMetaFragment
   
           projects {
-            bucket
-            type
-            id
-            type
+            ...ItemMetaFragment
             labels
-            title
           }
         }
       }
     }
+
+    ${ItemMetaFragment}
   `,
 
   // TODO(burdon): Warning: fragment with name ItemFragment already exists.
   ItemFragment: gql`
     fragment ItemFragment on Item {
+      ...ItemMetaFragment
+
       namespace
-      bucket
-      type
-      id
       fkey
       labels
 
-      title
       description
     }
+    
+    ${ItemMetaFragment}
   `,
 
   //
@@ -113,16 +120,15 @@ export const Fragments = {
   ContactFragment: gql`
     fragment ContactFragment on Contact {
       email
-      title
       fkey
 
       tasks {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
     }
+    
+    ${ItemMetaFragment}
   `,
 
   ContactTasksFragment: gql`
@@ -130,9 +136,7 @@ export const Fragments = {
       email
 
       tasks {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
 
@@ -141,6 +145,7 @@ export const Fragments = {
       }
     }
 
+    ${ItemMetaFragment}
     ${UserTasksFragment}
   `,
 
@@ -156,67 +161,60 @@ export const Fragments = {
     fragment GroupFragment on Group {
 
       members {
-        type
-        id
-        title
+        ...ItemMetaFragment
         email
       }
 
       projects {
-        type
-        id
-        titlec
+        ...ItemMetaFragment
       }
     }
+
+    ${ItemMetaFragment}
   `,
 
   TaskFragment: gql`
     fragment TaskFragment on Task {
   
       project {
-        id
-        title
+        ...ItemMetaFragment
       }
   
       owner {
-        id
-        title
+        ...ItemMetaFragment
       }
+
       assignee {
-        id
-        title
+        ...ItemMetaFragment
       }
   
       status
   
-      # TODO(burdon): Required for sub-task mutations.
       tasks {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
     }
+
+    ${ItemMetaFragment}
   `,
 
   ProjectFragment: gql`
     fragment ProjectFragment on Project {
   
-      # TODO(burdon): Potential collision with Task.tasks (for card search mixin).
       tasks {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
     }
+
+    ${ItemMetaFragment}
   `,
 
   ProjectBoardFragment: gql`
     fragment ProjectBoardFragment on Project {
       boards {
         alias
-        title
 
         columns {
           id
@@ -242,18 +240,16 @@ export const Fragments = {
       email
   
       ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
   
       assigneeTasks: tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
     }
+
+    ${ItemMetaFragment}
   `
 };

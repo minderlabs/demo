@@ -187,6 +187,7 @@ class ProjectBoardCanvasComponent extends React.Component {
 
     /**
      * Private items.
+     * TODO(burdon): Not currently used due to bucket issue.
      * TODO(burdon): Merge with other boards.
      */
     private: {
@@ -206,6 +207,8 @@ class ProjectBoardCanvasComponent extends React.Component {
 
       onCreateMutations: (bucket, userId, column) => {
         return [
+          // TODO(burdon): Currently overwritten.
+          // TODO(burdon): Should used user's group.
           MutationUtil.createFieldMutation('bucket', 'string', userId)
         ];
       },
@@ -247,9 +250,14 @@ class ProjectBoardCanvasComponent extends React.Component {
     let { viewer: { user }, mutator } = this.context;
 
     if (item) {
+
+      console.log(':::::::::::::::::::::::::::::UP', item);
+
       mutator.batch(item.bucket).updateItem(item, mutations).commit();
     } else {
       let { item:project } = this.props;
+
+      console.log(':::::::::::::::::::::::::::::', project);
 
       mutator
         .batch(project.bucket)
@@ -394,8 +402,10 @@ export class ProjectCanvasToolbarComponent extends React.Component {
            onClick={ this.handleSetBoardType.bind(this, 'status') }>assessment</i>
         <i className={ className('assignee') } title="Team Board"
            onClick={ this.handleSetBoardType.bind(this, 'assignee') }>people</i>
+        {/*
         <i className={ className('private') } title="Private Board"
            onClick={ this.handleSetBoardType.bind(this, 'private') }>person</i>
+           */}
       </div>
     );
   }
