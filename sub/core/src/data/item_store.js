@@ -10,7 +10,6 @@ import { TypeUtil } from '../util/type';
 import { ID } from './id';
 import { Transforms } from './transforms';
 
-
 /**
  * Abstract base class.
  *
@@ -23,6 +22,7 @@ export class QueryProcessor {
    * @param context
    * @returns [{string}] Unordered array of buckets.
    */
+  // TODO(burdon): Remove userId (Context should just contain buckets).
   static getBuckets(context) {
     let { userId, groupIds } = context;
     return _.compact(_.concat(userId, groupIds));

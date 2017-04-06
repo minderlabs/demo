@@ -206,7 +206,6 @@ export class Database {
         return this._resultMerger.mergeResults(results, context, root);
       });
   }
-
 }
 
 /**

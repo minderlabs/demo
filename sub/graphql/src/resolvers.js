@@ -225,18 +225,21 @@ export class Resolvers {
           }
         },
 
+        // TODO(burdon): Assign User Contact on Login.
         user: (root, args, context) => {
           if (root.email) {
-            // TODO(madadam): Factor out with Slackbot.getUserByEmail.
-            let queryProcessor = database.getQueryProcessor(Database.NAMESPACE.SYSTEM);
-            console.assert(queryProcessor);
             let filter = {
               type: 'User',
               expr: {
                 field: 'email',
-                value: { string: root.email }
+                value: {
+                  string: root.email
+                }
               }
             };
+
+            // TODO(madadam): Factor out with Slackbot.getUserByEmail.
+            let queryProcessor = database.getQueryProcessor(Database.NAMESPACE.SYSTEM);
             return queryProcessor.queryItems({}, {}, filter)
               .then(items => {
                 if (items.length > 0) {
@@ -244,8 +247,6 @@ export class Resolvers {
                   return items[0];
                 }
               });
-          } else {
-            return null;
           }
         }
       },
