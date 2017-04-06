@@ -59,8 +59,39 @@ const UserTasksFragment = gql`
 
 export const Fragments = {
 
-  // TODO(burdon): Warning: fragment with name ItemFragment already exists.
+  //
+  // ViewerQuery is requested by each Activity; the cached response is used by various Redux connectors.
+  //
 
+  ViewerQuery: gql`
+    query ViewerQuery {
+  
+      viewer {
+        user {
+          type
+          id
+          title
+        }
+  
+        groups {
+          type
+          id
+          title
+  
+          projects {
+            bucket
+            type
+            id
+            type
+            labels
+            title
+          }
+        }
+      }
+    }
+  `,
+
+  // TODO(burdon): Warning: fragment with name ItemFragment already exists.
   ItemFragment: gql`
     fragment ItemFragment on Item {
       namespace

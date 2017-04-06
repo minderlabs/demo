@@ -87,8 +87,6 @@ export class MutationUtil {
   static cloneItem(bucket, item) {
     console.assert(bucket && item);
 
-    console.log('######################### CLONE #############', JSON.stringify(item, 0, 2));
-
     let mutations = [
       MutationUtil.createFieldMutation('bucket', 'string', bucket)
     ];

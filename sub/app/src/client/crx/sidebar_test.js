@@ -18,7 +18,7 @@ class TestSidebarApp extends WebApp {
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace]: AppReducer(this._injector, this._config),
+      [AppAction.namespace]: AppReducer(this._injector, this._config, this._apolloClient),
 
       // Context.
       [ContextAction.namespace]: ContextReducer,

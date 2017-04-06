@@ -38,8 +38,9 @@ const logger = Logger.get('context');
  */
 export class ContextManager {
 
-  // TODO(burdon): Generalize key.
+  // TODO(burdon): Generalize key (depends on inspector type).
   static FKEY = 'email';
+  static TYPE = 'Contact';
 
   // To test from console:
   // let TEST_CONTEXT = { items: [{ type: 'Contact', title: 'Alice Braintree' }] };
@@ -67,14 +68,18 @@ export class ContextManager {
    */
   getFilter() {
 
-    // TODO(madadam): Unify email stuff to be keyValue pairs with key 'email', and rewrite the query
-    // on the server side like follows.
-
+    // TODO(madadam): Unify email stuff to be keyValue pairs (e.g., key='email').
     // TODO(burdon): Push DOM node (server does more processing -- incl. creating transient item?)
-    let keys = _.compact(_.map(_.get(this._context, 'items'), item => _.get(item, ContextManager.FKEY)));
+
+    let keys = _.compact(_.map(_.get(this._context, 'items'), item => {
+      if (item.type === ContextManager.TYPE) {
+        return _.get(item, ContextManager.FKEY);
+      }
+    }));
+
     if (keys.length) {
       return {
-        type: 'Contact',
+        type: ContextManager.TYPE,
         expr: {
           op: 'OR',
           expr: _.map(keys, key => ({
@@ -85,12 +90,12 @@ export class ContextManager {
           }))
         }
       };
-    }
-
-    // TODO(madadam): this._context should be the KeyValue array, get rid of extra level of object.
-    if (this._context.context) {
-      return {
-        context: this._context.context
+    } else {
+      // TODO(madadam): this._context should be the KeyValue array, get rid of extra level.
+      if (this._context.context) {
+        return {
+          context: this._context.context
+        }
       }
     }
   }
@@ -111,9 +116,9 @@ export class ContextManager {
     // Track transient items from the context.
     let { items } = this._context;
     _.each(items, item => {
-      // TODO(burdon): Generalize key.
-      let fkey = _.get(item, 'email');
+      let fkey = _.get(item, ContextManager.FKEY);
       if (fkey) {
+        // Create transient item with temporary key.
         this._transientItems.set(fkey, _.defaults(item, {
           namespace: Database.NAMESPACE.LOCAL,
           id: this._idGenerator.createId()
@@ -131,7 +136,6 @@ export class ContextManager {
    */
   updateContextItems(items) {
     logger.log('Updated cache: ' + JSON.stringify(_.map(items, i => _.pick(i, ['id', 'type', ContextManager.FKEY]))));
-
     this._contextItemsByKey = ItemUtil.createItemMap(items, ContextManager.FKEY);
   }
 
@@ -144,8 +148,9 @@ export class ContextManager {
   injectItems(items) {
     let itemsResult = [];
 
-    let itemsByKey = ItemUtil.createItemMap(items, ContextManager.FKEY);
+    // Track items in list.
     let itemsById = new Map();
+    let itemsByKey = ItemUtil.createItemMap(items, ContextManager.FKEY);
 
     //
     // First inject (or replace) context items.
@@ -157,20 +162,18 @@ export class ContextManager {
       // Check if exists in list result and if so mark it as used.
       let listItem = itemsByKey.get(fkey);
       if (listItem) {
-        console.log('### REPLACING WITH LIST RESULT');
-        itemsById.set(item.id, item);
         item = listItem;
       }
 
       // Check if exists in context and if so replace (takes precedence from list since could be fresher).
       let contextItem = this._contextItemsByKey.get(fkey);
       if (contextItem) {
-        console.log('### REPLACING WITH CONTEXT RESULT');
         item = contextItem;
       }
 
       // Track items in the result.
       itemsResult.push(item);
+      itemsById.set(item.id, item);
     });
 
     //
@@ -183,20 +186,5 @@ export class ContextManager {
     });
 
     return itemsResult;
-  }
-
-  /**
-   * Match collection against item.
-   * @param items
-   * @param item
-   */
-  // TODO(burdon): ItemUtil
-  static findMatch(items, item) {
-    return _.find(items, i => {
-      // TODO(burdon): Generalize match (by fkey instead of email).
-      if (item.type === i.type && item.email === i.email) {
-        return true;
-      }
-    });
   }
 }

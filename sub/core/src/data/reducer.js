@@ -35,6 +35,7 @@ update.extend('$remove', (item, items) => {
  */
 update.extend('$replace', (spec, items) => {
   let { id, item } = spec;
+
   return _.map(items, i => { return i.id === id ? item : i });
 });
 
@@ -44,9 +45,8 @@ update.extend('$replace', (spec, items) => {
  * @returns new array.
  */
 update.extend('$deepMerge', (spec, items) => {
-  let { id, item, clearFields, omitFields } = spec;
-  clearFields = clearFields || [];
-  omitFields = omitFields || [];
+  let { id, item, clearFields=[], omitFields=[] } = spec;
+
   return _.map(items, i => {
     if (i.id === id) {
       ItemUtil.clearFields(i, clearFields);
@@ -205,25 +205,7 @@ export class ListReducer extends Reducer {
       // http://dev.apollodata.com/react/queries.html#graphql-options
       // http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient\.query
       options: (props) => {
-        let { matcher, filter } = props;
-
-
-
-
-
-
-
-        // TODO(burdon): Debug.
-        filter = {};
-
-
-
-
-
-
-
-
-
+        let { context, matcher, filter } = props;
 
         // TODO(burdon): Generates a new callback each time rendered. Create property for class.
         // https://github.com/apollostack/apollo-client/blob/master/src/ApolloClient.ts
@@ -233,7 +215,7 @@ export class ListReducer extends Reducer {
           },
 
           reducer: (previousResult, action) => {
-            return listReducer.reduceItems(matcher, props.context, filter, previousResult, action);
+            return listReducer.reduceItems(matcher, context, filter, previousResult, action);
           }
         }
       },
@@ -330,6 +312,7 @@ export class ListReducer extends Reducer {
    * @returns {object} Transform function.
    */
   getTransform(matcher, context, filter, previousResult, updatedItem) {
+    console.assert(matcher && context && filter && previousResult && updatedItem);
 
     // Custom reducers are required when the list is not at the root of the result.
     let reducer = this._reducer;
@@ -344,16 +327,14 @@ export class ListReducer extends Reducer {
     let currentItems = _.get(previousResult, path);
 
     // Look for existing item.
-    let current = _.find(currentItems, item => item.id === updatedItem.id);
+    let currentItem = _.find(currentItems, item => item.id === updatedItem.id);
 
     //
-    // Merge the item if it's an update to an external item.
+    // Merge the item if it's an update to an external item (e.g., a Document).
     // TODO(burdon): This should apply to Item reducer also.
     //
-
-    if (updatedItem.fkey && !current) {
+    if (updatedItem.fkey && !currentItem) {
       let currentExternal  = _.find(currentItems, item => item.namespace && (ID.getForeignKey(item) === updatedItem.fkey));
-
       if (currentExternal) {
         return {
           [path]: {
@@ -367,16 +348,10 @@ export class ListReducer extends Reducer {
       }
     }
 
-    if (_.isNil(matcher)) {
-      // Disable matcher-based transforms.
-      return null;
-    }
-
     //
     // Remove the item if it doesn't match the current query.
     // TODO(burdon): Is the root item needed? Remove this from matcher?
     //
-
     let match = matcher.matchItem(context, {}, filter, updatedItem);
     if (!match) {
       return {
@@ -389,8 +364,7 @@ export class ListReducer extends Reducer {
     //
     // Insert the item if it doesn't already exist (but matches).
     //
-
-    if (!current) {
+    if (!currentItem) {
       // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
       return {
         [path]: {
@@ -488,6 +462,7 @@ export class ItemReducer extends Reducer {
    */
   reduceItem(matcher, context, previousResult, action) {
     console.assert(matcher && context && previousResult && action);
+
     let updatedItems = MutationUtil.getUpsertItemsMutationResult(action);
     if (updatedItems) {
       try {
@@ -520,6 +495,8 @@ export class ItemReducer extends Reducer {
    * @returns {*}
    */
   getTransform(matcher, context, previousResult, updatedItem) {
+    console.assert(matcher && context && previousResult && updatedItem);
+
     let reducer = this._reducer;
     return reducer && reducer(matcher, context, previousResult, updatedItem);
   }

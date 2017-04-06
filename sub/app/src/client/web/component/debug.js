@@ -34,14 +34,13 @@ export class DebugPanel extends React.Component {
     let { config } = this.context;
 
     // TODO(burdon): Should be part of Redux state (to update listeners).
-    let { reducer, optimistic, invalidation, networkDelay } = config.options;
+    let { reducer, optimistic, invalidation, networkDelay } = _.get(config, 'options', {});
 
     // console.warn('DEBUG\n' + JSON.stringify(config, null, 2));
 
     // TODO(burdon): Show network requests #.
     // TODO(burdon): D3 graph popup.
     // TODO(burdon): Move reconnect button here. Fire Redux action.
-
 
     return (
       <div className="app-debug-panel ux-text-noselect">

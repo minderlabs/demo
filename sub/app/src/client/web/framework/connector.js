@@ -6,7 +6,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose } from 'react-apollo';
 
-import { Matcher } from 'minder-core';
+import { Fragments, Matcher } from 'minder-core';
 
 import { AppAction } from '../../common/reducers';
 
@@ -15,10 +15,17 @@ import { AppAction } from '../../common/reducers';
 //-------------------------------------------------------------------------------------------------
 
 const mapStateToProps = (state, ownProps) => {
-  let { injector, config, userProfile } = AppAction.getState(state);
-  let { userId } = userProfile;
+  let { injector, config, client } = AppAction.getState(state);
 
   let matcher = injector.get(Matcher);
+
+  // Get from cache.
+  const { viewer } = client.readQuery({
+    query: Fragments.ViewerQuery
+  });
+
+  let userId = _.get(viewer, 'context.user.id');
+  let groupIds = _.map(_.get(viewer, 'groups'), group => group.id);
 
   return {
 
@@ -26,9 +33,11 @@ const mapStateToProps = (state, ownProps) => {
     config,
     matcher,
 
+    // TODO(burdon): Replace userId and groupIds with buckets.
     // Matcher's context used by HOC reducers.
     context: {
-      userId
+      userId,
+      groupIds
     }
   }
 };

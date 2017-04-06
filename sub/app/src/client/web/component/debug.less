@@ -2,21 +2,25 @@
 // Copyright 2016 Minder Labs.
 //
 
-.app-debug-panel {
-  position: fixed;
-  left: 0;
-  bottom: 22px;
-  width: 200px;
+.app-debug-panel-container {
+  position: relative;
 
-  color: darkgray;
-  background-color: #333;
-  font-family: Monaco, monospace;
-  font-size: 12px;
+  .app-debug-panel {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 200px;
 
-  opacity: .8;
-  padding: 4px;
+    color: darkgray;
+    background-color: #333;
+    font-family: Monaco, monospace;
+    font-size: 12px;
 
-  label {
-    cursor: pointer;
+    opacity: .8;
+    padding: 4px;
+
+    label {
+      cursor: pointer;
+    }
   }
 }

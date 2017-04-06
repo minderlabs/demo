@@ -282,6 +282,13 @@ export class BaseApp {
     return this._store;
   }
 
+  /**
+   * Apollo client.
+   */
+  get client() {
+    return this._apolloClient;
+  }
+
   //
   // Virtual methods.
   //

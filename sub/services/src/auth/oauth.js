@@ -314,14 +314,11 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
           let response = {
             requestId,
 
-            // TODO(burdon): Remove.
-            provider: provider.providerId,
-
             // Credentials.
             credentials: JSON.stringify(_.pick(getUserSession(user), ['id_token', 'id_token_exp'])),
 
             // Canonical profile.
-            userProfile: JSON.stringify(_.pick(user, ['email', 'displayName', 'photoUrl']))
+            userProfile: JSON.stringify(_.pick(user, ['email', 'displayName', 'photoUrl'])),
           };
 
           // This isn't a JSON response, it needs to be encoded as URL params. It's easier to flatten the config.

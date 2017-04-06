@@ -5,9 +5,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
-import gql from 'graphql-tag';
 
-import { EventHandler, IdGenerator, Mutator, PropertyProvider, QueryRegistry } from 'minder-core';
+import { EventHandler, IdGenerator, Mutator, PropertyProvider, QueryRegistry, Fragments } from 'minder-core';
 
 import { Const } from '../../../common/defs';
 
@@ -82,36 +81,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
-// Top-level query provided in context.
-
-const ViewerQuery = gql`
-  query ViewerQuery {
-
-    viewer {
-      user {
-        type
-        id
-        title
-      }
-
-      groups {
-        type
-        id
-        title
-
-        projects {
-          bucket
-          type
-          id
-          type
-          labels
-          title
-        }
-      }
-    }
-  }
-`;
-
 /**
  * Activity helper.
  * Activities are top-level components that set-up the context.
@@ -132,7 +101,7 @@ export class Activity {
       Mutator.graphql(),
 
       // Apollo viewer query.
-      graphql(ViewerQuery, {
+      graphql(Fragments.ViewerQuery, {
         props: ({ ownProps, data }) => {
           return _.pick(data, ['loading', 'error', 'viewer'])
         }

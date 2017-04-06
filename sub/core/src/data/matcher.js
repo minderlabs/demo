@@ -51,6 +51,7 @@ export class Matcher {
       return false;
     }
 
+    // TODO(burdon): Replace context userId, groupId with buckets).
     // Bucket match (ACL filtering).
     if (item.bucket &&
         _.get(context, 'userId') !== item.bucket &&

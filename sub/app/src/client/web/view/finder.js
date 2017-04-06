@@ -6,10 +6,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import update from 'immutability-helper';
 
-import { IdGenerator, QueryParser, SubscriptionWrapper } from 'minder-core';
-import { Fragments, ListReducer } from 'minder-core';
+import { Fragments, IdGenerator, ListReducer, QueryParser, SubscriptionWrapper } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -155,6 +153,8 @@ const mapStateToProps = (state, ownProps) => {
   };
 };
 
+const ContextListReducer = new ListReducer(ContextQuery);
+
 export default compose(
 
   // Redux.
@@ -189,7 +189,7 @@ export default compose(
   connectReducer(graphql(ContextQuery, {
 
     options: (props) => {
-      let { contextManager } = props;
+      let { context, matcher, contextManager } = props;
 
       // Lookup items from context.
       let filter = {};
@@ -203,35 +203,7 @@ export default compose(
         },
 
         reducer: (previousResult, action) => {
-
-
-
-
-
-
-          // TODO(burdon): Replace based on FKEY.
-          console.log('??????????????????', action, filter, previousResult);
-          let item = _.get(action, 'result.data.upsertItems[0]');
-          if (item) {
-            return update(previousResult, {
-              contextItems: {
-                $unshift: [item]
-              }
-            });
-          }
-
-
-
-
-
-
-
-
-
-
-          // NOTE: Null matcher since ContextQuery results don't match a simple filter.
-          //return contextReducer.reduceItems(null, props.context, null, previousResult, action);
-          return previousResult;
+          return ContextListReducer.reduceItems(matcher, context, filter, previousResult, action);
         }
       };
     },
@@ -242,7 +214,6 @@ export default compose(
 
       // Update context.
       if (contextManager) {
-        console.log('<><><><><><><', data);
         contextManager.updateContextItems(contextItems);
       }
 
