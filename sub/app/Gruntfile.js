@@ -133,9 +133,9 @@ module.exports = (grunt) => {
     // webpack -d --config webpack-crx.config.js --display-modules --progress
     // TODO(burdon): Debug options.
     webpack: {
-      web:    require('./webpack.config.js'),
+//    web:    require('./webpack.config.js'),
       crx:    require('./webpack-crx.config.js'),
-      server: require('./webpack-server.config.js')
+//    server: require('./webpack-server.config.js')
     },
   }));
 
