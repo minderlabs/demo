@@ -6,7 +6,7 @@ import React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
-import { DomUtil, ID, MutationUtil } from 'minder-core';
+import { DomUtil, ItemUtil, MutationUtil } from 'minder-core';
 
 import { TextBox } from './textbox';
 import { ItemDragSource, ItemDropTarget, DragOrderModel } from './dnd';
@@ -85,6 +85,7 @@ export class List extends React.Component {
     highlight:          React.PropTypes.bool,
 
     items:              React.PropTypes.arrayOf(React.PropTypes.object),
+    groupedItems:       React.PropTypes.arrayOf(React.PropTypes.object),
 
     itemClassName:      React.PropTypes.string,
     itemEditor:         React.PropTypes.func,
@@ -113,6 +114,7 @@ export class List extends React.Component {
     editItem: null      // { string:ID }
   };
 
+  // TODO(burdon): Why is this part of state?
   componentWillReceiveProps(nextProps) {
     this.setState({
       items: nextProps.items || []
@@ -247,8 +249,18 @@ export class List extends React.Component {
   render() {
 
     // NOTE: data is a user-label to identify the list.
-    let { itemClassName, itemOrderModel, data } = this.props;
+    let { itemClassName, itemOrderModel, groupedItems, data } = this.props;
     let { items, itemRenderer, itemEditor, addItem, editItem } = this.state;
+
+    // TODO(burdon): Group/merge items.
+    if (groupedItems) {
+      let itemMap = ItemUtil.createItemMap(items);
+      items = _.map(groupedItems, groupedItem => {
+        let item = itemMap.get(groupedItem.id);
+        // TODO(burdon): Add grandchildren?
+        return item;
+      });
+    }
 
     // Sort items by order model.
     if (itemOrderModel) {

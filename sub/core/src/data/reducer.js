@@ -148,11 +148,11 @@ class Reducer {
     this._reducer = reducer;
 
     // NOTE: Limited to single return root (for lists, this is typically the "items" root).
-    let root =
+    this._rootPath =
       _.get(query, 'definitions[0].selectionSet.selections[0].alias.value',
         _.get(query, 'definitions[0].selectionSet.selections[0].name.value'));
 
-    this._path = path ? (root + '.' + path) : root;
+    this._path = path ? (this._rootPath + '.' + path) : this._rootPath;
   }
 
   get query() {
@@ -233,6 +233,7 @@ export class ListReducer extends Reducer {
 
         // Get query result.
         let items = listReducer.getResult(data, []);
+        let groupedItems = _.get(data, listReducer._rootPath + '.groupedItems');
 
         // Inject additional items (e.g., from context).
         if (itemInjector) {
@@ -247,6 +248,7 @@ export class ListReducer extends Reducer {
 
           // Data from query.
           items,
+          groupedItems,
 
           // Paging.
           // TODO(burdon): Hook-up to UX.
@@ -258,6 +260,7 @@ export class ListReducer extends Reducer {
                 filter
               },
 
+              // TODO(burdon): Grouped items.
               updateQuery: (previousResult, { fetchMoreResult }) => {
                 return _.assign({}, previousResult, {
                   items: [...previousResult.items, ...fetchMoreResult.data.items]

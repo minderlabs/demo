@@ -257,8 +257,8 @@ type GroupSet {
   ids: [ID]!
 }
 
-# TODO(burdon): Generalize to a Tree?
 # Groups items (via groupBy query).
+# TODO(burdon): Generalize to a Tree?
 type GroupedItems {
 
   # Parent item ID.
@@ -286,7 +286,6 @@ type RootQuery {
   # TODO(burdon): Namespace.
   # TODO(burdon): Return multiple items.
   # TODO(burdon): Add basic ItemStore key-range lookup.
-  # TODO(burdon): customResolvers C
   item(itemId: ID!): Item!
 
   # Search.

@@ -168,12 +168,14 @@ export class Database {
     let itemStore = this.getItemStore();
     return this._searchAll(context, root, filter)
       .then(items => {
+        let groupedItems;
         if (filter.groupBy) {
-          items = ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS);
+          groupedItems = ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS);
         }
 
         return {
-          items
+          items,
+          groupedItems
         };
       });
   }

@@ -143,6 +143,14 @@ const CardSearchQuery = gql`
           }
         }
       }
+      
+      groupedItems {
+        id
+        groups {
+          field
+          ids
+        }
+      }      
     }
   }
 
@@ -206,10 +214,13 @@ export const ItemsQueryWrapper = graphql(SimpleSearchQuery, {
             filter
           },
 
-          // TODO(burdon): Use update({ $push }).
           updateQuery: (previousResult, { fetchMoreResult }) => {
             return _.assign({}, previousResult, {
-              search: [...previousResult.search, ...fetchMoreResult.data.search]
+              search: {
+                items: {
+                  $push: fetchMoreResult.data.search.items
+                }
+              }
             });
           }
         });

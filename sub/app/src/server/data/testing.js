@@ -86,7 +86,7 @@ export class TestGenerator {
 
       Randomizer.property('tasks', (item, context, randomizer) => {
         let { userId } = context;
-        let num = randomizer.chance.natural({ min: 0, max: 0 });
+        let num = randomizer.chance.natural({ min: 0, max: 3 });
         if (num) {
           // TODO(burdon): Reuse generator? (but same project).
           return database.getItemStore(Database.NAMESPACE.USER).upsertItems(context, _.times(num, i => ({
@@ -173,7 +173,7 @@ export class TestGenerator {
                   .then(() =>
                     this.generateItems(context, 'Project', 0))
                   .then(() =>
-                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 0, max: 0 })));
+                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 0, max: 3 })));
               }));
             });
         }));
