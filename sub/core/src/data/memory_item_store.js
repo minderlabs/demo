@@ -62,7 +62,7 @@ export class MemoryItemStore extends BaseItemStore {
         });
       });
     } else {
-      bucketItems = this._items;
+      bucketItems = _.toArray(this._items.values());
     }
 
     let items = this.filterItems(bucketItems, context, root, filter);

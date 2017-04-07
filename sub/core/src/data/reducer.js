@@ -11,7 +11,7 @@ import Logger from '../util/logger';
 
 import { ID } from './id';
 import { MutationUtil } from './mutations';
-import { ItemUtil } from './item_store';
+import { ItemUtil } from './item_util';
 
 const logger = Logger.get('reducer');
 

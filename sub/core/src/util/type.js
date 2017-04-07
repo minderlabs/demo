@@ -113,6 +113,7 @@ export class TypeUtil {
    * @returns {*}
    */
   static defaultMap(map, key, def=Map) {
+    console.assert(map && key);
     let value = map.get(key);
     if (value === undefined) {
       value = new def();

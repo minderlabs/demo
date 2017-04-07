@@ -8,7 +8,8 @@ import { ID } from './id';
 import { ErrorUtil } from '../util/error';
 import { TypeUtil } from '../util/type';
 
-import { ItemUtil, ItemStore, QueryProcessor } from './item_store';
+import { ItemStore, QueryProcessor } from './item_store';
+import { ItemUtil } from './item_util';
 
 import Logger from '../util/logger';
 

@@ -252,10 +252,29 @@ type Viewer {
 # https://github.com/graphql/graphql-js/issues/312
 #===================================================================================================
 
+type GroupSet {
+  field: String!
+  ids: [ID]!
+}
+
+# TODO(burdon): Generalize to a Tree?
+# Groups items (via groupBy query).
+type GroupedItems {
+
+  # Parent item ID.
+  id: ID!
+
+  # Grouped children IDs.
+  groups: [GroupSet]!
+}
+
 type SearchResult {
 
   # Results.
   items: [Item]!
+
+  # Grouped results.
+  groupedItems: [GroupedItems]
 }
 
 type RootQuery {
