@@ -25,6 +25,10 @@ export class TestItemStore extends ItemStore {
     });
   }
 
+  dump() {
+    return this._itemStore.dump();
+  }
+
   queryItems(context, root={}, filter={}) {
     return Async.timeout(this._options.delay).then(() => {
       return this._itemStore.queryItems(context, root, filter);

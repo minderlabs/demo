@@ -252,6 +252,12 @@ type Viewer {
 # https://github.com/graphql/graphql-js/issues/312
 #===================================================================================================
 
+type SearchResult {
+
+  # Results.
+  items: [Item]!
+}
+
 type RootQuery {
 
   # Current user.
@@ -265,7 +271,7 @@ type RootQuery {
   item(itemId: ID!): Item!
 
   # Search.
-  search(filter: FilterInput): [Item]!
+  search(filter: FilterInput): SearchResult!
 }
 
 #===================================================================================================

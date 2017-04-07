@@ -97,14 +97,16 @@ class TestingActivity extends React.Component {
 
 const TestQuery = gql`
   query TestQuery($filter: FilterInput) {
-    items: search(filter: $filter) {
-      ...ItemFragment
-      ...ContactFragment
-      ...TaskFragment
-      
-      ... on Task {
-        tasks {
-          ...TaskFragment
+    search(filter: $filter) {
+      items {
+        ...ItemFragment
+        ...ContactFragment
+        ...TaskFragment
+
+        ... on Task {
+          tasks {
+            ...TaskFragment
+          }
         }
       }
     }
@@ -120,36 +122,42 @@ const TestQuery = gql`
 //
 const TestMergedItemsQuery = gql`
   query TestQuery {
-    items: search(filter: { type: "Task", expr: { field: "status", value: { int: 1 } } }) {
-      id
-      type
-      title
+    search: search(filter: { type: "Task", expr: { field: "status", value: { int: 1 } } }) {
+      items {
+        id
+        type
+        title
 
-      ... on Task {
-        status
+        ... on Task {
+          status
+        }
       }
     }
 
-    moreTasks: search(filter: { type: "Task" }) {
-      id
-      type
-      title
-      
-      ... on Task {
-        assignee {
-          title
+    searchX: search(filter: { type: "Task" }) {
+      items {
+        id
+        type
+        title
+
+        ... on Task {
+          assignee {
+            title
+          }
         }
       }
     }
     
-    otherStuff: search(filter: { type: "Project" }) {
-      id
-      type
-      title
-      
-      ... on Project {
-        tasks {
-          title
+    searchY: search(filter: { type: "Project" }) {
+      items {
+        id
+        type
+        title
+
+        ... on Project {
+          tasks {
+            title
+          }
         }
       }
     }
@@ -166,7 +174,8 @@ export default Activity.compose(
     }),
 
     props: ({ ownProps, data }) => {
-      let { loading, error, items } = data;
+      let { loading, error, search } = data;
+      let { items } = search;
 
       return {
         loading,

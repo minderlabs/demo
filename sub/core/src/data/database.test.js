@@ -83,7 +83,9 @@ const tests = (itemStore) => {
       }
 
     ]).then(() => {
+      done();
 
+      if (false)
       ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS).then(results => {
         expect(results).to.have.lengthOf(5);
         expect(results[0].id).to.equal('project-1');
@@ -94,5 +96,5 @@ const tests = (itemStore) => {
   });
 };
 
-describe('MemoryDatabase:',
+describe('MemoryItemStore:',
   () => tests(new MemoryItemStore(idGenerator, matcher, 'test', false)));

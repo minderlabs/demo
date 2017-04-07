@@ -37,15 +37,20 @@ export const adminRouter = (clientManager, firebase, options) => {
   router.get('/', isAuthenticated('/home', true), (req, res) => {
     res.render('admin', {
       clients: clientManager.clients,
-      canResetDatabase: !_.isNil(options.handleDatabaseReset)
+      testing: (options.env !== 'production')
     });
   });
 
   //
   // Admin API.
+  // TODO(burdon): Require
   //
-  router.post('/', isAuthenticated('/home', true), (req, res) => {
+  router.post('/api', isAuthenticated(undefined, true), (req, res, next) => {
     let { action, clientId } = req.body;
+
+    const ok = () => {
+      res.send({});
+    };
 
     console.log('Admin command: %s', action);
     switch (action) {
@@ -64,16 +69,22 @@ export const adminRouter = (clientManager, firebase, options) => {
         queue && queue.create('test', {}).save();
         break;
       }
+    }
 
-      case 'database.reset': {
-        options.handleDatabaseReset && options.handleDatabaseReset().then(() => {
-          console.log('Reset Database');
-        });
-        break;
+    if (options.env !== 'production') {
+      switch (action) {
+
+        case 'database.dump': {
+          return options.handleDatabaseDump().then(ok);
+        }
+
+        case 'database.reset': {
+          return options.handleDatabaseReset().then(ok);
+        }
       }
     }
 
-    res.send({});
+    ok();
   });
 
   //

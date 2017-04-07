@@ -67,7 +67,7 @@ module.exports = function(config) {
     // https://npmjs.org/browse/keyword/karma-reporter
     reporters: [
       'mocha',
-      'progress',
+//    'progress',
 //    'verbose'
     ],
 

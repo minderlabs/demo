@@ -97,7 +97,9 @@ const BasicItemFragment = gql`
 const BasicSearchQuery = gql`
   query BasicSearchQuery($filter: FilterInput) {
     search(filter: $filter) {
-      ...BasicItemFragment
+      items {
+        ...BasicItemFragment
+      }
     }
   }
 
@@ -132,11 +134,13 @@ const CardItemFragment = gql`
 const CardSearchQuery = gql`
   query CardSearchQuery($filter: FilterInput) {
     search(filter: $filter) {
-      ...CardItemFragment
+      items {
+        ...CardItemFragment
 
-      ... on Task {
-        tasks {
-          ...TaskFragment
+        ... on Task {
+          tasks {
+            ...TaskFragment
+          }
         }
       }
     }
@@ -155,9 +159,11 @@ export const CardSearchList = connectReducer(ListReducer.graphql(CardSearchQuery
 export const SimpleSearchQuery = gql`
   query SimpleSearchQuery($filter: FilterInput) {
     search(filter: $filter) {
-      id
-      type      
-      title
+      items {
+        id
+        type
+        title
+      }
     }
   }
 `;
@@ -177,7 +183,7 @@ export const ItemsQueryWrapper = graphql(SimpleSearchQuery, {
 
   // http://dev.apollodata.com/react/queries.html#graphql-props-option
   props: ({ ownProps, data }) => {
-    let { search:items } = data;
+    let { search: { items } } = data;
     let { filter } = ownProps;
 
     return {

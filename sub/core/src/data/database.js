@@ -159,7 +159,7 @@ export class Database {
   }
 
   /**
-   * @returns {Promise}
+   * @returns {Promise<{SearchResult}>}
    */
   search(context, root={}, filter={}) {
     logger.log('Search: ' + TypeUtil.stringify(filter));
@@ -167,7 +167,13 @@ export class Database {
     let itemStore = this.getItemStore();
     return this._searchAll(context, root, filter)
       .then(items => {
-        return filter.groupBy ? ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS) : items
+        if (filter.groupBy) {
+          items = ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS);
+        }
+
+        return {
+          items
+        };
       });
   }
 

@@ -138,18 +138,21 @@ class Reducer {
 
   /**
    * @param query GQL Query Type.
+   * @param {string} path Relative path.
    * @param reducer Custom reducer.
    */
   // TODO(burdon): Extend via inheritance.
-  constructor(query, reducer) {
+  constructor(query, reducer=undefined, path=undefined) {
     console.assert(query);
     this._query = query;
     this._reducer = reducer;
 
     // NOTE: Limited to single return root (for lists, this is typically the "items" root).
-    this._path =
+    let root =
       _.get(query, 'definitions[0].selectionSet.selections[0].alias.value',
-      _.get(query, 'definitions[0].selectionSet.selections[0].name.value'));
+        _.get(query, 'definitions[0].selectionSet.selections[0].name.value'));
+
+    this._path = path ? (root + '.' + path) : root;
   }
 
   get query() {
@@ -187,15 +190,17 @@ class Reducer {
  */
 export class ListReducer extends Reducer {
 
+  // TODO(burdon): Rather than pass in custom reduer, extend this class and unify Item/List reducers.
+
   /**
    * Creates HOC for list query.
    *
    * @param query
-   * @param customReducer
+   * @param path Path relative to response of items.
    * @return standard mutation wrapper supplied to redux's combine() method.
    */
-  static graphql(query, customReducer=undefined) {
-    let listReducer = new ListReducer(query, customReducer);
+  static graphql(query, path='items') {
+    let listReducer = new ListReducer(query, null, path);
 
     // Return HOC.
     return graphql(query, {
@@ -284,6 +289,7 @@ export class ListReducer extends Reducer {
         // TODO(burdon): Handle multiple items.
         let updatedItem = updatedItems[0];
         if (updatedItem) {
+          // TODO(burdon): Const.
           let queryName = this.query.definitions[0].name.value;
           logger.log($$('Reducer[%s:%s]: %o', queryName, action.operationName, updatedItem));
 
@@ -333,18 +339,17 @@ export class ListReducer extends Reducer {
     // Merge the item if it's an update to an external item (e.g., a Document).
     // TODO(burdon): This should apply to Item reducer also.
     //
-    if (updatedItem.fkey && !currentItem) {
-      let currentExternal  = _.find(currentItems, item => item.namespace && (ID.getForeignKey(item) === updatedItem.fkey));
+    if (!currentItem && updatedItem.fkey) {
+      let currentExternal =
+        _.find(currentItems, item => item.namespace && (ID.getForeignKey(item) === updatedItem.fkey));
       if (currentExternal) {
-        return {
-          [path]: {
-            $deepMerge: {
-              id: currentExternal.id,
-              item: updatedItem,
-              clearFields: ['namespace']
-            }
+        return _.set({}, path, {
+          $deepMerge: {
+            id: currentExternal.id,
+            item: updatedItem,
+            clearFields: ['namespace']
           }
-        };
+        });
       }
     }
 
@@ -354,23 +359,19 @@ export class ListReducer extends Reducer {
     //
     let match = matcher.matchItem(context, {}, filter, updatedItem);
     if (!match) {
-      return {
-        [path]: {
-          $remove: updatedItem
-        }
-      };
+      return _.set({}, path, {
+        $remove: updatedItem
+      });
     }
 
     //
     // Insert the item if it doesn't already exist (but matches).
     //
     if (!currentItem) {
-      // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
-      return {
-        [path]: {
-          $push: [ updatedItem ]
-        }
-      };
+     // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
+      return _.set({}, path, {
+        $push: [ updatedItem ]
+      });
     }
 
     // Do nothing if it's just an update.

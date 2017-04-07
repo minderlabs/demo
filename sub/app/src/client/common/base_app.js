@@ -140,6 +140,9 @@ export class BaseApp {
       dataIdFromObject: ID.dataIdFromObject,
       addTypename: true,
 
+      // https://dev-blog.apollodata.com/query-batching-in-apollo-63acfd859862
+      shouldBatch: true,
+
       // http://dev.apollodata.com/core/network.html#query-deduplication
       queryDeduplication: true,
 

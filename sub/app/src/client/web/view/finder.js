@@ -110,9 +110,11 @@ const FoldersQuery = gql`
 // TODO(burdon): Add Projects query.
 const ContextQuery = gql`
   query ContextQuery($filter: FilterInput!) {
-    contextItems: search(filter: $filter) {
-      ...ItemFragment
-      ...ContactTasksFragment
+    contextSearch: search(filter: $filter) {
+      items {
+        ...ItemFragment
+        ...ContactTasksFragment
+      }
     }
   }
 
@@ -210,7 +212,8 @@ export default compose(
 
     props: ({ ownProps, data }) => {
       let { contextManager } = ownProps;
-      let { contextItems } = data;
+      let { contextSearch={} } = data;
+      let { contextItems } = contextSearch;
 
       // Update context.
       if (contextManager) {

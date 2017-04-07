@@ -166,8 +166,7 @@ export class SlackQueryProcessor extends QueryProcessor {
     let items = [];
     const token = bot.config.incoming_webhook.token;
     return new Promise((resolve, reject) => {
-      bot.api.search.all(
-        { token: token, query: query },
+      bot.api.search.all({ token, query },
         (err, response) => {
           if (err) {
             logger.error('Search failed:', err);

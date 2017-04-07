@@ -6,7 +6,7 @@ import _ from 'lodash';
 
 import { TypeUtil } from '../util/type';
 
-import { BaseItemStore, QueryProcessor } from './item_store';
+import { BaseItemStore } from './item_store';
 
 /**
  * In-memory database.
@@ -22,6 +22,13 @@ export class MemoryItemStore extends BaseItemStore {
 
   toString() {
     return `MemoryItemStore(${this._items.size})`;
+  }
+
+  dump() {
+    return Promise.resolve({
+      info: this.toString(),
+      items: TypeUtil.mapToObject(this._items)
+    });
   }
 
   key({ bucket, type, id }) {

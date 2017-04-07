@@ -51,7 +51,7 @@ export class QueryProcessor {
 export class ItemStore extends QueryProcessor {
 
   // TODO(burdon): Don't extend QueryProcessor.
-  // TODO(burdon): Implment basic Keyscan lookup (e.g., Type-only) and replace current getItems().
+  // TODO(burdon): Implement basic Keyscan lookup (e.g., Type-only) and replace current getItems().
 
   /**
    * @param namespace Namespace.
@@ -60,6 +60,10 @@ export class ItemStore extends QueryProcessor {
   constructor(namespace, buckets=false) {
     super(namespace);
     this._buckets = buckets;
+  }
+
+  dump() {
+    return Promise.resolve({ info: this.toString() });
   }
 
   /**
@@ -318,17 +322,25 @@ export class ItemUtil {
    * @param context
    * @param itemStore
    * @param items
-   * @param groupSpecs Map of Type => { parentType, parentKey, parentMember }
+   * @param groupSpecs Map of { Type => { parentType, parentKey, parentMember } }
    * @returns {Promise<[Item]>} ordered item results.
    */
   static groupBy(itemStore, context, items, groupSpecs) {
     console.assert(itemStore && context && items && groupSpecs);
+
+    // TODO(burdon): Do client-side grouping; server-side should just fetch required items; include in search result.
+    // TODO(burdon): GroupBy should not collect in the parent Project since this will bust the cache.
+    // E.g., Projects with a limited set of groups.
+    if (true) {
+      return items;
+    }
 
     // Map of items being processed.
     let itemsById = new Map();
 
     //
     // Create a map of item arrays indexed by common group item ID.
+    // ID => [ITEM]
     //
 
     let itemsByGroupId = new Map();
@@ -345,9 +357,7 @@ export class ItemUtil {
     //
     // Create groups.
     //
-
     let missingGroupItemsByType = new Map();
-
     let groupItemsById = new Map();
     itemsByGroupId.forEach((items, groupItemId) => {
       let spec = groupSpecs[items[0].type];
@@ -375,7 +385,6 @@ export class ItemUtil {
     //
     // Create the ordered results.
     //
-
     const getResults = (items) => {
 
       let results = [];
