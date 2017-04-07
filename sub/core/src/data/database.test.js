@@ -85,9 +85,6 @@ const tests = (itemStore) => {
     ]).then(() => {
 
       ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS).then(results => {
-
-        console.error(JSON.stringify(results, 0, 2));
-
         expect(results).to.have.lengthOf(5);
         expect(results[0].id).to.equal('project-1');
         expect(results[0].tasks).to.have.lengthOf(2);

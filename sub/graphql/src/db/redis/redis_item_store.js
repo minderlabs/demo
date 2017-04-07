@@ -44,15 +44,7 @@ export class RedisItemStore extends BaseItemStore {
   }
 
   getBucketKeys(context) {
-    let { userId, groupIds } = context;
-
-    let keys = [this._key.toKey({ bucket: userId })];
-
-    _.each(groupIds, groupId => {
-      keys.push(this._key.toKey({ bucket: groupId }));
-    });
-
-    return keys;
+    return _.map(_.get(context, 'buckets'), bucket => this._key.toKey({ bucket }));
   }
 
   //
@@ -60,7 +52,6 @@ export class RedisItemStore extends BaseItemStore {
   //
 
   queryItems(context, root={}, filter={}) {
-    let { userId, groupIds } = context;
 
     // Gather results for each bucket.
     let promises = _.map(this.getBucketKeys(context), key => this._client.keysAsync(key));
@@ -87,7 +78,6 @@ export class RedisItemStore extends BaseItemStore {
   //
 
   getItems(context, type, itemIds=[]) {
-    let { userId, groupIds } = context;
 
     // TODO(burdon): Either the ID needs to contain the bucket (pref), or a separate ID => bucket index is maintained.
     // let keys = _.map(itemIds, itemId => this._key.toKey({ bucket, type, itemId }));

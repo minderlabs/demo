@@ -3,25 +3,5 @@
 //
 
 const _ = require('lodash');
-const path = require('path');
 
-const baseConfig = require('./webpack-base.config.js');
-
-//
-// Webpack default configuration.
-//
-
-module.exports = _.merge(baseConfig, {
-
-  entry: {
-    main: [
-      path.resolve(baseConfig.context, 'src/index.js')
-    ]
-  },
-
-  output: {
-    path: path.join(baseConfig.context, 'dist'),
-    filename: '[name].bundle.js',
-    publicPath: '/assets/' // Path for webpack-dev-server
-  }
-});
+module.exports = _.filter(require('./webpack-base.config.js'), (conf, key) => key !== 'karma' && conf);

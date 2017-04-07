@@ -73,6 +73,7 @@ const UserTasksFragment = gql`
 export const Fragments = {
 
   //
+  // TODO(burdon): Move to Query const.
   // ViewerQuery is requested by each Activity; the cached response is used by various Redux connectors.
   //
 
@@ -175,6 +176,7 @@ export const Fragments = {
 
   TaskFragment: gql`
     fragment TaskFragment on Task {
+      ...ItemMetaFragment
   
       project {
         ...ItemMetaFragment

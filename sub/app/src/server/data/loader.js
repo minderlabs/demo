@@ -135,15 +135,18 @@ export class Loader {
   initProjects(group) {
     logger.log('Group: ' + JSON.stringify(_.pick(group, ['id', 'title'])));
 
-    let context = { groupIds: [group.id] };
+    let context = { buckets: [group.id] };
     let itemStore = this._database.getItemStore(Database.NAMESPACE.USER);
     return itemStore.queryItems(context, {}, { type: 'Project' }).then(projects => {
 
       // Look for default project.
       let project = _.find(projects, project => (_.indexOf(project.labels, '_default') !== -1));
       if (project) {
+        console.log('>>>', project);
         return project;
       } else {
+        logger.log('Creating Project for: ' + group.id);
+
         // Create it.
         return itemStore.upsertItem(context, {
           bucket: group.id,

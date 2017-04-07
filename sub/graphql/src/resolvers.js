@@ -263,8 +263,8 @@ export class Resolvers {
         },
 
         groups: (root, args, context) => {
-          let { groupIds } = context;
-          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItems(context, 'Group', groupIds);
+          let { buckets } = context;
+          return database.getItemStore(Database.NAMESPACE.SYSTEM).getItems(context, 'Group', buckets);
         },
 
         folders: (root, args, context) => {

@@ -25,7 +25,7 @@ const mapStateToProps = (state, ownProps) => {
   });
 
   let userId = _.get(viewer, 'context.user.id');
-  let groupIds = _.map(_.get(viewer, 'groups'), group => group.id);
+  let buckets = _.map(_.get(viewer, 'groups'), group => group.id);
 
   return {
 
@@ -33,11 +33,10 @@ const mapStateToProps = (state, ownProps) => {
     config,
     matcher,
 
-    // TODO(burdon): Replace userId and groupIds with buckets.
     // Matcher's context used by HOC reducers.
     context: {
       userId,
-      groupIds
+      buckets
     }
   }
 };

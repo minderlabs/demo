@@ -21,4 +21,6 @@ Logger.setLevel({
   'system'    : Logger.Level.debug,
   'user'      : Logger.Level.debug,
 
+  'loader'      : Logger.Level.debug,
+
 }, Logger.Level.info);

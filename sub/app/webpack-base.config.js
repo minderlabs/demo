@@ -30,8 +30,9 @@ const baseConfig = {
     // https://facebook.github.io/react/warnings/refs-must-have-owner.html#multiple-copies-of-react
     // http://stackoverflow.com/questions/31169760/how-to-avoid-react-loading-twice-with-webpack-when-developing
     alias: {
-      'graphql'     : path.resolve('./node_modules/graphql'),
-      'react'       : path.resolve('./node_modules/react'),
+      'graphiql_css'  : path.resolve('./node_modules/graphiql/graphiql.css'),
+      'graphql'       : path.resolve('./node_modules/graphql'),
+      'react'         : path.resolve('./node_modules/react'),
     }
   },
 
@@ -54,23 +55,6 @@ const baseConfig = {
         use: [{
           loader: 'json-loader'
         }]
-      },
-
-      // https://github.com/webpack/css-loader
-      {
-        test: /\.css$/,
-        use: [{
-          loader: 'css-loader'
-        }]
-      },
-
-      // https://github.com/webpack/less-loader
-      {
-        test: /\.less$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: ['css-loader', 'less-loader']
-        })
       },
 
       // See .babelrc for the presets.
@@ -98,6 +82,23 @@ const baseConfig = {
         test: /\.(graphql|gql)$/,
         loader: 'graphql-tag/loader',
         exclude: /node_modules/
+      },
+
+      // https://github.com/webpack/css-loader
+      {
+        test: /\.css$/,
+        use: [{
+          loader: 'css-loader'
+        }]
+      },
+
+      // https://github.com/webpack/less-loader
+      {
+        test: /\.less$/,
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: ['css-loader', 'less-loader']
+        })
       }
     ]
   },
@@ -140,10 +141,10 @@ const srvConfig = webpackMerge(baseConfig, {
     __dirname: false,
 
     // https://webpack.js.org/configuration/node
-    console:  false,
-    fs:       'empty',
-    net:      'empty',
-    tls:      'empty'
+    console: false,
+    fs:  'empty',
+    net: 'empty',
+    tls: 'empty'
   },
 
   // Source map shows original source and line numbers (and works with hot loader).

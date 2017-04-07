@@ -207,12 +207,13 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
         }
       });
 
+      done(null, user);
       // TODO(burdon): Upsert Contact (which bucket?)
-      userStore.upsertItem().then(contact => {
-
-        // Sets req.user.
-        done(null, user);
-      });
+      // userStore.upsertItem().then(contact => {
+      //
+      //   // Sets req.user.
+      //   done(null, user);
+      // });
     });
   };
 

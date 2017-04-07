@@ -132,15 +132,9 @@ module.exports = (grunt) => {
     // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
     // webpack -d --config webpack-crx.config.js --display-modules --progress
     webpack: {
-<<<<<<< HEAD
       srv: require('./webpack-srv.config.js'),
       web: require('./webpack-web.config.js'),
       crx: require('./webpack-crx.config.js'),
-=======
-//    web:    require('./webpack.config.js'),
-      crx:    require('./webpack-crx.config.js'),
-//    server: require('./webpack-server.config.js')
->>>>>>> master
     },
   }));
 

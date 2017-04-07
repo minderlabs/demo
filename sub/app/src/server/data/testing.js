@@ -30,7 +30,7 @@ export class TestGenerator {
 
     'Project': [
 
-      Randomizer.property('bucket', (item, context, randomizer) => randomizer.chance.pickone(context.groupIds)),
+      Randomizer.property('bucket', (item, context, randomizer) => randomizer.chance.pickone(context.buckets)),
 
       Randomizer.property('group', (item, context) => item.bucket),
 
@@ -40,7 +40,7 @@ export class TestGenerator {
 
     'Task': [
 
-      Randomizer.property('bucket', (item, context, randomizer) => randomizer.chance.pickone(context.groupIds)),
+      Randomizer.property('bucket', (item, context, randomizer) => randomizer.chance.pickone(context.buckets)),
 
       // TODO(burdon): Set owner for all types in Randomizer?
       Randomizer.property('owner', (item, context) => context.userId),
@@ -71,7 +71,7 @@ export class TestGenerator {
 
       // TODO(burdon): Do this first and "cache" the group in the context?
       Randomizer.property('project', (item, context, randomizer) => {
-        return database.getQueryProcessor(Database.NAMESPACE.USER).queryItems({ groupIds: [item.bucket] }, {}, {
+        return database.getQueryProcessor(Database.NAMESPACE.USER).queryItems({ buckets: [item.bucket] }, {}, {
           type: 'Project'
         }).then(projects => {
           if (_.isEmpty(projects)) {
@@ -162,7 +162,7 @@ export class TestGenerator {
               }
             }).then(groups => {
               return Promise.all(_.map(groups, group => {
-                let context = { userId, groupIds: [group.id] };
+                let context = { userId, buckets: [group.id] };
 
                 //
                 // Generate data items for each user.

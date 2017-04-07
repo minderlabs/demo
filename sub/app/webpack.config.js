@@ -4,7 +4,4 @@
 
 const _ = require('lodash');
 
-const defs = require('./webpack-defs.config.js');
-
-// Build everything.
-module.exports = _.map(defs);
+module.exports = _.map(require('./webpack-base.config.js'));

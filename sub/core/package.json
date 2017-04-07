@@ -27,9 +27,10 @@
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-verbose-reporter": "0.0.6",
-    "karma-webpack": "^1.8.1",
+    "karma-webpack": "^2.0.3",
     "mocha": "^3.1.2",
-    "webpack": "^1.14.0"
+    "webpack": "^2.3.3",
+    "webpack-merge": "^4.1.0"
   },
   "dependencies": {
     "apollo-client": "^1.0.2",
@@ -42,11 +43,12 @@
     "morgan": "^1.7.0",
     "random-seed": "^0.3.0",
     "react": "^15.4.0",
-    "react-apollo": "^1.0.0",
+    "react-apollo": "^1.0.1",
     "react-dom": "^15.4.1",
     "uuid": "^3.0.1"
   },
   "scripts": {
+    "//": "TODO(burdon): Add mocha testing for server.",
     "test": "karma start --single-run"
   }
 }

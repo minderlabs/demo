@@ -355,12 +355,13 @@ app.use(graphqlRouter(database, {
       credentials: user.credentials
     };
 
+    // Assign buckets.
     if (!user) {
       return Promise.resolve(context);
     } else {
       return systemStore.getGroups(user.id).then(groups => {
         return _.assign(context, {
-          groupIds: _.map(groups, group => group.id)
+          buckets: _.map(groups, group => group.id)
         })
       });
     }

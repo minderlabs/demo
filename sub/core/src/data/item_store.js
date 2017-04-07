@@ -17,17 +17,6 @@ import { Transforms } from './transforms';
  */
 export class QueryProcessor {
 
-  /**
-   * Get buckets from the context.
-   * @param context
-   * @returns [{string}] Unordered array of buckets.
-   */
-  // TODO(burdon): Remove userId (Context should just contain buckets).
-  static getBuckets(context) {
-    let { userId, groupIds } = context;
-    return _.compact(_.concat(userId, groupIds));
-  }
-
   // TODO(burdon): Remove.
   static DEFAULT_COUNT = 20;
 

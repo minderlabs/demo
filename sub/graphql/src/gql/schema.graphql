@@ -261,6 +261,7 @@ type RootQuery {
   # TODO(burdon): Namespace.
   # TODO(burdon): Return multiple items.
   # TODO(burdon): Add basic ItemStore key-range lookup.
+  # TODO(burdon): customResolvers C
   item(itemId: ID!): Item!
 
   # Search.

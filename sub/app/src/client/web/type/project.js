@@ -250,15 +250,9 @@ class ProjectBoardCanvasComponent extends React.Component {
     let { viewer: { user }, mutator } = this.context;
 
     if (item) {
-
-      console.log(':::::::::::::::::::::::::::::UP', item);
-
       mutator.batch(item.bucket).updateItem(item, mutations).commit();
     } else {
       let { item:project } = this.props;
-
-      console.log(':::::::::::::::::::::::::::::', project);
-
       mutator
         .batch(project.bucket)
         .createItem('Task', [
@@ -431,7 +425,6 @@ const ProjectBoardQuery = gql`
           }
         }
 
-        # TODO(burdon): Why 2-levels?
         tasks {
           ...TaskFragment
 

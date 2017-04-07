@@ -32,7 +32,7 @@ export class MemoryItemStore extends BaseItemStore {
 
   getBucketKeys(context, type) {
     if (this._buckets) {
-      return _.map(QueryProcessor.getBuckets(context), bucket => this.key({ bucket, type }));
+      return _.map(_.get(context, 'buckets'), bucket => this.key({ bucket, type }));
     } else {
       console.assert(type);
       return [this.key({ type })];
