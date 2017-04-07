@@ -33,9 +33,6 @@ import './task.less';
 // TODO(burdon): Factor out helpers.
 const CreateTask = (mutator, user, parent, mutations) => {
   console.assert(parent.project);
-
-  console.log('####################', JSON.stringify(parent));
-
   return mutator
     .batch(parent.project.bucket)
     .createItem('Task', _.concat(mutations, [
