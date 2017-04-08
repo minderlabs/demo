@@ -4,7 +4,7 @@
 
 import _ from 'lodash';
 
-import { BaseItemStore, Logger, QueryProcessor, TypeUtil } from 'minder-core';
+import { BaseItemStore, Logger } from 'minder-core';
 
 const logger = Logger.get('store.firebase');
 
@@ -50,7 +50,7 @@ export class FirebaseItemStore extends BaseItemStore {
    */
   getBucketKeys(context, type=undefined) {
     if (this._buckets) {
-      return _.map(QueryProcessor.getBuckets(context), bucket => this.key(_.compact([bucket, type])));
+      return _.map(_.get(context, 'buckets'), bucket => this.key([bucket]));
     } else {
       return [this.key(_.compact([type]))];
     }
@@ -87,17 +87,14 @@ export class FirebaseItemStore extends BaseItemStore {
    */
   queryItems(context, root={}, filter={}) {
 
-    // TODO(burdon): Buckets should return flattened roots?
-
-    // Gather results for all buckets.
-    let promises = _.map(this.getBucketKeys(context), key => this._getValue(key));
+    // Gather results from all buckets.
+    let bucketKeys = this.getBucketKeys(context);
+    let promises = _.map(bucketKeys, key => this._getValue(key));
     return Promise.all(promises).then(buckets => {
       let items = [];
       _.each(buckets, typeMap => {
         _.each(typeMap, (itemMap, type) => {
-          _.each(itemMap, (item, key) => {
-            items.push(item);
-          });
+          items = _.concat(items, Object.values(itemMap));
         });
       });
 
@@ -110,27 +107,30 @@ export class FirebaseItemStore extends BaseItemStore {
    */
   getItems(context, type, itemIds) {
 
-    // Gather results for each bucket.
-    // TODO(burdon): Either the ID needs to contain the bucket (pref), or a separate ID => bucket index is maintained.
-    let bucketKeys = this.getBucketKeys(context, type);
-    return Promise.all(_.map(bucketKeys, key => this._getValue(key))).then(buckets => {
-      let items = [];
-      _.each(buckets, itemMap => {
-        _.each(itemIds, itemId => {
-          console.assert(itemId, 'Invalid ID: ', Array.from(buckets.keys()), itemIds);
-
-          // IDs that contain slashes are hierarchical, so convert to dot paths.
-          let idPath = itemId.replace('/', '.');
-          let item = _.get(itemMap, idPath);
-          // TODO(burdon): Currently this method queries each bucket for each ID (so might not be here).
-          if (item) {
-            items.push(item);
-          }
+    // Gather results frome each bucket.
+    if (this._buckets) {
+      // TODO(burdon): ID should contain Bucket and Type for direct look-up.
+      let bucketKeys = this.getBucketKeys(context, type);
+      return Promise.all(_.map(bucketKeys, key => this._getValue(key))).then(buckets => {
+        let items = [];
+        _.each(buckets, typeMap => {
+          _.each(itemIds, itemId => {
+            let key = type + '.' + itemId;
+            let item = _.get(typeMap, key);
+            if (item) {
+              items.push(item);
+            } else {
+              console.log('MISS: ' + type + '/' + itemId);
+            }
+          });
         });
-      });
 
-      return items;
-    });
+        return items;
+      });
+    } else {
+      // TODO(burdon): Multiple key lookup.
+      return Promise.all(_.map(itemIds, itemId => this._getValue(this.key([ type, itemId ]))));
+    }
   }
 
   /**

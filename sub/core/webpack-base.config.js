@@ -5,64 +5,97 @@
 const _ = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
+const webpackMerge = require('webpack-merge');
 
 //
 // Webpack base configuration.
 //
 
-module.exports = {
+const baseConfig = {
 
   context: __dirname,
-
-  // NOTE: This module should only contain cross-platform (target) modules.
-//target: 'node',
 
   devtool: 'inline-source-map',
 
   resolve: {
-    extensions: ['', '.js'],
 
     // Where to resolve imports/requires.
-    modulesDirectories: [
+    modules: [
       'node_modules'
-    ]
+    ],
+
+    extensions: ['.js'],
   },
 
   module: {
 
-    // NPM modules
-    // https://webpack.github.io/docs/configuration.html#module-loaders
-    resolveLoader: {
-      root: path.join(__dirname, 'node_modules')
-    },
-
-    loaders: [
+    rules: [
 
       // https://github.com/webpack/json-loader
       {
         test: /\.json$/,
-        loader: 'json-loader'
+        use: [{
+          loader: 'json-loader'
+        }]
       },
 
       // See .babelrc for the presets.
       // https://github.com/babel/babel-loader
       {
         test: /\.js$/,
-        exclude: [/node_modules/],  // Don't transpile deps.
+        loader: 'babel-loader',
+        exclude: /node_modules/,    // Don't transpile deps.
         include: [
-          path.resolve(__dirname, 'src')
+          path.resolve('src'),
         ],
-        loader: 'babel-loader'
-      }
+        options: {
+          cacheDirectory: './dist/babel-cache/'
+        }
+      },
     ]
   },
-
-  // https://www.npmjs.com/package/webpack-link
-  // Comma separated list (or --link=minder-core)
-  link: 'minder-core',
 
   plugins: [
 
     new webpack.ProvidePlugin({ _: 'lodash' })
   ]
+};
+
+//
+// Karma config.
+//
+
+const karma = webpackMerge(baseConfig, {
+
+  devtool: 'inline-source-map'
+});
+
+//
+// Test config.
+//
+
+const test = webpackMerge(baseConfig, {
+
+  target: 'web',
+
+  entry: {
+    main: [
+      path.resolve(baseConfig.context, 'src/index.js')
+    ]
+  },
+
+  output: {
+    path: path.join(baseConfig.context, 'dist'),
+    filename: '[name].bundle.js'
+  }
+});
+
+//
+// Multiple targets.
+// https://webpack.js.org/concepts/targets/#multiple-targets
+//
+
+module.exports = {
+  karma,
+  test
 };

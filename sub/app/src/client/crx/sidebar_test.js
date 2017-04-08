@@ -18,7 +18,7 @@ class TestSidebarApp extends WebApp {
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace]: AppReducer(this._injector, this._config),
+      [AppAction.namespace]: AppReducer(this._injector, this._config, this._apolloClient),
 
       // Context.
       [ContextAction.namespace]: ContextReducer,
@@ -55,12 +55,17 @@ app.init().then(() => {
     //
 
     window.ITEMS = {
-      t1: { type: 'Contact', title: 'Alice',      email: 'alice.braintree@gmail.com'  },
-      t2: { type: 'Contact', title: 'Bob',        email: 'bob@example.com'            },
-      t3: { type: 'Contact', title: 'Catherine',  email: 'catherine@example.com'      },
-      t4: { type: 'Contact', title: 'David',      email: 'david@example.com'          },
-      t5: { type: 'Contact', title: 'Emiko',      email: 'emiko@example.com'          },
-      t6: { title: 'slack_channel 1', context: [{ key: 'slack_channel',     value: { string: 'C4BPPS9RC' }}]    },
+      t1: { type: 'Contact', title: 'Alice',          email: 'alice.braintree@gmail.com'  },
+      t2: { type: 'Contact', title: 'Bob',            email: 'bob@example.com'            },
+      t3: { type: 'Contact', title: 'Catherine',      email: 'catherine@example.com'      },
+      t4: { type: 'Contact', title: 'David',          email: 'david@example.com'          },
+      t5: { type: 'Contact', title: 'Emiko',          email: 'emiko@example.com'          },
+
+      t6: { type: 'Contact', title: 'Rich',           email: 'rich.burdon@gmail.com'      },
+      t7: { type: 'Contact', title: 'Rich (Minder)',  email: 'rich@minderlabs.com'        },
+      t8: { type: 'Contact', title: 'Adam (Minder)',  email: 'adam@minderlabs.com'        },
+
+      t9: { title: 'slack_channel 1', context: [{ key: 'slack_channel', value: { string: 'C4BPPS9RC' }}] },
     };
 
     let select = $('<select>').appendTo(root)

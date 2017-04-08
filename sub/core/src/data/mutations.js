@@ -87,8 +87,6 @@ export class MutationUtil {
   static cloneItem(bucket, item) {
     console.assert(bucket && item);
 
-    console.log('######################### CLONE #############', JSON.stringify(item, 0, 2));
-
     let mutations = [
       MutationUtil.createFieldMutation('bucket', 'string', bucket)
     ];
@@ -353,7 +351,7 @@ export class Mutator {
   }
 
   batch(bucket) {
-    console.assert(bucket);
+    console.assert(bucket, 'Invalid bucket.');
     return new Batch(this, bucket);
   }
 
@@ -394,6 +392,10 @@ export class Mutator {
     //
     // Submit mutation.
     //
+
+    // TODO(burdon): READ THIS: Update cache.
+    // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-update
+    // http://dev.apollodata.com/react/cache-updates.html
 
     logger.log('createItem: ' + TypeUtil.stringify({ bucket, item: { type, id: itemId }, mutations }));
     this._mutate({

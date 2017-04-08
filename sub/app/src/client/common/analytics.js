@@ -143,7 +143,7 @@ export class GoogleAnalytics extends Analytics {
     super(config);
     // TODO(madadam): Add a client identifier, e.g. web, crx, mobile -- or does GA handle this?
     // TODO(madadam): Add appVersion, appName, get from config.
-    ReactGA.initialize(AnalyticsConfig.googleAnalyticsTrackingId, {titleCase: false});
+    ReactGA.initialize(AnalyticsConfig.googleAnalyticsTrackingId, { titleCase: false });
   }
 
   identify(userId, attributes) {

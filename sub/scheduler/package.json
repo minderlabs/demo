@@ -15,8 +15,8 @@
     "grunt": "^1.0.1",
     "grunt-dev-update": "^2.2.0",
     "json-loader": "^0.5.4",
-    "webpack": "^1.13.2",
-    "webpack-link": "^0.2.0",
+    "webpack": "^2.3.3",
+    "webpack-merge": "^4.1.0",
     "webpack-node-externals": "^1.5.4"
   },
   "dependencies": {

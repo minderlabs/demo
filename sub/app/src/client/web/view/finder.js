@@ -7,8 +7,7 @@ import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { IdGenerator, QueryParser, SubscriptionWrapper } from 'minder-core';
-import { Fragments, ListReducer } from 'minder-core';
+import { Fragments, IdGenerator, ListReducer, QueryParser, SubscriptionWrapper } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
 import { Const } from '../../../common/defs';
@@ -111,9 +110,11 @@ const FoldersQuery = gql`
 // TODO(burdon): Add Projects query.
 const ContextQuery = gql`
   query ContextQuery($filter: FilterInput!) {
-    contextItems: search(filter: $filter) {
-      ...ItemFragment
-      ...ContactTasksFragment
+    contextSearch: search(filter: $filter) {
+      items {
+        ...ItemFragment
+        ...ContactTasksFragment
+      }
     }
   }
 
@@ -154,8 +155,7 @@ const mapStateToProps = (state, ownProps) => {
   };
 };
 
-// TODO(burdon): Common reducer for queries (not bound to list).
-let contextReducer = new ListReducer(ContextQuery);
+const ContextListReducer = new ListReducer(ContextQuery);
 
 export default compose(
 
@@ -191,7 +191,7 @@ export default compose(
   connectReducer(graphql(ContextQuery, {
 
     options: (props) => {
-      let { contextManager } = props;
+      let { context, matcher, contextManager } = props;
 
       // Lookup items from context.
       let filter = {};
@@ -205,20 +205,19 @@ export default compose(
         },
 
         reducer: (previousResult, action) => {
-          // NOTE: passing a null matcher. ContextQuery results don't match a simple filter.
-          const nullMatcher = null;
-          return contextReducer.reduceItems(nullMatcher, props.context, null, previousResult, action);
+          return ContextListReducer.reduceItems(matcher, context, filter, previousResult, action);
         }
       };
     },
 
     props: ({ ownProps, data }) => {
-      let { contextItems } = data;
       let { contextManager } = ownProps;
+      let { contextSearch={} } = data;
+      let { contextItems } = contextSearch;
 
       // Update context.
       if (contextManager) {
-        contextManager.updateCache(contextItems);
+        contextManager.updateContextItems(contextItems);
       }
 
       return {

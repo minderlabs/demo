@@ -6,7 +6,7 @@ import { expect } from 'chai';
 
 import { Database } from './database';
 import { IdGenerator } from './id';
-import { ItemUtil } from './item_store';
+import { ItemUtil } from './item_util';
 import { Matcher } from './matcher';
 import { MemoryItemStore } from './memory_item_store';
 
@@ -19,9 +19,6 @@ const matcher = new Matcher();
 const idGenerator = new IdGenerator(1000);
 
 const tests = (itemStore) => {
-
-  let database = new Database()
-    .registerItemStore(itemStore);
 
   let context = {};
 
@@ -83,19 +80,16 @@ const tests = (itemStore) => {
       }
 
     ]).then(() => {
-
       ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS).then(results => {
-
-        console.error(JSON.stringify(results, 0, 2));
-
         expect(results).to.have.lengthOf(5);
         expect(results[0].id).to.equal('project-1');
-        expect(results[0].tasks).to.have.lengthOf(2);
+        expect(results[0].groups[0].field).to.equal('tasks');
+        expect(results[0].groups[0].ids).to.have.lengthOf(2);
         done();
       });
     });
   });
 };
 
-describe('MemoryDatabase:',
+describe('ItemUtil:',
   () => tests(new MemoryItemStore(idGenerator, matcher, 'test', false)));

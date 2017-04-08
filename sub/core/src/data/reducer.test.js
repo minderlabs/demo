@@ -10,9 +10,11 @@ import { Matcher } from './matcher';
 
 const TestListQuery = gql`
   query TestListQuery($filter: FilterInput!) {
-    items: search(filter: $filter) {
-      id
-      title
+    search(filter: $filter) {
+      items {
+        id
+        title
+      }
     }
   }
 `;
@@ -54,12 +56,14 @@ const Items = [
   }
 ];
 
-const CachedItems = {
+const TestListQueryResult = {
 
-  items: Items
+  search: {
+    items: Items
+  }
 };
 
-const CachedItem = {
+const TestItemQueryResult = {
 
   item: {
     id: 'X-1',
@@ -85,7 +89,7 @@ describe('Reducers:', () => {
     labels: ['_favorite']
   };
 
-  const listReducer = new ListReducer(TestListQuery);
+  const listReducer = new ListReducer(TestListQuery, null, 'items');
 
   //
   // ListReducer.
@@ -110,13 +114,13 @@ describe('Reducers:', () => {
       }
     };
 
-    let previousResult = CachedItems;
+    let previousResult = TestListQueryResult;
 
     let result = listReducer.reduceItems(matcher, context, filter, previousResult, action);
 
     // Test was appended.
-    expect(result.items.length).to.equal(previousResult.items.length + 1);
-    expect(result.items[3].id).to.equal(upsertItems[0].id);
+    expect(result.search.items.length).to.equal(previousResult.search.items.length + 1);
+    expect(result.search.items[3].id).to.equal(upsertItems[0].id);
   });
 
   it('Removes an item from list.', () => {
@@ -137,12 +141,12 @@ describe('Reducers:', () => {
       }
     };
 
-    let previousResult = CachedItems;
+    let previousResult = TestListQueryResult;
 
     let result = listReducer.reduceItems(matcher, context, filter, previousResult, action);
 
     // Test was removed.
-    expect(result.items.length).to.equal(previousResult.items.length - 1);
+    expect(result.search.items.length).to.equal(previousResult.search.items.length - 1);
   });
 
   //
@@ -193,12 +197,11 @@ describe('Reducers:', () => {
       }
     };
 
-    let previousResult = CachedItem;
+    let previousResult = TestItemQueryResult;
 
     let result = itemReducer.reduceItem(matcher, context, previousResult, action);
 
     let path = 'item.project.tasks';
     expect(_.get(result, path).length).to.equal(_.get(previousResult, path).length + 1);
   });
-
 });

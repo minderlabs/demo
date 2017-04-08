@@ -8,7 +8,8 @@ import { ID } from './id';
 import { ErrorUtil } from '../util/error';
 import { TypeUtil } from '../util/type';
 
-import { ItemUtil, ItemStore, QueryProcessor } from './item_store';
+import { ItemStore, QueryProcessor } from './item_store';
+import { ItemUtil } from './item_util';
 
 import Logger from '../util/logger';
 
@@ -159,7 +160,7 @@ export class Database {
   }
 
   /**
-   * @returns {Promise}
+   * @returns {Promise<{SearchResult}>}
    */
   search(context, root={}, filter={}) {
     logger.log('Search: ' + TypeUtil.stringify(filter));
@@ -167,7 +168,15 @@ export class Database {
     let itemStore = this.getItemStore();
     return this._searchAll(context, root, filter)
       .then(items => {
-        return filter.groupBy ? ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS) : items
+        let groupedItems;
+        if (filter.groupBy) {
+          groupedItems = ItemUtil.groupBy(itemStore, context, items, Database.GROUP_SPECS);
+        }
+
+        return {
+          items,
+          groupedItems
+        };
       });
   }
 
@@ -206,7 +215,6 @@ export class Database {
         return this._resultMerger.mergeResults(results, context, root);
       });
   }
-
 }
 
 /**

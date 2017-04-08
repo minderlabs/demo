@@ -10,11 +10,13 @@ import Random from 'random-seed';
 // TODO(burdon): Factor out node/web abstraction layer.
 //
 
+// Emulate browser atob and btoa for Node.
 if (typeof btoa === 'undefined') {
-  // Emulate browser atob and btoa.
+
   global.btoa = function(str) {
     return new Buffer(str).toString('base64');
   };
+
   global.atob = function(str) {
     return new Buffer(str, 'base64').toString();
   };
@@ -25,34 +27,25 @@ if (typeof btoa === 'undefined') {
  */
 export class ID {
 
-  /**
-   * UTC timestamp (milliseonds)
-   * https://en.wikipedia.org/wiki/Unix_time
-   * https://docs.python.org/2/library/time.html#time.time (NOTE: Python counts in seconds).
-   * http://stackoverflow.com/questions/18724037/datetime-unix-timestamp-contains-milliseconds
-   * @return {number} GraphQL Timestamp.
-   */
-  static timestamp() {
-    return _.now();
-  }
+  // TODO(burdon): GUID: {Namespace/Bucket/Type/ID}
+  // Items may be cloned into other Namespaces that reference the original Item (e.g., Google Docs).
+  // Items may be moved across Buckets (e.g., transfer of ownership).
+  // Types are invariant and should be part of the ID or Key.
 
   /**
-   * ID for Apollo Cache Normalization.
+   * ID for Apollo Cache Normalization (i.e., creating a GUID for the Store's index).
+   * "id" is a custom field defined by our framework.
    * http://dev.apollodata.com/react/cache-updates.html#dataIdFromObject
-   * @param result
+   * @param obj Data item.
    * @returns {*}
    */
-  static dataIdFromObject(result) {
-    if (result.__typename && result.id) {
-      return result.__typename + '/' + result.id;
+  static dataIdFromObject(obj) {
+    if (obj.__typename && obj.id) {
+      return obj.__typename + '/' + obj.id;
     }
 
     return null;
   }
-
-  // TODO(burdon): ID: Namespace/Bucket/Type/ID.
-  // TODO(burdon): NOTE: items may change buckets so don't include in ID. Instead db should have ID=>bucket index (ACLs).
-  // TODO(burdon): (All parts are neede for getItems lookups).
 
   /**
    * Converts a global ID.
@@ -108,6 +101,17 @@ export class ID {
  * NOTE: Use same seed for in-memory datastore testing. With persistent store MUST NOT be constant.
  */
 export class IdGenerator {
+
+  /**
+   * UTC timestamp (milliseonds)
+   * https://en.wikipedia.org/wiki/Unix_time
+   * https://docs.python.org/2/library/time.html#time.time (NOTE: Python counts in seconds).
+   * http://stackoverflow.com/questions/18724037/datetime-unix-timestamp-contains-milliseconds
+   * @return {number} GraphQL Timestamp.
+   */
+  static timestamp() {
+    return _.now();
+  }
 
   // TODO(burdon): node-uuid (client/server?)
   // https://www.npmjs.com/package/uuid

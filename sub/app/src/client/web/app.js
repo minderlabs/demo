@@ -98,7 +98,8 @@ export class WebApp extends BaseApp {
   get reducers() {
     return {
       // Main app reducer.
-      [AppAction.namespace]: AppReducer(this._injector, this._config)
+      // TODO(burdon): Push to BaseApp.
+      [AppAction.namespace]: AppReducer(this._injector, this._config, this._apolloClient)
     }
   }
 

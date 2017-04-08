@@ -6,11 +6,11 @@ import _ from 'lodash';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { HttpUtil } from 'minder-core';
-
 import GraphiQL from 'graphiql';
 
-import 'graphiql/graphiql.css';
+import { HttpUtil } from 'minder-core';
+
+import './graphiql.less';
 
 console.log('Config = %s', JSON.stringify(window.config) );
 

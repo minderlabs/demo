@@ -102,12 +102,11 @@ export class ContactCard extends React.Component {
    * @param {User} assignee
    * @return {XML}
    */
-  /*
   taskSection(project, items, owner, assignee) {
     console.assert(project && items && owner && assignee);
 
     let ref = `tasks_${assignee.id}`;
-    let header = `Tasks for ${assignee.title}`;
+    let header = `Assigned to: ${assignee.title}`;
 
     const handleTaskUpdate = (item, mutations) => {
       this.handleTaskUpdate(item, mutations, project, owner, assignee);
@@ -133,50 +132,59 @@ export class ContactCard extends React.Component {
       </div>
     );
   }
-  */
 
   render() {
     let { config, viewer } = this.context;
     let { item:contact } = this.props;
     let { user, email, tasks } = contact;
 
+    // Default project for Viewer.
     let defaultProject = ContactCard.getProjectFromGroupsByLabel(viewer.groups, '_default');
 
-    /*
-    let userProject = user && ContactCard.getProjectFromGroupsByLabel(user.groups, '_default');
-    let isContactSelf = (user && viewer.user.id === user.id);
-
-    // Sort all tasks for this project into groups based on assignee.
-    // TODO(madadam): Refactor ItemUtil.groupBy?
+    // Sections for team assignment.
     let assignedToViewerSection = null;
     let assignedToContactSection = null;
-    if (userProject) {
-      let assignedToViewer = _.filter(_.get(userProject, 'tasks'), item => {
-        let assignee = _.get(item, 'assignee.id');
-        let owner = _.get(item, 'owner.id');
 
-        if (isContactSelf) {
-          // Special case of self-view, owner can be anyone (show all my tasks).
-          return assignee === viewer.user.id;
-        } else {
-          return assignee === viewer.user.id && owner === user.id;
+    // TODO(burdon): Needs a spec: Doesn't make sense to merge different projects (viewer and contact).
+    // TODO(burdon): Problematic for buckets: default Project for which team?
+    if (false) {
+      // Default project for User associated with the contact card.
+      // Sort all tasks for this project into groups based on assignee.
+      // TODO(madadam): Refactor ItemUtil.groupBy?
+      let userProject = user && ContactCard.getProjectFromGroupsByLabel(user.groups, '_default');
+      if (userProject) {
+        let isSelf = (user && viewer.user.id === user.id);
+
+        // Group viewer's tasks.
+        // TODO(burdon): Ignore tasks assigned to me from the contact for other projects?
+        let assignedToViewer = _.filter(_.get(userProject, 'tasks'), item => {
+          let assignee = _.get(item, 'assignee.id');
+          let owner = _.get(item, 'owner.id');
+
+          // Special case of self-view since owner could be anyone (show all my tasks).
+          if (isSelf) {
+            return assignee === viewer.user.id;
+          } else {
+            return assignee === viewer.user.id && owner === user.id;
+          }
+        });
+
+        assignedToViewerSection = this.taskSection(userProject, assignedToViewer, user, viewer.user);
+
+        // When a user sees her own Contact card, don't show this section.
+        if (!isSelf) {
+          // TODO(burdon): Very specialized use case. E.g., see all Contact's tasks. Need spec.
+          // Group contact's tasks (assigned from Viewer).
+          let assignedToContact = _.filter(_.get(userProject, 'tasks'), item => {
+            let assignee = _.get(item, 'assignee.id');
+            let owner = _.get(item, 'owner.id');
+            return assignee === user.id && owner === viewer.user.id;
+          });
+
+          assignedToContactSection = this.taskSection(userProject, assignedToContact, viewer.user, user);
         }
-      });
-
-      let assignedToContact = _.filter(_.get(userProject, 'tasks'), item => {
-        let assignee = _.get(item, 'assignee.id');
-        let owner = _.get(item, 'owner.id');
-        return assignee === user.id && owner === viewer.user.id;
-      });
-
-      assignedToViewerSection = this.taskSection(userProject, assignedToViewer, user, viewer.user);
-
-      // When a user sees her own Contact card, don't show this section.
-      if (!isContactSelf) {
-        assignedToContactSection = this.taskSection(userProject, assignedToContact, viewer.user, user);
       }
     }
-    */
 
     const handleTaskUpdate = (item, mutations) => {
       this.handleTaskUpdate(item, mutations, defaultProject)
@@ -212,11 +220,8 @@ export class ContactCard extends React.Component {
           </div>
         </div>
 
-        {/*
         { assignedToViewerSection }
         { assignedToContactSection }
-        */}
-
       </Card>
     );
   }

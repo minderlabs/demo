@@ -98,6 +98,7 @@ const env = _.get(process.env, 'NODE_ENV', 'development');
 const host = (env === 'production') ? '0.0.0.0' : '127.0.0.1';
 const port = _.get(process.env, 'PORT', 3000);
 
+// TODO(burdon): Set global var (i.e., __TESTING__, __PRODUCTION__).
 const testing = (env !== 'production');
 
 // NOTE: Want repeatable IDs in dev but not production.
@@ -355,12 +356,13 @@ app.use(graphqlRouter(database, {
       credentials: user.credentials
     };
 
+    // Assign buckets.
     if (!user) {
       return Promise.resolve(context);
     } else {
       return systemStore.getGroups(user.id).then(groups => {
         return _.assign(context, {
-          groupIds: _.map(groups, group => group.id)
+          buckets: _.map(groups, group => group.id)
         })
       });
     }
@@ -434,7 +436,16 @@ function resetDatabase() {
 
 app.use('/admin', adminRouter(clientManager, firebase, {
   scheduler: (env === 'production'),
-  handleDatabaseReset: (env !== 'production' ? () => { return resetDatabase(); } : null)
+
+  handleDatabaseDump: (env !== 'production' ? () => {
+    return userDataStore.dump().then(debug => {
+      logger.log('Database:\n', JSON.stringify(debug, null, 2));
+    });
+  } : null),
+
+  handleDatabaseReset: (env !== 'production' ? () => {
+    return resetDatabase();
+  } : null)
 }));
 
 

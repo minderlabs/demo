@@ -131,6 +131,7 @@ export class BaseApp {
     // http://dev.apollodata.com/react/initialization.html
     // http://dev.apollodata.com/core/apollo-client-api.html#apollo-client
     // https://github.com/apollostack/apollo-client/blob/6b6e8ded1e0f83cb134d2261a3cf7d2d9416400f/src/ApolloClient.ts
+    // NOTE: window.__APOLLO_CLIENT__
     //
 
     this._apolloClient = new ApolloClient({
@@ -139,6 +140,9 @@ export class BaseApp {
       dataIdFromObject: ID.dataIdFromObject,
       addTypename: true,
 
+      // https://dev-blog.apollodata.com/query-batching-in-apollo-63acfd859862
+      shouldBatch: true,
+
       // http://dev.apollodata.com/core/network.html#query-deduplication
       queryDeduplication: true,
 
@@ -146,9 +150,11 @@ export class BaseApp {
       networkInterface: this.networkInterface,
 
       // https://github.com/apollographql/apollo-client-devtools
+      // https://github.com/apollographql/apollo-client-devtools/issues/29
       // https://chrome.google.com/webstore/detail/apollo-client-developer-t/jdkknkkbebbapilgoeccciglkfbmbnfm
       connectToDevTools: true,
 
+      // TODO(burdon): Change ID to key.
       // Custom resolver (items are resolved from the cache.
       // http://dev.apollodata.com/react/cache-updates.html#cacheRedirect
       // https://github.com/apollographql/apollo-client/blob/a86acf25df5eaf0fdaab264fd16c2ed22657e65c/test/customResolvers.ts
@@ -280,6 +286,13 @@ export class BaseApp {
    */
   get store() {
     return this._store;
+  }
+
+  /**
+   * Apollo client.
+   */
+  get client() {
+    return this._apolloClient;
   }
 
   //

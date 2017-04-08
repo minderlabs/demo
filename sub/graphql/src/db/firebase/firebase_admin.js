@@ -57,6 +57,6 @@ db.ref('/users').once('value', data => {
     })
     .catch(error => {
       console.log('ERROR:', error);
-     process.exit();
+      process.exit();
     });
 });

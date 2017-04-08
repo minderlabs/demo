@@ -31,7 +31,8 @@ import './task.less';
  * @constructor
  */
 // TODO(burdon): Factor out helpers.
-const AddCreateSubTask = (mutator, user, parent, mutations) => {
+const CreateTask = (mutator, user, parent, mutations) => {
+  console.assert(parent.project);
   return mutator
     .batch(parent.project.bucket)
     .createItem('Task', _.concat(mutations, [
@@ -126,7 +127,7 @@ export class TaskCard extends React.Component {
       mutator.batch(item.bucket).updateItem(item, mutations).commit();
     } else {
       let { item:parent } = this.props;
-      AddCreateSubTask(mutator, user, parent, mutations).commit();
+      CreateTask(mutator, user, parent, mutations).commit();
     }
   }
 
@@ -230,7 +231,7 @@ class TaskCanvasComponent extends React.Component {
       mutator.updateItem(item, mutations);
     } else {
       let { item:parent } = this.props;
-      AddCreateSubTask(mutator, user, parent, mutations).commit();
+      CreateTask(mutator, user, parent, mutations).commit();
     }
   }
 

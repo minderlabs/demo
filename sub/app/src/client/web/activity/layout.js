@@ -164,7 +164,9 @@ export class LayoutComponent extends React.Component {
             </Sidebar>
 
             {/* Debug */}
-            { debugPanel }
+            <div className="app-debug-panel-container">
+              { debugPanel }
+            </div>
 
             {/* Footer */}
             <div className="app-footer">

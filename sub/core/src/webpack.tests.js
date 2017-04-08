@@ -9,6 +9,5 @@
 const testsContext = require.context('.', true, /\.test\.js$/);
 
 testsContext.keys().forEach(function(path) {
-  console.log('### TESTING [' + path + '] ###');
   testsContext(path);
 });
