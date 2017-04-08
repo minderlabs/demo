@@ -36,6 +36,25 @@ export class TestGenerator {
 
       Randomizer.property('title', (item, context, randomizer) =>
         randomizer.chance.sentence({ words: randomizer.chance.natural({ min: 3, max: 5 }) })),
+
+      Randomizer.property('contacts', (item, context, randomizer) => {
+        let { userId } = context;
+        let num = randomizer.chance.natural({ min: 3, max: 5 });
+
+        console.log('GEN CONTACTS', num, item.title);
+
+        if (num) {
+          // TODO(burdon): Reuse generator? (but same project).
+          return database.getItemStore(Database.NAMESPACE.USER).upsertItems(context, _.times(num, i => ({
+            type: 'Contact',
+            bucket: item.bucket,
+            title: randomizer.chance.name(),
+            email: randomizer.chance.email()
+          }))).then(items => {
+            return _.map(items, item => item.id);
+          });
+        }
+      })
     ],
 
     'Task': [
@@ -101,6 +120,15 @@ export class TestGenerator {
           });
         }
       })
+    ],
+
+    'Contact': [
+
+      Randomizer.property('bucket', (item, context, randomizer) => randomizer.chance.pickone(context.buckets)),
+
+      Randomizer.property('title', (item, context, randomizer) => randomizer.chance.name()),
+
+      Randomizer.property('email', (item, context, randomizer) => randomizer.chance.email())
     ]
   });
 
@@ -170,10 +198,15 @@ export class TestGenerator {
                 return Promise.resolve()
                   // TODO(burdon): Add default label for private project.
                   // TODO(burdon): Auto-provision project when creating a group.
+
                   .then(() =>
-                    this.generateItems(context, 'Project', 0))
+                    this.generateItems(context, 'Project', 1))
+
                   .then(() =>
-                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 0, max: 3 })));
+                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 3, max: 5 })))
+
+                  .then(() =>
+                    this.generateItems(context, 'Contact', this._randomizer.chance.natural({ min: 1, max: 3 })))
               }));
             });
         }));

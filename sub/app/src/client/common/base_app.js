@@ -140,8 +140,9 @@ export class BaseApp {
       dataIdFromObject: ID.dataIdFromObject,
       addTypename: true,
 
+      // TODO(burdon): Need to update reducers to accept multiple results.
       // https://dev-blog.apollodata.com/query-batching-in-apollo-63acfd859862
-      shouldBatch: true,
+//    shouldBatch: true,
 
       // http://dev.apollodata.com/core/network.html#query-deduplication
       queryDeduplication: true,

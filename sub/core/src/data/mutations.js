@@ -97,6 +97,9 @@ export class MutationUtil {
     if (item.email) {
       mutations.push(MutationUtil.createFieldMutation('email', 'string', item.email));
     }
+    if (item.thumbnailUrl) {
+      mutations.push(MutationUtil.createFieldMutation('thumbnailUrl', 'string', item.thumbnailUrl));
+    }
 
     return mutations;
   }
@@ -104,16 +107,18 @@ export class MutationUtil {
   /**
    * Creates a set mutation.
    *
-   * @param field
-   * @param type
-   * @param value
+   * @param {string} field
+   * @param {string} type
+   * @param {string|int} value
+   * @param {boolean} add
    */
-  static createSetMutation(field, type, value) {
+  static createSetMutation(field, type, value, add=true) {
     console.assert(field && type && value);
     return {
       field,
       value: {
         set: [{
+          add,
           value: {
             [type]: value
           }
@@ -210,9 +215,9 @@ class Batch {
 
   /**
    * Creates new item in batch.
-   * @param type
-   * @param mutations
-   * @param name Optional name that can be referenced by subsequent updates below.
+   * @param {string} type
+   * @param {[Mutation]} mutations
+   * @param {string} name Optional name that can be referenced by subsequent updates below.
    * @return {Batch}
    */
   createItem(type, mutations, name=undefined) {
@@ -227,16 +232,16 @@ class Batch {
 
   /**
    * Updates existing item in batch.
-   * @param item
-   * @param mutations Mutations can reference created items above via ${name}.
+   * @param {Item} item
+   * @param {[Mutation]} mutations Mutations can reference created items above via ${name}.
+   * @param {string} name Optional name that can be referenced by subsequent updates below.
    * @return {Batch}
    */
-  updateItem(item, mutations) {
+  updateItem(item, mutations, name=undefined) {
     console.assert(item && mutations);
     mutations = TypeUtil.flattenArrays(mutations);
     this._operations.push({
-      item,
-      mutations
+      item, mutations, name
     });
 
     return this;
@@ -255,19 +260,8 @@ class Batch {
 
     // Process create and update mutations.
     _.each(this._operations, operation => {
-      let { type, item, mutations, name } = operation;
-      if (type) {
-        //
-        // Create item.
-        //
-
-        item = this._mutator._createItem(this._bucket, type, mutations);
-        itemsById.set(item.id, item);
-
-        if (name) {
-          itemsByName.set(name, item);
-        }
-      } else {
+      let { item, type, mutations, name } = operation;
+      if (item) {
         //
         // Update item.
         //
@@ -285,7 +279,21 @@ class Batch {
         });
 
         // Update item.
-        this._mutator._updateItem(this._bucket, item, mutations, itemsById);
+        item = this._mutator._updateItem(this._bucket, item, mutations, itemsById);
+        itemsById.set(item.id, item);
+        if (name) {
+          itemsByName.set(name, item);
+        }
+      } else {
+        //
+        // Create item.
+        //
+
+        item = this._mutator._createItem(this._bucket, type, mutations);
+        itemsById.set(item.id, item);
+        if (name) {
+          itemsByName.set(name, item);
+        }
       }
     });
   }
@@ -360,7 +368,7 @@ export class Mutator {
    *
    * @param {string} bucket
    * @param {string} type
-   * @param mutations
+   * @param {[{Mutations}]} mutations
    * @return {Item} Optimistic result.
    */
   _createItem(bucket, type, mutations) {
@@ -421,8 +429,8 @@ export class Mutator {
    *
    * @param {string} bucket
    * @param {Item} item
-   * @param mutations
-   * @param [itemMap] Optional map of cached items.
+   * @param {[{Mutations}]} mutations
+   * @param {object} itemMap Optional map of cached items.
    * @return {Item} Optimistic result (NOTE: this will change if the item is being copied).
    */
   _updateItem(bucket, item, mutations, itemMap=undefined) {
@@ -435,50 +443,51 @@ export class Mutator {
     //
 
     if (item.namespace) {
-      if (item.namespace === Database.NAMESPACE.LOCAL) {
+      switch (item.namespace) {
+        case Database.NAMESPACE.LOCAL: {
 
-        //
-        // Clone local item on mutation.
-        //
+          //
+          // Clone local item on mutation.
+          //
 
-        let cloneMutations = _.concat(
+          let cloneMutations = _.concat(
+            // Mutations to clone the item's properties.
+            // TODO(burdon): Remove mutations for current properties below.
+            MutationUtil.cloneItem(bucket, item),
 
-          // Mutations to clone the item's properties.
-          // TODO(burdon): Remove mutations for current properties below.
-          MutationUtil.cloneItem(bucket, item),
+            // Current mutations.
+            mutations
+          );
 
-          // Current mutations.
-          mutations
-        );
+          // TODO(burdon): Add fkey (e.g., email)?
+          let clonedItem = this._createItem(bucket, item.type, cloneMutations);
+          logger.log('Cloned local item: ' + JSON.stringify(clonedItem));
+          return clonedItem;
+        }
 
-        logger.log('Cloning local item: ' + JSON.stringify(item));
-        let clonedItem = this._createItem(bucket, item.type, cloneMutations);
-        return _.assign(clonedItem, {
-          // TODO(burdon): Add email as fkey.
-          fkey: clonedItem.id
-        });
-      } else {
+        default: {
+          //
+          // Clone external item on mutation.
+          // NOTE: This assumes that external items are never presented to the client when a USER item
+          // exists; i.e., external/USER items are merged on the server (Database.search).
+          //
 
-        //
-        // Clone external item on mutation.
-        // NOTE: This assumes that external items are never presented to the client when a USER item
-        // exists; i.e., external/USER items are merged on the server (Database.search).
-        //
+          let cloneMutations = _.concat(
+            // Reference the external item.
+            MutationUtil.createFieldMutation('fkey', 'string', ID.getForeignKey(item)),
 
-        let cloneMutations = _.concat(
-          // Reference the external item.
-          MutationUtil.createFieldMutation('fkey', 'string', ID.getForeignKey(item)),
+            // Mutations to clone the item's properties.
+            // TODO(burdon): Remove mutations for current properties below.
+            MutationUtil.cloneItem(bucket, item),
 
-          // Mutations to clone the item's properties.
-          // TODO(burdon): Remove mutations for current properties below.
-          MutationUtil.cloneItem(bucket, item),
+            // Current mutations.
+            mutations
+          );
 
-          // Current mutations.
-          mutations
-        );
-
-        logger.log('Cloning external item: ' + JSON.stringify(item));
-        return this._createItem(bucket, item.type, cloneMutations);
+          let clonedItem = this._createItem(bucket, item.type, cloneMutations);
+          logger.log('Cloned external item: ' + JSON.stringify(clonedItem));
+          return clonedItem;
+        }
       }
     }
 

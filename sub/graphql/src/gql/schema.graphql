@@ -102,6 +102,7 @@ type Contact implements Item {
   labels: [String]
 
   email: String
+  thumbnailUrl: String
 
   user: User
 
@@ -122,7 +123,7 @@ type Document implements Item {
   description: String
   labels: [String]
 
-  # TODO(burdon): Move url, iconUrl, thumbnailUrl to ItemFragment
+  # TODO(burdon): Move url, iconUrl, thumbnailUrl (avatar) to ItemFragment
   url: String
   iconUrl: String
   thumbnailUrl: String
@@ -200,6 +201,9 @@ type Project implements Item {
   # TODO(burdon): Different sub-types (e.g., Pipeline with orgs/contacts and separate boards).
   tasks: [Task]!
 
+  # TODO(burdon): Factor out Pipeline mixin.
+  contacts: [Contact]
+
   # TODO(burdon): Map type (array of typed values).
   boards: [Board]
 }
@@ -270,11 +274,13 @@ type GroupedItems {
   id: ID!
 
   # Grouped children IDs.
-  groups: [GroupSet]!
+  groups: [GroupSet]
 }
 
 type GroupSet {
+
   field: String!
+
   ids: [ID]!
 }
 

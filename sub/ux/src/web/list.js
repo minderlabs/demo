@@ -252,17 +252,41 @@ export class List extends React.Component {
     let { itemClassName, itemOrderModel, groupedItems, data } = this.props;
     let { items, itemRenderer, itemEditor, addItem, editItem } = this.state;
 
-    // TODO(burdon): Group/merge items.
+    //
+    // Group/merge items.
+    //
+
     if (groupedItems) {
-      let itemMap = ItemUtil.createItemMap(items);
-      items = _.map(groupedItems, groupedItem => {
-        let item = itemMap.get(groupedItem.id);
-        // TODO(burdon): Add grandchildren?
-        return item;
+
+      // Create Set of all grouped items.
+      let ids = new Set();
+      _.each(groupedItems, groupedItem => {
+        ids.add(groupedItem.id);
+        _.each(groupedItem.groups, group => {
+          _.each(group.ids, id => ids.add(id));
+        });
       });
+
+      // Create ordered items.
+      let items2 = _.filter(items, item => {
+        if (ids.has(item.id)) {
+          // TODO(burdon): Add grandchildren?
+          return _.findIndex(groupedItems, groupedItem => groupedItem.id === item.id) !== -1;
+        } else {
+          return true;
+        }
+      });
+
+      // TODO(burdon): ???
+//    console.log('===', _.map(items2, item => item.title));
     }
 
+//  console.log('########', _.map(items, item => item.title));
+
+    //
     // Sort items by order model.
+    //
+
     if (itemOrderModel) {
       items = itemOrderModel.getOrderedItems(items);
     }

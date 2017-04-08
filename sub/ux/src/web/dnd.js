@@ -257,7 +257,7 @@ export class DragOrderModel {
    * @param listId Current list ID.
    * @param dropOrder Order of drop zone.
    *
-   * @return [{ id, order }] Mutations applied for this change.
+   * @return {[{ id, order }]} Mutations applied for this change.
    */
   // TODO(burdon): Depends on item.id (make sure unique).
   setOrder(items, itemId, listId, dropOrder) {

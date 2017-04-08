@@ -99,6 +99,7 @@ export const Fragments = {
     ${ItemMetaFragment}
   `,
 
+  // TODO(burdon): Include ItemFragment in all of below (remove ItemMetaFragment).
   // TODO(burdon): Warning: fragment with name ItemFragment already exists.
   ItemFragment: gql`
     fragment ItemFragment on Item {
@@ -121,7 +122,7 @@ export const Fragments = {
   ContactFragment: gql`
     fragment ContactFragment on Contact {
       email
-      fkey
+      thumbnailUrl
 
       tasks {
         ...ItemMetaFragment
@@ -135,7 +136,8 @@ export const Fragments = {
   ContactTasksFragment: gql`
     fragment ContactTasksFragment on Contact {
       email
-
+      thumbnailUrl
+      
       tasks {
         ...ItemMetaFragment
         status

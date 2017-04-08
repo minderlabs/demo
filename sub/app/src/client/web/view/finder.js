@@ -60,6 +60,7 @@ class Finder extends React.Component {
 
       // TODO(burdon): FIX!
       listType = 'card';
+//      filter = {};
 
       let list;
       switch (listType) {
@@ -123,7 +124,7 @@ const ContextQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  let { injector, config, search } = AppAction.getState(state);
+  let { injector, config, userProfile, search } = AppAction.getState(state);
 
   // Required by Mutator.
   let idGenerator = injector.get(IdGenerator);
@@ -140,10 +141,11 @@ const mapStateToProps = (state, ownProps) => {
   let contextManager = null;
   // TODO(burdon): Not just CRX.
   if (platform === Const.PLATFORM.CRX) {
+
     // Current user context (e.g., host inspector transient items).
     // TODO(burdon): Binds to context action; should trigger context to requery.
     let contextState = ContextAction.getState(state);
-    contextManager = injector.get(ContextManager).updateContext(contextState);
+    contextManager = injector.get(ContextManager).updateContext(userProfile, contextState);
   }
 
   return {
@@ -155,7 +157,7 @@ const mapStateToProps = (state, ownProps) => {
   };
 };
 
-const ContextListReducer = new ListReducer(ContextQuery);
+const ContextListReducer = new ListReducer(ContextQuery, null, 'items');
 
 export default compose(
 
@@ -213,15 +215,15 @@ export default compose(
     props: ({ ownProps, data }) => {
       let { contextManager } = ownProps;
       let { contextSearch={} } = data;
-      let { contextItems } = contextSearch;
+      let { items } = contextSearch;
 
       // Update context.
       if (contextManager) {
-        contextManager.updateContextItems(contextItems);
+        contextManager.updateContextItems(items);
       }
 
       return {
-        contextItems,
+        items,
 
         // For subscriptions.
         refetch: () => {

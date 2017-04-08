@@ -329,11 +329,8 @@ export class ListReducer extends Reducer {
       return reducer(matcher, context, filter, previousResult, updatedItem);
     }
 
-    // Path to items in result.
-    let path = this._path;
-
     // Items in current list (previous result).
-    let currentItems = _.get(previousResult, path);
+    let currentItems = _.get(previousResult, this._path);
 
     // Look for existing item.
     let currentItem = _.find(currentItems, item => item.id === updatedItem.id);
@@ -346,7 +343,7 @@ export class ListReducer extends Reducer {
       let currentExternal =
         _.find(currentItems, item => item.namespace && (ID.getForeignKey(item) === updatedItem.fkey));
       if (currentExternal) {
-        return _.set({}, path, {
+        return _.set({}, this._path, {
           $deepMerge: {
             id: currentExternal.id,
             item: updatedItem,
@@ -362,7 +359,7 @@ export class ListReducer extends Reducer {
     //
     let match = matcher.matchItem(context, {}, filter, updatedItem);
     if (!match) {
-      return _.set({}, path, {
+      return _.set({}, this._path, {
         $remove: updatedItem
       });
     }
@@ -371,8 +368,8 @@ export class ListReducer extends Reducer {
     // Insert the item if it doesn't already exist (but matches).
     //
     if (!currentItem) {
-     // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
-      return _.set({}, path, {
+      // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
+      return _.set({}, this._path, {
         $push: [ updatedItem ]
       });
     }

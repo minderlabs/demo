@@ -4,11 +4,15 @@
 
 import { Const } from '../../common/defs';
 
+import { Logger } from 'minder-core';
+
 import { AppAction, AppReducer, ContextAction, ContextReducer } from '../common/reducers';
 import { WebApp } from '../web/app';
 
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 import { Application } from './sidebar/app';
+
+const logger = Logger.get('sidebar-test');
 
 /**
  * Test sidebar app (enable testing within DOM).
@@ -86,7 +90,7 @@ app.init().then(() => {
         };
 
         window.minder.store.dispatch(action);
-        console.log(`window.minder.store.dispatch(${JSON.stringify(action)})`);
+        logger.log(`window.minder.store.dispatch(${JSON.stringify(action)})`);
       });
 
     _.each(window.ITEMS, (value, key) => {
