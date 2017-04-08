@@ -20,7 +20,7 @@ interface Item {
   type: String!
   id: ID!
 
-  fkey: String                # TODO(burdon): Mutions foreign keys.
+  fkey: String                # TODO(burdon): Multiple foreign keys (e.g., email, linkedin).
   alias: String               # Short-name for URLs (unique, human-readable).
   created: Timestamp!
   modified: Timestamp!
@@ -93,7 +93,6 @@ type Contact implements Item {
   bucket: ID
   type: String!
   id: ID!
-  # TODO(burdon): Key.
   fkey: String
   alias: String
   created: Timestamp!
@@ -291,8 +290,11 @@ type RootQuery {
   viewer: Viewer!
 
   # Get specific.
-  # TODO(burdon): Lookup by Key (with bucket).
-  # TODO(burdon): Return multiple items.
+  # TODO(burdon): Return multiple items with bucket. search:"item(itemId: $itemId)"
+  # TODO(burdon): For All typed cards.
+  # TODO(burdon): Rename root of item query by type name (lowercase).
+  # TODO(burdon): Resolver.RootQuery.item()
+  # TODO(burdon): connectReducer(ItemReducer.graphql(ContactQuery)) => ItemReducer variables.itemId
   # TODO(burdon): Add basic ItemStore key-range lookup.
   item(itemId: ID!): Item!
 
