@@ -19,14 +19,18 @@ interface Item {
   bucket: ID                  # ID of User or Group (null for system item).
   type: String!
   id: ID!
-  # TODO(burdon): Multiple.
-  fkey: String                # Foreign key.
+
+  fkey: String                # TODO(burdon): Mutions foreign keys.
   alias: String               # Short-name for URLs (unique, human-readable).
   created: Timestamp!
   modified: Timestamp!
+
   title: String!
   description: String
   labels: [String]
+
+  # NOTE: Don't provide generic links; instead allow mixins of sub-types.
+# items(type: String, filter: FilterInput): [Item]!
 }
 
 #===================================================================================================
@@ -51,7 +55,7 @@ type User implements Item {
   # TODO(burdon): Part of contact?
   email: String
 
-  # TODO(burdon): Bi-directional.
+  # TODO(burdon): Bi-directional? (ref from User to System store?)
   contact: Contact
 
   # TODO(burdon): Remove (only query via project links).
@@ -247,14 +251,16 @@ type Viewer {
 }
 
 #===================================================================================================
-# Queries.
-# NOTE: Must only have Input types (since regular types might be recursive and therefore not serializable).
-# https://github.com/graphql/graphql-js/issues/312
+# Search Results.
 #===================================================================================================
 
-type GroupSet {
-  field: String!
-  ids: [ID]!
+type SearchResult {
+
+  # Results.
+  items: [Item]!
+
+  # Grouped results.
+  groupedItems: [GroupedItems]
 }
 
 # Groups items (via groupBy query).
@@ -268,14 +274,16 @@ type GroupedItems {
   groups: [GroupSet]!
 }
 
-type SearchResult {
-
-  # Results.
-  items: [Item]!
-
-  # Grouped results.
-  groupedItems: [GroupedItems]
+type GroupSet {
+  field: String!
+  ids: [ID]!
 }
+
+#===================================================================================================
+# Queries.
+# NOTE: Must only have Input types (since regular types might be recursive and therefore not serializable).
+# https://github.com/graphql/graphql-js/issues/312
+#===================================================================================================
 
 type RootQuery {
 
@@ -283,7 +291,7 @@ type RootQuery {
   viewer: Viewer!
 
   # Get specific.
-  # TODO(burdon): Namespace.
+  # TODO(burdon): Lookup by Key (with bucket).
   # TODO(burdon): Return multiple items.
   # TODO(burdon): Add basic ItemStore key-range lookup.
   item(itemId: ID!): Item!

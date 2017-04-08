@@ -77,9 +77,17 @@ export class Resolvers {
         __serialize: value => value,
         __parseValue: value => value,
         __parseLiteral: ast => {
-          return (ask.kind === Kind.INT) ? parseInt(ast.value) : null;
+          return (ast.kind === Kind.INT) ? parseInt(ast.value) : null;
         }
       },
+
+      // Bucket: {
+      //   __serialize: value => value,
+      //   __parseValue: value => value,
+      //   __parseLiteral: ast => {
+      //     return (ast.kind === Kind.STRING) ? ast.value : null;
+      //   }
+      // },
 
       //
       // Interfaces.

@@ -27,18 +27,27 @@ scalar Date
 
 scalar Timestamp
 
-# TODO(burdon): Directives (for subscriptions, links, etc.)
-
-
-# TODO(burdon): Key. Use in each Item? other Meta data types.
+#===================================================================================================
+# TODO(burdon): Use
 # TODO(burdon): Move Item def here?
+#===================================================================================================
 
+# TODO(burdon): Type for IDs/Buckets?
+scalar Bucket
+
+# Key and Foreign Key.
 type Key {
   namespace:  String
   bucket:     String
-  type:       String
+  type:       String!
   id:         ID!
 }
+
+#===================================================================================================
+# Directives
+# TODO(burdon): Directives (for subscriptions, links, etc.)
+# https://dev-blog.apollodata.com/new-features-in-graphql-batch-defer-stream-live-and-subscribe-7585d0c28b07
+#===================================================================================================
 
 
 #===================================================================================================
