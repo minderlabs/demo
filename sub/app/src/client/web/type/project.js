@@ -231,6 +231,7 @@ class ProjectBoardCanvasComponent extends React.Component {
      */
     pipeline: {
 
+      // TODO(burdon): Load from JSON config.
       COLUMNS: [
         {
           id:     'prospect',
@@ -282,6 +283,8 @@ class ProjectBoardCanvasComponent extends React.Component {
           });
 
           mutations.push(MutationUtil.createSetMutation('labels', 'string', column.value));
+
+          console.log('########', JSON.stringify(mutations, null, 2));
 
           return mutations;
         }

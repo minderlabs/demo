@@ -31,6 +31,8 @@ Instead use Flex to set the global state and have the child react accordingly.
 Otherwise use withRef (which doesn't currently work).
 
 - http://dev.apollodata.com/react/higher-order-components.html#with-ref
+
+
 ## Config
 
 ~~~~
@@ -210,6 +212,12 @@ Alternatively, make elements conditionally visible. E.g.,
     })() }
 ~~~~
 
+
+### Rendering
+
+- INPUT being reset
+  - http://stackoverflow.com/questions/36267844/how-is-react-able-to-suppress-the-change-of-the-input-field-value
+  - https://facebook.github.io/react/docs/react-component.html
 
 ### Gotchas
 

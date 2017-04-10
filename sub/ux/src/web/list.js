@@ -105,21 +105,12 @@ export class List extends React.Component {
   };
 
   state = {
-    items: this.props.items || [],
-
     itemEditor:   this.props.itemEditor   || List.DefaultItemEditor,
     itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
 
     addItem: false,     // { boolean }
     editItem: null      // { string:ID }
   };
-
-  // TODO(burdon): Why is this part of state?
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      items: nextProps.items || []
-    });
-  }
 
   getChildContext() {
     return {
@@ -249,8 +240,8 @@ export class List extends React.Component {
   render() {
 
     // NOTE: data is a user-label to identify the list.
-    let { itemClassName, itemOrderModel, groupedItems, data } = this.props;
-    let { items, itemRenderer, itemEditor, addItem, editItem } = this.state;
+    let { items, itemClassName, itemOrderModel, groupedItems, data } = this.props;
+    let { itemRenderer, itemEditor, addItem, editItem } = this.state;
 
     //
     // Group/merge items.
@@ -387,7 +378,6 @@ export class List extends React.Component {
       <div className={ className }>
         { rows }
         { lastDropTarget }
-
         { editor }
       </div>
     );
