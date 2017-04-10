@@ -257,6 +257,7 @@ type Viewer {
 # Search Results.
 #===================================================================================================
 
+# TODO(burdon): Add metadata (e.g., timestamp).
 type SearchResult {
 
   # Results.

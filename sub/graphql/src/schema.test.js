@@ -80,7 +80,7 @@ describe('GraphQL Mock Server:', () => {
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
   let resolverMap = {
     RootQuery: () => ({
-      viewer: (root, args) => {
+      search: (root, args) => {
         let { userId:id } = context;
 
         return {
@@ -99,7 +99,7 @@ describe('GraphQL Mock Server:', () => {
 
   it('Query viewer', (done) => {
     server.query(query).then(result => test(result, {
-      viewer: {
+      search: {
         user: {
           id: 'minder',
           title: 'Minder'
@@ -141,7 +141,7 @@ describe('GraphQL Executable Schema:', () => {
 
           // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
           graphql(schema, query, null, context).then(result => test(result, {
-            viewer: {
+            search: {
               user: {
                 id: 'minder',
                 title: 'Minder'
@@ -167,7 +167,7 @@ describe('GraphQL JS API:', () => {
     query: new GraphQLObjectType({
       name: 'RootQuery',
       fields: {
-        viewer: {
+        search: {
           type: new GraphQLObjectType({
             name: 'Viewer',
             fields: {
@@ -214,7 +214,7 @@ describe('GraphQL JS API:', () => {
       it('Query viewer', (done) => {
         // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
         graphql(schema, query, null, context).then(result => test(result, {
-          viewer: {
+          search: {
             user: {
               id: 'minder',
               title: 'Minder'

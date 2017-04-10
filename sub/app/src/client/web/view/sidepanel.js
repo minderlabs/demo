@@ -135,12 +135,12 @@ export default compose(
   // Query.
   graphql(SidebarQuery, {
     props: ({ ownProps, data }) => {
-      let { errors, loading, viewer } = data;
+      let { errors, loading, search } = data;
 
       return {
         errors,
         loading,
-        viewer,
+        search,
 
         // For subscriptions.
         refetch: () => {

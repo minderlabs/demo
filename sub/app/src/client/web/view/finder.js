@@ -168,12 +168,12 @@ export default compose(
   graphql(FoldersQuery, {
 
     props: ({ ownProps, data }) => {
-      let { errors, loading, viewer } = data;
+      let { errors, loading, search } = data;
       let { filter } = ownProps;
 
       // Create list filter (if not overridden by text search above).
-      if (viewer && QueryParser.isEmpty(filter)) {
-        _.each(viewer.folders, folder => {
+      if (search && QueryParser.isEmpty(filter)) {
+        _.each(search.folders, folder => {
           if (folder.alias === ownProps.folder) {
             filter = JSON.parse(folder.filter);
             return false;

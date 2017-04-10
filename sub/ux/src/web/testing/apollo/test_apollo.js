@@ -33,13 +33,17 @@ class RootComponent extends React.Component {
 
   render() {
     return ReactUtil.render(this, (props) => {
-      let { viewer={} } = this.props;
-      let { user } = viewer;
+      let { search } = this.props;
 
-      console.log('RootComponent.render:', JSON.stringify(viewer));
+      console.log('RootComponent.render:', JSON.stringify(search));
       return (
         <div>
-          <div>Result[{ ++this.count }]: { JSON.stringify(user) }</div>
+          <div>Result[{ ++this.count }]</div>
+
+          {_.map(search.items, item => (
+            <div key={ item.id } title={ item.id }>{ item.title }</div>
+          ))}
+
           <button onClick={ this.handleRefetch.bind(this) }>Refetch</button>
         </div>
       );
@@ -73,12 +77,13 @@ const RootComponentWithRedux = connect(mapStateToProps, mapDispatchToProps)(Root
 // http://dev.apollodata.com/react/api-queries.html
 //-------------------------------------------------------------------------------------------------
 
-// TODO(burdon): Test search.
 const TestQuery = gql`
-  query TestQuery {
-    viewer {
-      user {
+  query TestQuery($filter: FilterInput) {
+    search(filter: $filter) {
+      items {
+        type
         id
+        title
       }
     }
   }
@@ -101,7 +106,7 @@ const RootComponentWithReduxAndApollo = compose(
         fetchPolicy: 'network-only',
 
         variables: {
-          foo: 100  // TODO(burdon): Fix.
+          filter: { Type: 'Task' }
         }
       };
     },
@@ -111,8 +116,9 @@ const RootComponentWithReduxAndApollo = compose(
 
     // http://dev.apollodata.com/react/queries.html#graphql-props-option
     props: ({ ownProps, data }) => {
-      let { errors, loading, viewer } = data;
-      console.log('graphql.props:  ', _.get(TestQuery, 'definitions[0].name.value'), loading ? 'loading...' : JSON.stringify(viewer));
+      let { errors, loading, search } = data;
+      console.log('graphql.props:  ', _.get(TestQuery, 'definitions[0].name.value'),
+        loading ? 'loading...' : JSON.stringify(search));
 
       // TODO(burdon): updateQuery.
 
@@ -121,9 +127,10 @@ const RootComponentWithReduxAndApollo = compose(
         errors,
         loading,
 
-        viewer,
+        search,
 
         refetch: () => {
+          // NOTE: Doesn't trigger re-render unless results change.
           data.refetch();
         }
       };
@@ -140,10 +147,26 @@ const RootComponentWithReduxAndApollo = compose(
 // Test Server.
 //-------------------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-// App
-// React-Router-Redux => Apollo => Redux => React.
-//-------------------------------------------------------------------------------------------------
+const ITEMS = [
+  {
+    __typename: 'Task',
+    type: 'Task',
+    id: 'T-1',
+    title: 'Task 1'
+  },
+  {
+    __typename: 'Task',
+    type: 'Task',
+    id: 'T-2',
+    title: 'Task 2'
+  },
+  {
+    __typename: 'Task',
+    type: 'Task',
+    id: 'T-3',
+    title: 'Task 3'
+  }
+];
 
 class TestingNetworkInterface {
 
@@ -155,12 +178,9 @@ class TestingNetworkInterface {
     return Promise.resolve({
 //    errors: [{ message: 'TestingNetworkInterface Error' }],
       data: {
-        viewer: {
-          __typename: 'Viewer',       // NOTE: Must be present in result.
-          user: {
-            __typename: 'User',
-            id: 'U-1'
-          }
+        search: {
+          __typename: 'SearchResult', // NOTE: Must be present in result.
+          items: ITEMS
         }
       }
     }).then(response => {
@@ -169,6 +189,11 @@ class TestingNetworkInterface {
     });
   }
 }
+
+//-------------------------------------------------------------------------------------------------
+// App
+// React-Router-Redux => Apollo => Redux => React.
+//-------------------------------------------------------------------------------------------------
 
 class App {
 
