@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { browserHistory, Route, Router } from 'react-router'
+import { browserHistory, Route, Router } from 'react-router';
 
 import TestDragBoard from './dnd/board';
 import TestBoard from './test_board';

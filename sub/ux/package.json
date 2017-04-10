@@ -50,6 +50,7 @@
     "webpack-link": "^0.2.0"
   },
   "dependencies": {
+    "apollo-client": "^1.0.2",
     "body-parser": "^1.17.1",
     "chance": "^1.0.6",
     "fbemitter": "^2.1.1",
@@ -59,11 +60,13 @@
     "moment": "^2.18.1",
     "react": "^15.3.2",
     "react-addons-update": "^15.3.2",
+    "react-apollo": "^1.0.1",
     "react-dnd": "^2.3.0",
     "react-dnd-html5-backend": "^2.3.0",
     "react-dom": "^15.3.2",
     "react-redux": "^5.0.3",
-    "react-router": "^3.0.3"
+    "react-router": "^3.0.3",
+    "react-router-redux": "^4.0.8"
   },
   "scripts": {
     "//": "https://webpack.github.io/docs/webpack-dev-server.html#content-base",

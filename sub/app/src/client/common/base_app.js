@@ -215,7 +215,6 @@ export class BaseApp {
       // https://www.learnapollo.com/excursions/excursion-02/
       //
       apollo: this._apolloClient.reducer(),
-
     }));
 
     // https://github.com/acdlite/reduce-reducers
@@ -229,13 +228,13 @@ export class BaseApp {
       // () => (dispatch, getState, injector) => { ... }
       applyMiddleware(ReduxThunk.withExtraArgument(this._injector)),
 
-      // Apollo-Redux bindings.
-      applyMiddleware(this._apolloClient.middleware()),
-
       // Enable navigation via redux dispatch.
       // https://github.com/reactjs/react-router-redux#what-if-i-want-to-issue-navigation-events-via-redux-actions
       // https://github.com/reactjs/react-router-redux#pushlocation-replacelocation-gonumber-goback-goforward
       applyMiddleware(routerMiddleware(this.history)),
+
+      // Apollo-Redux bindings.
+      applyMiddleware(this._apolloClient.middleware()),
 
       // https://github.com/zalmoxisus/redux-devtools-extension
       // https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd

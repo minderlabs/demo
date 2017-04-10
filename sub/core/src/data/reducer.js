@@ -229,7 +229,7 @@ export class ListReducer extends Reducer {
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
         let { matcher, filter, itemInjector } = ownProps;
-        let { loading, error, refetch } = data;
+        let { errors, loading, refetch } = data;
 
         // Get query result.
         let items = listReducer.getResult(data, []);
@@ -241,8 +241,8 @@ export class ListReducer extends Reducer {
         }
 
         return {
+          errors,
           loading,
-          error,
           refetch,
           matcher,
 
@@ -438,12 +438,12 @@ export class ItemReducer extends Reducer {
       // Map query result to component properties.
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
-        let { loading, error, refetch } = data;
+        let { errors, loading, refetch } = data;
         let item = itemReducer.getResult(data);
 
         return {
+          errors,
           loading,
-          error,
           refetch,
           item
         }

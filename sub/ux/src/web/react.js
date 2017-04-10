@@ -20,10 +20,17 @@ export class ReactUtil {
    * @param showLoading
    * @return {Element}
    */
-  static render(cls, render, showLoading = true) {
-    let { loading, error } = cls.props;
+  static render(cls, render, showLoading=true) {
+    let { errors, loading } = cls.props;
 
-    if (loading) {
+    if (errors) {
+      // Network errors are already logged.
+      // Internal Apollo errors are swallowed.
+      return (
+        <div className="ux-error">{ cls.constructor.name + ': ' + String(errors) }</div>
+      );
+    } else if (loading) {
+      // React components are rendered before and after requesting Apollo queries.
       if (showLoading) {
         return (
           <div className="ux-loading">
@@ -33,14 +40,9 @@ export class ReactUtil {
       } else {
         return <div/>;
       }
-    } else if (error) {
-      // Network errors are already logged.
-      return (
-        <div className="ux-error">{ cls.constructor.name + ': ' + String(error) }</div>
-      );
     } else {
       try {
-        // Ready.
+        // Call the component's renderer.
         return render(cls.props, cls.context);
       } catch(error) {
         // TODO(burdon): Log if prod and show standard error.

@@ -365,12 +365,12 @@ const MembersPicker = compose(
     },
 
     props: ({ ownProps, data }) => {
-      let { loading, error, group={} } = data;
+      let { errors, loading, group={} } = data;
       let { members:items } = group;
 
       return {
+        errors,
         loading,
-        error,
         items
       };
     }

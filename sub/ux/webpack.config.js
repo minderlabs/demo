@@ -26,6 +26,10 @@ module.exports = _.merge(baseConfig, {
   entry: {
     test: [
       path.resolve(baseConfig.context, 'src/web/testing/test.js'),
+    ],
+
+    test_apollo: [
+      path.resolve(baseConfig.context, 'src/web/testing/apollo/test_apollo.js'),
     ]
   },
 

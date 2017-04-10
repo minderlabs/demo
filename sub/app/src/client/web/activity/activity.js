@@ -103,7 +103,7 @@ export class Activity {
       // Apollo viewer query.
       graphql(Fragments.ViewerQuery, {
         props: ({ ownProps, data }) => {
-          return _.pick(data, ['loading', 'error', 'viewer'])
+          return _.pick(data, ['errors', 'loading', 'viewer'])
         }
       })
     ];

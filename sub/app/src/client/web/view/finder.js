@@ -168,7 +168,7 @@ export default compose(
   graphql(FoldersQuery, {
 
     props: ({ ownProps, data }) => {
-      let { loading, error, viewer } = data;
+      let { errors, loading, viewer } = data;
       let { filter } = ownProps;
 
       // Create list filter (if not overridden by text search above).
@@ -182,8 +182,8 @@ export default compose(
       }
 
       return {
+        errors,
         loading,
-        error,
         filter
       };
     }

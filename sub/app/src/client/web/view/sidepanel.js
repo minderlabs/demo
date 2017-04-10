@@ -135,11 +135,11 @@ export default compose(
   // Query.
   graphql(SidebarQuery, {
     props: ({ ownProps, data }) => {
-      let { loading, error, viewer } = data;
+      let { errors, loading, viewer } = data;
 
       return {
+        errors,
         loading,
-        error,
         viewer,
 
         // For subscriptions.
