@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import { TextBox } from '../../index';
+import { TextBox } from '../textbox';
 
 /**
  * Test List.
@@ -48,6 +48,6 @@ export default class TestText extends React.Component {
         <button onClick={ this.handleRefresh.bind(this) }>Refresh</button>
         <button onClick={ this.handleChange.bind(this) }>Change</button>
       </div>
-    )
+    );
   }
 }
