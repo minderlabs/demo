@@ -79,6 +79,8 @@ export class Board extends React.Component {
     let { columnMapper, itemRenderer, itemOrderModel } = this.props;
     let { items, columns } = this.state;
 
+    console.log('>>>>> RENDER BOARD');
+
     //
     // Columns.
     //
@@ -86,6 +88,9 @@ export class Board extends React.Component {
 
       // Get items for column (in order).
       let columnItems = _.filter(items, item => column.id === columnMapper(columns, item));
+
+      // TODO(burdon): After opt this is out of date.
+      console.log('<<', column.id, _.map(columnItems, c => c.title), _.map(items, i => ('status:' + i.status)));
 
       return (
         <div key={ column.id } className="ux-board-column">

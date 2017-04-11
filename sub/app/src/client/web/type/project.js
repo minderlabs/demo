@@ -424,7 +424,14 @@ class ProjectBoardCanvasComponent extends React.Component {
 
       // Get the appropriate board.
       let board = _.find(_.get(project, 'boards'), board => board.alias === boardAlias);
-      itemOrderModel.setLayout(_.get(board, 'itemMeta', []));
+
+      // TODO(burdon): 1. TypeUtil.traverse in mutations inserts object in wrong place.
+      // TODO(burdon): 2. Render after optimistic result doesn't change: Board HAS been updated! Item.status not updated.
+
+      // TODO(burdon): DOC HOW COLUMN MAPPER WORKS? WHAT DATA?
+
+      console.log('##### RENDER PROJECT: META=', JSON.stringify(_.get(board, 'itemMeta')));
+      itemOrderModel.setLayout(_.get(board, 'itemMeta'));
 
       return (
         <Canvas ref="canvas"
