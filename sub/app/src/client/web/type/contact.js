@@ -29,6 +29,7 @@ export class ContactCard extends React.Component {
   // TODO(burdon): This is a very specialized ContactCard. Factor out sections.
 
   static contextTypes = {
+    config: React.PropTypes.object.isRequired,
     mutator: React.PropTypes.object.isRequired,
     viewer: React.PropTypes.object.isRequired,
   };
