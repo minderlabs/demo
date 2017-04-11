@@ -6,9 +6,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { browserHistory, Route, Router } from 'react-router';
 
-import TestDragBoard from './dnd/board';
 import TestBoard from './test_board';
+import TestDragBoard from './dnd/board';
 import TestList from './test_list';
+import TestSidebar from './test_sidebar';
+import TestText from './test_text';
 
 import './test.less';
 
@@ -20,6 +22,11 @@ import './test.less';
 class KitchenSink extends React.Component {
 
   static Components = [
+    {
+      id: 'text',
+      name: 'Text',
+      render: () => <TestText/>
+    },
     {
       id: 'list',
       name: 'List',
@@ -34,6 +41,11 @@ class KitchenSink extends React.Component {
       id: 'drag',
       name: 'Drag',
       render: () => <TestDragBoard/>
+    },
+    {
+      id: 'sidebar',
+      name: 'Sidebar',
+      render: () => <TestSidebar/>
     }
   ];
 

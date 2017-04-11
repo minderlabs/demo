@@ -47,21 +47,23 @@ export class Sidebar extends React.Component {
     this.state.open ? this.close() : this.open();
   }
 
+  onBlur() {
+    this.close();
+  }
+
   render() {
-    let { children, sidebar } = this.props;
+    let { children } = this.props;
     let { open } = this.state;
 
     return (
       <div className="ux-sidebar">
         <div className={ DomUtil.className('ux-sidebar-drawer', open && 'ux-open') }>
           <div>
-            <input ref="hidden" onBlur={ this.close.bind(this) }/>
+            <input ref="hidden" onBlur={ this.onBlur.bind(this) }/>
           </div>
 
-          { sidebar }
+          { children }
         </div>
-
-        { children }
       </div>
     );
   }

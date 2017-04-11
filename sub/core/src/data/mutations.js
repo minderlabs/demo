@@ -331,6 +331,8 @@ export class Mutator {
    * Create the optimistic result.
    *
    * http://dev.apollodata.com/react/mutations.html#optimistic-ui
+   * http://dev.apollodata.com/react/optimistic-ui.html#optimistic-basics
+   * http://dev.apollodata.com/react/cache-updates.html
    *
    * @param {[Item]} items
    */
@@ -338,6 +340,9 @@ export class Mutator {
     return {
       // Add hint for reducer.
       optimistic: true,
+
+      // Type of mutation.
+      __typename: UpsertItemsMutationName,
 
       // Root.
       [UpsertItemsMutationPath]: items
@@ -501,8 +506,11 @@ export class Mutator {
       // Create optimistic result.
       item = Transforms.applyObjectMutations(TypeUtil.clone(item), mutations);
 
+      console.log('######===', JSON.stringify(_.pick(item, ['type', 'id', 'status', 'title', 'boards'])));
+
       // Check for ID references to recently created items.
-      // TODO(burdon): Remove itemMap: Add item property to value.id (set by mutation creator).
+      // TODO(burdon): Remove itemMap: Add tmp item property to mutation { id: xxx; item: task }
+      if (false)
       if (itemMap) {
         TypeUtil.traverse(item, (value, key, root) => {
           if (_.isString(value)) {
@@ -514,7 +522,12 @@ export class Mutator {
         });
       }
 
+      item.__typename = item.type;
+
       optimisticResponse = Mutator.optimisticResponse([item]);
+
+      // TODO(burdon): Missing __typename???
+      console.log('::::::::::::::::', JSON.stringify(optimisticResponse, 0, 2));
     }
 
     //

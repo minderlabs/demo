@@ -46,6 +46,11 @@ export class Card extends React.Component {
     className = DomUtil.className(
       'ux-card', 'ux-card-rounded', 'ux-card-type-' + item.type.toLowerCase(), className);
 
+    let debugStr = config.debug &&
+      TypeUtil.stringify(_.pick(item, ['type', 'id']), false) +
+        (item.namespace ? ` [${item.namespace[0].toUpperCase()}]` : '') +
+        (item.labels ? ` ${JSON.stringify(item.labels)}` : '');
+
     return (
       <div className={ className }>
         <div className="ux-card-header">
@@ -63,12 +68,10 @@ export class Card extends React.Component {
 
         { children }
 
-        { config.debug &&
+        { debugStr &&
         <div className="ux-card-section">
           <div className="ux-section-body ux-debug" title={ JSON.stringify(_.pick(item, ['namespace', 'bucket'])) }>
-            { TypeUtil.stringify(_.pick(item, ['type', 'id']), false) +
-                (item.namespace ? ` (${item.namespace[0].toUpperCase()})` : '') +
-                (item.labels ? ` ${JSON.stringify(item.labels)}` : '')}
+            { debugStr }
           </div>
         </div>
         }

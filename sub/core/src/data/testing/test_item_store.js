@@ -21,7 +21,7 @@ export class TestItemStore extends ItemStore {
     console.assert(itemStore);
     this._itemStore = itemStore;
     this._options = _.defaults({}, options, {
-      delay: 1000
+      delay: 2000
     });
   }
 

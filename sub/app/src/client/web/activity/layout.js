@@ -151,17 +151,20 @@ export class LayoutComponent extends React.Component {
             </div>
             }
 
-            {/* Nav bar */}
+            {/* Navbar */}
             { navbar }
 
-            {/* Sidebar */}
-            <Sidebar ref="sidebar" sidebar={ sidePanel }>
+            <div className="ux-columns">
+              {/* Sidebar */}
+              <Sidebar ref="sidebar">
+                { sidePanel }
+              </Sidebar>
 
-              {/* Content view. */}
+              {/* Content */}
               <div className="app-layout ux-column">
                 { content }
               </div>
-            </Sidebar>
+            </div>
 
             {/* Debug */}
             <div className="app-debug-panel-container">

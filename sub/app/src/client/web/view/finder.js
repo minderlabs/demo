@@ -58,10 +58,6 @@ class Finder extends React.Component {
         itemInjector = (items) => contextManager.injectItems(items);
       }
 
-      // TODO(burdon): FIX!
-      listType = 'card';
-//      filter = {};
-
       let list;
       switch (listType) {
         case 'card':
