@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { DomUtil } from 'minder-core';
 
@@ -12,10 +13,10 @@ import { DomUtil } from 'minder-core';
 export class Textarea extends React.Component {
 
   static propTypes = {
-    className:    React.PropTypes.string,
-    onChange:     React.PropTypes.func,
-    placeholder:  React.PropTypes.string,
-    value:        React.PropTypes.string
+    className:    PropTypes.string,
+    onChange:     PropTypes.func,
+    placeholder:  PropTypes.string,
+    value:        PropTypes.string
   };
 
   state = {};

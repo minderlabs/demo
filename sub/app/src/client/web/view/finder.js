@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
@@ -26,13 +27,13 @@ import './finder.less';
 class Finder extends React.Component {
 
   static contextTypes = {
-    typeRegistry: React.PropTypes.object.isRequired,
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
+    typeRegistry: PropTypes.object.isRequired,
+    navigator: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    viewer: React.PropTypes.object.isRequired
+    viewer: PropTypes.object.isRequired
   };
 
   handleItemSelect(item) {

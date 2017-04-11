@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { MutationUtil } from 'minder-core';
 
@@ -24,14 +25,14 @@ import './board.less';
 export class Board extends React.Component {
 
   static propTypes = {
-    items: React.PropTypes.array.isRequired,              // [{ id: {string}, title: {string} }]
-    itemOrderModel: React.PropTypes.object.isRequired,    // [{DragOrderModel}]
-    itemRenderer: React.PropTypes.func,
-    columns: React.PropTypes.array.isRequired,            // [{ id: {string}, title: {string} }]
-    columnMapper: React.PropTypes.func.isRequired,        // (columns, item) => column.id
-    onItemSelect: React.PropTypes.func,                   // (item) => {}
-    onItemUpdate: React.PropTypes.func,                   // (item, mutations) => {}
-    onItemDrop: React.PropTypes.func                      // (column, item) => {}
+    items: PropTypes.array.isRequired,              // [{ id: {string}, title: {string} }]
+    itemOrderModel: PropTypes.object.isRequired,    // [{DragOrderModel}]
+    itemRenderer: PropTypes.func,
+    columns: PropTypes.array.isRequired,            // [{ id: {string}, title: {string} }]
+    columnMapper: PropTypes.func.isRequired,        // (columns, item) => column.id
+    onItemSelect: PropTypes.func,                   // (item) => {}
+    onItemUpdate: PropTypes.func,                   // (item, mutations) => {}
+    onItemDrop: PropTypes.func                      // (column, item) => {}
   };
 
   static defaultProps = {

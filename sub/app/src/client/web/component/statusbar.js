@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { Async, DomUtil, ErrorUtil } from 'minder-core';
 
@@ -14,11 +15,11 @@ import './statusbar.less';
 export class StatusBar extends React.Component {
 
   static contextTypes = {
-    config: React.PropTypes.object.isRequired
+    config: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    onAction: React.PropTypes.func.isRequired
+    onAction: PropTypes.func.isRequired
   };
 
   constructor() {

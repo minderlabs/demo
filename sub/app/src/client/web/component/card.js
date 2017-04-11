@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { DomUtil, TypeUtil } from 'minder-core';
 
@@ -24,14 +25,14 @@ export class Card extends React.Component {
   };
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired,
-    className: React.PropTypes.string,
-    icon: React.PropTypes.string
+    item: PropTypes.object.isRequired,
+    className: PropTypes.string,
+    icon: PropTypes.string
   };
 
   static contextTypes = {
-    config: React.PropTypes.object.isRequired,
-    navigator: React.PropTypes.object.isRequired
+    config: PropTypes.object.isRequired,
+    navigator: PropTypes.object.isRequired
   };
 
   handleSelect(item) {

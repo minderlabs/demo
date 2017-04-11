@@ -4,6 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 
 import { DomUtil } from 'minder-core';
 import { TextBox } from './textbox';
@@ -18,11 +19,11 @@ export class Picker extends React.Component {
   // TODO(burdon): Allow text input while paging.
 
   static propTypes = {
-    onTextChange:   React.PropTypes.func,
-    onItemSelect:   React.PropTypes.func,
-    className:      React.PropTypes.string,
-    items:          React.PropTypes.array,
-    value:          React.PropTypes.string
+    onTextChange:   PropTypes.func,
+    onItemSelect:   PropTypes.func,
+    className:      PropTypes.string,
+    items:          PropTypes.array,
+    value:          PropTypes.string
   };
 
   constructor() {

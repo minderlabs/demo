@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { compose } from 'react-apollo';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
@@ -31,11 +32,11 @@ class SidePanel extends React.Component {
   };
 
   static propTypes = {
-    typeRegistry: React.PropTypes.object.isRequired
+    typeRegistry: PropTypes.object.isRequired
   };
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired
+    navigator: PropTypes.object.isRequired
   };
 
   onSelect(item) {

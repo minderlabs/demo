@@ -4,6 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 import { DragSource, DropTarget } from 'react-dnd';
 
 import { DomUtil } from 'minder-core';
@@ -18,12 +19,12 @@ import { DomUtil } from 'minder-core';
 class ItemDragContainer extends React.Component {
 
   static propTypes = {
-    data: React.PropTypes.string.isRequired,                    // Item ID.
-    order: React.PropTypes.number.isRequired,                   // Order within drop zone.
+    data: PropTypes.string.isRequired,                    // Item ID.
+    order: PropTypes.number.isRequired,                   // Order within drop zone.
 
     // Injected by React DnD.
-    isDragging: React.PropTypes.bool.isRequired,
-    connectDragSource: React.PropTypes.func.isRequired
+    isDragging: PropTypes.bool.isRequired,
+    connectDragSource: PropTypes.func.isRequired
   };
 
   get height() {
@@ -99,9 +100,9 @@ export const ItemDragSource = (type) => DragSource(type, dragSpec, dragCollect)(
 class ItemDropContainer extends React.Component {
 
   static propTypes = {
-    data: React.PropTypes.string.isRequired,                    // ID of drop zone.
-    order: React.PropTypes.number.isRequired,                   // Order within drop zone.
-    onDrop: React.PropTypes.func.isRequired,                    // (itemId) => {}
+    data: PropTypes.string.isRequired,                    // ID of drop zone.
+    order: PropTypes.number.isRequired,                   // Order within drop zone.
+    onDrop: PropTypes.func.isRequired,                    // (itemId) => {}
   };
 
   render() {

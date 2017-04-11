@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { DomUtil } from 'minder-core';
 
@@ -75,7 +76,7 @@ export class Sidebar extends React.Component {
 export class SidebarToggle extends React.Component {
 
   static propTypes = {
-    sidebar: React.PropTypes.func.isRequired
+    sidebar: PropTypes.func.isRequired
   };
 
   handleToggleSidebar(event) {

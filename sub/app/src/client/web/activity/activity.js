@@ -5,6 +5,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
+import PropTypes from 'prop-types';
 
 import { EventHandler, IdGenerator, Mutator, PropertyProvider, QueryRegistry, Fragments } from 'minder-core';
 
@@ -116,14 +117,14 @@ export class Activity {
   };
 
   static childContextTypes = {
-    config:           React.PropTypes.object,
-    typeRegistry:     React.PropTypes.object,
-    queryRegistry:    React.PropTypes.object,
-    eventHandler:     React.PropTypes.object,
-    contextManager:   React.PropTypes.object,
-    navigator:        React.PropTypes.object,
-    mutator:          React.PropTypes.object,
-    viewer:           React.PropTypes.object
+    config:           PropTypes.object,
+    typeRegistry:     PropTypes.object,
+    queryRegistry:    PropTypes.object,
+    eventHandler:     PropTypes.object,
+    contextManager:   PropTypes.object,
+    navigator:        PropTypes.object,
+    mutator:          PropTypes.object,
+    viewer:           PropTypes.object
   };
 
   static getChildContext(props) {

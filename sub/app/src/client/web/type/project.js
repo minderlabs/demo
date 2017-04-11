@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { compose } from 'react-apollo';
 import { connect } from 'react-redux';
 import gql from 'graphql-tag';
@@ -31,8 +32,8 @@ import { TaskItemEditor, TaskItemRenderer } from './task';
 export class ProjectCard extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
+    navigator: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired
   };
 
   handleTaskAdd() {
@@ -293,14 +294,14 @@ class ProjectBoardCanvasComponent extends React.Component {
   };
 
   static contextTypes = {
-    typeRegistry: React.PropTypes.object.isRequired,
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired
+    typeRegistry: PropTypes.object.isRequired,
+    navigator: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    item: React.PropTypes.object
+    item: PropTypes.object
   };
 
   state = {

@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
@@ -23,7 +24,7 @@ import { Card } from '../component/card';
 export class ItemCard extends React.Component {
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired
+    item: PropTypes.object.isRequired
   };
 
   render() {
@@ -43,8 +44,8 @@ export class ItemCard extends React.Component {
 export class ItemCanvasComponent extends React.Component {
 
   static propTypes = {
-    refetch: React.PropTypes.func.isRequired,
-    item: React.PropTypes.object
+    refetch: PropTypes.func.isRequired,
+    item: PropTypes.object
   };
 
   render() {
@@ -64,12 +65,12 @@ export class ItemCanvasComponent extends React.Component {
 export class ItemCanvasHeaderComponent extends React.Component {
 
   static contextTypes = {
-    mutator: React.PropTypes.object.isRequired
+    mutator: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    onSave: React.PropTypes.func.isRequired,
-    toolbar: React.PropTypes.object
+    onSave: PropTypes.func.isRequired,
+    toolbar: PropTypes.object
   };
 
   handleSave() {

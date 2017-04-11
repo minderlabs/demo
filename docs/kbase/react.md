@@ -156,7 +156,7 @@ Install Chrome Extension:
       }
     }
     
-    Application.propTypes = { initialCount: React.PropTypes.number.isRequired };
+    Application.propTypes = { initialCount: PropTypes.number.isRequired };
     Application.defaultProps = { initialCount: 0 };
 ~~~~
 
@@ -264,7 +264,7 @@ Alternatively, make elements conditionally visible. E.g.,
     }
     
     Parent.childContextTypes = {            // NOTE: childContext
-      callback: React.PropTypes.func
+      callback: PropTypes.func
     };
 
     //
@@ -284,7 +284,7 @@ Alternatively, make elements conditionally visible. E.g.,
     }
     
     Child.contextTypes = {                  // NOTE: context
-      callback: React.PropTypes.func
+      callback: PropTypes.func
     };
 ~~~~  
 

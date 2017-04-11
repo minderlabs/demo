@@ -4,6 +4,7 @@
 
 import _ from 'lodash';
 import React from 'react';
+import PropTypes from 'prop-types';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
@@ -28,13 +29,13 @@ export class ContactCard extends React.Component {
   // TODO(burdon): This is a very specialized ContactCard. Factor out sections.
 
   static contextTypes = {
-    config: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired,
+    config: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired,
   };
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired
+    item: PropTypes.object.isRequired
   };
 
   static getProjectFromGroupsByLabel(groups, label) {
@@ -250,13 +251,13 @@ export class ContactCard extends React.Component {
 export class ContactCanvasComponent extends React.Component {
 
   static contextTypes = {
-    mutator: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired
+    mutator: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    refetch: React.PropTypes.func.isRequired,
-    item: React.PropTypes.object
+    refetch: PropTypes.func.isRequired,
+    item: PropTypes.object
   };
 
   handleSave() {

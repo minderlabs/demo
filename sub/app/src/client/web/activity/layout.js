@@ -5,6 +5,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
+import PropTypes from 'prop-types';
 
 import { DomUtil, ID, TypeUtil } from 'minder-core';
 import { NetUtil, ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
@@ -26,17 +27,17 @@ import './layout.less';
 export class LayoutComponent extends React.Component {
 
   static contextTypes = {
-    config: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired,
-    typeRegistry: React.PropTypes.object.isRequired,
-    queryRegistry: React.PropTypes.object.isRequired,
-    eventHandler: React.PropTypes.object.isRequired
+    config: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired,
+    typeRegistry: PropTypes.object.isRequired,
+    queryRegistry: PropTypes.object.isRequired,
+    eventHandler: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    navbar: React.PropTypes.object.isRequired,
-    finder: React.PropTypes.object,
-    className: React.PropTypes.string
+    navbar: PropTypes.object.isRequired,
+    finder: PropTypes.object,
+    className: PropTypes.string
   };
 
   constructor() {

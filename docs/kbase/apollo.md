@@ -25,8 +25,8 @@ Ths top-level component is naive (doesn't know about Redux or Apollo).
         static propTypes {
 
             // Provided by graphql below:
-            data: React.PropTypes.shape({
-                items: React.PropTypes.array
+            data: PropTypes.shape({
+                items: PropTypes.array
             })
         }
 

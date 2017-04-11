@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { ReactUtil } from 'minder-ux';
 
@@ -24,8 +25,8 @@ class FinderActivity extends React.Component {
    * Params set by the router.
    */
   static propTypes = {
-    params: React.PropTypes.shape({
-      folder: React.PropTypes.string.isRequired
+    params: PropTypes.shape({
+      folder: PropTypes.string.isRequired
     })
   };
 

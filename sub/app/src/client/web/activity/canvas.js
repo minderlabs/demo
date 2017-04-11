@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { ReactUtil } from 'minder-ux';
 
@@ -24,10 +25,10 @@ class CanvasActivity extends React.Component {
    * Params set by the router.
    */
   static propTypes = {
-    params: React.PropTypes.shape({
-      type: React.PropTypes.string.isRequired,
-      canvas: React.PropTypes.string,
-      itemId: React.PropTypes.string.isRequired
+    params: PropTypes.shape({
+      type: PropTypes.string.isRequired,
+      canvas: PropTypes.string,
+      itemId: PropTypes.string.isRequired
     })
   };
 

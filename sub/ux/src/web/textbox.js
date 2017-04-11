@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { Async, DomUtil } from 'minder-core';
 
@@ -27,18 +28,18 @@ export class TextBox extends React.Component {
   }
 
   static propTypes = {
-    autoFocus:      React.PropTypes.bool,
-    className:      React.PropTypes.string,
-    delay:          React.PropTypes.number,
-    onCancel:       React.PropTypes.func,
-    onChange:       React.PropTypes.func,
-    onEnter:        React.PropTypes.func,
-    onFocusChange:  React.PropTypes.func,
-    onKeyDown:      React.PropTypes.func,
-    placeholder:    React.PropTypes.string,
-    value:          React.PropTypes.string,
-    clickToEdit:    React.PropTypes.bool,
-    notEmpty:       React.PropTypes.bool
+    autoFocus:      PropTypes.bool,
+    className:      PropTypes.string,
+    delay:          PropTypes.number,
+    onCancel:       PropTypes.func,
+    onChange:       PropTypes.func,
+    onEnter:        PropTypes.func,
+    onFocusChange:  PropTypes.func,
+    onKeyDown:      PropTypes.func,
+    placeholder:    PropTypes.string,
+    value:          PropTypes.string,
+    clickToEdit:    PropTypes.bool,
+    notEmpty:       PropTypes.bool
   };
 
   static defaultProps = {

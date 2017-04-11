@@ -3,8 +3,9 @@
 //
 
 import React from 'react';
-import { DragDropContext } from 'react-dnd';
+import PropTypes from 'prop-types';
 import HTML5Backend from 'react-dnd-html5-backend';
+import { DragDropContext } from 'react-dnd';
 
 import { DomUtil, ItemUtil, MutationUtil } from 'minder-core';
 
@@ -72,29 +73,29 @@ export class List extends React.Component {
   // Context passed to ListItem and inline widgets.
   //
   static childContextTypes = {
-    onItemSelect:       React.PropTypes.func,
-    onItemEdit:         React.PropTypes.func,
-    onItemUpdate:       React.PropTypes.func,
-    onItemCancel:       React.PropTypes.func
+    onItemSelect:       PropTypes.func,
+    onItemEdit:         PropTypes.func,
+    onItemUpdate:       PropTypes.func,
+    onItemCancel:       PropTypes.func
   };
 
   static propTypes = {
-    data:               React.PropTypes.string,     // Custom data/label.
+    data:               PropTypes.string,     // Custom data/label.
 
-    className:          React.PropTypes.string,
-    highlight:          React.PropTypes.bool,
+    className:          PropTypes.string,
+    highlight:          PropTypes.bool,
 
-    items:              React.PropTypes.arrayOf(React.PropTypes.object),
-    groupedItems:       React.PropTypes.arrayOf(React.PropTypes.object),
+    items:              PropTypes.arrayOf(PropTypes.object),
+    groupedItems:       PropTypes.arrayOf(PropTypes.object),
 
-    itemClassName:      React.PropTypes.string,
-    itemEditor:         React.PropTypes.func,
-    itemRenderer:       React.PropTypes.func,
-    itemOrderModel:     React.PropTypes.object,     // Order model for drag and drop.
+    itemClassName:      PropTypes.string,
+    itemEditor:         PropTypes.func,
+    itemRenderer:       PropTypes.func,
+    itemOrderModel:     PropTypes.object,     // Order model for drag and drop.
 
-    onItemUpdate:       React.PropTypes.func,
-    onItemSelect:       React.PropTypes.func,
-    onItemDrop:         React.PropTypes.func
+    onItemUpdate:       PropTypes.func,
+    onItemSelect:       PropTypes.func,
+    onItemDrop:         PropTypes.func
   };
 
   static defaultProps = {
@@ -391,16 +392,16 @@ export class List extends React.Component {
 const ListItemChildContextTypes = {
 
   // Item.
-  item: React.PropTypes.object,
+  item: PropTypes.object,
 
   // ListItem component.
-  listItem: React.PropTypes.object,
+  listItem: PropTypes.object,
 
   // Inherited from List component.
-  onItemSelect: React.PropTypes.func,
-  onItemEdit:   React.PropTypes.func,
-  onItemUpdate: React.PropTypes.func,
-  onItemCancel: React.PropTypes.func
+  onItemSelect: PropTypes.func,
+  onItemEdit:   PropTypes.func,
+  onItemUpdate: PropTypes.func,
+  onItemCancel: PropTypes.func
 };
 
 /**
@@ -600,17 +601,17 @@ export class ListItem extends React.Component {
   // Provided by renderer.
   //
   static propTypes = {
-    item: React.PropTypes.object,
-    className: React.PropTypes.string,
+    item: PropTypes.object,
+    className: PropTypes.string,
   };
 
   //
   // From parent <List/> control.
   //
   static contextTypes = {
-    onItemSelect: React.PropTypes.func.isRequired,
-    onItemUpdate: React.PropTypes.func.isRequired,
-    onItemCancel: React.PropTypes.func.isRequired
+    onItemSelect: PropTypes.func.isRequired,
+    onItemUpdate: PropTypes.func.isRequired,
+    onItemCancel: PropTypes.func.isRequired
   };
 
   //
