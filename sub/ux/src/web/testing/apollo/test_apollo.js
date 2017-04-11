@@ -11,8 +11,9 @@ import { routerMiddleware, routerReducer } from 'react-router-redux'
 import { graphql, ApolloProvider } from 'react-apollo';
 import ApolloClient from 'apollo-client';
 import gql from 'graphql-tag';
+import update from 'immutability-helper';
 
-import { ItemUtil, MutationUtil, Transforms } from 'minder-core';
+import { ItemUtil, MutationUtil, Transforms, TypeUtil } from 'minder-core';
 
 import { ReactUtil } from '../../react';
 
@@ -20,15 +21,16 @@ import './test_apollo.less';
 
 // TODO(burdon): End-to-end unit test.
 
+const ID = type => type + '/' + _.uniqueId('I-');
+
 //-------------------------------------------------------------------------------------------------
-// React Component.
+// React Components.
 //-------------------------------------------------------------------------------------------------
 
-class RootComponent extends React.Component {
+class ListComponent extends React.Component {
 
   count = 0;
 
-  // TODO(burdon): Dispatch redux action.
   constructor() {
     super(...arguments);
 
@@ -38,8 +40,10 @@ class RootComponent extends React.Component {
     }
   }
 
+  // TODO(burdon): Dispatch redux action.
+
   componentWillReceiveProps(nextProps) {
-    console.log('componentWillReceiveProps:', JSON.stringify(nextProps));
+    console.log('componentWillReceiveProps:', TypeUtil.stringify(nextProps));
     this.setState({
       items: _.map(nextProps.items, item => _.clone(item))
     });
@@ -61,34 +65,33 @@ class RootComponent extends React.Component {
     }
   }
 
-  handleUpdate(event) {
-    let { updateItem, insertItem } = this.props;
-    let itemId = $(event.target).attr('data');
-
-    if (itemId) {
-      let input = this.refs['INPUT/' + itemId];
-      let text = $(input).val();
-      if (text) {
-        updateItem('Task', itemId, [
-          MutationUtil.createFieldMutation('title', 'string', text)
-        ]);
-      }
-
-      input.focus();
-    } else {
-      let { text } = this.state;
-      if (text) {
-        insertItem('Task', [
-          MutationUtil.createFieldMutation('title', 'string', text)
-        ]);
-
-        this.setState({
-          text: ''
-        });
-      }
-
-      this.refs['INPUT_NEW'].focus();
+  handleUpdate(item, event) {
+    let { updateItem } = this.props;
+    let input = this.refs['INPUT/' + item.id];
+    let text = $(input).val();
+    if (text) {
+      updateItem(item, [
+        MutationUtil.createFieldMutation('title', 'string', text)
+      ]);
     }
+
+    input.focus();
+  }
+
+  handleInsert(event) {
+    let { insertItem } = this.props;
+    let { text } = this.state;
+    if (text) {
+      insertItem('Task', [
+        MutationUtil.createFieldMutation('title', 'string', text)
+      ]);
+
+      this.setState({
+        text: ''
+      });
+    }
+
+    this.refs['INPUT_NEW'].focus();
   }
 
   handleRefetch() {
@@ -101,24 +104,24 @@ class RootComponent extends React.Component {
 
       console.log('RootComponent.render', _.size(items));
       return (
-        <div>
+        <div className="test-component">
           <div>Result[{ ++this.count }]</div>
 
           <div className="test-list">
             {_.map(items, item => (
               <div key={ item.id }>
-                <input ref={ 'INPUT/' + item.id } type="text" value={ item.title } data={ item.id }
+                <input ref={ 'INPUT/' + item.id } type="text" data={ item.id } value={ item.title } spellCheck={ false }
                        onChange={ this.handleTextChange.bind(this) }/>
 
-                <button data={ item.id } onClick={ this.handleUpdate.bind(this) }>Update</button>
+                <i className="material-icons" onClick={ this.handleUpdate.bind(this, item) }>save</i>
               </div>
             ))}
 
             <div>
-              <input ref="INPUT_NEW" type="text" value={ text } autoFocus={ true }
+              <input ref="INPUT_NEW" type="text" value={ text } autoFocus={ true } spellCheck={ false }
                      onChange={ this.handleTextChange.bind(this) }/>
 
-              <button onClick={ this.handleUpdate.bind(this) }>Insert</button>
+              <i className="material-icons" onClick={ this.handleInsert.bind(this) }>add</i>
             </div>
           </div>
 
@@ -131,26 +134,84 @@ class RootComponent extends React.Component {
   }
 }
 
+class SimpleListComponent extends React.Component {
+
+  render() {
+    return ReactUtil.render(this, (props) => {
+      let { items } = props;
+
+      return (
+        <div className="test-component">
+          {_.map(items, item => (
+            <div key={ item.id }>{ item.title }</div>
+          ))}
+        </div>
+      );
+    });
+  }
+}
+
+class OptionsComponent extends React.Component {
+
+  handleOptionsUpdate(param, event) {
+    this.props.updateOptions(param, event.target.checked);
+  }
+
+  render() {
+    let { options={} } = this.props;
+    let { listReducer, optimisticResponse, networkDelay } = options;
+
+    return (
+      <div className="test-component">
+        <div>
+          <label>
+            <input type="checkbox" onChange={ this.handleOptionsUpdate.bind(this, 'listReducer') }
+                   checked={ listReducer }/> List Reducer.
+          </label>
+        </div>
+        <div>
+          <label>
+            <input type="checkbox" onChange={ this.handleOptionsUpdate.bind(this, 'optimisticResponse') }
+                   checked={ optimisticResponse }/> Optimistic responses.
+          </label>
+        </div>
+        <div>
+          <label>
+            <input type="checkbox" onChange={ this.handleOptionsUpdate.bind(this, 'networkDelay') }
+                   checked={ networkDelay }/> Network Delay.
+          </label>
+        </div>
+      </div>
+    );
+  }
+}
+
 //-------------------------------------------------------------------------------------------------
 // Redux Container.
+// https://github.com/reactjs/react-redux/blob/master/docs/api.md
 //-------------------------------------------------------------------------------------------------
 
 // TODO(burdon): Read from cache.
 // http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient.readQuery
 
 const mapStateToProps = (state, ownProps) => {
+  let { options } = AppState(state);
   return {
-
+    options
   };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
-
+    updateOptions: (param, value) => {
+      dispatch(AppUpdateOptions({
+        [param]: value
+      }));
+    }
   };
 };
 
-const RootComponentWithRedux = connect(mapStateToProps, mapDispatchToProps)(RootComponent);
+const OptionsComponentWithRedux = connect(mapStateToProps, mapDispatchToProps)(OptionsComponent);
 
 //-------------------------------------------------------------------------------------------------
 // GQL Queries and Mutations.
@@ -183,26 +244,99 @@ const TestMutation = gql`
 const TestMutationName = _.get(TestMutation, 'definitions[0].name.value');
 
 //-------------------------------------------------------------------------------------------------
+// Updating the Cache.
+// http://dev.apollodata.com/react/cache-updates.html
+// NOTE: Cache normalization ensures that items returned from the mutation (that must include
+// the __typname attribute) correctly updates the cache (and automatically updates all queries).
+//
+// 1). Refetch queries on mutation.
+// http://dev.apollodata.com/react/cache-updates.html#refetchQueries
+// - mutate({ refetchQueries: [{ query, variables }] })
+//
+// 2). Add/remove items after mutation (updates should happen automatically via cache normalization).
+// http://dev.apollodata.com/react/cache-updates.html#updateQueries
+// - mutate({ updateQueries: { Type: (previousResult, { mutationResult }) => {} })
+//
+// 3). Update query result based on mutation.
+// http://dev.apollodata.com/react/cache-updates.html#resultReducers
+// - graphql({ options: { reducer: (previousResult, action, variables) => {} } })
+//
+//-------------------------------------------------------------------------------------------------
+
+const ListReducer = (query, path, active=true) => (previousResult, action, variables) => {
+
+  // Isolate mutations.
+  if (action.type === 'APOLLO_MUTATION_RESULT' && action.operationName === TestMutationName && active) {
+    let { upsertItems } = action.result.data;
+    let currentItems = _.get(previousResult, path);
+
+    // Append.
+    // TODO(burdon): Sort order.
+    // TODO(burdon): Test for removal (matcher).
+    let appendItems =
+      _.filter(upsertItems, item => !_.find(currentItems, currentItem => currentItem.id === item.id));
+
+    // https://github.com/kolodny/immutability-helper
+    let tranform = _.set({}, path, {
+      $push: appendItems
+    });
+
+    return update(previousResult, tranform);
+  }
+
+  return previousResult
+};
+
+//-------------------------------------------------------------------------------------------------
+// Optimistic Updates.
+// http://dev.apollodata.com/react/optimistic-ui.html
+// http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-optimisticResponse
+//-------------------------------------------------------------------------------------------------
+
+const OptimisticResponse = (item, mutations) => {
+
+  let updatedItem = Transforms.applyObjectMutations(item, mutations);
+  _.assign(updatedItem, {
+    __typename: item.type
+  });
+
+  return {
+    upsertItems: [updatedItem]
+  };
+};
+
+//-------------------------------------------------------------------------------------------------
 // Apollo Container.
 // http://dev.apollodata.com/react/api-queries.html
 //-------------------------------------------------------------------------------------------------
 
-const RootComponentWithReduxAndApollo = compose(
+const ListComponentWithApollo = compose(
+
+  connect((state, ownProps) => {
+    let { options } = AppState(state);
+    return {
+      options
+    };
+  }),
 
   // http://dev.apollodata.com/react/queries.html
   graphql(TestQuery, {
 
     // http://dev.apollodata.com/react/queries.html#graphql-options
     options: (props) => {
+      let { options } = props;
       console.log('graphql.options:', TestQueryName);
 
       return {
-        // http://dev.apollodata.com/react/api-queries.html#graphql-config-options-fetchPolicy
-        fetchPolicy: 'network-only',
-
         variables: {
           filter: { Type: 'Task' }
-        }
+        },
+
+        // http://dev.apollodata.com/react/api-queries.html#graphql-config-options-fetchPolicy
+//      fetchPolicy: 'network-only',
+
+        // http://dev.apollodata.com/react/cache-updates.html#resultReducers
+        reducer: ListReducer(TestQuery, 'search.items', options.listReducer)
       };
     },
 
@@ -212,12 +346,10 @@ const RootComponentWithReduxAndApollo = compose(
     // http://dev.apollodata.com/react/queries.html#graphql-props-option
     props: ({ ownProps, data }) => {
       let { errors, loading, search } = data;
-      console.log('graphql.props:  ', TestQueryName, loading ? 'loading...' : JSON.stringify(search));
+      let items = _.get(search, 'items');
+      console.log('graphql.props:', TestQueryName, loading ? 'loading...' : JSON.stringify(search));
 
       // TODO(burdon): updateQuery.
-
-      let items = _.get(search, 'items');
-
       // Decouple Apollo query/result from component.
       return {
         errors,
@@ -226,7 +358,7 @@ const RootComponentWithReduxAndApollo = compose(
         items,
 
         refetch: () => {
-          // NOTE: Doesn't trigger re-render unless results change.
+          // NOTE: Doesn't trigger re-render (i.e., HOC observer) unless results change.
           data.refetch();
         }
       };
@@ -236,35 +368,19 @@ const RootComponentWithReduxAndApollo = compose(
   // http://dev.apollodata.com/react/mutations.html
   graphql(TestMutation, {
 
-    // TODO(burdon): Secondary read-only list with same query (see if it updates).
-    // TODO(burdon): Process mutation result (to update cache).
-    // TODO(burdon): Optimistic results.
-    // TODO(burdon): Reducer (add to list).
-
     // http://dev.apollodata.com/react/mutations.html#custom-arguments
     props: ({ ownProps, mutate }) => ({
 
       //
       // Insert item.
       //
-      insertItem: (type, mutations) => {
-        mutate({
-          variables: {
-            mutations: [
-              {
-                itemId: type + '/' + Date.now(),
-                mutations
-              }
-            ]
-          }
-        })
-      },
+      updateItem: (item, mutations) => {
+        let itemId = item.id;
 
-      //
-      // Insert item.
-      //
-      updateItem: (type, itemId, mutations) => {
-        mutate({
+        let optimisticResponse =
+          ownProps.options.optimisticResponse && OptimisticResponse(item, mutations);
+
+        return mutate({
           variables: {
             mutations: [
               {
@@ -272,39 +388,101 @@ const RootComponentWithReduxAndApollo = compose(
                 mutations
               }
             ]
-          }
-        })
+          },
+
+          optimisticResponse
+        });
+      },
+
+      //
+      // Insert item.
+      //
+      insertItem: (type, mutations) => {
+        let itemId = ID(type);
+
+        // http://dev.apollodata.com/react/optimistic-ui.html
+        // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-optimisticResponse
+        let optimisticResponse =
+          ownProps.options.optimisticResponse && OptimisticResponse({ type, id: itemId }, mutations);
+
+        return mutate({
+          variables: {
+            mutations: [
+              {
+                itemId,
+                mutations
+              }
+            ]
+          },
+
+          optimisticResponse
+        });
       }
     })
   })
 
-)(RootComponentWithRedux);
+)(ListComponent);
+
+const SimpleListComponentWithApollo = compose(
+
+  // http://dev.apollodata.com/react/queries.html
+  graphql(TestQuery, {
+
+    options: (props) => {
+      return {
+        reducer: ListReducer(TestQuery, 'search.items')
+      }
+    },
+
+    props: ({ ownProps, data }) => {
+      let { errors, loading, search } = data;
+      let items = _.get(search, 'items');
+
+      return {
+        errors,
+        loading,
+        items
+      }
+    }
+  })
+)(SimpleListComponent);
 
 //-------------------------------------------------------------------------------------------------
 // Redux Reducer.
 //-------------------------------------------------------------------------------------------------
 
+const APP_NAMESPACE = 'app';
+
+const APP_UPDATE_OPTIONS = 'APP_UPDATE_OPTIONS';
+
+const AppUpdateOptions = (options) => ({
+  type: APP_UPDATE_OPTIONS,
+  options
+});
+
+const AppState = (state) => state[APP_NAMESPACE];
+
+const AppReducer = (initalState) => (state=initalState, action) => {
+  switch (action.type) {
+    case APP_UPDATE_OPTIONS: {
+      console.log('AppReducer: ' + JSON.stringify(action));
+      let { options } = action;
+      return _.merge({}, state, { options });
+    }
+  }
+
+  return state;
+};
+
 //-------------------------------------------------------------------------------------------------
 // Test Server.
 //-------------------------------------------------------------------------------------------------
 
-const ITEMS = [
-  {
-    type: 'Task',
-    id: 'Task/1',
-    title: 'Task 1'
-  },
-  {
-    type: 'Task',
-    id: 'Task/2',
-    title: 'Task 2'
-  },
-  {
-    type: 'Task',
-    id: 'Task/3',
-    title: 'Task 3'
-  }
-];
+const ITEMS = _.times(5, i => ({
+  type: 'Task',
+  id: ID('Task'),
+  title: 'Task ' + (i + 1)
+}));
 
 class Database {
 
@@ -331,28 +509,42 @@ class Database {
 
 class TestingNetworkInterface {
 
+  static NETWORK_DELAY = 2000;
+
   database = new Database();
 
   count = 0;
+
+  constructor(stateGetter) {
+    this.stateGetter = stateGetter;
+  }
 
   //
   // NetworkInterface
   //
 
   query({ operationName, query, variables }) {
-    let count = ++this.count;
-    console.info(`REQ[${operationName}:${count}]`, JSON.stringify(variables));
+    let { options } = this.stateGetter();
+    let delay = options.networkDelay ? TestingNetworkInterface.NETWORK_DELAY : 0;
 
-    return this.processQuery(operationName, query, variables)
-      .then(response => {
-        console.info(`RES[${operationName}:${count}]`, JSON.stringify(response));
-        return response;
-      })
-      .catch(error => {
-        return {
-          errors: [{ message: 'TestingNetworkInterface Error: ' + String(error) }],
-        }
-      });
+    let count = ++this.count;
+    console.info(`REQ[${operationName}:${count}]`, TypeUtil.stringify(variables));
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        this.processQuery(operationName, query, variables)
+
+          .then(response => {
+            console.info(`RES[${operationName}:${count}]`, TypeUtil.stringify(response));
+            resolve(response);
+          })
+
+          .catch(error => {
+            reject({
+              errors: [{ message: 'TestingNetworkInterface Error: ' + String(error) }],
+            });
+          });
+      }, delay);
+    });
   }
 
   processQuery(operationName, query, variables) {
@@ -399,6 +591,12 @@ class TestingNetworkInterface {
             }
 
             let upsertItem = Transforms.applyObjectMutations(item, mutation.mutations);
+
+            // Important for client-side cache-normalization.
+            _.assign(upsertItem, {
+              __typename: item.type
+            });
+
             console.log('Upsert Item: ' + JSON.stringify(upsertItem));
             upsertItems.push(upsertItem);
           });
@@ -421,6 +619,23 @@ class TestingNetworkInterface {
 }
 
 //-------------------------------------------------------------------------------------------------
+// Root Component.
+//-------------------------------------------------------------------------------------------------
+
+class RootComponent extends React.Component {
+
+  render() {
+    return (
+      <div className="test-columns">
+        <ListComponentWithApollo/>
+        <SimpleListComponentWithApollo/>
+        <OptionsComponentWithRedux/>
+      </div>
+    );
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
 // App
 // React-Router-Redux => Apollo => Redux => React.
 //-------------------------------------------------------------------------------------------------
@@ -437,18 +652,19 @@ class App {
     // http://dev.apollodata.com/core/apollo-client-api.html#apollo-client
     this._client = new ApolloClient({
 
-      // TODO(burdon): Cache normalization.
+      // Cache normalization (allows for automatic updates to all queries following mutations).
+      // Requires mutatied items to include __typename attributes.
       // http://dev.apollodata.com/react/cache-updates.html
-      // addTypename: true,
-      // dataIdFromObject: (obj) => {
-      //   if (obj.__typename && obj.id) {
-      //     return obj.__typename + '/' + obj.id;
-      //   }
-      // },
+      addTypename: true,
+      dataIdFromObject: (obj) => {
+        if (obj.__typename && obj.id) {
+          return obj.__typename + '/' + obj.id;
+        }
+      },
 
       // http://dev.apollodata.com/core/network.html#NetworkInterface
       // https://github.com/apollographql/apollo-client/blob/master/src/transport/networkInterface.ts
-      networkInterface: new TestingNetworkInterface()
+      networkInterface: new TestingNetworkInterface(() => AppState(this._store.getState()))
     });
 
     //
@@ -456,14 +672,22 @@ class App {
     // TODO(burdon): Add Rethunk.
     //
 
-    this._history = createMemoryHistory('/');
+    // Initial options.
+    let initialState = {
+      options: {
+        listReducer: true,
+        optimisticResponse: true,
+        networkDelay: false
+      }
+    };
 
-    // TODO(burdon): AppReducer.
+    this._history = createMemoryHistory('/');
 
     // https://github.com/acdlite/reduce-reducers
     const reducers = combineReducers({
       routing: routerReducer,
-      apollo: this._client.reducer()
+      apollo: this._client.reducer(),
+      [APP_NAMESPACE]: AppReducer(initialState)
     });
 
     const enhancers = compose(
@@ -479,7 +703,7 @@ class App {
     return (
       <ApolloProvider client={ this._client } store={ this._store }>
         <Router history={ this._history }>
-          <Route path="/" component={ RootComponentWithReduxAndApollo }/>
+          <Route path="/" component={ RootComponent }/>
         </Router>
       </ApolloProvider>
     );

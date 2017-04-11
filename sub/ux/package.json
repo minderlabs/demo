@@ -54,6 +54,7 @@
     "body-parser": "^1.17.1",
     "chance": "^1.0.6",
     "fbemitter": "^2.1.1",
+    "immutability-helper": "^2.1.2",
     "jquery": "^3.2.1",
     "lodash": "^4.17.2",
     "minder-core": "0.1.0",
