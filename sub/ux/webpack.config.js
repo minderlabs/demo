@@ -21,7 +21,7 @@ module.exports = _.merge(baseConfig, {
 
   // Source map shows original source and line numbers (and works with hot loader).
   // https://webpack.github.io/docs/configuration.html#devtool
-  devtool: '#eval-source-map',
+  devtool: '#source-map',
 
   entry: {
     test: [

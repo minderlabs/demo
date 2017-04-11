@@ -21,7 +21,7 @@ class SidebarApp extends React.Component {
   };
 
   componentWillReceiveProps(nextProps) {
-    console.log('componentWillMount:', JSON.stringify(nextProps));
+    console.log('componentWillReceiveProps:', JSON.stringify(nextProps));
     this.setState({
       viewer: nextProps.search,
       events: nextProps.events
