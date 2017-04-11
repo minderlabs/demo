@@ -20,6 +20,7 @@ import { ReactUtil } from '../../react';
 import './test_apollo.less';
 
 // TODO(burdon): End-to-end unit test.
+// https://github.com/apollographql/react-apollo/tree/master/examples/create-react-app#running-tests
 
 const ID = type => type + '/' + _.uniqueId('I-');
 
@@ -507,7 +508,13 @@ class Database {
   }
 }
 
+/**
+ * Test NetworkInterface
+ */
 class TestingNetworkInterface {
+
+  // TODO(burdon): Mocks.
+  // import { mockServer } from 'graphql-tools';\
 
   static NETWORK_DELAY = 2000;
 
