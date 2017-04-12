@@ -3,7 +3,6 @@
 //
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { createMemoryHistory, Route, Router } from 'react-router';
 import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
@@ -17,7 +16,7 @@ import { ItemUtil, MutationUtil, Transforms, TypeUtil } from 'minder-core';
 
 import { ReactUtil } from '../../react';
 
-import './test_apollo.less';
+import './apollo.less';
 
 // TODO(burdon): End-to-end unit test.
 // https://github.com/apollographql/react-apollo/tree/master/examples/create-react-app#running-tests
@@ -449,33 +448,6 @@ const SimpleListComponentWithApollo = compose(
 )(SimpleListComponent);
 
 //-------------------------------------------------------------------------------------------------
-// Redux Reducer.
-//-------------------------------------------------------------------------------------------------
-
-const APP_NAMESPACE = 'app';
-
-const APP_UPDATE_OPTIONS = 'APP_UPDATE_OPTIONS';
-
-const AppUpdateOptions = (options) => ({
-  type: APP_UPDATE_OPTIONS,
-  options
-});
-
-const AppState = (state) => state[APP_NAMESPACE];
-
-const AppReducer = (initalState) => (state=initalState, action) => {
-  switch (action.type) {
-    case APP_UPDATE_OPTIONS: {
-      console.log('AppReducer: ' + JSON.stringify(action));
-      let { options } = action;
-      return _.merge({}, state, { options });
-    }
-  }
-
-  return state;
-};
-
-//-------------------------------------------------------------------------------------------------
 // Test Server.
 //-------------------------------------------------------------------------------------------------
 
@@ -643,11 +615,40 @@ class RootComponent extends React.Component {
 }
 
 //-------------------------------------------------------------------------------------------------
+// Redux Reducer.
+//-------------------------------------------------------------------------------------------------
+
+// TODO(burdon): Move to static members of App.
+
+const APP_NAMESPACE = 'app';
+
+const APP_UPDATE_OPTIONS = 'APP_UPDATE_OPTIONS';
+
+const AppUpdateOptions = (options) => ({
+  type: APP_UPDATE_OPTIONS,
+  options
+});
+
+const AppState = (state) => state[APP_NAMESPACE];
+
+const AppReducer = (initalState) => (state=initalState, action) => {
+  switch (action.type) {
+    case APP_UPDATE_OPTIONS: {
+      console.log('AppReducer: ' + JSON.stringify(action));
+      let { options } = action;
+      return _.merge({}, state, { options });
+    }
+  }
+
+  return state;
+};
+
+//-------------------------------------------------------------------------------------------------
 // App
 // React-Router-Redux => Apollo => Redux => React.
 //-------------------------------------------------------------------------------------------------
 
-class App {
+export class App {
 
   constructor() {
 
@@ -706,7 +707,15 @@ class App {
     this._store = createStore(reducers, enhancers);
   }
 
-  get router() {
+  get client() {
+    return this._client;
+  }
+
+  get store() {
+    return this._store;
+  }
+
+  get root() {
     return (
       <ApolloProvider client={ this._client } store={ this._store }>
         <Router history={ this._history }>
@@ -716,5 +725,3 @@ class App {
     );
   }
 }
-
-ReactDOM.render(new App().router, document.getElementById('test-container'));

@@ -112,7 +112,7 @@ const webConfig = webpackMerge(baseConfig, {
     ],
 
     test_apollo: [
-      path.resolve(baseConfig.context, 'src/web/testing/apollo/test_apollo.js'),
+      path.resolve(baseConfig.context, 'src/web/testing/apollo/main.js'),
     ]
   },
 
