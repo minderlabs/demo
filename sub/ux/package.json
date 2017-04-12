@@ -78,15 +78,15 @@
     "redux-thunk": "^2.2.0"
   },
   "jest": {
-    "verbose": true,
-    "transformIgnorePatterns": [
-      "/!node_modules\\/minder-core/"
-    ],
+    "verbose": false,
     "setupFiles": [
       "<rootDir>/jest.setup.js"
     ],
+    "transformIgnorePatterns": [
+      "/!node_modules\\/minder-core/"
+    ],
     "moduleNameMapper": {
-      "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
+      "\\.(css|less)$": "identity-obj-proxy"
     }
   },
   "scripts": {
