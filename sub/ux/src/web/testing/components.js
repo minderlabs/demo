@@ -12,7 +12,7 @@ import TestList from './test_list';
 import TestSidebar from './test_sidebar';
 import TestText from './test_text';
 
-import './test.less';
+import './components.less';
 
 // TODO(burdon): For offline testing, load material-icons locally.
 

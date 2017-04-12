@@ -107,8 +107,8 @@ const webConfig = webpackMerge(baseConfig, {
   devtool: '#source-map',
 
   entry: {
-    test: [
-      path.resolve(baseConfig.context, 'src/web/testing/test.js'),
+    components: [
+      path.resolve(baseConfig.context, 'src/web/testing/components.js'),
     ],
 
     test_apollo: [
