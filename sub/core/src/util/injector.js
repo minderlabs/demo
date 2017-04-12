@@ -13,7 +13,7 @@ export class Injector {
    * @param {string} key [optional]
    * @returns {{}}
    */
-  static provider(instance, key=undefined) {
+  static provide(instance, key=undefined) {
     console.assert(_.isObject(instance), 'Invalid provider: ', { instance, key });
 
     if (!key) {

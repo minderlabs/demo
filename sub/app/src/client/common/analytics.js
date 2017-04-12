@@ -20,7 +20,7 @@ export class Analytics {
   /**
    * Injector key to inject Analytics subclasses. For example:
    *
-   * Injector.provider(new GoogleAnalytics(), Analytics.INJECTOR_KEY);
+   * Injector.provide(new GoogleAnalytics(), Analytics.INJECTOR_KEY);
    * ...
    * let analytics = injector.get(Analytics.INJECTOR_KEY);
    */

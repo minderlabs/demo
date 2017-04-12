@@ -22,7 +22,7 @@ const config = _.defaultsDeep(window.config, {
     reducer: true,
     optimistic: true,
     invalidation: true,
-//  networkDelay: 500
+    networkDelay: 0
   },
 
   app: {

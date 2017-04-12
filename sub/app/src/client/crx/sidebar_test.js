@@ -22,7 +22,8 @@ class TestSidebarApp extends WebApp {
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace]: AppReducer(this._injector, this._config, this._apolloClient),
+      // TODO(burdon): Push to BaseApp.
+      [AppAction.namespace]: AppReducer(this.injector, this.config, this.client),
 
       // Context.
       [ContextAction.namespace]: ContextReducer,

@@ -60,8 +60,6 @@ class CanvasActivity extends React.Component {
         finder = <Finder viewer={ viewer } folder={ 'inbox' }/>;
       }
 
-      finder = null;
-
       return (
         <Layout navbar={ navbar } finder={ finder }>
           { canvasComponent }

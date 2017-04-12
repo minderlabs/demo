@@ -89,13 +89,13 @@ export class LayoutComponent extends React.Component {
   render() {
     return ReactUtil.render(this, () => {
       let { config, viewer, typeRegistry } = this.context;
-      let { debug, navbar, finder, children, className } = this.props;
+      let { debug, navbar, finder, search, children, className } = this.props;
       let platform = _.get(config, 'app.platform');
 
       let sidePanel = <SidePanel typeRegistry={ typeRegistry }/>;
 
       let content;
-      if (finder) {
+      if (finder && search.text) {
         if (children) {
           content = (
             <div className="app-layout-finder ux-columns">
@@ -155,13 +155,15 @@ export class LayoutComponent extends React.Component {
             {/* Navbar */}
             { navbar }
 
+            {/* Main Layout */}
             <div className="ux-columns">
+
               {/* Sidebar */}
               <Sidebar ref="sidebar">
                 { sidePanel }
               </Sidebar>
 
-              {/* Content */}
+              {/* Main Content */}
               <div className="app-layout ux-column">
                 { content }
               </div>
@@ -184,9 +186,10 @@ export class LayoutComponent extends React.Component {
 }
 
 const mapStateToProps = (state, ownProps) => {
-  let { debug } = AppAction.getState(state);
+  let { debug, search } = AppAction.getState(state);
   return {
-    debug
+    debug,
+    search
   };
 };
 

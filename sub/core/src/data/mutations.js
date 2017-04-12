@@ -234,14 +234,15 @@ class Batch {
    * Updates existing item in batch.
    * @param {Item} item
    * @param {[Mutation]} mutations Mutations can reference created items above via ${name}.
-   * @param {string} name Optional name that can be referenced by subsequent updates below.
+   * @param {string|undefined} name Optional name that can be referenced by subsequent updates below.
+   * @param {Query|undefined} query
    * @return {Batch}
    */
-  updateItem(item, mutations, name=undefined) {
+  updateItem(item, mutations, name=undefined, query=undefined) {
     console.assert(item && mutations);
     mutations = TypeUtil.flattenArrays(mutations);
     this._operations.push({
-      item, mutations, name
+      item, mutations, name, query
     });
 
     return this;
@@ -260,31 +261,20 @@ class Batch {
 
     // Process create and update mutations.
     _.each(this._operations, operation => {
-      let { item, type, mutations, name } = operation;
+      let { item, type, mutations, name, query } = operation;
       if (item) {
+
         //
         // Update item.
         //
 
-        // Update references.
-        TypeUtil.traverse(mutations, (value) => {
-          let id = _.get(value, 'value.id');
-          if (id) {
-            let match = id.match(/\$\{(.+)\}/);
-            if (match) {
-              let created = itemsByName.get(match[1]);
-              _.set(value, 'value.id', created.id);
-            }
-          }
-        });
-
-        // Update item.
-        item = this._mutator._updateItem(this._bucket, item, mutations, itemsById);
+        item = this._mutator._updateItem(this._bucket, item, mutations, query, itemsByName, itemsById);
         itemsById.set(item.id, item);
         if (name) {
           itemsByName.set(name, item);
         }
       } else {
+
         //
         // Create item.
         //
@@ -313,13 +303,19 @@ export class Mutator {
     return graphql(UpsertItemsMutation, {
       withRef: true,
 
+      options: {
+        // http://dev.apollodata.com/core/read-and-write.html#updating-the-cache-after-a-mutation
+        // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-update
+//      update: (proxy, { data }) => {}
+      },
+
       //
       // Injects a mutator instance into the wrapped components' properties.
       // NOTE: dependencies must previously have been injected into the properties.
       //
       props: ({ ownProps, mutate }) => {
-        let { config, idGenerator, analytics } = ownProps;
-        let mutator = new Mutator(config, idGenerator, analytics, mutate);
+        let { config, client, idGenerator, analytics } = ownProps;
+        let mutator = new Mutator(config, client, idGenerator, analytics, mutate);
         return {
           mutator
         };
@@ -341,9 +337,6 @@ export class Mutator {
       // Add hint for reducer.
       optimistic: true,
 
-      // Type of mutation.
-      __typename: UpsertItemsMutationName,
-
       // Root.
       [UpsertItemsMutationPath]: items
     };
@@ -351,13 +344,15 @@ export class Mutator {
 
   /**
    * @param config
+   * @param client Apollo client.
    * @param idGenerator
    * @param analytics
    * @param mutate Function provided by apollo.
    */
-  constructor(config, idGenerator, analytics, mutate) {
-    console.assert(config, idGenerator && analytics && mutate);
+  constructor(config, client, idGenerator, analytics, mutate) {
+    console.assert(config, client, idGenerator && analytics && mutate);
     this._config = config;
+    this._client = client;
     this._idGenerator = idGenerator;
     this._analytics = analytics;
     this._mutate = mutate;
@@ -384,7 +379,6 @@ export class Mutator {
 
     let itemId = this._idGenerator.createId();
 
-    // TODO(burdon): Unit test.
     let item = Transforms.applyObjectMutations({
       __typename: type,
       type,
@@ -410,6 +404,8 @@ export class Mutator {
     // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-update
     // http://dev.apollodata.com/react/cache-updates.html
 
+    this._analytics && this._analytics.track('item.create', { label: type });
+
     logger.log('createItem: ' + TypeUtil.stringify({ bucket, item: { type, id: itemId }, mutations }));
     this._mutate({
       variables: {
@@ -425,7 +421,6 @@ export class Mutator {
       optimisticResponse
     });
 
-    this._analytics && this._analytics.track('item.create', { label: type });
     return item;
   }
 
@@ -435,10 +430,12 @@ export class Mutator {
    * @param {string} bucket
    * @param {Item} item
    * @param {[{Mutations}]} mutations
-   * @param {object} itemMap Optional map of cached items.
+   * @param {Query|undefined} query Item query.
+   * @param {Map} itemsByName
+   * @param {Map} itemsById
    * @return {Item} Optimistic result (NOTE: this will change if the item is being copied).
    */
-  _updateItem(bucket, item, mutations, itemMap=undefined) {
+  _updateItem(bucket, item, mutations, query=undefined, itemsByName=undefined, itemsById=undefined) {
     mutations = _.compact(_.concat(mutations));
 
     //
@@ -500,21 +497,48 @@ export class Mutator {
     // Regular mutation of User item.
     //
 
+    // Update references to recently created items.
+    _.each(mutations, mutation => {
+      TypeUtil.traverse(mutation, (value) => {
+        let id = _.get(value, 'value.id');
+        if (id) {
+          let match = id.match(/\$\{(.+)\}/);
+          if (match) {
+            // TODO(burdon): Check type.
+            let created = itemsByName.get(match[1]);
+            console.assert(created && created.id);
+            _.set(value, 'value.id', created.id);
+          }
+        }
+      });
+    });
+
     let optimisticResponse;
     if (_.get(this._config, 'options.optimistic')) {
+
+      // TODO(burdon): Instead of passing item into update, pass the Query.
+      // Get item from cache (item passed to mutator may be stale).
+      // http://dev.apollodata.com/core/read-and-write.html#readquery
+      if (query) {
+        let data = this._client.readQuery({
+          query,
+          variables: {
+            itemId: ID.toGlobalId(item.type, item.id)
+          }
+        });
+
+        item = data.item;
+      }
 
       // Create optimistic result.
       item = Transforms.applyObjectMutations(TypeUtil.clone(item), mutations);
 
-      console.log('######===', JSON.stringify(_.pick(item, ['type', 'id', 'status', 'title', 'boards'])));
-
-      // Check for ID references to recently created items.
-      // TODO(burdon): Remove itemMap: Add tmp item property to mutation { id: xxx; item: task }
-      if (false)
-      if (itemMap) {
+      // TODO(burdon): Use mutations above.
+      // Patch ID references with actual items.
+      if (itemsById) {
         TypeUtil.traverse(item, (value, key, root) => {
           if (_.isString(value)) {
-            let match = itemMap.get(value);
+            let match = itemsById.get(value);
             if (match) {
               _.set(root, key, match);
             }
@@ -522,19 +546,17 @@ export class Mutator {
         });
       }
 
-      item.__typename = item.type;
-
       optimisticResponse = Mutator.optimisticResponse([item]);
-
-      // TODO(burdon): Missing __typename???
-      console.log('::::::::::::::::', JSON.stringify(optimisticResponse, 0, 2));
     }
 
     //
     // Submit mutation.
     //
 
-    logger.log('updateItem: ' + TypeUtil.stringify({ bucket, item: _.pick(item, 'type', 'id'), mutations }));
+    this._analytics && this._analytics.track('item.update', { label: item.type });
+
+    // TODO(burdon): labels: {"type":"json","json":["_default"]} ??? for Project; DUMP SERVER ITEMS.
+
     this._mutate({
       variables: {
         mutations: [
@@ -549,7 +571,6 @@ export class Mutator {
       optimisticResponse
     });
 
-    this._analytics && this._analytics.track('item.edit', { label: item.type });
     return item;
   }
 }

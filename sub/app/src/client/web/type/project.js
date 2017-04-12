@@ -285,8 +285,6 @@ class ProjectBoardCanvasComponent extends React.Component {
 
           mutations.push(MutationUtil.createSetMutation('labels', 'string', column.value));
 
-          console.log('########', JSON.stringify(mutations, null, 2));
-
           return mutations;
         }
       }
@@ -357,6 +355,7 @@ class ProjectBoardCanvasComponent extends React.Component {
     }
 
     // Update item order.
+//  if (false) // TODO(burdon): This reverts the Task update!!!
     batch.updateItem(project, _.map(changes, change => ({
       field: 'boards',
       value: {
@@ -405,7 +404,7 @@ class ProjectBoardCanvasComponent extends React.Component {
           }
         }]
       }
-    })));
+    })), null, ProjectBoardQuery);
 
     batch.commit();
   }
@@ -426,12 +425,6 @@ class ProjectBoardCanvasComponent extends React.Component {
       // Get the appropriate board.
       let board = _.find(_.get(project, 'boards'), board => board.alias === boardAlias);
 
-      // TODO(burdon): 1. TypeUtil.traverse in mutations inserts object in wrong place.
-      // TODO(burdon): 2. Render after optimistic result doesn't change: Board HAS been updated! Item.status not updated.
-
-      // TODO(burdon): DOC HOW COLUMN MAPPER WORKS? WHAT DATA?
-
-      console.log('##### RENDER PROJECT: META=', JSON.stringify(_.get(board, 'itemMeta')));
       itemOrderModel.setLayout(_.get(board, 'itemMeta'));
 
       return (
@@ -546,12 +539,14 @@ export const ProjectBoardCanvas = compose(
 )(ProjectBoardCanvasComponent);
 
 export const ProjectCanvasToolbar = connect(
+
   (state, ownProps) => {
     let { canvas: { boardAlias='status' } } = AppAction.getState(state);
     return {
       boardAlias
     };
   },
+
   (dispatch, ownProps) => ({
     setBoardAlias: boardAlias => {
       dispatch(AppAction.setCanvasState({
@@ -559,4 +554,5 @@ export const ProjectCanvasToolbar = connect(
       }));
     }
   })
+
 )(ProjectCanvasToolbarComponent);

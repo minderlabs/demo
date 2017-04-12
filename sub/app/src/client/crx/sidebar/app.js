@@ -158,16 +158,17 @@ export class SidebarApp extends BaseApp {
 
   get providers() {
     return [
-      Injector.provider(TypeRegistryFactory()),
-      Injector.provider(this._messenger),
-      Injector.provider(this._systemChannel, SystemChannel.CHANNEL)
+      Injector.provide(TypeRegistryFactory()),
+      Injector.provide(this._messenger),
+      Injector.provide(this._systemChannel, SystemChannel.CHANNEL)
     ]
   }
 
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace]: AppReducer(this._injector, this._config, this._apolloClient),
+      // TODO(burdon): Push to BaseApp.
+      [AppAction.namespace]: AppReducer(this.injector, this.config, this.client),
 
       // Context.
       [ContextAction.namespace]: ContextReducer,

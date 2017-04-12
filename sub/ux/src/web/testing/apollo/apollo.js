@@ -289,11 +289,14 @@ const ListReducer = (query, path, active=true) => (previousResult, action, varia
 // Optimistic Updates.
 // http://dev.apollodata.com/react/optimistic-ui.html
 // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-optimisticResponse
+// http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-update
 //-------------------------------------------------------------------------------------------------
 
 const OptimisticResponse = (item, mutations) => {
 
   let updatedItem = Transforms.applyObjectMutations(item, mutations);
+
+  // Important for update.
   _.assign(updatedItem, {
     __typename: item.type
   });
@@ -366,8 +369,20 @@ const ListComponentWithApollo = compose(
   // http://dev.apollodata.com/react/mutations.html
   graphql(TestMutation, {
 
+    options: {
+
+      // Custom cache update (for particular query; more flexible to use reducer).
+      // http://dev.apollodata.com/core/read-and-write.html#updating-the-cache-after-a-mutation
+      // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-update
+      // update: (proxy, { data }) => {
+      // }
+    },
+
     // http://dev.apollodata.com/react/mutations.html#custom-arguments
     props: ({ ownProps, mutate }) => ({
+
+      // TODO(burdon): update.
+      // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-update
 
       //
       // Insert item.
@@ -398,8 +413,6 @@ const ListComponentWithApollo = compose(
       insertItem: (type, mutations) => {
         let itemId = ID(type);
 
-        // http://dev.apollodata.com/react/optimistic-ui.html
-        // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-optimisticResponse
         let optimisticResponse =
           ownProps.options.optimisticResponse && OptimisticResponse({ type, id: itemId }, mutations);
 

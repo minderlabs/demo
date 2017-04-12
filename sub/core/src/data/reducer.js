@@ -99,7 +99,7 @@ update.extend('$deepMerge', (spec, items) => {
  */
 class Reducer {
 
-  // TODO(burdon): Combine into single reducer.
+  // TODO(burdon): Combine into single reducer. Utils not big framework.
 
   /**
    * Creates a reducer function that returns a list with the updated item either
@@ -111,30 +111,31 @@ class Reducer {
    * @param updatedItem
    * @returns {function([Item])}
    */
+  // TODO(burdon): Not in use.
   // TODO(burdon): Make available to customer reducers (e.g., project, task).
-  static listApplicator(matcher, context, filter, updatedItem) {
-    return (items) => {
-      // TODO(burdon): Make sure matches.
-      let taskIdx = _.findIndex(items, item => item.id === updatedItem.id);
-      if (taskIdx === -1) {
-        // Append.
-        return [...items, updatedItem];
-      } else {
-        // TODO(burdon): Use push/remove instead?
-        return _.compact(_.map(items, item => {
-          if (item.id === updatedItem.id) {
-            // Remove if doesn't match filter.
-            if (matcher.matchItem(context, {}, filter, updatedItem)) {
-              return updatedItem;
-            }
-          } else {
-            // Keep others.
-            return item;
-          }
-        }));
-      }
-    };
-  }
+  // static listApplicator(matcher, context, filter, updatedItem) {
+  //   return (items) => {
+  //     // TODO(burdon): Make sure matches.
+  //     let taskIdx = _.findIndex(items, item => item.id === updatedItem.id);
+  //     if (taskIdx === -1) {
+  //       // Append.
+  //       return [...items, updatedItem];
+  //     } else {
+  //       // TODO(burdon): Use push/remove instead?
+  //       return _.compact(_.map(items, item => {
+  //         if (item.id === updatedItem.id) {
+  //           // Remove if doesn't match filter.
+  //           if (matcher.matchItem(context, {}, filter, updatedItem)) {
+  //             return updatedItem;
+  //           }
+  //         } else {
+  //           // Keep others.
+  //           return item;
+  //         }
+  //       }));
+  //     }
+  //   };
+  // }
 
   /**
    * @param query GQL Query Type.
@@ -181,6 +182,10 @@ class Reducer {
   doTransform(previousResult, transform) {
     console.assert(previousResult && transform);
 //  logger.log($$('Transform: %o\n%s', previousResult, JSON.stringify(transform, 0, 2)));
+
+    console.log('????????????????????????????????');
+    return previousResult;
+
     return update(previousResult, transform);
   }
 }
@@ -298,7 +303,9 @@ export class ListReducer extends Reducer {
 
           let transform = this.getTransform(matcher, context, filter, previousResult, updatedItem);
           if (transform) {
-            previousResult = this.doTransform(previousResult, transform);
+            let newResult = this.doTransform(previousResult, transform);
+            console.log('##########', JSON.stringify(newResult, 0, 2));
+            return newResult;
           }
         }
       } catch (error) {

@@ -88,7 +88,7 @@ export class WebApp extends BaseApp {
 
   get providers() {
     return [
-      Injector.provider(TypeRegistryFactory())
+      Injector.provide(TypeRegistryFactory())
     ];
   }
 
@@ -100,7 +100,7 @@ export class WebApp extends BaseApp {
     return {
       // Main app reducer.
       // TODO(burdon): Push to BaseApp.
-      [AppAction.namespace]: AppReducer(this._injector, this._config, this._apolloClient)
+      [AppAction.namespace]: AppReducer(this.injector, this.config, this.client)
     }
   }
 

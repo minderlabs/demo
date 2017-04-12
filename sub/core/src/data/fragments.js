@@ -192,12 +192,12 @@ export const Fragments = {
         ...ItemMetaFragment
       }
   
-      status
-  
       tasks {
         ...ItemMetaFragment
         status
       }
+  
+      status
     }
 
     ${ItemMetaFragment}
