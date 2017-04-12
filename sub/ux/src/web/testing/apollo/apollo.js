@@ -6,6 +6,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { createMemoryHistory, Route, Router } from 'react-router';
 import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
+import thunk from 'redux-thunk';
 import { routerMiddleware, routerReducer } from 'react-router-redux'
 import { graphql, ApolloProvider } from 'react-apollo';
 import ApolloClient from 'apollo-client';
@@ -18,10 +19,7 @@ import { ReactUtil } from '../../react';
 
 import './apollo.less';
 
-// TODO(burdon): End-to-end unit test.
-// https://github.com/apollographql/react-apollo/tree/master/examples/create-react-app#running-tests
-
-const ID = type => type + '/' + _.uniqueId('I-');
+export const ID = type => type + '/' + _.uniqueId('I-');
 
 //-------------------------------------------------------------------------------------------------
 // React Components.
@@ -217,7 +215,7 @@ const OptionsComponentWithRedux = connect(mapStateToProps, mapDispatchToProps)(O
 // GQL Queries and Mutations.
 //-------------------------------------------------------------------------------------------------
 
-const TestQuery = gql`
+export const TestQuery = gql`
   query TestQuery($filter: FilterInput) {
     search(filter: $filter) {
       items {
@@ -231,7 +229,7 @@ const TestQuery = gql`
 
 const TestQueryName = _.get(TestQuery, 'definitions[0].name.value');
 
-const TestMutation = gql`
+export const TestMutation = gql`
   mutation UpsertItemsMutation($mutations: [ItemMutationInput]!) {
     upsertItems(mutations: $mutations) {
       type
@@ -445,6 +443,7 @@ const SimpleListComponentWithApollo = compose(
       }
     }
   })
+
 )(SimpleListComponent);
 
 //-------------------------------------------------------------------------------------------------
@@ -618,8 +617,6 @@ class RootComponent extends React.Component {
 // Redux Reducer.
 //-------------------------------------------------------------------------------------------------
 
-// TODO(burdon): Move to static members of App.
-
 const APP_NAMESPACE = 'app';
 
 const APP_UPDATE_OPTIONS = 'APP_UPDATE_OPTIONS';
@@ -629,7 +626,18 @@ const AppUpdateOptions = (options) => ({
   options
 });
 
-const AppState = (state) => state[APP_NAMESPACE];
+// TODO(burdon): Thunk action to insert item (access apollo client directly).
+// http://dev.apollodata.com/core/apollo-client-api.html
+// https://github.com/gaearon/redux-thunk
+export const AppTestAction = (title) => (dispatch, getState) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({ status: 'OK' });
+    })
+  }, 100);
+};
+
+export const AppState = (state) => state[APP_NAMESPACE];
 
 const AppReducer = (initalState) => (state=initalState, action) => {
   switch (action.type) {
@@ -699,6 +707,7 @@ export class App {
     });
 
     const enhancers = compose(
+      applyMiddleware(thunk),
       applyMiddleware(routerMiddleware(this._history)),
       applyMiddleware(this._client.middleware())
     );
