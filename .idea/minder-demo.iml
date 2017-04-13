@@ -9,6 +9,7 @@
       <excludeFolder url="file://$MODULE_DIR$/sub/docker" />
       <excludeFolder url="file://$MODULE_DIR$/sub/graphql/dist" />
       <excludeFolder url="file://$MODULE_DIR$/sub/graphql/node_modules" />
+      <excludeFolder url="file://$MODULE_DIR$/sub/scheduler/dist" />
       <excludeFolder url="file://$MODULE_DIR$/sub/scheduler/node_modules" />
       <excludeFolder url="file://$MODULE_DIR$/sub/site/node_modules" />
       <excludeFolder url="file://$MODULE_DIR$/sub/tools/venv" />

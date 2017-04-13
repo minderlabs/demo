@@ -33,9 +33,6 @@ export class BaseApp {
     console.assert(config);
     this._config = config;
 
-    // TODO(burdon): Fix.
-    this._config.debug = false;
-
     this._initialized = false;
 
     // Event bus propagates events (e.g., error messages) to components.
@@ -45,6 +42,7 @@ export class BaseApp {
     // Manages Apollo query subscriptions.
     this._queryRegistry = new QueryRegistry(config);
 
+    // TODO(burdon): Runtime option. This currently breaks if null.
     this._analytics = new SegmentAnalytics(this._config);
 
     // Global error handling.

@@ -11,7 +11,10 @@ let app = express();
 // JSON API.
 app.use('/kue/api', kue.app);
 
+//
 // NOTE: Don't use!
+//
+
 // - Quite buggy (but better dashboard).
 // - Fails if REDIS stops.
 ui.setup({
@@ -28,4 +31,4 @@ ui.setup({
 
 app.use('/kue/ux', ui.app);
 
-app.listen(3000);
+app.listen(4000);

@@ -346,7 +346,6 @@ class ProjectBoardCanvasComponent extends React.Component {
     let { mutator } = this.context;
     let { item:project, boardAlias } = this.props;
 
-    // TODO(burdon): Batch.
     // Update item for column.
     let batch = mutator.batch(project.bucket);
     let dropMutations = this.boardAdapter.onDropMutations(item, column);
@@ -355,7 +354,6 @@ class ProjectBoardCanvasComponent extends React.Component {
     }
 
     // Update item order.
-//  if (false) // TODO(burdon): This reverts the Task update!!!
     batch.updateItem(project, _.map(changes, change => ({
       field: 'boards',
       value: {

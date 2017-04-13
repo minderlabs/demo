@@ -438,20 +438,39 @@ export class Mutator {
   _updateItem(bucket, item, mutations, query=undefined, itemsByName=undefined, itemsById=undefined) {
     mutations = _.compact(_.concat(mutations));
 
+    // TODO(burdon): Unit test (factor out mutation transformations).
+
+    //
+    // Update references to recently created items.
+    // E.g., ${new_task} => xxx
+    //
+
+    _.each(mutations, mutation => {
+      TypeUtil.traverse(mutation, (value, key, root, path) => {
+        if (key === 'id') {
+          let match = value.match(/\$\{(.+)\}/);
+          if (match) {
+            // TODO(burdon): Check type.
+            let item = itemsByName.get(match[1]);
+            console.assert(item && item.id);
+            _.set(root, key, item.id);
+          }
+        }
+      });
+    });
+
     //
     // Special handling for non-USER namespace.
-    // TODO(burdon): Unit test.
     // TODO(burdon): Fall through to standard update processing below (NOT CREATE)?
     //
 
     if (item.namespace) {
       switch (item.namespace) {
+
+        //
+        // Clone local item on mutation.
+        //
         case Database.NAMESPACE.LOCAL: {
-
-          //
-          // Clone local item on mutation.
-          //
-
           let cloneMutations = _.concat(
             // Mutations to clone the item's properties.
             // TODO(burdon): Remove mutations for current properties below.
@@ -467,13 +486,12 @@ export class Mutator {
           return clonedItem;
         }
 
+        //
+        // Clone external item on mutation.
+        // NOTE: This assumes that external items are never presented to the client when a USER item
+        // exists; i.e., external/USER items are merged on the server (Database.search).
+        //
         default: {
-          //
-          // Clone external item on mutation.
-          // NOTE: This assumes that external items are never presented to the client when a USER item
-          // exists; i.e., external/USER items are merged on the server (Database.search).
-          //
-
           let cloneMutations = _.concat(
             // Reference the external item.
             MutationUtil.createFieldMutation('fkey', 'string', ID.getForeignKey(item)),
@@ -494,24 +512,8 @@ export class Mutator {
     }
 
     //
-    // Regular mutation of User item.
+    // Regular mutation of Item in User namespace.
     //
-
-    // Update references to recently created items.
-    _.each(mutations, mutation => {
-      TypeUtil.traverse(mutation, (value) => {
-        let id = _.get(value, 'value.id');
-        if (id) {
-          let match = id.match(/\$\{(.+)\}/);
-          if (match) {
-            // TODO(burdon): Check type.
-            let created = itemsByName.get(match[1]);
-            console.assert(created && created.id);
-            _.set(value, 'value.id', created.id);
-          }
-        }
-      });
-    });
 
     let optimisticResponse;
     if (_.get(this._config, 'options.optimistic')) {
@@ -533,7 +535,7 @@ export class Mutator {
       // Create optimistic result.
       item = Transforms.applyObjectMutations(TypeUtil.clone(item), mutations);
 
-      // TODO(burdon): Use mutations above.
+      // TODO(burdon): NOT ONLY CHANGE ${new_task} but ANY ID references! (e.g., assignee). DESIGN.
       // Patch ID references with actual items.
       if (itemsById) {
         TypeUtil.traverse(item, (value, key, root) => {

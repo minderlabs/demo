@@ -435,7 +435,7 @@ function resetDatabase() {
 }
 
 app.use('/admin', adminRouter(clientManager, firebase, {
-  scheduler: (env === 'production'),
+  scheduler: true,
 
   handleDatabaseDump: (env !== 'production' ? () => {
     return userDataStore.dump().then(debug => {

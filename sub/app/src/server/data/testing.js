@@ -40,9 +40,6 @@ export class TestGenerator {
       Randomizer.property('contacts', (item, context, randomizer) => {
         let { userId } = context;
         let num = randomizer.chance.natural({ min: 3, max: 5 });
-
-        console.log('GEN CONTACTS', num, item.title);
-
         if (num) {
           // TODO(burdon): Reuse generator? (but same project).
           return database.getItemStore(Database.NAMESPACE.USER).upsertItems(context, _.times(num, i => ({

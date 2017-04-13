@@ -10,11 +10,13 @@ export const JobDefs = {
 };
 
 // Test job.
-// TODO(burdon): Unit test.
 // https://www.npmjs.com/package/kue#testing
 export class TestJob extends Job {
   process(data) {
     return new Promise((resolve, reject) => {
+
+      // TODO(burdon): Test notifications.
+
       resolve();
     });
   }

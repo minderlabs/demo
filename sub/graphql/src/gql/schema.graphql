@@ -316,6 +316,7 @@ type RootQuery {
 
 input ItemMutationInput {
 
+  # TODO(burdon): Regular ID + type?
   # Item to mutate.
   itemId: ID!
 

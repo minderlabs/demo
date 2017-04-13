@@ -284,7 +284,7 @@ class NetworkLogger {
     //
     // Show GraphiQL link.
     //
-    if (_.get(this._options, 'debug', true)) {
+    if (_.get(this._options, 'debug', true) || true) {  // TODO(burdon): Config detail.
       let url = HttpUtil.absoluteUrl(_.get(this._options, 'graphiql', '/graphiql'));
       logger.info('[' + TypeUtil.pad(requestId, 24) + ']: ' + url + '?' + HttpUtil.toUrlArgs({
         clientId:   headers[Const.HEADER.CLIENT_ID],
