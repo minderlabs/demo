@@ -537,7 +537,7 @@ export class Mutator {
       // Patch ID references with actual items.
       if (itemsById) {
         TypeUtil.traverse(item, (value, key, root) => {
-          if (_.isString(value)) {
+          if (key !== 'id' && _.isString(value)) {
             let match = itemsById.get(value);
             if (match) {
               _.set(root, key, match);

@@ -33,6 +33,9 @@ export class BaseApp {
     console.assert(config);
     this._config = config;
 
+    // TODO(burdon): Fix.
+    this._config.debug = false;
+
     this._initialized = false;
 
     // Event bus propagates events (e.g., error messages) to components.

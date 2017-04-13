@@ -288,7 +288,7 @@ export class ClientManager {
       };
 
       let url;
-      if (platform === Const.PLATFORM.CRX) {
+      if (platform === ``) {
         // https://developers.google.com/cloud-messaging/downstream
         url = 'https://gcm-http.googleapis.com/gcm/send';
       } else {

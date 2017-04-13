@@ -95,7 +95,8 @@ export class LayoutComponent extends React.Component {
       let sidePanel = <SidePanel typeRegistry={ typeRegistry }/>;
 
       let content;
-      if (finder && search.text) {
+      let showFinder = finder && (platform !== Const.PLATFORM.WEB || search.text);
+      if (showFinder) {
         if (children) {
           content = (
             <div className="app-layout-finder ux-columns">

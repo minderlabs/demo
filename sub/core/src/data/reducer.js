@@ -182,10 +182,6 @@ class Reducer {
   doTransform(previousResult, transform) {
     console.assert(previousResult && transform);
 //  logger.log($$('Transform: %o\n%s', previousResult, JSON.stringify(transform, 0, 2)));
-
-    console.log('????????????????????????????????');
-    return previousResult;
-
     return update(previousResult, transform);
   }
 }
@@ -303,9 +299,7 @@ export class ListReducer extends Reducer {
 
           let transform = this.getTransform(matcher, context, filter, previousResult, updatedItem);
           if (transform) {
-            let newResult = this.doTransform(previousResult, transform);
-            console.log('##########', JSON.stringify(newResult, 0, 2));
-            return newResult;
+            return this.doTransform(previousResult, transform);
           }
         }
       } catch (error) {
