@@ -1,0 +1,21 @@
+#
+# Client configuration.
+# https://console.firebase.google.com/project/minder-beta/overview
+# https://console.firebase.google.com/project/minder-beta/authentication/providers (Web Setup)
+#
+
+apiKey: 'AIzaSyDwDsz7hJWdH2CijLItaQW6HmL7H9uDFcI'
+authDomain: 'minder-beta.firebaseapp.com'
+databaseURL: 'https://minder-beta.firebaseio.com'
+storageBucket: 'minder-beta.appspot.com'
+
+# https://console.firebase.google.com/project/minder-beta/settings/cloudmessaging
+messagingSenderId: '189079594739'
+
+# Generated 3/4/17 (Create Key from Service Accounts: firebase-adminsdk).
+# https://console.firebase.google.com/project/minder-beta/settings/serviceaccounts/adminsdk
+# https://console.cloud.google.com/iam-admin/serviceaccounts/project?consoleUI=FIREBASE&project=minder-beta
+credentialPath: './minder-beta-44ee54278556.json'
+
+# https://console.firebase.google.com/project/minder-beta/settings/cloudmessaging
+messagingServerKey: 'AAAALAYFpvM:APA91bFAHRSZF-8_qyJQgkoBaWby3zbGe7KmKQj8Yc7WaEXcLXGECPkcEn8swKY8FZu6wScH6DZvn8DmvB1QUw3ENT_pahSbs6H4SPfBih1vmmexkiiMpvKdHEsjYOAJosMxuJkhuKK2lk2epcYvYPpLUS66i-2Zbg'

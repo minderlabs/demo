@@ -9,7 +9,7 @@ import moment from 'moment';
 import { Logger, TypeUtil } from 'minder-core';
 import { isAuthenticated, getUserSession } from 'minder-services';
 
-import { Const } from '../common/defs';
+import { Const } from '../common/const';
 
 const logger = Logger.get('app');
 

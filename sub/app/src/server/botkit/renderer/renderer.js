@@ -6,7 +6,7 @@ import _ from 'lodash';
 
 import { ID, TypeUtil } from 'minder-core';
 
-import { TASK_LEVELS } from '../../../common/defs'
+import { TASK_LEVELS } from '../../../common/const';
 
 const IS_SHORT_FIELD = true;
 

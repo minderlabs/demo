@@ -6,7 +6,7 @@ import request from 'request';
 
 import { Logger } from 'minder-core';
 
-import { FirebaseServerConfig } from '../common/defs';
+import { Config } from '../common/defs';
 
 const logger = Logger.get('push');
 
@@ -52,7 +52,7 @@ export class PushManager {
         // https://github.com/request/request#custom-http-headers
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'key=' + FirebaseServerConfig.messagingServerKey
+          'Authorization': 'key=' + Config.get('firebase.messagingServerKey')
         },
 
         body: JSON.stringify({

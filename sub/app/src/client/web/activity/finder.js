@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 
 import { ReactUtil } from 'minder-ux';
 
-import { Const } from '../../../common/defs';
+import { Const } from '../../../common/const';
 
 import Finder from '../view/finder';
 

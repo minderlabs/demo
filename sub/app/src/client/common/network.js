@@ -8,7 +8,7 @@ import { createNetworkInterface } from 'apollo-client';
 
 import { AuthUtil, UpsertItemsMutationName, ItemStore, HttpUtil, TypeUtil, Wrapper } from 'minder-core';
 
-import { Const } from '../../common/defs';
+import { Const } from '../../common/const';
 
 import { AuthManager } from './auth';
 import { ConnectionManager } from './client';

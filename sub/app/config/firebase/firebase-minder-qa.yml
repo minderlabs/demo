@@ -1,0 +1,18 @@
+#
+# Client configuration.
+# https://console.firebase.google.com/project/minder-qa/overview
+# https://console.firebase.google.com/project/minder-qa/authentication/providers (Web Setup)
+#
+
+apiKey: 'AIzaSyCY0hLfIzi7czDCZWpPn91h8phr5wm7uTI'
+authDomain: 'minder-qa.firebaseapp.com'
+databaseURL: 'https://minder-qa.firebaseio.com'
+storageBucket: 'minder-qa.appspot.com'
+
+# https://console.firebase.google.com/project/minder-qa/settings/cloudmessaging
+messagingSenderId: '161622947109'
+
+# Generated 3/4/17 (Create Key from Service Accounts: firebase-adminsdk).
+# https://console.firebase.google.com/project/minder-qa/settings/serviceaccounts/adminsdk
+# https://console.cloud.google.com/iam-admin/serviceaccounts/project?consoleUI=FIREBASE&project=minder-qa
+credentialPath: './minder-qa-e90e2fe651a3.json'

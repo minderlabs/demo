@@ -6,7 +6,7 @@ import * as firebase from 'firebase';
 
 import { Async, ErrorUtil } from 'minder-core';
 
-import { GoogleApiConfig, FirebaseAppConfig } from '../../common/defs';
+import { Config } from '../../common/defs';
 
 const logger = Logger.get('cloud');
 
@@ -108,7 +108,7 @@ export class FirebaseCloudMessenger extends CloudMessenger {
   connect() {
 
     // https://console.firebase.google.com/project/minder-beta/overview
-    firebase.initializeApp(FirebaseAppConfig);
+    firebase.initializeApp(Config.get('firebase'));
 
     // https://firebase.google.caom/docs/cloud-messaging/js/receive#handle_messages_when_your_web_app_is_in_the_foreground
     firebase.messaging().onMessage(data => {
@@ -193,7 +193,7 @@ export class GoogleCloudMessenger extends CloudMessenger {
       logger.log('Requesting message token...');
 
       // https://developers.google.com/cloud-messaging/chrome/client
-      chrome.gcm.register([ String(GoogleApiConfig.projectNumber) ], messageToken => {
+      chrome.gcm.register([ String(Config.get('google.projectNumber')) ], messageToken => {
         if (chrome.runtime.lastError) {
           throw new Error(chrome.runtime.lastError);
         }

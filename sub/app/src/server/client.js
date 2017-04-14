@@ -9,7 +9,7 @@ import moment from 'moment';
 import { Async, HttpError, Logger } from 'minder-core';
 import { hasJwtHeader } from 'minder-services';
 
-import { Const, FirebaseServerConfig } from '../common/defs';
+import { Const } from '../common/const';
 
 import { PushManager } from './push';
 

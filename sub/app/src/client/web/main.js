@@ -4,7 +4,7 @@
 
 import { DomUtil } from 'minder-core';
 
-import { Const } from '../../common/defs';
+import { Const } from '../../common/const';
 
 import { WebApp, Application } from './app';
 

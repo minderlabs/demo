@@ -6,7 +6,7 @@ Logger.setLevel({}, Logger.Level.debug);
 
 import { HttpUtil, KeyListener } from 'minder-core';
 
-import { Const } from '../../common/defs';
+import { Const } from '../../common/const';
 
 import { BackgroundCommand, KeyCodes } from './common';
 

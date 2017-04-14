@@ -6,7 +6,7 @@ import { goBack, goForward, push } from 'react-router-redux';
 
 import { ID } from 'minder-core';
 
-import { Const } from '../../common/defs';
+import { Const } from '../../common/const';
 
 /**
  * Router paths.

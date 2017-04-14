@@ -2,9 +2,9 @@
 // Copyright 2017 Minder Labs.
 //
 
-import { Const } from '../../common/defs';
-
 import { Logger } from 'minder-core';
+
+import { Const } from '../../common/const';
 
 import { AppAction, AppReducer, ContextAction, ContextReducer } from '../common/reducers';
 import { WebApp } from '../web/app';

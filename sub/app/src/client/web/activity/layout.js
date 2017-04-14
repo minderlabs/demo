@@ -11,7 +11,7 @@ import { DomUtil, ID, TypeUtil } from 'minder-core';
 import { NetUtil, ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
 
 import { AppAction } from '../../common/reducers';
-import { Const } from '../../../common/defs';
+import { Const } from '../../../common/const';
 import { Path } from '../../common/path';
 
 import SidePanel from '../view/sidepanel';

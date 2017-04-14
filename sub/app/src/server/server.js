@@ -14,6 +14,7 @@ import favicon from 'serve-favicon';
 import http from 'http';
 import path from 'path';
 import uuid from 'node-uuid';
+import yaml from 'node-yaml';
 
 import {
   ErrorUtil,
@@ -58,7 +59,8 @@ import {
   graphqlRouter
 } from 'minder-graphql';
 
-import { Const, FirebaseAppConfig, GoogleApiConfig, SlackConfig } from '../common/defs';
+import { Const } from '../common/const';
+import { Config } from '../common/defs';
 
 import { adminRouter } from './admin';
 import { webAppRouter, hotRouter } from './app';
@@ -71,6 +73,29 @@ import { Loader } from './data/loader';
 import { TestGenerator } from './data/testing';
 
 const logger = Logger.get('server');
+
+
+
+
+// TODO(burdon): Create class for Server and async startup.
+class Frontend {
+
+  constructor(config) {
+
+  }
+}
+
+// TODO(burdon): Merge config with prefixed laoders.
+async function config() {
+  return await yaml.read('../../config/frontend.yml');
+}
+
+console.log('#################', config());
+
+
+
+
+
 
 //
 // Error handling.
@@ -88,10 +113,10 @@ ErrorUtil.handleErrors(process, error => {
 // TODO(burdon): Const for all ENV vars.
 
 // TODO(burdon): Move to Config.
-const Config = {
-  MEMCACHE_HOST: _.get(process.env, 'MEMCACHE_SERVICE_HOST', '127.0.0.1'),
-  MEMCACHE_PORT: _.get(process.env, 'MEMCACHE_SERVICE_PORT', '11211')
-};
+// const Config = {
+//   MEMCACHE_HOST: _.get(process.env, 'MEMCACHE_SERVICE_HOST', '127.0.0.1'),
+//   MEMCACHE_PORT: _.get(process.env, 'MEMCACHE_SERVICE_PORT', '11211')
+// };
 
 // TODO(burdon): Move to Config.
 const env = _.get(process.env, 'NODE_ENV', 'development');
@@ -123,7 +148,12 @@ const matcher = new Matcher();
 // https://firebase.google.com/docs/database/admin/start
 //
 
-const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credentialPath']));
+const MINDER_CONF_DIR =  _.get(process.env, 'MINDER_CONF_DIR', path.join(__dirname, './conf'));
+
+const firebase = new Firebase({
+  databaseURL: Config.get('firebase.databaseURL'),
+  credentialPath: path.join(MINDER_CONF_DIR, Config.get('firebase.credentialPath'))
+});
 
 
 //
@@ -132,7 +162,7 @@ const firebase = new Firebase(_.pick(FirebaseAppConfig, ['databaseURL', 'credent
 
 const serverUrl = _.get(process.env, 'MINDER_SERVER_URL', 'http://localhost:3000');
 
-const googleAuthProvider = new GoogleOAuthProvider(GoogleApiConfig, serverUrl);
+const googleAuthProvider = new GoogleOAuthProvider(Config.get('google'), serverUrl);
 
 // TODO(burdon): Rename LoginRegistry? (i.e., which login mechanisms are displayed).
 const oauthRegistry = new OAuthRegistry()
@@ -190,7 +220,7 @@ const database = new Database()
 //
 
 database
-  .registerQueryProcessor(new GoogleDriveQueryProcessor(idGenerator, GoogleApiConfig));
+  .registerQueryProcessor(new GoogleDriveQueryProcessor(idGenerator, Config.get('google)')));
 
 
 //
@@ -204,7 +234,7 @@ if (_.get(process.env, 'MINDER_BOTKIT', false)) {
   botkitManager = new BotKitManager({
     port,
     redirectHost: _.get(process.env, 'OAUTH_REDIRECT_ROOT', 'http://localhost:' + port),
-    ...SlackConfig
+    ...Config.get('slack')
   }, database);
 
   database
@@ -299,7 +329,7 @@ app.use(OAuthProvider.PATH, oauthRouter(userManager, systemStore, oauthRegistry,
 
 app.use('/user', userRouter(userManager, oauthRegistry, systemStore, {
   env,
-  crxUrl: Const.CRX_URL(Const.CRX_ID)
+  crxUrl: Config.get('app.crxUrl')
 }));
 
 app.use('/client', clientRouter(userManager, clientManager, systemStore));
@@ -315,7 +345,7 @@ if (botkitManager) {
 
 app.get('/home', function(req, res) {
   res.render('home', {
-    crxUrl: Const.CRX_URL(Const.CRX_ID),
+    crxUrl: Config.get('app.crxUrl'),
     login: true
   });
 });
@@ -476,7 +506,7 @@ app.use(webAppRouter(userManager, clientManager, systemStore, {
 
     // Admin users only.
     links: {
-      firebase: FirebaseAppConfig.databaseURL
+      firebase: Config.get('firebase.databaseURL')
     }
   }
 }));

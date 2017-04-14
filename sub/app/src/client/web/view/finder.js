@@ -11,7 +11,7 @@ import gql from 'graphql-tag';
 import { Fragments, IdGenerator, ListReducer, QueryParser, SubscriptionWrapper } from 'minder-core';
 import { ReactUtil } from 'minder-ux';
 
-import { Const } from '../../../common/defs';
+import { Const } from '../../../common/const';
 import { AppAction, ContextAction } from '../../common/reducers';
 import { ContextManager } from '../../common/context';
 

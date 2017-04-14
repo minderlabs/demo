@@ -9,7 +9,7 @@ import { compose, graphql } from 'react-apollo';
 
 import { EventHandler, IdGenerator, Mutator, PropertyProvider, QueryRegistry, Fragments } from 'minder-core';
 
-import { Const } from '../../../common/defs';
+import { Const } from '../../../common/const';
 
 import { Navigator, WindowNavigator } from '../../common/path';
 import { AppAction } from '../../common/reducers';

@@ -158,6 +158,7 @@ describe('GraphQL Executable Schema:', () => {
 // https://github.com/graphql/graphql-js
 //
 
+if (false)
 describe('GraphQL JS API:', () => {
   let context = { userId: 'minder' };
 

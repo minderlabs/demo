@@ -57,6 +57,14 @@ const baseConfig = {
         }]
       },
 
+      // https://www.npmjs.com/package/yaml-loader
+      {
+        test: /\.yaml$/,
+        use: [{
+          loader: 'yaml-loader'
+        }]
+      },
+
       // See .babelrc for the presets.
       // https://github.com/babel/babel-loader
       {

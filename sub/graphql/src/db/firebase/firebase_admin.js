@@ -4,16 +4,17 @@
 
 import _ from 'lodash';
 import moment from 'moment'
-
 import path from 'path';
+
 import admin from 'firebase-admin';
 
-export const FirebaseAppConfig = {
-  databaseURL: 'https://minder-qa.firebaseio.com',
-  credential: admin.credential.cert(path.join(__dirname, 'conf/minder-qa-e90e2fe651a3.json'))
-};
+import { FirebaseTestConfig } from './conf/defs';
 
-const db = admin.initializeApp(FirebaseAppConfig).database();
+const config = _.defaults(FirebaseTestConfig, {
+  credential: admin.credential.cert(path.join(__dirname, FirebaseTestConfig.credentialPath))
+});
+
+const db = admin.initializeApp(config).database();
 
 //
 // Data migration.
