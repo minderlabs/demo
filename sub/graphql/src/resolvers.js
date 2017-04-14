@@ -4,9 +4,8 @@
 
 import _ from 'lodash';
 
-import { GraphQLSchema, Kind } from 'graphql';
+import { Kind } from 'graphql';
 import { concatenateTypeDefs } from 'graphql-tools';
-import { introspectionQuery } from 'graphql/utilities';
 
 import { $$, Logger, HttpError, Database, ID, ItemStore, TypeUtil } from 'minder-core';
 

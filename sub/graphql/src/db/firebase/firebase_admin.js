@@ -11,7 +11,7 @@ import admin from 'firebase-admin';
 import { FirebaseTestConfig } from './conf/defs';
 
 const config = _.defaults(FirebaseTestConfig, {
-  credential: admin.credential.cert(path.join(__dirname, FirebaseTestConfig.credentialPath))
+  credential: admin.credential.cert(path.join(__dirname, './conf', FirebaseTestConfig.credentialPath))
 });
 
 const db = admin.initializeApp(config).database();

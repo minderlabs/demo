@@ -13,14 +13,17 @@ import {
   GraphQLString
 } from 'graphql';
 
-import { makeExecutableSchema, mockServer } from 'graphql-tools';
-import { introspectionQuery, printSchema } from 'graphql/utilities';
+import { concatenateTypeDefs, makeExecutableSchema, mockServer } from 'graphql-tools';
+import { introspectionQuery } from 'graphql/utilities';
 
 import { Database, IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
 
 import { Resolvers } from './resolvers';
 
+import Framework from './gql/framework.graphql';
 import Schema from './gql/schema.graphql';
+
+const TypeDefs = concatenateTypeDefs([Framework, Schema]);
 
 
 //
@@ -73,14 +76,13 @@ function createDatabase() {
 // https://github.com/apollostack/graphql-tools
 //
 
-if (false)
 describe('GraphQL Mock Server:', () => {
   let context = { userId: 'minder' };
 
   // http://dev.apollodata.com/tools/graphql-tools/resolvers.html
   let resolverMap = {
     RootQuery: () => ({
-      search: (root, args) => {
+      viewer: (root, args) => {
         let { userId:id } = context;
 
         return {
@@ -95,11 +97,11 @@ describe('GraphQL Mock Server:', () => {
   };
 
   // http://graphql.org/blog/mocking-with-graphql
-  let server = mockServer(Schema, resolverMap);
+  let server = mockServer(TypeDefs, resolverMap);
 
   it('Query viewer', (done) => {
     server.query(query).then(result => test(result, {
-      search: {
+      viewer: {
         user: {
           id: 'minder',
           title: 'Minder'
@@ -115,9 +117,11 @@ describe('GraphQL Mock Server:', () => {
 // https://github.com/apollostack/frontpage-server/blob/master/data/schema.js
 //
 
-if (false)
 describe('GraphQL Executable Schema:', () => {
-  let context = { userId: 'minder' };
+  let context = {
+    userId: 'minder',
+    clientId: 'client-1'
+  };
 
   let database = createDatabase();
 
@@ -132,7 +136,7 @@ describe('GraphQL Executable Schema:', () => {
 
   database.getItemStore(Database.NAMESPACE.SYSTEM)
     .upsertItems(context, [
-      { id: 'minder', type: 'User', title: 'Minder' }
+      { id: 'minder', type: 'User', displayName: 'Minder' }
     ])
     .then(() => {
       it('Query viewer', (done) => {
@@ -141,7 +145,7 @@ describe('GraphQL Executable Schema:', () => {
 
           // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
           graphql(schema, query, null, context).then(result => test(result, {
-            search: {
+            viewer: {
               user: {
                 id: 'minder',
                 title: 'Minder'
@@ -158,7 +162,6 @@ describe('GraphQL Executable Schema:', () => {
 // https://github.com/graphql/graphql-js
 //
 
-if (false)
 describe('GraphQL JS API:', () => {
   let context = { userId: 'minder' };
 
@@ -168,7 +171,7 @@ describe('GraphQL JS API:', () => {
     query: new GraphQLObjectType({
       name: 'RootQuery',
       fields: {
-        search: {
+        viewer: {
           type: new GraphQLObjectType({
             name: 'Viewer',
             fields: {
@@ -215,7 +218,7 @@ describe('GraphQL JS API:', () => {
       it('Query viewer', (done) => {
         // https://github.com/graphql/graphql-js/blob/master/src/graphql.js
         graphql(schema, query, null, context).then(result => test(result, {
-          search: {
+          viewer: {
             user: {
               id: 'minder',
               title: 'Minder'
