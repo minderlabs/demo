@@ -8,12 +8,18 @@ import { Const } from '../../common/const';
 
 import { WebApp, Application } from './app';
 
+import AnalyticsConfig from 'json-loader!yaml-loader!../../../conf/analytics.yml';
+import FirebaseConfig from 'json-loader!yaml-loader!../../../conf/firebase/minder-beta.yml';
+
 import './config';
 
 /**
  * Configuration (from server).
  */
 const config = _.defaultsDeep(window.config, {
+
+  analytics: AnalyticsConfig,
+  firebase: FirebaseConfig,
 
   debug: (window.config.env !== 'production'),
 

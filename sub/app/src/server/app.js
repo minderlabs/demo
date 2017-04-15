@@ -91,7 +91,7 @@ export const webAppRouter = (userManager, clientManager, systemStore, options) =
       //
       res.render('app', {
         bundle: WEBPACK_BUNDLE[config.env],
-        loader: config.env === 'production',
+        loadingIndicator: __PRODUCTION__,
         config
       });
     }).catch(next);

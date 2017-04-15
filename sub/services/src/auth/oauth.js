@@ -117,8 +117,8 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
   // https://www.npmjs.com/package/passport-jwt
   //
 
+  // TODO(burdon): Config.
   const MINDER_JWT_SECRET = _.get(process.env, 'MINDER_JWT_SECRET', 'minder-jwt-secret');
-
   const MINDER_JWT_AUDIENCE = 'minderlabs.com';
 
   passport.use(new JwtStrategy({
@@ -208,6 +208,7 @@ export const oauthRouter = (userManager, systemStore, oauthRegistry, config={}) 
       });
 
       done(null, user);
+
       // TODO(burdon): Upsert Contact (which bucket?)
       // userStore.upsertItem().then(contact => {
       //

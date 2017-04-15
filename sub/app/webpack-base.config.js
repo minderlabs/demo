@@ -59,7 +59,7 @@ const baseConfig = {
 
       // https://www.npmjs.com/package/yaml-loader
       {
-        test: /\.yaml$/,
+        test: /\.yml$/,
         use: [{
           loader: 'yaml-loader'
         }]

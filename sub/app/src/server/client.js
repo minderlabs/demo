@@ -140,11 +140,11 @@ export class ClientManager {
 
   // TODO(burdon): Expire web clients after 1 hour (force reconnect if client re-appears).
 
-  constructor(idGenerator) {
-    console.assert(idGenerator);
+  constructor(config, idGenerator) {
+    console.assert(config && idGenerator);
     this._idGenerator = idGenerator;
     this._clientStore = new ClientStore();
-    this._pushManager = new PushManager();
+    this._pushManager = new PushManager(config);
   }
 
   /**

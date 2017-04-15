@@ -18,6 +18,7 @@ RUN_LABEL=demo
 KUBE_CREATE=0
 VERSION_BUMP=0
 DOCKER_REPO=ecr
+BUILD_ONLY=0
 
 for i in "$@"
 do
@@ -29,6 +30,10 @@ case $i in
   --repo=*)
   DOCKER_REPO="${i#*=}"
   shift
+  ;;
+
+  --build-only)
+  BUILD_ONLY=1
   ;;
 
   --bump)
@@ -92,7 +97,7 @@ fi
 #
 
 webpack
-webpack --config webpack-server.config.js
+webpack --config webpack-srv.config.js
 
 #
 # Create package.json for Dockerfile's npm install.
@@ -110,6 +115,10 @@ webpack --config webpack-server.config.js
 #
 
 docker build -t ${TAG}:${VERSION} .
+
+if [ $BUILD_ONLY -eq 1 ]; then
+  exit
+fi
 
 #
 # Tag image.

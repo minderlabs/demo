@@ -52,10 +52,10 @@ RUN chown -R nx:nx $HOME/app/var
 VOLUME $HOME/app/var
 
 #
-# Tools
+# Server modules.
 #
 
-ADD dist/package.json     $HOME/app/package.json
+ADD dist/package.json       $HOME/app/package.json
 
 WORKDIR $HOME/app
 
@@ -68,11 +68,20 @@ RUN npm install
 # TODO(burdon): Set-up for Jenkins local build.
 # TODO(burdon): Currently just add all unbuilt assets.
 
-ADD dist                  $HOME/app/dist
-ADD src/common/conf       $HOME/app/dist/conf
-ADD src/server/data       $HOME/app/dist/data
-ADD src/server/public     $HOME/app/dist/public
-ADD src/server/views      $HOME/app/dist/views
+ADD conf                    $HOME/app/conf
+ADD data                    $HOME/app/data
+
+ADD dist                    $HOME/app/dist
+ADD src/server/public       $HOME/app/dist/public
+ADD src/server/views        $HOME/app/dist/views
+
+ENV MINDER_NODE_MODULES   = $HOME/app/node_modules
+ENV MINDER_CONF_DIR       = $HOME/app/conf
+ENV MINDER_DATA_DIR       = $HOME/app/data
+
+ENV MINDER_ASSETS_DIR     = $HOME/app/dist
+ENV MINDER_PUBLIC_DIR     = $HOME/app/dist/public
+ENV MINDER_VIEWS_DIR      = $HOME/app/dist/views
 
 EXPOSE $PORT
 
@@ -89,5 +98,6 @@ USER nx
 #
 
 ENV MINDER_BOTKIT=true
+ENV MINDER_SCHEDULER=true
 
 CMD [ "node", "dist/server.bundle.js" ]

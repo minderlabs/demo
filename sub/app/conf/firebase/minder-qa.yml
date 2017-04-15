@@ -15,4 +15,4 @@ messagingSenderId: '161622947109'
 # Generated 3/4/17 (Create Key from Service Accounts: firebase-adminsdk).
 # https://console.firebase.google.com/project/minder-qa/settings/serviceaccounts/adminsdk
 # https://console.cloud.google.com/iam-admin/serviceaccounts/project?consoleUI=FIREBASE&project=minder-qa
-credentialPath: './minder-qa-e90e2fe651a3.json'
+credentialPath: './firebase/minder-qa-e90e2fe651a3.json'

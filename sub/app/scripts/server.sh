@@ -11,6 +11,6 @@ export MINDER_CONF_DIR='../src/common/conf/'
 export MINDER_PUBLIC_DIR='../src/server/public/'
 export MINDER_VIEWS_DIR='../src/server/views/'
 export MINDER_ASSETS_DIR='./'
-export MINDER_NODE_MODULES_DIR='../node_modules/'
+export MINDER_NODE_MODULES='../node_modules/'
 
 node ./dist/server.bundle.js

@@ -15,12 +15,10 @@ export class Loader {
 
   /**
    * @param database
-   * @param testing If true use alias as ID.
    */
-  constructor(database, testing=false) {
+  constructor(database) {
     console.assert(database);
     this._database = database;
-    this._testing = testing;
   }
 
   /**

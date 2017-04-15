@@ -48,6 +48,7 @@ class GoogleDriveClient {
   }
 
   constructor(idGenerator, config) {
+    console.assert(idGenerator && config);
     this._idGenerator = idGenerator;
     this._config = config;
     this._drive = google.drive('v3');

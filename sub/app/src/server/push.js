@@ -2,11 +2,10 @@
 // Copyright 2016 Minder Labs.
 //
 
+import _ from 'lodash';
 import request from 'request';
 
 import { Logger } from 'minder-core';
-
-import { Config } from '../common/defs';
 
 const logger = Logger.get('push');
 
@@ -14,6 +13,11 @@ const logger = Logger.get('push');
  * Push manager.
  */
 export class PushManager {
+
+  constructor(config) {
+    console.assert(config);
+    this._config = config;
+  }
 
   /**
    * Send push message.
@@ -52,7 +56,7 @@ export class PushManager {
         // https://github.com/request/request#custom-http-headers
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'key=' + Config.get('firebase.messagingServerKey')
+          'Authorization': 'key=' + _.get(this._config, 'firebase_server.messagingServerKey')
         },
 
         body: JSON.stringify({

@@ -37,7 +37,7 @@ export const adminRouter = (clientManager, firebase, options) => {
   router.get('/', isAuthenticated('/home', true), (req, res) => {
     return clientManager.getClients().then(clients => {
       res.render('admin', {
-        testing: (options.env !== 'production'),
+        testing: __TESTING__,
         clients
       });
     });
@@ -71,7 +71,7 @@ export const adminRouter = (clientManager, firebase, options) => {
       }
     }
 
-    if (options.env !== 'production') {
+    if (__TESTING__) {
       switch (action) {
 
         case 'database.dump': {
