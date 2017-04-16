@@ -26,6 +26,7 @@
     "kue-ui": "^0.1.0",
     "lodash": "^4.17.4",
     "minder-core": "0.1.0",
+    "node-yaml": "^3.0.3",
     "redis": "^2.7.1",
     "redis-server": "^1.1.0"
   },
@@ -33,6 +34,7 @@
     "redis": "BABEL_DISABLE_CACHE=1 babel-node src/testing/redis_server.js",
     "test": "BABEL_DISABLE_CACHE=1 babel-node src/testing/test_scheduler.js",
     "ui": "BABEL_DISABLE_CACHE=1 babel-node src/testing/ui_server.js",
+    "nodemon": "hilite nodemon --config nodemon.json --exec npm start",
     "start": "BABEL_DISABLE_CACHE=1 babel-node src/main.js"
   }
 }

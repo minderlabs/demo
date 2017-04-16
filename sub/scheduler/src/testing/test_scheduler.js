@@ -2,12 +2,10 @@
 // Copyright 2017 Minder Labs.
 //
 
-import _ from 'lodash';
-
 import kue from 'kue-scheduler';
 
-import { KueOptions } from '../defs';
 import { JobDefs } from './test_services';
+import ENV from '../env';
 
 //
 // https://github.com/lykmapipo/kue-scheduler
@@ -15,11 +13,17 @@ import { JobDefs } from './test_services';
 //
 
 // https://github.com/lykmapipo/kue-scheduler#options
-let options = _.defaults({
-  worker: false
-}, KueOptions);
+let options = {
 
-console.log(JSON.stringify(options));
+  worker: false,
+
+  // https://github.com/Automattic/kue#redis-connection-settings
+  redis: {
+    host: ENV.REDIS_SERVER,
+    port: ENV.REDIS_PORT,
+    db:   ENV.REDIS_DB
+  }
+};
 
 // Create the main queue (client and service).
 let queue = kue.createQueue(options);
