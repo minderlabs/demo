@@ -7,10 +7,10 @@ import PropTypes from 'prop-types';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { Fragments, ItemReducer, MutationUtil } from 'minder-core';
+import { Fragments, MutationUtil } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
-import { connectReducer } from '../framework/connector';
+import { Connector } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 
 //-------------------------------------------------------------------------------------------------
@@ -99,22 +99,22 @@ class GroupCanvasComponent extends React.Component {
 // HOC.
 //-------------------------------------------------------------------------------------------------
 
-const GraphReducer = (matcher, context, previousResult, updatedItem) => {
-  let { item:group } = previousResult;
-
-  if (updatedItem.type === 'Project' && updatedItem.group === previousResult.id) {
-    let projectIdx = _.findIndex(group.projects, project => project.id === updatedItem.group);
-    if (projectIdx === -1) {
-      return {
-        item: {
-          projects: {
-            $push: [updatedItem]
-          }
-        }
-      }
-    }
-  }
-};
+// const GroupReducer = (matcher, context, previousResult, updatedItem) => {
+//   let { item:group } = previousResult;
+//
+//   if (updatedItem.type === 'Project' && updatedItem.group === previousResult.id) {
+//     let projectIdx = _.findIndex(group.projects, project => project.id === updatedItem.group);
+//     if (projectIdx === -1) {
+//       return {
+//         item: {
+//           projects: {
+//             $push: [updatedItem]
+//           }
+//         }
+//       }
+//     }
+//   }
+// };
 
 const GroupQuery = gql`  
   query GroupQuery($itemId: ID!) {
@@ -129,5 +129,5 @@ const GroupQuery = gql`
 `;
 
 export const GroupCanvas = compose(
-  connectReducer(ItemReducer.graphql(GroupQuery, GraphReducer))
+  Connector.connect(Connector.itemQuery(GroupQuery))
 )(GroupCanvasComponent);

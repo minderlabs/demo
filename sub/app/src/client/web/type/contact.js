@@ -8,10 +8,10 @@ import PropTypes from 'prop-types';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ItemReducer, Fragments, MutationUtil } from 'minder-core';
+import { Fragments, MutationUtil } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
-import { connectReducer } from '../framework/connector';
+import { Connector } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -325,5 +325,5 @@ const ContactQuery = gql`
 `;
 
 export const ContactCanvas = compose(
-  connectReducer(ItemReducer.graphql(ContactQuery))
+  Connector.connect(Connector.itemQuery(ContactQuery))
 )(ContactCanvasComponent);

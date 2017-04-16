@@ -9,14 +9,14 @@ import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
 
-import { ID, Fragments, ItemReducer, MutationUtil } from 'minder-core';
+import { ID, Fragments, MutationUtil } from 'minder-core';
 import { List, ListItem, ListItemEditor, Picker, ReactUtil } from 'minder-ux';
 
 import { TASK_LEVELS } from '../../../common/const';
 
 import { Path } from '../../common/path';
 
-import { connectReducer } from '../framework/connector';
+import { Connector } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -409,5 +409,5 @@ const TaskQuery = gql`
 `;
 
 export const TaskCanvas = compose(
-  connectReducer(ItemReducer.graphql(TaskQuery))
+  Connector.connect(Connector.itemQuery(TaskQuery))
 )(TaskCanvasComponent);

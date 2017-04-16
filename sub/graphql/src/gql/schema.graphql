@@ -297,15 +297,10 @@ type RootQuery {
   viewer: Viewer!
 
   # Get specific.
-  # TODO(burdon): Return multiple items with bucket. search:"item(itemId: $itemId)"
-  # TODO(burdon): For All typed cards.
-  # TODO(burdon): Rename root of item query by type name (lowercase).
-  # TODO(burdon): Resolver.RootQuery.item()
-  # TODO(burdon): connectReducer(ItemReducer.graphql(ContactQuery)) => ItemReducer variables.itemId
-  # TODO(burdon): Add basic ItemStore key-range lookup.
   item(itemId: ID!): Item!
 
   # Search.
+  # TODO(burdon): Rename items.
   search(filter: FilterInput): SearchResult!
 }
 

@@ -7,10 +7,10 @@ import PropTypes from 'prop-types';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { ItemReducer, Fragments, MutationUtil } from 'minder-core';
+import { Fragments, MutationUtil } from 'minder-core';
 import { ReactUtil, TextBox } from 'minder-ux';
 
-import { connectReducer } from '../framework/connector';
+import { Connector } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -139,9 +139,9 @@ const ItemQuery = gql`
 `;
 
 export const ItemCanvas = compose(
-  connectReducer(ItemReducer.graphql(ItemQuery))
+  Connector.connect(Connector.itemQuery(ItemQuery))
 )(ItemCanvasComponent);
 
 export const ItemCanvasHeader = compose(
-  connectReducer(ItemReducer.graphql(ItemQuery))
+  Connector.connect(Connector.itemQuery(ItemQuery))
 )(ItemCanvasHeaderComponent);

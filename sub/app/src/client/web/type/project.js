@@ -8,7 +8,7 @@ import { compose } from 'react-apollo';
 import { connect } from 'react-redux';
 import gql from 'graphql-tag';
 
-import { Fragments, DomUtil, ID, ItemReducer, MutationUtil } from 'minder-core';
+import { Fragments, DomUtil, ID, MutationUtil } from 'minder-core';
 import { Board, DragOrderModel, List, ReactUtil, connectWithRef } from 'minder-ux';
 
 import { TASK_LEVELS } from '../../../common/const';
@@ -16,7 +16,7 @@ import { TASK_LEVELS } from '../../../common/const';
 import { Path } from '../../common/path';
 import { AppAction } from '../../common/reducers';
 
-import { connectReducer } from '../framework/connector';
+import { Connector } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
@@ -525,7 +525,7 @@ const ProjectBoardQuery = gql`
 
 export const ProjectBoardCanvas = compose(
 
-  connectReducer(ItemReducer.graphql(ProjectBoardQuery)),
+  Connector.connect(Connector.itemQuery(ProjectBoardQuery)),
 
   connectWithRef((state, ownProps) => {
     let { canvas: { boardAlias='status' } } = AppAction.getState(state);

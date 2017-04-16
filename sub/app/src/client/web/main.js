@@ -25,7 +25,6 @@ const config = _.defaultsDeep(window.config, {
 
   // Framework debug options.
   options: {
-    reducer: true,
     optimistic: true,
     invalidation: true,
     networkDelay: 0

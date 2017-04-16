@@ -6,11 +6,11 @@ import React from 'react';
 import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
-import { Fragments, ListReducer, SubscriptionWrapper } from 'minder-core';
+import { Fragments, SubscriptionWrapper } from 'minder-core';
 
 import { List, ListItem } from 'minder-ux';
 
-import { connectReducer } from './connector';
+import { Connector } from './connector';
 
 //-------------------------------------------------------------------------------------------------
 // List renderers.
@@ -106,7 +106,7 @@ const BasicSearchQuery = gql`
   ${BasicItemFragment}
 `;
 
-export const BasicSearchList = connectReducer(ListReducer.graphql(BasicSearchQuery))(SubscriptionWrapper(List));
+export const BasicSearchList = Connector.connect(Connector.searchQuery(BasicSearchQuery))(SubscriptionWrapper(List));
 
 //-------------------------------------------------------------------------------------------------
 // Card List.
@@ -157,7 +157,7 @@ const CardSearchQuery = gql`
   ${CardItemFragment}
 `;
 
-export const CardSearchList = connectReducer(ListReducer.graphql(CardSearchQuery))(SubscriptionWrapper(List));
+export const CardSearchList = Connector.connect(Connector.searchQuery(CardSearchQuery))(SubscriptionWrapper(List));
 
 //-------------------------------------------------------------------------------------------------
 // Simple List.

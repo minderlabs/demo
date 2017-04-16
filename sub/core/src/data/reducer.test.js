@@ -5,7 +5,7 @@
 import gql from 'graphql-tag';
 
 import { UpsertItemsMutationName } from './mutations';
-import { ItemReducer, ListReducer } from './reducer';
+import { Reducer, ListReducer } from './reducer';
 import { Matcher } from './matcher';
 
 const TestListQuery = gql`
@@ -89,7 +89,7 @@ describe('Reducers:', () => {
     labels: ['_favorite']
   };
 
-  const listReducer = new ListReducer(TestListQuery, null, 'items');
+  const listReducer = Reducer.callback(new ListReducer('search.items'), { matcher, context, filter });
 
   //
   // ListReducer.
@@ -116,7 +116,7 @@ describe('Reducers:', () => {
 
     let previousResult = TestListQueryResult;
 
-    let result = listReducer.reduceItems(matcher, context, filter, previousResult, action);
+    let result = listReducer(previousResult, action);
 
     // Test was appended.
     expect(result.search.items.length).to.equal(previousResult.search.items.length + 1);
@@ -143,7 +143,7 @@ describe('Reducers:', () => {
 
     let previousResult = TestListQueryResult;
 
-    let result = listReducer.reduceItems(matcher, context, filter, previousResult, action);
+    let result = listReducer(previousResult, action);
 
     // Test was removed.
     expect(result.search.items.length).to.equal(previousResult.search.items.length - 1);
@@ -153,30 +153,20 @@ describe('Reducers:', () => {
   // ItemReducer
   //
 
-  const itemReducer = new ItemReducer(TestItemQuery, (matcher, context, previousResult, item) => {
-    let match = matcher.matchItem(context, {}, filter, item);
+  class TestItemReducer extends Reducer {
 
-    // Ignore if matches and already exists.
-    let idx = _.findIndex(_.get(previousResult, 'item.project.tasks'), i => i.id === item.id);
-    let change = (match && idx === -1) || (!match && idx !== -1);
-    return change && {
-      item: {
-        project: {
-          tasks: {
-            $apply: (items) => {
-              if (idx === -1) {
-                // Insert.
-                return [...items, item];
-              } else {
-                // Remove.
-                return _.filter(items, i => i.id !== item.id);
-              }
-            }
-          }
-        }
-      }
-    };
-  });
+    constructor() {
+      super();
+      this._taskListReducer = new ListReducer('item.project.tasks');
+    }
+
+    applyMutations(props, previousResult, updatedItems) {
+      let updateSpec = this._taskListReducer.createUpdateSpec(props, previousResult, updatedItems);
+      return this.update(previousResult, updateSpec);
+    }
+  }
+
+  const itemReducer = Reducer.callback(new TestItemReducer(), { matcher, context, filter });
 
   it('Inserts the item into a nested list within the cached item.', () => {
 
@@ -199,7 +189,7 @@ describe('Reducers:', () => {
 
     let previousResult = TestItemQueryResult;
 
-    let result = itemReducer.reduceItem(matcher, context, previousResult, action);
+    let result = itemReducer(previousResult, action);
 
     let path = 'item.project.tasks';
     expect(_.get(result, path).length).to.equal(_.get(previousResult, path).length + 1);

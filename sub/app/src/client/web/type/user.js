@@ -7,10 +7,10 @@ import PropTypes from 'prop-types';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import { Fragments, ItemReducer } from 'minder-core';
+import { Fragments } from 'minder-core';
 import { List, ReactUtil } from 'minder-ux';
 
-import { connectReducer } from '../framework/connector';
+import { Connector } from '../framework/connector';
 import { Canvas } from '../component/canvas';
 import { TaskItemEditor, TaskItemRenderer } from './task';
 
@@ -103,5 +103,5 @@ const UserQuery = gql`
 `;
 
 export const UserCanvas = compose(
-  connectReducer(ItemReducer.graphql(UserQuery))
+  Connector.connect(Connector.itemQuery(UserQuery))
 )(UserCanvasComponent);
