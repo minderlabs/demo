@@ -33,7 +33,7 @@ aws_access_key_id = <access_key>
 aws_secret_access_key = <secret>
 ```
 
-NOTE: The credentials files is stored here: `/keybase/private/richburdon,madadam/aws-credentials`
+NOTE: The credentials file is stored here: `/keybase/private/richburdon,madadam/aws-credentials`
 
 Set your default profile:
 

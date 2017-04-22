@@ -23,6 +23,7 @@ async function config(baseDir) {
   };
 }
 
+// TODO(burdon): Factor out scheduler defs (see server.js)
 config(ENV.MINDER_CONF_DIR).then(config => {
   console.log('Config = ' + JSON.stringify(config, null, 2));
 

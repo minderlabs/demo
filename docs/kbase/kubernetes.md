@@ -6,7 +6,6 @@ General introduction, concepts: http://kubernetes.io/docs/user-guide/
 ## Getting Started.
 
 * Install the AWS CLI (See [AWS](https://github.com/minderlabs/demo/blob/master/docs/kbase/aws.md).
-
 * Create the AWS credentials:
 
 ```
@@ -134,7 +133,7 @@ Technical details about how it uses AWS infrastructure:
 https://github.com/kubernetes/kops/blob/master/vendor/k8s.io/kubernetes/docs/design/aws_under_the_hood.md
 
 1. Set up route53 hosted zone, and point parent DNS to it with NS records.
-    http://kubernetes.io/docs/getting-started-guides/kops/
+    http://kubernetes.io/docs/getting-started-guides/kops
 
 1. Set up S3 bucket. Assuming aws CLI is installed and configured:
     ```
@@ -144,13 +143,12 @@ https://github.com/kubernetes/kops/blob/master/vendor/k8s.io/kubernetes/docs/des
     ```
 
 1. Create the cluster config. This doesn't deploy anything yet:
-
     ```
     kops create cluster --zones=us-east-1d ${CLUSTER_NAME}
     ```
 
-    Kubernetes `instance groups` correspond to aws autoscaling groups. Can edit to change machine
-    type, group size, zones, etc via:
+    Kubernetes `instance groups` correspond to aws autoscaling groups. 
+    Can edit to change machine type, group size, zones, etc via:
     ```
     kops edit ig --name=${CLUSTER_NAME} nodes
     ```
@@ -164,8 +162,7 @@ https://github.com/kubernetes/kops/blob/master/vendor/k8s.io/kubernetes/docs/des
     It can take a few minutes for it to come up.
 
     We share kubeconfig files using the access-controlled github repo `prod-ops` in
-    `//kube/configs/<cluster>`. Ask
-    for access if you need it.
+    `//kube/configs/<cluster>`. Ask for access if you need it.
 
     The kubeconfig file can contain metadata about multiple clusters. A few useful commands
     for switching `contexts`:
@@ -284,7 +281,7 @@ I looked at a few other options for load balancing, https termination, and virtu
     * Use CNAMEs at the top-level DNS to point to cluster DNS names. E.g. `www CNAME
       www.prod.k.minderlabs.com`.
 
-* The modern kubernetes way appears to be an [Ingress resource](http://kubernetes.io/docs/user-guide/ingress/), although
+* The modern kubernetes way appears to be an [Ingress resource](http://kubernetes.io/docs/user-guide/ingress), although
 it's a beta feature. Currently (2016-12-29) there is an
 [nginx implementation](https://github.com/nginxinc/kubernetes-ingress) and a GCE implementation.
 
@@ -316,7 +313,7 @@ kubectl create -f nginx-ingress.yml
     kubectl logs -f -c nginx frontend-1
     ```
 
-* [kubectl for Docker users](http://kubernetes.io/docs/user-guide/docker-cli-to-kubectl/)
+* [kubectl for Docker users](http://kubernetes.io/docs/user-guide/docker-cli-to-kubectl)
 
 * Convert docker-compose config files to k8s configs using [compose2kube](https://github.com/kelseyhightower/compose2kube]).
 
@@ -329,6 +326,3 @@ kubectl create -f nginx-ingress.yml
     * k8s volume lifetime tied to a pod, shared among containers in the pod.
     * Many types of volumes supported, e.g. hostPath (local disk), awsElasticBlockStore, nfs, gitRepo.
     * Each container in the pod independently specifies where to mount each volume.
-
-
-

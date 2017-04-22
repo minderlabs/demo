@@ -1,6 +1,7 @@
 #!/bin/sh
 
 brew update
+brew outdated | xargs brew upgrade
 
 #
 # Dev tools.
@@ -10,9 +11,12 @@ brew install hilite
 brew install jq
 brew install memcached
 brew install npm
+brew install redis
 
 brew install docker
 brew install docker-machine
+
+brew install cask
 brew cask install virtualbox
 
 npm install -g npm-check-updates

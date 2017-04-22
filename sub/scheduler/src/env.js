@@ -19,5 +19,5 @@ export default {
   KUE_SERVER:       _.get(process.env, 'KUE_SERVER', '127.0.0.1'),
   KUE_PORT:         _.get(process.env, 'KUE_PORT', 9000),
 
-  MINDER_CONF_DIR:  _.get(process.env, 'MINDER_CONF_DIR', path.join(__dirname, '../../app/conf')),
+  MINDER_CONF_DIR:  _.get(process.env, 'MINDER_CONF_DIR', path.join(__dirname, '../../app/conf'))
 };
