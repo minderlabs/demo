@@ -200,7 +200,7 @@ export class TestGenerator {
                     this.generateItems(context, 'Project', 1))
 
                   .then(() =>
-                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 5, max: 10 })))
+                    this.generateItems(context, 'Task', this._randomizer.chance.natural({ min: 10, max: 20 })))
 
                   .then(() =>
                     this.generateItems(context, 'Contact', this._randomizer.chance.natural({ min: 1, max: 3 })))
