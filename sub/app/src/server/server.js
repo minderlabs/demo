@@ -372,18 +372,7 @@ app.use(graphqlRouter(database, {
 // Testing.
 //
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-let staticPath = (env === 'production') ?
-  path.join(__dirname, '../node_modules') :
-  path.join(__dirname, '../../node_modules');
-=======
-const MINDER_NODE_MODULES_DIR =
-  _.get(process.env, 'MINDER_NODE_MODULES_DIR', (env === 'production') ? '../node_modules' : '../../node_modules');
->>>>>>> master
-=======
 if (env !== 'production' || true) {
->>>>>>> master
 
   //
   // Custom GraphiQL.
@@ -548,7 +537,6 @@ app.use(function(err, req, res, next) {
     }
   }
 });
-
 
 
 //
