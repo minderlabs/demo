@@ -16,7 +16,7 @@ window.Words = Words;
  */
 class Site {
 
-  /**
+  /**`
    * Post JSON message.
    * NOTE: Server checks loging cookie for auth.
    * @param url

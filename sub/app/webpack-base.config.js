@@ -205,7 +205,6 @@ const webConfig = webpackMerge(baseConfig, {
       path.resolve(baseConfig.context, 'src/client/web/main.js'),
 
       // BABEL_NODE=hot NODE_ENV=hot
-      // HMR client (connects to dev app server).
       'webpack/hot/dev-server',
       'webpack-hot-middleware/client'
     ],
@@ -214,6 +213,7 @@ const webConfig = webpackMerge(baseConfig, {
     hot_sidebar: [
       path.resolve(baseConfig.context, 'src/client/crx/sidebar_test.js'),
 
+      // BABEL_NODE=hot NODE_ENV=hot
       'webpack/hot/dev-server',
       'webpack-hot-middleware/client'
     ],
