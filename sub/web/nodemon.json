@@ -1,0 +1,11 @@
+{
+  "verbose": true,
+
+  "watch": [
+    "src/server"
+  ],
+
+  "ignore": [
+    "src/server/views/*"
+  ]
+}

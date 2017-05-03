@@ -24,11 +24,16 @@ done
 MODULES=( "app" "core" "graphql" "scheduler" "services" "ux" )
 
 UPDATE=0
+PROMPT=0
 for i in "$@"
 do
 case $i in
   --update)
   UPDATE=1
+  ;;
+
+  --prompt)
+  PROMPT=1
   ;;
 esac
 done
@@ -42,6 +47,11 @@ for mod in "${MODULES[@]}"; do
   if [ $UPDATE -eq 1 ]; then
     echo "Updating $@"
     grunt npm-update
+  fi
+
+  if [ $PROMPT -eq 1 ]; then
+    echo "Updating $@"
+    grunt npm-prompt
   fi
 
   npm prune

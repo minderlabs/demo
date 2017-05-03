@@ -134,8 +134,8 @@ export const AppReducer = (injector, config, apolloClient) => {
 
     // Debugging options.
     debug: {
-      showInfo: true,
-      showPanel: false
+      showInfo: config.debug,
+      showPanel: config.debug
     },
 
     // Search bar.

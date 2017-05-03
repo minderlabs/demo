@@ -40,26 +40,31 @@ export default class TestBoard extends React.Component {
         items: [
           {
             id: 'I-1',
+            type: 'Test',
             title: 'Item 1',
             label: 'red'
           },
           {
             id: 'I-2',
+            type: 'Test',
             title: 'Item 2',
             label: 'red'
           },
           {
             id: 'I-3',
+            type: 'Test',
             title: 'Item 3',
             label: 'red'
           },
           {
             id: 'I-4',
+            type: 'Test',
             title: 'Item 4',
             label: 'red'
           },
           {
             id: 'I-5',
+            type: 'Test',
             title: 'Item 5',
             label: 'green'
           }

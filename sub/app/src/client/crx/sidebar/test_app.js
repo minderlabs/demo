@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { ApolloProvider } from 'react-apollo';
+import PropTypes from 'prop-types';
 
 import SidebarPanel from './test_panel';
 
@@ -13,14 +14,14 @@ import SidebarPanel from './test_panel';
 export class TestApplication extends React.Component {
 
   static propTypes = {
-    injector: React.PropTypes.object.isRequired,
-    client: React.PropTypes.object.isRequired,
-    history: React.PropTypes.object.isRequired,
-    store: React.PropTypes.object.isRequired
+    injector: PropTypes.object.isRequired,
+    client: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+    store: PropTypes.object.isRequired
   };
 
   static childContextTypes = {
-    injector: React.PropTypes.object,
+    injector: PropTypes.object,
   };
 
   getChildContext() {

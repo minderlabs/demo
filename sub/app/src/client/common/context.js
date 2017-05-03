@@ -103,10 +103,11 @@ export class ContextManager {
   /**
    * Updates the context when the ContextAction updates the Redux store's state.
    *
+   * @param userProfile
    * @param context
    * @returns {ContextManager}
    */
-  updateContext(context={}) {
+  updateContext(userProfile, context={}) {
     logger.log('Updated context: ' + JSON.stringify(context));
     this._context = context || {};
 
@@ -117,12 +118,14 @@ export class ContextManager {
     let { items } = this._context;
     _.each(items, item => {
       let fkey = _.get(item, ContextManager.FKEY);
-      if (fkey) {
+      if (fkey && fkey !== userProfile.email) {
         // Create transient item with temporary key.
-        this._transientItems.set(fkey, _.defaults(item, {
+        let transientItem = _.defaults(item, {
           namespace: Database.NAMESPACE.LOCAL,
           id: this._idGenerator.createId()
-        }));
+        });
+
+        this._transientItems.set(fkey, transientItem);
       }
     });
 

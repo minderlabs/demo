@@ -42,6 +42,7 @@ export class BaseApp {
     // Manages Apollo query subscriptions.
     this._queryRegistry = new QueryRegistry(config);
 
+    // TODO(burdon): Runtime option. This currently breaks if null.
     this._analytics = new SegmentAnalytics(this._config);
 
     // Global error handling.
@@ -102,13 +103,13 @@ export class BaseApp {
     let idGenerator = new IdGenerator();
 
     let providers = _.concat([
-      Injector.provider(this._analytics, Analytics.INJECTOR_KEY),
-      Injector.provider(idGenerator),
-      Injector.provider(new Matcher()),
-      Injector.provider(new QueryParser()),
-      Injector.provider(new ContextManager(idGenerator)),
-      Injector.provider(this._eventHandler),
-      Injector.provider(this._queryRegistry)
+      Injector.provide(this._analytics, Analytics.INJECTOR_KEY),
+      Injector.provide(idGenerator),
+      Injector.provide(new Matcher()),
+      Injector.provide(new QueryParser()),
+      Injector.provide(new ContextManager(idGenerator)),
+      Injector.provide(this._eventHandler),
+      Injector.provide(this._queryRegistry)
     ], this.providers);
 
     // TODO(burdon): Move to Redux?
@@ -134,14 +135,15 @@ export class BaseApp {
     // NOTE: window.__APOLLO_CLIENT__
     //
 
-    this._apolloClient = new ApolloClient({
+    this._client = new ApolloClient({
 
       // http://dev.apollodata.com/react/cache-updates.html
       dataIdFromObject: ID.dataIdFromObject,
       addTypename: true,
 
+      // TODO(burdon): Need to update reducers to accept multiple results.
       // https://dev-blog.apollodata.com/query-batching-in-apollo-63acfd859862
-      shouldBatch: true,
+//    shouldBatch: true,
 
       // http://dev.apollodata.com/core/network.html#query-deduplication
       queryDeduplication: true,
@@ -213,8 +215,7 @@ export class BaseApp {
       // https://github.com/apollographql/apollo-client/issues/180
       // https://www.learnapollo.com/excursions/excursion-02/
       //
-      apollo: this._apolloClient.reducer(),
-
+      apollo: this._client.reducer(),
     }));
 
     // https://github.com/acdlite/reduce-reducers
@@ -228,13 +229,13 @@ export class BaseApp {
       // () => (dispatch, getState, injector) => { ... }
       applyMiddleware(ReduxThunk.withExtraArgument(this._injector)),
 
-      // Apollo-Redux bindings.
-      applyMiddleware(this._apolloClient.middleware()),
-
       // Enable navigation via redux dispatch.
       // https://github.com/reactjs/react-router-redux#what-if-i-want-to-issue-navigation-events-via-redux-actions
       // https://github.com/reactjs/react-router-redux#pushlocation-replacelocation-gonumber-goback-goforward
       applyMiddleware(routerMiddleware(this.history)),
+
+      // Apollo-Redux bindings.
+      applyMiddleware(this._client.middleware()),
 
       // https://github.com/zalmoxisus/redux-devtools-extension
       // https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd
@@ -271,9 +272,14 @@ export class BaseApp {
 
     // Reset store (causes queries to update).
     // https://github.com/apollostack/apollo-client/blob/6b6e8ded1e0f83cb134d2261a3cf7d2d9416400f/src/ApolloClient.ts
-    this._apolloClient.resetStore();
+    this._client.resetStore();
   }
 
+  // TODO(burdon): 
+  get injector() {
+    return this._injector;
+  }
+  
   /**
    * Access config
    */
@@ -292,7 +298,7 @@ export class BaseApp {
    * Apollo client.
    */
   get client() {
-    return this._apolloClient;
+    return this._client;
   }
 
   //
@@ -370,7 +376,7 @@ export class BaseApp {
       <App
         injector={ this._injector }
         history={ this._reduxHistory }
-        client={ this._apolloClient }
+        client={ this._client }
         store={ this._store }/>
     );
 

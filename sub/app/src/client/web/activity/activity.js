@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 
@@ -28,16 +29,13 @@ import { TypeRegistry } from '../../web/framework/type_registry';
  */
 const mapStateToProps = (state, ownProps) => {
   let appState = AppAction.getState(state);
-  let { config, injector } = appState;
+  let { config, client, injector } = appState;
 
+  let analytics       = injector.get(Analytics.INJECTOR_KEY);
   let typeRegistry    = injector.get(TypeRegistry);
   let queryRegistry   = injector.get(QueryRegistry);
   let eventHandler    = injector.get(EventHandler);
   let contextManager  = injector.get(ContextManager);
-
-  // TODO(burdon): Why is this here? Only accessed in reducer (not context).
-  let analytics       = injector.get(Analytics.INJECTOR_KEY);
-
   let idGenerator     = injector.get(IdGenerator);
 
   // CRX Navigator opens in new window (overridden in mapDispatchToProps for web).
@@ -48,15 +46,16 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     config,
+    analytics,
     typeRegistry,
     queryRegistry,
     eventHandler,
     contextManager,
     navigator,
 
-    analytics,
-
-    idGenerator       // Required by Mutator
+    // Needed by Mutator.
+    client,
+    idGenerator
   };
 };
 
@@ -98,12 +97,13 @@ export class Activity {
       connect(mapStateToProps, mapDispatchToProps, mergeProps),
 
       // Apollo mutation.
+      // Provides mutator property.
       Mutator.graphql(),
 
       // Apollo viewer query.
       graphql(Fragments.ViewerQuery, {
         props: ({ ownProps, data }) => {
-          return _.pick(data, ['loading', 'error', 'viewer'])
+          return _.pick(data, ['errors', 'loading', 'viewer'])
         }
       })
     ];
@@ -116,29 +116,34 @@ export class Activity {
   };
 
   static childContextTypes = {
-    config:           React.PropTypes.object,
-    typeRegistry:     React.PropTypes.object,
-    queryRegistry:    React.PropTypes.object,
-    eventHandler:     React.PropTypes.object,
-    contextManager:   React.PropTypes.object,
-    navigator:        React.PropTypes.object,
-    mutator:          React.PropTypes.object,
-    viewer:           React.PropTypes.object
+    config:           PropTypes.object,
+    analytics:        PropTypes.object,
+    typeRegistry:     PropTypes.object,
+    queryRegistry:    PropTypes.object,
+    eventHandler:     PropTypes.object,
+    contextManager:   PropTypes.object,
+    navigator:        PropTypes.object,
+
+    mutator:          PropTypes.object,
+    viewer:           PropTypes.object
   };
 
   static getChildContext(props) {
     let {
       config,
+      analytics,
       typeRegistry,
       queryRegistry,
       eventHandler,
       contextManager,
       navigator,
+
       mutator,
       viewer
     } = props;
 
     console.assert(config);
+    console.assert(analytics);
     console.assert(typeRegistry);
     console.assert(queryRegistry);
     console.assert(eventHandler);
@@ -148,11 +153,13 @@ export class Activity {
 
     return {
       config,
+      analytics,
       typeRegistry,
       queryRegistry,
       eventHandler,
       contextManager,
       navigator,
+
       mutator,
       viewer
     };

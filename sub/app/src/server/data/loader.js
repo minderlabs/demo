@@ -142,7 +142,6 @@ export class Loader {
       // Look for default project.
       let project = _.find(projects, project => (_.indexOf(project.labels, '_default') !== -1));
       if (project) {
-        console.log('>>>', project);
         return project;
       } else {
         logger.log('Creating Project for: ' + group.id);

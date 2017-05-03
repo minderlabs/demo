@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
 
@@ -87,10 +88,10 @@ class ItemModel {
 class Column extends React.Component {
 
   static propTypes = {
-    model: React.PropTypes.object.isRequired,
-    emitter: React.PropTypes.object.isRequired,
-    label: React.PropTypes.string.isRequired,
-    items: React.PropTypes.array.isRequired
+    model: PropTypes.object.isRequired,
+    emitter: PropTypes.object.isRequired,
+    label: PropTypes.string.isRequired,
+    items: PropTypes.array.isRequired
   };
 
   render() {

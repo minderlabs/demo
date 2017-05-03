@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import Logger from '../util/logger';
 
@@ -83,7 +84,7 @@ export const SubscriptionWrapper = (Component) => {
     };
 
     static contextTypes = {
-      queryRegistry: React.PropTypes.object.isRequired
+      queryRegistry: PropTypes.object.isRequired
     };
 
     componentWillMount() {

@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { DragSource } from 'react-dnd';
 
 /**
@@ -11,13 +12,13 @@ import { DragSource } from 'react-dnd';
 class CardDrag extends React.Component {
 
   static propTypes = {
-    id: React.PropTypes.string.isRequired,
-    title: React.PropTypes.string.isRequired,
-    meta: React.PropTypes.string,
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    meta: PropTypes.string,
 
     // Injected by React DnD.
-    isDragging: React.PropTypes.bool.isRequired,
-    connectDragSource: React.PropTypes.func.isRequired
+    isDragging: PropTypes.bool.isRequired,
+    connectDragSource: PropTypes.func.isRequired
   };
 
   render() {

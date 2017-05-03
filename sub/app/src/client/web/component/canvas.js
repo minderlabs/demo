@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { ID, MutationUtil, QueryRegistry, TypeUtil } from 'minder-core';
 import { Textarea, getWrappedInstance } from 'minder-ux';
@@ -17,14 +18,14 @@ import { Navbar } from '../component/navbar';
 export class CanvasNavbar extends React.Component {
 
   static propTypes = {
-    onSave: React.PropTypes.func.isRequired,
-    type:   React.PropTypes.string.isRequired,
-    itemId: React.PropTypes.string.isRequired,
-    canvas: React.PropTypes.string,
+    onSave: PropTypes.func.isRequired,
+    type:   PropTypes.string.isRequired,
+    itemId: PropTypes.string.isRequired,
+    canvas: PropTypes.string,
   };
 
   static contextTypes = {
-    typeRegistry: React.PropTypes.object.isRequired,
+    typeRegistry: PropTypes.object.isRequired,
   };
 
   render() {
@@ -60,13 +61,13 @@ export class CanvasNavbar extends React.Component {
 export class CanvasContainer extends React.Component {
 
   static propTypes = {
-    type: React.PropTypes.string.isRequired,
-    itemId: React.PropTypes.string.isRequired,
-    canvas: React.PropTypes.string,
+    type: PropTypes.string.isRequired,
+    itemId: PropTypes.string.isRequired,
+    canvas: PropTypes.string,
   };
 
   static contextTypes = {
-    typeRegistry: React.PropTypes.object.isRequired
+    typeRegistry: PropTypes.object.isRequired
   };
 
   save() {
@@ -97,16 +98,16 @@ export class Canvas extends React.Component {
   static propTypes = {
 
     // Root item (retrieved by type-specific GQL query).
-    item: React.PropTypes.object.isRequired,
+    item: PropTypes.object.isRequired,
 
     // Callback to get mutated properties.
-    onSave: React.PropTypes.func.isRequired,
+    onSave: PropTypes.func.isRequired,
 
     // Type-specific GQL properties.
-    refetch: React.PropTypes.func.isRequired,
+    refetch: PropTypes.func.isRequired,
 
     // Show description.
-    fields: React.PropTypes.object
+    fields: PropTypes.object
   };
 
   static defaultProps = {
@@ -118,9 +119,9 @@ export class Canvas extends React.Component {
   };
 
   static contextTypes = {
-    config: React.PropTypes.object.isRequired,
-    queryRegistry: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
+    config: PropTypes.object.isRequired,
+    queryRegistry: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired
   };
 
   /**

@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { DropTarget } from 'react-dnd';
 
 /**
@@ -13,11 +14,11 @@ class CardDrop extends React.Component {
   // TODO(burdon): Dragging over the item (not drop-zone should move the drop-zone).
 
   static propTypes = {
-    emitter: React.PropTypes.object.isRequired,
+    emitter: PropTypes.object.isRequired,
 
-    previous: React.PropTypes.string,
-    pos: React.PropTypes.number.isRequired,
-    label: React.PropTypes.string.isRequired
+    previous: PropTypes.string,
+    pos: PropTypes.number.isRequired,
+    label: PropTypes.string.isRequired
   };
 
   constructor() {

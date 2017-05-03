@@ -1,0 +1,47 @@
+{
+  "name": "minder-web-server",
+  "version": "0.1.10",
+  "description": "Minder Web Server.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com:minderlabs/demo.git"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.23.0",
+    "babel-loader": "^6.4.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-es2015": "^6.22.0",
+    "babel-preset-react": "^6.23.0",
+    "babel-preset-stage-0": "^6.22.0",
+    "css-loader": "^0.26.4",
+    "extract-text-webpack-plugin": "^2.1.0",
+    "file-loader": "^0.10.1",
+    "less": "^2.7.2",
+    "less-loader": "^3.0.0",
+    "style-loader": "^0.13.2",
+    "url-loader": "^0.5.8",
+    "webpack": "^2.2.1"
+  },
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "express": "^4.15.2",
+    "express-handlebars": "^3.0.0",
+    "http": "0.0.0",
+    "jquery": "^3.1.1",
+    "lodash": "^4.17.4",
+    "react": "^15.4.2",
+    "react-addons-css-transition-group": "^15.4.2",
+    "react-addons-transition-group": "^15.4.2",
+    "react-bootstrap": "^0.30.8",
+    "react-dom": "^15.4.2",
+    "serve-favicon": "^2.4.1",
+    "tether": "^1.4.0"
+  },
+  "scripts": {
+    "webpack-client": "webpack --config webpack-client.config.js",
+    "webpack-server": "webpack --config webpack-server.config.js",
+    "babel-node": "BABEL_DISABLE_CACHE=1 babel-node src/server/server.js",
+    "start": "hilite nodemon --config nodemon.json --exec npm run babel-node"
+  }
+}

@@ -18,6 +18,7 @@ brew cask install virtualbox
 npm install -g npm-check-updates
 npm install -g firebase-tools
 npm install -g grunt
+npm install -g jest
 npm install -g karma-cli
 npm install -g nodemon
 npm install -g npm-workspace

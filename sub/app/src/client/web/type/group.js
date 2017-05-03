@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
@@ -23,12 +24,12 @@ import { Canvas } from '../component/canvas';
 class GroupCanvasComponent extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
+    navigator: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    item: React.PropTypes.object
+    item: PropTypes.object
   };
 
   handleItemSelect(item) {

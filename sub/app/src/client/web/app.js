@@ -5,8 +5,9 @@
 import React from 'react';
 import { browserHistory, IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { ApolloProvider } from 'react-apollo';
+import PropTypes from 'prop-types';
 
-import { Injector, Database, IdGenerator, Matcher, MemoryItemStore } from 'minder-core';
+import { Injector } from 'minder-core';
 
 import { BaseApp } from '../common/base_app';
 import { AppAction, AppReducer, GlobalAppReducer } from '../common/reducers';
@@ -87,7 +88,7 @@ export class WebApp extends BaseApp {
 
   get providers() {
     return [
-      Injector.provider(TypeRegistryFactory())
+      Injector.provide(TypeRegistryFactory())
     ];
   }
 
@@ -99,7 +100,7 @@ export class WebApp extends BaseApp {
     return {
       // Main app reducer.
       // TODO(burdon): Push to BaseApp.
-      [AppAction.namespace]: AppReducer(this._injector, this._config, this._apolloClient)
+      [AppAction.namespace]: AppReducer(this.injector, this.config, this.client)
     }
   }
 
@@ -122,10 +123,10 @@ export class WebApp extends BaseApp {
 export class Application extends React.Component {
 
   static propTypes = {
-    injector: React.PropTypes.object.isRequired,
-    client: React.PropTypes.object.isRequired,
-    history: React.PropTypes.object.isRequired,
-    store: React.PropTypes.object.isRequired
+    injector: PropTypes.object.isRequired,
+    client: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+    store: PropTypes.object.isRequired
   };
 
   render() {

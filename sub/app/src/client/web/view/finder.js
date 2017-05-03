@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
@@ -26,13 +27,13 @@ import './finder.less';
 class Finder extends React.Component {
 
   static contextTypes = {
-    typeRegistry: React.PropTypes.object.isRequired,
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired
+    typeRegistry: PropTypes.object.isRequired,
+    navigator: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    viewer: React.PropTypes.object.isRequired
+    viewer: PropTypes.object.isRequired
   };
 
   handleItemSelect(item) {
@@ -57,9 +58,6 @@ class Finder extends React.Component {
       if (contextManager) {
         itemInjector = (items) => contextManager.injectItems(items);
       }
-
-      // TODO(burdon): FIX!
-      listType = 'card';
 
       let list;
       switch (listType) {
@@ -123,7 +121,7 @@ const ContextQuery = gql`
 `;
 
 const mapStateToProps = (state, ownProps) => {
-  let { injector, config, search } = AppAction.getState(state);
+  let { injector, config, userProfile, search } = AppAction.getState(state);
 
   // Required by Mutator.
   let idGenerator = injector.get(IdGenerator);
@@ -140,10 +138,11 @@ const mapStateToProps = (state, ownProps) => {
   let contextManager = null;
   // TODO(burdon): Not just CRX.
   if (platform === Const.PLATFORM.CRX) {
+
     // Current user context (e.g., host inspector transient items).
     // TODO(burdon): Binds to context action; should trigger context to requery.
     let contextState = ContextAction.getState(state);
-    contextManager = injector.get(ContextManager).updateContext(contextState);
+    contextManager = injector.get(ContextManager).updateContext(userProfile, contextState);
   }
 
   return {
@@ -155,7 +154,7 @@ const mapStateToProps = (state, ownProps) => {
   };
 };
 
-const ContextListReducer = new ListReducer(ContextQuery);
+const ContextListReducer = new ListReducer(ContextQuery, null, 'items');
 
 export default compose(
 
@@ -166,12 +165,12 @@ export default compose(
   graphql(FoldersQuery, {
 
     props: ({ ownProps, data }) => {
-      let { loading, error, viewer } = data;
+      let { errors, loading, search } = data;
       let { filter } = ownProps;
 
       // Create list filter (if not overridden by text search above).
-      if (viewer && QueryParser.isEmpty(filter)) {
-        _.each(viewer.folders, folder => {
+      if (search && QueryParser.isEmpty(filter)) {
+        _.each(search.folders, folder => {
           if (folder.alias === ownProps.folder) {
             filter = JSON.parse(folder.filter);
             return false;
@@ -180,8 +179,8 @@ export default compose(
       }
 
       return {
+        errors,
         loading,
-        error,
         filter
       };
     }
@@ -213,15 +212,15 @@ export default compose(
     props: ({ ownProps, data }) => {
       let { contextManager } = ownProps;
       let { contextSearch={} } = data;
-      let { contextItems } = contextSearch;
+      let { items } = contextSearch;
 
       // Update context.
       if (contextManager) {
-        contextManager.updateContextItems(contextItems);
+        contextManager.updateContextItems(items);
       }
 
       return {
-        contextItems,
+        items,
 
         // For subscriptions.
         refetch: () => {

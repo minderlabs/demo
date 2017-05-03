@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { DomUtil } from 'minder-core';
 
@@ -14,9 +15,9 @@ import { TextBox } from './textbox';
 export class SearchBar extends React.Component {
 
   static propTypes = {
-    className:  React.PropTypes.string,
-    onSearch:   React.PropTypes.func.isRequired,
-    value:      React.PropTypes.string
+    className:  PropTypes.string,
+    onSearch:   PropTypes.func.isRequired,
+    value:      PropTypes.string
   };
 
   reset() {

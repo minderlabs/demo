@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import './debug.less';
 
@@ -14,7 +15,7 @@ export class DebugPanel extends React.Component {
   // TODO(burdon): Show/hide based on Redux state.
 
   static contextTypes = {
-    config: React.PropTypes.object.isRequired
+    config: PropTypes.object.isRequired
   };
 
   handleOptionChanged(name, event) {
@@ -23,7 +24,7 @@ export class DebugPanel extends React.Component {
 
     // TODO(burdon): Redux action to recreate network interface.
     if (name === 'networkDelay') {
-      value = value ? 2000 : 0;
+      value = value ? 200000 : 0;       // TODO(burdon): Const.
     }
 
     _.set(config.options, name, value);

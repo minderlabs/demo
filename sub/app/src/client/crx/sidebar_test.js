@@ -4,11 +4,15 @@
 
 import { Const } from '../../common/defs';
 
+import { Logger } from 'minder-core';
+
 import { AppAction, AppReducer, ContextAction, ContextReducer } from '../common/reducers';
 import { WebApp } from '../web/app';
 
 import { SidebarAction, SidebarReducer } from './sidebar/reducers';
 import { Application } from './sidebar/app';
+
+const logger = Logger.get('sidebar-test');
 
 /**
  * Test sidebar app (enable testing within DOM).
@@ -18,7 +22,8 @@ class TestSidebarApp extends WebApp {
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace]: AppReducer(this._injector, this._config, this._apolloClient),
+      // TODO(burdon): Push to BaseApp.
+      [AppAction.namespace]: AppReducer(this.injector, this.config, this.client),
 
       // Context.
       [ContextAction.namespace]: ContextReducer,
@@ -86,7 +91,7 @@ app.init().then(() => {
         };
 
         window.minder.store.dispatch(action);
-        console.log(`window.minder.store.dispatch(${JSON.stringify(action)})`);
+        logger.log(`window.minder.store.dispatch(${JSON.stringify(action)})`);
       });
 
     _.each(window.ITEMS, (value, key) => {

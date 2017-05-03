@@ -35,17 +35,19 @@ export const adminRouter = (clientManager, firebase, options) => {
   // Admin page.
   //
   router.get('/', isAuthenticated('/home', true), (req, res) => {
-    res.render('admin', {
-      clients: clientManager.clients,
-      testing: (options.env !== 'production')
+    return clientManager.getClients().then(clients => {
+      res.render('admin', {
+        testing: (options.env !== 'production'),
+        clients
+      });
     });
   });
 
   //
   // Admin API.
-  // TODO(burdon): Require
+  // TODO(burdon): Authenticate.
   //
-  router.post('/api', isAuthenticated(undefined, true), (req, res, next) => {
+  router.post('/api', isAuthenticated(undefined, true), (req, res) => {
     let { action, clientId } = req.body;
 
     const ok = () => {
@@ -56,13 +58,11 @@ export const adminRouter = (clientManager, firebase, options) => {
     switch (action) {
 
       case 'client.flush': {
-        clientManager.flush();
-        break;
+        return clientManager.flush().then(ok);
       }
 
       case 'client.invalidate': {
-        clientManager.invalidateClient(clientId);
-        break;
+        return clientManager.invalidateClient(clientId).then(ok);
       }
 
       case 'schedule.test': {

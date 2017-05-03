@@ -4,6 +4,7 @@
 
 import _ from 'lodash';
 import React from 'react';
+import PropTypes from 'prop-types';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
@@ -103,13 +104,13 @@ export const TaskItemEditor = (item) => {
 export class TaskCard extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired
+    navigator: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired
+    item: PropTypes.object.isRequired
   };
 
   handlTaskAdd() {
@@ -173,13 +174,13 @@ export class TaskCard extends React.Component {
 class TaskCanvasComponent extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired
+    navigator: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    item: React.PropTypes.object,
+    item: PropTypes.object,
   };
 
   state = {};
@@ -365,12 +366,12 @@ const MembersPicker = compose(
     },
 
     props: ({ ownProps, data }) => {
-      let { loading, error, group={} } = data;
+      let { errors, loading, group={} } = data;
       let { members:items } = group;
 
       return {
+        errors,
         loading,
-        error,
         items
       };
     }

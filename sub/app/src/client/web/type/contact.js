@@ -4,6 +4,7 @@
 
 import _ from 'lodash';
 import React from 'react';
+import PropTypes from 'prop-types';
 import { compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
@@ -28,13 +29,13 @@ export class ContactCard extends React.Component {
   // TODO(burdon): This is a very specialized ContactCard. Factor out sections.
 
   static contextTypes = {
-    config: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired,
+    config: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired,
   };
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired
+    item: PropTypes.object.isRequired
   };
 
   static getProjectFromGroupsByLabel(groups, label) {
@@ -69,6 +70,8 @@ export class ContactCard extends React.Component {
       let { viewer: { user } } = this.context;
       let { item:contact } = this.props;
 
+      // TODO(burdon): Add to project.
+
       // TODO(burdon): Factor out Task creation (see task.js).
       // Create Task and add to Project.
       mutator.batch(project.bucket)
@@ -80,15 +83,18 @@ export class ContactCard extends React.Component {
           assignee && MutationUtil.createFieldMutation('assignee', 'id', assignee.id)
         ]), 'new_task')
 
-        // Parent project.
-        .updateItem(project, [
-          MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
-        ])
-
         // Update contact.
         // TODO(burdon): Bidirectional links?
         .updateItem(contact, [
           MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+        ], 'updated_contact')
+
+        // Parent project.
+        .updateItem(project, [
+          MutationUtil.createSetMutation('tasks', 'id', '${new_task}'),
+
+          // NOTE: Named since ID may have changed due to cloning.
+          MutationUtil.createSetMutation('contacts', 'id', '${updated_contact}')
         ])
 
         .commit();
@@ -136,7 +142,7 @@ export class ContactCard extends React.Component {
   render() {
     let { config, viewer } = this.context;
     let { item:contact } = this.props;
-    let { user, email, tasks } = contact;
+    let { user, email, thumbnailUrl, tasks } = contact;
 
     // Default project for Viewer.
     let defaultProject = ContactCard.getProjectFromGroupsByLabel(viewer.groups, '_default');
@@ -190,12 +196,23 @@ export class ContactCard extends React.Component {
       this.handleTaskUpdate(item, mutations, defaultProject)
     };
 
+    // TODO(burdon): Styles.
     return (
       <Card ref="card" item={ contact }>
+
         <div className="ux-card-section">
-          <div className="ux-data-row">
-            <i className="ux-icon">email</i>
-            <div className="ux-text">{ email }</div>
+          <div style={ { display: 'flex', 'alignItems': 'flex-start' } }>
+            { thumbnailUrl &&
+            <div style={ { 'marginRight': '6px'} }>
+              <img className="ux-img" src={ thumbnailUrl }/>
+            </div>
+            }
+            { email &&
+            <div className="ux-data-row" style={ { 'fontSize': '14px' } }>
+              <i className="ux-icon">email</i>
+              <div className="ux-text">{ email }</div>
+            </div>
+            }
           </div>
 
           { config.debug &&
@@ -222,6 +239,7 @@ export class ContactCard extends React.Component {
 
         { assignedToViewerSection }
         { assignedToContactSection }
+
       </Card>
     );
   }
@@ -233,13 +251,13 @@ export class ContactCard extends React.Component {
 export class ContactCanvasComponent extends React.Component {
 
   static contextTypes = {
-    mutator: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired
+    mutator: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    refetch: React.PropTypes.func.isRequired,
-    item: React.PropTypes.object
+    refetch: PropTypes.func.isRequired,
+    item: PropTypes.object
   };
 
   handleSave() {

@@ -5,6 +5,7 @@
 import React from 'react';
 import { createMemoryHistory, IndexRedirect, Redirect, Route, Router } from 'react-router'
 import { ApolloProvider } from 'react-apollo';
+import PropTypes from 'prop-types';
 
 import { 
   Async, Injector, ChromeMessageChannel, ChromeMessageChannelRouter, Logger, WindowMessenger 
@@ -157,16 +158,17 @@ export class SidebarApp extends BaseApp {
 
   get providers() {
     return [
-      Injector.provider(TypeRegistryFactory()),
-      Injector.provider(this._messenger),
-      Injector.provider(this._systemChannel, SystemChannel.CHANNEL)
+      Injector.provide(TypeRegistryFactory()),
+      Injector.provide(this._messenger),
+      Injector.provide(this._systemChannel, SystemChannel.CHANNEL)
     ]
   }
 
   get reducers() {
     return {
       // Main app.
-      [AppAction.namespace]: AppReducer(this._injector, this._config, this._apolloClient),
+      // TODO(burdon): Push to BaseApp.
+      [AppAction.namespace]: AppReducer(this.injector, this.config, this.client),
 
       // Context.
       [ContextAction.namespace]: ContextReducer,
@@ -186,10 +188,10 @@ export class SidebarApp extends BaseApp {
 export class Application extends React.Component {
 
   static propTypes = {
-    injector: React.PropTypes.object.isRequired,
-    client: React.PropTypes.object.isRequired,
-    history: React.PropTypes.object.isRequired,
-    store: React.PropTypes.object.isRequired
+    injector: PropTypes.object.isRequired,
+    client: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+    store: PropTypes.object.isRequired
   };
 
   render() {

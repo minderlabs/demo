@@ -12,7 +12,7 @@ export class DomUtil {
   }
 
   /**
-   * @param [{string}] variable length class names (which may be blank).
+   * @param {[string]} ... variable length class names (which may be blank).
    * @returns {string} Space separated list of classnames.
    */
   static className() {

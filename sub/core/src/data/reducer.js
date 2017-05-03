@@ -99,7 +99,7 @@ update.extend('$deepMerge', (spec, items) => {
  */
 class Reducer {
 
-  // TODO(burdon): Combine into single reducer.
+  // TODO(burdon): Combine into single reducer. Utils not big framework.
 
   /**
    * Creates a reducer function that returns a list with the updated item either
@@ -111,30 +111,31 @@ class Reducer {
    * @param updatedItem
    * @returns {function([Item])}
    */
+  // TODO(burdon): Not in use.
   // TODO(burdon): Make available to customer reducers (e.g., project, task).
-  static listApplicator(matcher, context, filter, updatedItem) {
-    return (items) => {
-      // TODO(burdon): Make sure matches.
-      let taskIdx = _.findIndex(items, item => item.id === updatedItem.id);
-      if (taskIdx === -1) {
-        // Append.
-        return [...items, updatedItem];
-      } else {
-        // TODO(burdon): Use push/remove instead?
-        return _.compact(_.map(items, item => {
-          if (item.id === updatedItem.id) {
-            // Remove if doesn't match filter.
-            if (matcher.matchItem(context, {}, filter, updatedItem)) {
-              return updatedItem;
-            }
-          } else {
-            // Keep others.
-            return item;
-          }
-        }));
-      }
-    };
-  }
+  // static listApplicator(matcher, context, filter, updatedItem) {
+  //   return (items) => {
+  //     // TODO(burdon): Make sure matches.
+  //     let taskIdx = _.findIndex(items, item => item.id === updatedItem.id);
+  //     if (taskIdx === -1) {
+  //       // Append.
+  //       return [...items, updatedItem];
+  //     } else {
+  //       // TODO(burdon): Use push/remove instead?
+  //       return _.compact(_.map(items, item => {
+  //         if (item.id === updatedItem.id) {
+  //           // Remove if doesn't match filter.
+  //           if (matcher.matchItem(context, {}, filter, updatedItem)) {
+  //             return updatedItem;
+  //           }
+  //         } else {
+  //           // Keep others.
+  //           return item;
+  //         }
+  //       }));
+  //     }
+  //   };
+  // }
 
   /**
    * @param query GQL Query Type.
@@ -229,7 +230,7 @@ export class ListReducer extends Reducer {
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
         let { matcher, filter, itemInjector } = ownProps;
-        let { loading, error, refetch } = data;
+        let { errors, loading, refetch } = data;
 
         // Get query result.
         let items = listReducer.getResult(data, []);
@@ -241,8 +242,8 @@ export class ListReducer extends Reducer {
         }
 
         return {
+          errors,
           loading,
-          error,
           refetch,
           matcher,
 
@@ -298,7 +299,7 @@ export class ListReducer extends Reducer {
 
           let transform = this.getTransform(matcher, context, filter, previousResult, updatedItem);
           if (transform) {
-            previousResult = this.doTransform(previousResult, transform);
+            return this.doTransform(previousResult, transform);
           }
         }
       } catch (error) {
@@ -329,11 +330,8 @@ export class ListReducer extends Reducer {
       return reducer(matcher, context, filter, previousResult, updatedItem);
     }
 
-    // Path to items in result.
-    let path = this._path;
-
     // Items in current list (previous result).
-    let currentItems = _.get(previousResult, path);
+    let currentItems = _.get(previousResult, this._path);
 
     // Look for existing item.
     let currentItem = _.find(currentItems, item => item.id === updatedItem.id);
@@ -346,7 +344,7 @@ export class ListReducer extends Reducer {
       let currentExternal =
         _.find(currentItems, item => item.namespace && (ID.getForeignKey(item) === updatedItem.fkey));
       if (currentExternal) {
-        return _.set({}, path, {
+        return _.set({}, this._path, {
           $deepMerge: {
             id: currentExternal.id,
             item: updatedItem,
@@ -362,7 +360,7 @@ export class ListReducer extends Reducer {
     //
     let match = matcher.matchItem(context, {}, filter, updatedItem);
     if (!match) {
-      return _.set({}, path, {
+      return _.set({}, this._path, {
         $remove: updatedItem
       });
     }
@@ -371,8 +369,8 @@ export class ListReducer extends Reducer {
     // Insert the item if it doesn't already exist (but matches).
     //
     if (!currentItem) {
-     // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
-      return _.set({}, path, {
+      // TODO(burdon): Preserve sort order (if set, otherwise top/bottom of list).
+      return _.set({}, this._path, {
         $push: [ updatedItem ]
       });
     }
@@ -441,12 +439,12 @@ export class ItemReducer extends Reducer {
       // Map query result to component properties.
       // http://dev.apollodata.com/react/queries.html#graphql-props
       props: ({ ownProps, data }) => {
-        let { loading, error, refetch } = data;
+        let { errors, loading, refetch } = data;
         let item = itemReducer.getResult(data);
 
         return {
+          errors,
           loading,
-          error,
           refetch,
           item
         }
