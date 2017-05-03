@@ -5,12 +5,13 @@
 import _ from 'lodash';
 import express from 'express';
 import moment from 'moment';
-import request from 'request';
 
 import { Async, HttpError, Logger } from 'minder-core';
 import { hasJwtHeader } from 'minder-services';
 
 import { Const, FirebaseServerConfig } from '../common/defs';
+
+import { PushManager } from './push';
 
 const logger = Logger.get('client');
 
@@ -57,6 +58,70 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
 };
 
 /**
+ * Client store.
+ */
+export class ClientStore {
+
+  // TODO(burdon): ALL Async.
+  // TODO(burdon): Persistence and Memory versions.
+  
+  constructor() {
+    this._clientMap = new Map();
+  }
+
+  /**
+   * Get clients sorted by newest first.
+   */
+  getClients() {
+    return new Promise((resolve, reject) => {
+      resolve(Array.from(this._clientMap.values()).sort((a, b) => { return b.registered - a.registered }));
+    });
+  }
+
+  // TODO(burdon): Multiple IDs.
+  getClient(clientId) {
+    return new Promise((resolve, reject) => {
+      console.assert(clientId);
+      let client = this._clientMap.get(clientId);
+      resolve(client);
+    });
+  }
+
+  // TODO(burdon): Multiple IDs.
+  deleteClient(clientId) {
+    return new Promise((resolve, reject) => {
+      this._clientMap.delete(clientId);
+      resolve();
+    });
+  }
+
+  saveClient(client) {
+    return new Promise((resolve, reject) => {
+      console.assert(client);
+      this._clientMap.set(client.id, client);
+      resolve(client);
+    });
+  }
+
+  flush() {
+    logger.log('Flushing stale clients...');
+    // TODO(burdon): Flush clients with no activity in 30 days.
+    return new Promise((resolve, reject) => {
+      this._clientMap.forEach((client, clientId) => {
+        console.assert(client.created);
+        let ago = moment().unix() - client.created;
+        if (!client.registered && ago > 60) {
+          this._clientMap.delete(clientId);
+          logger.log('Flushed: ' + JSON.stringify(client));
+        }
+      });
+
+      resolve();
+    });
+  }
+}
+
+/**
  * Manages client connections.
  *
  * Web:
@@ -68,45 +133,30 @@ export const clientRouter = (userManager, clientManager, systemStore, options={}
  * 1). BG page requests FCM token.
  * 2). BG page registers with server.
  * 3). Server creates client and returns config.
- *
  */
 export class ClientManager {
+
+  // TODO(burdon): Rename methods: verbClient
+
+  // TODO(burdon): Expire web clients after 1 hour (force reconnect if client re-appears).
 
   constructor(idGenerator) {
     console.assert(idGenerator);
     this._idGenerator = idGenerator;
-
-    // Map of clients indexed by ID.
-    // TODO(burdon): Persistence.
-    // TODO(burdon): Expire web clients after 1 hour (force reconnect if client re-appears).
-    this._clients = new Map();
-  }
-
-  /**
-   * Get clients sorted by newest first.
-   */
-  get clients() {
-    return Array.from(this._clients.values()).sort((a, b) => { return b.registered - a.registered });
+    this._clientStore = new ClientStore();
+    this._pushManager = new PushManager();
   }
 
   /**
    * Flush Web clients that haven't registered.
    */
   flush() {
-    console.log('Flushing stale clients...');
-
-    // TODO(burdon): Flush clients with no activity in 30 days.
-    this._clients.forEach((client, clientId) => {
-      console.assert(client.created);
-      let ago = moment().unix() - client.created;
-      if (!client.registered && ago > 60) {
-        this._clients.delete(clientId);
-        console.log('Flushed: ' + JSON.stringify(client));
-      }
-    });
+    return this._clientStore.flush();
   }
 
-  // TODO(burdon): Make WEB AND CRX same? (i.e., don't server clientId). Web might also cache ID since service worker.
+  getClients() {
+    return this._clientStore.getClients();
+  }
 
   /**
    * Clients are created at different times for different platforms.
@@ -132,7 +182,7 @@ export class ClientManager {
     };
 
     logger.log('Created: ' + JSON.stringify(_.pick(client, ['platform', 'id'])));
-    return this.saveClient(client);
+    return this._clientStore.saveClient(client);
   }
 
   /**
@@ -149,7 +199,7 @@ export class ClientManager {
     logger.log('Registering: ' + JSON.stringify({ platform, clientId }));
 
     // Get existing client.
-    return Async.promiseOf(clientId && this.getClient(clientId)).then(client => {
+    return Async.promiseOf(clientId && this._clientStore.getClient(clientId)).then(client => {
       if (client) {
         // TODO(burdon): Check created time matches?
         // Verify existing client matches registration.
@@ -167,7 +217,7 @@ export class ClientManager {
         return this.create(userId, platform, true, messageToken);
       } else {
         // Update the existing client.
-        return this.saveClient(_.assign(client, {
+        return this._clientStore.saveClient(_.assign(client, {
           registered: moment().unix(),
           messageToken
         }));
@@ -175,23 +225,6 @@ export class ClientManager {
     }).then(client => {
       logger.log('Registered: ' + JSON.stringify(client));
       return client;
-    });
-  }
-
-  // TODO(burdon): Make persistent.
-
-  getClient(clientId) {
-    return new Promise((resolve, reject) => {
-      console.assert(clientId);
-      resolve(this._clients.get(clientId));
-    });
-  }
-
-  saveClient(client) {
-    return new Promise((resolve, reject) => {
-      console.assert(client);
-      this._clients.set(client.id, client);
-      resolve(client);
     });
   }
 
@@ -205,10 +238,8 @@ export class ClientManager {
     console.assert(userId && clientId, JSON.stringify({ userId, clientId }));
 
     logger.log('UnRegistered: ' + clientId);
-    this._clients.delete(clientId);
+    this._clientStore.deleteClient(clientId);
   }
-
-  // TODO(burdon): Factor out Cloud Messaging.
 
   /**
    * Invalidate all clients.
@@ -220,29 +251,29 @@ export class ClientManager {
    * @return {Promise}
    */
   invalidateClients(senderId=undefined) {
+    return this._clientStore.getClients().then(clients => {
 
-    // Create map of tokens by platform.
-    let messageTokenMap = {};
-    _.each(_.toArray(this._clients.values()), client => {
-      if (client.messageToken) {
-        console.assert(messageTokenMap[client.messageToken] === undefined ||
-                       messageTokenMap[client.messageToken] === client.platform,
-          'Multiple platforms for message token: ' + client.messageToken);
+      // Create map of tokens by platform.
+      let messageTokenMap = {};
+      _.each(clients, client => {
+        if (client.messageToken) {
+          console.assert(messageTokenMap[client.messageToken] === undefined ||
+                         messageTokenMap[client.messageToken] === client.platform,
+            'Multiple platforms for message token: ' + client.messageToken);
 
-        messageTokenMap[client.messageToken] = client.platform;
+          messageTokenMap[client.messageToken] = client.platform;
+        }
+      });
+
+      if (_.size(messageTokenMap)) {
+        // Send to multiple tokens.
+        logger.log('Sending invalidations to clients: ' + _.size(messageTokenMap));
+        return Promise.all(_.map(messageTokenMap, (platform, messageToken) => {
+          return this._pushManager.sendMessage(platform, messageToken, senderId);
+        })).catch(error => {
+          console.warn('Invalidation failed: ' + error);
+        });
       }
-    });
-
-    if (_.size(messageTokenMap) === 0) {
-      return Promise.resolve();
-    }
-
-    // Send to multiple tokens.
-    logger.log('Sending invalidations to clients: ' + _.size(messageTokenMap));
-    return Promise.all(_.map(messageTokenMap, (platform, messageToken) => {
-      return this.sendMessage(platform, messageToken, senderId);
-    })).catch(error => {
-      console.warn('Invalidation failed: ' + error);
     });
   }
 
@@ -251,79 +282,18 @@ export class ClientManager {
    * @param clientId Client to invalidate.
    */
   invalidateClient(clientId) {
-    let client = this._clients.get(clientId);
-
-    if (!client) {
-      return Promise.reject('Invalid client: ' + clientId);
-    }
-
-    if (!client.messageToken) {
-      logger.warn('No message token for client: ' + clientId);
-      return Promise.resolve();
-    }
-
-    logger.log('Sending invalidation to client: ' + clientId);
-    return this.sendMessage(client.platform, client.messageToken, clientId, true);
-  }
-
-  /**
-   * Send push message.
-   *
-   * @param platform Client platform.
-   * @param senderId Client ID of sender.
-   * @param messageToken
-   * @param force
-   * @return {Promise}
-   */
-  sendMessage(platform, messageToken, senderId, force=false) {
-    return new Promise((resolve, reject) => {
-
-      // TODO(burdon): Query invalidation message (see CloudMessenger).
-      // NOTE: key x value pairs only.
-      // https://firebase.google.com/docs/cloud-messaging/http-server-ref#downstream-http-messages-json
-      let data = {
-        command: 'invalidate',
-        senderId,
-        force
-      };
-
-      let url;
-      if (platform === Const.PLATFORM.CRX) {
-        // https://developers.google.com/cloud-messaging/downstream
-        url = 'https://gcm-http.googleapis.com/gcm/send';
-      } else {
-        // https://firebase.google.com/docs/cloud-messaging/http-server-ref
-        url = 'https://fcm.googleapis.com/fcm/send';
+    return this._clientStore.getClient(clientId).then(client => {
+      if (!client) {
+        throw new Error('Invalid client: ' + clientId);
       }
 
-      let options = {
-        url,
+      if (!client.messageToken) {
+        logger.warn('No message token for client: ' + clientId);
+        return Promise.resolve();
+      }
 
-        // https://firebase.google.com/docs/cloud-messaging/server#auth
-        // https://github.com/request/request#custom-http-headers
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'key=' + FirebaseServerConfig.messagingServerKey
-        },
-
-        body: JSON.stringify({
-          // No support for multiple recipients.
-          to: messageToken,
-
-          data
-        })
-      };
-
-      // Post authenticated request to GCM/FCM endpoint.
-      // https://firebase.google.com/docs/cloud-messaging/server
-      logger.log('Sending message: ' + messageToken, JSON.stringify(data));
-      request.post(options, (error, response, body) => {
-        if (error || response.statusCode !== 200) {
-          throw new Error(`Messaging Error [${response.statusCode}]: ${error || response.statusMessage}`);
-        } else {
-          resolve();
-        }
-      });
+      logger.log('Sending invalidation to client: ' + clientId);
+      return this._pushManager.sendMessage(client.platform, client.messageToken, clientId, true);
     });
   }
 }

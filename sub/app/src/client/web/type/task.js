@@ -4,6 +4,7 @@
 
 import _ from 'lodash';
 import React from 'react';
+import PropTypes from 'prop-types';
 import { compose, graphql } from 'react-apollo';
 import { Link } from 'react-router';
 import gql from 'graphql-tag';
@@ -20,6 +21,30 @@ import { Canvas } from '../component/canvas';
 import { Card } from '../component/card';
 
 import './task.less';
+
+/**
+ * Add mutations to the batch to create the new item and add it to the parent.
+ * @param mutator
+ * @param {User} user
+ * @param {Task} parent
+ * @param mutations
+ * @return {Batch}
+ * @constructor
+ */
+// TODO(burdon): Factor out helpers.
+const CreateTask = (mutator, user, parent, mutations) => {
+  console.assert(parent.project);
+  return mutator
+    .batch(parent.project.bucket)
+    .createItem('Task', _.concat(mutations, [
+      MutationUtil.createFieldMutation('project', 'id',   parent.project.id),
+      MutationUtil.createFieldMutation('owner',   'id',   user.id),
+      MutationUtil.createFieldMutation('status',  'int',  TASK_LEVELS.UNSTARTED),
+    ]), 'new_task')
+    .updateItem(parent, [
+      MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
+    ]);
+};
 
 //-------------------------------------------------------------------------------------------------
 // Components.
@@ -74,41 +99,18 @@ export const TaskItemEditor = (item) => {
 };
 
 /**
- * Add mutations to the batch to create the new item and add it to the parent.
- * @param batch
- * @param userId
- * @param parent
- * @param mutations
- * @return {Batch}
- * @constructor
- */
-// TODO(burdon): Factor out helpers.
-const AddCreateSubTask = (batch, userId, parent, mutations) => {
-  return batch
-    .createItem('Task', _.concat(mutations, [
-      MutationUtil.createFieldMutation('bucket',  'string', parent.bucket),
-      MutationUtil.createFieldMutation('project', 'id',     parent.project.id),
-      MutationUtil.createFieldMutation('owner',   'id',     userId),
-      MutationUtil.createFieldMutation('status',  'int',    TASK_LEVELS.UNSTARTED),
-    ]), 'new_task')
-    .updateItem(parent, [
-      MutationUtil.createSetMutation('tasks', 'id', '${new_task}')
-    ]);
-};
-
-/**
  * Card.
  */
 export class TaskCard extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired
+    navigator: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    item: React.PropTypes.object.isRequired
+    item: PropTypes.object.isRequired
   };
 
   handlTaskAdd() {
@@ -123,10 +125,10 @@ export class TaskCard extends React.Component {
     let { viewer: {user}, mutator } = this.context;
 
     if (item) {
-      mutator.updateItem(item, mutations);
+      mutator.batch(item.bucket).updateItem(item, mutations).commit();
     } else {
       let { item:parent } = this.props;
-      AddCreateSubTask(mutator.batch(), user.id, parent, mutations).commit();
+      CreateTask(mutator, user, parent, mutations).commit();
     }
   }
 
@@ -172,13 +174,13 @@ export class TaskCard extends React.Component {
 class TaskCanvasComponent extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired,
-    mutator: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired
+    navigator: PropTypes.object.isRequired,
+    mutator: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    item: React.PropTypes.object,
+    item: PropTypes.object,
   };
 
   state = {};
@@ -230,7 +232,7 @@ class TaskCanvasComponent extends React.Component {
       mutator.updateItem(item, mutations);
     } else {
       let { item:parent } = this.props;
-      AddCreateSubTask(mutator.batch(), user.id, parent, mutations).commit();
+      CreateTask(mutator, user, parent, mutations).commit();
     }
   }
 
@@ -364,12 +366,12 @@ const MembersPicker = compose(
     },
 
     props: ({ ownProps, data }) => {
-      let { loading, error, group={} } = data;
+      let { errors, loading, group={} } = data;
       let { members:items } = group;
 
       return {
+        errors,
         loading,
-        error,
         items
       };
     }

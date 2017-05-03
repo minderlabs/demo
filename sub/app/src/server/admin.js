@@ -35,45 +35,56 @@ export const adminRouter = (clientManager, firebase, options) => {
   // Admin page.
   //
   router.get('/', isAuthenticated('/home', true), (req, res) => {
-    res.render('admin', {
-      clients: clientManager.clients,
-      canResetDatabase: !_.isNil(options.handleDatabaseReset)
+    return clientManager.getClients().then(clients => {
+      res.render('admin', {
+        testing: (options.env !== 'production'),
+        clients
+      });
     });
   });
 
   //
   // Admin API.
+  // TODO(burdon): Authenticate.
   //
-  router.post('/', isAuthenticated('/home', true), (req, res) => {
+  router.post('/api', isAuthenticated(undefined, true), (req, res) => {
     let { action, clientId } = req.body;
+
+    const ok = () => {
+      res.send({});
+    };
 
     console.log('Admin command: %s', action);
     switch (action) {
 
       case 'client.flush': {
-        clientManager.flush();
-        break;
+        return clientManager.flush().then(ok);
       }
 
       case 'client.invalidate': {
-        clientManager.invalidateClient(clientId);
-        break;
+        return clientManager.invalidateClient(clientId).then(ok);
       }
 
       case 'schedule.test': {
         queue && queue.create('test', {}).save();
         break;
       }
+    }
 
-      case 'database.reset': {
-        options.handleDatabaseReset && options.handleDatabaseReset().then(() => {
-          console.log('Reset Database');
-        });
-        break;
+    if (options.env !== 'production') {
+      switch (action) {
+
+        case 'database.dump': {
+          return options.handleDatabaseDump().then(ok);
+        }
+
+        case 'database.reset': {
+          return options.handleDatabaseReset().then(ok);
+        }
       }
     }
 
-    res.send({});
+    ok();
   });
 
   //

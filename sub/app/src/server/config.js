@@ -15,10 +15,12 @@ Logger.setLevel({
   'db'        : Logger.Level.info,
   'gql'       : Logger.Level.debug,
   'net'       : Logger.Level.debug,
-  'oauth'     : Logger.Level.debug,
+//'oauth'     : Logger.Level.debug,
   'resolver'  : Logger.Level.debug,
   'server'    : Logger.Level.debug,
   'system'    : Logger.Level.debug,
   'user'      : Logger.Level.debug,
+
+  'loader'    : Logger.Level.debug,
 
 }, Logger.Level.info);

@@ -42,6 +42,8 @@ export class NetworkManager {
     // Set on initialization.
     this._logger = null;
     this._networkInterface = null;
+
+    this._debug = this._config.debug
   }
 
   /**
@@ -51,6 +53,7 @@ export class NetworkManager {
    * @returns {NetworkManager}
    */
   init(localItemStore=undefined) {
+
     // Reset stats.
     this._requestCount = 0;
     this._requestMap.clear();
@@ -104,13 +107,18 @@ export class NetworkManager {
     };
 
     /**
-     * Debugging delay.
+     * Debugging network delay.
      */
-    const delayRequest = (delay=1000) => ({
+    const delayRequest = () => ({
       applyMiddleware: ({ request, options }, next) => {
-        setTimeout(() => {
+        let delay = _.get(this._config, 'options.networkDelay');
+        if (delay) {
+          setTimeout(() => {
+            next();
+          }, delay);
+        } else {
           next();
-        }, delay);
+        }
       }
     });
 
@@ -215,9 +223,8 @@ export class NetworkManager {
     ];
 
     // Debugging delay.
-    let delay = _.get(this._config, 'options.networkDelay');
-    if (delay) {
-      middleware.push(delayRequest(delay));
+    if (this._debug) {
+      middleware.push(delayRequest());
     }
 
     // Create HTTPFetchNetworkInterface
@@ -277,7 +284,7 @@ class NetworkLogger {
     //
     // Show GraphiQL link.
     //
-    if (_.get(this._options, 'debug', true)) {
+    if (_.get(this._options, 'debug', true) || true) {  // TODO(burdon): Config detail.
       let url = HttpUtil.absoluteUrl(_.get(this._options, 'graphiql', '/graphiql'));
       logger.info('[' + TypeUtil.pad(requestId, 24) + ']: ' + url + '?' + HttpUtil.toUrlArgs({
         clientId:   headers[Const.HEADER.CLIENT_ID],

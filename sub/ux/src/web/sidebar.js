@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { DomUtil } from 'minder-core';
 
@@ -47,21 +48,23 @@ export class Sidebar extends React.Component {
     this.state.open ? this.close() : this.open();
   }
 
+  onBlur() {
+    this.close();
+  }
+
   render() {
-    let { children, sidebar } = this.props;
+    let { children } = this.props;
     let { open } = this.state;
 
     return (
       <div className="ux-sidebar">
         <div className={ DomUtil.className('ux-sidebar-drawer', open && 'ux-open') }>
           <div>
-            <input ref="hidden" onBlur={ this.close.bind(this) }/>
+            <input ref="hidden" onBlur={ this.onBlur.bind(this) }/>
           </div>
 
-          { sidebar }
+          { children }
         </div>
-
-        { children }
       </div>
     );
   }
@@ -73,7 +76,7 @@ export class Sidebar extends React.Component {
 export class SidebarToggle extends React.Component {
 
   static propTypes = {
-    sidebar: React.PropTypes.func.isRequired
+    sidebar: PropTypes.func.isRequired
   };
 
   handleToggleSidebar(event) {

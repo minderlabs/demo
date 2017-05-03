@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import SearchPanel from '../view/search';
 
@@ -16,7 +17,7 @@ export class Navbar extends React.Component {
   // TODO(burdon): Current heading/breadcrumbs (in redux store).
 
   static propTypes = {
-    search: React.PropTypes.bool
+    search: PropTypes.bool
   };
 
   static defaultProps = {
@@ -24,7 +25,7 @@ export class Navbar extends React.Component {
   };
 
   static contextTypes = {
-    typeRegistry: React.PropTypes.object.isRequired,
+    typeRegistry: PropTypes.object.isRequired,
   };
 
   render() {
@@ -47,7 +48,7 @@ export class Navbar extends React.Component {
 export class NavButtons extends React.Component {
 
   static contextTypes = {
-    navigator: React.PropTypes.object.isRequired,
+    navigator: PropTypes.object.isRequired,
   };
 
   handleBack() {

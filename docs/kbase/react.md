@@ -31,6 +31,8 @@ Instead use Flex to set the global state and have the child react accordingly.
 Otherwise use withRef (which doesn't currently work).
 
 - http://dev.apollodata.com/react/higher-order-components.html#with-ref
+
+
 ## Config
 
 ~~~~
@@ -154,7 +156,7 @@ Install Chrome Extension:
       }
     }
     
-    Application.propTypes = { initialCount: React.PropTypes.number.isRequired };
+    Application.propTypes = { initialCount: PropTypes.number.isRequired };
     Application.defaultProps = { initialCount: 0 };
 ~~~~
 
@@ -211,6 +213,12 @@ Alternatively, make elements conditionally visible. E.g.,
 ~~~~
 
 
+### Rendering
+
+- INPUT being reset
+  - http://stackoverflow.com/questions/36267844/how-is-react-able-to-suppress-the-change-of-the-input-field-value
+  - https://facebook.github.io/react/docs/react-component.html
+
 ### Gotchas
 
 - https://facebook.github.io/react/docs/jsx-gotchas.html
@@ -256,7 +264,7 @@ Alternatively, make elements conditionally visible. E.g.,
     }
     
     Parent.childContextTypes = {            // NOTE: childContext
-      callback: React.PropTypes.func
+      callback: PropTypes.func
     };
 
     //
@@ -276,7 +284,7 @@ Alternatively, make elements conditionally visible. E.g.,
     }
     
     Child.contextTypes = {                  // NOTE: context
-      callback: React.PropTypes.func
+      callback: PropTypes.func
     };
 ~~~~  
 

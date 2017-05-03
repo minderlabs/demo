@@ -10,6 +10,15 @@ import _ from 'lodash';
 export class TypeUtil {
 
   /**
+   * Convert Map ot Object.
+   * @param {Map} map
+   * @return {Object}
+   */
+  static mapToObject(map) {
+    return _.zipObject(_.toArray(map.keys()), _.toArray(map.values()))
+  }
+
+  /**
    * Right-pad given string.
    * @param text
    * @param length
@@ -104,6 +113,7 @@ export class TypeUtil {
    * @returns {*}
    */
   static defaultMap(map, key, def=Map) {
+    console.assert(map && key);
     let value = map.get(key);
     if (value === undefined) {
       value = new def();

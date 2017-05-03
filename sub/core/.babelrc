@@ -8,5 +8,12 @@
     "es2015",
     "stage-0",
     "react"
-  ]
+  ],
+
+  // https://facebook.github.io/jest/docs/webpack.html
+  "env": {
+    "test": {
+      "plugins": ["transform-es2015-modules-commonjs"]
+    }
+  }
 }

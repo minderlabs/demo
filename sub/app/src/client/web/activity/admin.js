@@ -103,12 +103,14 @@ class AdminActivity extends React.Component {
 
 const AdminQuery = gql`
   query AdminQuery($groupFilter: FilterInput) { 
-    items: search(filter: $groupFilter) {
-      ...ItemFragment
-      ...GroupFragment
-      
-      ... on Group {
-        whitelist
+    search(filter: $groupFilter) {
+      items {
+        ...ItemFragment
+        ...GroupFragment
+
+        ... on Group {
+          whitelist
+        }
       }
     }
   }
@@ -130,11 +132,12 @@ export default Activity.compose(
     }),
 
     props: ({ ownProps, data }) => {
-      let { loading, error, items } = data;
+      let { errors, loading, search } = data;
+      let { items } = search;
 
       return {
+        errors,
         loading,
-        error,
         items
       };
     }

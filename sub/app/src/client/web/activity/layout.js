@@ -5,6 +5,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
+import PropTypes from 'prop-types';
 
 import { DomUtil, ID, TypeUtil } from 'minder-core';
 import { NetUtil, ReactUtil, Sidebar, SidebarToggle } from 'minder-ux';
@@ -26,17 +27,17 @@ import './layout.less';
 export class LayoutComponent extends React.Component {
 
   static contextTypes = {
-    config: React.PropTypes.object.isRequired,
-    viewer: React.PropTypes.object.isRequired,
-    typeRegistry: React.PropTypes.object.isRequired,
-    queryRegistry: React.PropTypes.object.isRequired,
-    eventHandler: React.PropTypes.object.isRequired
+    config: PropTypes.object.isRequired,
+    viewer: PropTypes.object.isRequired,
+    typeRegistry: PropTypes.object.isRequired,
+    queryRegistry: PropTypes.object.isRequired,
+    eventHandler: PropTypes.object.isRequired
   };
 
   static propTypes = {
-    navbar: React.PropTypes.object.isRequired,
-    finder: React.PropTypes.object,
-    className: React.PropTypes.string
+    navbar: PropTypes.object.isRequired,
+    finder: PropTypes.object,
+    className: PropTypes.string
   };
 
   constructor() {
@@ -88,13 +89,14 @@ export class LayoutComponent extends React.Component {
   render() {
     return ReactUtil.render(this, () => {
       let { config, viewer, typeRegistry } = this.context;
-      let { debug, navbar, finder, children, className } = this.props;
+      let { debug, navbar, finder, search, children, className } = this.props;
       let platform = _.get(config, 'app.platform');
 
       let sidePanel = <SidePanel typeRegistry={ typeRegistry }/>;
 
       let content;
-      if (finder) {
+      let showFinder = finder && (platform !== Const.PLATFORM.WEB || search.text);
+      if (showFinder) {
         if (children) {
           content = (
             <div className="app-layout-finder ux-columns">
@@ -151,20 +153,27 @@ export class LayoutComponent extends React.Component {
             </div>
             }
 
-            {/* Nav bar */}
+            {/* Navbar */}
             { navbar }
 
-            {/* Sidebar */}
-            <Sidebar ref="sidebar" sidebar={ sidePanel }>
+            {/* Main Layout */}
+            <div className="ux-columns">
 
-              {/* Content view. */}
+              {/* Sidebar */}
+              <Sidebar ref="sidebar">
+                { sidePanel }
+              </Sidebar>
+
+              {/* Main Content */}
               <div className="app-layout ux-column">
                 { content }
               </div>
-            </Sidebar>
+            </div>
 
             {/* Debug */}
-            { debugPanel }
+            <div className="app-debug-panel-container">
+              { debugPanel }
+            </div>
 
             {/* Footer */}
             <div className="app-footer">
@@ -178,9 +187,10 @@ export class LayoutComponent extends React.Component {
 }
 
 const mapStateToProps = (state, ownProps) => {
-  let { debug } = AppAction.getState(state);
+  let { debug, search } = AppAction.getState(state);
   return {
-    debug
+    debug,
+    search
   };
 };
 

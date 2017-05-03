@@ -238,37 +238,58 @@ export class GoogleInboxInspector extends Inspector {
   }
 
   getRootNode() {
+    // TODO(burdon): Document where this is and how stable it is.
     return $('.yDSKFc')[0];
   }
 
   /*
-   * <div data-item-id="#gmail:thread-f:1557184509751026059">
-   *   <div role="list">
-   *     <div data-msg-id="#msg-f:1557184509751026059">
+   * <div role="list" data-item-id="#gmail:thread-f:1557184509751026059">
+   *   <div role="listitem" data-msg-id="#msg-f:1557184509751026059">
+   *     ...
+   *     <div>
+   *       ...
+   *       <div>
+   *         <img email="__EMAIL__" src="__THUMBNAILURL__">  [40x40]
+   *
    *       <div role="heading">
-   *         <div email="__EMAIL__">__NAME__</div>
+   *         ...
+   *           <div email="__EMAIL__">__NAME__</div>
    */
   inspect(mutations) {
     let context = null;
 
     _.each(mutations, mutation => {
+      let listItems = $(mutation.target).find('div[role=list] div[role=listitem][data-msg-id]');
+      if (listItems.length) {
+        let emails = new Set();
+        context = {
+          items: _.compact(_.map(listItems, listItem => {
+            let header = $(listItem).find('div[role=heading] div[email]:first');
+            let email = header.attr('email');
 
-      // TODO(burdon): Get closest parent for thread ID.
-      let root = $(mutation.target).find('div[data-msg-id] div[email]:first');
-      if (root[0]) {
-        let name = root.text();
-        let email = root.attr('email');
-        if (name && email) {
-          context = {
-            items: [{
-              type: 'Contact',
-              title: name,
-              email: email
-            }]
-          };
+            if (!emails.has(email)) {
+              emails.add(email);
 
-          return false;
-        }
+              let title = header.text();
+
+              // TODO(burdon): First time opening a thread, the img.src is invalid.
+              let img = $(listItem).find('img[email]:first');
+              let thumbnailUrl = $(img).attr('src');
+              if (thumbnailUrl && thumbnailUrl.startsWith('//')) {
+                thumbnailUrl = 'https:' + thumbnailUrl;
+              }
+
+              return {
+                type: 'Contact',
+                title,
+                email,
+                thumbnailUrl
+              }
+            }
+          }))
+        };
+
+        return false;
       }
     });
 
@@ -324,5 +345,4 @@ export class SlackInspector extends Inspector {
   inspect(mutations) {
     return this.getContextFromDocumentLocation();
   }
-
 }

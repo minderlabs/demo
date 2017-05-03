@@ -27,10 +27,18 @@ export const FirebaseAppConfig = {
 
 const db = admin.initializeApp(FirebaseAppConfig).database();
 
-describe('FirebaseItemStore:', function() {
+describe('FirebaseItemStore (buckets):', function() {
   this.timeout(5000);
 
   ItemStoreTests(expect, () => {
     return new FirebaseItemStore(idGenerator, matcher, db, 'testing', true).clear();
   });
+});
+
+describe('FirebaseItemStore (no buckets):', function() {
+  this.timeout(5000);
+
+  ItemStoreTests(expect, () => {
+    return new FirebaseItemStore(idGenerator, matcher, db, 'testing', false).clear();
+  }, false);
 });

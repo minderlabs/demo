@@ -21,9 +21,9 @@ class SidebarApp extends React.Component {
   };
 
   componentWillReceiveProps(nextProps) {
-    console.log('componentWillMount:', JSON.stringify(nextProps));
+    console.log('componentWillReceiveProps:', JSON.stringify(nextProps));
     this.setState({
-      viewer: nextProps.viewer,
+      viewer: nextProps.search,
       events: nextProps.events
     });
   }
@@ -107,12 +107,12 @@ export default compose(
 
   graphql(TestQuery, {
     props: ({ ownProps, data }) => {
-      let { loading, error, viewer } = data;
+      let { errors, loading, search } = data;
 
       return {
+        errors,
         loading,
-        error,
-        viewer
+        search
       };
     }
   })

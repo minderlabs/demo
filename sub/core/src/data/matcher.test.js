@@ -61,8 +61,8 @@ describe('Matcher:', () => {
     // TODO(burdon): console.assert is ignored by node (use node assert module?)
 
     let root = {};
-    expect(matcher.matchItems({ userId: 'a' }, root, { type: 'Task' }, items)).to.have.length(4);
-    expect(matcher.matchItems({ userId: 'b' }, root, { type: 'Task' }, items)).to.have.length(3);
+    expect(matcher.matchItems({ buckets: ['a'] }, root, { type: 'Task' }, items)).to.have.length(4);
+    expect(matcher.matchItems({ buckets: ['b'] }, root, { type: 'Task' }, items)).to.have.length(3);
   });
 
   /**
@@ -72,7 +72,7 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      userId: 'a'
+      buckets: ['a']
     };
     let root = {};
     let filter = {
@@ -93,7 +93,7 @@ describe('Matcher:', () => {
     // TODO(burdon): console.assert is ignored by node (use node assert module?)
 
     let context = {
-      userId: 'a'
+      buckets: ['a']
     };
     let root = {};
 
@@ -115,7 +115,7 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      userId: 'a'
+      buckets: ['a']
     };
     let root = {};
 
@@ -130,7 +130,7 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      userId: 'a'
+      buckets: ['a']
     };
     let root = {};
 
@@ -145,7 +145,7 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      userId: 'a'
+      buckets: ['a']
     };
     let root = {};
 
@@ -161,7 +161,8 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      userId: 'a'
+      userId: 'a',
+      buckets: ['a']
     };
     let root = {};
 
@@ -186,7 +187,8 @@ describe('Matcher:', () => {
     let matcher = new Matcher();
 
     let context = {
-      userId: 'a'
+      userId: 'a',
+      buckets: ['a']
     };
     let root = {
       id: 'b'
@@ -218,11 +220,11 @@ describe('Matcher:', () => {
     expect(matcher.matchItem(context, root,
       { expr: { comp: 'GTE', field: 'modified', value: { timestamp: anHourAgo } } }, item1)).to.be.true;
     expect(matcher.matchItem(context, root,
-      { expr: { comp: 'GT', field: 'modified', value: { timestamp: anHourAgo } } }, item1)).to.be.false;
+      { expr: { comp: 'GT',  field: 'modified', value: { timestamp: anHourAgo } } }, item1)).to.be.false;
 
     expect(matcher.matchItem(context, root,
-      { expr: { comp: 'GT', field: 'modified', value: { timestamp: now } } }, item1)).to.be.false;
+      { expr: { comp: 'GT',  field: 'modified', value: { timestamp: now } } }, item1)).to.be.false;
     expect(matcher.matchItem(context, root,
-      { expr: { comp: 'GT', field: 'modified', value: { timestamp: -3600 * 2 } } }, item1)).to.be.true;
+      { expr: { comp: 'GT',  field: 'modified', value: { timestamp: -3600 * 2 } } }, item1)).to.be.true;
   });
 });

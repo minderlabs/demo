@@ -6,8 +6,6 @@ import ReactGA from 'react-ga';
 
 import { AnalyticsConfig } from '../../common/defs';
 
-const INJECTOR_KEY = 'INJECTOR_KEY_ANALYTICS';
-
 /**
  * Service-agnostic Analytics interface.
  *
@@ -19,15 +17,8 @@ export class Analytics {
 
   /**
    * Injector key to inject Analytics subclasses. For example:
-   *
-   * Injector.provider(new GoogleAnalytics(), Analytics.INJECTOR_KEY);
-   * ...
-   * let analytics = injector.get(Analytics.INJECTOR_KEY);
    */
-  // TODO(burdon): Why is this needed?
-  static get INJECTOR_KEY() {
-    return INJECTOR_KEY;
-  }
+  static INJECTOR_KEY = 'INJECTOR_KEY_ANALYTICS';
 
   // TODO(madadam): More events.
   // x Login/logout
@@ -64,7 +55,7 @@ export class Analytics {
   /**
    * Most services support a similar interface for custom events, Google Analytics seems to be the exception:
    * Segment:           event(name, params) // https://segment.com/docs/sources/website/analytics.js/#track
-   * FirebaseAnalytics: event(name, params)  // https://support.google.com/firebase/topic/6317484?hl=en&ref_topic=6386699
+   * FirebaseAnalytics: event(name, params) // https://support.google.com/firebase/topic/6317484?hl=en&ref_topic=6386699
    * Mixpanel:          event(name, params)
    * Intercom:          event(name, params) // https://developers.intercom.com/reference#events
    * GoogleAnalytics:   event(category, action, label, numeric_value)
@@ -85,7 +76,7 @@ export class Analytics {
  * Dashboard: https://segment.com/minderlabs
  *
  * Segment sends events to other services via integrations, including:
- *   Intercom: https://app.intercom.io/a/apps/mnpnnt3b/
+ * Intercom: https://app.intercom.io/a/apps/mnpnnt3b
  */
 export class SegmentAnalytics extends Analytics {
 
@@ -93,9 +84,9 @@ export class SegmentAnalytics extends Analytics {
     super(config);
 
     // TODO(madadam): will this work in CRX? Might need to use the node library.
-
     this.analytics = function() {
-      // https://segment.com/docs/sources/website/analytics.js/quickstart/
+      // Loads script.
+      // https://segment.com/docs/sources/website/analytics.js/quickstart
       let analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src="https://cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="4.0.0";
       analytics.load(AnalyticsConfig.segmentWriteKey);
       analytics.page();}
@@ -112,6 +103,7 @@ export class SegmentAnalytics extends Analytics {
       // https://segment.com/docs/integrations/intercom/#conditionally-show-the-intercom-chat-widget
       Intercom: { hideDefaultLauncher: true }
     };
+
     this.analytics.identify(userId, attributes, options);
   }
 
@@ -141,9 +133,10 @@ export class GoogleAnalytics extends Analytics {
 
   constructor(config) {
     super(config);
+
     // TODO(madadam): Add a client identifier, e.g. web, crx, mobile -- or does GA handle this?
     // TODO(madadam): Add appVersion, appName, get from config.
-    ReactGA.initialize(AnalyticsConfig.googleAnalyticsTrackingId, {titleCase: false});
+    ReactGA.initialize(AnalyticsConfig.googleAnalyticsTrackingId, { titleCase: false });
   }
 
   identify(userId, attributes) {

@@ -114,11 +114,11 @@ export class AppAction {
 /**
  * @param injector
  * @param config
- * @param userProfile
+ * @param apolloClient
  * @constructor
  */
-export const AppReducer = (injector, config, userProfile=undefined) => {
-  console.assert(injector && config);
+export const AppReducer = (injector, config, apolloClient) => {
+  console.assert(injector && config && apolloClient);
 
   const initialState = {
 
@@ -128,15 +128,15 @@ export const AppReducer = (injector, config, userProfile=undefined) => {
     // Client config.
     config: config,
 
+    // Apollo client (for accessing the cache).
+    // https://github.com/apollographql/core-docs/blob/master/source/read-and-write.md
+    client: apolloClient,
+
     // Debugging options.
     debug: {
-      showInfo: true,
-      showPanel: false
+      showInfo: config.debug,
+      showPanel: config.debug
     },
-
-    // User profile (from config or background page).
-    // NOTE: The React context contains the current Viewer (provided by the top-level Activity).
-    userProfile,
 
     // Search bar.
     search: {

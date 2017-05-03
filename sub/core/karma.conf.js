@@ -4,7 +4,7 @@
 
 const webpack = require('webpack');
 
-const webpackConfig = require('./webpack-karma.config.js');
+const webpacConfig = require('./webpack-base.config.js')['karma'];
 
 //
 // Karma configuration
@@ -45,9 +45,10 @@ module.exports = function(config) {
       'src/webpack.tests.js': ['webpack', 'sourcemap']
     },
 
-    webpack: webpackConfig,
+    webpack: webpacConfig,
 
     webpackMiddleware: {
+
       // https://github.com/webpack/webpack/issues/1191
       stats: {
         children: false,
@@ -89,7 +90,7 @@ module.exports = function(config) {
       'karma-babel-preprocessor',     // https://github.com/babel/karma-babel-preprocessor
       'karma-phantomjs-launcher',     // https://www.npmjs.com/package/karma-phantomjs-launcher
       'karma-chrome-launcher',        // https://www.npmjs.com/package/karma-chrome-launcher
-//    'karma-verbose-reporter',       // https://www.npmjs.com/package/karma-verbose-reporter
+      'karma-verbose-reporter',       // https://www.npmjs.com/package/karma-verbose-reporter
 
       require('karma-mocha-reporter'),
       require('karma-sourcemap-loader'),

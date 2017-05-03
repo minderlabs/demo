@@ -80,19 +80,25 @@ export class MutationUtil {
   /**
    * Create mutations to clone the given item.
    *
+   * @param {string} bucket
    * @param {Item} item
    * @return {[Mutation]}
    */
-  static cloneItem(item) {
-    console.assert(item && item.title);
+  static cloneItem(bucket, item) {
+    console.assert(bucket && item);
 
     let mutations = [
-      MutationUtil.createFieldMutation('title', 'string', item.title)
+      MutationUtil.createFieldMutation('bucket', 'string', bucket)
     ];
 
-    // TODO(burdon): Introspect type map?
+    // TODO(burdon): Introspect type map.
+    mutations.push(MutationUtil.createFieldMutation('title', 'string', item.title));
+
     if (item.email) {
       mutations.push(MutationUtil.createFieldMutation('email', 'string', item.email));
+    }
+    if (item.thumbnailUrl) {
+      mutations.push(MutationUtil.createFieldMutation('thumbnailUrl', 'string', item.thumbnailUrl));
     }
 
     return mutations;
@@ -101,16 +107,18 @@ export class MutationUtil {
   /**
    * Creates a set mutation.
    *
-   * @param field
-   * @param type
-   * @param value
+   * @param {string} field
+   * @param {string} type
+   * @param {string|int} value
+   * @param {boolean} add
    */
-  static createSetMutation(field, type, value) {
+  static createSetMutation(field, type, value, add=true) {
     console.assert(field && type && value);
     return {
       field,
       value: {
         set: [{
+          add,
           value: {
             [type]: value
           }
@@ -172,7 +180,7 @@ export class MutationUtil {
 /*
  * TODO(burdon): id values should include item for optimistic responses.
  *
- * mutator.batch()
+ * mutator.batch(bucket)
  *   .createItem('Task', [{
  *     field: 'title',
  *     value: {
@@ -196,20 +204,20 @@ class Batch {
   /**
    * Batch is used to exec multiple mutations in one transaction.
    * @param mutator
-   * @param namespace If defined, overrides the default namespace.
+   * @param bucket
    */
-  constructor(mutator, namespace=undefined) {
-    console.assert(mutator);
+  constructor(mutator, bucket) {
+    console.assert(mutator && bucket);
     this._mutator = mutator;
-    this._namespace = namespace;
+    this._bucket = bucket;
     this._operations = [];
   }
 
   /**
    * Creates new item in batch.
-   * @param type
-   * @param mutations
-   * @param name Optional name that can be referenced by subsequent updates below.
+   * @param {string} type
+   * @param {[Mutation]} mutations
+   * @param {string} name Optional name that can be referenced by subsequent updates below.
    * @return {Batch}
    */
   createItem(type, mutations, name=undefined) {
@@ -224,16 +232,17 @@ class Batch {
 
   /**
    * Updates existing item in batch.
-   * @param item
-   * @param mutations Mutations can reference created items above via ${name}.
+   * @param {Item} item
+   * @param {[Mutation]} mutations Mutations can reference created items above via ${name}.
+   * @param {string|undefined} name Optional name that can be referenced by subsequent updates below.
+   * @param {Query|undefined} query
    * @return {Batch}
    */
-  updateItem(item, mutations) {
+  updateItem(item, mutations, name=undefined, query=undefined) {
     console.assert(item && mutations);
     mutations = TypeUtil.flattenArrays(mutations);
     this._operations.push({
-      item,
-      mutations
+      item, mutations, name, query
     });
 
     return this;
@@ -252,37 +261,29 @@ class Batch {
 
     // Process create and update mutations.
     _.each(this._operations, operation => {
-      let { type, item, mutations, name } = operation;
-      if (type) {
+      let { item, type, mutations, name, query } = operation;
+      if (item) {
+
         //
-        // Create item.
+        // Update item.
         //
 
-        item = this._mutator.createItem(type, mutations, this._namespace);
+        item = this._mutator._updateItem(this._bucket, item, mutations, query, itemsByName, itemsById);
         itemsById.set(item.id, item);
-
         if (name) {
           itemsByName.set(name, item);
         }
       } else {
+
         //
-        // Update item.
+        // Create item.
         //
 
-        // Update references.
-        TypeUtil.traverse(mutations, (value) => {
-          let id = _.get(value, 'value.id');
-          if (id) {
-            let match = id.match(/\$\{(.+)\}/);
-            if (match) {
-              let created = itemsByName.get(match[1]);
-              _.set(value, 'value.id', created.id);
-            }
-          }
-        });
-
-        // Update item.
-        this._mutator.updateItem(item, mutations, this._namespace, itemsById);
+        item = this._mutator._createItem(this._bucket, type, mutations);
+        itemsById.set(item.id, item);
+        if (name) {
+          itemsByName.set(name, item);
+        }
       }
     });
   }
@@ -302,13 +303,19 @@ export class Mutator {
     return graphql(UpsertItemsMutation, {
       withRef: true,
 
+      options: {
+        // http://dev.apollodata.com/core/read-and-write.html#updating-the-cache-after-a-mutation
+        // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-update
+//      update: (proxy, { data }) => {}
+      },
+
       //
       // Injects a mutator instance into the wrapped components' properties.
       // NOTE: dependencies must previously have been injected into the properties.
       //
       props: ({ ownProps, mutate }) => {
-        let { config, idGenerator, analytics } = ownProps;
-        let mutator = new Mutator(config, idGenerator, analytics, mutate);
+        let { config, client, idGenerator, analytics } = ownProps;
+        let mutator = new Mutator(config, client, idGenerator, analytics, mutate);
         return {
           mutator
         };
@@ -320,6 +327,8 @@ export class Mutator {
    * Create the optimistic result.
    *
    * http://dev.apollodata.com/react/mutations.html#optimistic-ui
+   * http://dev.apollodata.com/react/optimistic-ui.html#optimistic-basics
+   * http://dev.apollodata.com/react/cache-updates.html
    *
    * @param {[Item]} items
    */
@@ -335,38 +344,41 @@ export class Mutator {
 
   /**
    * @param config
+   * @param client Apollo client.
    * @param idGenerator
    * @param analytics
    * @param mutate Function provided by apollo.
    */
-  constructor(config, idGenerator, analytics, mutate) {
-    console.assert(config, idGenerator && analytics && mutate);
+  constructor(config, client, idGenerator, analytics, mutate) {
+    console.assert(config, client, idGenerator && analytics && mutate);
     this._config = config;
+    this._client = client;
     this._idGenerator = idGenerator;
     this._analytics = analytics;
     this._mutate = mutate;
   }
 
-  batch() {
-    return new Batch(this);
+  batch(bucket) {
+    console.assert(bucket, 'Invalid bucket.');
+    return new Batch(this, bucket);
   }
-
-  // TODO(burdon): Remove non-batch operations.
 
   /**
    * Executes a create item mutation.
    *
+   * @param {string} bucket
    * @param {string} type
-   * @param mutations
-   * @param namespace
+   * @param {[{Mutations}]} mutations
    * @return {Item} Optimistic result.
    */
-  createItem(type, mutations, namespace=undefined) {
+  _createItem(bucket, type, mutations) {
     mutations = _.compact(_.concat(mutations));
+
+    // Set bucket.
+    mutations.push(MutationUtil.createFieldMutation('bucket', 'string', bucket));
 
     let itemId = this._idGenerator.createId();
 
-    // TODO(burdon): Unit test.
     let item = Transforms.applyObjectMutations({
       __typename: type,
       type,
@@ -388,12 +400,18 @@ export class Mutator {
     // Submit mutation.
     //
 
-    logger.log('createItem: ' + TypeUtil.stringify({ item: { type, id: itemId }, mutations }));
+    // TODO(burdon): READ THIS: Update cache.
+    // http://dev.apollodata.com/react/api-mutations.html#graphql-mutation-options-update
+    // http://dev.apollodata.com/react/cache-updates.html
+
+    this._analytics && this._analytics.track('item.create', { label: type });
+
+    logger.log('createItem: ' + TypeUtil.stringify({ bucket, item: { type, id: itemId }, mutations }));
     this._mutate({
       variables: {
-        namespace,
         mutations: [
           {
+            bucket,
             itemId: ID.toGlobalId(type, itemId),
             mutations
           }
@@ -403,92 +421,126 @@ export class Mutator {
       optimisticResponse
     });
 
-    this._analytics && this._analytics.track('item.create', { label: type });
     return item;
   }
 
   /**
    * Executes an update item mutation.
    *
+   * @param {string} bucket
    * @param {Item} item
-   * @param mutations
-   * @param namespace
-   * @param [itemMap] Optional map of cached items.
+   * @param {[{Mutations}]} mutations
+   * @param {Query|undefined} query Item query.
+   * @param {Map} itemsByName
+   * @param {Map} itemsById
    * @return {Item} Optimistic result (NOTE: this will change if the item is being copied).
    */
-  updateItem(item, mutations, namespace, itemMap=undefined) {
+  _updateItem(bucket, item, mutations, query=undefined, itemsByName=undefined, itemsById=undefined) {
     mutations = _.compact(_.concat(mutations));
+
+    // TODO(burdon): Unit test (factor out mutation transformations).
+
+    //
+    // Update references to recently created items.
+    // E.g., ${new_task} => xxx
+    //
+
+    _.each(mutations, mutation => {
+      TypeUtil.traverse(mutation, (value, key, root, path) => {
+        if (key === 'id') {
+          let match = value.match(/\$\{(.+)\}/);
+          if (match) {
+            // TODO(burdon): Check type.
+            let item = itemsByName.get(match[1]);
+            console.assert(item && item.id);
+            _.set(root, key, item.id);
+          }
+        }
+      });
+    });
 
     //
     // Special handling for non-USER namespace.
-    // TODO(burdon): Unit test.
     // TODO(burdon): Fall through to standard update processing below (NOT CREATE)?
     //
 
     if (item.namespace) {
-      if (item.namespace === Database.NAMESPACE.LOCAL) {
+      switch (item.namespace) {
 
         //
         // Clone local item on mutation.
         //
+        case Database.NAMESPACE.LOCAL: {
+          let cloneMutations = _.concat(
+            // Mutations to clone the item's properties.
+            // TODO(burdon): Remove mutations for current properties below.
+            MutationUtil.cloneItem(bucket, item),
 
-        let cloneMutations = _.concat(
+            // Current mutations.
+            mutations
+          );
 
-          // Mutations to clone the item's properties.
-          // TODO(burdon): Remove mutations for current properties below.
-          MutationUtil.cloneItem(item),
-
-          // Current mutations.
-          mutations
-        );
-
-        logger.log('Cloning local item: ' + JSON.stringify(item));
-        let clonedItem = this.createItem(item.type, cloneMutations);
-        return _.assign(clonedItem, {
-          // TODO(burdon): Add email as fkey.
-          fkey: clonedItem.id
-        });
-      } else {
+          // TODO(burdon): Add fkey (e.g., email)?
+          let clonedItem = this._createItem(bucket, item.type, cloneMutations);
+          logger.log('Cloned local item: ' + JSON.stringify(clonedItem));
+          return clonedItem;
+        }
 
         //
         // Clone external item on mutation.
         // NOTE: This assumes that external items are never presented to the client when a USER item
         // exists; i.e., external/USER items are merged on the server (Database.search).
         //
+        default: {
+          let cloneMutations = _.concat(
+            // Reference the external item.
+            MutationUtil.createFieldMutation('fkey', 'string', ID.getForeignKey(item)),
 
-        let cloneMutations = _.concat(
-          // Reference the external item.
-          MutationUtil.createFieldMutation('fkey', 'string', ID.getForeignKey(item)),
+            // Mutations to clone the item's properties.
+            // TODO(burdon): Remove mutations for current properties below.
+            MutationUtil.cloneItem(bucket, item),
 
-          // Mutations to clone the item's properties.
-          // TODO(burdon): Remove mutations for current properties below.
-          MutationUtil.cloneItem(item),
+            // Current mutations.
+            mutations
+          );
 
-          // Current mutations.
-          mutations
-        );
-
-        logger.log('Cloning external item: ' + JSON.stringify(item));
-        return this.createItem(item.type, cloneMutations);
+          let clonedItem = this._createItem(bucket, item.type, cloneMutations);
+          logger.log('Cloned external item: ' + JSON.stringify(clonedItem));
+          return clonedItem;
+        }
       }
     }
 
     //
-    // Regular mutation of User item.
+    // Regular mutation of Item in User namespace.
     //
 
     let optimisticResponse;
     if (_.get(this._config, 'options.optimistic')) {
 
+      // TODO(burdon): Instead of passing item into update, pass the Query.
+      // Get item from cache (item passed to mutator may be stale).
+      // http://dev.apollodata.com/core/read-and-write.html#readquery
+      if (query) {
+        let data = this._client.readQuery({
+          query,
+          variables: {
+            itemId: ID.toGlobalId(item.type, item.id)
+          }
+        });
+
+        item = data.item;
+      }
+
       // Create optimistic result.
       item = Transforms.applyObjectMutations(TypeUtil.clone(item), mutations);
 
-      // Check for ID references to recently created items.
-      // TODO(burdon): Add item property to value.id (set by mutation creator).
-      if (itemMap) {
+      // TODO(burdon): NOT ONLY CHANGE ${new_task} but ANY ID references! (e.g., assignee). DESIGN.
+      // Patch ID references with actual items.
+      if (itemsById) {
         TypeUtil.traverse(item, (value, key, root) => {
-          if (_.isString(value)) {
-            let match = itemMap.get(value);
+          if (key !== 'id' && _.isString(value)) {
+            let match = itemsById.get(value);
             if (match) {
               _.set(root, key, match);
             }
@@ -503,12 +555,15 @@ export class Mutator {
     // Submit mutation.
     //
 
-    logger.log('updateItem: ' + TypeUtil.stringify({ item: _.pick(item, 'type', 'id'), mutations }));
+    this._analytics && this._analytics.track('item.update', { label: item.type });
+
+    // TODO(burdon): labels: {"type":"json","json":["_default"]} ??? for Project; DUMP SERVER ITEMS.
+
     this._mutate({
       variables: {
-        namespace,
         mutations: [
           {
+            bucket,
             itemId: ID.toGlobalId(item.type, item.id),
             mutations
           }
@@ -518,7 +573,6 @@ export class Mutator {
       optimisticResponse
     });
 
-    this._analytics && this._analytics.track('item.edit', { label: item.type });
     return item;
   }
 }

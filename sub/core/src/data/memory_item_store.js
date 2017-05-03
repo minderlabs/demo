@@ -6,7 +6,7 @@ import _ from 'lodash';
 
 import { TypeUtil } from '../util/type';
 
-import { BaseItemStore, QueryProcessor } from './item_store';
+import { BaseItemStore } from './item_store';
 
 /**
  * In-memory database.
@@ -24,6 +24,13 @@ export class MemoryItemStore extends BaseItemStore {
     return `MemoryItemStore(${this._items.size})`;
   }
 
+  dump() {
+    return Promise.resolve({
+      info: this.toString(),
+      items: TypeUtil.mapToObject(this._items)
+    });
+  }
+
   key({ bucket, type, id }) {
     console.assert(bucket || !this._buckets, 'Invalid bucket for item: ' + id);
 
@@ -32,7 +39,7 @@ export class MemoryItemStore extends BaseItemStore {
 
   getBucketKeys(context, type) {
     if (this._buckets) {
-      return _.map(QueryProcessor.getBuckets(context), bucket => this.key({ bucket, type }));
+      return _.map(_.get(context, 'buckets'), bucket => this.key({ bucket, type }));
     } else {
       console.assert(type);
       return [this.key({ type })];
@@ -55,7 +62,7 @@ export class MemoryItemStore extends BaseItemStore {
         });
       });
     } else {
-      bucketItems = this._items;
+      bucketItems = _.toArray(this._items.values());
     }
 
     let items = this.filterItems(bucketItems, context, root, filter);
@@ -78,7 +85,7 @@ export class MemoryItemStore extends BaseItemStore {
     console.assert(context && items);
 
     return Promise.resolve(_.map(items, item => {
-      console.assert(!this._buckets || item.bucket, 'Invalid bucket: ' + JSON.stringify(item));
+      console.assert(!this._buckets || item.bucket, 'Invalid bucket: ' + TypeUtil.stringify(item, 2));
 
       let clonedItem = this.onUpdate(TypeUtil.clone(item));
       let key = this.key(clonedItem);

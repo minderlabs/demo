@@ -3,6 +3,7 @@
 //
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { Async, DomUtil } from 'minder-core';
 
@@ -27,18 +28,18 @@ export class TextBox extends React.Component {
   }
 
   static propTypes = {
-    autoFocus:      React.PropTypes.bool,
-    className:      React.PropTypes.string,
-    delay:          React.PropTypes.number,
-    onCancel:       React.PropTypes.func,
-    onChange:       React.PropTypes.func,
-    onEnter:        React.PropTypes.func,
-    onFocusChange:  React.PropTypes.func,
-    onKeyDown:      React.PropTypes.func,
-    placeholder:    React.PropTypes.string,
-    value:          React.PropTypes.string,
-    clickToEdit:    React.PropTypes.bool,
-    notEmpty:       React.PropTypes.bool
+    autoFocus:      PropTypes.bool,
+    className:      PropTypes.string,
+    delay:          PropTypes.number,
+    onCancel:       PropTypes.func,
+    onChange:       PropTypes.func,
+    onEnter:        PropTypes.func,
+    onFocusChange:  PropTypes.func,
+    onKeyDown:      PropTypes.func,
+    placeholder:    PropTypes.string,
+    value:          PropTypes.string,
+    clickToEdit:    PropTypes.bool,
+    notEmpty:       PropTypes.bool
   };
 
   static defaultProps = {
@@ -48,28 +49,32 @@ export class TextBox extends React.Component {
   constructor() {
     super(...arguments);
 
+    // Maintain the current value so that componentWillReceiveProps doesn't overwrite current edits.
+    this._currentValue = this.props.value;
+
     this.state = {
       readOnly: false,
-      value: this.props.value
+      value: this._currentValue
     };
 
     this._delay = Async.delay(this.props.delay);
   }
-
-  // TODO(burdon): Colors, pointer, etc.
-  // TODO(burdon): Mutation in layout.
-  // TODO(burdon): Center text (layout).
-  // TODO(burdon): Esc to cancel.
-  // TODO(burdon): Revert value if (trim) empty text.
 
   /**
    * Update state when parent is re-rendered (e.g., input is reused across different detail views).
    * https://facebook.github.io/react/docs/react-component.html#componentwillreceiveprops
    */
   componentWillReceiveProps(nextProps) {
+    let { value } = nextProps;
+    if (this.state.readOnly || value !== this._currentValue) {
+      this._currentValue = value;
+    } else {
+      value = this.state.value;
+    }
+
     this.setState({
       readOnly: nextProps.clickToEdit,
-      value: nextProps.value
+      value
     });
   }
 

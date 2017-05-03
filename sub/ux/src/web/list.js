@@ -3,10 +3,11 @@
 //
 
 import React from 'react';
-import { DragDropContext } from 'react-dnd';
+import PropTypes from 'prop-types';
 import HTML5Backend from 'react-dnd-html5-backend';
+import { DragDropContext } from 'react-dnd';
 
-import { DomUtil, ID, MutationUtil } from 'minder-core';
+import { DomUtil, ItemUtil, MutationUtil } from 'minder-core';
 
 import { TextBox } from './textbox';
 import { ItemDragSource, ItemDropTarget, DragOrderModel } from './dnd';
@@ -72,31 +73,29 @@ export class List extends React.Component {
   // Context passed to ListItem and inline widgets.
   //
   static childContextTypes = {
-    onItemSelect:       React.PropTypes.func,
-    onItemEdit:         React.PropTypes.func,
-    onItemUpdate:       React.PropTypes.func,
-    onItemCancel:       React.PropTypes.func
+    onItemSelect:       PropTypes.func,
+    onItemEdit:         PropTypes.func,
+    onItemUpdate:       PropTypes.func,
+    onItemCancel:       PropTypes.func
   };
 
   static propTypes = {
-    data:               React.PropTypes.string,     // Custom data/label.
+    data:               PropTypes.string,     // Custom data/label.
 
-    className:          React.PropTypes.string,
-    highlight:          React.PropTypes.bool,
+    className:          PropTypes.string,
+    highlight:          PropTypes.bool,
 
-    items:              React.PropTypes.arrayOf(React.PropTypes.object),
+    items:              PropTypes.arrayOf(PropTypes.object),
+    groupedItems:       PropTypes.arrayOf(PropTypes.object),
 
-    itemClassName:      React.PropTypes.string,
-    itemEditor:         React.PropTypes.func,
-    itemRenderer:       React.PropTypes.func,
-    itemOrderModel:     React.PropTypes.object,     // Order model for drag and drop.
+    itemClassName:      PropTypes.string,
+    itemEditor:         PropTypes.func,
+    itemRenderer:       PropTypes.func,
+    itemOrderModel:     PropTypes.object,     // Order model for drag and drop.
 
-    // TODO(burdon): Should this happen outside of the List (i.e., before properties are set instead?)
-    itemInjector:       React.PropTypes.func,       // Modify results.
-
-    onItemUpdate:       React.PropTypes.func,
-    onItemSelect:       React.PropTypes.func,
-    onItemDrop:         React.PropTypes.func
+    onItemUpdate:       PropTypes.func,
+    onItemSelect:       PropTypes.func,
+    onItemDrop:         PropTypes.func
   };
 
   static defaultProps = {
@@ -107,20 +106,12 @@ export class List extends React.Component {
   };
 
   state = {
-    items: this.props.items || [],
-
     itemEditor:   this.props.itemEditor   || List.DefaultItemEditor,
     itemRenderer: this.props.itemRenderer || List.DefaultItemRenderer,
 
     addItem: false,     // { boolean }
     editItem: null      // { string:ID }
   };
-
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      items: nextProps.items || []
-    });
-  }
 
   getChildContext() {
     return {
@@ -250,17 +241,46 @@ export class List extends React.Component {
   render() {
 
     // NOTE: data is a user-label to identify the list.
-    let { itemClassName, itemOrderModel, itemInjector, data } = this.props;
-    let { items, itemRenderer, itemEditor, addItem, editItem } = this.state;
+    let { items, itemClassName, itemOrderModel, groupedItems, data } = this.props;
+    let { itemRenderer, itemEditor, addItem, editItem } = this.state;
 
-    // Sort items by order model.
-    if (itemOrderModel) {
-      items = itemOrderModel.getOrderedItems(items);
+    //
+    // Group/merge items.
+    //
+
+    if (groupedItems) {
+
+      // Create Set of all grouped items.
+      let ids = new Set();
+      _.each(groupedItems, groupedItem => {
+        ids.add(groupedItem.id);
+        _.each(groupedItem.groups, group => {
+          _.each(group.ids, id => ids.add(id));
+        });
+      });
+
+      // Create ordered items.
+      let items2 = _.filter(items, item => {
+        if (ids.has(item.id)) {
+          // TODO(burdon): Add grandchildren?
+          return _.findIndex(groupedItems, groupedItem => groupedItem.id === item.id) !== -1;
+        } else {
+          return true;
+        }
+      });
+
+      // TODO(burdon): ???
+//    console.log('===', _.map(items2, item => item.title));
     }
 
-    // Augment items (e.g., from app context).
-    if (itemInjector) {
-      items = itemInjector(items);
+//  console.log('########', _.map(items, item => item.title));
+
+    //
+    // Sort items by order model.
+    //
+
+    if (itemOrderModel) {
+      items = itemOrderModel.getOrderedItems(items);
     }
 
     //
@@ -272,7 +292,7 @@ export class List extends React.Component {
 
     let previousOrder = 0;
     let rows = _.map(items, item => {
-      console.assert(item && item.type && item.id, 'Invalid Item: ' + JSON.stringify(item));
+      console.assert(item && item.type && item.id, 'Invalid Item: ' + JSON.stringify(item, 0, 2));
 
       let itemKey = item.id;
       if (keyMap.get(itemKey)) {
@@ -359,7 +379,6 @@ export class List extends React.Component {
       <div className={ className }>
         { rows }
         { lastDropTarget }
-
         { editor }
       </div>
     );
@@ -373,16 +392,16 @@ export class List extends React.Component {
 const ListItemChildContextTypes = {
 
   // Item.
-  item: React.PropTypes.object,
+  item: PropTypes.object,
 
   // ListItem component.
-  listItem: React.PropTypes.object,
+  listItem: PropTypes.object,
 
   // Inherited from List component.
-  onItemSelect: React.PropTypes.func,
-  onItemEdit:   React.PropTypes.func,
-  onItemUpdate: React.PropTypes.func,
-  onItemCancel: React.PropTypes.func
+  onItemSelect: PropTypes.func,
+  onItemEdit:   PropTypes.func,
+  onItemUpdate: PropTypes.func,
+  onItemCancel: PropTypes.func
 };
 
 /**
@@ -582,17 +601,17 @@ export class ListItem extends React.Component {
   // Provided by renderer.
   //
   static propTypes = {
-    item: React.PropTypes.object,
-    className: React.PropTypes.string,
+    item: PropTypes.object,
+    className: PropTypes.string,
   };
 
   //
   // From parent <List/> control.
   //
   static contextTypes = {
-    onItemSelect: React.PropTypes.func.isRequired,
-    onItemUpdate: React.PropTypes.func.isRequired,
-    onItemCancel: React.PropTypes.func.isRequired
+    onItemSelect: PropTypes.func.isRequired,
+    onItemUpdate: PropTypes.func.isRequired,
+    onItemCancel: PropTypes.func.isRequired
   };
 
   //

@@ -5,6 +5,7 @@
 import gql from 'graphql-tag';
 
 // TODO(burdon): Refine fragments returned by mutation.
+// TODO(burdon): Organize into slices.
 
 // NOTE: When the Project Detail card adds a new Task, unless "on Project { tasks {} }" is
 // declared in the mutation, then the Project Board canvas will not be updated.
@@ -22,28 +23,42 @@ const ValueFragment = gql`
   }
 `;
 
+//
+// Minimal Item fields.
+//
+const ItemMetaFragment = gql`
+  fragment ItemMetaFragment on Item {
+    bucket
+    type
+    id
+    
+    title
+  }
+`;
+
+// TODO(burdon): Non-external fragment defs?
+
 const UserTasksFragment = gql`
   fragment UserTasksFragment on User {
-    id
-    title
     email
+
     groups {
-      type
-      id
-      title
+      ...ItemMetaFragment
+
       projects {
-        type
-        id
-        title
+        ...ItemMetaFragment
+
         labels
+
         tasks {
-          type
-          id
-          title
+          ...ItemMetaFragment
+
           status
+
           owner {
             id
           }
+
           assignee {
             id
           }
@@ -51,23 +66,53 @@ const UserTasksFragment = gql`
       }
     }
   }
+
+  ${ItemMetaFragment}
 `;
 
 export const Fragments = {
 
-  // TODO(burdon): Warning: fragment with name ItemFragment already exists.
+  //
+  // TODO(burdon): Move to Query const.
+  // ViewerQuery is requested by each Activity; the cached response is used by various Redux connectors.
+  //
 
+  ViewerQuery: gql`
+    query ViewerQuery {
+  
+      viewer {
+        user {
+          ...ItemMetaFragment
+        }
+  
+        groups {
+          ...ItemMetaFragment
+  
+          projects {
+            ...ItemMetaFragment
+            labels
+          }
+        }
+      }
+    }
+
+    ${ItemMetaFragment}
+  `,
+
+  // TODO(burdon): Include ItemFragment in all of below (remove ItemMetaFragment).
+  // TODO(burdon): Warning: fragment with name ItemFragment already exists.
   ItemFragment: gql`
     fragment ItemFragment on Item {
+      ...ItemMetaFragment
+
       namespace
       fkey
-      bucket
-      type
-      id
       labels
-      title
+
       description
     }
+    
+    ${ItemMetaFragment}
   `,
 
   //
@@ -76,33 +121,34 @@ export const Fragments = {
 
   ContactFragment: gql`
     fragment ContactFragment on Contact {
-      id
       email
-      title
-      fkey
+      thumbnailUrl
+
       tasks {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
     }
+    
+    ${ItemMetaFragment}
   `,
 
   ContactTasksFragment: gql`
     fragment ContactTasksFragment on Contact {
       email
+      thumbnailUrl
+      
       tasks {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
+
       user {
         ...UserTasksFragment
       }
     }
 
+    ${ItemMetaFragment}
     ${UserTasksFragment}
   `,
 
@@ -116,75 +162,64 @@ export const Fragments = {
 
   GroupFragment: gql`
     fragment GroupFragment on Group {
-      id
+
       members {
-        type
-        id
-        title
+        ...ItemMetaFragment
         email
       }
+
       projects {
-        type
-        id
-        title
+        ...ItemMetaFragment
       }
     }
+
+    ${ItemMetaFragment}
   `,
 
   TaskFragment: gql`
     fragment TaskFragment on Task {
-      bucket
-      type
-      id
-  
-      # TODO(burdon): Already in ItemFragment.
-      title
-      description
+      ...ItemMetaFragment
   
       project {
-        id
-        title
+        ...ItemMetaFragment
       }
   
       owner {
-        id
-        title
+        ...ItemMetaFragment
       }
+
       assignee {
-        id
-        title
+        ...ItemMetaFragment
+      }
+  
+      tasks {
+        ...ItemMetaFragment
+        status
       }
   
       status
-  
-      # TODO(burdon): Required for sub-task mutations.
-      tasks {
-        type
-        id
-        title
-        status
-      }
     }
+
+    ${ItemMetaFragment}
   `,
 
   ProjectFragment: gql`
     fragment ProjectFragment on Project {
   
-      # TODO(burdon): Potential collision with Task.tasks (for card search mixin).
       tasks {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
     }
+
+    ${ItemMetaFragment}
   `,
 
   ProjectBoardFragment: gql`
     fragment ProjectBoardFragment on Project {
       boards {
         alias
-        title
+
         columns {
           id
           title
@@ -192,6 +227,7 @@ export const Fragments = {
             ...ValueFragment
           }
         }
+
         itemMeta {
           itemId
           listId
@@ -205,22 +241,19 @@ export const Fragments = {
 
   UserFragment: gql`
     fragment UserFragment on User {
-      title
       email
   
       ownerTasks: tasks(filter: { expr: { field: "owner", ref: "id" } }) {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
   
       assigneeTasks: tasks(filter: { expr: { field: "assignee", ref: "id" } }) {
-        type
-        id
-        title
+        ...ItemMetaFragment
         status
       }
     }
+
+    ${ItemMetaFragment}
   `
 };

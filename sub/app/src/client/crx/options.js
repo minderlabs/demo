@@ -76,7 +76,9 @@ class Options extends React.Component {
       }
     }
 
-    this._settings.set(property, value).then(() => {
+    console.log('...');
+    this._settings.set(property, value).then(values => {
+      console.log('>>>>', values);
       this.forceUpdate();
     });
   }

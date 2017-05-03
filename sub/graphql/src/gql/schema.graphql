@@ -19,14 +19,18 @@ interface Item {
   bucket: ID                  # ID of User or Group (null for system item).
   type: String!
   id: ID!
-  # TODO(burdon): Multiple.
-  fkey: String                # Foreign key.
+
+  fkey: String                # TODO(burdon): Multiple foreign keys (e.g., email, linkedin).
   alias: String               # Short-name for URLs (unique, human-readable).
   created: Timestamp!
   modified: Timestamp!
+
   title: String!
   description: String
   labels: [String]
+
+  # NOTE: Don't provide generic links; instead allow mixins of sub-types.
+# items(type: String, filter: FilterInput): [Item]!
 }
 
 #===================================================================================================
@@ -51,7 +55,7 @@ type User implements Item {
   # TODO(burdon): Part of contact?
   email: String
 
-  # TODO(burdon): Bi-directional.
+  # TODO(burdon): Bi-directional? (ref from User to System store?)
   contact: Contact
 
   # TODO(burdon): Remove (only query via project links).
@@ -98,6 +102,7 @@ type Contact implements Item {
   labels: [String]
 
   email: String
+  thumbnailUrl: String
 
   user: User
 
@@ -118,7 +123,7 @@ type Document implements Item {
   description: String
   labels: [String]
 
-  # TODO(burdon): Move url, iconUrl, thumbnailUrl to ItemFragment
+  # TODO(burdon): Move url, iconUrl, thumbnailUrl (avatar) to ItemFragment
   url: String
   iconUrl: String
   thumbnailUrl: String
@@ -189,12 +194,15 @@ type Project implements Item {
   description: String
   labels: [String]
 
-  # TODO(burdon): Might not be associted with a Group (e.g., private Project).
+  # All projects are owned by a Group (each User has a private Group).
   group: Group!
 
-  # TODO(burdon): Directives for links. Other items (e.g., Contacts board).
-  # And/or add a FilterInput param here.
+  # TODO(burdon): Don't expose "Links" to the GQL. Instead multiple child types (WRITE-UP).
+  # TODO(burdon): Different sub-types (e.g., Pipeline with orgs/contacts and separate boards).
   tasks: [Task]!
+
+  # TODO(burdon): Factor out Pipeline mixin.
+  contacts: [Contact]
 
   # TODO(burdon): Map type (array of typed values).
   boards: [Board]
@@ -213,11 +221,10 @@ type Task implements Item {
   description: String
   labels: [String]
 
-  # TODO(burdon): Implement via links?
+  # All tasks belong to a project.
   project: Project
 
   # Sub-tasks.
-  # TODO(burdon): Resolver should flatten the query to return the hierarchical set?
   tasks: [Task]!
 
   owner: User!
@@ -247,6 +254,38 @@ type Viewer {
 }
 
 #===================================================================================================
+# Search Results.
+#===================================================================================================
+
+# TODO(burdon): Add metadata (e.g., timestamp).
+type SearchResult {
+
+  # Results.
+  items: [Item]!
+
+  # Grouped results.
+  groupedItems: [GroupedItems]
+}
+
+# Groups items (via groupBy query).
+# TODO(burdon): Generalize to a Tree?
+type GroupedItems {
+
+  # Parent item ID.
+  id: ID!
+
+  # Grouped children IDs.
+  groups: [GroupSet]
+}
+
+type GroupSet {
+
+  field: String!
+
+  ids: [ID]!
+}
+
+#===================================================================================================
 # Queries.
 # NOTE: Must only have Input types (since regular types might be recursive and therefore not serializable).
 # https://github.com/graphql/graphql-js/issues/312
@@ -258,13 +297,16 @@ type RootQuery {
   viewer: Viewer!
 
   # Get specific.
-  # TODO(burdon): Namespace.
-  # TODO(burdon): Return multiple items.
+  # TODO(burdon): Return multiple items with bucket. search:"item(itemId: $itemId)"
+  # TODO(burdon): For All typed cards.
+  # TODO(burdon): Rename root of item query by type name (lowercase).
+  # TODO(burdon): Resolver.RootQuery.item()
+  # TODO(burdon): connectReducer(ItemReducer.graphql(ContactQuery)) => ItemReducer variables.itemId
   # TODO(burdon): Add basic ItemStore key-range lookup.
   item(itemId: ID!): Item!
 
   # Search.
-  search(filter: FilterInput): [Item]!
+  search(filter: FilterInput): SearchResult!
 }
 
 #===================================================================================================
@@ -274,8 +316,12 @@ type RootQuery {
 
 input ItemMutationInput {
 
+  # TODO(burdon): Regular ID + type?
   # Item to mutate.
   itemId: ID!
+
+  # Bucket.
+  bucket: String!
 
   # Array of generic mutations.
   mutations: [ObjectMutationInput]!
